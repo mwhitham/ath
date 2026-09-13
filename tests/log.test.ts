@@ -124,7 +124,7 @@ describe("ath log — telling the four kinds apart (D57)", () => {
     expect(results(file)[0]!.benchmark).toBe("fran");
     expect(file.soft_signals).toHaveLength(0);
     expect(res.stdout.match(/kind /g)).toHaveLength(1);
-    expect(file.benchmarks.find((b) => b.id === "fran")!.definition).toContain("felt awful");
+    expect(res.stdout).toContain("Did Fran in 4:41, felt awful, slept about 5 hours");
   });
 
   it("keeps a comma inside one thought as one entry", () => {
