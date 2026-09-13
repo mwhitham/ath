@@ -14,6 +14,6 @@ Tracks the build order from `spec.md` §12. Update when a step lands.
 
 State as of 2026-08-30: README in. 29 tests passing.
 
-Steps 4 and 5 waited on the format changes in v0.2.0 and then on two more in v0.3.0, so they ship there. Step 6 waited on those, and ships in v0.4.0, because a replayed prediction has to be told apart from a live one and that is a format change.
+Steps 4 and 5 waited on the format changes in v0.2.0 and then on two more in v0.3.0, so they ship there. Step 6 waited on those, and is now the subject of v0.4.0.
 
 Step 3 grew past what this plan described. Building the importers showed that the format was dropping data it should keep: device-computed scores, beat-level HRV, and self-reported rows carried inside a device export. That is a format change, so it became its own version. The importers ship there: [`build-history/v0.2.0/`](../v0.2.0/spec.md).
