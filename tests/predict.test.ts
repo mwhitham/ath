@@ -151,7 +151,7 @@ describe("the evidence rows (D9 planted contradiction)", () => {
   });
 
   it("shows two short nights in the rows, not only a tidy average (D9)", () => {
-    const ev = evidenceOf(FIXTURE, "fran", "2026-08-10");
+    const ev = evidenceOf(FIXTURE, "fran", "2026-08-01");
     const short = ev.days.flatMap((d) => d.sleep).filter((s) => (s.duration_s ?? 0) < 6 * 3600);
     expect(short.length).toBeGreaterThanOrEqual(2);
     const text = renderEvidence(ev);
