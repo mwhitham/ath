@@ -5,8 +5,8 @@ This is the text `ath <command> --help` prints, for every command, so an agent
 can read the whole surface without a round trip.
 
 Every command takes `--json` where output is meant for an agent. Commands that
-write show a summary and ask once; `-y` answers yes in advance and `--dry-run`
-writes nothing.
+write show a summary and ask once; `-y` answers yes in advance. Where `--dry-run`
+is offered, it shows the write and writes nothing.
 
 ## Contents
 

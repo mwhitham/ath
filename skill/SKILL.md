@@ -1,6 +1,10 @@
 ---
 name: athletic-standard
-description: Read and write an athlete's Athletic Standard file (.ath.json) using the ath CLI. Use when someone logs a workout, a measurement, or how they feel; asks what their training and recovery data says; asks for a prediction on a benchmark; or reports a result that a prediction was made about.
+description: Reads and writes an athlete's Athletic Standard file (.ath.json) with the ath CLI. Applies when someone logs a workout, a lift, a benchmark result, HRV, resting heart rate, sleep, soreness, or how they feel; asks what their training or recovery data shows; asks for a prediction on a benchmark such as Fran or a 5k; reports a result to grade a prediction against; wants to backtest predictions on past results; or imports an Apple Health, WHOOP, or Oura export. Also applies to any question about a .ath.json file or the ath command.
+license: MIT
+compatibility: Requires the ath CLI (npm package athleticstandard) on PATH. No network needed.
+metadata:
+  version: "0.4.0"
 ---
 
 # Athletic Standard
@@ -16,6 +20,21 @@ fields described nowhere here, so say so rather than guessing at them.
 Not an app, not a coach, not medical advice. Describe what the data shows and what it
 does not. Do not prescribe training or diagnose anything.
 
+## Start here
+
+1. Run `ath stats --json`. It says what is in the file, which device wrote each
+   measurement, over what days, and how many observations each average rests on. Run
+   it every time rather than working from an earlier run. The file changes underneath
+   you.
+2. Pick the command from the table below. Full options and examples for every one are
+   in [references/cli.md](references/cli.md).
+3. Pass `--json`. Every command that produces output for you has it.
+4. Before any command that writes (`log`, `link`, `grade`, `import`), show the athlete
+   what will be written and wait for a yes. Pass `-y` only after they have agreed.
+5. For a prediction: run `ath predict <benchmark> --json` to get the evidence, write
+   the prediction yourself from it, then save it with `ath log`. You are the model, so
+   no key and no gateway are needed.
+
 ## The one rule the format is built on
 
 Measured signals and self-reported signals never mix. A measurement came off a device
@@ -26,13 +45,7 @@ The consequence for you: a predicted number comes from measured signals. What th
 athlete reported about themselves can widen or narrow your confidence and can explain
 a result afterwards, but it does not move the number.
 
-## Before you analyse anything, look at what is there
-
-Run `ath stats`. It tells you which measurements exist, which device wrote each one,
-over what days, and how many observations each average rests on. Read it every time
-rather than working from an earlier run — the file changes underneath you.
-
-Two things in that output decide what you can honestly say:
+## What `ath stats` tells you that decides what you can say
 
 - **Sources.** Each app or device is its own source. Two of them measuring the same
   quantity give two answers and are never averaged together. If they disagree, say
@@ -43,18 +56,50 @@ Two things in that output decide what you can honestly say:
 
 ## The commands
 
+Set up:
+
 | Command | What it does |
 |---|---|
-| `ath stats` | what is in the file, per source, with coverage |
-| `ath series <quantity>` | a sample stream back, one row per day or every sample |
-| `ath check` | whether the file still obeys every rule of the format |
-| `ath log` | write a measurement, a note, a result, or a prediction |
-| `ath link <result> <session>` | attach a result to the device session it happened in |
-| `ath predict <benchmark> --json` | evidence for a prediction, not a prediction |
-| `ath grade <benchmark> --actual <score>` | score a prediction against what happened |
+| `ath init` | create a new athlete file here, with the well-known benchmarks defined |
+| `ath skill` | show where this skill is installed and whether it is current; `ath skill install` refreshes it |
+| `ath key` | save or show a gateway key for terminal use; never stored in the athlete file |
+| `ath models` | list live text models that can reason, or save the usual one |
 
-Every one takes `--json`, which is what you should use. Every one has examples under
-`--help`.
+Get data in:
+
+| Command | What it does |
+|---|---|
+| `ath import <path>` | load an Apple Health, WHOOP, or Oura export into the file |
+| `ath log [entry...]` | write a workout result, a measurement, how they felt, or a prediction |
+| `ath link <result> <session>` | attach a workout result to the device session it happened in |
+
+Read:
+
+| Command | What it does |
+|---|---|
+| `ath check [file]` | whether the file still obeys every rule of the format |
+| `ath series <quantity>` | a sample stream back, one row per day or every raw sample |
+| `ath stats [file]` | what is in the file: counts, date ranges, sources, and baselines |
+
+Predict and grade:
+
+| Command | What it does |
+|---|---|
+| `ath predict <benchmark> --json` | the evidence for a prediction; the prediction is yours to write |
+| `ath grade <benchmark> --actual <score>` | record what happened and score the prediction against it |
+| `ath backtest` | replay past results through one or more models; writes a report, not the athlete file |
+| `ath share` | not built yet; names the latest backtest report |
+
+Full options, arguments, and examples for each: [references/cli.md](references/cli.md).
+
+`key`, `models`, `backtest`, and `share` are for a person at a terminal. They call a
+model through a gateway the person paid for. Inside a harness you are the model, so
+you do not use them. Bare `ath predict` (without `--json`) also calls a gateway; in a
+harness always pass `--json`.
+
+Common flags: `--file <path>` points at a file other than the one in this folder.
+`--dry-run` shows what a write would do and writes nothing. `--as-of <date>` makes
+`predict` see only what was known on that day.
 
 ## What you must hold, because no tool can
 
@@ -83,9 +128,13 @@ bug in the command, not something to work around in prose.
 
 ## Open these when the question needs them
 
-- [format.md](format.md) — the record types, their fields, and their units.
-- [logging.md](logging.md) — how to turn what someone said into a record, and how to
-  name a workout they did not name.
-- [predicting.md](predicting.md) — how to read the evidence package and write a
-  prediction worth grading.
-- [grading.md](grading.md) — what to do with a hit, and what to do with a miss.
+- [references/cli.md](references/cli.md) — every command, its options, and its
+  examples, as `ath <command> --help` prints them.
+- [references/format.md](references/format.md) — the record types, their fields, and
+  their units.
+- [references/logging.md](references/logging.md) — how to turn what someone said into
+  a record, and how to name a workout they did not name.
+- [references/predicting.md](references/predicting.md) — how to read the evidence
+  package and write a prediction worth grading.
+- [references/grading.md](references/grading.md) — what to do with a hit, and what to
+  do with a miss.
