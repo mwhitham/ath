@@ -141,3 +141,33 @@ Rejected alternatives:
 - **A hardcoded list of lab models.** Rejected because it would hide open weights and go stale.
 - **Every chat model, whether the catalog marks reasoning or not.** Rejected because the rule is the catalog's mark, not our guess.
 - **Run `--all` without asking.** Rejected because the person should see the count before paying for it.
+
+## D79. The skill installs to `.agents/skills/`, and `ath skill` keeps it current
+
+`ath init` always writes the skill to `.agents/skills/athletic-standard/`. Claude Code, Cursor, Codex, and Gemini CLI all read that folder. It also copies into any harness folder already present: `.claude`, `.cursor`, `.codex`, `.gemini`, `.github`.
+
+Before this, the skill was copied only into folders that already existed. A folder with no agent folder got no skill, and a harness that reads `.agents/` found nothing.
+
+`ath skill` shows each installed copy and the version it came from. `ath skill install` refreshes them. Each copy carries its version in the `SKILL.md` frontmatter, so a copy from an older `ath` can be told apart from the shipped one.
+
+Every other command warns once on stderr when an installed copy is older than the shipped one. It never warns when no copy exists. Running without an agent is normal, and a warning about a missing skill would nag the person who never wanted one.
+
+Rejected alternatives:
+
+- **Only folders that already exist.** Rejected because a harness that reads `.agents/` finds nothing.
+- **Warn when the skill is absent.** Rejected because it nags the terminal-only user.
+- **Refresh silently on every command.** Rejected because a command that reads should not write into the project folder.
+
+## D80. The skill carries a generated command reference
+
+The skill holds `references/cli.md`, built from the CLI's own help by `pnpm generate:skill-cli`. A test fails when the committed file is behind the code. The same rule as the JSON Schema and the fixture: regenerate, do not hand-edit.
+
+The hand-written command table in the skill drifted this version. It listed seven of thirteen commands. A reference built from the same source as `--help` cannot drift.
+
+`SKILL.md` stays short. It lists every command in one line each and points at `references/cli.md` for options and examples. The detail files move to `references/`, one level deep, which is the layout the Agent Skills specification recommends.
+
+Rejected alternatives:
+
+- **Hand-written command docs in the skill.** Rejected because they drifted.
+- **Point the agent at `ath --help` alone.** Rejected because an agent should not need a round trip to learn the surface.
+- **Put the full reference in `SKILL.md`.** Rejected because it is loaded on every activation (D49).
