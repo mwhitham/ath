@@ -6,10 +6,10 @@
   "homepage": "https://athleticstandard.ai",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mwhitham/athleticstandard.git"
+    "url": "git+https://github.com/mwhitham/ath.git"
   },
   "bugs": {
-    "url": "https://github.com/mwhitham/athleticstandard/issues"
+    "url": "https://github.com/mwhitham/ath/issues"
   },
   "keywords": [
     "athletic-standard",
