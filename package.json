@@ -56,7 +56,8 @@
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
     "generate:json-schema": "tsx scripts/generate-json-schema.ts",
-    "generate:fixture": "tsx scripts/generate-fixture.ts"
+    "generate:fixture": "tsx scripts/generate-fixture.ts",
+    "generate:skill-cli": "tsx scripts/generate-skill-cli.ts"
   },
   "dependencies": {
     "commander": "^15.0.0",
