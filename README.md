@@ -273,6 +273,17 @@ Early days. Version 0.4.
 
 Working today: creating a file, loading exports from Apple Health, WHOOP, and Oura, checking and summarizing it, reading the detailed measurements back, logging what you did, predicting in a harness or from a bare terminal, grading, explaining a miss, and backtesting models against a held-back history.
 
+### What changed in 0.4
+
+- **`ath backtest`.** Replays every result that has an earlier result on the same benchmark, with evidence as of the day before, and ranks the models you name. It writes a report file, not the athlete file. This closes the last open step of the first plan.
+- **A prediction needs a model.** In a harness the model is already there, and `ath predict --json` gives it the evidence. In a bare terminal `ath predict` calls a model through a Vercel or OpenRouter key you save with `ath key set`. The key lives in the computer's password store, never in the athlete file. There is no subscription.
+- **`ath models`** lists every live text model that can reason, open weights included, and saves your usual one.
+- **`ath log`** writes one entry per run, keeps commas inside a sentence, takes round times after `//`, and asks a plainer question about which device session to attach to.
+- **`benchmark_result.segments`** holds hand-logged round times. Every 0.3 file still loads.
+- **The agent skill** now covers every command and carries a reference generated from `ath --help`, so it cannot drift. `ath init` installs it to `.agents/skills`, which Claude Code, Cursor, Codex, and Gemini CLI all read. `ath skill` shows whether each copy is current and `ath skill install` refreshes it.
+
+Coming next: `ath share`, which today only names the backtest report it would send.
+
 ## Reference
 
 [SPEC.md](SPEC.md) documents every field in the file. [docs/connections.md](docs/connections.md) covers what each wearable actually hands over, and what it holds back. [skill/](skill/) is the agent skill `ath init` installs — worth reading even if you never use an agent, because it says plainly what the tools guarantee and what they don't.
