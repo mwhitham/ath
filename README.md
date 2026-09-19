@@ -54,7 +54,7 @@ ath init
 
 Every command below reads and writes that one file, so run them from this same folder.
 
-If you keep an agent folder here — `.claude`, `.cursor`, or `.agents` — `ath init` also copies a skill into it, so an agent working in this folder knows how to read and write the file properly. Pass `--no-skill` if you'd rather it didn't.
+`ath init` also writes an agent skill to `.agents/skills/`, which Claude Code, Cursor, Codex, and Gemini CLI all read, and into any of `.claude`, `.cursor`, `.codex`, `.gemini`, or `.github` already here. An agent working in this folder then knows how to read and write the file properly. Pass `--no-skill` if you'd rather it didn't. `ath skill` shows each copy and whether it is current; `ath skill install` refreshes them after an upgrade.
 
 Typing `ath` on its own tells you what to do next. Every command has examples of its own under `ath <command> --help`.
 

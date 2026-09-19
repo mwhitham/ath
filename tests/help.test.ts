@@ -49,6 +49,7 @@ describe("ath --help — written for someone who has never run this (D50)", () =
       "models",
       "backtest",
       "share",
+      "skill",
     ]) {
       const res = ath([command, "--help"], emptyDir());
       expect(res.stdout, `${command} --help`).toContain("Examples:");

@@ -230,7 +230,8 @@ export function buildProgram(): Command {
     .option("--json", "structured output, for an agent rather than a person")
     .action((opts: { json?: boolean }) => {
       const written = installSkill(process.cwd());
-      if (opts.json) {
+      // Commander hands `--json` to the parent when both declare it.
+      if (opts.json || skillCmd.opts().json) {
         console.log(JSON.stringify({ shipped: shippedSkillVersion(), skill_installed: written }, null, 2));
         return;
       }
