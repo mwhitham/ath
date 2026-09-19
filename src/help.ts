@@ -43,7 +43,7 @@ export function bareGuide(cwd: string): string {
       ``,
       `  ath log slept badly, about 5 hours`,
       `  ath stats`,
-      `  ath predict fran`,
+      `  ath predict fran --json`,
       ``,
       `Every command explains itself: \`ath <command> --help\`, with examples.`,
       `The whole list: \`ath --help\`.`,
@@ -55,9 +55,9 @@ export function bareGuide(cwd: string): string {
     `ath — Athletic Standard. Working on ${name} in this folder.`,
     ``,
     `  ath stats                      what is in the file, and where it came from`,
-    `  ath log HRV 61 this morning    write something down — the only command that writes`,
+    `  ath log HRV 61 this morning    write something down`,
     `  ath import <export>            load more device data`,
-    `  ath predict fran               the evidence a prediction would rest on`,
+    `  ath predict fran               predict Fran — needs a model in a bare terminal`,
     `  ath check                      make sure the file is still sound`,
     ``,
     `Every command explains itself: \`ath <command> --help\`, with examples.`,
@@ -79,9 +79,24 @@ Examples:
 The file is created here, called athlete${FILE_SUFFIX}, with the well-known
 benchmarks already defined. Nothing leaves your machine.
 
-If there is an agent folder here — .claude, .cursor or .agents — the agent
-skill is copied into it, so an agent in this folder knows how to read and
-write the file. Pass --no-skill to skip that.`,
+The agent skill is written to .agents/skills, which Claude Code, Cursor,
+Codex, and Gemini CLI read, and into any of .claude, .cursor, .codex,
+.gemini, or .github already here. An agent in this folder then knows how
+to read and write the file. Pass --no-skill to skip that.`,
+
+  skill: `
+Examples:
+
+  Where the skill is installed, and whether each copy is current:
+    $ ath skill
+
+  Refresh every copy after upgrading ath:
+    $ ath skill install
+
+The skill is a folder an agent reads to learn the file and the commands.
+ath init writes it to .agents/skills and into any harness folder already
+here. Each copy carries its version. When a copy is older than the one
+this ath ships, other commands say so once on stderr; this one fixes it.`,
 
   check: `
 Examples:
@@ -130,6 +145,9 @@ Examples:
   A one-line workout:
     $ ath log Fran in 4:41 rx
 
+  Round times at the end. \`//\` marks the result; \`Times:\` does the same:
+    $ ath log e5m x 6: 16 echo bike cals, 12 t2b, 8 deadlift at 225 // 1:46, 1:25
+
   A workout of several lines. Run \`ath log\` on its own, paste it, and
   press Ctrl-D. A box height writes as 20" and a shell would break on it,
   which is why it is pasted rather than quoted:
@@ -145,19 +163,25 @@ Examples:
       kind     workout result
       date     2026-09-07  (today)
       score    245 reps
-      name     2026-09-07  (no agent connected, so named after the day)
-      session  17:25 to 17:48 on whoop-1
-      workout  saved word for word
+      name     2026-09-07
+      attach   17:25 to 17:48 on whoop-1
+      workout  7 ROUNDS FOR REPS
+               40s ALT DB SNATCH 55lbs / 20s REST
+               40s BOX STEP UPS 20" / 20s REST
+               245 TOTAL REPS
 
-    Save this? [y] yes  [n] no
+    Save this?
+      [y] yes, on the 17:25–17:48 session
+      [n] no
 
   A workout from an earlier day. The date goes first, as year-month-day:
     $ ath log 2026-09-04
 
 What this reads on its own: measurement names it knows, numbers, units,
-ratings like 4/5, clock times, and rep totals. Everything else becomes a
-note with your words kept exactly. It never turns a sentence into a
-measurement on a guess — the worst it can do is file something as a note.
+ratings like 4/5, clock times, a list of round times, and rep totals.
+Everything else becomes a note with your words kept exactly. It never
+turns a sentence into a measurement on a guess — the worst it can do is
+file something as a note. One command writes one record.
 
 One workout on one day makes one result. Logging a second is refused,
 because a duplicate is counted by every average afterwards and nothing
@@ -186,22 +210,84 @@ fixing one that went to the wrong session.`,
   predict: `
 Examples:
 
-  Everything a prediction for Fran would rest on:
+  Predict Fran. Needs a gateway key in a bare terminal:
+    $ ath models
+    $ ath predict fran --model qwen/qwen3-235b-a22b
+
+  Save a usual model, then predict without naming it:
+    $ ath models --default openai/gpt-oss-120b
     $ ath predict fran
 
-  The same, as it stood on a past day, so a prediction can be tested
-  against what actually happened next:
-    $ ath predict fran --as-of 2026-06-01
-
-  As data, for an agent:
+  Evidence for a harness, not a prediction. No key needed:
     $ ath predict fran --json
 
-This prints evidence and never a number. Turning evidence into a
-prediction takes a model and this tool has none. An agent reads this,
-reasons, and writes its answer back with \`ath log\`, naming itself and
-the model it ran — a prediction nobody signed cannot be weighed later.
+A prediction needs a model. In Claude Code, Cursor, or Codex the model
+is already there: pull evidence with --json, reason, write with
+\`ath log\`. In a bare terminal this command calls the model you chose,
+prints the number, and asks once before writing.
 
-It reads only. Nothing in the file changes.`,
+--as-of hides everything after that day and does not write. Replaying
+the past is \`ath backtest\`.`,
+
+  key: `
+Examples:
+
+  Save a Vercel or OpenRouter key in the computer's password store:
+    $ ath key set vercel
+    $ ath key set openrouter
+
+  See which gateway is saved, not the key itself:
+    $ ath key
+
+  Delete it:
+    $ ath key clear
+
+There is no Athletic Standard subscription. A key is only for calling a
+model from a bare terminal. Inside a harness you do not need one.
+
+The key never goes in the athlete file. Agents read that file. If the
+password store is missing, the command refuses. It will not write a
+plaintext file. A key already in AI_GATEWAY_API_KEY or OPENROUTER_API_KEY
+still works, for scripts.`,
+
+  models: `
+Examples:
+
+  Every live text model that can reason, including open weights:
+    $ ath models
+
+  Save your usual model next to the athlete file:
+    $ ath models --default openai/gpt-oss-120b
+
+Needs a gateway key. The list is fetched each time, so a new open-weight
+model appears without a new ath. Image, audio, and embedding models are
+out. We do not pick a favourite lab for you.`,
+
+  backtest: `
+Examples:
+
+  Replay history with the models you name:
+    $ ath backtest --model qwen/qwen3-235b-a22b --model openai/gpt-oss-120b
+
+  Every live text model that can reason, after showing the count:
+    $ ath backtest --all
+
+A prediction needs a model, so a key is required. No key → refuse. In a
+harness, daily predictions use the harness model; this command is for
+comparing models on a history you already have.
+
+A result is replayed only when an earlier result on the same benchmark
+exists. Evidence is as of the day before. The athlete file is not
+written. The report's summary is the later share payload.`,
+
+  share: `
+Examples:
+
+  Name the latest backtest report:
+    $ ath share
+
+Not built yet. The shareable part of a backtest is the summary in the
+report file this names.`,
 
   grade: `
 Examples:
@@ -283,5 +369,8 @@ Every command has examples of its own: \`ath <command> --help\`.
 The file is yours and it is local. It is one JSON document you can read,
 edit, back up, and move. Device measurements and things you reported
 yourself are kept apart on purpose, and no command mixes them.
+
+A prediction needs a model. In a harness the model is already there.
+There is no Athletic Standard subscription.
 
 Not an app, not a coach, not medical advice.`;

@@ -54,7 +54,7 @@ ath init
 
 Every command below reads and writes that one file, so run them from this same folder.
 
-If you keep an agent folder here — `.claude`, `.cursor`, or `.agents` — `ath init` also copies a skill into it, so an agent working in this folder knows how to read and write the file properly. Pass `--no-skill` if you'd rather it didn't.
+`ath init` also writes an agent skill to `.agents/skills/`, which Claude Code, Cursor, Codex, and Gemini CLI all read, and into any of `.claude`, `.cursor`, `.codex`, `.gemini`, or `.github` already here. An agent working in this folder then knows how to read and write the file properly. Pass `--no-skill` if you'd rather it didn't. `ath skill` shows each copy and whether it is current; `ath skill install` refreshes them after an upgrade.
 
 Typing `ath` on its own tells you what to do next. Every command has examples of its own under `ath <command> --help`.
 
@@ -107,22 +107,33 @@ ath log
 ath log 2026-09-04
 ```
 
+**Round times at the end.** Put them after `//`, or after `Times:`. Each time is kept, so they can be read later:
+
+```
+ath log e5m x 6: 16 echo bike cals, 12 t2b, 8 deadlift at 225 // 1:46, 1:25, 1:25, 1:38, 2:31, 2:58
+```
+
 Nothing is written until you say so. First you see exactly what it understood:
 
 ```
   kind     workout result
   date     2026-09-07  (today)
   score    245 reps
-  name     2026-09-07  (no agent connected, so named after the day)
-  session  17:25 to 17:48 on whoop-1
-  workout  saved word for word
+  name     2026-09-07
+  attach   17:25 to 17:48 on whoop-1
+  workout  7 ROUNDS FOR REPS
+           40s ALT DB SNATCH 55lbs / 20s REST
+           40s BOX STEP UPS 20" / 20s REST
+           245 TOTAL REPS
 
-Save this? [y] yes  [n] no
+Save this?
+  [y] yes, on the 17:25–17:48 session
+  [n] no
 ```
 
 The first line is the one worth reading. It says which side of the wall the entry lands on — measured, or something you reported — and that's the decision you can't spot by eye later.
 
-That `session` line is the tool noticing you have a recorded workout at the same time as the result, and offering to attach the two. Usually your watch hasn't synced yet, so there's nothing to attach; the next `ath import` offers the match once the data arrives, and `ath link` does it by hand.
+That `attach` line is the tool noticing you have a recorded workout at the same time as the result, and offering to attach the two. Usually your watch hasn't synced yet, so there's nothing to attach; the next `ath import` offers the match once the data arrives, and `ath link` does it by hand.
 
 ### What it reads on its own, and what changes with an agent
 
@@ -225,11 +236,26 @@ Deliberately left out: medical records from your health provider, and findings t
 
 This is the part the file exists for. A record of training that never commits to a claim about tomorrow can't be shown to be right or wrong.
 
-**`ath predict fran`** prints everything a prediction would rest on: your previous Frans, the last 28 days day by day, your long-range averages with the count and spread behind each one, and how your past predictions on Fran turned out. It also names what's missing — days with no data, a benchmark with only one prior result, two devices that disagree.
+A prediction needs a model. Where that model lives depends on where you run.
 
-It doesn't give you a number. Turning evidence into a prediction takes a model, and there isn't one in the terminal. An agent reads this, reasons, and writes its answer back. Add `--as-of 2026-06-01` to hide everything after a past day, which is how you test whether the reasoning actually works on you. That option hides data and nothing else: the averages are worked out exactly the same way, or the test would be measuring the tool.
+**In Claude Code, Cursor, or Codex** the model is already there. You do not need a gateway key, and there is no Athletic Standard subscription. Run `ath predict fran --json` for the evidence, reason, and write the prediction with `ath log`, naming the agent and the model.
 
-Every prediction records who made it — the agent, the model it ran, and the version of `ath` that wrote it. Six months from now, a prediction nobody signed can't be weighed against the ones that were right, so `ath log` refuses one that doesn't say.
+**In a bare terminal** `ath predict fran` calls the model you chose. That needs a Vercel or OpenRouter key, saved with `ath key set` into the computer's password store — never into the athlete file. It prints the number, the range, the model, then the evidence it used, and asks once before writing. No key → it refuses. Evidence alone is never a prediction.
+
+```
+ath key set vercel
+ath models
+ath models --default openai/gpt-oss-120b
+ath predict fran --model qwen/qwen3-235b-a22b
+ath predict fran
+ath predict fran --json
+```
+
+`--json` is evidence for a harness: your previous Frans, the last 28 days day by day, long-range averages with the count and spread behind each one, past predictions on Fran, and what's missing. It is not a prediction.
+
+`--as-of 2026-06-01` hides everything after a past day and does not write. Replaying the past is `ath backtest`.
+
+Every prediction records who made it — the agent, the model it ran, and the version of `ath` that wrote it. Six months from now, a prediction nobody signed can't be weighed against the ones that were right, so `ath log` refuses one that doesn't say. When the CLI produced the number, it writes `agent: "ath predict"` and that model.
 
 **`ath grade fran --actual 4:32`** records what happened and scores the open prediction against it. Like `ath log`, it shows what it's about to write and asks once — including which of that day's recorded sessions the result belongs to, if your watch caught one. The verdict comes after.
 
@@ -237,15 +263,26 @@ Inside the range it stated is a hit, and prints one line. Anything else is a mis
 
 If no prediction was open, the result is simply recorded and that's that. If you'd already logged the result, it's graded rather than written twice.
 
+**`ath backtest`** replays every result that has an earlier result on the same benchmark. Evidence is as of the day before. It grades with the same math as `ath grade`. It does not write the athlete file. You pick models with `--model`, or pass `--all` to run every live text model that can reason, after it shows the count. The report's `summary` is the later share payload; `ath share` is not built and names that file.
+
 **One workout on one day makes one result.** Logging a second is refused, and the refusal shows you the one already there. A duplicate result is counted by every average and every trend afterwards, and nothing about the file looks wrong — which is exactly the kind of quiet mistake this format exists to prevent. If you really did do it twice, pass `--again`.
 
 ## Where this is up to
 
-Early days. Version 0.3.
+Early days. Version 0.4.
 
-Working today: creating a file, loading exports from Apple Health, WHOOP, and Oura, checking and summarizing it, reading the detailed measurements back, logging what you did, and the full prediction loop — predict, log, grade, explain the miss.
+Working today: creating a file, loading exports from Apple Health, WHOOP, and Oura, checking and summarizing it, reading the detailed measurements back, logging what you did, predicting in a harness or from a bare terminal, grading, explaining a miss, and backtesting models against a held-back history.
 
-Coming next: measuring the agent's reasoning against a held-back history, so there's a number for how often it's right.
+### What changed in 0.4
+
+- **`ath backtest`.** Replays every result that has an earlier result on the same benchmark, with evidence as of the day before, and ranks the models you name. It writes a report file, not the athlete file. This closes the last open step of the first plan.
+- **A prediction needs a model.** In a harness the model is already there, and `ath predict --json` gives it the evidence. In a bare terminal `ath predict` calls a model through a Vercel or OpenRouter key you save with `ath key set`. The key lives in the computer's password store, never in the athlete file. There is no subscription.
+- **`ath models`** lists every live text model that can reason, open weights included, and saves your usual one.
+- **`ath log`** writes one entry per run, keeps commas inside a sentence, takes round times after `//`, and asks a plainer question about which device session to attach to.
+- **`benchmark_result.segments`** holds hand-logged round times. Every 0.3 file still loads.
+- **The agent skill** now covers every command and carries a reference generated from `ath --help`, so it cannot drift. `ath init` installs it to `.agents/skills`, which Claude Code, Cursor, Codex, and Gemini CLI all read. `ath skill` shows whether each copy is current and `ath skill install` refreshes it.
+
+Coming next: `ath share`, which today only names the backtest report it would send.
 
 ## Reference
 

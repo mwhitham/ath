@@ -1,7 +1,8 @@
 # Logging what someone said
 
-`ath log` is the only command that writes. It takes either what a person typed, or
-structured JSON from you. Use the JSON.
+Write through `ath log`. It takes either what a person typed, or structured JSON
+from you. Use the JSON. A prediction you made is written here, naming you and your
+model. When the terminal itself called a model, `ath predict` writes that one.
 
 ## Pass JSON, and let the shape decide
 
@@ -11,7 +12,7 @@ Three shapes, and they do not overlap, so nothing is guessed:
 - A `type` from the self-reported list is a self-reported entry.
 - `predicted` and `confidence`, with no `type`, is a prediction.
 
-Pass one object, or an array of them for one sentence that produced several records.
+Pass one object, or an array of them when you have several records to write at once. Typed text is always one record per command.
 
 ```
 ath log '{"type":"hrv_rmssd","value":61,"unit":"ms","recorded_at":"2026-09-07T06:10:00-07:00"}'
@@ -38,7 +39,7 @@ like a measurement forever.
   record.
 - **A rating needs its scale.** `4/5` is `rating: 4, scale: "1-5"`.
 - **Free text is never a prediction.** A prediction is reasoned from evidence, and it
-  gets written only after you have read `ath predict`.
+  gets written only after you have read `ath predict --json`.
 - **When you are unsure between a measurement and a note, write the note.** A note
   loses nothing. A wrong measurement corrupts a baseline.
 

@@ -326,6 +326,10 @@ export const BenchmarkResult = z.strictObject({
     })
     .optional()
     .describe("The workout session this result was recorded during"),
+  segments: z
+    .array(WorkoutSegment)
+    .optional()
+    .describe("Ordered sub-efforts on this result: round times, splits. Hand-logged, not copied from the device session"),
   note: z.string().optional(),
 });
 
@@ -657,7 +661,7 @@ export const Athlete = z.strictObject({
     .describe("Display preference only — stored values are always canonical (metric) units"),
 });
 
-export const ATHLETIC_STANDARD_VERSION = "0.3.0";
+export const ATHLETIC_STANDARD_VERSION = "0.4.0";
 
 export const AthleticStandardFile = z
   .strictObject({
@@ -688,6 +692,7 @@ export type PredictionT = z.infer<typeof Prediction>;
 export type GradeT = z.infer<typeof Grade>;
 export type ScoreT = z.infer<typeof Score>;
 export type PointMeasurementT = z.infer<typeof PointMeasurement>;
+export type WorkoutSegmentT = z.infer<typeof WorkoutSegment>;
 export type SoftSignalTypeT = z.infer<typeof SoftSignalType>;
 export type SeriesRefT = z.infer<typeof SeriesRef>;
 export type SeriesFileT = z.infer<typeof SeriesFile>;
