@@ -12,6 +12,8 @@ is offered, it shows the write and writes nothing.
 
 - [ath](#ath)
 - [ath init](#ath-init) — create a new athlete.ath.json here, with the well-known benchmarks defined
+- [ath skill](#ath-skill) — where the agent skill is installed, and whether each copy is current
+- [ath skill install](#ath-skill-install) — copy the skill into .agents/skills and every harness folder here
 - [ath import](#ath-import) — load an Apple Health, WHOOP, or Oura export into the file
 - [ath log](#ath-log) — write something down: a workout result, a measurement, or how you felt
 - [ath link](#ath-link) — attach a workout result to the device session it happened in
@@ -42,6 +44,8 @@ Options:
 Set up:
   init [options]                     create a new athlete.ath.json here, with
                                      the well-known benchmarks defined
+  skill [options]                    where the agent skill is installed, and
+                                     whether each copy is current
   key [options]                      save or show a gateway key — never stored
                                      in the athlete file
   models [options]                   list live text models that can reason, or
@@ -94,6 +98,34 @@ Options:
                        is here
   --json               structured output, for an agent rather than a person
   -h, --help           display help for command
+```
+
+## ath skill
+
+```
+Usage: ath skill [options] [command]
+
+where the agent skill is installed, and whether each copy is current
+
+Options:
+  --json             structured output, for an agent rather than a person
+  -h, --help         display help for command
+
+Commands:
+  install [options]  copy the skill into .agents/skills and every harness folder
+                     here
+```
+
+## ath skill install
+
+```
+Usage: ath skill install [options]
+
+copy the skill into .agents/skills and every harness folder here
+
+Options:
+  --json      structured output, for an agent rather than a person
+  -h, --help  display help for command
 ```
 
 ## ath import

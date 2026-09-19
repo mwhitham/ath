@@ -79,9 +79,24 @@ Examples:
 The file is created here, called athlete${FILE_SUFFIX}, with the well-known
 benchmarks already defined. Nothing leaves your machine.
 
-If there is an agent folder here — .claude, .cursor or .agents — the agent
-skill is copied into it, so an agent in this folder knows how to read and
-write the file. Pass --no-skill to skip that.`,
+The agent skill is written to .agents/skills, which Claude Code, Cursor,
+Codex, and Gemini CLI read, and into any of .claude, .cursor, .codex,
+.gemini, or .github already here. An agent in this folder then knows how
+to read and write the file. Pass --no-skill to skip that.`,
+
+  skill: `
+Examples:
+
+  Where the skill is installed, and whether each copy is current:
+    $ ath skill
+
+  Refresh every copy after upgrading ath:
+    $ ath skill install
+
+The skill is a folder an agent reads to learn the file and the commands.
+ath init writes it to .agents/skills and into any harness folder already
+here. Each copy carries its version. When a copy is older than the one
+this ath ships, other commands say so once on stderr; this one fixes it.`,
 
   check: `
 Examples:

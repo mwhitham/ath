@@ -78,7 +78,16 @@ import {
 import { bareGuide, EXAMPLES, GROUPS, HELP_FOOTER } from "./help.js";
 import { importExport, PooledFileError, UnknownExportError } from "./import/index.js";
 import { silentProgress, terminalProgress } from "./progress.js";
-import { AGENT_DIRS, installSkill, skillSource } from "./skill.js";
+import {
+  ALWAYS_DIR,
+  installSkill,
+  shippedSkillVersion,
+  skillSource,
+  skillStatus,
+  staleSkillWarning,
+  UNVERSIONED,
+  type SkillCopy,
+} from "./skill.js";
 import { mergeSummaryAsJson, renderMergeSummary } from "./import/merge.js";
 
 /** The whole command tree. `cli.ts` parses it; the skill generator reads its help. */
@@ -96,6 +105,19 @@ export function buildProgram(): Command {
     .action(() => {
       console.log(bareGuide(process.cwd()));
     });
+
+  // One stderr line when an installed skill copy is older than the shipped one
+  // (D79). Skipped for init and skill, which write it, and for --json runs, whose
+  // reader is an agent that cannot act on it. Silent when no copy exists.
+  program.hook("preAction", (_thisCommand, actionCommand) => {
+    const chain: string[] = [];
+    for (let c: Command | null = actionCommand; c; c = c.parent) chain.unshift(c.name());
+    const top = chain[1];
+    if (top === undefined || top === "init" || top === "skill") return;
+    if (actionCommand.opts().json === true || process.argv.includes("--json")) return;
+    const warning = staleSkillWarning(process.cwd());
+    if (warning) console.error(warning);
+  });
 
   program
     .command("init")
@@ -154,8 +176,8 @@ export function buildProgram(): Command {
 
       saveFile(outPath, file);
 
-      // The skill goes wherever an agent will look for it, which is the agent's own
-      // folder. No folder means no agent here, which is an ordinary way to use this.
+      // The skill always goes to .agents/skills, which every major harness reads,
+      // and into any harness folder already here (D79).
       const installed = opts.skill === false ? [] : installSkill(process.cwd());
 
       if (opts.json) {
@@ -176,13 +198,45 @@ export function buildProgram(): Command {
       console.log(`created ${outPath}`);
       console.log(`  seeded ${SEED_BENCHMARKS.length} benchmarks: ${SEED_BENCHMARKS.map((b) => b.id).join(", ")}`);
       for (const path of installed) console.log(`  installed the agent skill into ${path}`);
-      if (opts.skill !== false && installed.length === 0) {
+      if (installed.length > 0) {
         console.log(
-          `  no agent folder here (${AGENT_DIRS.join(", ")}), so the skill was not installed.`,
+          `  ${ALWAYS_DIR}/skills is read by Claude Code, Cursor, Codex, and Gemini CLI. ` +
+            `\`ath skill install\` refreshes every copy after an upgrade.`,
         );
-        console.log(`  copy it from ${skillSource()} whenever you want it.`);
+      } else if (opts.skill !== false) {
+        console.log(`  the skill was not installed. \`ath skill install\` does it later.`);
       }
       console.log(`  next: \`ath import <export-file>\` to load device data`);
+    });
+
+  const skillCmd = program
+    .command("skill")
+    .helpGroup(GROUPS.setUp)
+    .description("where the agent skill is installed, and whether each copy is current")
+    .addHelpText("after", EXAMPLES.skill!)
+    .option("--json", "structured output, for an agent rather than a person")
+    .action((opts: { json?: boolean }) => {
+      const copies = skillStatus(process.cwd());
+      if (opts.json) {
+        console.log(JSON.stringify({ shipped: shippedSkillVersion(), copies }, null, 2));
+        return;
+      }
+      console.log(renderSkillStatus(process.cwd(), copies));
+    });
+
+  skillCmd
+    .command("install")
+    .description(`copy the skill into ${ALWAYS_DIR}/skills and every harness folder here`)
+    .option("--json", "structured output, for an agent rather than a person")
+    .action((opts: { json?: boolean }) => {
+      const written = installSkill(process.cwd());
+      if (opts.json) {
+        console.log(JSON.stringify({ shipped: shippedSkillVersion(), skill_installed: written }, null, 2));
+        return;
+      }
+      if (written.length === 0) return fail(`the skill is not here to copy: expected it at ${skillSource()}`);
+      for (const path of written) console.log(`installed the agent skill into ${path}`);
+      console.log(`version ${shippedSkillVersion()}`);
     });
 
   program
@@ -1171,4 +1225,26 @@ function findOrFail(fileArg?: string): string {
 function fail(message: string): never {
   console.error(`ath: ${message}`);
   process.exit(1);
+}
+
+function renderSkillStatus(cwd: string, copies: SkillCopy[]): string {
+  const lines = [`agent skill, version ${shippedSkillVersion()} shipped with this ath`, ``];
+  for (const copy of copies) {
+    const where = copy.path.slice(cwd.length).replace(/^[\\/]+/, "") || copy.path;
+    const state =
+      copy.state === "current"
+        ? `current (${copy.installed})`
+        : copy.state === "stale"
+          ? `stale: ${copy.installed === UNVERSIONED ? "an older version" : copy.installed} installed`
+          : "missing";
+    lines.push(`  ${where.padEnd(40)} ${state}`);
+  }
+  lines.push(``);
+  if (copies.some((c) => c.state !== "current")) {
+    lines.push(`\`ath skill install\` writes the shipped version into each of these.`);
+  } else {
+    lines.push(`Every copy is current.`);
+  }
+  lines.push(`${ALWAYS_DIR}/skills is read by Claude Code, Cursor, Codex, and Gemini CLI.`);
+  return lines.join("\n");
 }
