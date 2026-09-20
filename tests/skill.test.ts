@@ -98,7 +98,7 @@ describe("the frontmatter follows the Agent Skills shape", () => {
   });
 
   it("carries a license, compatibility, and the shipped version", () => {
-    expect(meta.license).toBe("MIT");
+    expect(meta.license).toBe("Apache-2.0");
     expect(meta.compatibility).toContain("ath");
     expect((meta.metadata as Record<string, string>).version).toBe(ATHLETIC_STANDARD_VERSION);
   });

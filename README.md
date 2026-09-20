@@ -269,9 +269,13 @@ If no prediction was open, the result is simply recorded and that's that. If you
 
 ## Where this is up to
 
-Early days. Version 0.4.
+Early days. Version 0.4.1.
 
 Working today: creating a file, loading exports from Apple Health, WHOOP, and Oura, checking and summarizing it, reading the detailed measurements back, logging what you did, predicting in a harness or from a bare terminal, grading, explaining a miss, and backtesting models against a held-back history.
+
+### What changed in 0.4.1
+
+- **Apache License 2.0.** The npm package, the skill, and the repository use Apache 2.0. The file format is unchanged: a 0.4.0 file still loads.
 
 ### What changed in 0.4
 
@@ -287,3 +291,7 @@ Coming next: `ath share`, which today only names the backtest report it would se
 ## Reference
 
 [SPEC.md](SPEC.md) documents every field in the file. [docs/connections.md](docs/connections.md) covers what each wearable actually hands over, and what it holds back. [skill/](skill/) is the agent skill `ath init` installs — worth reading even if you never use an agent, because it says plainly what the tools guarantee and what they don't.
+
+## License
+
+Apache License 2.0. See [LICENSE](LICENSE). Copyright 2026 Athletic Standard contributors.
