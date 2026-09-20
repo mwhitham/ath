@@ -287,3 +287,7 @@ Coming next: `ath share`, which today only names the backtest report it would se
 ## Reference
 
 [SPEC.md](SPEC.md) documents every field in the file. [docs/connections.md](docs/connections.md) covers what each wearable actually hands over, and what it holds back. [skill/](skill/) is the agent skill `ath init` installs — worth reading even if you never use an agent, because it says plainly what the tools guarantee and what they don't.
+
+## License
+
+Apache License 2.0. See [LICENSE](LICENSE). Copyright 2026 Athletic Standard contributors.

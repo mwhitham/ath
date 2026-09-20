@@ -1,7 +1,7 @@
 ---
 name: athletic-standard
 description: Reads and writes an athlete's Athletic Standard file (.ath.json) with the ath CLI. Applies when someone logs a workout, a lift, a benchmark result, HRV, resting heart rate, sleep, soreness, or how they feel; asks what their training or recovery data shows; asks for a prediction on a benchmark such as Fran or a 5k; reports a result to grade a prediction against; wants to backtest predictions on past results; or imports an Apple Health, WHOOP, or Oura export. Also applies to any question about a .ath.json file or the ath command.
-license: MIT
+license: Apache-2.0
 compatibility: Requires the ath CLI (npm package athleticstandard) on PATH. No network needed.
 metadata:
   version: "0.4.0"

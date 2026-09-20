@@ -2,7 +2,7 @@
   "name": "athleticstandard",
   "version": "0.4.0",
   "description": "An open, local-first file format for an athlete's training and recovery data, built for AI agents to read. Device measurements and self-reported notes stay separate.",
-  "license": "MIT",
+  "license": "Apache-2.0",
   "homepage": "https://athleticstandard.ai",
   "repository": {
     "type": "git",
@@ -47,7 +47,8 @@
     "dist",
     "schema",
     "skill",
-    "SPEC.md"
+    "SPEC.md",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsup",
