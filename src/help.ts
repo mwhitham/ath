@@ -90,13 +90,18 @@ Examples:
   Where the skill is installed, and whether each copy is current:
     $ ath skill
 
-  Refresh every copy after upgrading ath:
+  Upgrade ath, and replace the skill here if one is already installed:
+    $ ath --update
+
+  Replace the skill without upgrading ath:
     $ ath skill install
 
 The skill is a folder an agent reads to learn the file and the commands.
 ath init writes it to .agents/skills and into any harness folder already
 here. Each copy carries its version. When a copy is older than the one
-this ath ships, other commands say so once on stderr; this one fixes it.`,
+this ath ships, other commands say so once on stderr. \`ath --update\`
+replaces an installed copy after upgrading ath. This command replaces
+it without upgrading.`,
 
   check: `
 Examples:

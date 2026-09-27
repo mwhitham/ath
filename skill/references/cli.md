@@ -39,6 +39,9 @@ that keeps measured signals apart from self-reported ones.
 
 Options:
   -V, --version                      output the version number
+  --update                           install the latest ath with the tool that
+                                     installed it, and replace the agent skill
+                                     if one is already in this folder
   -h, --help                         display help for command
 
 Set up:
