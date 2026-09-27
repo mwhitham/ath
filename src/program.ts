@@ -89,6 +89,7 @@ import {
   type SkillCopy,
 } from "./skill.js";
 import { mergeSummaryAsJson, renderMergeSummary } from "./import/merge.js";
+import { candidatePaths, runUpdate } from "./update.js";
 
 /** The whole command tree. `cli.ts` parses it; the skill generator reads its help. */
 export function buildProgram(): Command {
@@ -96,13 +97,29 @@ export function buildProgram(): Command {
 
   program
     .name("ath")
+    // --update belongs to ath itself. Without this, Commander treats a program
+    // option as valid on every command, so `ath log --update` would be ignored (D81).
+    .enablePositionalOptions()
     .description(
       "Athletic Standard — an open, local-first format for training and recovery data " +
         "that keeps measured signals apart from self-reported ones.",
     )
     .version(ATHLETIC_STANDARD_VERSION)
+    .option(
+      "--update",
+      "install the latest ath with the tool that installed it, and replace the agent skill if one is already in this folder",
+    )
     .addHelpText("after", HELP_FOOTER)
-    .action(() => {
+    .action(async (opts: { update?: boolean }) => {
+      if (opts.update) {
+        const code = await runUpdate({
+          packagePaths: candidatePaths(process.argv[1] ?? ""),
+          currentVersion: ATHLETIC_STANDARD_VERSION,
+          cwd: process.cwd(),
+        });
+        if (code !== 0) process.exit(code);
+        return;
+      }
       console.log(bareGuide(process.cwd()));
     });
 

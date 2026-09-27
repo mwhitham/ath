@@ -4,7 +4,7 @@ description: Reads and writes an athlete's Athletic Standard file (.ath.json) wi
 license: Apache-2.0
 compatibility: Requires the ath CLI (npm package athleticstandard) on PATH. No network needed.
 metadata:
-  version: "0.4.1"
+  version: "0.4.2"
 ---
 
 # Athletic Standard
@@ -13,7 +13,7 @@ An Athletic Standard file is one JSON document holding one athlete's training an
 recovery data. It sits on the athlete's own machine. `ath` is the command that reads
 and writes it.
 
-This skill expects format version **0.4.1**. `ath check` prints the version of the
+This skill expects format version **0.4.2**. `ath check` prints the version of the
 file in front of you. A file on an older version still loads; a newer one may hold
 fields described nowhere here, so say so rather than guessing at them.
 
@@ -62,6 +62,7 @@ Set up:
 |---|---|
 | `ath init` | create a new athlete file here, with the well-known benchmarks defined |
 | `ath skill` | show where this skill is installed and whether it is current; `ath skill install` refreshes it |
+| `ath --update` | install the latest ath, and replace the agent skill if one is already here |
 | `ath key` | save or show a gateway key for terminal use; never stored in the athlete file |
 | `ath models` | list live text models that can reason, or save the usual one |
 

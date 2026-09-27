@@ -16,3 +16,5 @@ Tracks the build order from `spec.md`. Update when a step lands.
 This version takes over v0.1.0 build step 6 (`ath backtest` and the evals), which [v0.1.0/progress.md](../v0.1.0/progress.md) tracked until now.
 
 0.4.1 is a patch of this version: Apache License 2.0, no format change.
+
+0.4.2 is a patch of this version: `ath --update` reinstalls the program and replaces a skill already in the folder you ran it from. No format change.

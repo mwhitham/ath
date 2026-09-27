@@ -36,7 +36,7 @@ npm install -g athleticstandard
 
 `npm` came with Node, so it's already on your machine. This installs a command called `ath`, which is what you'll type from now on. If you already use pnpm or bun, `pnpm add -g athleticstandard` and `bun add -g athleticstandard` do the same thing.
 
-To get a newer version later, run that install command again.
+To get a newer version later, run `ath --update`. That reinstalls ath and replaces the agent skill if one is already in the folder you are in. If you installed before 0.4.2, run the install command above once more first. That older ath does not have `--update`.
 
 If it fails with a permissions error, or you'd rather not install anything at all, you can skip this step. Type `npx athleticstandard` instead of `ath` every time — it fetches and runs the current version on the spot.
 
@@ -54,7 +54,7 @@ ath init
 
 Every command below reads and writes that one file, so run them from this same folder.
 
-`ath init` also writes an agent skill to `.agents/skills/`, which Claude Code, Cursor, Codex, and Gemini CLI all read, and into any of `.claude`, `.cursor`, `.codex`, `.gemini`, or `.github` already here. An agent working in this folder then knows how to read and write the file properly. Pass `--no-skill` if you'd rather it didn't. `ath skill` shows each copy and whether it is current; `ath skill install` refreshes them after an upgrade.
+`ath init` also writes an agent skill to `.agents/skills/`, which Claude Code, Cursor, Codex, and Gemini CLI all read, and into any of `.claude`, `.cursor`, `.codex`, `.gemini`, or `.github` already here. An agent working in this folder then knows how to read and write the file properly. Pass `--no-skill` if you'd rather it didn't. `ath skill` shows each copy and whether it is current. `ath --update` replaces those copies after an upgrade, when they are already there. `ath skill install` replaces them without upgrading ath.
 
 Typing `ath` on its own tells you what to do next. Every command has examples of its own under `ath <command> --help`.
 
@@ -269,9 +269,13 @@ If no prediction was open, the result is simply recorded and that's that. If you
 
 ## Where this is up to
 
-Early days. Version 0.4.1.
+Early days. Version 0.4.2.
 
 Working today: creating a file, loading exports from Apple Health, WHOOP, and Oura, checking and summarizing it, reading the detailed measurements back, logging what you did, predicting in a harness or from a bare terminal, grading, explaining a miss, and backtesting models against a held-back history.
+
+### What changed in 0.4.2
+
+- **`ath --update`.** Reinstalls ath with npm, pnpm, or bun, whichever installed it. If the folder you are in already has an agent skill, it replaces that skill. The file format is unchanged: a 0.4.0 file still loads.
 
 ### What changed in 0.4.1
 

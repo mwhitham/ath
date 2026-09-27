@@ -171,3 +171,23 @@ Rejected alternatives:
 - **Hand-written command docs in the skill.** Rejected because they drifted.
 - **Point the agent at `ath --help` alone.** Rejected because an agent should not need a round trip to learn the surface.
 - **Put the full reference in `SKILL.md`.** Rejected because it is loaded on every activation (D49).
+
+## D81. `ath --update` reinstalls the program, then replaces a skill that is already there
+
+`ath --update` reinstalls a global ath with the same tool that installed it. npm runs `npm install -g athleticstandard@latest`. pnpm runs `pnpm add -g athleticstandard@latest`. bun runs `bun add -g athleticstandard@latest`. The command asks the npm registry which version is published. When this ath is already that version, it says so and does not run the installer.
+
+The command does this only for a global install. npx, pnpm dlx, and bunx already fetch a published copy, so it does not install a second one. A copy inside a project is left alone. Guessing npm would put a global program next to the one the project uses.
+
+The skill is not installed with the program, and it is not installed globally. `ath init` writes it into the current folder: `.agents/skills/athletic-standard/`, and `skills/athletic-standard/` inside `.claude`, `.cursor`, `.codex`, `.gemini`, or `.github` when those folders are already there.
+
+When one of those copies is already there, `ath --update` replaces them with the skill that ships with the ath just installed. It writes the same places as `ath skill install`, and prints one line naming the directories it wrote. When none is there, it writes nothing. Someone who passed `--no-skill`, or who never ran `ath init`, did not ask for a skill.
+
+`--update` is a flag on `ath` itself. `ath log --update` is an unknown option.
+
+Rejected alternatives:
+
+- **Leave the skill for `ath skill install`.** Rejected because the agent would keep reading the old instructions, and the person would have to know a second command.
+- **Create a skill where none exists.** Rejected because someone who skipped it did not ask for one.
+- **Ask yes or no before replacing the skill.** Rejected because the person already asked to update, and the skill is the instructions that go with that program.
+- **Print the install command and stop.** Rejected because the person asked to update.
+- **Always call npm.** Rejected because a pnpm or bun install would then have two copies.
