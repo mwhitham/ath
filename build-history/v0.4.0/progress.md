@@ -14,3 +14,5 @@ Tracks the build order from `spec.md`. Update when a step lands.
 | 7 | Skill: every command, generated `references/cli.md`, installed to `.agents/skills/`, `ath skill` (D79, D80) | ✅ done |
 
 This version takes over v0.1.0 build step 6 (`ath backtest` and the evals), which [v0.1.0/progress.md](../v0.1.0/progress.md) tracked until now.
+
+0.4.1 is a patch of this version: Apache License 2.0, no format change.
