@@ -269,9 +269,13 @@ If no prediction was open, the result is simply recorded and that's that. If you
 
 ## Where this is up to
 
-Early days. Version 0.4.2.
+Early days. Version 0.4.3.
 
 Working today: creating a file, loading exports from Apple Health, WHOOP, and Oura, checking and summarizing it, reading the detailed measurements back, logging what you did, predicting in a harness or from a bare terminal, grading, explaining a miss, and backtesting models against a held-back history.
+
+### What changed in 0.4.3
+
+- **MIT License.** The npm package, the skill, and the repository use the MIT License. The file format is unchanged: a 0.4.0 file still loads.
 
 ### What changed in 0.4.2
 
@@ -279,7 +283,7 @@ Working today: creating a file, loading exports from Apple Health, WHOOP, and Ou
 
 ### What changed in 0.4.1
 
-- **MIT License.** The npm package, the skill, and the repository use the MIT License. 0.4.1 had switched them to Apache License 2.0. The file format is unchanged: a 0.4.0 file still loads.
+- **Apache License 2.0.** The npm package, the skill, and the repository use Apache 2.0. The file format is unchanged: a 0.4.0 file still loads.
 
 ### What changed in 0.4
 
