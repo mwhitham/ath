@@ -18,3 +18,5 @@ This version takes over v0.1.0 build step 6 (`ath backtest` and the evals), whic
 0.4.1 is a patch of this version: Apache License 2.0, no format change.
 
 0.4.2 is a patch of this version: `ath --update` reinstalls the program and replaces a skill already in the folder you ran it from. No format change.
+
+0.4.3 is a patch of this version: the license is the MIT License again. 0.4.1 had switched it to Apache License 2.0. No format change.
