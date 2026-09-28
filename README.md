@@ -279,7 +279,7 @@ Working today: creating a file, loading exports from Apple Health, WHOOP, and Ou
 
 ### What changed in 0.4.1
 
-- **Apache License 2.0.** The npm package, the skill, and the repository use Apache 2.0. The file format is unchanged: a 0.4.0 file still loads.
+- **MIT License.** The npm package, the skill, and the repository use the MIT License. 0.4.1 had switched them to Apache License 2.0. The file format is unchanged: a 0.4.0 file still loads.
 
 ### What changed in 0.4
 
@@ -298,4 +298,4 @@ Coming next: `ath share`, which today only names the backtest report it would se
 
 ## License
 
-Apache License 2.0. See [LICENSE](LICENSE). Copyright 2026 Athletic Standard contributors.
+MIT License. See [LICENSE](LICENSE). Copyright 2026 Athletic Standard contributors.
