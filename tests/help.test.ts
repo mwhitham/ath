@@ -35,7 +35,22 @@ describe("ath --help — written for someone who has never run this (D50)", () =
   });
 
   it("gives every command worked examples with real values", () => {
-    for (const command of ["init", "check", "import", "log", "link", "predict", "grade", "stats", "series"]) {
+    for (const command of [
+      "init",
+      "check",
+      "import",
+      "log",
+      "link",
+      "predict",
+      "grade",
+      "stats",
+      "series",
+      "key",
+      "models",
+      "backtest",
+      "share",
+      "skill",
+    ]) {
       const res = ath([command, "--help"], emptyDir());
       expect(res.stdout, `${command} --help`).toContain("Examples:");
       expect(res.stdout, `${command} --help`).toContain(`$ ath ${command}`);
@@ -47,7 +62,9 @@ describe("ath --help — written for someone who has never run this (D50)", () =
     expect(res.stdout).toContain("$ ath log slept badly, about 5 hours");
     expect(res.stdout).toContain("kind     workout result");
     expect(res.stdout).toContain("score    245 reps");
-    expect(res.stdout).toContain("Save this? [y] yes  [n] no");
+    expect(res.stdout).toContain("Save this?");
+    expect(res.stdout).toContain("[y] yes, on the 17:25–17:48 session");
+    expect(res.stdout).toContain("[n] no");
     expect(res.stdout).toContain("An agent connected to this file does more");
   });
 
@@ -58,7 +75,7 @@ describe("ath --help — written for someone who has never run this (D50)", () =
       "one device only, for when two measured the same thing",
     );
     expect(flat(["predict", "--help"])).toContain(
-      "to test a prediction against what happened next",
+      "A prediction needs a model",
     );
   });
 });

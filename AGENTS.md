@@ -18,7 +18,7 @@ Read these before making decisions — they are the project's memory and outrank
 
 - **The two-tier wall:** device-measured (hard) and self-reported (soft) signals never mix. Hard signals require a `source` reference; soft signals structurally cannot claim one. Never weaken this.
 - **`build-history/` is append-only.** New plans get a new version folder, named for the format version it produces (`v0.2.0/`). D-numbers continue across folders — D25 follows D24. Within a version, append new decisions to `decisions.md`. Supporting research goes in `appendix/` and is linked from the D-number. Don't rewrite earlier D-numbers or earlier version folders.
-- **Schemas are the source of truth.** After changing `src/schema.ts`, run `pnpm generate:json-schema` and `pnpm generate:fixture` and commit the regenerated outputs.
+- **Schemas are the source of truth.** After changing `src/schema.ts`, run `pnpm generate:json-schema` and `pnpm generate:fixture` and commit the regenerated outputs. After changing a command or its help in `src/program.ts` or `src/help.ts`, run `pnpm generate:skill-cli` and commit `skill/references/cli.md` (D80).
 - **Naming:** "Athletic Standard" in prose; `athleticstandard` for the npm package, file extension, and version field; `ath` is the CLI command; `AthleticStandard` in code identifiers.
 - **Keep the repo impersonal:** no personal objectives, audience/positioning framing, or individual names in committed content.
 - **Never commit real health data.** Real exports stay outside Git, including private repositories. Public tests use only the synthetic files listed in `scripts/check-public-data.ts`.
