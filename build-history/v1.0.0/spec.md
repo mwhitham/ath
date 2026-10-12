@@ -1,7 +1,7 @@
 # Athletic Standard v1.0.0 — SQLite Build Plan
 
-Status: approved build plan. Runtime implementation waits for approval of the
-field-by-field v0.4.3 migration appendix required by §9.3.
+Status: approved build plan. D101 removes the prerelease-file migration gate.
+Runtime implementation begins with the v1 domain schemas.
 
 The decisions for this version begin with D82 in `decisions.md`. They explicitly
 supersede the earlier no-database and live-sidecar choices. They also replace the
@@ -12,8 +12,8 @@ This version changes the live local record from JSON plus sidecar files to SQLit
 It keeps JSON as a complete import and export format.
 
 The change is a major version because it changes how every command finds, reads, and
-writes an athlete record. Existing `0.x` files remain readable through an explicit
-import.
+writes an athlete record. Athletic Standard `0.x` files are prerelease formats and
+are not imported by v1.
 
 ## 1. Outcomes
 
@@ -25,11 +25,10 @@ v1.0.0 must provide:
 4. Storage for every accepted wearable sample and every summary reported by a source.
 5. Runtime calculations over the recorded data.
 6. Complete, deterministic JSON import and export.
-7. A safe migration from existing `.ath.json` files and series sidecars.
-8. The same CLI and Skill workflow where the storage change does not require a command
+7. The same CLI and Skill workflow where the storage change does not require a command
    change.
-9. A database model that uses portable SQLite features and can be adapted to libSQL.
-10. Honest date handling that keeps provider reporting periods separate from
+8. A database model that uses portable SQLite features and can be adapted to libSQL.
+9. Honest date handling that keeps provider reporting periods separate from
     calendar days and never invents a timestamp for a date-only record.
 
 The open package remains useful without an account, network connection, or hosted
@@ -42,7 +41,7 @@ This public build includes:
 - The SQLite schema and migrations.
 - The domain schemas that describe athlete-owned records.
 - Local database discovery, opening, transactions, and checks.
-- Importers for existing Athletic Standard JSON and supported provider exports.
+- Importers for v1 Athletic Standard JSON packages and supported provider exports.
 - Complete JSON export.
 - CLI commands that read and write SQLite.
 - Runtime calculations, evidence building, prediction, grading, and backtesting.
@@ -204,16 +203,13 @@ Each authored record names:
 - The evidence references it used.
 - Its version and current status.
 
-Author types are `athlete`, `agent`, `tool`, and `unknown`. Agent and model are
-required only for an agent author. Tool-generated records name the tool, tool
-version, and calculation version. `unknown` is accepted only during a legacy import
-that cannot recover the original author.
+Author types are `athlete`, `agent`, and `tool`. Agent and model are required only
+for an agent author. Tool-generated records name the tool, tool version, and
+calculation version.
 
 ## 7. Required database tables
 
-The first migration should use ordinary SQL without an ORM.
-The exact legacy destination columns are fixed by
-`appendix/v0.4.3-migration.md`; they are not descriptive labels.
+The first SQL migration should use ordinary SQL without an ORM.
 
 ### 7.1 Database and athlete
 
@@ -232,7 +228,7 @@ record_import_keys
 committed athlete change increments it once.
 
 `records` is the parent for every athlete-owned record. It contains the stable record
-ID in `record_id`, its `record_type`, `current_revision`, `first_known_at`, and
+ID in `record_id`, its `record_type`, `current_revision`, `created_at`, and
 `is_deleted`. Typed tables use `record_id` as their primary key and foreign key.
 Evidence references `(record_id, revision)` through this parent structure.
 
@@ -250,7 +246,6 @@ source
 source_device
 point_measurement
 measurement_sample
-legacy_sample_group
 sleep_session
 workout_session
 benchmark_result
@@ -271,32 +266,25 @@ goal
 nutrition_model_interpretation
 ```
 
-`point_measurement_calculations`, `legacy_sample_files`,
-`workout_session_segments`, `benchmark_result_segments`,
+`point_measurement_calculations`, `workout_session_segments`,
+`benchmark_result_segments`,
 `provider_reporting_periods`, `reported_nutrition_items`, `prediction_evidence`,
-`prediction_error_causes`, `prediction_error_cause_record_candidates`, and
-`planned_session_blocks` are child rows. They do not have their own `record_type`.
+`prediction_error_causes`, and `planned_session_blocks` are child rows. They do not
+have their own `record_type`.
 
 Source devices are independently revisioned records. Their imported coverage windows
 and descriptive details may be corrected without replacing the source that owns
 them.
 
 New records use UUIDv7. The time component improves index locality but is not an
-event timestamp and is never used as one. Legacy records use deterministic UUIDv5
-values derived from the complete v0.4.3 reference described in §9.3. When two legacy
-records have the same old reference, the first keeps the base UUID and each later
-collision adds its original position to the UUIDv5 input. Repeating the import
-therefore produces the same IDs.
+event timestamp and is never used as one. Restoring a v1 package preserves the IDs
+and revisions already present in the package.
 
 `record_import_keys` maps a provider row to its stable record ID. Its main fields are
-`record_id`, `match_key_method`, `match_key`,
-`input_athleticstandard_version`, and `imported_at`. A provider record ID is
-preferred when the route supplies one. Otherwise the route defines a versioned key
-from stable source fields. UUIDv7 is never used to decide whether a later import
-contains an existing record. `input_athleticstandard_version` is nullable. It is set
-for records imported from Athletic Standard documents or packages and is null for
-provider files. A legacy sidecar's own version is stored separately in
-`legacy_sample_files.input_athleticstandard_version`.
+`record_id`, `match_key_method`, `match_key`, and `imported_at`. A provider record ID
+is preferred when the route supplies one. Otherwise the route defines a versioned
+key from stable source fields. UUIDv7 is never used to decide whether a later
+provider import contains an existing record.
 
 `athlete_profile` may hold an IANA timezone such as `America/Chicago`. It is the
 athlete's chosen default for calendar calculations. It is not evidence that every
@@ -329,8 +317,6 @@ The source record retains:
 point_measurements
 point_measurement_calculations
 measurement_samples
-legacy_sample_groups
-legacy_sample_files
 sleep_sessions
 workout_sessions
 workout_session_segments
@@ -346,22 +332,12 @@ provider_reporting_periods
 (quantity, source_id, recorded_at)
 ```
 
-`legacy_sample_groups` preserves the coverage, count, hash, and availability from an
-old `series_ref`. `legacy_sample_files` preserves the details of each old sidecar
-file. A file row is an ordered child of its group and does not receive an independent
-record ID.
-
 Measured child rows use explicit parent columns:
 
 - `point_measurement_calculations.point_measurement_id`.
-- `legacy_sample_files.legacy_sample_group_id`.
 - `workout_session_segments.workout_session_id`.
 - `benchmark_result_segments.benchmark_result_id`.
 - `provider_reporting_periods.owner_record_id`.
-
-`(measurement_samples.legacy_sample_group_id,
-legacy_sample_file_ordinal)` references
-`legacy_sample_files(legacy_sample_group_id, ordinal)`.
 
 Every measured row also carries:
 
@@ -390,8 +366,9 @@ absolute instant and a provider reporting period.
 Every revision stores the complete record state in `record_json`, when it
 `became_known_at`, the `became_known_at_basis`, the author of the change, and
 its `previous_revision`. The current typed row is updated in the same transaction.
-An as-of query considers only revisions that became known by its cutoff. Legacy
-assumptions are marked and disclosed in query receipts.
+An as-of query considers only revisions that became known by its cutoff. New local
+and provider writes use the time the database learned the revision. A v1 package
+restore preserves the recorded time and basis.
 
 A row in `record_deletions` names `record_id`, `deleted_at`, the author, and the
 deleted `record_revision`. `record_id` references `records.record_id`, and
@@ -449,7 +426,6 @@ prediction_result_links
 prediction_grades
 prediction_error_analyses
 prediction_error_causes
-prediction_error_cause_record_candidates
 ```
 
 The prediction ledger remains a first-class part of the format. Evidence references
@@ -463,17 +439,9 @@ fields name who created the link without describing that person or tool as the
 author of the prediction or measured result.
 
 `prediction_error_causes` stores each claimed cause and its exact evidence reference.
-A migrated legacy selector that matches several records stores those possible
-matches in `prediction_error_cause_record_candidates` without claiming that every
-candidate was used.
 
 `prediction_evidence.prediction_id`,
-`prediction_error_causes.prediction_error_analysis_id`, and
-`prediction_error_cause_record_candidates.prediction_error_analysis_id` name their
-parent records.
-`(prediction_error_cause_record_candidates.prediction_error_analysis_id,
-cause_ordinal)` references
-`prediction_error_causes(prediction_error_analysis_id, ordinal)`.
+`prediction_error_causes.prediction_error_analysis_id` name their parent records.
 
 Grades are calculated at runtime. A saved grade is an authored record of what the
 tool calculated at that time. It names the calculation version and inputs.
@@ -574,7 +542,8 @@ The export process:
 
 1. Opens one stable read transaction.
 2. Captures the database revision.
-3. Reads current athlete-owned records, retained revisions, and deletion records.
+3. Reads current athlete-owned records, retained revisions, deletion records,
+   erasure markers, and provider import keys.
 4. Writes deterministic JSON with stable ordering.
 5. Writes generated series files and permitted attachments.
 6. Validates the result against the public schemas.
@@ -582,15 +551,14 @@ The export process:
 
 The document and manifest have normative Zod schemas. A separate deterministic JSON
 writer defines key order, number text, Unicode encoding, line endings, timestamp
-serialization, revision records, and deletion records. Zod validates values but does
-not define their byte encoding. Every referenced attachment must be exported or the
-export fails.
+serialization, revision records, deletion records, erasure markers, and provider
+import keys. Zod validates values but does not define their byte encoding. Every
+referenced attachment must be exported or the export fails.
 
 The exported `athlete.ath.json` document, `export-manifest.json`, and every generated
 Athletic Standard series file use the top-level field
 `athleticstandard_version`. The live database stores its format version in
-`database_metadata.athleticstandard_version`. Import matching copies an input
-package's value to `record_import_keys.input_athleticstandard_version`.
+`database_metadata.athleticstandard_version`.
 
 The manifest has an optional `exported_at`. It is absent by default. A caller may
 supply a fixed value explicitly. Two exports from the same database revision and the
@@ -650,11 +618,19 @@ unset. Import never infers that value from source offsets or the importing compu
 
 An empty destination at database revision zero adopts the source database ID and
 database revision from an Athletic Standard package. This is initialization from a
-complete snapshot, so the restore does not add a revision. A nonempty destination
-with the same database ID may merge records and revisions after preview. One
-successful merge increments the local database revision once. A nonempty destination
-with a different database ID refuses the package. Combining two live databases needs
-a separately approved merge design because they may belong to different athletes.
+complete snapshot, so the restore does not add a revision. It restores provider
+import keys and erasure markers with the records. A nonempty destination with the
+same database ID may merge records and revisions after preview. One successful merge
+increments the local database revision once. A nonempty destination with a different
+database ID refuses the package. Combining two live databases needs a separately
+approved merge design because they may belong to different athletes.
+
+A same-database merge includes records, revisions, provider import keys, and erasure
+markers. Imported records keep their exact `created_at`. Imported revisions keep
+their exact `became_known_at` and `became_known_at_basis`. A matching record revision
+must contain the same complete state. A provider import key must point to the same
+record. A matching erasure marker must contain the same erasure time and reason. Any
+difference is a conflict and the merge writes nothing until it is resolved.
 
 An import never removes local records merely because they are absent from a JSON
 package. Deletion requires an imported deletion record or an explicit delete
@@ -663,47 +639,15 @@ command.
 Import refuses to apply while any unknown field or unrepresentable record remains.
 No flag silently discards it.
 
-### 9.3 Existing `0.x` records
+### 9.3 Prerelease `0.x` records
 
-The migration steps are:
+`ath import` reads `athleticstandard_version` before it previews an Athletic Standard
+package. It refuses a version below `1.0.0` with a clear message that prerelease files
+are unsupported. It does not modify the input or attempt a partial conversion.
 
-```text
-ath init
-ath import athlete.ath.json
-ath check
-ath export migrated-athlete/
-```
-
-The original JSON and sidecars remain untouched.
-
-When a command finds only an old JSON record, it prints the migration command. It
-does not migrate automatically.
-
-A `0.x` document has no database ID or database revision. Its import is not the
-snapshot restore described in §9.2. It keeps the database ID created by `ath init`
-and increments that database from revision zero to revision one.
-
-Legacy IDs are deterministic UUIDv5 values. Their inputs are the complete old
-reference. The migration appendix defines the fixed namespace and exact component
-encoding. Its Stable IDs table is the complete list of legacy record types and ID
-inputs.
-
-Duplicate old references add the original position to the UUIDv5 input. Repeating the
-same import produces the same IDs and no new revisions.
-
-Convert legacy links from `(source,start)` and `(benchmark,recorded_at)` to stable
-record IDs. Preserve durations, derived-measurement details, source device windows,
-athlete-report input details, notes, benchmark-result segments, prediction
-authorship, grades, and prediction error analyses. Hand-recorded result segments
-remain separate from device workout-session segments.
-
-A valid legacy package may omit its series folder. Import its inline records and
-preserve one unavailable `legacy_sample_group` per source and quantity with the old
-coverage and hash. Never invent samples. `ath check` reports the missing data.
-
-The
-[field-by-field v0.4.3 migration appendix](appendix/v0.4.3-migration.md)
-must be approved before implementation.
+The repository's 0.x fixtures are regenerated directly as v1 fixtures. The
+[v0.4.3 migration appendix](appendix/v0.4.3-migration.md) is a superseded design
+record. It is not an implementation or release gate.
 
 ## 10. CLI changes
 
@@ -714,14 +658,14 @@ File discovery prefers:
 
 1. An explicit `--file`.
 2. `athlete.ath.sqlite` in the current directory.
-3. A clear migration message when only one legacy `.ath.json` exists.
+3. A clear unsupported-prerelease message when only a `0.x` `.ath.json` exists.
 
 Command behavior:
 
 | Command | v1.0.0 behavior |
 |---|---|
 | `ath init` | Creates the SQLite database, records the optional default timezone, and installs the local skill |
-| `ath import` | Previews and imports provider exports or an Athletic Standard JSON package |
+| `ath import` | Previews and imports provider exports or a v1 Athletic Standard JSON package |
 | `ath export` | Writes a complete JSON package |
 | `ath log` | Creates one plain-text entry or one confirmed structured batch, plus any unambiguous prediction-result link and tool grade, in one transaction |
 | `ath link` | Previews a stable-ID link and writes a revision of the record that owns it |
@@ -790,14 +734,14 @@ Both write a revision and refuse a stale expected revision.
 
 `ath backtest` and `ath predict --as-of` decide historical visibility from
 `record_revisions.became_known_at`, not the current row's event time alone. Their
-receipts identify every legacy time assumption used.
+receipts identify the revisions and knowledge times used.
 
 Existing positional file arguments for `check` and `stats` remain aliases through
 v1.0.0.
 
-Model preferences and backtest reports remain operational side files. Migration
-leaves them untouched. Export excludes them unless a report is explicitly saved as
-an athlete-owned review.
+Model preferences and backtest reports remain operational side files. Database
+commands leave them untouched. Export excludes them unless a report is explicitly
+saved as an athlete-owned review.
 
 Add an explicit delete command that previews and writes a deletion record. It never
 removes history without confirmation.
@@ -929,7 +873,8 @@ A second database engine is not introduced before those tests.
 
 v1.0.0 must:
 
-- Read and import every valid current fixture.
+- Generate and import the deterministic v1 fixture.
+- Refuse Athletic Standard `0.x` documents without modifying them.
 - Preserve source separation.
 - Preserve SDNN and RMSSD as different measurements.
 - Preserve every original timestamp and offset supplied by a route.
@@ -951,19 +896,20 @@ Required automated tests:
 - Transaction rollback at each import and write failure point.
 - Foreign-key and two-tier wall failures.
 - Manual-source records never entering device baselines.
-- Existing JSON fixture import.
+- V1 JSON fixture import.
 - Import preview leaves the database unchanged until confirmation.
 - JSON export and re-import equality.
 - Deterministic export.
-- Sidecar migration with hash validation.
-- UUIDv7 generation for new records and deterministic UUIDv5 legacy IDs.
-- Golden UUIDv5 and `record_import_keys.match_key` values for every legacy ID method,
-  including collision positions.
+- V1 measurement-series file import and export with hash validation.
+- UUIDv7 generation for new records.
+- V1 package restore preserving record IDs, revisions, and creation times.
+- Golden provider `record_import_keys.match_key` values for every supported route,
+  including duplicate collision positions.
 - Every `records.record_type` mapping to its typed table and every required parent
   foreign key.
 - No superseded proposed-v1 names in current v1 schema keys, CLI help, v1 output
-  fields, exports, or the generated Skill reference. Legacy input paths and fixed
-  UUIDv5 method tokens are excluded.
+  fields, exports, or the generated Skill reference.
+- Refusal of every Athletic Standard version below `1.0.0`.
 - Date-only records without invented timestamps.
 - WHOOP cycles and Oura activity, sleep, calendar, and unspecified day kinds
   remaining distinct.
@@ -973,13 +919,17 @@ Required automated tests:
 - Source-specific query behavior.
 - Provider correction behavior.
 - Provider re-import matching with provider IDs, fallback keys, and corrections.
+- Export, empty-database restore, and later provider correction matching the restored
+  import key instead of creating a duplicate.
+- Same-database package merge preserving creation times, revision knowledge times,
+  provider import keys, and erasure markers while refusing conflicting values.
 - Stable IDs across export and import.
-- Marked legacy knowledge-time assumptions in historical queries.
+- Exact `became_known_at` behavior in historical queries.
 - Record listing, revision reads, and stale-revision correction refusal.
 - Structured `ath log` arrays remain atomic.
 - Result logging with zero, one, and several possible open predictions.
 - Explicit grading of existing prediction and result IDs.
-- A valid legacy `actual` without a grade.
+- A prediction-result link without a saved grade.
 - A logged or explicit grade creating a missing prediction-result link.
 - Several grade calculation versions against one result-link revision.
 - A corrected result creating a new link revision while an older grade keeps its
@@ -988,10 +938,6 @@ Required automated tests:
 - Removal of `ath grade --analysis`.
 - D62 evidence checks accepting and refusing structured `ath log` prediction error
   analyses.
-- Ambiguous legacy prediction-error causes stored as candidates without claiming
-  that every candidate was used.
-- Every required fixture and round-trip acceptance rule in the v0.4.3 migration
-  appendix.
 - `--json` never confirming a write.
 - Concurrent reader and writer behavior.
 - WAL recovery after interrupted writes.
@@ -1000,8 +946,11 @@ Required automated tests:
 - Privacy erasure with broken evidence references.
 - Normal deletion retaining its parent and revision while privacy erasure may leave
   only a value-free `record_erasure_markers` row.
-- Athletic Standard package versions on import keys, provider imports with a null
-  `input_athleticstandard_version`, and sidecar versions on `legacy_sample_files`.
+- Matching `athleticstandard_version` values across the v1 document, manifest,
+  measurement-series files, and database metadata.
+- No UUIDv5 method, `unknown` author type, `input_athleticstandard_version`,
+  `legacy_sample_groups`, `legacy_sample_files`, or
+  `prediction_error_cause_record_candidates` in the active v1 schemas.
 - Untrusted archive, file-name, link, and image handling.
 - Owner-only file creation where the platform supports it.
 - Cross-platform file opening on Linux, macOS, and Windows.
@@ -1016,7 +965,7 @@ Update:
 
 - `SPEC.md` with the logical model and both encodings.
 - The generated JSON Schema.
-- README quickstart and migration guide.
+- README quickstart and the `0.x` refusal notice.
 - CLI help.
 - Skill references.
 - Package exports.
@@ -1033,19 +982,18 @@ Documentation must say:
 ## 17. Build order
 
 1. Record the approved plan and v1.0.0 decisions without changing prior decisions.
-2. Approve the field-by-field v0.4.3 migration appendix.
-3. Define stable IDs, revisions, time and provider reporting periods, nutrition,
+2. Define stable IDs, revisions, time and provider reporting periods, nutrition,
    plans, and authored records in Zod.
-4. Add SQL migrations and the local libSQL adapter.
-5. Generate the SQLite fixture and database test helpers.
-6. Move read commands to SQLite.
-7. Move write, grade, prediction, and backtest commands to SQLite transactions.
-8. Add legacy JSON import and deterministic JSON export.
-9. Migrate provider importers and dense series.
-10. Update `ath check`, help, the Skill, SPEC, and README.
-11. Run all functional and performance suites.
-12. Release a prerelease for migration testing.
-13. Release v1.0.0 only after round-trip and cross-platform tests pass.
+3. Add SQL migrations and the local libSQL adapter.
+4. Generate the SQLite fixture and database test helpers.
+5. Move read commands to SQLite.
+6. Move write, grade, prediction, and backtest commands to SQLite transactions.
+7. Add v1 JSON package import and deterministic JSON export.
+8. Migrate provider importers and dense samples.
+9. Update `ath check`, help, the Skill, SPEC, and README.
+10. Run all functional and performance suites.
+11. Release a prerelease for v1 package and database testing.
+12. Release v1.0.0 only after round-trip and cross-platform tests pass.
 
 Each implementation step must pass:
 

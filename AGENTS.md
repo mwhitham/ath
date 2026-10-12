@@ -12,14 +12,14 @@ Read these before making decisions — they are the project's memory and outrank
 
 1. **`build-history/v0.1.0/spec.md`** — the approved build specification (architecture, file format, CLI surface, grading procedure, backtest design, build order in §12).
 2. **`build-history/v0.2.0/spec.md`** — the format revision that supersedes parts of it: sidecar series, vendor scores, per-modality distance, distinct temperature signals, and the importers.
-3. **`build-history/v1.0.0/spec.md`** — the approved SQLite build plan: SQLite is the live local record and JSON is the complete portable package. Runtime implementation waits for approval of `build-history/v1.0.0/appendix/v0.4.3-migration.md`.
+3. **`build-history/v1.0.0/spec.md`** — the approved SQLite build plan: SQLite is the live local record and JSON is the complete portable package. D101 rejects 0.x file migration, so runtime implementation begins with the v1 domain schemas.
 4. **`build-history/*/decisions.md`** — every decision with the alternatives that were rejected and why (D1 onward, numbered continuously across version folders). Do not relitigate these without new information; if a decision is superseded, append a new D-number in the current version's file. Don't rewrite earlier entries. Don't create addendum files.
 5. **`build-history/*/appendix/`** — the long-form studies that informed decisions. Link each study from its D-number. Do not move the decision into the appendix, and do not trim the study down to the decision line.
 6. **`build-history/*/progress.md`** — what's done and what's next.
 7. **`docs/connections.md`** — per-provider data research (what WHOOP/Oura/Garmin/Apple Health each provide via which path).
 8. **`SPEC.md`** — the public field-level format reference. The Zod schemas in `src/schema.ts` are normative; the JSON Schema is generated from them.
 
-For v1 storage, IDs, revisions, import behavior, and final schema names, D82–D100 supersede the relevant
+For v1 storage, IDs, revisions, import behavior, and final schema names, D82–D101 supersede the relevant
 parts of D4, D25, D36, D40, D43, D48, D62, D64, and D65. The old decisions still
 describe released 0.x behavior.
 

@@ -557,3 +557,64 @@ Rejected alternatives:
   result. The measured result remains in `benchmark_results`.
 - **Keep `miss_analysis`.** Rejected because it does not say that the record explains
   a prediction error.
+
+## D101. v1 does not import prerelease 0.x Athletic Standard files
+
+The public v1 CLI refuses Athletic Standard documents whose
+`athleticstandard_version` is below `1.0.0`. It explains that prerelease files are
+unsupported. It does not convert them automatically or through a hidden best-effort
+path.
+
+No real athlete records depend on the 0.x format. Permanent compatibility tables,
+IDs, time assumptions, and conflict rules are not justified for repository fixtures
+that can be regenerated directly as v1 data.
+
+The active v1 model therefore removes:
+
+- Deterministic UUIDv5 IDs for 0.x records.
+- `legacy_sample_groups` and `legacy_sample_files`.
+- `prediction_error_cause_record_candidates`.
+- `record_import_keys.input_athleticstandard_version`.
+- Assumed historical `became_known_at` values.
+- Conversion of old timestamp-based links and embedded prediction fields.
+- The `unknown` author type that existed only for unrecoverable legacy authors.
+- The field-by-field v0.4.3 migration gate and its release tests.
+
+New records use UUIDv7. A v1 package restore preserves the stable IDs, revisions, and
+times already present in that package. A provider import uses
+`record_import_keys` to find an earlier provider row and assigns UUIDv7 only when no
+match exists.
+
+A complete v1 package includes provider import keys and value-free erasure markers.
+This allows a restored database to recognize a later provider correction and resolve
+references to erased records.
+
+The v1 package, manifest, and generated measurement-series files continue to use
+`athleticstandard_version`. The live database continues to use
+`database_metadata.athleticstandard_version`. Provider files have their own
+route-specific formats and do not create an Athletic Standard version field per
+record.
+
+`records.created_at` keeps its ordinary meaning: when the Athletic Standard record
+was created. `record_revisions.became_known_at` records when each revision became
+available. New records normally use the same instant for both. Restored v1 packages
+preserve both values.
+
+The 0.4.3 npm package remains available for its released behavior. The repository's
+0.x fixtures are development data and are regenerated as v1 fixtures instead of
+migrated.
+
+This supersedes D84's UUIDv5 rule, D98's legacy time assumptions, and the
+legacy-only parts of D99 and D100. Their rules for UUIDv7, v1 import and export,
+prediction-result links, and clear current names remain.
+D101 also supersedes D100's `records.first_known_at` name and its rejection of
+`records.created_at`.
+
+Rejected alternatives:
+
+- **Ship the 0.x converter in case somebody needs it.** Rejected because it adds
+  permanent schema and test work without an athlete record to preserve.
+- **Use a best-effort importer.** Rejected because silently losing samples, links, or
+  source details is worse than a clear refusal.
+- **Keep the migration appendix as an implementation gate.** Rejected because the
+  appendix now documents a design that v1 will not implement.
