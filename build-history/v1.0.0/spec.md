@@ -1,10 +1,12 @@
 # Athletic Standard v1.0.0 — SQLite Build Plan
 
-Status: planning draft. No v1.0.0 decisions are recorded yet.
+Status: approved build plan. Runtime implementation waits for approval of the
+field-by-field v0.4.3 migration appendix required by §9.3.
 
-On approval, append v1.0.0 decisions beginning with D82. They must explicitly
-supersede the earlier no-database, sidecar-storage, compound-link, no-record-ID, and
-no-planning decisions. Earlier decision files remain unchanged.
+The decisions for this version begin with D82 in `decisions.md`. They explicitly
+supersede the earlier no-database and live-sidecar choices. They also replace the
+compound links in D48 and D64 with stable UUID record links. No earlier decision
+banned plan storage. Earlier decision files remain unchanged.
 
 This version changes the live local record from JSON plus sidecar files to SQLite.
 It keeps JSON as a complete import and export format.
@@ -27,6 +29,8 @@ v1.0.0 must provide:
 8. The same CLI and Skill workflow where the storage change does not require a command
    change.
 9. A database model that uses portable SQLite features and can be adapted to libSQL.
+10. Honest date handling that keeps provider periods separate from calendar days and
+    never invents a timestamp for a date-only record.
 
 The open package remains useful without an account, network connection, or hosted
 service.
@@ -217,6 +221,7 @@ database_revision
 records
 record_revisions
 record_tombstones
+record_import_keys
 ```
 
 `database_revision` is a monotonically increasing integer. Every committed athlete
@@ -226,6 +231,28 @@ change increments it once.
 ID, kind, current revision, creation time, and deletion state. Typed tables use that
 ID as their primary key and foreign key. Evidence references `(record_id, revision)`
 through this parent structure.
+
+Ordered segments, derivation details, nutrition items, planned blocks, and similar
+child rows are part of their parent record state. They use the parent ID and an
+order or child key. They do not get independent record IDs unless another record can
+link to or revise them independently. Correcting a child creates a revision of its
+parent.
+
+New records use UUIDv7. The time component improves index locality but is not an
+event timestamp and is never used as one. Legacy records use deterministic UUIDv5
+values derived from the complete v0.4.3 reference described in §9.3. When two legacy
+records have the same old reference, the first keeps the base UUID and each later
+collision adds its original position to the UUIDv5 input. Repeating the import
+therefore produces the same IDs.
+
+`record_import_keys` maps a provider row to its stable record ID. A provider record
+ID is preferred when the route supplies one. Otherwise the route defines a versioned
+key from stable source fields. UUIDv7 is never used to decide whether a later import
+contains an existing record.
+
+`athlete_profile` may hold an IANA timezone such as `America/Chicago`. It is the
+athlete's chosen default for calendar calculations. It is not evidence that every
+historical record happened in that timezone.
 
 ### 7.2 Sources
 
@@ -251,12 +278,16 @@ The source record retains:
 
 ```text
 point_measurements
+measurement_derivations
 series_samples
+series_receipts
 sleep_sessions
 workout_sessions
 session_segments
 benchmark_results
+benchmark_result_segments
 provider_scores
+provider_periods
 ```
 
 `series_samples` stores every accepted sample. Its main index is:
@@ -269,18 +300,31 @@ Every measured row also carries:
 
 - A stable record ID.
 - Source ID.
-- Normalized timestamp.
-- Original timestamp text and offset when the route exposes them.
-- An absence reason when the original timestamp or offset is unavailable.
+- A normalized UTC instant or interval when the source supplies one.
+- Every original timestamp and offset text exposed by the route.
+- A provider-assigned date or period when the source supplies one.
+- The documented meaning of each source time field when the route defines it.
+- An absence reason when a time, offset, date, or period is unavailable.
 - Original unit and value when the route exposes them.
 - Normalized unit and value.
 - Provider record ID when supplied.
 - Time received.
 - Current revision.
 
-Every revision stores the complete record state, the time it became known, the author
-of the change, and the revision it superseded. The current typed row is updated in
-the same transaction. An as-of query considers only revisions known by its cutoff.
+A date-only source record remains date-only. Import does not invent midnight UTC or
+any other instant. A numeric offset is preserved as source text. It is treated as a
+recording offset only when the route documents that meaning.
+
+Provider periods are not renamed as calendar days. WHOOP physiological cycles, Oura
+activity days, Oura sleep days, Oura calendar days, and Apple activity-summary days
+retain distinct period kinds. A record may have both an absolute instant and a
+provider period.
+
+Every revision stores the complete record state, the time it became known, the basis
+for that time, the author of the change, and the revision it superseded. The current
+typed row is updated in the same transaction. An as-of query considers only
+revisions known by its cutoff. Legacy assumptions are marked and disclosed in query
+receipts.
 
 A tombstone names the record ID, deletion time, author, and revision. It hides the
 record from current queries while preserving the historical event until the
@@ -380,6 +424,21 @@ These values are calculated when requested:
 The agent chooses the question, sources, dates, and level of detail. Deterministic
 code performs arithmetic and returns the method, inputs, exclusions, and result.
 
+Calendar calculations use an explicit IANA timezone. The athlete profile timezone is
+the default when one is saved. Without either, a calendar calculation refuses and
+asks for a timezone. It does not silently use UTC or the computer's current timezone.
+The result names the timezone it used.
+
+Provider-period calculations are separate operations. An Oura Activity Day may run
+from 04:00 to 04:00, an Oura Sleep Day from 18:00 to 18:00, and a WHOOP cycle follows
+WHOOP's physiological boundary rather than midnight. A provider period is never
+silently combined with a midnight-to-midnight calendar total.
+
+The source facts remain unchanged when a caller asks for another timezone. The
+calculation changes its calendar boundaries and records that choice in its receipt.
+When a request asks for the recording-local day and the source did not provide enough
+information, the result reports the unknown records instead of guessing.
+
 Raw series remain available. A provider summary must not replace or hide the samples
 that support a different question.
 
@@ -387,6 +446,15 @@ Calculations group by quantity and source. Multiple sources return separate resu
 unless the requested operation is a named source comparison. SDNN and RMSSD never
 share a calculation. Distinct temperature types and activity-specific distance types
 also remain separate.
+
+A device baseline includes only sources that qualify as device-measured. A manual
+source may be queried in its own labeled result, but it never enters a device
+baseline or device-measured evidence.
+
+An instant-bounded query needs no calendar timezone. A date-only bound on `series`,
+`predict`, `backtest`, `stats`, or `calculate` uses the explicit or saved IANA
+timezone before it becomes an instant range. A provider-period operation uses the
+provider period instead and says so.
 
 ## 9. JSON import and export
 
@@ -424,7 +492,24 @@ same explicit options are byte-identical. Golden byte fixtures enforce this.
 
 ### 9.2 Import
 
-`ath import` detects an Athletic Standard JSON document or package.
+`ath import` detects an Athletic Standard JSON document, package, or supported
+provider export.
+
+Provider imports match their versioned `record_import_keys`. The key uses the
+provider record ID when one exists. A route without one uses its documented source
+time and provider dimensions, plus a deterministic collision position only for
+otherwise indistinguishable rows. That position is the collision ordinal in the
+provider document's stable record order. The same key and content is a match. The same key
+with changed content creates a revision. A new key creates a UUIDv7 record.
+
+Within a collision group, complete unchanged rows are matched first. If changed rows
+cannot then be paired one-to-one, import reports a conflict. It does not assign a
+provider correction by guess.
+
+This replaces the 0.4.x provider merge rule. The old rule skipped a row when its
+source and time key already existed and replaced a series group. The v1 preview
+instead reports each row as matching, changed, or conflicting, and retains revisions
+for corrections.
 
 Before writing, it reports:
 
@@ -443,11 +528,27 @@ ID, and revision. It refuses unresolved conflicts and writes nothing. A separate
 conflict-resolution command shows both complete records and requires an explicit
 choice of local, imported, or a newly corrected value.
 
-An empty destination adopts the source database ID from an Athletic Standard
-package. This is a restore. A nonempty destination with the same database ID may
-merge records and revisions after preview. A nonempty destination with a different
-database ID refuses the package. Combining two live databases needs a separately
-approved merge design because they may belong to different athletes.
+The workflow is:
+
+1. `ath import` creates a read-only preview and a temporary conflict set.
+2. `ath conflicts show` and `ath conflicts resolve` record choices in that temporary
+   set without changing athlete records.
+3. `ath import --yes` rechecks the source package and local database revision, then
+   applies the non-conflicting rows and all resolutions in one transaction.
+
+If the package bytes or local database revision changed, the temporary resolutions
+are stale and import requires a new preview.
+
+Import confirmation may set the athlete profile's default IANA timezone when it is
+unset. Import never infers that value from source offsets or the importing computer.
+
+An empty destination at database revision zero adopts the source database ID and
+database revision from an Athletic Standard package. This is initialization from a
+complete snapshot, so the restore does not add a revision. A nonempty destination
+with the same database ID may merge records and revisions after preview. One
+successful merge increments the local database revision once. A nonempty destination
+with a different database ID refuses the package. Combining two live databases needs
+a separately approved merge design because they may belong to different athletes.
 
 An import never removes local records merely because they are absent from a JSON
 package. Deletion requires an imported tombstone or an explicit delete command.
@@ -471,17 +572,27 @@ The original JSON and sidecars remain untouched.
 When a command finds only an old JSON record, it prints the migration command. It
 does not migrate automatically.
 
-Legacy IDs are deterministic. Their inputs are the complete old reference:
+A `0.x` document has no database ID or database revision. Its import is not the
+snapshot restore described in §9.2. It keeps the database ID created by `ath init`
+and increments that database from revision zero to revision one.
+
+Legacy IDs are deterministic UUIDv5 values. Their inputs are the complete old
+reference. The migration appendix defines the fixed namespace and exact component
+encoding. In summary:
 
 - Point or score: kind, source, timestamp, and original position when needed.
+- Series sample: quantity, source, reconstructed timestamp, and original position
+  when needed.
 - Session: kind, source, and start timestamp.
-- Benchmark result: benchmark, recorded timestamp, and original position when needed.
-- Athlete report: type, reported timestamp, and original position when needed.
-- Prediction: old prediction ID where present, otherwise benchmark, creation time,
-  and original position.
+- Benchmark definition: old benchmark ID.
+- Benchmark result: benchmark, source, recorded timestamp, and original position
+  when needed.
+- Athlete report: type and reported timestamp; note and original position distinguish
+  repeated old references.
+- Prediction: old prediction ID.
 
-Hash collisions receive a deterministic suffix based on original position. Repeating
-the same import produces the same IDs and no new revisions.
+Duplicate old references add the original position to the UUIDv5 input. Repeating the
+same import produces the same IDs and no new revisions.
 
 Convert legacy links from `(source,start)` and `(benchmark,recorded_at)` to stable
 record IDs. Preserve durations, derived-value receipts, source device windows, soft
@@ -493,7 +604,9 @@ A valid legacy package may omit its series folder. Import its inline records and
 preserve one unavailable-series receipt per source and quantity with the old
 coverage and hash. Never invent samples. `ath check` reports the missing data.
 
-A field-by-field v0.4.3 migration appendix must be approved before implementation.
+The
+[field-by-field v0.4.3 migration appendix](appendix/v0.4.3-migration.md)
+must be approved before implementation.
 
 ## 10. CLI changes
 
@@ -510,24 +623,77 @@ Command behavior:
 
 | Command | v1.0.0 behavior |
 |---|---|
-| `ath init` | Creates the SQLite database and installs the local skill |
-| `ath import` | Imports provider exports or an Athletic Standard JSON package |
+| `ath init` | Creates the SQLite database, records the optional default timezone, and installs the local skill |
+| `ath import` | Previews and imports provider exports or an Athletic Standard JSON package |
 | `ath export` | Writes a complete JSON package |
-| `ath log` | Writes one confirmed record in a transaction |
-| `ath link` | Links stable IDs instead of timestamp-only references |
+| `ath log` | Creates one plain-text entry or one confirmed structured batch, plus any unambiguous linked tool grade, in one transaction |
+| `ath link` | Previews a stable-ID link and writes a revision of the record that owns it |
+| `ath records list` | Lists current records with bounded filters and stable ordering |
+| `ath records show` | Shows one record, a named revision, its history, and its links |
+| `ath correct` | Creates a revision of an existing record after preview and confirmation |
+| `ath conflicts show` | Shows the complete local and imported records in one import conflict |
+| `ath conflicts resolve` | Records an explicit local, imported, or corrected choice for an import |
 | `ath check` | Checks SQLite integrity, schema version, foreign keys, and domain rules |
-| `ath stats` | Calculates requested counts and statistics from current records |
+| `ath stats` | Shows the fixed overview: counts, sources, coverage, and baselines |
+| `ath calculate` | Runs a named calculation with explicit sources, dates, and day basis |
 | `ath series` | Queries samples by source, quantity, and time |
-| `ath predict` | Builds evidence from SQLite |
-| `ath grade` | Writes a versioned grade and linked result |
+| `ath predict` | Builds evidence; bare terminal use may save its model's prediction after confirmation |
+| `ath grade` | Grades an existing prediction against an existing result |
 | `ath backtest` | Reads stable historical revisions without changing athlete data |
+| `ath delete` | Previews and writes a tombstone |
+| `ath erase` | Performs confirmed privacy erasure |
 | `ath share` | Remains unimplemented in the public CLI unless separately approved |
+| `ath key` | Keeps the existing optional model-gateway credential workflow; keys never enter athlete data |
+| `ath models` | Keeps the existing model list and local default workflow |
+| `ath skill` | Keeps installed local Skill copies current |
+| `ath --update` | Keeps the existing package and installed-Skill update workflow |
 
 JSON output from commands remains available for harnesses.
 
-`ath key`, `ath models`, `ath skill`, and `ath --update` retain their current
-behavior. Existing positional file arguments for `check` and `stats` remain aliases
-through v1.0.0.
+`--json` never confirms a write. A non-interactive write requires `--yes` or the
+command-specific second confirmation required by `erase`. `ath predict --json`
+retains D76's existing evidence response for agent harnesses.
+
+`ath log` remains the general creation command and the only result-entry command.
+Its plain-text path keeps the current measurement, athlete-report, and workout
+workflow. Its structured JSON path accepts nutrition, plans, goals, reviews,
+predictions, miss analyses, and other authored records. An attachment supplied to
+`log` is checked, copied, hashed, and linked in the same operation. Separate create
+commands for each record type are not added.
+
+D72's structured JSON array remains. Every item is validated and shown in one
+preview, and the batch writes in one transaction.
+
+D76's narrow exception remains. Bare `ath predict` calls the selected model and may
+save that prediction after preview and confirmation. `ath predict --json` only
+returns evidence for a harness. The harness writes its prediction through `ath log`.
+
+Logging a benchmark result grades it in the same transaction when exactly one open
+prediction is an unambiguous match. The preview shows the result and grade. No open
+prediction means only the result is written. More than one possible prediction means
+no grade is guessed.
+
+`ath grade <prediction-id> --result <record-id>` is the explicit path for imported
+results, ambiguous matches, corrected results, and a newer calculation version. It
+never creates a result. The old `ath grade <benchmark> --actual <score>` form is
+removed in v1.0.0. `ath grade --analysis` is also removed. A miss analysis is a
+separate authored record created through structured `ath log`, which applies D62's
+existing checks to every evidence claim.
+
+`ath records` does not replace `stats` or `series`. `stats` is the fixed overview.
+`series` is the efficient dense-sample view. `records` finds stable IDs and reads
+individual logical records and revisions.
+
+`ath calculate` exposes the runtime operations in §8. It accepts named operations,
+not SQL. `ath link` follows the same preview and confirmation rule as `ath correct`.
+Both write a revision and refuse a stale expected revision.
+
+`ath backtest` and `ath predict --as-of` decide historical visibility from revision
+`known_at`, not the current row's event time alone. Their receipts identify every
+legacy knowledge-time assumption used.
+
+Existing positional file arguments for `check` and `stats` remain aliases through
+v1.0.0.
 
 Model preferences and backtest reports remain operational side files. Migration
 leaves them untouched. Export excludes them unless a report is explicitly saved as
@@ -567,6 +733,10 @@ queryMeasurements
 querySeries
 querySessions
 buildEvidence
+listRecords
+getRecord
+calculate
+gradePrediction
 ```
 
 This keeps the CLI, tests, and an optional hosted adapter on the same rules.
@@ -682,15 +852,33 @@ Required automated tests:
 - Foreign-key and two-tier wall failures.
 - Manual-source records never entering device baselines.
 - Existing JSON fixture import.
+- Import preview leaves the database unchanged until confirmation.
 - JSON export and re-import equality.
 - Deterministic export.
 - Sidecar migration with hash validation.
+- UUIDv7 generation for new records and deterministic UUIDv5 legacy IDs.
+- Date-only records without invented timestamps.
+- WHOOP cycles and Oura activity, sleep, calendar, and unspecified day kinds
+  remaining distinct.
+- Apple timestamp offsets preserved without being claimed as recording timezones.
+- Calendar calculations across travel and daylight-saving boundaries.
+- Refusal when a calendar calculation has no explicit or saved timezone.
 - Source-specific query behavior.
 - Provider correction behavior.
+- Provider re-import matching with provider IDs, fallback keys, and corrections.
 - Stable IDs across export and import.
+- Marked legacy knowledge-time assumptions in historical queries.
+- Record listing, revision reads, and stale-revision correction refusal.
+- Structured `ath log` arrays remain atomic.
+- Result logging with zero, one, and several possible open predictions.
+- Explicit grading of existing prediction and result IDs.
+- Removal of the old `ath grade <benchmark> --actual` form.
+- Removal of `ath grade --analysis` and D62 evidence checks on logged miss analyses.
+- `--json` never confirming a write.
 - Concurrent reader and writer behavior.
 - WAL recovery after interrupted writes.
 - Conflict refusal and explicit resolution.
+- Conflict plans becoming stale after package or database changes.
 - Privacy erasure with broken evidence references.
 - Untrusted archive, file-name, link, and image handling.
 - Owner-only file creation where the platform supports it.
@@ -722,18 +910,20 @@ Documentation must say:
 
 ## 17. Build order
 
-1. Approve this plan and record the v1.0.0 decisions without changing prior decisions.
-2. Define stable IDs, revisions, nutrition, plans, and authored records in Zod.
-3. Add SQL migrations and the local libSQL adapter.
-4. Generate the SQLite fixture and database test helpers.
-5. Move read commands to SQLite.
-6. Move write, grade, prediction, and backtest commands to SQLite transactions.
-7. Add legacy JSON import and deterministic JSON export.
-8. Migrate provider importers and dense series.
-9. Update `ath check`, help, the Skill, SPEC, and README.
-10. Run all functional and performance suites.
-11. Release a prerelease for migration testing.
-12. Release v1.0.0 only after round-trip and cross-platform tests pass.
+1. Record the approved plan and v1.0.0 decisions without changing prior decisions.
+2. Approve the field-by-field v0.4.3 migration appendix.
+3. Define stable IDs, revisions, time and provider periods, nutrition, plans, and
+   authored records in Zod.
+4. Add SQL migrations and the local libSQL adapter.
+5. Generate the SQLite fixture and database test helpers.
+6. Move read commands to SQLite.
+7. Move write, grade, prediction, and backtest commands to SQLite transactions.
+8. Add legacy JSON import and deterministic JSON export.
+9. Migrate provider importers and dense series.
+10. Update `ath check`, help, the Skill, SPEC, and README.
+11. Run all functional and performance suites.
+12. Release a prerelease for migration testing.
+13. Release v1.0.0 only after round-trip and cross-platform tests pass.
 
 Each implementation step must pass:
 
