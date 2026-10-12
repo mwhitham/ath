@@ -5,9 +5,9 @@ Tracks the build order from `spec.md`. Update when a step lands.
 | Step | Deliverable | Status |
 |---|---|---|
 | 0 | Confirm the next release is v1.0.0 after published v0.4.3 | ✅ done |
-| 1 | Approve the SQLite build plan and record D82 onward | ✅ D82–D99 recorded |
+| 1 | Approve the SQLite build plan and record D82 onward | ✅ D82–D100 recorded |
 | 2 | Review and approve the field-by-field v0.4.3 migration appendix | review required |
-| 3 | Define stable IDs, revisions, time and provider periods, nutrition, plans, and authored records in Zod | pending |
+| 3 | Define stable IDs, revisions, time and provider reporting periods, nutrition, plans, and authored records in Zod | pending |
 | 4 | Add SQL migrations and the local libSQL adapter | pending |
 | 5 | Generate the SQLite fixture and database test helpers | pending |
 | 6 | Move read commands to SQLite | pending |

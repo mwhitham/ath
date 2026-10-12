@@ -490,3 +490,70 @@ Rejected alternatives:
   to use a revision it never saw.
 - **Copy the result value into every grade without a record link.** Rejected because
   the copied score could no longer be checked against the measured result.
+
+## D100. v1 storage names state what each row means
+
+The v1 Zod and SQL names use the full record meaning. Legacy v0.4.3 field names stay
+only at the import boundary.
+
+The core tables and fields are:
+
+- `database_metadata`, with `athleticstandard_version` for the live format version.
+- `database_state.current_revision` for the database-wide revision.
+- `records.record_id`, `record_type`, and `first_known_at` for every athlete-owned
+  record.
+- `record_revisions.became_known_at` for historical visibility and
+  `previous_revision` for its prior revision.
+- `record_deletions` for normal deletions.
+- `record_erasure_markers` for the optional value-free marker left after privacy
+  erasure removes the parent record.
+- `record_import_keys.match_key_method` and `match_key` for repeat-import matching.
+- `record_import_keys.input_athleticstandard_version` for the version read from an
+  imported Athletic Standard document. It is null for provider files that are not
+  Athletic Standard documents.
+
+Measured storage uses `measurement_samples`, `legacy_sample_groups`,
+`legacy_sample_files`, `point_measurement_calculations`,
+`workout_session_segments`, and `provider_reporting_periods`. Standard values use
+`standard_value` and `standard_unit`. Point-like records use
+`input_timestamp_text`, `input_utc_offset_text`, and `input_timestamp_basis`.
+Sessions use matching `input_start_timestamp_*` and `input_end_timestamp_*` fields.
+Athlete reports use `input_reported_at_*`. Reconstructed samples use
+`timestamp_base_text`, `input_utc_offset_text`, and
+`timestamp_reconstruction_method`.
+
+Athlete statements use `athlete_reports`, not `soft_signals`. Structured nutrition
+uses `reported_nutrition_items` for the athlete's claims and
+`nutrition_model_interpretations` for model output.
+
+Prediction storage uses `prediction_result_links` for the link from a prediction to
+a benchmark result. Its `created_by_*` fields name who created the link. Grades point
+to a link revision.
+`prediction_error_analyses` explains why a prediction differed from the result.
+Its claimed causes use `prediction_error_causes`. Possible legacy matches use
+`prediction_error_cause_record_candidates`.
+
+These names supersede the proposed v1 names `format_metadata`,
+`database_revision`, `record_tombstones`, `records.kind`,
+`records.id`, `records.created_at`, `record_revisions.known_at`,
+`record_revisions.supersedes_revision`, `record_import_keys.key_recipe`,
+`record_import_keys.import_key`, `record_import_keys.source_format_version`,
+`soft_signals`, `series_samples`, `series_receipts`, `series_sidecar_receipts`,
+`measurement_derivations`, `session_segments`, `provider_periods`, `benchmarks`,
+`nutrition_reported_items`, `planned_blocks`, `saved_reviews`,
+`nutrition_interpretations`, `prediction_outcomes`, `miss_analyses`,
+`miss_analysis_evidence`, and `miss_analysis_evidence_candidates`. Their final names
+are defined above and in the v1 build plan. D82 through D99 remain in force for
+behavior and data meaning.
+
+Rejected alternatives:
+
+- **Keep short internal names and explain them in documentation.** Rejected because
+  the names appear in schemas, migrations, diagnostics, exports, and agent output.
+- **Keep `source_format_version`.** Rejected because it does not say whether the
+  value is the Athletic Standard version, provider format, package version, or SQL
+  schema version.
+- **Keep `prediction_outcomes`.** Rejected because the row contains a link to the
+  result. The measured result remains in `benchmark_results`.
+- **Keep `miss_analysis`.** Rejected because it does not say that the record explains
+  a prediction error.

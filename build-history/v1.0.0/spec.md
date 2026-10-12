@@ -29,8 +29,8 @@ v1.0.0 must provide:
 8. The same CLI and Skill workflow where the storage change does not require a command
    change.
 9. A database model that uses portable SQLite features and can be adapted to libSQL.
-10. Honest date handling that keeps provider periods separate from calendar days and
-    never invents a timestamp for a date-only record.
+10. Honest date handling that keeps provider reporting periods separate from
+    calendar days and never invents a timestamp for a date-only record.
 
 The open package remains useful without an account, network connection, or hosted
 service.
@@ -128,16 +128,16 @@ Local files also use WAL mode. A new file receives SQLite application ID
 `0x41544831` (`ATH1`). `ath check` refuses a local SQLite file with another nonzero
 application ID.
 
-`format_metadata` is the sole metadata table. It records:
+`database_metadata` is the sole metadata table. It records:
 
-- Application marker.
-- SQL schema version.
-- Athletic Standard format version.
-- Database ID.
-- Creation time.
+- `application_marker`.
+- `sql_schema_version`.
+- `athleticstandard_version`.
+- `database_id`.
+- `created_at`.
 
 Local SQLite mirrors the SQL schema version into `PRAGMA user_version` as an
-additional check. Hosted libSQL adapters must use `format_metadata`; they cannot
+additional check. Hosted libSQL adapters must use `database_metadata`; they cannot
 depend on header pragmas or local connection settings for format or migration
 versions. Every local or hosted connection must still enable and verify foreign-key
 enforcement before use.
@@ -157,10 +157,11 @@ Measured records require a source. The database enforces the source reference wi
 foreign key. Only a device or verified import source counts as device-measured hard
 evidence.
 
-A hand-entered measurement or benchmark result uses a source whose kind is `manual`,
-as required by D45. It is always labeled as manually recorded. It never enters a
-device baseline or counts as device-measured evidence. Feelings, journal answers,
-meals, and notes remain source-free athlete reports.
+A hand-entered measurement or benchmark result uses a source whose
+`sources.source_type` is `manual`, as required by D45. It is always labeled as
+manually recorded. It never enters a device baseline or counts as device-measured
+evidence. Feelings, journal answers, meals, and notes remain source-free athlete
+reports.
 
 Examples:
 
@@ -217,28 +218,64 @@ The exact legacy destination columns are fixed by
 ### 7.1 Database and athlete
 
 ```text
-format_metadata
+database_metadata
+database_state
 athlete_profile
-database_revision
 records
 record_revisions
-record_tombstones
+record_deletions
+record_erasure_markers
 record_import_keys
 ```
 
-`database_revision` is a monotonically increasing integer. Every committed athlete
-change increments it once.
+`database_state.current_revision` is a monotonically increasing integer. Every
+committed athlete change increments it once.
 
 `records` is the parent for every athlete-owned record. It contains the stable record
-ID, kind, current revision, creation time, and deletion state. Typed tables use that
-ID as their primary key and foreign key. Evidence references `(record_id, revision)`
-through this parent structure.
+ID in `record_id`, its `record_type`, `current_revision`, `first_known_at`, and
+`is_deleted`. Typed tables use `record_id` as their primary key and foreign key.
+Evidence references `(record_id, revision)` through this parent structure.
 
-Ordered segments, derivation details, nutrition items, planned blocks, and similar
-child rows are part of their parent record state. They use the parent ID and an
-order or child key. They do not get independent record IDs unless another record can
-link to or revise them independently. Correcting a child creates a revision of its
-parent.
+Ordered segments, point-measurement calculation details, nutrition items, planned
+session blocks, and similar child rows are part of their parent record state. They
+use the parent ID and an order or child key. They do not get independent record IDs
+unless another record can link to or revise them independently. Correcting a child
+creates a revision of its parent.
+
+The stable `records.record_type` values are:
+
+```text
+athlete_profile
+source
+source_device
+point_measurement
+measurement_sample
+legacy_sample_group
+sleep_session
+workout_session
+benchmark_result
+provider_score
+athlete_report
+nutrition_entry
+attachment
+benchmark_definition
+prediction
+prediction_result_link
+prediction_grade
+prediction_error_analysis
+training_plan
+planned_session
+coaching_note
+saved_training_review
+goal
+nutrition_model_interpretation
+```
+
+`point_measurement_calculations`, `legacy_sample_files`,
+`workout_session_segments`, `benchmark_result_segments`,
+`provider_reporting_periods`, `reported_nutrition_items`, `prediction_evidence`,
+`prediction_error_causes`, `prediction_error_cause_record_candidates`, and
+`planned_session_blocks` are child rows. They do not have their own `record_type`.
 
 Source devices are independently revisioned records. Their imported coverage windows
 and descriptive details may be corrected without replacing the source that owns
@@ -251,10 +288,15 @@ records have the same old reference, the first keeps the base UUID and each late
 collision adds its original position to the UUIDv5 input. Repeating the import
 therefore produces the same IDs.
 
-`record_import_keys` maps a provider row to its stable record ID. A provider record
-ID is preferred when the route supplies one. Otherwise the route defines a versioned
-key from stable source fields. UUIDv7 is never used to decide whether a later import
-contains an existing record.
+`record_import_keys` maps a provider row to its stable record ID. Its main fields are
+`record_id`, `match_key_method`, `match_key`,
+`input_athleticstandard_version`, and `imported_at`. A provider record ID is
+preferred when the route supplies one. Otherwise the route defines a versioned key
+from stable source fields. UUIDv7 is never used to decide whether a later import
+contains an existing record. `input_athleticstandard_version` is nullable. It is set
+for records imported from Athletic Standard documents or packages and is null for
+provider files. A legacy sidecar's own version is stored separately in
+`legacy_sample_files.input_athleticstandard_version`.
 
 `athlete_profile` may hold an IANA timezone such as `America/Chicago`. It is the
 athlete's chosen default for calendar calculations. It is not evidence that every
@@ -267,98 +309,119 @@ sources
 source_devices
 ```
 
-A source is unique by writer and route. A named sensor class also splits the source
+A source is unique by `data_writer` and `data_route`. A named `sensor_type` also
+splits the source
 when its measurement method requires a separate baseline, such as Apple Watch optical
 HRV and Apple Watch ECG beat timing. WHOOP through Apple Health and WHOOP CSV always
 have different source IDs. Hardware model and serial details are descriptive. They do
-not split a source when the writer, route, and sensor class stay unchanged.
+not split a source when the data writer, route, and sensor type stay unchanged.
 
 The source record retains:
 
-- Writer.
+- Data writer.
 - Vendor.
 - Device and sensor details when supplied.
-- Import or connector route.
+- Data route, such as an import file or connector.
 
 ### 7.3 Measured data
 
 ```text
 point_measurements
-measurement_derivations
-series_samples
-series_receipts
-series_sidecar_receipts
+point_measurement_calculations
+measurement_samples
+legacy_sample_groups
+legacy_sample_files
 sleep_sessions
 workout_sessions
-session_segments
+workout_session_segments
 benchmark_results
 benchmark_result_segments
 provider_scores
-provider_periods
+provider_reporting_periods
 ```
 
-`series_samples` stores every accepted sample. Its main index is:
+`measurement_samples` stores every accepted sample. Its main index is:
 
 ```text
 (quantity, source_id, recorded_at)
 ```
 
-`series_sidecar_receipts` is an ordered child table of a migrated
-`series_receipts` record. It preserves each old sidecar's version, path, start text,
-and hash. It does not receive an independent record ID.
+`legacy_sample_groups` preserves the coverage, count, hash, and availability from an
+old `series_ref`. `legacy_sample_files` preserves the details of each old sidecar
+file. A file row is an ordered child of its group and does not receive an independent
+record ID.
+
+Measured child rows use explicit parent columns:
+
+- `point_measurement_calculations.point_measurement_id`.
+- `legacy_sample_files.legacy_sample_group_id`.
+- `workout_session_segments.workout_session_id`.
+- `benchmark_result_segments.benchmark_result_id`.
+- `provider_reporting_periods.owner_record_id`.
+
+`(measurement_samples.legacy_sample_group_id,
+legacy_sample_file_ordinal)` references
+`legacy_sample_files(legacy_sample_group_id, ordinal)`.
 
 Every measured row also carries:
 
 - A stable record ID.
 - Source ID.
 - A normalized UTC instant or interval when the source supplies one.
-- Every original timestamp and offset text exposed by the route.
+- Every input timestamp and offset text exposed by the route.
 - A provider-assigned date or period when the source supplies one.
 - The documented meaning of each source time field when the route defines it.
-- An absence reason when a time, offset, date, or period is unavailable.
+- A missing reason when a time, offset, date, or period is unavailable.
 - Original unit and value when the route exposes them.
-- Normalized unit and value.
+- `standard_unit` and `standard_value`.
 - Provider record ID when supplied.
-- Time received.
+- `received_at` and `received_at_basis`.
 - Current revision.
 
 A date-only source record remains date-only. Import does not invent midnight UTC or
 any other instant. A numeric offset is preserved as source text. It is treated as a
 recording offset only when the route documents that meaning.
 
-Provider periods are not renamed as calendar days. WHOOP physiological cycles, Oura
-activity days, Oura sleep days, Oura calendar days, and Apple activity-summary days
-retain distinct period kinds. A record may have both an absolute instant and a
-provider period.
+Provider reporting periods are not renamed as calendar days. WHOOP physiological
+cycles, Oura activity days, Oura sleep days, Oura calendar days, and Apple
+activity-summary days retain distinct period types. A record may have both an
+absolute instant and a provider reporting period.
 
-Every revision stores the complete record state, the time it became known, the basis
-for that time, the author of the change, and the revision it superseded. The current
-typed row is updated in the same transaction. An as-of query considers only
-revisions known by its cutoff. Legacy assumptions are marked and disclosed in query
-receipts.
+Every revision stores the complete record state in `record_json`, when it
+`became_known_at`, the `became_known_at_basis`, the author of the change, and
+its `previous_revision`. The current typed row is updated in the same transaction.
+An as-of query considers only revisions that became known by its cutoff. Legacy
+assumptions are marked and disclosed in query receipts.
 
-A tombstone names the record ID, deletion time, author, and revision. It hides the
-record from current queries while preserving the historical event until the
-retention rule permits removal.
+A row in `record_deletions` names `record_id`, `deleted_at`, the author, and the
+deleted `record_revision`. `record_id` references `records.record_id`, and
+`(record_id, record_revision)` references
+`record_revisions(record_id, revision)`. The row hides the record from current
+queries while preserving the historical event until the retention rule permits
+removal.
 
-Normal correction and deletion use revisions and tombstones. Privacy erasure is a
-different operation. It removes the current row, all value-bearing revisions,
-samples, attachments, and derived records that depend on the erased record. It may
-leave only a minimal tombstone with the record ID, erasure time, and reason. That
-tombstone contains no health value, free text, source details, or attachment hash.
-An evidence reference to it resolves as `erased`; it never falls through to another
-record.
+Normal correction and deletion use revisions and deletion records. Privacy erasure
+is a different operation. It removes the current typed row, all value-bearing
+revisions, samples, attachments, and derived records that depend on the erased
+record. It may also remove the parent `records` row. It may leave one row in
+`record_erasure_markers` with only `record_id`, `erased_at`, and `reason`. That table
+does not reference `records`, because the parent may no longer exist. The marker
+contains no record type, health value, event time, free text, source detail, revision,
+or attachment hash. An evidence reference checks erasure markers after the parent
+lookup fails. It resolves as `erased`; it never falls through to another record.
 
 ### 7.4 Athlete reports
 
 ```text
-soft_signals
+athlete_reports
 nutrition_entries
-nutrition_reported_items
+reported_nutrition_items
 attachments
 ```
 
-`soft_signals` and nutrition tables have no device source column.
+`athlete_reports` and nutrition tables have no device source column.
+`reported_nutrition_items.nutrition_entry_id` links each reported item to its
+athlete-owned nutrition entry.
 
 Structured nutrition must support:
 
@@ -370,35 +433,47 @@ Missing meals never mean zero intake.
 
 The athlete's description, photo, and stated values remain the athlete report.
 Model-inferred foods and nutrients are a linked authored record in
-`nutrition_interpretations`. It names the model, model version, confidence, evidence
-attachment or text, and creation time. Neither the report nor its interpretation may
-carry a device source.
+`nutrition_model_interpretations`. It names the model, model version, confidence,
+evidence attachment or text, and creation time. Neither the report nor its
+interpretation may carry a device source.
+`nutrition_model_interpretations.nutrition_entry_id` links it to the athlete's
+nutrition entry.
 
 ### 7.5 Benchmarks and predictions
 
 ```text
-benchmarks
+benchmark_definitions
 predictions
 prediction_evidence
-prediction_outcomes
+prediction_result_links
 prediction_grades
-miss_analyses
-miss_analysis_evidence
-miss_analysis_evidence_candidates
+prediction_error_analyses
+prediction_error_causes
+prediction_error_cause_record_candidates
 ```
 
 The prediction ledger remains a first-class part of the format. Evidence references
 name stable record IDs and revisions.
 
-`prediction_outcomes` links one prediction revision to one benchmark-result revision.
-It exists separately from a grade because an outcome may be linked before arithmetic
-is saved, and the same outcome may be graded again with a newer calculation version.
-Correcting the linked result creates an outcome revision.
+`prediction_result_links` links one prediction revision to one benchmark-result
+revision. It exists separately from a grade because the result may be linked before
+arithmetic is saved, and the same link may be graded again with a newer calculation
+version. Correcting the linked result creates a link revision. Its `created_by_*`
+fields name who created the link without describing that person or tool as the
+author of the prediction or measured result.
 
-`miss_analysis_evidence` stores each claimed cause and its exact evidence reference.
+`prediction_error_causes` stores each claimed cause and its exact evidence reference.
 A migrated legacy selector that matches several records stores those possible
-matches in `miss_analysis_evidence_candidates` without claiming that every candidate
-was used.
+matches in `prediction_error_cause_record_candidates` without claiming that every
+candidate was used.
+
+`prediction_evidence.prediction_id`,
+`prediction_error_causes.prediction_error_analysis_id`, and
+`prediction_error_cause_record_candidates.prediction_error_analysis_id` name their
+parent records.
+`(prediction_error_cause_record_candidates.prediction_error_analysis_id,
+cause_ordinal)` references
+`prediction_error_causes(prediction_error_analysis_id, ordinal)`.
 
 Grades are calculated at runtime. A saved grade is an authored record of what the
 tool calculated at that time. It names the calculation version and inputs.
@@ -408,14 +483,15 @@ tool calculated at that time. It names the calculation version and inputs.
 ```text
 training_plans
 planned_sessions
-planned_blocks
+planned_session_blocks
 coaching_notes
-saved_reviews
+saved_training_reviews
 goals
-nutrition_interpretations
+nutrition_model_interpretations
 ```
 
 Plans are athlete-owned data and must round-trip through JSON.
+`planned_session_blocks.planned_session_id` links each block to its planned session.
 
 A planned session remains separate from a completed workout session. Completion may
 link the two without rewriting the plan as a measured workout.
@@ -453,10 +529,10 @@ the default when one is saved. Without either, a calendar calculation refuses an
 asks for a timezone. It does not silently use UTC or the computer's current timezone.
 The result names the timezone it used.
 
-Provider-period calculations are separate operations. An Oura Activity Day may run
+Provider-reporting-period calculations are separate operations. An Oura Activity Day may run
 from 04:00 to 04:00, an Oura Sleep Day from 18:00 to 18:00, and a WHOOP cycle follows
-WHOOP's physiological boundary rather than midnight. A provider period is never
-silently combined with a midnight-to-midnight calendar total.
+WHOOP's physiological boundary rather than midnight. A provider reporting period is
+never silently combined with a midnight-to-midnight calendar total.
 
 The source facts remain unchanged when a caller asks for another timezone. The
 calculation changes its calendar boundaries and records that choice in its receipt.
@@ -477,8 +553,8 @@ baseline or device-measured evidence.
 
 An instant-bounded query needs no calendar timezone. A date-only bound on `series`,
 `predict`, `backtest`, `stats`, or `calculate` uses the explicit or saved IANA
-timezone before it becomes an instant range. A provider-period operation uses the
-provider period instead and says so.
+timezone before it becomes an instant range. A provider-reporting-period operation
+uses the provider reporting period instead and says so.
 
 ## 9. JSON import and export
 
@@ -498,7 +574,7 @@ The export process:
 
 1. Opens one stable read transaction.
 2. Captures the database revision.
-3. Reads current athlete-owned records, retained revisions, and tombstones.
+3. Reads current athlete-owned records, retained revisions, and deletion records.
 4. Writes deterministic JSON with stable ordering.
 5. Writes generated series files and permitted attachments.
 6. Validates the result against the public schemas.
@@ -510,6 +586,12 @@ serialization, revision records, and deletion records. Zod validates values but 
 not define their byte encoding. Every referenced attachment must be exported or the
 export fails.
 
+The exported `athlete.ath.json` document, `export-manifest.json`, and every generated
+Athletic Standard series file use the top-level field
+`athleticstandard_version`. The live database stores its format version in
+`database_metadata.athleticstandard_version`. Import matching copies an input
+package's value to `record_import_keys.input_athleticstandard_version`.
+
 The manifest has an optional `exported_at`. It is absent by default. A caller may
 supply a fixed value explicitly. Two exports from the same database revision and the
 same explicit options are byte-identical. Golden byte fixtures enforce this.
@@ -519,7 +601,7 @@ same explicit options are byte-identical. Golden byte fixtures enforce this.
 `ath import` detects an Athletic Standard JSON document, package, or supported
 provider export.
 
-Provider imports match their versioned `record_import_keys`. The key uses the
+Provider imports match their versioned `record_import_keys`. The `match_key` uses the
 provider record ID when one exists. A route without one uses its documented source
 time and provider dimensions, plus a deterministic collision position only for
 otherwise indistinguishable rows. That position is the collision ordinal in the
@@ -575,7 +657,8 @@ with a different database ID refuses the package. Combining two live databases n
 a separately approved merge design because they may belong to different athletes.
 
 An import never removes local records merely because they are absent from a JSON
-package. Deletion requires an imported tombstone or an explicit delete command.
+package. Deletion requires an imported deletion record or an explicit delete
+command.
 
 Import refuses to apply while any unknown field or unrepresentable record remains.
 No flag silently discards it.
@@ -602,20 +685,20 @@ and increments that database from revision zero to revision one.
 
 Legacy IDs are deterministic UUIDv5 values. Their inputs are the complete old
 reference. The migration appendix defines the fixed namespace and exact component
-encoding. Its Stable IDs table is the complete list of legacy record kinds and ID
+encoding. Its Stable IDs table is the complete list of legacy record types and ID
 inputs.
 
 Duplicate old references add the original position to the UUIDv5 input. Repeating the
 same import produces the same IDs and no new revisions.
 
 Convert legacy links from `(source,start)` and `(benchmark,recorded_at)` to stable
-record IDs. Preserve durations, derived-value receipts, source device windows, soft
-input details, notes, benchmark-result segments, prediction authorship, grades, and
-miss analyses. Hand-recorded result segments remain separate from device session
-segments.
+record IDs. Preserve durations, derived-measurement details, source device windows,
+athlete-report input details, notes, benchmark-result segments, prediction
+authorship, grades, and prediction error analyses. Hand-recorded result segments
+remain separate from device workout-session segments.
 
 A valid legacy package may omit its series folder. Import its inline records and
-preserve one unavailable-series receipt per source and quantity with the old
+preserve one unavailable `legacy_sample_group` per source and quantity with the old
 coverage and hash. Never invent samples. `ath check` reports the missing data.
 
 The
@@ -640,7 +723,7 @@ Command behavior:
 | `ath init` | Creates the SQLite database, records the optional default timezone, and installs the local skill |
 | `ath import` | Previews and imports provider exports or an Athletic Standard JSON package |
 | `ath export` | Writes a complete JSON package |
-| `ath log` | Creates one plain-text entry or one confirmed structured batch, plus any unambiguous linked prediction outcome and tool grade, in one transaction |
+| `ath log` | Creates one plain-text entry or one confirmed structured batch, plus any unambiguous prediction-result link and tool grade, in one transaction |
 | `ath link` | Previews a stable-ID link and writes a revision of the record that owns it |
 | `ath records list` | Lists current records with bounded filters and stable ordering |
 | `ath records show` | Shows one record, a named revision, its history, and its links |
@@ -654,7 +737,7 @@ Command behavior:
 | `ath predict` | Builds evidence; bare terminal use may save its model's prediction after confirmation |
 | `ath grade` | Grades an existing prediction against an existing result |
 | `ath backtest` | Reads stable historical revisions without changing athlete data |
-| `ath delete` | Previews and writes a tombstone |
+| `ath delete` | Previews and writes a deletion record |
 | `ath erase` | Performs confirmed privacy erasure |
 | `ath share` | Remains unimplemented in the public CLI unless separately approved |
 | `ath key` | Keeps the existing optional model-gateway credential workflow; keys never enter athlete data |
@@ -671,9 +754,9 @@ retains D76's existing evidence response for agent harnesses.
 `ath log` remains the general creation command and the only result-entry command.
 Its plain-text path keeps the current measurement, athlete-report, and workout
 workflow. Its structured JSON path accepts nutrition, plans, goals, reviews,
-predictions, miss analyses, and other authored records. An attachment supplied to
-`log` is checked, copied, hashed, and linked in the same operation. Separate create
-commands for each record type are not added.
+predictions, prediction error analyses, and other authored records. An attachment
+supplied to `log` is checked, copied, hashed, and linked in the same operation.
+Separate create commands for each record type are not added.
 
 D72's structured JSON array remains. Every item is validated and shown in one
 preview, and the batch writes in one transaction.
@@ -684,18 +767,18 @@ returns evidence for a harness. The harness writes its prediction through `ath l
 
 Logging a benchmark result grades it in the same transaction when exactly one open
 prediction is an unambiguous match. The transaction creates the result, a
-`prediction_outcomes` record when that link is new, and the grade. The preview shows
-all three records. No open prediction means only the result is written. More than one
-possible prediction means no outcome or grade is guessed.
+`prediction_result_link` record when that link is new, and the grade. The preview
+shows all three records. No open prediction means only the result is written. More
+than one possible prediction means no link or grade is guessed.
 
 `ath grade <prediction-id> --result <record-id>` is the explicit path for imported
 results, ambiguous matches, corrected results, and a newer calculation version. It
-never creates a result. It creates the prediction outcome when that exact link does
-not already exist, then writes the grade against the outcome revision. The old
+never creates a result. It creates the prediction-result link when that exact link
+does not already exist, then writes the grade against the link revision. The old
 `ath grade <benchmark> --actual <score>` form is removed in v1.0.0.
-`ath grade --analysis` is also removed. A miss analysis is a separate authored
-record created through structured `ath log`, which applies D62's existing checks to
-every evidence claim.
+`ath grade --analysis` is also removed. A prediction error analysis is a separate
+authored record created through structured `ath log`, which applies D62's existing
+checks to every claimed cause.
 
 `ath records` does not replace `stats` or `series`. `stats` is the fixed overview.
 `series` is the efficient dense-sample view. `records` finds stable IDs and reads
@@ -705,9 +788,9 @@ individual logical records and revisions.
 not SQL. `ath link` follows the same preview and confirmation rule as `ath correct`.
 Both write a revision and refuse a stale expected revision.
 
-`ath backtest` and `ath predict --as-of` decide historical visibility from revision
-`known_at`, not the current row's event time alone. Their receipts identify every
-legacy knowledge-time assumption used.
+`ath backtest` and `ath predict --as-of` decide historical visibility from
+`record_revisions.became_known_at`, not the current row's event time alone. Their
+receipts identify every legacy time assumption used.
 
 Existing positional file arguments for `check` and `stats` remain aliases through
 v1.0.0.
@@ -716,8 +799,8 @@ Model preferences and backtest reports remain operational side files. Migration
 leaves them untouched. Export excludes them unless a report is explicitly saved as
 an athlete-owned review.
 
-Add an explicit delete command that previews and writes a tombstone. It never removes
-history without confirmation.
+Add an explicit delete command that previews and writes a deletion record. It never
+removes history without confirmation.
 
 Add a separate `ath erase` command for privacy erasure. It shows every dependent
 record and attachment that will be removed, requires a second explicit confirmation,
@@ -774,8 +857,8 @@ This keeps the CLI, tests, and an optional hosted adapter on the same rules.
 - Attachment hash checks.
 - JSON export validation when requested.
 
-Hard and soft records must remain separate tables. A nullable `source_id` on one
-shared signal table is not acceptable.
+Measured records and athlete reports must remain separate tables. A nullable
+`source_id` on one shared signal table is not acceptable.
 
 Database and migration code must use parameterized statements. No record text is
 interpolated into SQL.
@@ -874,6 +957,13 @@ Required automated tests:
 - Deterministic export.
 - Sidecar migration with hash validation.
 - UUIDv7 generation for new records and deterministic UUIDv5 legacy IDs.
+- Golden UUIDv5 and `record_import_keys.match_key` values for every legacy ID method,
+  including collision positions.
+- Every `records.record_type` mapping to its typed table and every required parent
+  foreign key.
+- No superseded proposed-v1 names in current v1 schema keys, CLI help, v1 output
+  fields, exports, or the generated Skill reference. Legacy input paths and fixed
+  UUIDv5 method tokens are excluded.
 - Date-only records without invented timestamps.
 - WHOOP cycles and Oura activity, sleep, calendar, and unspecified day kinds
   remaining distinct.
@@ -890,15 +980,16 @@ Required automated tests:
 - Result logging with zero, one, and several possible open predictions.
 - Explicit grading of existing prediction and result IDs.
 - A valid legacy `actual` without a grade.
-- A logged or explicit grade creating a missing prediction outcome.
-- Several grade calculation versions against one outcome revision.
-- A corrected result creating a new outcome revision while an older grade keeps its
-  original outcome revision.
+- A logged or explicit grade creating a missing prediction-result link.
+- Several grade calculation versions against one result-link revision.
+- A corrected result creating a new link revision while an older grade keeps its
+  original link revision.
 - Removal of the old `ath grade <benchmark> --actual` form.
 - Removal of `ath grade --analysis`.
-- D62 evidence checks accepting and refusing structured `ath log` miss analyses.
-- Ambiguous legacy miss-analysis evidence stored as candidates without claiming that
-  every candidate was used.
+- D62 evidence checks accepting and refusing structured `ath log` prediction error
+  analyses.
+- Ambiguous legacy prediction-error causes stored as candidates without claiming
+  that every candidate was used.
 - Every required fixture and round-trip acceptance rule in the v0.4.3 migration
   appendix.
 - `--json` never confirming a write.
@@ -907,6 +998,10 @@ Required automated tests:
 - Conflict refusal and explicit resolution.
 - Conflict plans becoming stale after package or database changes.
 - Privacy erasure with broken evidence references.
+- Normal deletion retaining its parent and revision while privacy erasure may leave
+  only a value-free `record_erasure_markers` row.
+- Athletic Standard package versions on import keys, provider imports with a null
+  `input_athleticstandard_version`, and sidecar versions on `legacy_sample_files`.
 - Untrusted archive, file-name, link, and image handling.
 - Owner-only file creation where the platform supports it.
 - Cross-platform file opening on Linux, macOS, and Windows.
@@ -939,8 +1034,8 @@ Documentation must say:
 
 1. Record the approved plan and v1.0.0 decisions without changing prior decisions.
 2. Approve the field-by-field v0.4.3 migration appendix.
-3. Define stable IDs, revisions, time and provider periods, nutrition, plans, and
-   authored records in Zod.
+3. Define stable IDs, revisions, time and provider reporting periods, nutrition,
+   plans, and authored records in Zod.
 4. Add SQL migrations and the local libSQL adapter.
 5. Generate the SQLite fixture and database test helpers.
 6. Move read commands to SQLite.
