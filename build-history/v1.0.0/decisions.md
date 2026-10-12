@@ -460,3 +460,33 @@ Rejected alternatives:
   to include the revision.
 - **Call the event time exact knowledge time.** Rejected because the old format never
   recorded when the row was first written.
+
+## D99. A prediction outcome link is separate from its grades
+
+A prediction outcome is the link between one prediction revision and one benchmark
+result revision. It is an athlete-owned record in `prediction_outcomes`. A saved
+grade points to an outcome rather than copying the result link.
+
+This represents every valid v0.4.3 state. The old schema allowed `actual` to exist
+without `grade`. It also lets the tool save a new calculation version without
+rewriting which attempt the prediction concerned. Correcting the result creates a
+new outcome revision; an older grade keeps its original outcome revision.
+
+Logging an unambiguous result may create the outcome and its first grade in the same
+transaction. `ath grade` may create a missing outcome before it writes the grade.
+The outcome is an internal linked consequence, not another result-entry command.
+
+This supersedes D64's copied `prediction.actual` value for live v1 records. D64's
+rule that a prediction must resolve to the result it was graded against remains.
+It also supersedes D90's two-record description. The result transaction previews and
+writes the outcome before the grade when that link is new.
+
+Rejected alternatives:
+
+- **Store the result link only on a grade.** Rejected because v0.4.3 permits an
+  actual result link without a grade.
+- **Store the current result ID directly on the prediction.** Rejected because a
+  corrected result would rewrite the prediction and could make an old grade appear
+  to use a revision it never saw.
+- **Copy the result value into every grade without a record link.** Rejected because
+  the copied score could no longer be checked against the measured result.

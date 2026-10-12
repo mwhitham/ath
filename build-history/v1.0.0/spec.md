@@ -211,6 +211,8 @@ that cannot recover the original author.
 ## 7. Required database tables
 
 The first migration should use ordinary SQL without an ORM.
+The exact legacy destination columns are fixed by
+`appendix/v0.4.3-migration.md`; they are not descriptive labels.
 
 ### 7.1 Database and athlete
 
@@ -237,6 +239,10 @@ child rows are part of their parent record state. They use the parent ID and an
 order or child key. They do not get independent record IDs unless another record can
 link to or revise them independently. Correcting a child creates a revision of its
 parent.
+
+Source devices are independently revisioned records. Their imported coverage windows
+and descriptive details may be corrected without replacing the source that owns
+them.
 
 New records use UUIDv7. The time component improves index locality but is not an
 event timestamp and is never used as one. Legacy records use deterministic UUIDv5
@@ -281,6 +287,7 @@ point_measurements
 measurement_derivations
 series_samples
 series_receipts
+series_sidecar_receipts
 sleep_sessions
 workout_sessions
 session_segments
@@ -295,6 +302,10 @@ provider_periods
 ```text
 (quantity, source_id, recorded_at)
 ```
+
+`series_sidecar_receipts` is an ordered child table of a migrated
+`series_receipts` record. It preserves each old sidecar's version, path, start text,
+and hash. It does not receive an independent record ID.
 
 Every measured row also carries:
 
@@ -369,12 +380,25 @@ carry a device source.
 benchmarks
 predictions
 prediction_evidence
+prediction_outcomes
 prediction_grades
 miss_analyses
+miss_analysis_evidence
+miss_analysis_evidence_candidates
 ```
 
 The prediction ledger remains a first-class part of the format. Evidence references
 name stable record IDs and revisions.
+
+`prediction_outcomes` links one prediction revision to one benchmark-result revision.
+It exists separately from a grade because an outcome may be linked before arithmetic
+is saved, and the same outcome may be graded again with a newer calculation version.
+Correcting the linked result creates an outcome revision.
+
+`miss_analysis_evidence` stores each claimed cause and its exact evidence reference.
+A migrated legacy selector that matches several records stores those possible
+matches in `miss_analysis_evidence_candidates` without claiming that every candidate
+was used.
 
 Grades are calculated at runtime. A saved grade is an authored record of what the
 tool calculated at that time. It names the calculation version and inputs.
@@ -578,18 +602,8 @@ and increments that database from revision zero to revision one.
 
 Legacy IDs are deterministic UUIDv5 values. Their inputs are the complete old
 reference. The migration appendix defines the fixed namespace and exact component
-encoding. In summary:
-
-- Point or score: kind, source, timestamp, and original position when needed.
-- Series sample: quantity, source, reconstructed timestamp, and original position
-  when needed.
-- Session: kind, source, and start timestamp.
-- Benchmark definition: old benchmark ID.
-- Benchmark result: benchmark, source, recorded timestamp, and original position
-  when needed.
-- Athlete report: type and reported timestamp; note and original position distinguish
-  repeated old references.
-- Prediction: old prediction ID.
+encoding. Its Stable IDs table is the complete list of legacy record kinds and ID
+inputs.
 
 Duplicate old references add the original position to the UUIDv5 input. Repeating the
 same import produces the same IDs and no new revisions.
@@ -626,7 +640,7 @@ Command behavior:
 | `ath init` | Creates the SQLite database, records the optional default timezone, and installs the local skill |
 | `ath import` | Previews and imports provider exports or an Athletic Standard JSON package |
 | `ath export` | Writes a complete JSON package |
-| `ath log` | Creates one plain-text entry or one confirmed structured batch, plus any unambiguous linked tool grade, in one transaction |
+| `ath log` | Creates one plain-text entry or one confirmed structured batch, plus any unambiguous linked prediction outcome and tool grade, in one transaction |
 | `ath link` | Previews a stable-ID link and writes a revision of the record that owns it |
 | `ath records list` | Lists current records with bounded filters and stable ordering |
 | `ath records show` | Shows one record, a named revision, its history, and its links |
@@ -669,16 +683,19 @@ save that prediction after preview and confirmation. `ath predict --json` only
 returns evidence for a harness. The harness writes its prediction through `ath log`.
 
 Logging a benchmark result grades it in the same transaction when exactly one open
-prediction is an unambiguous match. The preview shows the result and grade. No open
-prediction means only the result is written. More than one possible prediction means
-no grade is guessed.
+prediction is an unambiguous match. The transaction creates the result, a
+`prediction_outcomes` record when that link is new, and the grade. The preview shows
+all three records. No open prediction means only the result is written. More than one
+possible prediction means no outcome or grade is guessed.
 
 `ath grade <prediction-id> --result <record-id>` is the explicit path for imported
 results, ambiguous matches, corrected results, and a newer calculation version. It
-never creates a result. The old `ath grade <benchmark> --actual <score>` form is
-removed in v1.0.0. `ath grade --analysis` is also removed. A miss analysis is a
-separate authored record created through structured `ath log`, which applies D62's
-existing checks to every evidence claim.
+never creates a result. It creates the prediction outcome when that exact link does
+not already exist, then writes the grade against the outcome revision. The old
+`ath grade <benchmark> --actual <score>` form is removed in v1.0.0.
+`ath grade --analysis` is also removed. A miss analysis is a separate authored
+record created through structured `ath log`, which applies D62's existing checks to
+every evidence claim.
 
 `ath records` does not replace `stats` or `series`. `stats` is the fixed overview.
 `series` is the efficient dense-sample view. `records` finds stable IDs and reads
@@ -872,8 +889,18 @@ Required automated tests:
 - Structured `ath log` arrays remain atomic.
 - Result logging with zero, one, and several possible open predictions.
 - Explicit grading of existing prediction and result IDs.
+- A valid legacy `actual` without a grade.
+- A logged or explicit grade creating a missing prediction outcome.
+- Several grade calculation versions against one outcome revision.
+- A corrected result creating a new outcome revision while an older grade keeps its
+  original outcome revision.
 - Removal of the old `ath grade <benchmark> --actual` form.
-- Removal of `ath grade --analysis` and D62 evidence checks on logged miss analyses.
+- Removal of `ath grade --analysis`.
+- D62 evidence checks accepting and refusing structured `ath log` miss analyses.
+- Ambiguous legacy miss-analysis evidence stored as candidates without claiming that
+  every candidate was used.
+- Every required fixture and round-trip acceptance rule in the v0.4.3 migration
+  appendix.
 - `--json` never confirming a write.
 - Concurrent reader and writer behavior.
 - WAL recovery after interrupted writes.
