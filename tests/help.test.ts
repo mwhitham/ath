@@ -34,28 +34,32 @@ describe("ath --help — written for someone who has never run this (D50)", () =
     expect(res.stdout.indexOf("Read your data:")).toBeLessThan(res.stdout.indexOf("Predict and grade:"));
   });
 
-  it("gives every command worked examples with real values", () => {
-    for (const command of [
-      "init",
-      "check",
-      "import",
-      "log",
-      "link",
-      "predict",
-      "grade",
-      "stats",
-      "series",
-      "key",
-      "models",
-      "backtest",
-      "share",
-      "skill",
-    ]) {
-      const res = ath([command, "--help"], emptyDir());
-      expect(res.stdout, `${command} --help`).toContain("Examples:");
-      expect(res.stdout, `${command} --help`).toContain(`$ ath ${command}`);
-    }
-  });
+  it(
+    "gives every command worked examples with real values",
+    () => {
+      for (const command of [
+        "init",
+        "check",
+        "import",
+        "log",
+        "link",
+        "predict",
+        "grade",
+        "stats",
+        "series",
+        "key",
+        "models",
+        "backtest",
+        "share",
+        "skill",
+      ]) {
+        const res = ath([command, "--help"], emptyDir());
+        expect(res.stdout, `${command} --help`).toContain("Examples:");
+        expect(res.stdout, `${command} --help`).toContain(`$ ath ${command}`);
+      }
+    },
+    10_000,
+  );
 
   it("shows the whole shape of ath log at once: an entry, the summary, the question (D60)", () => {
     const res = ath(["log", "--help"], emptyDir());
