@@ -156,7 +156,7 @@ export function parseAppleDate(raw: string): string | null {
   return null;
 }
 
-function appleTimestampReceipt(raw: string) {
+function appleTimestampReceipt(raw: string, sourceTimeZone?: string) {
   const offset = /(Z|[+-]\d{2}:?\d{2})$/i.exec(raw.trim())?.[1];
   return {
     timestamp_text: raw,
@@ -166,6 +166,13 @@ function appleTimestampReceipt(raw: string) {
       : {
           utc_offset_text: offset,
           utc_offset_meaning: "meaning_not_documented" as const,
+        }),
+    ...(sourceTimeZone === undefined
+      ? {}
+      : {
+          source_time_zone: sourceTimeZone,
+          source_time_zone_meaning:
+            "apple_health_object_creation_time_zone" as const,
         }),
   };
 }
@@ -204,6 +211,7 @@ interface SleepFragment {
   inputEnd: string;
   value: string;
   source: string;
+  sourceTimeZone?: string;
   /** The device index entry this fragment came from, when the export named one. */
   deviceKey?: string;
 }
@@ -214,6 +222,7 @@ interface BeatWindow {
   endsAt: string | null;
   beats: Beat[];
   source: string;
+  sourceTimeZone?: string;
 }
 
 /** Fields Apple writes inside a `device` attribute, in the order they appear. */
@@ -523,7 +532,10 @@ export async function importAppleHealth(
       },
     } as HardSignalT;
     payload.inputReceipts.set(derivedReading, {
-      input_timestamp: appleTimestampReceipt(window.inputRecordedAt),
+      input_timestamp: appleTimestampReceipt(
+        window.inputRecordedAt,
+        window.sourceTimeZone,
+      ),
       input_value_missing_reason: "not_applicable",
       input_unit_missing_reason: "not_applicable",
     });
@@ -544,6 +556,109 @@ export async function importAppleHealth(
   return payload;
 }
 
+function addActivitySummary(
+  attrs: Record<string, string>,
+  payload: ImportPayload,
+  writers: WriterCache,
+): void {
+  const date = attrs.dateComponents?.trim();
+  if (date === undefined || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    countSkipWithExample(
+      payload,
+      "activity summaries with an unusable date",
+      attrs.dateComponents ?? "(none)",
+    );
+    return;
+  }
+  const source = writers.resolve({
+    ...attrs,
+    sourceName: attrs.sourceName?.trim() || "Apple Health",
+  }).source;
+  const providerReportingPeriods = [
+    {
+      period_type: "apple_activity_summary_day" as const,
+      provider_date: date,
+      timezone_offset_missing_reason: "not_provided_by_source" as const,
+    },
+  ];
+  const inputTimestamp = {
+    timestamp_missing_reason: "not_provided_by_source" as const,
+    utc_offset_missing_reason: "not_provided_by_source" as const,
+  };
+  const add = (
+    attribute: string,
+    summaryType: string,
+    standardUnit: string,
+    inputUnit?: string,
+    convert: (value: number) => number | null = (value) => value,
+  ) => {
+    if (attrs[attribute] === undefined) {
+      return;
+    }
+    const inputValue = Number(attrs[attribute]);
+    const value = convert(inputValue);
+    if (
+      !Number.isFinite(inputValue) ||
+      value === null ||
+      !Number.isFinite(value) ||
+      value < 0
+    ) {
+      countSkipWithExample(
+        payload,
+        "activity summary values we could not normalize",
+        `${attribute}="${attrs[attribute]}"`,
+      );
+      return;
+    }
+    payload.providerSummaries.push({
+      source,
+      summary_type: summaryType,
+      value: round(value),
+      standard_unit: standardUnit,
+      input_value: inputValue,
+      ...(inputUnit === undefined
+        ? { input_unit_missing_reason: "not_exposed_by_route" }
+        : { input_unit: inputUnit }),
+      input_timestamp: inputTimestamp,
+      provider_reporting_periods: providerReportingPeriods,
+    });
+  };
+
+  const energyUnit = attrs.activeEnergyBurnedUnit;
+  if (
+    attrs.activeEnergyBurned !== undefined ||
+    attrs.activeEnergyBurnedGoal !== undefined
+  ) {
+    if (energyUnit === undefined) {
+      countSkip(
+        payload,
+        "activity energy summaries without a source unit",
+        Number(attrs.activeEnergyBurned !== undefined) +
+          Number(attrs.activeEnergyBurnedGoal !== undefined),
+      );
+    } else {
+      add(
+        "activeEnergyBurned",
+        "active_energy_burned",
+        "kcal",
+        energyUnit,
+        (value) => toKilocalories(value, energyUnit),
+      );
+      add(
+        "activeEnergyBurnedGoal",
+        "active_energy_goal",
+        "kcal",
+        energyUnit,
+        (value) => toKilocalories(value, energyUnit),
+      );
+    }
+  }
+  add("appleExerciseTime", "exercise_time", "min");
+  add("appleExerciseTimeGoal", "exercise_time_goal", "min");
+  add("appleStandHours", "stand_hours", "h");
+  add("appleStandHoursGoal", "stand_hours_goal", "h");
+}
+
 function parseAppleXml(
   stream: Readable,
   acc: AppleAccumulator,
@@ -556,6 +671,9 @@ function parseAppleXml(
     // Record-level state: a Record element may carry a nested beat list, and a
     // Workout may carry laps, so both need somewhere to collect children.
     let currentBeatWindow: BeatWindow | null = null;
+    let currentPointSignal: HardSignalT | null = null;
+    let currentSeriesSample: Sample | null = null;
+    let currentSleepFragment: SleepFragment | null = null;
     let currentWorkout: {
       start: string;
       end: string;
@@ -568,6 +686,7 @@ function parseAppleXml(
         string,
         { input_value: number; input_unit: string }
       >;
+      sourceTimeZone?: string;
     } | null = null;
 
     parser.on("error", (err) => reject(err));
@@ -578,7 +697,15 @@ function parseAppleXml(
 
       switch (node.name) {
         case "Record":
+          currentBeatWindow = null;
+          currentPointSignal = null;
+          currentSeriesSample = null;
+          currentSleepFragment = null;
           handleRecord(attrs);
+          break;
+
+        case "ActivitySummary":
+          addActivitySummary(attrs, payload, writers);
           break;
 
         case "HeartRateVariabilityMetadataList":
@@ -682,6 +809,35 @@ function parseAppleXml(
         }
 
         case "MetadataEntry": {
+          if (attrs.key === "HKTimeZone" && attrs.value?.trim()) {
+            const sourceTimeZone = attrs.value.trim();
+            if (currentPointSignal !== null) {
+              const receipt = payload.inputReceipts.get(currentPointSignal);
+              if (receipt?.input_timestamp !== undefined) {
+                receipt.input_timestamp = {
+                  ...receipt.input_timestamp,
+                  source_time_zone: sourceTimeZone,
+                  source_time_zone_meaning:
+                    "apple_health_object_creation_time_zone",
+                };
+              }
+            }
+            if (currentSeriesSample !== null) {
+              currentSeriesSample.inputSourceTimeZone = sourceTimeZone;
+              currentSeriesSample.inputSourceTimeZoneMeaning =
+                "apple_health_object_creation_time_zone";
+            }
+            if (currentSleepFragment !== null) {
+              currentSleepFragment.sourceTimeZone = sourceTimeZone;
+            }
+            if (currentBeatWindow !== null) {
+              currentBeatWindow.sourceTimeZone = sourceTimeZone;
+            }
+            if (currentWorkout !== null) {
+              currentWorkout.sourceTimeZone = sourceTimeZone;
+            }
+            break;
+          }
           // Workout HR summaries arrive as metadata on some exports.
           if (!currentWorkout) break;
           const value = Number(attrs.value);
@@ -714,6 +870,11 @@ function parseAppleXml(
         if (currentBeatWindow.beats.length > 0) acc.beatWindows.push(currentBeatWindow);
         currentBeatWindow = null;
       }
+      if (name === "Record") {
+        currentPointSignal = null;
+        currentSeriesSample = null;
+        currentSleepFragment = null;
+      }
       if (name === "Workout" && currentWorkout) {
         const session: HardSignalT = {
           type: "workout_session",
@@ -727,8 +888,12 @@ function parseAppleXml(
         payload.inputReceipts.set(session, {
           input_start_timestamp: appleTimestampReceipt(
             currentWorkout.inputStart,
+            currentWorkout.sourceTimeZone,
           ),
-          input_end_timestamp: appleTimestampReceipt(currentWorkout.inputEnd),
+          input_end_timestamp: appleTimestampReceipt(
+            currentWorkout.inputEnd,
+            currentWorkout.sourceTimeZone,
+          ),
           input_summaries: currentWorkout.inputSummaries,
         });
         acc.workouts.push(session);
@@ -752,7 +917,7 @@ function parseAppleXml(
           return;
         }
         const writer = writers.resolve(attrs);
-        acc.sleepFragments.push({
+        const fragment: SleepFragment = {
           start: startDate,
           end: endDate,
           inputStart: attrs.startDate!,
@@ -760,7 +925,9 @@ function parseAppleXml(
           value: attrs.value ?? "",
           source: writer.source,
           ...(writer.deviceKey ? { deviceKey: writer.deviceKey } : {}),
-        });
+        };
+        currentSleepFragment = fragment;
+        acc.sleepFragments.push(fragment);
         return;
       }
 
@@ -804,6 +971,7 @@ function parseAppleXml(
             ? { input_unit_missing_reason: "not_provided_by_source" }
             : { input_unit: attrs.unit }),
         });
+        currentPointSignal = reading;
         acc.points.push(reading);
         return;
       }
@@ -838,7 +1006,7 @@ function parseAppleXml(
         // A sample that covers a span keeps its length: "420 steps from 9:00 to 9:05"
         // is a rate only if the five minutes survive. An instant reading has none.
         const durationMs = endDate ? Date.parse(endDate) - Date.parse(startDate) : 0;
-        samples.push({
+        const sample: Sample = {
           at: startDate,
           value: roundSample(value),
           ...(durationMs > 0 ? { durationMs } : {}),
@@ -858,7 +1026,9 @@ function parseAppleXml(
           inputTimestampBasis: "source_offset_timestamp",
           inputValue: raw,
           ...(attrs.unit === undefined ? {} : { inputUnit: attrs.unit }),
-        });
+        };
+        currentSeriesSample = sample;
+        samples.push(sample);
         bucket.byDay.set(day, samples);
         acc.series.set(key, bucket);
 
@@ -1155,8 +1325,14 @@ function clusterNights(
     const deviceKey = cluster.find((f) => f.deviceKey)?.deviceKey;
     if (payload && deviceKey) payload.deviceOf.set(night, deviceKey);
     payload?.inputReceipts.set(night, {
-      input_start_timestamp: appleTimestampReceipt(startFragment.inputStart),
-      input_end_timestamp: appleTimestampReceipt(endFragment.inputEnd),
+      input_start_timestamp: appleTimestampReceipt(
+        startFragment.inputStart,
+        startFragment.sourceTimeZone,
+      ),
+      input_end_timestamp: appleTimestampReceipt(
+        endFragment.inputEnd,
+        endFragment.sourceTimeZone,
+      ),
     });
 
     return [night];

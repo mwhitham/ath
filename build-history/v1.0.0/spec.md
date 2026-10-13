@@ -249,6 +249,7 @@ measurement_sample
 sleep_session
 workout_session
 benchmark_result
+provider_summary
 provider_score
 athlete_report
 nutrition_entry
@@ -323,9 +324,14 @@ workout_sessions
 workout_session_segments
 benchmark_results
 benchmark_result_segments
+provider_summaries
 provider_scores
 provider_reporting_periods
 ```
+
+`provider_summaries` stores source-reported totals and durations that do not belong
+to one sleep or workout session. `provider_scores` stores composite scores such as
+WHOOP recovery or Oura readiness. D110 keeps these meanings separate.
 
 `measurement_samples` stores every accepted sample. Its main index is:
 

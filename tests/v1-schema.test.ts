@@ -146,6 +146,7 @@ describe("v1 record IDs and types", () => {
       "sleep_session",
       "workout_session",
       "benchmark_result",
+      "provider_summary",
       "provider_score",
       "athlete_report",
       "nutrition_entry",

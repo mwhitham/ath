@@ -219,6 +219,8 @@ Source and report times preserve source text in an input receipt:
 | `utc_offset_text` | when supplied | nonempty string |
 | `utc_offset_missing_reason` | when offset text is absent | missing-reason enum |
 | `utc_offset_meaning` | with offset text | `documented_recording_offset`, `provider_cycle_offset`, `route_rendering_offset`, or `meaning_not_documented` |
+| `source_time_zone` | when supplied | nonempty source timezone name |
+| `source_time_zone_meaning` | with source timezone | `apple_health_object_creation_time_zone` |
 
 Missing reasons are `not_provided_by_source`, `not_exposed_by_route`, and
 `not_applicable`. A supplied value cannot also carry its missing reason.
@@ -255,9 +257,9 @@ midnight-to-midnight calendar totals.
 
 ### 5.4 Measured record fields
 
-The six measured record types are `point_measurement`, `measurement_sample`,
-`sleep_session`, `workout_session`, `benchmark_result`, and `provider_score`.
-Their `data` objects all include:
+The seven measured record types are `point_measurement`, `measurement_sample`,
+`sleep_session`, `workout_session`, `benchmark_result`, `provider_summary`, and
+`provider_score`. Their `data` objects all include:
 
 | Field | Required | Type |
 |---|---|---|
@@ -300,7 +302,7 @@ A score is an object with at least one of:
 | `reps` | positive integer |
 | `weight_kg` | positive number |
 
-## 6. The 23 record types
+## 6. The 24 record types
 
 ### 6.1 `athlete_profile`
 
@@ -454,7 +456,22 @@ In addition to the measured fields:
 A result segment requires `label` and may contain a `score`. The optional workout
 link is a stable UUID.
 
-### 6.9 `provider_score`
+### 6.9 `provider_summary`
+
+In addition to the measured fields:
+
+| Data field | Required | Type |
+|---|---|---|
+| `summary_type` | yes | nonempty provider summary name |
+| `value` | yes | source value |
+| `recorded_at` | no | normalized UTC timestamp |
+| `input_timestamp` | yes | input timestamp receipt |
+
+A provider summary needs either `recorded_at` or at least one provider reporting
+period. It stores a source-reported total or duration such as Apple active energy.
+It is not a raw sample or a composite score.
+
+### 6.10 `provider_score`
 
 In addition to the measured fields:
 
@@ -470,7 +487,7 @@ A provider score needs either `recorded_at` or at least one provider reporting
 period. It stores a source-reported composite such as recovery, strain, readiness,
 or sleep score. It is not a sensor measurement.
 
-### 6.10 `athlete_report`
+### 6.11 `athlete_report`
 
 | Data field | Required | Type |
 |---|---|---|
@@ -486,7 +503,7 @@ or sleep score. It is not a sensor measurement.
 
 This record has no source field. Unknown fields are rejected.
 
-### 6.11 `nutrition_entry`
+### 6.12 `nutrition_entry`
 
 | Data field | Required | Type |
 |---|---|---|
@@ -504,7 +521,7 @@ nutrient array. Each nutrient requires `nutrient_name`, numeric `amount`, and
 Model-inferred nutrition belongs in a separate
 `nutrition_model_interpretation` record.
 
-### 6.12 `attachment`
+### 6.13 `attachment`
 
 | Data field | Required | Type |
 |---|---|---|
@@ -516,7 +533,7 @@ Model-inferred nutrition belongs in a separate
 
 Binary bytes are sibling files. They are not embedded in record JSON.
 
-### 6.13 `benchmark_definition`
+### 6.14 `benchmark_definition`
 
 This is an authored record.
 
@@ -529,7 +546,7 @@ This is an authored record.
 | `definition` | yes | nonempty string |
 | `tags` | no | nonempty string array |
 
-### 6.14 `prediction`
+### 6.15 `prediction`
 
 This is an authored record.
 
@@ -545,7 +562,7 @@ This is an authored record.
 The prediction is a separate record from its result, link, grade, and later error
 analysis.
 
-### 6.15 `prediction_result_link`
+### 6.16 `prediction_result_link`
 
 | Data field | Required | Type |
 |---|---|---|
@@ -560,7 +577,7 @@ The prediction and result must use the same benchmark definition.
 A corrected result creates a new revision of this link. Existing grades keep their
 earlier exact link revision.
 
-### 6.16 `prediction_grade`
+### 6.17 `prediction_grade`
 
 This is a tool-authored record.
 
@@ -577,7 +594,7 @@ This is a tool-authored record.
 The stored scores and arithmetic must match the exact linked revisions and the
 named calculation version.
 
-### 6.17 `prediction_error_analysis`
+### 6.18 `prediction_error_analysis`
 
 This is an authored record.
 
@@ -594,7 +611,7 @@ This is an authored record.
 Each cause has an exact `evidence` reference and nonempty `explanation`. An analysis
 with no causes must set `unexplained: true`.
 
-### 6.18 `training_plan`
+### 6.19 `training_plan`
 
 This is an authored record.
 
@@ -607,7 +624,7 @@ This is an authored record.
 
 Storing a plan does not authorize the CLI or an agent to prescribe training.
 
-### 6.19 `planned_session`
+### 6.20 `planned_session`
 
 This is an authored record.
 
@@ -632,7 +649,7 @@ A block requires `block_type` and `title`. It may contain `instructions`,
 The planned session owns the optional completion link. The measured workout does
 not store a second link back.
 
-### 6.20 `coaching_note`
+### 6.21 `coaching_note`
 
 This is an authored record.
 
@@ -643,7 +660,7 @@ This is an authored record.
 | `note` | yes | nonempty string |
 | `applies_from`, `applies_to` | no | calendar dates |
 
-### 6.21 `saved_training_review`
+### 6.22 `saved_training_review`
 
 This is an authored record.
 
@@ -654,7 +671,7 @@ This is an authored record.
 | `summary` | yes | nonempty string |
 | `recommendations` | no | nonempty string array |
 
-### 6.22 `goal`
+### 6.23 `goal`
 
 This is an authored record.
 
@@ -667,7 +684,7 @@ This is an authored record.
 | `target_benchmark_definition_id` | no | benchmark definition UUIDv7 |
 | `target_score` | no | score |
 
-### 6.23 `nutrition_model_interpretation`
+### 6.24 `nutrition_model_interpretation`
 
 This is an authored record.
 
@@ -734,6 +751,7 @@ The current typed tables are:
 | `sleep_session` | `sleep_sessions` |
 | `workout_session` | `workout_sessions` |
 | `benchmark_result` | `benchmark_results` |
+| `provider_summary` | `provider_summaries` |
 | `provider_score` | `provider_scores` |
 | `athlete_report` | `athlete_reports` |
 | `nutrition_entry` | `nutrition_entries` |

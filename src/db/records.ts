@@ -370,6 +370,17 @@ export async function upsertTypedRecord(
         ["received_at", record.data.received_at],
       ]);
       break;
+    case "provider_summary":
+      await upsertTypedRow(transaction, "provider_summaries", record, [
+        ["source_id", record.data.source_id],
+        ["summary_type", record.data.summary_type],
+        ["recorded_at", nullable(record.data.recorded_at)],
+        ["standard_value", record.data.value.standard_value],
+        ["standard_unit", record.data.value.standard_unit],
+        ["provider_record_id", nullable(record.data.provider_record_id)],
+        ["received_at", record.data.received_at],
+      ]);
+      break;
     case "athlete_report":
       await upsertTypedRow(transaction, "athlete_reports", record, [
         ["report_type", record.data.report_type],

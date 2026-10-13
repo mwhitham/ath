@@ -58,6 +58,7 @@ const ids = {
   review: id(23),
   goal: id(24),
   nutritionInterpretation: id(25),
+  providerSummary: id(26),
 } as const;
 const attachmentPath = join(attachmentDirectory, `${ids.attachment}.png`);
 
@@ -336,6 +337,36 @@ async function generate(): Promise<void> {
           score: { duration_s: 300 },
           scaling: "rx",
           workout_session_id: ids.workout,
+        },
+      },
+      {
+        record_type: "provider_summary",
+        record_id: ids.providerSummary,
+        created_at: createdAt,
+        became_known_at_basis: "provider_import",
+        changed_by: toolActor,
+        data: {
+          source_id: ids.wearableSource,
+          provider_record_id: "whoop-sleep-duration-2026-08-09",
+          received_at: createdAt,
+          received_at_basis: "import_time",
+          summary_type: "sleep_duration",
+          value: {
+            standard_value: 27_900,
+            standard_unit: "s",
+            input_value: 465,
+            input_unit: "min",
+          },
+          input_timestamp: {
+            timestamp_missing_reason: "not_provided_by_source",
+            utc_offset_missing_reason: "not_provided_by_source",
+          },
+          provider_reporting_periods: [
+            {
+              period_type: "whoop_physiological_cycle",
+              provider_period_id: "cycle-2026-08-09",
+            },
+          ],
         },
       },
       {

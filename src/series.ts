@@ -53,6 +53,8 @@ export interface Sample {
     | "source_offset_timestamp"
     | "source_local_timestamp_with_documented_offset"
     | "reconstructed_from_series_start";
+  inputSourceTimeZone?: string;
+  inputSourceTimeZoneMeaning?: "apple_health_object_creation_time_zone";
   inputValue?: number;
   inputUnit?: string;
 }

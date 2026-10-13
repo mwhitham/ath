@@ -230,6 +230,22 @@ describe("v1 provider import", () => {
             "series_start_plus_offset_ms_v1",
       ),
     ).toBe(true);
+    expect(
+      samples.find(
+        (record) =>
+          record.record_type === "measurement_sample" &&
+          record.data.quantity === "heart_rate" &&
+          record.data.value.standard_value === 62,
+      ),
+    ).toMatchObject({
+      data: {
+        input_timestamp: {
+          source_time_zone: "America/Los_Angeles",
+          source_time_zone_meaning:
+            "apple_health_object_creation_time_zone",
+        },
+      },
+    });
 
     const measurements = await listRecords(database, {
       record_type: "point_measurement",
@@ -254,6 +270,60 @@ describe("v1 provider import", () => {
         },
       },
     });
+    expect(
+      measurements.find(
+        (record) =>
+          record.record_type === "point_measurement" &&
+          record.data.quantity === "resting_heart_rate" &&
+          record.data.value.standard_value === 51,
+      ),
+    ).toMatchObject({
+      data: {
+        input_timestamp: {
+          source_time_zone: "America/Los_Angeles",
+          source_time_zone_meaning:
+            "apple_health_object_creation_time_zone",
+        },
+      },
+    });
+
+    const summaries = await listRecords(database, {
+      record_type: "provider_summary",
+      limit: 10_000,
+    });
+    expect(summaries).toHaveLength(6);
+    expect(
+      summaries.find(
+        (record) =>
+          record.record_type === "provider_summary" &&
+          record.data.summary_type === "active_energy_burned",
+      ),
+    ).toMatchObject({
+      data: {
+        value: {
+          standard_value: 612.4,
+          standard_unit: "kcal",
+          input_value: 612.4,
+          input_unit: "kcal",
+        },
+        input_timestamp: {
+          timestamp_missing_reason: "not_provided_by_source",
+        },
+        provider_reporting_periods: [
+          {
+            period_type: "apple_activity_summary_day",
+            provider_date: "2026-08-09",
+          },
+        ],
+      },
+    });
+    expect(
+      summaries.every(
+        (record) =>
+          record.record_type !== "provider_summary" ||
+          record.data.recorded_at === undefined,
+      ),
+    ).toBe(true);
 
     const repeat = await previewProviderImport(
       database,

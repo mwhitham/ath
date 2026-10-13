@@ -47,6 +47,7 @@ Measured records require `source_id`:
 - `sleep_session`
 - `workout_session`
 - `benchmark_result`
+- `provider_summary`
 - `provider_score`
 
 A `manual` source labels a hand-entered measurement or result. It does not count as
@@ -89,6 +90,7 @@ The remaining records are `athlete_profile`, `source`, `source_device`, and
 | `sleep_session` | measured fields, start/end and input receipts, source summaries |
 | `workout_session` | measured fields, start/end and input receipts, activity, source summaries, optional segments |
 | `benchmark_result` | measured fields, benchmark ID, time receipt, score, scaling, optional workout ID and segments |
+| `provider_summary` | measured fields, summary type, source value, instant or provider period |
 | `provider_score` | measured fields, metric, source value, scale, instant or provider period |
 | `athlete_report` | report type, report time receipt, text/voice/photo route, optional rating, region, note, attachments |
 | `nutrition_entry` | report time receipt, route, athlete description, reported items, attachments |

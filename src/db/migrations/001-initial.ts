@@ -30,6 +30,7 @@ CREATE TABLE records (
     'sleep_session',
     'workout_session',
     'benchmark_result',
+    'provider_summary',
     'provider_score',
     'athlete_report',
     'nutrition_entry',
@@ -347,6 +348,27 @@ CREATE TABLE provider_scores (
 
 CREATE INDEX provider_scores_lookup_idx
   ON provider_scores (metric, source_id, recorded_at);
+
+CREATE TABLE provider_summaries (
+  record_id TEXT PRIMARY KEY,
+  record_type TEXT NOT NULL DEFAULT 'provider_summary'
+    CHECK (record_type = 'provider_summary'),
+  source_id TEXT NOT NULL,
+  summary_type TEXT NOT NULL,
+  recorded_at TEXT,
+  standard_value REAL NOT NULL,
+  standard_unit TEXT NOT NULL,
+  provider_record_id TEXT,
+  received_at TEXT NOT NULL,
+  data_json TEXT NOT NULL CHECK (json_valid(data_json)),
+  FOREIGN KEY (record_id, record_type)
+    REFERENCES records (record_id, record_type)
+    ON DELETE CASCADE,
+  FOREIGN KEY (source_id) REFERENCES sources (record_id)
+) STRICT;
+
+CREATE INDEX provider_summaries_lookup_idx
+  ON provider_summaries (summary_type, source_id, recorded_at);
 
 CREATE TABLE provider_reporting_periods (
   owner_record_id TEXT NOT NULL,

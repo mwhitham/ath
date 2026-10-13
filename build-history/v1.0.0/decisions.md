@@ -885,3 +885,24 @@ Rejected alternatives:
   quantity provide two answers.
 - **Silently stop at an input limit.** Rejected because a partial baseline would look
   complete.
+
+## D110. Provider summaries are records separate from scores and raw samples
+
+`provider_summary` stores a total, duration, or other summary reported by a source
+when it does not belong to one sleep or workout session. It requires a source and
+keeps the source value, normalized value, provider period, and source time facts.
+Its provider-import key uses the source ID, summary type, and source time or provider
+date. This extends D108 without changing its existing matching rules.
+
+This closes a gap in D87. Apple activity summaries are the first required example.
+Active energy, exercise time, and stand hours are summaries for an Apple activity
+day. They are not raw samples and they are not scores.
+
+Rejected alternatives:
+
+- **Store summaries as `provider_score`.** Rejected because a duration or energy
+  total is not a composite score and has no score scale.
+- **Store summaries as point measurements.** Rejected because a day total is not a
+  measurement taken at one instant.
+- **Recalculate and discard the source summary.** Rejected because the source's
+  reported answer is part of the athlete record even when raw samples also exist.

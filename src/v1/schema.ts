@@ -44,6 +44,7 @@ export const RecordType = z.enum([
   "sleep_session",
   "workout_session",
   "benchmark_result",
+  "provider_summary",
   "provider_score",
   "athlete_report",
   "nutrition_entry",
@@ -141,11 +142,17 @@ export const UtcOffsetMeaning = z.enum([
   "meaning_not_documented",
 ]);
 
+export const SourceTimeZoneMeaning = z.enum([
+  "apple_health_object_creation_time_zone",
+]);
+
 export const InputTimestampReceipt = z
   .strictObject({
     timestamp_text: z.string().min(1).optional(),
     utc_offset_text: z.string().min(1).optional(),
     utc_offset_meaning: UtcOffsetMeaning.optional(),
+    source_time_zone: z.string().min(1).optional(),
+    source_time_zone_meaning: SourceTimeZoneMeaning.optional(),
     timestamp_basis: InputTimestampBasis.optional(),
     timestamp_missing_reason: MissingReason.optional(),
     utc_offset_missing_reason: MissingReason.optional(),
@@ -198,6 +205,17 @@ export const InputTimestampReceipt = z
         code: "custom",
         path: ["utc_offset_meaning"],
         message: "UTC offset meaning requires UTC offset text",
+      });
+    }
+    if (
+      (value.source_time_zone === undefined) !==
+      (value.source_time_zone_meaning === undefined)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["source_time_zone_meaning"],
+        message:
+          "A source timezone and its documented meaning must be provided together",
       });
     }
   });
@@ -578,6 +596,25 @@ export const BenchmarkResultData = z.strictObject({
   segments: z.array(BenchmarkResultSegment).optional(),
 });
 
+export const ProviderSummaryData = z
+  .strictObject({
+    ...measuredRecordFields,
+    summary_type: z.string().min(1),
+    value: SourceValue,
+    recorded_at: UtcTimestamp.optional(),
+    input_timestamp: InputTimestampReceipt,
+  })
+  .refine(
+    (value) =>
+      value.recorded_at !== undefined ||
+      (value.provider_reporting_periods !== undefined &&
+        value.provider_reporting_periods.length > 0),
+    {
+      path: ["provider_reporting_periods"],
+      message: "A provider summary needs an instant or a provider reporting period",
+    },
+  );
+
 export const ProviderScoreData = z
   .strictObject({
     ...measuredRecordFields,
@@ -825,6 +862,10 @@ export const BenchmarkResultRecord = currentRecordVariant(
   "benchmark_result",
   BenchmarkResultData,
 );
+export const ProviderSummaryRecord = currentRecordVariant(
+  "provider_summary",
+  ProviderSummaryData,
+);
 export const ProviderScoreRecord = currentRecordVariant("provider_score", ProviderScoreData);
 export const AthleteReportRecord = currentRecordVariant("athlete_report", AthleteReportData);
 export const NutritionEntryRecord = currentRecordVariant("nutrition_entry", NutritionEntryData);
@@ -867,6 +908,7 @@ const nonSampleRecordSchemas = [
   SleepSessionRecord,
   WorkoutSessionRecord,
   BenchmarkResultRecord,
+  ProviderSummaryRecord,
   ProviderScoreRecord,
   AthleteReportRecord,
   NutritionEntryRecord,
@@ -952,6 +994,10 @@ export const BenchmarkResultRevision = recordRevisionVariant(
   "benchmark_result",
   BenchmarkResultData,
 );
+export const ProviderSummaryRevision = recordRevisionVariant(
+  "provider_summary",
+  ProviderSummaryData,
+);
 export const ProviderScoreRevision = recordRevisionVariant("provider_score", ProviderScoreData);
 export const AthleteReportRevision = recordRevisionVariant("athlete_report", AthleteReportData);
 export const NutritionEntryRevision = recordRevisionVariant(
@@ -1000,6 +1046,7 @@ const nonSampleRevisionSchemas = [
   SleepSessionRevision,
   WorkoutSessionRevision,
   BenchmarkResultRevision,
+  ProviderSummaryRevision,
   ProviderScoreRevision,
   AthleteReportRevision,
   NutritionEntryRevision,

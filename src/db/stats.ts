@@ -132,6 +132,8 @@ export async function databaseStats(
       UNION ALL
       SELECT record_id, source_id, recorded_at AS at FROM benchmark_results
       UNION ALL
+      SELECT record_id, source_id, recorded_at AS at FROM provider_summaries
+      UNION ALL
       SELECT record_id, source_id, recorded_at AS at FROM provider_scores
     ),
     current_measured AS (

@@ -40,12 +40,31 @@ export interface DeviceObservation {
   n: number;
 }
 
+/** A source-reported total or duration that is not a score or raw sample. */
+export interface ProviderSummaryImport {
+  source: string;
+  summary_type: string;
+  value: number;
+  standard_unit: string;
+  input_value: number;
+  input_unit?: string;
+  input_unit_missing_reason?:
+    | "not_provided_by_source"
+    | "not_exposed_by_route"
+    | "not_applicable";
+  recorded_at?: string;
+  input_timestamp: InputTimestampReceiptT;
+  provider_record_id?: string;
+  provider_reporting_periods?: ProviderReportingPeriodT[];
+}
+
 /** What an importer produces, before anything is written. */
 export interface ImportPayload {
   vendor: string;
   detail: string;
   hardSignals: HardSignalT[];
   softSignals: SoftSignalT[];
+  providerSummaries: ProviderSummaryImport[];
   series: BuiltSeries[];
   /** Rows we would not guess at, counted rather than silently dropped. */
   skipped: Map<string, number>;
@@ -124,6 +143,7 @@ export function emptyPayload(vendor: string, detail: string): ImportPayload {
     detail,
     hardSignals: [],
     softSignals: [],
+    providerSummaries: [],
     series: [],
     skipped: new Map(),
     skipExamples: new Map(),

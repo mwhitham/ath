@@ -165,6 +165,7 @@ describe("v1 database creation and opening", () => {
         "workout_session_segments",
         "benchmark_results",
         "benchmark_result_segments",
+        "provider_summaries",
         "provider_scores",
         "provider_reporting_periods",
         "athlete_reports",

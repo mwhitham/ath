@@ -17,6 +17,7 @@ import type {
 } from "../schema.js";
 import { atOffsetOf } from "../series.js";
 import { parseProviderExport, type ParsedProviderExport } from "../import/index.js";
+import type { ProviderSummaryImport } from "../import/merge.js";
 import { databaseClient, type AthleticDatabase } from "./client.js";
 import {
   incrementDatabaseRevision,
@@ -131,6 +132,8 @@ function seriesSampleTimestampReceipt(
       | "source_offset_timestamp"
       | "source_local_timestamp_with_documented_offset"
       | "reconstructed_from_series_start";
+    inputSourceTimeZone?: string;
+    inputSourceTimeZoneMeaning?: "apple_health_object_creation_time_zone";
   },
   fallback: string,
   route: ParsedProviderExport["route"],
@@ -151,6 +154,14 @@ function seriesSampleTimestampReceipt(
           utc_offset_text: sample.inputUtcOffsetText,
           utc_offset_meaning:
             sample.inputUtcOffsetMeaning ?? "meaning_not_documented",
+        }),
+    ...(sample.inputSourceTimeZone === undefined
+      ? {}
+      : {
+          source_time_zone: sample.inputSourceTimeZone,
+          source_time_zone_meaning:
+            sample.inputSourceTimeZoneMeaning ??
+            ("apple_health_object_creation_time_zone" as const),
         }),
   };
 }
@@ -328,7 +339,7 @@ async function resolveSourceIds(
 
 function providerPeriods(
   parsed: ParsedProviderExport,
-  timestamp: string,
+  timestamp: string | undefined,
   receipt?: {
     input_timestamp?: InputTimestampReceiptT;
     provider_reporting_periods?: ProviderReportingPeriodT[];
@@ -338,6 +349,18 @@ function providerPeriods(
   input_timestamp: InputTimestampReceiptT;
   provider_reporting_periods?: ProviderReportingPeriodT[];
 } {
+  if (timestamp === undefined) {
+    if (
+      receipt?.provider_reporting_periods === undefined ||
+      receipt.provider_reporting_periods.length === 0
+    ) {
+      throw new Error("A date-only provider record needs a reporting period");
+    }
+    return {
+      input_timestamp: receipt.input_timestamp ?? missingTimestampReceipt,
+      provider_reporting_periods: receipt.provider_reporting_periods,
+    };
+  }
   if (
     receipt?.provider_reporting_periods !== undefined &&
     receipt.input_timestamp === undefined
@@ -370,6 +393,58 @@ function providerPeriods(
     ...(receipt?.provider_reporting_periods === undefined
       ? {}
       : { provider_reporting_periods: receipt.provider_reporting_periods }),
+  };
+}
+
+function providerSummaryDraft(
+  parsed: ParsedProviderExport,
+  summary: ProviderSummaryImport,
+  sourceId: string,
+  receivedAt: string,
+  collisions: Map<string, number>,
+): ProviderRecordDraft {
+  const method = `${parsed.route}/v1`;
+  const time = providerPeriods(parsed, summary.recorded_at, {
+    input_timestamp: summary.input_timestamp,
+    provider_reporting_periods: summary.provider_reporting_periods,
+  });
+  const anchor =
+    time.recorded_at ??
+    time.provider_reporting_periods?.[0]?.provider_date ??
+    summary.provider_record_id;
+  if (anchor === undefined) {
+    throw new Error("A provider summary needs a source time, date, or record ID");
+  }
+  const key = draftKey(
+    method,
+    ["provider_summary", sourceId, summary.summary_type, anchor],
+    collisions,
+  );
+  return {
+    record_id: createUuidV7(),
+    record_type: "provider_summary",
+    data: {
+      source_id: sourceId,
+      received_at: receivedAt,
+      received_at_basis: "import_time",
+      summary_type: summary.summary_type,
+      value: sourceValue(summary.value, summary.standard_unit, {
+        input_value: summary.input_value,
+        ...(summary.input_unit === undefined
+          ? {
+              input_unit_missing_reason:
+                summary.input_unit_missing_reason ??
+                ("not_exposed_by_route" as const),
+            }
+          : { input_unit: summary.input_unit }),
+      }),
+      ...time,
+      ...(summary.provider_record_id === undefined
+        ? {}
+        : { provider_record_id: summary.provider_record_id }),
+    },
+    match_key_method: method,
+    ...key,
   };
 }
 
@@ -769,6 +844,21 @@ async function buildProviderPlan(
     if (draft !== null) {
       drafts.push(draft);
     }
+  }
+  for (const summary of parsed.payload.providerSummaries) {
+    const sourceId = resolved.ids.get(summary.source);
+    if (sourceId === undefined) {
+      throw new Error(`Provider summary uses unknown source: ${summary.source}`);
+    }
+    drafts.push(
+      providerSummaryDraft(
+        parsed,
+        summary,
+        sourceId,
+        receivedAt,
+        collisions,
+      ),
+    );
   }
   drafts.push(
     ...seriesDrafts(parsed, resolved.ids, receivedAt, collisions),

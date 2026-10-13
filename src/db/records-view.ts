@@ -17,6 +17,7 @@ const linkColumns = [
   ["benchmark_results", "record_id", "source_id", "source"],
   ["benchmark_results", "record_id", "benchmark_definition_id", "benchmark_definition"],
   ["benchmark_results", "record_id", "workout_session_id", "workout_session"],
+  ["provider_summaries", "record_id", "source_id", "source"],
   ["provider_scores", "record_id", "source_id", "source"],
   ["record_attachment_links", "owner_record_id", "attachment_record_id", "attachment"],
   ["point_measurement_calculation_inputs", "point_measurement_id", "evidence_record_id", "calculation_input"],
@@ -111,6 +112,10 @@ function recordLabel(record: CurrentRecordT): string {
       return `${record.data.quantity} ${record.data.value.standard_value}${record.data.value.standard_unit}`;
     case "measurement_sample":
       return `${record.data.quantity} ${record.data.value.standard_value}${record.data.value.standard_unit}`;
+    case "provider_summary":
+      return `${record.data.summary_type} ${record.data.value.standard_value}${record.data.value.standard_unit}`;
+    case "provider_score":
+      return `${record.data.metric} ${record.data.value.standard_value} ${record.data.scale}`;
     case "benchmark_definition":
       return record.data.benchmark_key;
     case "athlete_report":

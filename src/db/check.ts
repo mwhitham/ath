@@ -47,6 +47,7 @@ const typedTables: Readonly<Record<string, string>> = {
   sleep_session: "sleep_sessions",
   workout_session: "workout_sessions",
   benchmark_result: "benchmark_results",
+  provider_summary: "provider_summaries",
   provider_score: "provider_scores",
   athlete_report: "athlete_reports",
   nutrition_entry: "nutrition_entries",

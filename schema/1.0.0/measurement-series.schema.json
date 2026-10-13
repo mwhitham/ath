@@ -152,6 +152,16 @@
                             "meaning_not_documented"
                           ]
                         },
+                        "source_time_zone": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "source_time_zone_meaning": {
+                          "type": "string",
+                          "enum": [
+                            "apple_health_object_creation_time_zone"
+                          ]
+                        },
                         "timestamp_basis": {
                           "type": "string",
                           "enum": [
@@ -198,6 +208,16 @@
                             "provider_cycle_offset",
                             "route_rendering_offset",
                             "meaning_not_documented"
+                          ]
+                        },
+                        "source_time_zone": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "source_time_zone_meaning": {
+                          "type": "string",
+                          "enum": [
+                            "apple_health_object_creation_time_zone"
                           ]
                         },
                         "timestamp_basis": {
@@ -325,6 +345,16 @@
                       "provider_cycle_offset",
                       "route_rendering_offset",
                       "meaning_not_documented"
+                    ]
+                  },
+                  "source_time_zone": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "source_time_zone_meaning": {
+                    "type": "string",
+                    "enum": [
+                      "apple_health_object_creation_time_zone"
                     ]
                   },
                   "timestamp_basis": {
@@ -610,6 +640,16 @@
                             "meaning_not_documented"
                           ]
                         },
+                        "source_time_zone": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "source_time_zone_meaning": {
+                          "type": "string",
+                          "enum": [
+                            "apple_health_object_creation_time_zone"
+                          ]
+                        },
                         "timestamp_basis": {
                           "type": "string",
                           "enum": [
@@ -656,6 +696,16 @@
                             "provider_cycle_offset",
                             "route_rendering_offset",
                             "meaning_not_documented"
+                          ]
+                        },
+                        "source_time_zone": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "source_time_zone_meaning": {
+                          "type": "string",
+                          "enum": [
+                            "apple_health_object_creation_time_zone"
                           ]
                         },
                         "timestamp_basis": {
@@ -783,6 +833,16 @@
                       "provider_cycle_offset",
                       "route_rendering_offset",
                       "meaning_not_documented"
+                    ]
+                  },
+                  "source_time_zone": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "source_time_zone_meaning": {
+                    "type": "string",
+                    "enum": [
+                      "apple_health_object_creation_time_zone"
                     ]
                   },
                   "timestamp_basis": {

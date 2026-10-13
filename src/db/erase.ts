@@ -53,6 +53,7 @@ function dependencySql(): string {
       UNION ALL SELECT source_id, record_id FROM sleep_sessions
       UNION ALL SELECT source_id, record_id FROM workout_sessions
       UNION ALL SELECT source_id, record_id FROM benchmark_results
+      UNION ALL SELECT source_id, record_id FROM provider_summaries
       UNION ALL SELECT source_id, record_id FROM provider_scores
       UNION ALL SELECT benchmark_definition_id, record_id FROM benchmark_results
       UNION ALL SELECT workout_session_id, record_id FROM benchmark_results
