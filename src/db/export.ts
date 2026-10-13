@@ -28,7 +28,10 @@ import {
   type RecordImportKeyT,
   type RecordRevisionT,
 } from "../v1/schema.js";
-import { storedAttachmentName } from "./attachments.js";
+import {
+  assertAttachmentFileType,
+  storedAttachmentName,
+} from "./attachments.js";
 import {
   databaseClient,
   refuseSymbolicLinkComponents,
@@ -358,6 +361,7 @@ export async function exportRecords(
         storedName,
       );
       const bytes = await readFile(sourcePath);
+      assertAttachmentFileType(attachment, bytes);
       if (
         bytes.byteLength !== attachment.data.byte_count ||
         sha256(bytes) !== attachment.data.sha256

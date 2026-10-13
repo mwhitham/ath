@@ -18,7 +18,10 @@ import {
   type AthleticDatabase,
 } from "./client.js";
 import { readDatabaseMetadata, type DatabaseMetadata } from "./migrate.js";
-import { storedAttachmentName } from "./attachments.js";
+import {
+  assertAttachmentFileType,
+  storedAttachmentName,
+} from "./attachments.js";
 import { validateTypedRelationships } from "./records.js";
 
 export interface DatabaseCheckIssue {
@@ -107,6 +110,16 @@ async function checkAttachment(
       check: "attachment",
       record_id: record.record_id,
       message: `attachment SHA-256 is ${sha256}, expected ${record.data.sha256}`,
+    });
+  }
+  try {
+    assertAttachmentFileType(record, bytes);
+  } catch (error) {
+    issues.push({
+      severity: "error",
+      check: "attachment",
+      record_id: record.record_id,
+      message: (error as Error).message,
     });
   }
 }

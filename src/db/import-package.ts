@@ -24,7 +24,10 @@ import {
   type RecordImportKeyT,
   type RecordRevisionT,
 } from "../v1/schema.js";
-import { storedAttachmentName } from "./attachments.js";
+import {
+  assertAttachmentFileType,
+  storedAttachmentName,
+} from "./attachments.js";
 import {
   databaseClient,
   refuseSymbolicLinkComponents,
@@ -43,6 +46,7 @@ import { withWriteTransaction } from "./transaction.js";
 const MAX_DOCUMENT_BYTES = 512 * 1024 * 1024;
 const MAX_PACKAGE_FILES = 10_000;
 const MAX_PACKAGE_RECORDS = 50_000_000;
+const MAX_JSON_NESTING = 128;
 
 export interface LoadedPackage {
   package: AthleticStandardPackageT;
@@ -87,6 +91,36 @@ function sha256(bytes: Uint8Array): string {
   return createHash("sha256").update(bytes).digest("hex");
 }
 
+function assertJsonNesting(bytes: Uint8Array, path: string): void {
+  let depth = 0;
+  let inString = false;
+  let escaped = false;
+  for (const byte of bytes) {
+    if (inString) {
+      if (escaped) {
+        escaped = false;
+      } else if (byte === 0x5c) {
+        escaped = true;
+      } else if (byte === 0x22) {
+        inString = false;
+      }
+      continue;
+    }
+    if (byte === 0x22) {
+      inString = true;
+    } else if (byte === 0x7b || byte === 0x5b) {
+      depth++;
+      if (depth > MAX_JSON_NESTING) {
+        throw new Error(
+          `package JSON exceeds nesting limit ${MAX_JSON_NESTING}: ${path}`,
+        );
+      }
+    } else if (byte === 0x7d || byte === 0x5d) {
+      depth--;
+    }
+  }
+}
+
 async function safeReadJson(path: string): Promise<{ bytes: Buffer; value: unknown }> {
   await refuseSymbolicLinkComponents(path);
   const stat = await lstat(path);
@@ -97,6 +131,7 @@ async function safeReadJson(path: string): Promise<{ bytes: Buffer; value: unkno
     throw new Error(`package JSON exceeds ${MAX_DOCUMENT_BYTES} bytes: ${path}`);
   }
   const bytes = await readFile(path);
+  assertJsonNesting(bytes, path);
   let value: unknown;
   try {
     value = JSON.parse(bytes.toString("utf8"));
@@ -182,6 +217,9 @@ export async function loadAthleticStandardPackage(
       `export-manifest.json\u0000${manifestDocument.bytes.byteLength}\u0000${sha256(manifestDocument.bytes)}`,
     );
     manifest = ExportManifest.parse(manifestDocument.value);
+    if (manifest.files.length > MAX_PACKAGE_FILES + 2) {
+      throw new Error(`package has more than ${MAX_PACKAGE_FILES + 2} files`);
+    }
     if (
       manifest.source_database_id !== packageValue.database_id ||
       manifest.database_revision !== packageValue.database_revision
@@ -242,8 +280,16 @@ export async function loadAthleticStandardPackage(
     ...packageValue.record_import_keys,
     ...series.flatMap((file) => file.record_import_keys),
   ];
-  if (allRecords.length > MAX_PACKAGE_RECORDS) {
-    throw new Error(`package has more than ${MAX_PACKAGE_RECORDS} records`);
+  const packageObjectCount =
+    allRecords.length +
+    allRevisions.length +
+    allDeletions.length +
+    allImportKeys.length +
+    packageValue.record_erasure_markers.length;
+  if (packageObjectCount > MAX_PACKAGE_RECORDS) {
+    throw new Error(
+      `package has more than ${MAX_PACKAGE_RECORDS} record and history objects`,
+    );
   }
   const recordIds = new Set<string>();
   for (const record of allRecords) {
@@ -262,6 +308,7 @@ export async function loadAthleticStandardPackage(
     const path = resolvePackageFile(sourceDirectory, relativePath);
     await refuseSymbolicLinkComponents(path);
     const bytes = await readFile(path);
+    assertAttachmentFileType(record, bytes);
     fingerprintParts.push(
       `${relativePath}\u0000${bytes.byteLength}\u0000${sha256(bytes)}`,
     );

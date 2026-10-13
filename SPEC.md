@@ -969,6 +969,18 @@ A conforming implementation must:
 - check SQLite integrity, foreign keys, schema versions, record rules, the
   two-tier wall, exact evidence, and attachment hashes.
 
+The reference CLI applies these input limits:
+
+- 512 MiB and 128 nested object or array levels for one package JSON file;
+- 10,000 generated series files and 50 million records in one package;
+- 100,000 entries, 16 GiB for one expanded entry, and 64 GiB expanded in one
+  provider archive;
+- a 1,000:1 maximum archive expansion ratio;
+- 64 MiB for a provider CSV, route, or ECG file read into memory;
+- 25 MiB for one directly logged attachment.
+
+Large Apple Health XML remains streamed. A limit refusal writes no athlete data.
+
 Do not copy an open WAL database as a backup. Use `ath export` or SQLite's online
 backup operation. A closed, checkpointed database may be copied.
 

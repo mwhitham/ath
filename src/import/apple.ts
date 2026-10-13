@@ -10,7 +10,7 @@
  * reports HRV only as SDNN, but each SDNN record carries the beats underneath it, so
  * RMSSD can be computed rather than lost (D26).
  */
-import { createReadStream, existsSync, statSync } from "node:fs";
+import { createReadStream, existsSync, lstatSync } from "node:fs";
 import { basename, join } from "node:path";
 import type { Readable } from "node:stream";
 import sax from "sax";
@@ -42,7 +42,12 @@ function attribute(payload: ImportPayload, signal: HardSignalT, writer: Writer):
 import { beatsFromEcg, parseEcgCsv } from "./ecg.js";
 import { parseGpx, summarizeRoute, type RouteSummary } from "./routes.js";
 import { isEcgEntry, isRouteEntry, readEntries, type DetectedExport } from "./detect.js";
-import { openZipEntryStream, zipEntryNames, openZip } from "./zip.js";
+import {
+  MAX_ZIP_ENTRY_BYTES,
+  openZipEntryStream,
+  zipEntryNames,
+  openZip,
+} from "./zip.js";
 import {
   passthrough,
   perMinute,
@@ -417,8 +422,20 @@ interface AppleAccumulator {
 
 /** Locate export.xml inside whatever the user handed us, with its size for the bar. */
 async function openAppleXml(detected: DetectedExport): Promise<{ stream: Readable; size: number }> {
+  const openLocal = (path: string) => {
+    const stat = lstatSync(path);
+    if (stat.isSymbolicLink() || !stat.isFile()) {
+      throw new Error(`refusing Apple Health XML that is not a regular file: ${path}`);
+    }
+    if (stat.size > MAX_ZIP_ENTRY_BYTES) {
+      throw new Error(
+        `Apple Health XML exceeds ${MAX_ZIP_ENTRY_BYTES} bytes: ${path}`,
+      );
+    }
+    return { stream: createReadStream(path), size: stat.size };
+  };
   if (detected.container === "file") {
-    return { stream: createReadStream(detected.path), size: statSync(detected.path).size };
+    return openLocal(detected.path);
   }
 
   if (detected.container === "directory") {
@@ -428,7 +445,7 @@ async function openAppleXml(detected: DetectedExport): Promise<{ stream: Readabl
     ];
     const found = candidates.find((c) => existsSync(c));
     if (!found) throw new Error(`no export.xml under ${detected.path}`);
-    return { stream: createReadStream(found), size: statSync(found).size };
+    return openLocal(found);
   }
 
   const zip = await openZip(detected.path);

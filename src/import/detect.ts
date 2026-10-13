@@ -5,9 +5,25 @@
  * renamed. An unrecognized export fails loudly instead of being parsed as
  * something it is not.
  */
-import { closeSync, existsSync, openSync, readdirSync, readFileSync, readSync, statSync } from "node:fs";
+import {
+  closeSync,
+  existsSync,
+  lstatSync,
+  openSync,
+  readdirSync,
+  readFileSync,
+  readSync,
+} from "node:fs";
 import { basename, dirname, join } from "node:path";
-import { openZip, readZipEntry, zipEntryNames } from "./zip.js";
+import {
+  MAX_ZIP_MEMORY_ENTRY_BYTES,
+  openZip,
+  readZipEntry,
+  zipEntryNames,
+} from "./zip.js";
+
+export const MAX_PROVIDER_FILES = 100_000;
+export const MAX_PROVIDER_TEXT_BYTES = MAX_ZIP_MEMORY_ENTRY_BYTES;
 
 export type ExportFormat = "apple" | "whoop" | "oura";
 
@@ -47,6 +63,10 @@ function isOuraHeader(header: string): boolean {
 }
 
 function firstLine(path: string): string {
+  const stat = lstatSync(path);
+  if (stat.isSymbolicLink() || !stat.isFile()) {
+    throw new UnknownExportError(`refusing provider input that is not a regular file: ${path}`);
+  }
   // Enough for a header row without reading a year of nights into memory.
   const buf = Buffer.alloc(8192);
   const fd = openSync(path, "r");
@@ -63,7 +83,10 @@ export class UnknownExportError extends Error {}
 export async function detectExport(path: string): Promise<DetectedExport> {
   if (!existsSync(path)) throw new UnknownExportError(`no such file or directory: ${path}`);
 
-  const stat = statSync(path);
+  const stat = lstatSync(path);
+  if (stat.isSymbolicLink()) {
+    throw new UnknownExportError(`refusing provider input through a symbolic link: ${path}`);
+  }
 
   if (stat.isDirectory()) {
     const names = readdirSync(path).map((n) => n.toLowerCase());
@@ -162,7 +185,16 @@ export async function listEntries(detected: DetectedExport): Promise<string[]> {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       const rel = prefix ? `${prefix}/${entry.name}` : entry.name;
       if (entry.isDirectory()) walk(join(dir, entry.name), rel);
-      else out.push(rel);
+      else if (entry.isSymbolicLink()) {
+        throw new UnknownExportError(`refusing symbolic link in provider export: ${rel}`);
+      } else if (entry.isFile()) {
+        out.push(rel);
+        if (out.length > MAX_PROVIDER_FILES) {
+          throw new UnknownExportError(
+            `provider export has more than ${MAX_PROVIDER_FILES} files`,
+          );
+        }
+      }
     }
   };
   walk(detected.auxRoot, "");
@@ -182,7 +214,17 @@ export async function readEntries(
     if (detected.container === "zip") {
       out.set(name, await readZipEntry(detected.path, name));
     } else {
-      out.set(name, readFileSync(join(detected.auxRoot, name), "utf8"));
+      const path = join(detected.auxRoot, name);
+      const stat = lstatSync(path);
+      if (stat.isSymbolicLink() || !stat.isFile()) {
+        throw new UnknownExportError(`refusing provider input that is not a regular file: ${path}`);
+      }
+      if (stat.size > MAX_PROVIDER_TEXT_BYTES) {
+        throw new UnknownExportError(
+          `provider text file exceeds ${MAX_PROVIDER_TEXT_BYTES} bytes: ${path}`,
+        );
+      }
+      out.set(name, readFileSync(path, "utf8"));
     }
     onProgress?.(out.size, names.length);
   }
@@ -206,6 +248,12 @@ export async function readCsvBundle(detected: DetectedExport): Promise<Map<strin
   const out = new Map<string, string>();
 
   if (detected.container === "file") {
+    const stat = lstatSync(detected.path);
+    if (stat.size > MAX_PROVIDER_TEXT_BYTES) {
+      throw new UnknownExportError(
+        `provider text file exceeds ${MAX_PROVIDER_TEXT_BYTES} bytes: ${detected.path}`,
+      );
+    }
     out.set(basename(detected.path).toLowerCase(), readFileSync(detected.path, "utf8"));
     return out;
   }
@@ -215,8 +263,24 @@ export async function readCsvBundle(detected: DetectedExport): Promise<Map<strin
       for (const entry of readdirSync(dir, { withFileTypes: true })) {
         const full = join(dir, entry.name);
         if (entry.isDirectory()) walk(full);
+        else if (entry.isSymbolicLink()) {
+          throw new UnknownExportError(
+            `refusing symbolic link in provider export: ${full}`,
+          );
+        }
         else if (entry.name.toLowerCase().endsWith(".csv")) {
+          const stat = lstatSync(full);
+          if (stat.size > MAX_PROVIDER_TEXT_BYTES) {
+            throw new UnknownExportError(
+              `provider text file exceeds ${MAX_PROVIDER_TEXT_BYTES} bytes: ${full}`,
+            );
+          }
           out.set(entry.name.toLowerCase(), readFileSync(full, "utf8"));
+          if (out.size > MAX_PROVIDER_FILES) {
+            throw new UnknownExportError(
+              `provider export has more than ${MAX_PROVIDER_FILES} CSV files`,
+            );
+          }
         }
       }
     };
