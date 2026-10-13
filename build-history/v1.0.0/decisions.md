@@ -754,3 +754,23 @@ Rejected alternatives:
   erasure could not find every dependent record.
 - **Enable WAL before checking the file.** Rejected because a refused foreign
   database would be modified merely by inspection.
+
+## D105. Normalized UTC timestamps use fixed millisecond precision
+
+Every normalized instant uses `YYYY-MM-DDTHH:mm:ss.SSSZ`. Fixed-width UTC text sorts
+in instant order in SQLite and keeps indexed range queries correct. Input timestamp
+text remains unchanged in its receipt, including any finer precision or numeric
+offset supplied by the route.
+
+Import rounds an absolute source instant to the nearest millisecond only for the
+normalized field. It does not rewrite the input receipt. When two source events land
+in the same normalized millisecond, their stable record IDs and provider import keys
+still keep them separate.
+
+Rejected alternatives:
+
+- **Allow optional fractional seconds.** Rejected because text ordering places
+  `00.500Z` before `00Z`, which breaks range and historical queries.
+- **Use SQLite date functions in every query.** Rejected because wrapping each
+  timestamp column would prevent the existing bounded indexes from serving ordinary
+  range queries.

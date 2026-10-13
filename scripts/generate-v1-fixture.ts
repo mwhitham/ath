@@ -99,6 +99,7 @@ const png = Buffer.from(
 );
 
 async function generate(): Promise<void> {
+  await rm(attachmentDirectory, { recursive: true, force: true });
   await mkdir(attachmentDirectory, { recursive: true, mode: 0o700 });
   await Promise.all(
     [databasePath, `${databasePath}-wal`, `${databasePath}-shm`].map((path) =>
@@ -133,6 +134,7 @@ async function generate(): Promise<void> {
         record_type: "source",
         record_id: ids.wearableSource,
         created_at: createdAt,
+        became_known_at_basis: "provider_import",
         changed_by: toolActor,
         data: {
           source_type: "wearable",
@@ -157,6 +159,7 @@ async function generate(): Promise<void> {
         record_type: "source_device",
         record_id: ids.sourceDevice,
         created_at: createdAt,
+        became_known_at_basis: "provider_import",
         changed_by: toolActor,
         data: {
           source_id: ids.wearableSource,
@@ -230,6 +233,7 @@ async function generate(): Promise<void> {
         record_type: "sleep_session",
         record_id: ids.sleep,
         created_at: createdAt,
+        became_known_at_basis: "provider_import",
         changed_by: toolActor,
         data: {
           source_id: ids.wearableSource,
@@ -270,6 +274,7 @@ async function generate(): Promise<void> {
         record_type: "workout_session",
         record_id: ids.workout,
         created_at: "2026-08-10T18:00:00.000Z",
+        became_known_at_basis: "provider_import",
         changed_by: toolActor,
         data: {
           source_id: ids.wearableSource,
@@ -337,6 +342,7 @@ async function generate(): Promise<void> {
         record_type: "provider_score",
         record_id: ids.providerScore,
         created_at: createdAt,
+        became_known_at_basis: "provider_import",
         changed_by: toolActor,
         data: {
           source_id: ids.wearableSource,

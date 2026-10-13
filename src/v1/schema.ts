@@ -10,8 +10,8 @@ import { z } from "zod";
 export const ATHLETIC_STANDARD_VERSION = "1.0.0";
 
 export const UtcTimestamp = z.iso
-  .datetime({ offset: false, local: false })
-  .describe("Normalized ISO 8601 timestamp in UTC");
+  .datetime({ offset: false, local: false, precision: 3 })
+  .describe("Normalized ISO 8601 timestamp in UTC with millisecond precision");
 
 export const CalendarDate = z.iso.date().describe("ISO 8601 calendar date");
 

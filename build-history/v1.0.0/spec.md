@@ -344,7 +344,8 @@ Every measured row also carries:
 
 - A stable record ID.
 - Source ID.
-- A normalized UTC instant or interval when the source supplies one.
+- A normalized UTC instant or interval with fixed millisecond precision when the
+  source supplies one.
 - Every input timestamp and offset text exposed by the route.
 - A provider-assigned date or period when the source supplies one.
 - The documented meaning of each source time field when the route defines it.
@@ -924,6 +925,7 @@ Required automated tests:
 - WHOOP cycles and Oura activity, sleep, calendar, and unspecified day kinds
   remaining distinct.
 - Apple timestamp offsets preserved without being claimed as recording timezones.
+- Fixed-width normalized UTC timestamps sorting correctly across fractional seconds.
 - Calendar calculations across travel and daylight-saving boundaries.
 - Refusal when a calendar calculation has no explicit or saved timezone.
 - Source-specific query behavior.

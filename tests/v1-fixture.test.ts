@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { readFile } from "node:fs/promises";
+import { readFile, readdir } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -38,6 +38,11 @@ describe("deterministic v1 SQLite fixture", () => {
         [...RecordType.options].sort(),
       );
       expect(records.some((record) => record.is_deleted)).toBe(true);
+      const attachment = records.find((record) => record.record_type === "attachment");
+      expect(attachment?.data).toMatchObject({
+        file_name: "meal-photo.png",
+        sha256: "d3fe8e599fb1deea9821063c744434802875c26cceeb9f2d55e8566b15a012f4",
+      });
 
       const pointRevisions = await readRecordRevisions(
         database,
@@ -55,6 +60,9 @@ describe("deterministic v1 SQLite fixture", () => {
   });
 
   it("keeps the referenced attachment bytes and hash together", async () => {
+    expect(
+      await readdir(join(fixtureDirectory, "attachments")),
+    ).toEqual(["meal-photo.png"]);
     const attachment = await readFile(join(fixtureDirectory, "attachments", "meal-photo.png"));
     expect(createHash("sha256").update(attachment).digest("hex")).toBe(
       "d3fe8e599fb1deea9821063c744434802875c26cceeb9f2d55e8566b15a012f4",

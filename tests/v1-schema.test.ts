@@ -45,7 +45,7 @@ const authorship = {
     model: "example-model",
     model_version: "2026-08",
   },
-  authored_at: "2026-08-09T12:00:00Z",
+  authored_at: "2026-08-09T12:00:00.000Z",
   evidence: [],
   content_version: 1,
   status: "active" as const,
@@ -55,7 +55,7 @@ function sourceRecord() {
   return {
     record_id: ids.source,
     record_type: "source" as const,
-    created_at: "2026-08-09T12:00:00Z",
+    created_at: "2026-08-09T12:00:00.000Z",
     current_revision: 1,
     is_deleted: false,
     data: {
@@ -71,15 +71,15 @@ function pointRecord() {
   return {
     record_id: ids.point,
     record_type: "point_measurement" as const,
-    created_at: "2026-08-09T12:00:00Z",
+    created_at: "2026-08-09T12:00:00.000Z",
     current_revision: 1,
     is_deleted: false,
     data: {
       source_id: ids.source,
-      received_at: "2026-08-09T12:00:00Z",
+      received_at: "2026-08-09T12:00:00.000Z",
       received_at_basis: "import_time" as const,
       quantity: "hrv_rmssd" as const,
-      recorded_at: "2026-08-09T11:12:00Z",
+      recorded_at: "2026-08-09T11:12:00.000Z",
       input_timestamp: timestampReceipt,
       value: {
         standard_value: 62,
@@ -95,15 +95,15 @@ function sampleRecord() {
   return {
     record_id: ids.sample,
     record_type: "measurement_sample" as const,
-    created_at: "2026-08-09T12:00:00Z",
+    created_at: "2026-08-09T12:00:00.000Z",
     current_revision: 1,
     is_deleted: false,
     data: {
       source_id: ids.source,
-      received_at: "2026-08-09T12:00:00Z",
+      received_at: "2026-08-09T12:00:00.000Z",
       received_at_basis: "import_time" as const,
       quantity: "heart_rate" as const,
-      recorded_at: "2026-08-09T11:12:00Z",
+      recorded_at: "2026-08-09T11:12:00.000Z",
       input_timestamp: timestampReceipt,
       value: {
         standard_value: 142,
@@ -178,12 +178,12 @@ describe("v1 two-tier wall", () => {
     const report = {
       record_id: ids.report,
       record_type: "athlete_report",
-      created_at: "2026-08-09T12:00:00Z",
+      created_at: "2026-08-09T12:00:00.000Z",
       current_revision: 1,
       is_deleted: false,
       data: {
         report_type: "soreness",
-        reported_at: "2026-08-09T12:00:00Z",
+        reported_at: "2026-08-09T12:00:00.000Z",
         input_reported_at: timestampReceipt,
         reported_via: "text",
         rating: 3,
@@ -250,12 +250,12 @@ describe("v1 time and provider periods", () => {
     const record = {
       record_id: ids.point,
       record_type: "provider_score",
-      created_at: "2026-08-09T12:00:00Z",
+      created_at: "2026-08-09T12:00:00.000Z",
       current_revision: 1,
       is_deleted: false,
       data: {
         source_id: ids.source,
-        received_at: "2026-08-09T12:00:00Z",
+        received_at: "2026-08-09T12:00:00.000Z",
         received_at_basis: "import_time",
         provider_reporting_periods: [
           {
@@ -324,11 +324,17 @@ describe("v1 time and provider periods", () => {
     expect(PointMeasurementRecord.safeParse(record).success).toBe(false);
   });
 
+  it("requires fixed millisecond precision for sortable normalized timestamps", () => {
+    const record = pointRecord();
+    record.data.recorded_at = "2026-08-09T11:12:00Z";
+    expect(PointMeasurementRecord.safeParse(record).success).toBe(false);
+  });
+
   it("validates saved calendar timezones as IANA names", () => {
     const record = {
       record_id: ids.report,
       record_type: "athlete_profile",
-      created_at: "2026-08-09T12:00:00Z",
+      created_at: "2026-08-09T12:00:00.000Z",
       current_revision: 1,
       is_deleted: false,
       data: { default_time_zone: "America/Chicago" },
@@ -350,7 +356,7 @@ describe("v1 revisions and portable package", () => {
       record_type: "source",
       revision: 2,
       previous_revision: 1,
-      became_known_at: "2026-08-10T12:00:00Z",
+      became_known_at: "2026-08-10T12:00:00.000Z",
       became_known_at_basis: "provider_import",
       changed_by: athleteAuthor,
       data: sourceRecord().data,
@@ -400,7 +406,7 @@ describe("v1 revisions and portable package", () => {
       record_erasure_markers: [
         {
           record_id: ids.report,
-          erased_at: "2026-08-10T12:00:00Z",
+          erased_at: "2026-08-10T12:00:00.000Z",
           reason_code: "athlete_request",
         },
       ],
@@ -409,7 +415,7 @@ describe("v1 revisions and portable package", () => {
           record_id: ids.point,
           match_key_method: "whoop-csv-point-v1",
           match_key: "hrv|2026-08-09T06:12:00-05:00",
-          imported_at: "2026-08-09T12:00:00Z",
+          imported_at: "2026-08-09T12:00:00.000Z",
         },
       ],
       measurement_series_files: [],
@@ -421,7 +427,7 @@ describe("v1 revisions and portable package", () => {
         record_erasure_markers: [
           {
             record_id: ids.report,
-            erased_at: "2026-08-10T12:00:00Z",
+            erased_at: "2026-08-10T12:00:00.000Z",
             reason: "free-text reason",
           },
         ],
@@ -434,8 +440,8 @@ describe("v1 revisions and portable package", () => {
       athleticstandard_version: "1.0.0",
       source_id: ids.source,
       quantity: "heart_rate",
-      start_at: "2026-08-09T11:12:00Z",
-      end_at: "2026-08-09T11:12:00Z",
+      start_at: "2026-08-09T11:12:00.000Z",
+      end_at: "2026-08-09T11:12:00.000Z",
       records: [sampleRecord()],
       record_revisions: [revisionFor(sampleRecord())],
       record_deletions: [],
