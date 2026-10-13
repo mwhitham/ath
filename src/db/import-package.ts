@@ -43,7 +43,7 @@ import { withWriteTransaction } from "./transaction.js";
 
 const MAX_DOCUMENT_BYTES = 512 * 1024 * 1024;
 const MAX_PACKAGE_FILES = 10_000;
-const MAX_PACKAGE_RECORDS = 50_000_000;
+const MAX_PACKAGE_RECORDS = 100_000_000;
 const MAX_JSON_NESTING = 128;
 const MAX_REPRESENTATION_ISSUES = 1_000;
 
@@ -59,7 +59,13 @@ export class PackageRepresentationError extends Error {
     unrepresentable_records?: string[];
     unknown_fields?: string[];
   }) {
-    super("package has unknown fields or records that v1 cannot represent");
+    const detail =
+      options.unrepresentable_records?.[0] ??
+      options.unknown_fields?.[0];
+    super(
+      "package has unknown fields or records that v1 cannot represent" +
+        (detail === undefined ? "" : `: ${detail}`),
+    );
     this.name = "PackageRepresentationError";
     this.source_database_id = options.source_database_id;
     this.source_database_revision = options.source_database_revision;

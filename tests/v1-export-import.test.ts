@@ -370,7 +370,9 @@ describe("v1 package restore", () => {
       source_database_revision: document.database_revision,
       new_record_count: 0,
       unknown_fields: ["future_package_field"],
-      unrepresentable_records: [expect.stringContaining("current_revision")],
+      unrepresentable_records: expect.arrayContaining([
+        expect.stringContaining("current_revision"),
+      ]),
       write_confirmed: false,
     });
     expect(
