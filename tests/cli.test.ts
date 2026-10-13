@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { cpFileSync, mkdtempSync } from "node:fs";
+import { copyFileSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -82,7 +82,7 @@ describe("ath check", () => {
   it("fails a foreign-key violation with a pointed message", async () => {
     const dir = mkdtempSync(join(tmpdir(), "ath-"));
     const copy = join(dir, "athlete.ath.sqlite");
-    cpFileSync(FIXTURE, copy);
+    copyFileSync(FIXTURE, copy);
     const client = createClient({ url: pathToFileURL(copy).href });
     await client.execute("PRAGMA foreign_keys = OFF");
     await client.execute(
@@ -167,7 +167,7 @@ describe("ath records", () => {
 describe("SQLite discovery", () => {
   it("refuses a prerelease JSON file with a clear message", () => {
     const dir = mkdtempSync(join(tmpdir(), "ath-"));
-    cpFileSync(
+    copyFileSync(
       resolve(here, "../examples/demo-athlete/athlete.ath.json"),
       join(dir, "athlete.ath.json"),
     );
