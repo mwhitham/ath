@@ -234,6 +234,8 @@ describe("runtime calculations", () => {
           input_start_timestamp: timestamp("2026-10-05T12:00:00.000Z"),
           input_end_timestamp: timestamp("2026-10-05T12:20:00.000Z"),
           activity_type: "running",
+          source_reported_summaries: [],
+          segments: [],
         },
       },
       sample("2026-10-05T12:05:00.000Z", 120),
