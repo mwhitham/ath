@@ -96,7 +96,7 @@ describe("v1 performance database generator", () => {
     temporaryDirectories.push(root);
     const generated = await generatePerformanceDatabase({
       output_directory: join(root, "database"),
-      record_count: 1_000,
+      record_count: 10_000,
     });
     const report = await runPerformanceBenchmarks({
       database_path: generated.database_path,
@@ -107,7 +107,7 @@ describe("v1 performance database generator", () => {
     });
 
     expect(report.performance_seed).toBe(PERFORMANCE_FIXTURE_SEED);
-    expect(report.target_record_count).toBe(1_000);
+    expect(report.target_record_count).toBe(10_000);
     expect(report.operations.map((operation) => operation.id)).toEqual([
       "latest_value",
       "evidence_28d",
