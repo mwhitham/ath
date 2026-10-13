@@ -786,3 +786,64 @@ describe("UUIDv7 creation", () => {
     );
   });
 });
+
+describe("v1 WAL behavior", () => {
+  it("allows a writer to commit while a reader keeps a stable snapshot", async () => {
+    const { database, path } = await newDatabase();
+    const writer = await openDatabase(path);
+    openDatabases.push(writer);
+    const reader = await databaseClient(database).transaction("read");
+    try {
+      const before = await reader.execute(
+        "SELECT COUNT(*) AS count FROM records",
+      );
+      expect(Number(before.rows[0]?.count)).toBe(0);
+
+      await writeRecord(writer, sourceInput());
+
+      const stable = await reader.execute(
+        "SELECT COUNT(*) AS count FROM records",
+      );
+      expect(Number(stable.rows[0]?.count)).toBe(0);
+      await reader.commit();
+    } finally {
+      if (!reader.closed) {
+        await reader.rollback();
+      }
+      reader.close();
+    }
+    const after = await databaseClient(database).execute(
+      "SELECT COUNT(*) AS count FROM records",
+    );
+    expect(Number(after.rows[0]?.count)).toBe(1);
+  });
+
+  it("discards an uncommitted write when a connection closes", async () => {
+    const { database, path } = await newDatabase();
+    const interrupted = createClient({ url: pathToFileURL(path).href });
+    await interrupted.execute("PRAGMA foreign_keys = ON");
+    await interrupted.execute("BEGIN IMMEDIATE");
+    await interrupted.execute({
+      sql: `
+        INSERT INTO records (
+          record_id,
+          record_type,
+          current_revision,
+          created_at,
+          is_deleted
+        ) VALUES (?, 'athlete_profile', 1, ?, 0)
+      `,
+      args: [reportId, createdAt],
+    });
+    interrupted.close();
+
+    const recovered = await databaseClient(database).execute({
+      sql: "SELECT COUNT(*) AS count FROM records WHERE record_id = ?",
+      args: [reportId],
+    });
+    expect(Number(recovered.rows[0]?.count)).toBe(0);
+    expect(
+      (await databaseClient(database).execute("PRAGMA integrity_check")).rows,
+    ).toMatchObject([{ integrity_check: "ok" }]);
+  });
+});
