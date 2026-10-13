@@ -14,7 +14,8 @@ is offered, it shows the write and writes nothing.
 - [ath init](#ath-init) — create a new athlete.ath.sqlite here, with the well-known benchmarks defined
 - [ath skill](#ath-skill) — where the agent skill is installed, and whether each copy is current
 - [ath skill install](#ath-skill-install) — copy the skill into .agents/skills and every harness folder here
-- [ath import](#ath-import) — load an Apple Health, WHOOP, or Oura export into the file
+- [ath import](#ath-import) — preview and import a v1 Athletic Standard package
+- [ath export](#ath-export) — write a complete deterministic Athletic Standard JSON package
 - [ath log](#ath-log) — write one plain-text record or one validated structured batch
 - [ath link](#ath-link) — attach a benchmark result to the workout session it happened in
 - [ath correct](#ath-correct) — replace one record's complete data and retain its prior revision
@@ -54,7 +55,8 @@ Set up:
   models [options]                         list live text models that can reason, or save your usual one
 
 Get your data in:
-  import [options] <path>                  load an Apple Health, WHOOP, or Oura export into the file
+  import [options] <path>                  preview and import a v1 Athletic Standard package
+  export [options] <directory>             write a complete deterministic Athletic Standard JSON package
   log [options] [entry...]                 write one plain-text record or one validated structured batch
   link [options] <result-id> <session-id>  attach a benchmark result to the workout session it happened in
   correct [options] <record-id>            replace one record's complete data and retain its prior revision
@@ -91,6 +93,7 @@ Options:
   --file <path>        write somewhere other than the default name (default:
                        "athlete.ath.sqlite")
   -y, --yes            skip the questions and use the flags and defaults
+  --empty              create no athlete records, for restoring a v1 package
   --no-skill           do not install the agent skill, even if an agent folder
                        is here
   --json               structured output, for an agent rather than a person
@@ -130,15 +133,33 @@ Options:
 ```
 Usage: ath import [options] <path>
 
-load an Apple Health, WHOOP, or Oura export into the file
+preview and import a v1 Athletic Standard package
 
 Arguments:
-  path           the export: a zip, a folder, an export.xml, or a CSV
+  path           v1 package directory or athlete.ath.json document
 
 Options:
-  --file <path>  import into a file other than the one in this folder
-  --json         structured output, for an agent rather than a person
+  --file <path>  import into a database other than the one in this folder
+  -y, --yes      apply a conflict-free preview
+  --json         structured preview; never confirms the write
   -h, --help     display help for command
+```
+
+## ath export
+
+```
+Usage: ath export [options] <directory>
+
+write a complete deterministic Athletic Standard JSON package
+
+Arguments:
+  directory                  new directory to create for the package
+
+Options:
+  --exported-at <timestamp>  include this exact UTC export time in the manifest
+  --file <path>              export a database other than the one in this folder
+  --json                     structured command result
+  -h, --help                 display help for command
 ```
 
 ## ath log

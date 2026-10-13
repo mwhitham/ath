@@ -71,6 +71,7 @@ Get data in:
 | Command | What it does |
 |---|---|
 | `ath import <path>` | load an Apple Health, WHOOP, or Oura export into the file |
+| `ath export <directory>` | write a complete portable JSON package |
 | `ath log [entry...]` | write a workout result, a measurement, how they felt, or a prediction |
 | `ath link <result-id> <session-id>` | attach a workout result to the device session it happened in |
 | `ath correct <record-id>` | retain the old revision and replace the complete current record data |

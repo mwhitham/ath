@@ -12,7 +12,6 @@ import { existsSync } from "node:fs";
 import { rm } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
-import { type AthleticStandardFileT } from "./schema.js";
 import {
   ATHLETIC_STANDARD_VERSION,
   PredictionData,
@@ -20,10 +19,8 @@ import {
   SERIES_QUANTITY_UNITS as V1_SERIES_QUANTITY_UNITS,
   SeriesQuantitySchema,
 } from "./v1/schema.js";
-import { validateAthleticStandardFile } from "./validate.js";
-import { findFile, loadFile, saveFile, DEFAULT_FILENAME, FILE_SUFFIX } from "./file.js";
+import { findFile, DEFAULT_FILENAME, FILE_SUFFIX } from "./file.js";
 import { SEED_BENCHMARKS } from "./benchmarks.js";
-import { waitingMatches } from "./log.js";
 import { PredictRefusal } from "./predict-errors.js";
 import {
   clearKey,
@@ -38,8 +35,6 @@ import { loadCatalog, renderModelList, requireOnList, resolveModel, writeDefault
 import { complete } from "./gateway.js";
 import { latestReport, shareRefusal } from "./share.js";
 import { bareGuide, EXAMPLES, GROUPS, HELP_FOOTER } from "./help.js";
-import { importExport, PooledFileError, UnknownExportError } from "./import/index.js";
-import { silentProgress, terminalProgress } from "./progress.js";
 import {
   ALWAYS_DIR,
   installSkill,
@@ -50,7 +45,6 @@ import {
   UNVERSIONED,
   type SkillCopy,
 } from "./skill.js";
-import { mergeSummaryAsJson, renderMergeSummary } from "./import/merge.js";
 import { candidatePaths, runUpdate } from "./update.js";
 import {
   checkDatabase,
@@ -58,11 +52,15 @@ import {
   createDatabase,
   databaseStats,
   deleteRecord,
+  exportRecords,
   gradePrediction,
+  importRecords,
   listRecords,
+  loadAthleticStandardPackage,
   openDatabase,
   planLogEntry,
   planPredictionGrade,
+  previewPackageImport,
   readRecord,
   readRecordLinks,
   readRecordRevisions,
@@ -139,6 +137,7 @@ export function buildProgram(): Command {
     .option("--timezone <name>", "default IANA timezone for calendar views, such as America/Chicago")
     .option("--file <path>", "write somewhere other than the default name", DEFAULT_FILENAME)
     .option("-y, --yes", "skip the questions and use the flags and defaults")
+    .option("--empty", "create no athlete records, for restoring a v1 package")
     .option("--no-skill", "do not install the agent skill, even if an agent folder is here")
     .option("--json", "structured output, for an agent rather than a person")
     .action(async (opts) => {
@@ -181,7 +180,7 @@ export function buildProgram(): Command {
       let seeded;
       try {
         database = await createDatabase(outPath, { createdAt });
-        seeded = await writeRecords(database, [
+        if (!opts.empty) seeded = await writeRecords(database, [
           {
             record_type: "athlete_profile",
             created_at: createdAt,
@@ -251,8 +250,8 @@ export function buildProgram(): Command {
             {
               created: outPath,
               athleticstandard_version: ATHLETIC_STANDARD_VERSION,
-              database_revision: seeded.database_revision,
-              benchmark_record_ids: seeded.records
+              database_revision: seeded?.database_revision ?? 0,
+              benchmark_record_ids: (seeded?.records ?? [])
                 .filter((record) => record.record_type === "benchmark_definition")
                 .map((record) => record.record_id),
               skill_installed: installed,
@@ -264,7 +263,11 @@ export function buildProgram(): Command {
         return;
       }
       console.log(`created ${outPath}`);
-      console.log(`  seeded ${SEED_BENCHMARKS.length} benchmarks: ${SEED_BENCHMARKS.map((b) => b.id).join(", ")}`);
+      if (opts.empty) {
+        console.log("  empty database, ready for a v1 package restore");
+      } else {
+        console.log(`  seeded ${SEED_BENCHMARKS.length} benchmarks: ${SEED_BENCHMARKS.map((b) => b.id).join(", ")}`);
+      }
       for (const path of installed) console.log(`  installed the agent skill into ${path}`);
       if (installed.length > 0) {
         console.log(
@@ -311,87 +314,100 @@ export function buildProgram(): Command {
   program
     .command("import")
     .helpGroup(GROUPS.getIn)
-    .description("load an Apple Health, WHOOP, or Oura export into the file")
+    .description("preview and import a v1 Athletic Standard package")
     .addHelpText("after", EXAMPLES.import!)
-    .argument("<path>", "the export: a zip, a folder, an export.xml, or a CSV")
-    .option("--file <path>", "import into a file other than the one in this folder")
-    .option("--json", "structured output, for an agent rather than a person")
-    .action(async (exportPath: string, opts: { file?: string; json?: boolean }) => {
+    .argument("<path>", "v1 package directory or athlete.ath.json document")
+    .option("--file <path>", "import into a database other than the one in this folder")
+    .option("-y, --yes", "apply a conflict-free preview")
+    .option("--json", "structured preview; never confirms the write")
+    .action(async (
+      importPath: string,
+      opts: { file?: string; yes?: boolean; json?: boolean },
+    ) => {
       const athletePath = findOrFail(opts.file);
-      let file: AthleticStandardFileT;
+      const database = await openOrFail(athletePath, opts.json);
       try {
-        file = loadFile(athletePath);
-      } catch (e) {
-        return fail((e as Error).message);
-      }
-
-      // The bar draws on stderr and only when a person is watching. Piped output and
-      // tests get the summary alone.
-      const progress = process.stderr.isTTY && !opts.json ? terminalProgress() : silentProgress;
-      let result;
-      try {
-        result = await importExport(file, athletePath, resolve(process.cwd(), exportPath), progress);
-      } catch (e) {
-        progress.finish();
-        if (e instanceof UnknownExportError) return fail((e as Error).message);
-        if (e instanceof PooledFileError) return fail((e as Error).message);
-        return fail(
-          `could not read that export: ${(e as Error).message}\n` +
-            `  Point at the zip as it was downloaded, the folder it unzips to, an export.xml, ` +
-            `or a vendor CSV. Nothing was written.`,
+        const loaded = await loadAthleticStandardPackage(
+          resolve(process.cwd(), importPath),
         );
-      }
-
-      // Refuse to write a file the import would have made invalid.
-      const validation = validateAthleticStandardFile(file);
-      if (!validation.valid) {
-        const first = validation.issues.filter((i) => i.severity === "error").slice(0, 5);
-        return fail(
-          `import would produce an invalid file, so nothing was written:\n` +
-            first.map((i) => `  ${i.path}: ${i.message}`).join("\n") +
-            `\nRun \`ath check\` to see the file as it stands. This is a bug in the importer, ` +
-            `not something you did.`,
-        );
-      }
-
-      saveFile(athletePath, file);
-
-      // A result with no session is a match still waiting. Device data usually lands
-      // days after the workout was logged, so every import asks again about the ones
-      // that have become possible (D53).
-      const waiting = waitingMatches(file);
-
-      if (opts.json) {
-        console.log(
-          JSON.stringify(
-            {
-              ...mergeSummaryAsJson(result.summary, result.label),
-              waiting_matches: waiting.map((m) => ({
-                benchmark: m.result.benchmark,
-                recorded_at: m.result.recorded_at,
-                candidates: m.candidates,
-              })),
-            },
-            null,
-            2,
-          ),
-        );
-        return;
-      }
-
-      console.log(renderMergeSummary(result.summary, result.label));
-      if (waiting.length === 0) return;
-
-      const linked = await offerWaitingMatches(waiting);
-      if (linked > 0) {
-        const check = validateAthleticStandardFile(file);
-        if (!check.valid) {
+        const preview = await previewPackageImport(database, loaded);
+        const output = {
+          source_database_id: preview.source_database_id,
+          source_database_revision: preview.source_database_revision,
+          destination_database_id: preview.destination_database_id,
+          destination_database_revision: preview.destination_database_revision,
+          restore: preview.restore,
+          new_records: preview.new_records,
+          matching_records: preview.matching_records,
+          changed_records: preview.changed_records,
+          conflicts: preview.conflicts,
+          unrepresentable_records: preview.unrepresentable_records,
+          unknown_fields: preview.unknown_fields,
+          write_confirmed: false,
+        };
+        if (opts.json) {
+          console.log(JSON.stringify(output, null, 2));
+          return;
+        }
+        console.log(renderImportPreview(output));
+        if (!opts.yes) {
+          console.log("nothing written; pass --yes after reviewing this preview");
+          return;
+        }
+        if (preview.conflicts.length > 0) {
           return fail(
-            `that link would make the file invalid, so nothing was written. ` +
-              `Run \`ath check\` to see what is wrong with the file first.`,
+            `import has ${preview.conflicts.length} unresolved conflict` +
+              `${preview.conflicts.length === 1 ? "" : "s"}; nothing was written`,
           );
         }
-        saveFile(athletePath, file);
+        const imported = await importRecords(database, preview);
+        console.log(
+          `${imported.restored ? "restored" : "imported"} package at database revision ` +
+            `${imported.database_revision}`,
+        );
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
+      }
+    });
+
+  program
+    .command("export")
+    .helpGroup(GROUPS.getIn)
+    .description("write a complete deterministic Athletic Standard JSON package")
+    .addHelpText("after", EXAMPLES.export!)
+    .argument("<directory>", "new directory to create for the package")
+    .option("--exported-at <timestamp>", "include this exact UTC export time in the manifest")
+    .option("--file <path>", "export a database other than the one in this folder")
+    .option("--json", "structured command result")
+    .action(async (
+      directory: string,
+      opts: { exportedAt?: string; file?: string; json?: boolean },
+    ) => {
+      const path = findOrFail(opts.file);
+      const database = await openOrFail(path, opts.json);
+      try {
+        const result = await exportRecords(
+          database,
+          resolve(process.cwd(), directory),
+          opts.exportedAt === undefined
+            ? {}
+            : { exported_at: opts.exportedAt },
+        );
+        if (opts.json) {
+          console.log(JSON.stringify(result, null, 2));
+          return;
+        }
+        console.log(
+          `exported database revision ${result.database_revision} to ${result.directory}`,
+        );
+        console.log("  athlete.ath.json");
+        console.log("  export-manifest.json");
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
       }
     });
 
@@ -1326,49 +1342,6 @@ export function buildProgram(): Command {
   return program;
 }
 
-/**
- * Offer each waiting match, and return how many were attached.
- *
- * With no terminal it prints the candidates and the command that links them, because
- * a match nobody was told about is a match nobody makes.
- */
-async function offerWaitingMatches(waiting: ReturnType<typeof waitingMatches>): Promise<number> {
-  const plural = waiting.length === 1 ? "result" : "results";
-  console.log(
-    `\n${waiting.length} ${plural} logged earlier now have a session on the same day:`,
-  );
-
-  let linked = 0;
-  for (const { result, candidates } of waiting) {
-    const day = result.recorded_at.slice(0, 10);
-    const best = candidates[0]!;
-    console.log(`  ${result.benchmark} on ${day} — ${best.label}`);
-
-    if (!process.stdout.isTTY) {
-      console.log(`    ath link ${result.benchmark}@${day} ${best.start.slice(11, 16)}`);
-      continue;
-    }
-
-    const extra = candidates
-      .slice(1, 4)
-      .map((c, i) => `  [${i + 2}] the ${c.start.slice(11, 16)} one`)
-      .join("");
-    const answer = await askOnTerminal(`    link it? [y] yes  [n] no${extra} `);
-    if (answer === null) return linked;
-    const choice = Number(answer);
-    const pick =
-      Number.isInteger(choice) && choice >= 2 && choice <= candidates.length
-        ? candidates[choice - 1]!
-        : /^y(es)?$/i.test(answer)
-          ? best
-          : null;
-    if (!pick) continue;
-    result.session = { source: pick.source, start: pick.start };
-    linked++;
-  }
-  return linked;
-}
-
 interface V1LogOptions {
   benchmark?: string;
   at?: string;
@@ -1426,6 +1399,39 @@ function parsePredictionResponse(content: string): Record<string, unknown> {
     throw new Error("model prediction response must be one JSON object");
   }
   return value as Record<string, unknown>;
+}
+
+function renderImportPreview(preview: {
+  source_database_id: string;
+  source_database_revision: number;
+  destination_database_id: string;
+  destination_database_revision: number;
+  restore: boolean;
+  new_records: readonly string[];
+  matching_records: readonly string[];
+  changed_records: readonly string[];
+  conflicts: readonly { record_id?: string; message: string }[];
+  unrepresentable_records: readonly string[];
+  unknown_fields: readonly string[];
+}): string {
+  const lines = [
+    `${preview.restore ? "restore" : "merge"} preview`,
+    `  source database:      ${preview.source_database_id} revision ${preview.source_database_revision}`,
+    `  destination database: ${preview.destination_database_id} revision ${preview.destination_database_revision}`,
+    `  new records:          ${preview.new_records.length}`,
+    `  matching records:     ${preview.matching_records.length}`,
+    `  changed records:      ${preview.changed_records.length}`,
+    `  conflicts:            ${preview.conflicts.length}`,
+    `  unrepresentable:       ${preview.unrepresentable_records.length}`,
+    `  unknown fields:        ${preview.unknown_fields.length}`,
+  ];
+  for (const conflict of preview.conflicts) {
+    lines.push(
+      `    ${conflict.record_id === undefined ? "" : `${conflict.record_id}: `}` +
+        conflict.message,
+    );
+  }
+  return lines.join("\n");
 }
 
 function parseGateway(value: string): "vercel" | "openrouter" {

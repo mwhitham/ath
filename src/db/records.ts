@@ -214,7 +214,7 @@ async function replaceAttachmentLinks(
   }
 }
 
-async function upsertTypedRecord(
+export async function upsertTypedRecord(
   transaction: Transaction,
   record: CurrentRecordT,
 ): Promise<void> {
@@ -640,7 +640,7 @@ async function linkedPredictionAndResult(
   return { prediction, result };
 }
 
-async function validateTypedRelationships(
+export async function validateTypedRelationships(
   transaction: Transaction,
   record: CurrentRecordT,
 ): Promise<void> {
@@ -695,7 +695,7 @@ async function validateTypedRelationships(
   }
 }
 
-async function insertRevision(
+export async function insertRevision(
   transaction: Transaction,
   record: CurrentRecordT,
   changedBy: RecordActorT,
@@ -739,7 +739,7 @@ async function insertRevision(
   });
 }
 
-async function incrementDatabaseRevision(transaction: Transaction): Promise<number> {
+export async function incrementDatabaseRevision(transaction: Transaction): Promise<number> {
   await transaction.execute(
     "UPDATE database_state SET current_revision = current_revision + 1 WHERE singleton_id = 1",
   );

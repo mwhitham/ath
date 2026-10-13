@@ -41,6 +41,7 @@ describe("ath --help — written for someone who has never run this (D50)", () =
         "init",
         "check",
         "import",
+        "export",
         "log",
         "link",
         "correct",

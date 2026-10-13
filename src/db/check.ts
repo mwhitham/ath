@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { extname, join } from "node:path";
+import { join } from "node:path";
 import {
   CurrentRecord,
   RecordDeletion,
@@ -9,6 +9,7 @@ import {
 } from "../v1/schema.js";
 import { databaseClient, type AthleticDatabase } from "./client.js";
 import { readDatabaseMetadata, type DatabaseMetadata } from "./migrate.js";
+import { storedAttachmentName } from "./attachments.js";
 
 export interface DatabaseCheckIssue {
   severity: "error" | "warning";
@@ -57,21 +58,6 @@ function validationMessage(error: { issues: readonly { path: PropertyKey[]; mess
   }
   const path = first.path.length === 0 ? "record" : first.path.join(".");
   return `${path}: ${first.message}`;
-}
-
-function storedAttachmentName(record: Extract<CurrentRecordT, { record_type: "attachment" }>): string {
-  const knownExtension: Readonly<Record<string, string>> = {
-    "image/jpeg": ".jpg",
-    "image/png": ".png",
-    "image/webp": ".webp",
-    "application/pdf": ".pdf",
-  };
-  const extension =
-    knownExtension[record.data.media_type] ??
-    (/^\.[a-zA-Z0-9]{1,10}$/.test(extname(record.data.file_name))
-      ? extname(record.data.file_name).toLowerCase()
-      : "");
-  return `${record.record_id}${extension}`;
 }
 
 async function checkAttachment(

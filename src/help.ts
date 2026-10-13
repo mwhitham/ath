@@ -80,6 +80,11 @@ Examples:
 The file is created here, called athlete${FILE_SUFFIX}, with the well-known
 benchmarks already defined. Nothing leaves your machine.
 
+For a complete v1 package restore, create an empty destination:
+    $ ath init -y --empty
+    $ ath import ./saved-package
+    $ ath import ./saved-package --yes
+
 The agent skill is written to .agents/skills, which Claude Code, Cursor,
 Codex, and Gemini CLI read, and into any of .claude, .cursor, .codex,
 .gemini, or .github already here. An agent in this folder then knows how
@@ -120,21 +125,39 @@ The check covers SQLite integrity, foreign keys, domain rules, and attachments.`
   import: `
 Examples:
 
-  An Apple Health export, straight from the zip:
-    $ ath import ~/Downloads/export.zip
+  Preview a complete v1 package:
+    $ ath import ~/Backups/athletic-standard-export
 
-  A WHOOP or Oura CSV:
-    $ ath import ~/Downloads/physiological_cycles.csv
+  Apply it only after the preview has no conflicts:
+    $ ath import ~/Backups/athletic-standard-export --yes
 
-Importing the same export twice is safe: records already in the file are
-recognised and skipped, so nothing is counted twice.
+The default is always a preview. \`--json\` is also only a preview and
+never confirms a write. An empty database adopts the package database ID
+and exact revision history. A database with the same ID can accept new
+records and later revisions.
 
-Each app or device inside an export becomes its own source, because a
-watch and a ring measuring the same thing are two answers, not one. See
-them with \`ath stats\`.
+An import never deletes a local record merely because the package omits
+it. A different database ID is refused because it may belong to another
+athlete. Athletic Standard 0.x JSON files are prerelease formats and are
+not imported by v1.`,
 
-If a workout you logged earlier now has a device session on the same day,
-the import offers to attach them.`,
+  export: `
+Examples:
+
+  Write a complete portable package:
+    $ ath export ./athlete-backup
+
+  Return the command result as JSON:
+    $ ath export ./athlete-backup --json
+
+SQLite remains the live record. The exported JSON package is a snapshot
+and does not stay synchronized. The package includes complete current
+records, retained revisions, deletions, dense samples, and permitted
+attachments. The manifest is written last.
+
+The export has no time by default, so two exports of the same database
+revision are byte-identical. Supply a fixed --exported-at only when a
+manifest time is needed.`,
 
   log: `
 Examples:
