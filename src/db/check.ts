@@ -209,142 +209,206 @@ export async function checkDatabase(
     }
   }
 
-  const currentRows = await client.execute(`
-    SELECT
-      records.record_id,
-      records.record_type,
-      records.current_revision,
-      records.created_at,
-      records.is_deleted,
-      record_revisions.record_json
-    FROM records
-    LEFT JOIN record_revisions
-      ON record_revisions.record_id = records.record_id
-     AND record_revisions.revision = records.current_revision
-    ORDER BY records.record_id
-  `);
-  const records: CurrentRecordT[] = [];
-  for (const row of currentRows.rows) {
-    if (row.record_json === null) {
-      issues.push({
-        severity: "error",
-        check: "revision",
-        record_id: String(row.record_id),
-        message: `current revision ${String(row.current_revision)} is missing`,
-      });
-      continue;
-    }
-    const parsed = CurrentRecord.safeParse({
-      record_id: row.record_id,
-      record_type: row.record_type,
-      current_revision: Number(row.current_revision),
-      created_at: row.created_at,
-      is_deleted: Number(row.is_deleted) === 1,
-      data: JSON.parse(String(row.record_json)) as unknown,
+  const recordCountResult = await client.execute(
+    "SELECT COUNT(*) AS count FROM records",
+  );
+  const recordCount = Number(recordCountResult.rows[0]?.count);
+  const relationshipRecords: CurrentRecordT[] = [];
+  const pageSize = 5_000;
+  let currentAfter = "";
+  while (true) {
+    const currentRows = await client.execute({
+      sql: `
+        SELECT
+          records.record_id,
+          records.record_type,
+          records.current_revision,
+          records.created_at,
+          records.is_deleted,
+          record_revisions.record_json
+        FROM records
+        LEFT JOIN record_revisions
+          ON record_revisions.record_id = records.record_id
+         AND record_revisions.revision = records.current_revision
+        WHERE records.record_id > ?
+        ORDER BY records.record_id
+        LIMIT ?
+      `,
+      args: [currentAfter, pageSize],
     });
-    if (!parsed.success) {
-      issues.push({
-        severity: "error",
-        check: "domain",
-        record_id: String(row.record_id),
-        message: validationMessage(parsed.error),
-      });
-      continue;
+    if (currentRows.rows.length === 0) {
+      break;
     }
-    records.push(parsed.data);
-  }
-
-  const revisionRows = await client.execute(`
-    SELECT
-      record_id,
-      record_type,
-      revision,
-      previous_revision,
-      became_known_at,
-      became_known_at_basis,
-      changed_by_json,
-      record_json
-    FROM record_revisions
-    ORDER BY record_id, revision
-  `);
-  const revisionsByRecord = new Map<string, Array<{
-    revision: number;
-    previous_revision: number | null;
-    record_type: string;
-  }>>();
-  for (const row of revisionRows.rows) {
-    const parsed = RecordRevision.safeParse({
-      record_id: row.record_id,
-      record_type: row.record_type,
-      revision: Number(row.revision),
-      previous_revision:
-        row.previous_revision === null ? null : Number(row.previous_revision),
-      became_known_at: row.became_known_at,
-      became_known_at_basis: row.became_known_at_basis,
-      changed_by: JSON.parse(String(row.changed_by_json)) as unknown,
-      data: JSON.parse(String(row.record_json)) as unknown,
-    });
-    if (!parsed.success) {
-      issues.push({
-        severity: "error",
-        check: "revision",
-        record_id: String(row.record_id),
-        message: validationMessage(parsed.error),
-      });
-    } else {
-      const group = revisionsByRecord.get(parsed.data.record_id) ?? [];
-      group.push({
-        revision: parsed.data.revision,
-        previous_revision: parsed.data.previous_revision,
-        record_type: parsed.data.record_type,
-      });
-      revisionsByRecord.set(parsed.data.record_id, group);
-    }
-  }
-
-  for (const row of currentRows.rows) {
-    const recordId = String(row.record_id);
-    const revisions = revisionsByRecord.get(recordId) ?? [];
-    for (const [index, revision] of revisions.entries()) {
-      const expectedRevision = index + 1;
-      const expectedPrevious = index === 0 ? null : index;
-      if (
-        revision.revision !== expectedRevision ||
-        revision.previous_revision !== expectedPrevious ||
-        revision.record_type !== row.record_type
-      ) {
+    for (const row of currentRows.rows) {
+      currentAfter = String(row.record_id);
+      if (row.record_json === null) {
         issues.push({
           severity: "error",
-          check: "revision_chain",
-          record_id: recordId,
-          message:
-            `revision chain breaks at stored revision ${revision.revision}; ` +
-            `expected ${expectedRevision} after ${String(expectedPrevious)}`,
+          check: "revision",
+          record_id: currentAfter,
+          message: `current revision ${String(row.current_revision)} is missing`,
         });
-        break;
+        continue;
+      }
+      const parsed = CurrentRecord.safeParse({
+        record_id: row.record_id,
+        record_type: row.record_type,
+        current_revision: Number(row.current_revision),
+        created_at: row.created_at,
+        is_deleted: Number(row.is_deleted) === 1,
+        data: JSON.parse(String(row.record_json)) as unknown,
+      });
+      if (!parsed.success) {
+        issues.push({
+          severity: "error",
+          check: "domain",
+          record_id: currentAfter,
+          message: validationMessage(parsed.error),
+        });
+        continue;
+      }
+      const record = parsed.data;
+      if (
+        record.record_type === "prediction_result_link" ||
+        record.record_type === "prediction_grade"
+      ) {
+        relationshipRecords.push(record);
+      }
+      if (record.record_type === "attachment" && !record.is_deleted) {
+        await checkAttachment(database, record, issues);
+      }
+      if (record.record_type === "workout_session") {
+        const durationMs =
+          Date.parse(record.data.end_at) - Date.parse(record.data.start_at);
+        for (const [index, segment] of (record.data.segments ?? []).entries()) {
+          if (
+            segment.start_offset_ms !== undefined &&
+            segment.end_offset_ms !== undefined &&
+            segment.end_offset_ms < segment.start_offset_ms
+          ) {
+            issues.push({
+              severity: "error",
+              check: "session_order",
+              record_id: record.record_id,
+              message: `segment ${index + 1} ends before it starts`,
+            });
+          }
+          if (
+            (segment.start_offset_ms ?? 0) > durationMs ||
+            (segment.end_offset_ms ?? 0) > durationMs
+          ) {
+            issues.push({
+              severity: "error",
+              check: "session_order",
+              record_id: record.record_id,
+              message: `segment ${index + 1} falls outside the workout session`,
+            });
+          }
+        }
       }
     }
-    if (
-      revisions.length > 0 &&
-      revisions.at(-1)?.revision !== Number(row.current_revision)
-    ) {
-      issues.push({
-        severity: "error",
-        check: "revision_chain",
-        record_id: recordId,
-        message:
-          `current revision is ${String(row.current_revision)}, but retained history ` +
-          `ends at ${String(revisions.at(-1)?.revision)}`,
-      });
+  }
+
+  let revisionAfterId = "";
+  let revisionAfterNumber = 0;
+  while (true) {
+    const revisionRows = await client.execute({
+      sql: `
+        SELECT
+          record_id,
+          record_type,
+          revision,
+          previous_revision,
+          became_known_at,
+          became_known_at_basis,
+          changed_by_json,
+          record_json
+        FROM record_revisions
+        WHERE record_id > ? OR (record_id = ? AND revision > ?)
+        ORDER BY record_id, revision
+        LIMIT ?
+      `,
+      args: [
+        revisionAfterId,
+        revisionAfterId,
+        revisionAfterNumber,
+        pageSize,
+      ],
+    });
+    if (revisionRows.rows.length === 0) {
+      break;
     }
+    for (const row of revisionRows.rows) {
+      revisionAfterId = String(row.record_id);
+      revisionAfterNumber = Number(row.revision);
+      const parsed = RecordRevision.safeParse({
+        record_id: row.record_id,
+        record_type: row.record_type,
+        revision: revisionAfterNumber,
+        previous_revision:
+          row.previous_revision === null ? null : Number(row.previous_revision),
+        became_known_at: row.became_known_at,
+        became_known_at_basis: row.became_known_at_basis,
+        changed_by: JSON.parse(String(row.changed_by_json)) as unknown,
+        data: JSON.parse(String(row.record_json)) as unknown,
+      });
+      if (!parsed.success) {
+        issues.push({
+          severity: "error",
+          check: "revision",
+          record_id: revisionAfterId,
+          message: validationMessage(parsed.error),
+        });
+      }
+    }
+  }
+
+  const brokenRevisionChains = await client.execute(`
+    WITH ordered_revisions AS (
+      SELECT
+        record_revisions.record_id,
+        record_revisions.record_type,
+        record_revisions.revision,
+        record_revisions.previous_revision,
+        records.record_type AS current_record_type,
+        records.current_revision,
+        ROW_NUMBER() OVER (
+          PARTITION BY record_revisions.record_id
+          ORDER BY record_revisions.revision
+        ) AS expected_revision,
+        MAX(record_revisions.revision) OVER (
+          PARTITION BY record_revisions.record_id
+        ) AS final_revision
+      FROM record_revisions
+      JOIN records ON records.record_id = record_revisions.record_id
+    )
+    SELECT *
+    FROM ordered_revisions
+    WHERE
+      revision <> expected_revision OR
+      previous_revision IS NOT (
+        CASE WHEN expected_revision = 1 THEN NULL ELSE expected_revision - 1 END
+      ) OR
+      record_type <> current_record_type OR
+      final_revision <> current_revision
+    ORDER BY record_id, revision
+  `);
+  for (const row of brokenRevisionChains.rows) {
+    issues.push({
+      severity: "error",
+      check: "revision_chain",
+      record_id: String(row.record_id),
+      message:
+        `revision chain breaks at stored revision ${String(row.revision)}; ` +
+        `expected ${String(row.expected_revision)} after ` +
+        `${String(Number(row.expected_revision) === 1 ? null : Number(row.expected_revision) - 1)}`,
+    });
   }
 
   const deletionRows = await client.execute(
     "SELECT record_id, record_revision, deleted_at, deleted_by_json FROM record_deletions ORDER BY record_id",
   );
-  const deletedIds = new Set<string>();
   for (const row of deletionRows.rows) {
-    deletedIds.add(String(row.record_id));
     const parsed = RecordDeletion.safeParse({
       record_id: row.record_id,
       record_revision: Number(row.record_revision),
@@ -359,6 +423,24 @@ export async function checkDatabase(
         message: validationMessage(parsed.error),
       });
     }
+  }
+  const deletionMismatches = await client.execute(`
+    SELECT records.record_id
+    FROM records
+    LEFT JOIN record_deletions
+      ON record_deletions.record_id = records.record_id
+    WHERE
+      records.is_deleted <>
+        CASE WHEN record_deletions.record_id IS NULL THEN 0 ELSE 1 END
+    ORDER BY records.record_id
+  `);
+  for (const row of deletionMismatches.rows) {
+    issues.push({
+      severity: "error",
+      check: "deletion",
+      record_id: String(row.record_id),
+      message: "records.is_deleted does not match record_deletions",
+    });
   }
 
   const erasureRows = await client.execute(
@@ -379,99 +461,60 @@ export async function checkDatabase(
       });
       continue;
     }
-    if (currentRows.rows.some((record) => record.record_id === row.record_id)) {
-      issues.push({
-        severity: "error",
-        check: "erasure_marker",
-        record_id: parsed.data.record_id,
-        message: "erased record still has a current record row",
-      });
-    }
+  }
+  const erasuresWithCurrentRecords = await client.execute(`
+    SELECT record_erasure_markers.record_id
+    FROM record_erasure_markers
+    JOIN records ON records.record_id = record_erasure_markers.record_id
+    ORDER BY record_erasure_markers.record_id
+  `);
+  for (const row of erasuresWithCurrentRecords.rows) {
+    issues.push({
+      severity: "error",
+      check: "erasure_marker",
+      record_id: String(row.record_id),
+      message: "erased record still has a current record row",
+    });
   }
 
-  for (const record of records) {
-    const table = typedTables[record.record_type];
-    if (table === undefined) {
-      issues.push({
-        severity: "error",
-        check: "typed_table",
-        record_id: record.record_id,
-        message: `record type ${record.record_type} has no typed table`,
-      });
-      continue;
-    }
-    const typed = await client.execute({
-      sql: `SELECT 1 AS present FROM ${table} WHERE record_id = ?`,
-      args: [record.record_id],
+  for (const [recordType, table] of Object.entries(typedTables)) {
+    const typedMismatches = await client.execute({
+      sql: `
+        SELECT
+          records.record_id,
+          ${table}.record_id AS typed_record_id,
+          ${table}.data_json,
+          record_revisions.record_json
+        FROM records
+        JOIN record_revisions
+          ON record_revisions.record_id = records.record_id
+         AND record_revisions.revision = records.current_revision
+        LEFT JOIN ${table} ON ${table}.record_id = records.record_id
+        WHERE records.record_type = ?
+          AND (
+            ${table}.record_id IS NULL OR
+            ${table}.data_json <> record_revisions.record_json
+          )
+        ORDER BY records.record_id
+      `,
+      args: [recordType],
     });
-    if (typed.rows.length !== 1) {
+    for (const row of typedMismatches.rows) {
       issues.push({
         severity: "error",
         check: "typed_table",
-        record_id: record.record_id,
-        message: `${record.record_type} is missing its ${table} row`,
+        record_id: String(row.record_id),
+        message:
+          row.typed_record_id === null
+            ? `${recordType} is missing its ${table} row`
+            : `${table}.data_json does not match the current revision`,
       });
-    }
-    const typedData = await client.execute({
-      sql: `SELECT data_json FROM ${table} WHERE record_id = ?`,
-      args: [record.record_id],
-    });
-    if (
-      typedData.rows[0] !== undefined &&
-      String(typedData.rows[0].data_json) !== JSON.stringify(record.data)
-    ) {
-      issues.push({
-        severity: "error",
-        check: "typed_table",
-        record_id: record.record_id,
-        message: `${table}.data_json does not match the current revision`,
-      });
-    }
-    if (record.is_deleted !== deletedIds.has(record.record_id)) {
-      issues.push({
-        severity: "error",
-        check: "deletion",
-        record_id: record.record_id,
-        message: "records.is_deleted does not match record_deletions",
-      });
-    }
-    if (record.record_type === "attachment" && !record.is_deleted) {
-      await checkAttachment(database, record, issues);
-    }
-    if (record.record_type === "workout_session") {
-      const durationMs =
-        Date.parse(record.data.end_at) - Date.parse(record.data.start_at);
-      for (const [index, segment] of (record.data.segments ?? []).entries()) {
-        if (
-          segment.start_offset_ms !== undefined &&
-          segment.end_offset_ms !== undefined &&
-          segment.end_offset_ms < segment.start_offset_ms
-        ) {
-          issues.push({
-            severity: "error",
-            check: "session_order",
-            record_id: record.record_id,
-            message: `segment ${index + 1} ends before it starts`,
-          });
-        }
-        if (
-          (segment.start_offset_ms ?? 0) > durationMs ||
-          (segment.end_offset_ms ?? 0) > durationMs
-        ) {
-          issues.push({
-            severity: "error",
-            check: "session_order",
-            record_id: record.record_id,
-            message: `segment ${index + 1} falls outside the workout session`,
-          });
-        }
-      }
     }
   }
 
   const relationshipTransaction = await client.transaction("read");
   try {
-    for (const record of records) {
+    for (const record of relationshipRecords) {
       if (record.is_deleted) {
         continue;
       }
@@ -494,7 +537,7 @@ export async function checkDatabase(
   return {
     metadata,
     valid: !issues.some((issue) => issue.severity === "error"),
-    record_count: currentRows.rows.length,
+    record_count: recordCount,
     issues,
   };
 }
