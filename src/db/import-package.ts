@@ -48,8 +48,8 @@ const MAX_JSON_NESTING = 128;
 const MAX_REPRESENTATION_ISSUES = 1_000;
 
 export class PackageRepresentationError extends Error {
-  readonly source_database_id?: string;
-  readonly source_database_revision?: number;
+  readonly source_database_id: string | undefined;
+  readonly source_database_revision: number | undefined;
   readonly unrepresentable_records: string[];
   readonly unknown_fields: string[];
 
