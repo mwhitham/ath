@@ -43,6 +43,7 @@ export interface SessionQuery extends TimeRange {
 export interface AsOfQuery {
   as_of: string;
   record_type?: RecordTypeT;
+  record_types?: readonly RecordTypeT[];
   limit?: number;
 }
 
@@ -236,8 +237,24 @@ export async function queryRecordsAsOf(
   query: AsOfQuery,
 ): Promise<CurrentRecordT[]> {
   const asOf = UtcTimestamp.parse(query.as_of);
+  if (query.record_type !== undefined && query.record_types !== undefined) {
+    throw new Error("Use record_type or record_types, not both");
+  }
+  const recordTypes =
+    query.record_types === undefined
+      ? query.record_type === undefined
+        ? []
+        : [RecordType.parse(query.record_type)]
+      : query.record_types.map((recordType) => RecordType.parse(recordType));
+  if (query.record_types !== undefined && recordTypes.length === 0) {
+    throw new Error("record_types must contain at least one record type");
+  }
+  const typeCondition =
+    recordTypes.length === 0
+      ? ""
+      : `WHERE candidate_records.record_type IN (${recordTypes.map(() => "?").join(", ")})`;
   const conditions = [
-    "record_revisions.became_known_at <= ?",
+    "visible_revisions.revision IS NOT NULL",
     `NOT EXISTS (
       SELECT 1
       FROM record_deletions
@@ -245,20 +262,22 @@ export async function queryRecordsAsOf(
         AND record_deletions.deleted_at <= ?
     )`,
   ];
-  const args: SqlValue[] = [asOf, asOf];
-  if (query.record_type !== undefined) {
-    conditions.push("record_revisions.record_type = ?");
-    args.push(RecordType.parse(query.record_type));
-  }
+  const args: SqlValue[] = [asOf, ...recordTypes, asOf];
   args.push(queryLimit(query.limit));
 
   const result = await databaseClient(database).execute({
     sql: `
       WITH visible_revisions AS (
-        SELECT record_id, MAX(revision) AS revision
-        FROM record_revisions
-        WHERE became_known_at <= ?
-        GROUP BY record_id
+        SELECT
+          candidate_records.record_id,
+          (
+            SELECT MAX(candidate_revisions.revision)
+            FROM record_revisions AS candidate_revisions
+            WHERE candidate_revisions.record_id = candidate_records.record_id
+              AND candidate_revisions.became_known_at <= ?
+          ) AS revision
+        FROM records AS candidate_records
+        ${typeCondition}
       )
       SELECT
         records.record_id,
@@ -276,7 +295,7 @@ export async function queryRecordsAsOf(
       ORDER BY records.created_at, records.record_id
       LIMIT ?
     `,
-    args: [asOf, ...args],
+    args,
   });
   return result.rows.map((row) => parseCurrentRow(row));
 }

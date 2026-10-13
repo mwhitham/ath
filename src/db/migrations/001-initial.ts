@@ -115,6 +115,8 @@ CREATE INDEX record_import_keys_record_id_idx
   ON record_import_keys (record_id);
 CREATE INDEX record_revisions_known_at_idx
   ON record_revisions (became_known_at, record_id, revision);
+CREATE INDEX records_record_type_idx
+  ON records (record_type, record_id);
 
 CREATE TABLE athlete_profile (
   record_id TEXT PRIMARY KEY,

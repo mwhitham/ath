@@ -789,6 +789,14 @@ describe("v1 record queries", () => {
     if (after[0]?.record_type === "point_measurement") {
       expect(after[0].data.value.standard_value).toBe(64);
     }
+    const selectedTypes = await queryRecordsAsOf(database, {
+      as_of: "2026-08-10T12:00:00.000Z",
+      record_types: ["source", "point_measurement"],
+    });
+    expect(selectedTypes.map((record) => record.record_type).sort()).toEqual([
+      "point_measurement",
+      "source",
+    ]);
   });
 
   it("hides a deletion from current and later historical queries", async () => {

@@ -564,10 +564,16 @@ export async function runPerformanceBenchmarks(
         database,
         `
           WITH visible_revisions AS (
-            SELECT record_id, MAX(revision) AS revision
-            FROM record_revisions
-            WHERE became_known_at <= ?
-            GROUP BY record_id
+            SELECT
+              candidate_records.record_id,
+              (
+                SELECT MAX(candidate_revisions.revision)
+                FROM record_revisions AS candidate_revisions
+                WHERE candidate_revisions.record_id = candidate_records.record_id
+                  AND candidate_revisions.became_known_at <= ?
+              ) AS revision
+            FROM records AS candidate_records
+            WHERE candidate_records.record_type IN (?, ?, ?, ?, ?, ?, ?, ?)
           )
           SELECT visible_revisions.record_id
           FROM visible_revisions
@@ -575,7 +581,17 @@ export async function runPerformanceBenchmarks(
           ORDER BY records.created_at, records.record_id
           LIMIT 100000
         `,
-        ["2026-10-13T23:59:59.999Z"],
+        [
+          "2026-10-13T23:59:59.999Z",
+          "benchmark_definition",
+          "source",
+          "point_measurement",
+          "athlete_report",
+          "sleep_session",
+          "workout_session",
+          "benchmark_result",
+          "prediction",
+        ],
       ),
     };
     const cpuList = cpus();

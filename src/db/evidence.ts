@@ -63,7 +63,20 @@ export async function buildEvidence(
   if (!Number.isInteger(windowDays) || windowDays < 1 || windowDays > 3_650) {
     throw new Error("Evidence window must be between 1 and 3650 days");
   }
-  const records = await queryRecordsAsOf(database, { as_of: asOf, limit });
+  const records = await queryRecordsAsOf(database, {
+    as_of: asOf,
+    record_types: [
+      "benchmark_definition",
+      "source",
+      "point_measurement",
+      "athlete_report",
+      "sleep_session",
+      "workout_session",
+      "benchmark_result",
+      "prediction",
+    ],
+    limit,
+  });
   const benchmark = records.find(
     (
       record,
