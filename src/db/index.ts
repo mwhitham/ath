@@ -37,3 +37,29 @@ export {
   type TimeRange,
 } from "./query.js";
 export { createUuidV7 } from "./uuid.js";
+export {
+  checkDatabase,
+  type DatabaseCheckIssue,
+  type DatabaseCheckResult,
+} from "./check.js";
+export {
+  databaseStats,
+  renderDatabaseStats,
+  type BaselineStats,
+  type DatabaseStats,
+  type SeriesCoverageStats,
+  type SourceStats,
+} from "./stats.js";
+export {
+  readSeriesView,
+  renderSeriesView,
+  type SeriesDay,
+  type SeriesView,
+  type SeriesViewOptions,
+} from "./series-view.js";
+export {
+  readRecordLinks,
+  renderRecord,
+  renderRecordList,
+  type RecordLink,
+} from "./records-view.js";

@@ -9,30 +9,19 @@
  */
 import { Command } from "commander";
 import { existsSync } from "node:fs";
+import { rm } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
+import { type AthleticStandardFileT } from "./schema.js";
 import {
   ATHLETIC_STANDARD_VERSION,
-  SERIES_QUANTITY_UNITS,
-  type AthleticStandardFileT,
-} from "./schema.js";
-import {
-  validateAthleticStandardFile,
-  type ValidationIssue,
-  type ValidationResult,
-} from "./validate.js";
-import { findFile, loadFile, loadFileRaw, saveFile, DEFAULT_FILENAME, FILE_SUFFIX } from "./file.js";
+  RecordType,
+  SERIES_QUANTITY_UNITS as V1_SERIES_QUANTITY_UNITS,
+  SeriesQuantitySchema,
+} from "./v1/schema.js";
+import { validateAthleticStandardFile } from "./validate.js";
+import { findFile, loadFile, saveFile, DEFAULT_FILENAME, FILE_SUFFIX } from "./file.js";
 import { SEED_BENCHMARKS } from "./benchmarks.js";
-import { renderStats, statsAsJson } from "./stats.js";
-import { checkSeriesRef, SERIES_DIR, seriesDirectory } from "./series.js";
-import {
-  coverageOfDays,
-  matchingRefs,
-  readRawDays,
-  renderDaySummaries,
-  renderRawDays,
-  summarizeDays,
-} from "./seriesview.js";
 import {
   applyDraft,
   buildDraft,
@@ -90,6 +79,23 @@ import {
 } from "./skill.js";
 import { mergeSummaryAsJson, renderMergeSummary } from "./import/merge.js";
 import { candidatePaths, runUpdate } from "./update.js";
+import {
+  checkDatabase,
+  createDatabase,
+  databaseStats,
+  listRecords,
+  openDatabase,
+  readRecord,
+  readRecordLinks,
+  readRecordRevisions,
+  readSeriesView,
+  renderDatabaseStats,
+  renderRecord,
+  renderRecordList,
+  renderSeriesView,
+  writeRecords,
+  type AthleticDatabase,
+} from "./db/index.js";
 
 /** The whole command tree. `cli.ts` parses it; the skill generator reads its help. */
 export function buildProgram(): Command {
@@ -145,12 +151,16 @@ export function buildProgram(): Command {
     .option("--birth-year <year>", "birth year, which some readings are read against")
     .option("--sex <sex>", "male | female, for the same reason")
     .option("--units <units>", "metric | imperial — display only; stored values are always metric", "metric")
+    .option("--timezone <name>", "default IANA timezone for calendar views, such as America/Chicago")
     .option("--file <path>", "write somewhere other than the default name", DEFAULT_FILENAME)
     .option("-y, --yes", "skip the questions and use the flags and defaults")
     .option("--no-skill", "do not install the agent skill, even if an agent folder is here")
     .option("--json", "structured output, for an agent rather than a person")
     .action(async (opts) => {
       const outPath = resolve(process.cwd(), opts.file);
+      if (!outPath.endsWith(FILE_SUFFIX)) {
+        fail(`the live database name must end in ${FILE_SUFFIX}: ${outPath}`);
+      }
       if (existsSync(outPath)) {
         fail(
           `${outPath} already exists, and overwriting it would lose whatever is in it. ` +
@@ -158,40 +168,93 @@ export function buildProgram(): Command {
         );
       }
 
-      let { name, birthYear, sex } = { name: opts.name, birthYear: opts.birthYear, sex: opts.sex };
+      let { name, birthYear, sex, timezone } = {
+        name: opts.name,
+        birthYear: opts.birthYear,
+        sex: opts.sex,
+        timezone: opts.timezone,
+      };
       if (!opts.yes && !opts.json) {
         const rl = createInterface({ input: process.stdin, output: process.stdout });
         name = name ?? ((await rl.question("Name (optional): ")) || undefined);
         birthYear = birthYear ?? ((await rl.question("Birth year (optional): ")) || undefined);
         sex = sex ?? ((await rl.question("Sex, male/female (optional): ")) || undefined);
+        timezone =
+          timezone ??
+          ((await rl.question("Default timezone, such as America/Chicago (optional): ")) ||
+            undefined);
         rl.close();
       }
 
-      const file: AthleticStandardFileT = {
-        athleticstandard_version: ATHLETIC_STANDARD_VERSION,
-        athlete: {
-          ...(name ? { name } : {}),
-          ...(birthYear ? { birth_year: Number(birthYear) } : {}),
-          ...(sex === "male" || sex === "female" ? { sex } : {}),
-          units: opts.units === "imperial" ? "imperial" : "metric",
-        },
-        sources: [{ id: "manual-1", kind: "manual", detail: "Hand-entered data" }],
-        hard_signals: [],
-        soft_signals: [],
-        benchmarks: SEED_BENCHMARKS,
-        predictions: [],
+      const createdAt = new Date().toISOString();
+      const toolActor = {
+        author_type: "tool" as const,
+        tool: "ath",
+        tool_version: ATHLETIC_STANDARD_VERSION,
       };
-
-      const result = validateAthleticStandardFile(file);
-      if (!result.valid) {
-        fail(
-          `refusing to write an invalid file — nothing was created:\n` +
-            result.issues.map((i) => `  ${i.path}: ${i.message}`).join("\n") +
-            `\nCheck the values you passed, and try again.`,
+      let database: AthleticDatabase | undefined;
+      let seeded;
+      try {
+        database = await createDatabase(outPath, { createdAt });
+        seeded = await writeRecords(database, [
+          {
+            record_type: "athlete_profile",
+            created_at: createdAt,
+            changed_by: toolActor,
+            data: {
+              ...(name ? { name } : {}),
+              ...(birthYear ? { birth_year: Number(birthYear) } : {}),
+              ...(sex === "male" || sex === "female" ? { sex } : {}),
+              display_units: opts.units === "imperial" ? "imperial" : "metric",
+              ...(timezone ? { default_time_zone: timezone } : {}),
+            },
+          },
+          {
+            record_type: "source",
+            created_at: createdAt,
+            changed_by: toolActor,
+            data: {
+              source_type: "manual",
+              data_writer: "ath",
+              data_route: "manual_entry",
+              detail: "Manually recorded data",
+            },
+          },
+          ...SEED_BENCHMARKS.map((benchmark) => ({
+            record_type: "benchmark_definition" as const,
+            created_at: createdAt,
+            changed_by: toolActor,
+            data: {
+              authorship: {
+                author: {
+                  ...toolActor,
+                  calculation_version: "benchmark-definition-v1",
+                },
+                authored_at: createdAt,
+                evidence: [],
+                content_version: 1,
+                status: "active" as const,
+              },
+              benchmark_key: benchmark.id,
+              benchmark_type: benchmark.kind,
+              score_type: benchmark.score_type,
+              definition: benchmark.definition,
+              tags: benchmark.tags,
+            },
+          })),
+        ]);
+      } catch (error) {
+        database?.close();
+        await Promise.all(
+          [outPath, `${outPath}-wal`, `${outPath}-shm`].map((path) =>
+            rm(path, { force: true }),
+          ),
+        );
+        return fail(
+          `could not create a valid v1 database: ${(error as Error).message}. Nothing was kept.`,
         );
       }
-
-      saveFile(outPath, file);
+      database.close();
 
       // The skill always goes to .agents/skills, which every major harness reads,
       // and into any harness folder already here (D79).
@@ -203,7 +266,10 @@ export function buildProgram(): Command {
             {
               created: outPath,
               athleticstandard_version: ATHLETIC_STANDARD_VERSION,
-              benchmarks: SEED_BENCHMARKS.map((b) => b.id),
+              database_revision: seeded.database_revision,
+              benchmark_record_ids: seeded.records
+                .filter((record) => record.record_type === "benchmark_definition")
+                .map((record) => record.record_id),
               skill_installed: installed,
             },
             null,
@@ -501,43 +567,39 @@ export function buildProgram(): Command {
     .description("make sure the file still obeys every rule of the format")
     .addHelpText("after", EXAMPLES.check!)
     .argument("[file]", "the file to check (default: the one in this folder)")
+    .option("--file <path>", "check a database other than the one in this folder")
     .option("--json", "structured output, for an agent rather than a person")
-    .action((fileArg, opts: { json?: boolean }) => {
-      const path = findOrFail(fileArg);
-      const raw = loadFileRaw(path);
-      const result = validateAthleticStandardFile(raw);
-      const issues = [...result.issues, ...seriesIssues(path, result)];
-      const errors = issues.filter((i) => i.severity === "error");
-      const warnings = issues.filter((i) => i.severity === "warning");
-
-      // The file's own version, not the tool's. A 0.2.0 file read by a 0.3.0 tool is
-      // valid and is still a 0.2.0 file, and saying otherwise hides that from the reader.
-      const version =
-        (raw as { athleticstandard_version?: string }).athleticstandard_version ?? null;
-
-      if (opts.json) {
-        console.log(
-          JSON.stringify(
-            { file: path, athleticstandard_version: version, valid: errors.length === 0, issues },
-            null,
-            2,
-          ),
-        );
-        if (errors.length > 0) process.exit(1);
-        return;
+    .action(async (fileArg, opts: { file?: string; json?: boolean }) => {
+      const path = findOrFail(opts.file ?? fileArg);
+      const database = await openOrFail(path, opts.json);
+      try {
+        const result = await checkDatabase(database);
+        if (opts.json) {
+          console.log(JSON.stringify({ file: path, ...result }, null, 2));
+        } else {
+          for (const issue of result.issues) {
+            const target = issue.record_id === undefined ? "" : ` ${issue.record_id}`;
+            const line = `${issue.severity}  ${issue.check}${target}: ${issue.message}`;
+            if (issue.severity === "error") console.error(line);
+            else console.warn(line);
+          }
+          if (result.valid) {
+            console.log(
+              `${path}: valid Athletic Standard ${result.metadata?.athleticstandard_version ?? ATHLETIC_STANDARD_VERSION} database ` +
+                `(${result.record_count} records)`,
+            );
+          } else {
+            console.error(
+              `\n${path}: INVALID — ${result.issues.filter((issue) => issue.severity === "error").length} error(s)`,
+            );
+          }
+        }
+        if (!result.valid) {
+          process.exitCode = 1;
+        }
+      } finally {
+        database.close();
       }
-
-      for (const i of errors) console.error(`error  ${i.path}: ${i.message}`);
-      for (const i of warnings) console.warn(`warn   ${i.path}: ${i.message}`);
-
-      if (errors.length > 0) {
-        console.error(`\n${path}: INVALID — ${errors.length} error(s), ${warnings.length} warning(s)`);
-        process.exit(1);
-      }
-      console.log(
-        `${path}: valid Athletic Standard ${version ?? ATHLETIC_STANDARD_VERSION} file` +
-          (warnings.length > 0 ? ` (${warnings.length} warning(s))` : ""),
-      );
     });
 
   const keyCmd = program
@@ -935,88 +997,61 @@ export function buildProgram(): Command {
     .helpGroup(GROUPS.read)
     .description("read a sample series back: one row per day, or the raw samples")
     .addHelpText("after", EXAMPLES.series!)
-    .argument("<quantity>", `one of: ${Object.keys(SERIES_QUANTITY_UNITS).join(", ")}`)
-    .option("--from <date>", "earliest day to include (YYYY-MM-DD)")
-    .option("--to <date>", "latest day to include (YYYY-MM-DD)")
-    .option("--source <id>", "one device only, for when two measured the same thing — `ath stats` lists the ids")
+    .argument("<quantity>", `one of: ${Object.keys(V1_SERIES_QUANTITY_UNITS).join(", ")}`)
+    .option("--from <time>", "earliest day (YYYY-MM-DD) or exact UTC timestamp")
+    .option("--to <time>", "latest day (YYYY-MM-DD) or exact UTC timestamp")
+    .option("--source <id>", "one source only, for when two measured the same thing — `ath stats` lists the ids")
+    .option("--timezone <name>", "IANA timezone for calendar days; uses the athlete profile when omitted")
+    .option("--limit <count>", "maximum samples to read", parsePositiveInteger, 10_000)
     .option("--raw", "every sample, rather than one row per day")
     .option("--json", "structured output, for an agent rather than a person")
     .option("--file <path>", "read a file other than the one in this folder")
-    .action(
-      (
-        quantity: string,
-        opts: { from?: string; to?: string; source?: string; raw?: boolean; json?: boolean; file?: string },
-      ) => {
-        if (!(quantity in SERIES_QUANTITY_UNITS)) {
-          return fail(
-            `unknown quantity '${quantity}'. Known quantities: ` +
-              Object.keys(SERIES_QUANTITY_UNITS).join(", ") +
-              `. \`ath stats\` lists the ones this file actually holds.`,
-          );
-        }
-        const unit = SERIES_QUANTITY_UNITS[quantity as keyof typeof SERIES_QUANTITY_UNITS];
-
-        const path = findOrFail(opts.file);
-        let file: AthleticStandardFileT;
-        try {
-          file = loadFile(path);
-        } catch (e) {
-          return fail((e as Error).message);
-        }
-
-        const query = { quantity, from: opts.from, to: opts.to, source: opts.source };
-        const refs = matchingRefs(file, query);
-        if (refs.length === 0) {
-          const available = [
-            ...new Set(
-              file.hard_signals
-                .filter((s) => s.type === "series_ref")
-                .map((s) => (s as { quantity: string }).quantity),
-            ),
-          ].sort();
+    .action(async (
+      quantity: string,
+      opts: {
+        from?: string;
+        to?: string;
+        source?: string;
+        timezone?: string;
+        limit: number;
+        raw?: boolean;
+        json?: boolean;
+        file?: string;
+      },
+    ) => {
+      const parsedQuantity = SeriesQuantitySchema.safeParse(quantity);
+      if (!parsedQuantity.success) {
+        return fail(
+          `unknown quantity '${quantity}'. Known quantities: ` +
+            Object.keys(V1_SERIES_QUANTITY_UNITS).join(", ") +
+            `. \`ath stats\` lists the ones this database actually holds.`,
+        );
+      }
+      const path = findOrFail(opts.file);
+      const database = await openOrFail(path, opts.json);
+      try {
+        const view = await readSeriesView(database, parsedQuantity.data, {
+          ...(opts.from === undefined ? {} : { from: opts.from }),
+          ...(opts.to === undefined ? {} : { to: opts.to }),
+          ...(opts.source === undefined ? {} : { source_id: opts.source }),
+          ...(opts.timezone === undefined ? {} : { time_zone: opts.timezone }),
+          ...(opts.raw ? { raw: true } : {}),
+          limit: opts.limit,
+        });
+        if ((view.samples?.length ?? view.days?.length ?? 0) === 0) {
           return fail(
             opts.source
-              ? `no ${quantity} series from '${opts.source}'. Drop --source to see every ` +
-                `device that recorded it, or run \`ath stats\` for the source ids.`
-              : `no ${quantity} series in this file. Recorded: ${available.join(", ") || "none"}. ` +
-                `Import a device export to add more.`,
+              ? `no ${quantity} samples from '${opts.source}'. Drop --source or run \`ath stats\` for source IDs.`
+              : `no ${quantity} samples matched. Run \`ath stats\` to see the recorded series.`,
           );
         }
-
-        if (opts.raw) {
-          const days = readRawDays(path, refs, query);
-          console.log(
-            opts.json
-              ? JSON.stringify(
-                  {
-                    quantity,
-                    unit,
-                    coverage: coverageOfDays(
-                      quantity,
-                      days.map((d) => ({ day: d.day, source: d.source, n: d.samples.length })),
-                    ),
-                    days,
-                  },
-                  null,
-                  2,
-                )
-              : renderRawDays(quantity, unit, days),
-          );
-          return;
-        }
-
-        const rows = summarizeDays(path, refs, query);
-        console.log(
-          opts.json
-            ? JSON.stringify(
-                { quantity, unit, coverage: coverageOfDays(quantity, rows), days: rows },
-                null,
-                2,
-              )
-            : renderDaySummaries(quantity, unit, rows),
-        );
-      },
-    );
+        console.log(opts.json ? JSON.stringify(view, null, 2) : renderSeriesView(view));
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
+      }
+    });
 
   program
     .command("stats")
@@ -1024,70 +1059,143 @@ export function buildProgram(): Command {
     .description("what is in the file: counts, date ranges, sources, and baselines")
     .addHelpText("after", EXAMPLES.stats!)
     .argument("[file]", "the file to summarize (default: the one in this folder)")
+    .option("--file <path>", "summarize a database other than the one in this folder")
     .option("--json", "structured output, for an agent rather than a person")
-    .action((fileArg, opts: { json?: boolean }) => {
-      const path = findOrFail(fileArg);
-      const file = loadFile(path);
-      console.log(
-        opts.json ? JSON.stringify(statsAsJson(file, path), null, 2) : renderStats(file, path),
-      );
+    .action(async (fileArg, opts: { file?: string; json?: boolean }) => {
+      const path = findOrFail(opts.file ?? fileArg);
+      const database = await openOrFail(path, opts.json);
+      try {
+        const stats = await databaseStats(database);
+        console.log(
+          opts.json ? JSON.stringify(stats, null, 2) : renderDatabaseStats(stats),
+        );
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
+      }
+    });
+
+  const recordsCommand = program
+    .command("records")
+    .helpGroup(GROUPS.read)
+    .description("find stable record IDs, inspect one record, and read its revision history")
+    .addHelpText("after", EXAMPLES.records!);
+
+  recordsCommand
+    .command("list")
+    .description("list current records in stable order")
+    .option("--type <record-type>", "show one record type")
+    .option("--include-deleted", "include records hidden by a normal deletion")
+    .option("--limit <count>", "maximum records to return", parsePositiveInteger, 100)
+    .option("--file <path>", "read a database other than the one in this folder")
+    .option("--json", "structured output, for an agent rather than a person")
+    .action(async (opts: {
+      type?: string;
+      includeDeleted?: boolean;
+      limit: number;
+      file?: string;
+      json?: boolean;
+    }) => {
+      const recordType = opts.type === undefined ? undefined : RecordType.safeParse(opts.type);
+      if (recordType !== undefined && !recordType.success) {
+        return fail(
+          `unknown record type '${opts.type}'. Known types: ${RecordType.options.join(", ")}`,
+        );
+      }
+      const path = findOrFail(opts.file);
+      const database = await openOrFail(path, opts.json);
+      try {
+        const records = await listRecords(database, {
+          ...(recordType === undefined ? {} : { record_type: recordType.data }),
+          ...(opts.includeDeleted ? { include_deleted: true } : {}),
+          limit: opts.limit,
+        });
+        console.log(
+          opts.json
+            ? JSON.stringify({ file: path, records }, null, 2)
+            : renderRecordList(records),
+        );
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
+      }
+    });
+
+  recordsCommand
+    .command("show")
+    .description("show one record, one revision, its history, or its links")
+    .argument("<record-id>", "stable UUIDv7 record ID")
+    .option("--revision <number>", "show this retained revision", parsePositiveInteger)
+    .option("--history", "include the revision timeline")
+    .option("--links", "include incoming and outgoing record links")
+    .option("--file <path>", "read a database other than the one in this folder")
+    .option("--json", "structured output, for an agent rather than a person")
+    .action(async (
+      recordId: string,
+      opts: {
+        revision?: number;
+        history?: boolean;
+        links?: boolean;
+        file?: string;
+        json?: boolean;
+      },
+    ) => {
+      const path = findOrFail(opts.file);
+      const database = await openOrFail(path, opts.json);
+      try {
+        const record = await readRecord(database, recordId);
+        if (record === null) {
+          return fail(`record not found: ${recordId}`);
+        }
+        const revisions =
+          opts.revision !== undefined || opts.history
+            ? await readRecordRevisions(database, recordId)
+            : undefined;
+        const shownRevision =
+          opts.revision === undefined
+            ? undefined
+            : revisions?.find((revision) => revision.revision === opts.revision);
+        if (opts.revision !== undefined && shownRevision === undefined) {
+          return fail(
+            `record ${recordId} has no revision ${opts.revision}; current revision is ${record.current_revision}`,
+          );
+        }
+        const links = opts.links ? await readRecordLinks(database, recordId) : undefined;
+        if (opts.json) {
+          console.log(
+            JSON.stringify(
+              {
+                file: path,
+                record,
+                ...(shownRevision === undefined
+                  ? {}
+                  : { shown_revision: shownRevision }),
+                ...(opts.history ? { history: revisions } : {}),
+                ...(links === undefined ? {} : { links }),
+              },
+              null,
+              2,
+            ),
+          );
+        } else {
+          console.log(
+            renderRecord(record, {
+              ...(shownRevision === undefined ? {} : { revision: shownRevision }),
+              ...(opts.history && revisions !== undefined ? { history: revisions } : {}),
+              ...(links === undefined ? {} : { links }),
+            }),
+          );
+        }
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
+      }
     });
 
   return program;
-}
-
-/**
- * Verify the sample series the document describes (D25, narrowed by D40).
- *
- * One rule: hash what is on disk for each quantity and compare. A missing day, an
- * extra day, and an edited day all change the hash, all say the same thing, and all
- * have the same remedy — import again, which rewrites the files and the record
- * together. Telling those apart would hand the reader a distinction they cannot act
- * on differently.
- *
- * No `series/` folder at all is the exception, and it is normal: that is the
- * document travelling without its sidecars, which it is meant to survive.
- */
-function seriesIssues(path: string, result: ValidationResult): ValidationIssue[] {
-  if (!result.valid) return [];
-
-  let file: AthleticStandardFileT;
-  try {
-    file = loadFile(path);
-  } catch {
-    return [];
-  }
-
-  const refs = file.hard_signals.filter(
-    (s): s is Extract<typeof s, { type: "series_ref" }> => s.type === "series_ref",
-  );
-  if (refs.length === 0) return [];
-
-  if (!existsSync(seriesDirectory(path))) {
-    return [
-      {
-        severity: "warning",
-        path: SERIES_DIR,
-        message:
-          `series data not present — the document describes ${refs.length} series but the ` +
-          `${SERIES_DIR}/ folder is not here. Everything else still reads normally.`,
-      },
-    ];
-  }
-
-  const issues: ValidationIssue[] = [];
-  for (const ref of refs) {
-    if (checkSeriesRef(path, ref).status === "mismatch") {
-      issues.push({
-        severity: "error",
-        path: `${SERIES_DIR}/${ref.quantity}`,
-        message:
-          `${ref.quantity} for ${ref.source} doesn't match what was recorded — ` +
-          `re-import to fix`,
-      });
-    }
-  }
-  return issues;
 }
 
 /**
@@ -1179,6 +1287,14 @@ function collectModels(value: string, prev: string[]): string[] {
   return [...prev, value];
 }
 
+function parsePositiveInteger(value: string): number {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    throw new Error(`expected a positive whole number, not '${value}'`);
+  }
+  return parsed;
+}
+
 function parseGateway(value: string): "vercel" | "openrouter" {
   if (isGatewayName(value)) return value;
   fail(`unknown gateway '${value}'. Use vercel or openrouter.`);
@@ -1237,6 +1353,18 @@ function findOrFail(fileArg?: string): string {
     return findFile(fileArg);
   } catch (e) {
     return fail((e as Error).message);
+  }
+}
+
+async function openOrFail(path: string, json = false): Promise<AthleticDatabase> {
+  try {
+    return await openDatabase(path, {
+      onSecurityWarning: (warning) => {
+        if (!json) console.warn(`ath: warning: ${warning}`);
+      },
+    });
+  } catch (error) {
+    return fail((error as Error).message);
   }
 }
 

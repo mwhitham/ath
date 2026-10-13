@@ -3,7 +3,12 @@ dist/
 *.log
 .DS_Store
 
-# Personal athlete files created by `ath init` in the repo root.
+# Personal athlete databases created by `ath init` in the repo root.
 # The demo fixture in examples/ is intentionally tracked, so this is root-only.
 /*.ath.json
+/*.ath.sqlite
+
+# SQLite creates these temporary files while a WAL database is open.
+*.ath.sqlite-wal
+*.ath.sqlite-shm
 

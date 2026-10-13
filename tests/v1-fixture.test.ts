@@ -62,8 +62,14 @@ describe("deterministic v1 SQLite fixture", () => {
   it("keeps the referenced attachment bytes and hash together", async () => {
     expect(
       await readdir(join(fixtureDirectory, "attachments")),
-    ).toEqual(["meal-photo.png"]);
-    const attachment = await readFile(join(fixtureDirectory, "attachments", "meal-photo.png"));
+    ).toEqual(["01890f3e-e7d3-7cc0-88c8-00000000000e.png"]);
+    const attachment = await readFile(
+      join(
+        fixtureDirectory,
+        "attachments",
+        "01890f3e-e7d3-7cc0-88c8-00000000000e.png",
+      ),
+    );
     expect(createHash("sha256").update(attachment).digest("hex")).toBe(
       "d3fe8e599fb1deea9821063c744434802875c26cceeb9f2d55e8566b15a012f4",
     );

@@ -243,7 +243,7 @@ describe("the stale warning (D79)", () => {
 
     expect(ath(["stats", "--json"], dir).stderr).toBe("");
     expect(ath(["skill"], dir).stderr).toBe("");
-    expect(ath(["init", "-y", "--file", "other.ath.json", "--no-skill"], dir).stderr).toBe("");
+    expect(ath(["init", "-y", "--file", "other.ath.sqlite", "--no-skill"], dir).stderr).toBe("");
   });
 
   it("says nothing when no copy is installed or every copy is current", () => {

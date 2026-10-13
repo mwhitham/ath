@@ -20,7 +20,6 @@ const fixtureDirectory = join(root, "examples", "demo-athlete");
 const databasePath = join(fixtureDirectory, "athlete.ath.sqlite");
 const attachmentDirectory = join(fixtureDirectory, "attachments");
 const attachmentName = "meal-photo.png";
-const attachmentPath = join(attachmentDirectory, attachmentName);
 
 const createdAt = "2026-08-09T12:00:00.000Z";
 const toolActor = {
@@ -60,6 +59,7 @@ const ids = {
   goal: id(24),
   nutritionInterpretation: id(25),
 } as const;
+const attachmentPath = join(attachmentDirectory, `${ids.attachment}.png`);
 
 const inputTimestamp = {
   timestamp_text: "2026-08-09T06:12:00-05:00",

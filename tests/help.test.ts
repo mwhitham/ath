@@ -18,7 +18,7 @@ const emptyDir = () => mkdtempSync(join(tmpdir(), "ath-help-"));
 
 function dirWithFile(): string {
   const dir = emptyDir();
-  expect(ath(["init", "-y"], dir).code).toBe(0);
+  expect(ath(["init", "-y", "--timezone", "America/Chicago"], dir).code).toBe(0);
   return dir;
 }
 
@@ -47,6 +47,7 @@ describe("ath --help — written for someone who has never run this (D50)", () =
         "grade",
         "stats",
         "series",
+        "records",
         "key",
         "models",
         "backtest",
@@ -88,7 +89,7 @@ describe("bare ath — a short guide, not the full list", () => {
   it("tells someone with no file how to make one", () => {
     const res = ath([], emptyDir());
     expect(res.code).toBe(0);
-    expect(res.stdout).toContain("There is no .ath.json file in this folder");
+    expect(res.stdout).toContain("There is no .ath.sqlite file in this folder");
     expect(res.stdout).toContain("ath init");
     expect(res.stdout).not.toContain("Set up:");
   });
@@ -97,7 +98,7 @@ describe("bare ath — a short guide, not the full list", () => {
     const dir = dirWithFile();
     const res = ath([], dir);
     expect(res.code).toBe(0);
-    expect(res.stdout).toContain("Working on athlete.ath.json in this folder");
+    expect(res.stdout).toContain("Working on athlete.ath.sqlite in this folder");
     expect(res.stdout).toContain("ath stats");
     expect(res.stdout).not.toContain("There is no");
   });
@@ -131,18 +132,18 @@ describe("errors name the remedy", () => {
     expect(res.stdout).toContain("ath stats");
   });
 
-  it("says how to log something when nothing readable was given", () => {
+  it("clearly refuses a write command that has not moved to SQLite yet", () => {
     const dir = dirWithFile();
     const res = ath(["log", "--dry-run"], dir);
     expect(res.code).toBe(1);
-    expect(res.stdout).toContain("ath log slept badly, about 5 hours");
+    expect(res.stdout).toContain("not been moved to the v1 SQLite database yet");
   });
 
-  it("says how to read an export it could not open", () => {
+  it("clearly refuses import until its SQLite implementation lands", () => {
     const dir = dirWithFile();
     writeFileSync(join(dir, "nonsense.txt"), "this is not an export\n");
     const res = ath(["import", "nonsense.txt"], dir);
     expect(res.code).toBe(1);
-    expect(res.stdout).toMatch(/zip|export\.xml|CSV/);
+    expect(res.stdout).toContain("not been moved to the v1 SQLite database yet");
   });
 });

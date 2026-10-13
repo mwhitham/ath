@@ -55,6 +55,7 @@ export function bareGuide(cwd: string): string {
     `ath — Athletic Standard. Working on ${name} in this folder.`,
     ``,
     `  ath stats                      what is in the file, and where it came from`,
+    `  ath records list               stable IDs for the records in the database`,
     `  ath log HRV 61 this morning    write something down`,
     `  ath import <export>            load more device data`,
     `  ath predict fran               predict Fran — needs a model in a bare terminal`,
@@ -112,9 +113,9 @@ Examples:
   Check one somewhere else:
     $ ath check ~/training/athlete${FILE_SUFFIX}
 
-An error means the file breaks a rule of the format and says which rule.
-A warning means something is worth knowing but the file is still valid —
-sample series travelling without their sidecar folder is the usual one.`,
+An error means the database breaks a rule of the format and says which rule.
+A warning means something is worth knowing but the database is still valid.
+The check covers SQLite integrity, foreign keys, domain rules, and attachments.`,
 
   import: `
 Examples:
@@ -362,18 +363,41 @@ Examples:
   Every sample, not a daily summary:
     $ ath series heart_rate --raw --from 2026-08-14 --to 2026-08-14
 
-Dense sample streams live in files beside the document rather than in it,
-so the document stays small enough to read. This command reads them back.
-\`ath stats\` lists which series exist.`,
+Calendar days use the timezone saved in the athlete profile. Pass a different
+one explicitly when needed:
+    $ ath series heart_rate --from 2026-08-14 --to 2026-08-14 --timezone America/Denver
+
+Dense samples live in SQLite. This command reads them without replacing the
+provider summaries that may describe the same workout or night. \`ath stats\`
+lists which series exist.`,
+
+  records: `
+Examples:
+
+  Find stable IDs for all current records:
+    $ ath records list
+
+  List only predictions:
+    $ ath records list --type prediction
+
+  Show one record and its complete revision timeline:
+    $ ath records show 01890f3e-e7d3-7cc0-88c8-000000000010 --history
+
+  Show the records it links to and the records that link to it:
+    $ ath records show 01890f3e-e7d3-7cc0-88c8-000000000010 --links
+
+\`ath records list\` is for finding stable IDs. \`ath records show\` reads one
+logical record, a named revision, its history, and its links. Use \`ath stats\`
+for the fixed overview and \`ath series\` for dense samples.`,
 };
 
 /** The line under the grouped command list on bare `ath --help`. */
 export const HELP_FOOTER = `
 Every command has examples of its own: \`ath <command> --help\`.
 
-The file is yours and it is local. It is one JSON document you can read,
-edit, back up, and move. Device measurements and things you reported
-yourself are kept apart on purpose, and no command mixes them.
+The database is yours and it is local. SQLite is the live record. JSON exports
+are portable snapshots and do not stay synchronized. Device measurements and
+things you reported yourself are kept apart on purpose.
 
 A prediction needs a model. In a harness the model is already there.
 There is no Athletic Standard subscription.

@@ -11,7 +11,7 @@ is offered, it shows the write and writes nothing.
 ## Contents
 
 - [ath](#ath)
-- [ath init](#ath-init) — create a new athlete.ath.json here, with the well-known benchmarks defined
+- [ath init](#ath-init) — create a new athlete.ath.sqlite here, with the well-known benchmarks defined
 - [ath skill](#ath-skill) — where the agent skill is installed, and whether each copy is current
 - [ath skill install](#ath-skill-install) — copy the skill into .agents/skills and every harness folder here
 - [ath import](#ath-import) — load an Apple Health, WHOOP, or Oura export into the file
@@ -28,6 +28,9 @@ is offered, it shows the write and writes nothing.
 - [ath grade](#ath-grade) — record what actually happened, and score the prediction against it
 - [ath series](#ath-series) — read a sample series back: one row per day, or the raw samples
 - [ath stats](#ath-stats) — what is in the file: counts, date ranges, sources, and baselines
+- [ath records](#ath-records) — find stable record IDs, inspect one record, and read its revision history
+- [ath records list](#ath-records-list) — list current records in stable order
+- [ath records show](#ath-records-show) — show one record, one revision, its history, or its links
 
 ## ath
 
@@ -45,7 +48,7 @@ Options:
   -h, --help                         display help for command
 
 Set up:
-  init [options]                     create a new athlete.ath.json here, with
+  init [options]                     create a new athlete.ath.sqlite here, with
                                      the well-known benchmarks defined
   skill [options]                    where the agent skill is installed, and
                                      whether each copy is current
@@ -69,6 +72,8 @@ Read your data:
                                      or the raw samples
   stats [options] [file]             what is in the file: counts, date ranges,
                                      sources, and baselines
+  records                            find stable record IDs, inspect one record,
+                                     and read its revision history
 
 Predict and grade:
   predict [options] <benchmark>      predict a benchmark — needs a model in a
@@ -86,7 +91,7 @@ Predict and grade:
 ```
 Usage: ath init [options]
 
-create a new athlete.ath.json here, with the well-known benchmarks defined
+create a new athlete.ath.sqlite here, with the well-known benchmarks defined
 
 Options:
   --name <name>        your name, so the file says whose it is
@@ -94,8 +99,10 @@ Options:
   --sex <sex>          male | female, for the same reason
   --units <units>      metric | imperial — display only; stored values are
                        always metric (default: "metric")
+  --timezone <name>    default IANA timezone for calendar views, such as
+                       America/Chicago
   --file <path>        write somewhere other than the default name (default:
-                       "athlete.ath.json")
+                       "athlete.ath.sqlite")
   -y, --yes            skip the questions and use the flags and defaults
   --no-skill           do not install the agent skill, even if an agent folder
                        is here
@@ -200,11 +207,12 @@ Usage: ath check [options] [file]
 make sure the file still obeys every rule of the format
 
 Arguments:
-  file        the file to check (default: the one in this folder)
+  file           the file to check (default: the one in this folder)
 
 Options:
-  --json      structured output, for an agent rather than a person
-  -h, --help  display help for command
+  --file <path>  check a database other than the one in this folder
+  --json         structured output, for an agent rather than a person
+  -h, --help     display help for command
 ```
 
 ## ath key
@@ -358,24 +366,28 @@ Usage: ath series [options] <quantity>
 read a sample series back: one row per day, or the raw samples
 
 Arguments:
-  quantity       one of: heart_rate, hrv_beats, ecg_beats, hrv_sdnn,
-                 respiratory_rate, oxygen_saturation, steps, active_energy,
-                 distance_walking_running, distance_cycling, distance_swimming,
-                 running_speed, running_power, running_stride_length,
-                 running_vertical_oscillation, running_ground_contact_time,
-                 physical_effort, basal_energy, exercise_time, flights_climbed,
-                 walking_speed, walking_step_length,
-                 walking_asymmetry_percentage, time_in_daylight
+  quantity           one of: heart_rate, hrv_beats, ecg_beats, hrv_sdnn,
+                     respiratory_rate, oxygen_saturation, steps, active_energy,
+                     distance_walking_running, distance_cycling,
+                     distance_swimming, running_speed, running_power,
+                     running_stride_length, running_vertical_oscillation,
+                     running_ground_contact_time, physical_effort, basal_energy,
+                     exercise_time, flights_climbed, walking_speed,
+                     walking_step_length, walking_asymmetry_percentage,
+                     time_in_daylight
 
 Options:
-  --from <date>  earliest day to include (YYYY-MM-DD)
-  --to <date>    latest day to include (YYYY-MM-DD)
-  --source <id>  one device only, for when two measured the same thing — `ath
-                 stats` lists the ids
-  --raw          every sample, rather than one row per day
-  --json         structured output, for an agent rather than a person
-  --file <path>  read a file other than the one in this folder
-  -h, --help     display help for command
+  --from <time>      earliest day (YYYY-MM-DD) or exact UTC timestamp
+  --to <time>        latest day (YYYY-MM-DD) or exact UTC timestamp
+  --source <id>      one source only, for when two measured the same thing —
+                     `ath stats` lists the ids
+  --timezone <name>  IANA timezone for calendar days; uses the athlete profile
+                     when omitted
+  --limit <count>    maximum samples to read (default: 10000)
+  --raw              every sample, rather than one row per day
+  --json             structured output, for an agent rather than a person
+  --file <path>      read a file other than the one in this folder
+  -h, --help         display help for command
 ```
 
 ## ath stats
@@ -386,9 +398,62 @@ Usage: ath stats [options] [file]
 what is in the file: counts, date ranges, sources, and baselines
 
 Arguments:
-  file        the file to summarize (default: the one in this folder)
+  file           the file to summarize (default: the one in this folder)
 
 Options:
-  --json      structured output, for an agent rather than a person
-  -h, --help  display help for command
+  --file <path>  summarize a database other than the one in this folder
+  --json         structured output, for an agent rather than a person
+  -h, --help     display help for command
+```
+
+## ath records
+
+```
+Usage: ath records [options] [command]
+
+find stable record IDs, inspect one record, and read its revision history
+
+Options:
+  -h, --help                  display help for command
+
+Commands:
+  list [options]              list current records in stable order
+  show [options] <record-id>  show one record, one revision, its history, or its
+                              links
+  help [command]              display help for command
+```
+
+## ath records list
+
+```
+Usage: ath records list [options]
+
+list current records in stable order
+
+Options:
+  --type <record-type>  show one record type
+  --include-deleted     include records hidden by a normal deletion
+  --limit <count>       maximum records to return (default: 100)
+  --file <path>         read a database other than the one in this folder
+  --json                structured output, for an agent rather than a person
+  -h, --help            display help for command
+```
+
+## ath records show
+
+```
+Usage: ath records show [options] <record-id>
+
+show one record, one revision, its history, or its links
+
+Arguments:
+  record-id            stable UUIDv7 record ID
+
+Options:
+  --revision <number>  show this retained revision
+  --history            include the revision timeline
+  --links              include incoming and outgoing record links
+  --file <path>        read a database other than the one in this folder
+  --json               structured output, for an agent rather than a person
+  -h, --help           display help for command
 ```
