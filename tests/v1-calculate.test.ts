@@ -33,9 +33,9 @@ async function calculationDatabase(): Promise<{
     { createdAt: "2026-10-01T00:00:00.000Z" },
   );
   opened.push(database);
-  const sourceA = createUuidV7("2026-10-01T00:00:00.000Z");
-  const sourceB = createUuidV7("2026-10-01T00:00:01.000Z");
-  const manual = createUuidV7("2026-10-01T00:00:02.000Z");
+  const sourceA = createUuidV7(Date.parse("2026-10-01T00:00:00.000Z"));
+  const sourceB = createUuidV7(Date.parse("2026-10-01T00:00:01.000Z"));
+  const manual = createUuidV7(Date.parse("2026-10-01T00:00:02.000Z"));
   const timestamp = (value: string) => ({
     timestamp_text: value,
     utc_offset_text: "Z",
@@ -48,7 +48,7 @@ async function calculationDatabase(): Promise<{
     value: number,
   ) => ({
     record_type: "point_measurement" as const,
-    record_id: createUuidV7(at),
+    record_id: createUuidV7(Date.parse(at)),
     created_at: "2026-10-03T00:00:00.000Z",
     changed_by: actor,
     data: {
