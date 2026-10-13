@@ -33,7 +33,11 @@ export interface V1BacktestReport {
 }
 
 function nativeScore(
-  score: { duration_s?: number; reps?: number; weight_kg?: number },
+  score: {
+    duration_s?: number | undefined;
+    reps?: number | undefined;
+    weight_kg?: number | undefined;
+  },
   scoreType: string,
 ): number {
   const value =
