@@ -825,20 +825,18 @@ describe("v1 WAL behavior", () => {
     await interrupted.execute("BEGIN IMMEDIATE");
     await interrupted.execute({
       sql: `
-        INSERT INTO records (
+        INSERT INTO record_erasure_markers (
           record_id,
-          record_type,
-          current_revision,
-          created_at,
-          is_deleted
-        ) VALUES (?, 'athlete_profile', 1, ?, 0)
+          erased_at,
+          erasure_reason
+        ) VALUES (?, ?, 'interrupted test write')
       `,
       args: [reportId, createdAt],
     });
     interrupted.close();
 
     const recovered = await databaseClient(database).execute({
-      sql: "SELECT COUNT(*) AS count FROM records WHERE record_id = ?",
+      sql: "SELECT COUNT(*) AS count FROM record_erasure_markers WHERE record_id = ?",
       args: [reportId],
     });
     expect(Number(recovered.rows[0]?.count)).toBe(0);
