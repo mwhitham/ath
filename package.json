@@ -57,6 +57,7 @@
     "typecheck": "tsc --noEmit",
     "generate:json-schema": "tsx scripts/generate-json-schema.ts",
     "generate:fixture": "tsx scripts/generate-fixture.ts",
+    "generate:v1-fixture": "tsx scripts/generate-v1-fixture.ts",
     "generate:skill-cli": "tsx scripts/generate-skill-cli.ts"
   },
   "dependencies": {
