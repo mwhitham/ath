@@ -8,6 +8,7 @@
  * being written as a body temperature (D28).
  */
 import type { HardSignalT } from "../schema.js";
+import type { ProviderReportingPeriodT } from "../v1/schema.js";
 import { countSkip, emptyPayload, type ImportPayload, type SourceBook } from "./merge.js";
 import { cell, num, parseCsv, positive, withOffset, type Row } from "./csv.js";
 
@@ -54,6 +55,36 @@ const CONTRIBUTORS = [
   "sleep_regularity",
 ];
 
+function ouraTimestampReceipt(timestamp: string) {
+  const offset = /(Z|[+-]\d{2}:\d{2})$/i.exec(timestamp.trim())?.[1];
+  return {
+    timestamp_text: timestamp,
+    timestamp_basis: "source_offset_timestamp" as const,
+    ...(offset === undefined
+      ? { utc_offset_missing_reason: "not_provided_by_source" as const }
+      : {
+          utc_offset_text: offset,
+          utc_offset_meaning: "meaning_not_documented" as const,
+        }),
+  };
+}
+
+function ouraPeriod(
+  day: string | undefined,
+  periodType:
+    | "oura_activity_day"
+    | "oura_sleep_day"
+    | "oura_calendar_day"
+    | "oura_day_unspecified",
+): ProviderReportingPeriodT[] | undefined {
+  if (day === undefined) return undefined;
+  return [{
+    period_type: periodType,
+    provider_date: day,
+    timezone_offset_missing_reason: "not_provided_by_source",
+  }];
+}
+
 export function importOura(files: Map<string, string>, sources: SourceBook): ImportPayload {
   const payload = emptyPayload("oura", "Oura via CSV export");
   const sourceId = sources.forWriter({ writer: "Oura", vendor: "oura" });
@@ -79,10 +110,16 @@ function importRows(rows: Row[], sourceId: string, payload: ImportPayload, name:
   let used = 0;
 
   for (const row of rows) {
-    const bedtimeStart = withOffset(cell(row, "bedtime_start", "Bedtime Start"), undefined);
-    const bedtimeEnd = withOffset(cell(row, "bedtime_end", "Bedtime End"), undefined);
-    // Daily rows carry only a date; anchor them at the start of that local day.
+    const bedtimeStartText = cell(row, "bedtime_start", "Bedtime Start");
+    const bedtimeEndText = cell(row, "bedtime_end", "Bedtime End");
+    const bedtimeStart = withOffset(bedtimeStartText, undefined);
+    const bedtimeEnd = withOffset(bedtimeEndText, undefined);
+    // The legacy parser needs an internal anchor. The v1 receipt below removes this
+    // placeholder and keeps only the provider date when no instant was supplied.
     const day = cell(row, "day", "date", "summary_date");
+    const sleepPeriods = ouraPeriod(day, "oura_sleep_day");
+    const activityPeriods = ouraPeriod(day, "oura_activity_day");
+    const unspecifiedPeriods = ouraPeriod(day, "oura_day_unspecified");
     const anchor = bedtimeEnd ?? (day ? `${day}T00:00:00Z` : null);
 
     if (!anchor) {
@@ -94,25 +131,47 @@ function importRows(rows: Row[], sourceId: string, payload: ImportPayload, name:
     for (const mapping of SLEEP_POINTS) {
       const value = positive(row, ...mapping.columns);
       if (value === undefined) continue;
-      payload.hardSignals.push({
+      const signal = {
         type: mapping.type,
         value: Math.round(value * 100) / 100,
         unit: mapping.unit,
         recorded_at: anchor,
         source: sourceId,
-      } as unknown as HardSignalT);
+      } as unknown as HardSignalT;
+      payload.inputReceipts.set(signal, {
+        ...(bedtimeEndText === undefined
+          ? {}
+          : { input_timestamp: ouraTimestampReceipt(bedtimeEndText) }),
+        input_value: value,
+        input_unit: mapping.unit,
+        ...(sleepPeriods === undefined
+          ? {}
+          : { provider_reporting_periods: sleepPeriods }),
+      });
+      payload.hardSignals.push(signal);
     }
 
     // A signed delta from Oura's own baseline, so it may be negative or zero.
     const deviation = num(row, "temperature_deviation", "Temperature Deviation");
     if (deviation !== undefined) {
-      payload.hardSignals.push({
+      const signal: HardSignalT = {
         type: "temperature_deviation",
         value: Math.round(deviation * 100) / 100,
         unit: "°C",
         recorded_at: anchor,
         source: sourceId,
+      };
+      payload.inputReceipts.set(signal, {
+        ...(bedtimeEndText === undefined
+          ? {}
+          : { input_timestamp: ouraTimestampReceipt(bedtimeEndText) }),
+        input_value: deviation,
+        input_unit: "°C",
+        ...(unspecifiedPeriods === undefined
+          ? {}
+          : { provider_reporting_periods: unspecifiedPeriods }),
       });
+      payload.hardSignals.push(signal);
     }
 
     if (bedtimeStart && bedtimeEnd && Date.parse(bedtimeEnd) > Date.parse(bedtimeStart)) {
@@ -125,39 +184,101 @@ function importRows(rows: Row[], sourceId: string, payload: ImportPayload, name:
       if (efficiency !== undefined) {
         aggregates.efficiency_pct = Math.min(100, Math.round(efficiency * 10) / 10);
       }
-      payload.hardSignals.push({
+      const session = {
         type: "sleep_session",
         start: bedtimeStart,
         end: bedtimeEnd,
         source: sourceId,
         aggregates: aggregates as never,
-      } as HardSignalT);
+      } as HardSignalT;
+      const inputSummaries: Record<
+        string,
+        { input_value: number; input_unit: string }
+      > = {};
+      for (const stage of SLEEP_STAGES) {
+        const value = positive(row, ...stage.columns);
+        if (value !== undefined) {
+          inputSummaries[stage.key] = {
+            input_value: value,
+            input_unit: "s",
+          };
+        }
+      }
+      if (efficiency !== undefined) {
+        inputSummaries.efficiency_pct = {
+          input_value: efficiency,
+          input_unit: "%",
+        };
+      }
+      payload.inputReceipts.set(session, {
+        input_start_timestamp: ouraTimestampReceipt(bedtimeStartText!),
+        input_end_timestamp: ouraTimestampReceipt(bedtimeEndText!),
+        input_summaries: inputSummaries,
+        ...(sleepPeriods === undefined
+          ? {}
+          : { provider_reporting_periods: sleepPeriods }),
+      });
+      payload.hardSignals.push(session);
     }
 
     for (const score of VENDOR_SCORES) {
       const value = num(row, ...score.columns);
       if (value === undefined) continue;
-      payload.hardSignals.push({
+      const signal: HardSignalT = {
         type: "vendor_score",
         metric: score.metric,
         value,
         scale: "0-100",
         recorded_at: anchor,
         source: sourceId,
+      };
+      const periodType =
+        score.metric === "activity_score"
+          ? "oura_activity_day"
+          : score.metric === "sleep_score"
+            ? "oura_sleep_day"
+            : "oura_day_unspecified";
+      const periods =
+        periodType === "oura_activity_day"
+          ? activityPeriods
+          : periodType === "oura_sleep_day"
+            ? sleepPeriods
+            : unspecifiedPeriods;
+      payload.inputReceipts.set(signal, {
+        ...(bedtimeEndText === undefined
+          ? {}
+          : { input_timestamp: ouraTimestampReceipt(bedtimeEndText) }),
+        input_value: value,
+        input_unit_missing_reason: "not_provided_by_source",
+        ...(periods === undefined
+          ? {}
+          : { provider_reporting_periods: periods }),
       });
+      payload.hardSignals.push(signal);
     }
 
     for (const contributor of CONTRIBUTORS) {
       const value = num(row, `contributor_${contributor}`, `contributors_${contributor}`);
       if (value === undefined) continue;
-      payload.hardSignals.push({
+      const signal: HardSignalT = {
         type: "vendor_score",
         metric: `readiness_contributor_${contributor}`,
         value,
         scale: "0-100",
         recorded_at: anchor,
         source: sourceId,
+      };
+      payload.inputReceipts.set(signal, {
+        ...(bedtimeEndText === undefined
+          ? {}
+          : { input_timestamp: ouraTimestampReceipt(bedtimeEndText) }),
+        input_value: value,
+        input_unit_missing_reason: "not_provided_by_source",
+        ...(unspecifiedPeriods === undefined
+          ? {}
+          : { provider_reporting_periods: unspecifiedPeriods }),
       });
+      payload.hardSignals.push(signal);
     }
   }
 

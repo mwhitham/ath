@@ -15,6 +15,10 @@ import type {
   SoftSignalT,
   SourceT,
 } from "../schema.js";
+import type {
+  InputTimestampReceiptT,
+  ProviderReportingPeriodT,
+} from "../v1/schema.js";
 import { SERIES_DIR, type BuiltSeries } from "../series.js";
 import { daysBetween, RULES } from "../coverage.js";
 
@@ -36,12 +40,31 @@ export interface DeviceObservation {
   n: number;
 }
 
+/** A source-reported total or duration that is not a score or raw sample. */
+export interface ProviderSummaryImport {
+  source: string;
+  summary_type: string;
+  value: number;
+  standard_unit: string;
+  input_value: number;
+  input_unit?: string;
+  input_unit_missing_reason?:
+    | "not_provided_by_source"
+    | "not_exposed_by_route"
+    | "not_applicable";
+  recorded_at?: string;
+  input_timestamp: InputTimestampReceiptT;
+  provider_record_id?: string;
+  provider_reporting_periods?: ProviderReportingPeriodT[];
+}
+
 /** What an importer produces, before anything is written. */
 export interface ImportPayload {
   vendor: string;
   detail: string;
   hardSignals: HardSignalT[];
   softSignals: SoftSignalT[];
+  providerSummaries: ProviderSummaryImport[];
   series: BuiltSeries[];
   /** Rows we would not guess at, counted rather than silently dropped. */
   skipped: Map<string, number>;
@@ -54,6 +77,31 @@ export interface ImportPayload {
    * Keyed by object rather than by content so the two can never drift apart.
    */
   deviceOf: Map<HardSignalT, string>;
+  /** Exact source facts retained for the v1 SQLite importer. */
+  inputReceipts: Map<
+    HardSignalT | SoftSignalT,
+    {
+      input_timestamp?: InputTimestampReceiptT;
+      input_start_timestamp?: InputTimestampReceiptT;
+      input_end_timestamp?: InputTimestampReceiptT;
+      input_value?: number;
+      input_value_missing_reason?:
+        | "not_provided_by_source"
+        | "not_exposed_by_route"
+        | "not_applicable";
+      input_unit?: string;
+      input_unit_missing_reason?:
+        | "not_provided_by_source"
+        | "not_exposed_by_route"
+        | "not_applicable";
+      input_summaries?: Record<
+        string,
+        { input_value: number; input_unit: string }
+      >;
+      provider_record_id?: string;
+      provider_reporting_periods?: ProviderReportingPeriodT[];
+    }
+  >;
 }
 
 /**
@@ -95,11 +143,13 @@ export function emptyPayload(vendor: string, detail: string): ImportPayload {
     detail,
     hardSignals: [],
     softSignals: [],
+    providerSummaries: [],
     series: [],
     skipped: new Map(),
     skipExamples: new Map(),
     deviceIndex: new Map(),
     deviceOf: new Map(),
+    inputReceipts: new Map(),
   };
 }
 

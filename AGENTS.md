@@ -1,6 +1,10 @@
 # Agent Onboarding
 
-Athletic Standard: an open, local-first file format (`.ath.json`) for a functional-fitness athlete's training and recovery state, designed for AI agents to reason over, plus a reference agent that proves the format works. Not an app, not a coach, not medical advice.
+Athletic Standard: an open, local-first record for a functional-fitness athlete's
+training and recovery state, designed for AI agents to reason over, plus a reference
+agent that proves the format works. SQLite (`.ath.sqlite`) is the live local record.
+JSON (`.ath.json`) is the complete portable import and export format. Not an app, not
+a coach, not medical advice.
 
 ## Where the truth lives
 
@@ -8,16 +12,21 @@ Read these before making decisions — they are the project's memory and outrank
 
 1. **`build-history/v0.1.0/spec.md`** — the approved build specification (architecture, file format, CLI surface, grading procedure, backtest design, build order in §12).
 2. **`build-history/v0.2.0/spec.md`** — the format revision that supersedes parts of it: sidecar series, vendor scores, per-modality distance, distinct temperature signals, and the importers.
-3. **`build-history/*/decisions.md`** — every decision with the alternatives that were rejected and why (D1 onward, numbered continuously across version folders). Do not relitigate these without new information; if a decision is superseded, append a new D-number in the current version's file. Don't rewrite earlier entries. Don't create addendum files.
-4. **`build-history/v0.1.0/appendix/`** — the long-form studies that informed decisions (pressure test, connections). Linked from the D-number. Do not move the decision into the appendix, and do not trim the study down to the decision line.
-5. **`build-history/*/progress.md`** — what's done and what's next.
-6. **`docs/connections.md`** — per-provider data research (what WHOOP/Oura/Garmin/Apple Health each provide via which path).
-7. **`SPEC.md`** — the public field-level format reference. The Zod schemas in `src/schema.ts` are normative; the JSON Schema is generated from them.
+3. **`build-history/v1.0.0/spec.md`** — the approved SQLite build plan: SQLite is the live local record and JSON is the complete portable package. D101 rejects 0.x file migration, so runtime implementation begins with the v1 domain schemas.
+4. **`build-history/*/decisions.md`** — every decision with the alternatives that were rejected and why (D1 onward, numbered continuously across version folders). Do not relitigate these without new information; if a decision is superseded, append a new D-number in the current version's file. Don't rewrite earlier entries. Don't create addendum files.
+5. **`build-history/*/appendix/`** — the long-form studies that informed decisions. Link each study from its D-number. Do not move the decision into the appendix, and do not trim the study down to the decision line.
+6. **`build-history/*/progress.md`** — what's done and what's next.
+7. **`docs/connections.md`** — per-provider data research (what WHOOP/Oura/Garmin/Apple Health each provide via which path).
+8. **`SPEC.md`** — the public field-level format reference. The Zod schemas in `src/schema.ts` are normative; the JSON Schema is generated from them.
+
+For v1 storage, IDs, revisions, import behavior, and final schema names, D82–D105 supersede the relevant
+parts of D4, D25, D36, D40, D43, D48, D62, D64, and D65. The old decisions still
+describe released 0.x behavior.
 
 ## Hard rules
 
-- **The two-tier wall:** device-measured (hard) and self-reported (soft) signals never mix. Hard signals require a `source` reference; soft signals structurally cannot claim one. Never weaken this.
-- **`build-history/` is append-only.** New plans get a new version folder, named for the format version it produces (`v0.2.0/`). D-numbers continue across folders — D25 follows D24. Within a version, append new decisions to `decisions.md`. Supporting research goes in `appendix/` and is linked from the D-number. Don't rewrite earlier D-numbers or earlier version folders.
+- **The two-tier wall:** measured records and athlete reports never mix. Measured records require a `source` reference; athlete reports structurally cannot claim one. Never weaken this.
+- **`build-history/` is append-only.** New plans get a new version folder, named for the format version it produces (`v0.2.0/`, `v1.0.0/`). D-numbers continue across folders — D25 follows D24. Within a version, append new decisions to `decisions.md`. Supporting research goes in `appendix/` and is linked from the D-number. Don't rewrite earlier D-numbers or earlier version folders.
 - **Schemas are the source of truth.** After changing `src/schema.ts`, run `pnpm generate:json-schema` and `pnpm generate:fixture` and commit the regenerated outputs. After changing a command or its help in `src/program.ts` or `src/help.ts`, run `pnpm generate:skill-cli` and commit `skill/references/cli.md` (D80).
 - **Naming:** "Athletic Standard" in prose; `athleticstandard` for the npm package, file extension, and version field; `ath` is the CLI command; `AthleticStandard` in code identifiers.
 - **Keep the repo impersonal:** no personal objectives, audience/positioning framing, or individual names in committed content.

@@ -11,6 +11,7 @@
  * are WHOOP's own composites on WHOOP's own scales (D27).
  */
 import type { HardSignalT, SoftSignalT, SoftSignalTypeT } from "../schema.js";
+import type { ProviderReportingPeriodT } from "../v1/schema.js";
 import {
   countSkip,
   countSkipWithExample,
@@ -93,12 +94,68 @@ function rowOffset(row: Row): string | undefined {
   return cell(row, "Cycle timezone", "cycle_timezone", "timezone_offset");
 }
 
+function whoopTimestampReceipt(
+  timestamp: string,
+  offset: string | undefined,
+) {
+  return {
+    timestamp_text: timestamp,
+    timestamp_basis:
+      "source_local_timestamp_with_documented_offset" as const,
+    ...(offset === undefined
+      ? { utc_offset_missing_reason: "not_provided_by_source" as const }
+      : {
+          utc_offset_text: offset,
+          utc_offset_meaning: "provider_cycle_offset" as const,
+        }),
+  };
+}
+
+function normalizedUtc(timestamp: string): string {
+  return new Date(timestamp).toISOString();
+}
+
+function cyclePeriod(row: Row): ProviderReportingPeriodT[] | undefined {
+  const offset = rowOffset(row);
+  const inputStart = cell(row, "Cycle start time");
+  const inputEnd = cell(row, "Cycle end time");
+  const start = withOffset(inputStart, offset);
+  const end = withOffset(inputEnd, offset);
+  if (inputStart === undefined || start === null) {
+    return undefined;
+  }
+  return [{
+    period_type: "whoop_physiological_cycle",
+    start_at: normalizedUtc(start),
+    input_start_timestamp: whoopTimestampReceipt(inputStart, offset),
+    ...(inputEnd === undefined || end === null
+      ? {}
+      : {
+          end_at: normalizedUtc(end),
+          input_end_timestamp: whoopTimestampReceipt(inputEnd, offset),
+        }),
+    ...(offset === undefined
+      ? { timezone_offset_missing_reason: "not_provided_by_source" as const }
+      : {
+          timezone_offset_text: offset,
+          timezone_offset_meaning: "provider_cycle_offset" as const,
+        }),
+  }];
+}
+
 function importCycles(rows: Row[], sourceId: string, payload: ImportPayload): void {
   for (const row of rows) {
     const offset = rowOffset(row);
+    const periods = cyclePeriod(row);
+    const wakeText = cell(
+      row,
+      "Wake onset",
+      "Cycle end time",
+      "Cycle start time",
+    );
     // Measurements belong to the moment the cycle ended, which is when WHOOP
     // computes them: at wake.
-    const wake = withOffset(cell(row, "Wake onset", "Cycle end time", "Cycle start time"), offset);
+    const wake = withOffset(wakeText, offset);
     if (!wake) {
       countSkipWithExample(
         payload,
@@ -111,37 +168,64 @@ function importCycles(rows: Row[], sourceId: string, payload: ImportPayload): vo
     for (const mapping of CYCLE_POINTS) {
       const value = positive(row, ...mapping.columns);
       if (value === undefined) continue;
-      payload.hardSignals.push({
+      const signal = {
         type: mapping.type,
         value: Math.round(value * 100) / 100,
         unit: mapping.unit,
         recorded_at: wake,
         source: sourceId,
-      } as unknown as HardSignalT);
+      } as unknown as HardSignalT;
+      payload.inputReceipts.set(signal, {
+        input_timestamp: whoopTimestampReceipt(wakeText!, offset),
+        input_value: value,
+        input_unit: mapping.unit,
+        ...(periods === undefined
+          ? {}
+          : { provider_reporting_periods: periods }),
+      });
+      payload.hardSignals.push(signal);
     }
 
     // Recovery and strain are WHOOP's composites, not measurements (D27).
     const recovery = num(row, "Recovery score %", "recovery_score");
     if (recovery !== undefined) {
-      payload.hardSignals.push({
+      const signal: HardSignalT = {
         type: "vendor_score",
         metric: "recovery",
         value: recovery,
         scale: "0-100",
         recorded_at: wake,
         source: sourceId,
+      };
+      payload.inputReceipts.set(signal, {
+        input_timestamp: whoopTimestampReceipt(wakeText!, offset),
+        input_value: recovery,
+        input_unit: "%",
+        ...(periods === undefined
+          ? {}
+          : { provider_reporting_periods: periods }),
       });
+      payload.hardSignals.push(signal);
     }
     const strain = num(row, "Day Strain", "day_strain");
     if (strain !== undefined) {
-      payload.hardSignals.push({
+      const signal: HardSignalT = {
         type: "vendor_score",
         metric: "strain",
         value: Math.round(strain * 100) / 100,
         scale: "0-21",
         recorded_at: wake,
         source: sourceId,
+      };
+      payload.inputReceipts.set(signal, {
+        input_timestamp: whoopTimestampReceipt(wakeText!, offset),
+        input_value: strain,
+        input_unit_missing_reason: "not_provided_by_source",
+        ...(periods === undefined
+          ? {}
+          : { provider_reporting_periods: periods }),
       });
+      payload.hardSignals.push(signal);
     }
   }
 }
@@ -149,8 +233,11 @@ function importCycles(rows: Row[], sourceId: string, payload: ImportPayload): vo
 function importSleeps(rows: Row[], sourceId: string, payload: ImportPayload): void {
   for (const row of rows) {
     const offset = rowOffset(row);
-    const start = withOffset(cell(row, "Sleep onset"), offset);
-    const end = withOffset(cell(row, "Wake onset"), offset);
+    const periods = cyclePeriod(row);
+    const startText = cell(row, "Sleep onset");
+    const endText = cell(row, "Wake onset");
+    const start = withOffset(startText, offset);
+    const end = withOffset(endText, offset);
     if (!start || !end || Date.parse(end) <= Date.parse(start)) {
       countSkipWithExample(
         payload,
@@ -161,37 +248,78 @@ function importSleeps(rows: Row[], sourceId: string, payload: ImportPayload): vo
     }
 
     const aggregates: Record<string, number> = {};
-    const set = (key: string, value: number | undefined) => {
-      if (value !== undefined) aggregates[key] = value;
+    const inputSummaries: Record<
+      string,
+      { input_value: number; input_unit: string }
+    > = {};
+    const set = (
+      key: string,
+      value: number | undefined,
+      inputValue: number | undefined,
+      inputUnit: string,
+    ) => {
+      if (value !== undefined && inputValue !== undefined) {
+        aggregates[key] = value;
+        inputSummaries[key] = {
+          input_value: inputValue,
+          input_unit: inputUnit,
+        };
+      }
     };
 
-    set("duration_s", minutesToSeconds(positive(row, "Asleep duration (min)")));
-    set("time_in_bed_s", minutesToSeconds(positive(row, "In bed duration (min)")));
-    set("light_s", minutesToSeconds(positive(row, "Light sleep duration (min)")));
-    set("deep_s", minutesToSeconds(positive(row, "Deep (SWS) duration (min)", "deep_sleep_duration_min")));
-    set("rem_s", minutesToSeconds(positive(row, "REM duration (min)")));
-    set("awake_s", minutesToSeconds(positive(row, "Awake duration (min)")));
+    const duration = positive(row, "Asleep duration (min)");
+    const timeInBed = positive(row, "In bed duration (min)");
+    const light = positive(row, "Light sleep duration (min)");
+    const deep = positive(
+      row,
+      "Deep (SWS) duration (min)",
+      "deep_sleep_duration_min",
+    );
+    const rem = positive(row, "REM duration (min)");
+    const awake = positive(row, "Awake duration (min)");
+    set("duration_s", minutesToSeconds(duration), duration, "min");
+    set("time_in_bed_s", minutesToSeconds(timeInBed), timeInBed, "min");
+    set("light_s", minutesToSeconds(light), light, "min");
+    set("deep_s", minutesToSeconds(deep), deep, "min");
+    set("rem_s", minutesToSeconds(rem), rem, "min");
+    set("awake_s", minutesToSeconds(awake), awake, "min");
 
     const efficiency = positive(row, "Sleep efficiency %");
     if (efficiency !== undefined) {
       aggregates.efficiency_pct = Math.min(100, Math.round(efficiency * 10) / 10);
+      inputSummaries.efficiency_pct = {
+        input_value: efficiency,
+        input_unit: "%",
+      };
     }
 
-    payload.hardSignals.push({
+    const signal = {
       type: "sleep_session",
       start,
       end,
       source: sourceId,
       aggregates: aggregates as never,
-    } as HardSignalT);
+    } as HardSignalT;
+    payload.inputReceipts.set(signal, {
+      input_start_timestamp: whoopTimestampReceipt(startText!, offset),
+      input_end_timestamp: whoopTimestampReceipt(endText!, offset),
+      input_summaries: inputSummaries,
+      ...(periods === undefined
+        ? {}
+        : { provider_reporting_periods: periods }),
+    });
+    payload.hardSignals.push(signal);
   }
 }
 
 function importWorkouts(rows: Row[], sourceId: string, payload: ImportPayload): void {
   for (const row of rows) {
     const offset = rowOffset(row);
-    const start = withOffset(cell(row, "Workout start time"), offset);
-    const end = withOffset(cell(row, "Workout end time"), offset);
+    const periods = cyclePeriod(row);
+    const startText = cell(row, "Workout start time");
+    const endText = cell(row, "Workout end time");
+    const start = withOffset(startText, offset);
+    const end = withOffset(endText, offset);
     if (!start || !end || Date.parse(end) <= Date.parse(start)) {
       countSkipWithExample(
         payload,
@@ -213,25 +341,56 @@ function importWorkouts(rows: Row[], sourceId: string, payload: ImportPayload): 
     const distance = positive(row, "Distance (meters)", "distance_meters");
     if (distance !== undefined) aggregates.distance_m = Math.round(distance);
 
-    payload.hardSignals.push({
+    const session = {
       type: "workout_session",
       start,
       end,
       source: sourceId,
       aggregates: aggregates as never,
-    } as HardSignalT);
+    } as HardSignalT;
+    payload.inputReceipts.set(session, {
+      input_start_timestamp: whoopTimestampReceipt(startText!, offset),
+      input_end_timestamp: whoopTimestampReceipt(endText!, offset),
+      input_summaries: {
+        ...(avg === undefined
+          ? {}
+          : { avg_hr_bpm: { input_value: avg, input_unit: "bpm" } }),
+        ...(max === undefined
+          ? {}
+          : { max_hr_bpm: { input_value: max, input_unit: "bpm" } }),
+        ...(energy === undefined
+          ? {}
+          : { energy_kcal: { input_value: energy, input_unit: "cal" } }),
+        ...(distance === undefined
+          ? {}
+          : { distance_m: { input_value: distance, input_unit: "m" } }),
+      },
+      ...(periods === undefined
+        ? {}
+        : { provider_reporting_periods: periods }),
+    });
+    payload.hardSignals.push(session);
 
     // Strain is per-workout as well as per-day, and it is still a vendor composite.
     const strain = num(row, "Activity Strain", "activity_strain");
     if (strain !== undefined) {
-      payload.hardSignals.push({
+      const score: HardSignalT = {
         type: "vendor_score",
         metric: "activity_strain",
         value: Math.round(strain * 100) / 100,
         scale: "0-21",
         recorded_at: start,
         source: sourceId,
+      };
+      payload.inputReceipts.set(score, {
+        input_timestamp: whoopTimestampReceipt(startText!, offset),
+        input_value: strain,
+        input_unit_missing_reason: "not_provided_by_source",
+        ...(periods === undefined
+          ? {}
+          : { provider_reporting_periods: periods }),
       });
+      payload.hardSignals.push(score);
     }
   }
 }
@@ -246,7 +405,8 @@ function importJournal(rows: Row[], payload: ImportPayload): void {
     const offset = rowOffset(row);
     // Keyed on the cycle end, the wake date, which is how the other files align.
     // The current cycle has no end yet, so fall back to its start.
-    const reportedAt = withOffset(cell(row, "Cycle end time", "Cycle start time"), offset);
+    const reportedAtText = cell(row, "Cycle end time", "Cycle start time");
+    const reportedAt = withOffset(reportedAtText, offset);
     const question = cell(row, "Question text", "question_text");
     if (!reportedAt || !question) {
       // Without a timestamp there is nowhere in time to put the answer, and a
@@ -275,6 +435,9 @@ function importJournal(rows: Row[], payload: ImportPayload): void {
       note,
       provenance: { via: "text" },
     };
+    payload.inputReceipts.set(signal, {
+      input_timestamp: whoopTimestampReceipt(reportedAtText!, offset),
+    });
     payload.softSignals.push(signal);
   }
 }

@@ -1,0 +1,1095 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://athleticstandard.ai/schema/1.0.0/measurement-series.schema.json",
+  "title": "Athletic Standard measurement-series file",
+  "type": "object",
+  "properties": {
+    "athleticstandard_version": {
+      "type": "string",
+      "const": "1.0.0"
+    },
+    "source_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Stable UUIDv7 record ID"
+    },
+    "quantity": {
+      "type": "string",
+      "enum": [
+        "heart_rate",
+        "hrv_beats",
+        "ecg_beats",
+        "hrv_sdnn",
+        "respiratory_rate",
+        "oxygen_saturation",
+        "steps",
+        "active_energy",
+        "distance_walking_running",
+        "distance_cycling",
+        "distance_swimming",
+        "running_speed",
+        "running_power",
+        "running_stride_length",
+        "running_vertical_oscillation",
+        "running_ground_contact_time",
+        "physical_effort",
+        "basal_energy",
+        "exercise_time",
+        "flights_climbed",
+        "walking_speed",
+        "walking_step_length",
+        "walking_asymmetry_percentage",
+        "time_in_daylight"
+      ]
+    },
+    "start_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+      "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+    },
+    "end_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+      "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+    },
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "description": "Stable UUIDv7 record ID"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+            "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+          },
+          "current_revision": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "is_deleted": {
+            "type": "boolean"
+          },
+          "record_type": {
+            "type": "string",
+            "const": "measurement_sample"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "source_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "description": "Stable UUIDv7 record ID"
+              },
+              "provider_record_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "provider_reporting_periods": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "period_type": {
+                      "type": "string",
+                      "enum": [
+                        "whoop_physiological_cycle",
+                        "oura_activity_day",
+                        "oura_sleep_day",
+                        "oura_calendar_day",
+                        "oura_day_unspecified",
+                        "apple_activity_summary_day"
+                      ]
+                    },
+                    "provider_period_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "provider_date": {
+                      "type": "string",
+                      "format": "date",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                      "description": "ISO 8601 calendar date"
+                    },
+                    "start_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+                      "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+                    },
+                    "end_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+                      "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+                    },
+                    "input_start_timestamp": {
+                      "type": "object",
+                      "properties": {
+                        "timestamp_text": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "utc_offset_text": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "utc_offset_meaning": {
+                          "type": "string",
+                          "enum": [
+                            "documented_recording_offset",
+                            "provider_cycle_offset",
+                            "route_rendering_offset",
+                            "meaning_not_documented"
+                          ]
+                        },
+                        "source_time_zone": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "source_time_zone_meaning": {
+                          "type": "string",
+                          "enum": [
+                            "apple_health_object_creation_time_zone"
+                          ]
+                        },
+                        "timestamp_basis": {
+                          "type": "string",
+                          "enum": [
+                            "source_instant",
+                            "source_offset_timestamp",
+                            "source_local_timestamp_with_documented_offset",
+                            "reconstructed_from_series_start"
+                          ]
+                        },
+                        "timestamp_missing_reason": {
+                          "type": "string",
+                          "enum": [
+                            "not_provided_by_source",
+                            "not_exposed_by_route",
+                            "not_applicable"
+                          ]
+                        },
+                        "utc_offset_missing_reason": {
+                          "type": "string",
+                          "enum": [
+                            "not_provided_by_source",
+                            "not_exposed_by_route",
+                            "not_applicable"
+                          ]
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "input_end_timestamp": {
+                      "type": "object",
+                      "properties": {
+                        "timestamp_text": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "utc_offset_text": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "utc_offset_meaning": {
+                          "type": "string",
+                          "enum": [
+                            "documented_recording_offset",
+                            "provider_cycle_offset",
+                            "route_rendering_offset",
+                            "meaning_not_documented"
+                          ]
+                        },
+                        "source_time_zone": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "source_time_zone_meaning": {
+                          "type": "string",
+                          "enum": [
+                            "apple_health_object_creation_time_zone"
+                          ]
+                        },
+                        "timestamp_basis": {
+                          "type": "string",
+                          "enum": [
+                            "source_instant",
+                            "source_offset_timestamp",
+                            "source_local_timestamp_with_documented_offset",
+                            "reconstructed_from_series_start"
+                          ]
+                        },
+                        "timestamp_missing_reason": {
+                          "type": "string",
+                          "enum": [
+                            "not_provided_by_source",
+                            "not_exposed_by_route",
+                            "not_applicable"
+                          ]
+                        },
+                        "utc_offset_missing_reason": {
+                          "type": "string",
+                          "enum": [
+                            "not_provided_by_source",
+                            "not_exposed_by_route",
+                            "not_applicable"
+                          ]
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "timezone_offset_text": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "timezone_offset_meaning": {
+                      "type": "string",
+                      "enum": [
+                        "documented_recording_offset",
+                        "provider_cycle_offset",
+                        "route_rendering_offset",
+                        "meaning_not_documented"
+                      ]
+                    },
+                    "timezone_offset_missing_reason": {
+                      "type": "string",
+                      "enum": [
+                        "not_provided_by_source",
+                        "not_exposed_by_route",
+                        "not_applicable"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "period_type"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "received_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+                "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+              },
+              "received_at_basis": {
+                "type": "string",
+                "enum": [
+                  "provider_supplied",
+                  "connector_received_time",
+                  "file_modified_time",
+                  "import_time",
+                  "local_write_time"
+                ]
+              },
+              "quantity": {
+                "type": "string",
+                "enum": [
+                  "heart_rate",
+                  "hrv_beats",
+                  "ecg_beats",
+                  "hrv_sdnn",
+                  "respiratory_rate",
+                  "oxygen_saturation",
+                  "steps",
+                  "active_energy",
+                  "distance_walking_running",
+                  "distance_cycling",
+                  "distance_swimming",
+                  "running_speed",
+                  "running_power",
+                  "running_stride_length",
+                  "running_vertical_oscillation",
+                  "running_ground_contact_time",
+                  "physical_effort",
+                  "basal_energy",
+                  "exercise_time",
+                  "flights_climbed",
+                  "walking_speed",
+                  "walking_step_length",
+                  "walking_asymmetry_percentage",
+                  "time_in_daylight"
+                ]
+              },
+              "recorded_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+                "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+              },
+              "input_timestamp": {
+                "type": "object",
+                "properties": {
+                  "timestamp_text": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "utc_offset_text": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "utc_offset_meaning": {
+                    "type": "string",
+                    "enum": [
+                      "documented_recording_offset",
+                      "provider_cycle_offset",
+                      "route_rendering_offset",
+                      "meaning_not_documented"
+                    ]
+                  },
+                  "source_time_zone": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "source_time_zone_meaning": {
+                    "type": "string",
+                    "enum": [
+                      "apple_health_object_creation_time_zone"
+                    ]
+                  },
+                  "timestamp_basis": {
+                    "type": "string",
+                    "enum": [
+                      "source_instant",
+                      "source_offset_timestamp",
+                      "source_local_timestamp_with_documented_offset",
+                      "reconstructed_from_series_start"
+                    ]
+                  },
+                  "timestamp_missing_reason": {
+                    "type": "string",
+                    "enum": [
+                      "not_provided_by_source",
+                      "not_exposed_by_route",
+                      "not_applicable"
+                    ]
+                  },
+                  "utc_offset_missing_reason": {
+                    "type": "string",
+                    "enum": [
+                      "not_provided_by_source",
+                      "not_exposed_by_route",
+                      "not_applicable"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
+              "value": {
+                "type": "object",
+                "properties": {
+                  "standard_value": {
+                    "type": "number"
+                  },
+                  "standard_unit": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "input_value": {
+                    "type": "number"
+                  },
+                  "input_unit": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "input_value_missing_reason": {
+                    "type": "string",
+                    "enum": [
+                      "not_provided_by_source",
+                      "not_exposed_by_route",
+                      "not_applicable"
+                    ]
+                  },
+                  "input_unit_missing_reason": {
+                    "type": "string",
+                    "enum": [
+                      "not_provided_by_source",
+                      "not_exposed_by_route",
+                      "not_applicable"
+                    ]
+                  }
+                },
+                "required": [
+                  "standard_value",
+                  "standard_unit"
+                ],
+                "additionalProperties": false
+              },
+              "duration_ms": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "timestamp_base_text": {
+                "type": "string",
+                "minLength": 1
+              },
+              "timestamp_reconstruction_method": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "source_id",
+              "received_at",
+              "received_at_basis",
+              "quantity",
+              "recorded_at",
+              "input_timestamp",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "record_id",
+          "created_at",
+          "current_revision",
+          "is_deleted",
+          "record_type",
+          "data"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "record_revisions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "description": "Stable UUIDv7 record ID"
+          },
+          "revision": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "previous_revision": {
+            "anyOf": [
+              {
+                "type": "integer",
+                "exclusiveMinimum": 0,
+                "maximum": 9007199254740991
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "became_known_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+            "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+          },
+          "became_known_at_basis": {
+            "type": "string",
+            "enum": [
+              "local_write",
+              "provider_import",
+              "package_restore",
+              "package_merge"
+            ]
+          },
+          "changed_by": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "author_type": {
+                    "type": "string",
+                    "const": "athlete"
+                  }
+                },
+                "required": [
+                  "author_type"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "author_type": {
+                    "type": "string",
+                    "const": "agent"
+                  },
+                  "agent": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "agent_version": {
+                    "type": "string",
+                    "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+                  }
+                },
+                "required": [
+                  "author_type",
+                  "agent"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "author_type": {
+                    "type": "string",
+                    "const": "tool"
+                  },
+                  "tool": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "tool_version": {
+                    "type": "string",
+                    "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+                  }
+                },
+                "required": [
+                  "author_type",
+                  "tool",
+                  "tool_version"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "record_type": {
+            "type": "string",
+            "const": "measurement_sample"
+          },
+          "data": {
+            "type": "object",
+            "properties": {
+              "source_id": {
+                "type": "string",
+                "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+                "description": "Stable UUIDv7 record ID"
+              },
+              "provider_record_id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "provider_reporting_periods": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "period_type": {
+                      "type": "string",
+                      "enum": [
+                        "whoop_physiological_cycle",
+                        "oura_activity_day",
+                        "oura_sleep_day",
+                        "oura_calendar_day",
+                        "oura_day_unspecified",
+                        "apple_activity_summary_day"
+                      ]
+                    },
+                    "provider_period_id": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "provider_date": {
+                      "type": "string",
+                      "format": "date",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                      "description": "ISO 8601 calendar date"
+                    },
+                    "start_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+                      "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+                    },
+                    "end_at": {
+                      "type": "string",
+                      "format": "date-time",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+                      "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+                    },
+                    "input_start_timestamp": {
+                      "type": "object",
+                      "properties": {
+                        "timestamp_text": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "utc_offset_text": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "utc_offset_meaning": {
+                          "type": "string",
+                          "enum": [
+                            "documented_recording_offset",
+                            "provider_cycle_offset",
+                            "route_rendering_offset",
+                            "meaning_not_documented"
+                          ]
+                        },
+                        "source_time_zone": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "source_time_zone_meaning": {
+                          "type": "string",
+                          "enum": [
+                            "apple_health_object_creation_time_zone"
+                          ]
+                        },
+                        "timestamp_basis": {
+                          "type": "string",
+                          "enum": [
+                            "source_instant",
+                            "source_offset_timestamp",
+                            "source_local_timestamp_with_documented_offset",
+                            "reconstructed_from_series_start"
+                          ]
+                        },
+                        "timestamp_missing_reason": {
+                          "type": "string",
+                          "enum": [
+                            "not_provided_by_source",
+                            "not_exposed_by_route",
+                            "not_applicable"
+                          ]
+                        },
+                        "utc_offset_missing_reason": {
+                          "type": "string",
+                          "enum": [
+                            "not_provided_by_source",
+                            "not_exposed_by_route",
+                            "not_applicable"
+                          ]
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "input_end_timestamp": {
+                      "type": "object",
+                      "properties": {
+                        "timestamp_text": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "utc_offset_text": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "utc_offset_meaning": {
+                          "type": "string",
+                          "enum": [
+                            "documented_recording_offset",
+                            "provider_cycle_offset",
+                            "route_rendering_offset",
+                            "meaning_not_documented"
+                          ]
+                        },
+                        "source_time_zone": {
+                          "type": "string",
+                          "minLength": 1
+                        },
+                        "source_time_zone_meaning": {
+                          "type": "string",
+                          "enum": [
+                            "apple_health_object_creation_time_zone"
+                          ]
+                        },
+                        "timestamp_basis": {
+                          "type": "string",
+                          "enum": [
+                            "source_instant",
+                            "source_offset_timestamp",
+                            "source_local_timestamp_with_documented_offset",
+                            "reconstructed_from_series_start"
+                          ]
+                        },
+                        "timestamp_missing_reason": {
+                          "type": "string",
+                          "enum": [
+                            "not_provided_by_source",
+                            "not_exposed_by_route",
+                            "not_applicable"
+                          ]
+                        },
+                        "utc_offset_missing_reason": {
+                          "type": "string",
+                          "enum": [
+                            "not_provided_by_source",
+                            "not_exposed_by_route",
+                            "not_applicable"
+                          ]
+                        }
+                      },
+                      "additionalProperties": false
+                    },
+                    "timezone_offset_text": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "timezone_offset_meaning": {
+                      "type": "string",
+                      "enum": [
+                        "documented_recording_offset",
+                        "provider_cycle_offset",
+                        "route_rendering_offset",
+                        "meaning_not_documented"
+                      ]
+                    },
+                    "timezone_offset_missing_reason": {
+                      "type": "string",
+                      "enum": [
+                        "not_provided_by_source",
+                        "not_exposed_by_route",
+                        "not_applicable"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "period_type"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "received_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+                "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+              },
+              "received_at_basis": {
+                "type": "string",
+                "enum": [
+                  "provider_supplied",
+                  "connector_received_time",
+                  "file_modified_time",
+                  "import_time",
+                  "local_write_time"
+                ]
+              },
+              "quantity": {
+                "type": "string",
+                "enum": [
+                  "heart_rate",
+                  "hrv_beats",
+                  "ecg_beats",
+                  "hrv_sdnn",
+                  "respiratory_rate",
+                  "oxygen_saturation",
+                  "steps",
+                  "active_energy",
+                  "distance_walking_running",
+                  "distance_cycling",
+                  "distance_swimming",
+                  "running_speed",
+                  "running_power",
+                  "running_stride_length",
+                  "running_vertical_oscillation",
+                  "running_ground_contact_time",
+                  "physical_effort",
+                  "basal_energy",
+                  "exercise_time",
+                  "flights_climbed",
+                  "walking_speed",
+                  "walking_step_length",
+                  "walking_asymmetry_percentage",
+                  "time_in_daylight"
+                ]
+              },
+              "recorded_at": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+                "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+              },
+              "input_timestamp": {
+                "type": "object",
+                "properties": {
+                  "timestamp_text": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "utc_offset_text": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "utc_offset_meaning": {
+                    "type": "string",
+                    "enum": [
+                      "documented_recording_offset",
+                      "provider_cycle_offset",
+                      "route_rendering_offset",
+                      "meaning_not_documented"
+                    ]
+                  },
+                  "source_time_zone": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "source_time_zone_meaning": {
+                    "type": "string",
+                    "enum": [
+                      "apple_health_object_creation_time_zone"
+                    ]
+                  },
+                  "timestamp_basis": {
+                    "type": "string",
+                    "enum": [
+                      "source_instant",
+                      "source_offset_timestamp",
+                      "source_local_timestamp_with_documented_offset",
+                      "reconstructed_from_series_start"
+                    ]
+                  },
+                  "timestamp_missing_reason": {
+                    "type": "string",
+                    "enum": [
+                      "not_provided_by_source",
+                      "not_exposed_by_route",
+                      "not_applicable"
+                    ]
+                  },
+                  "utc_offset_missing_reason": {
+                    "type": "string",
+                    "enum": [
+                      "not_provided_by_source",
+                      "not_exposed_by_route",
+                      "not_applicable"
+                    ]
+                  }
+                },
+                "additionalProperties": false
+              },
+              "value": {
+                "type": "object",
+                "properties": {
+                  "standard_value": {
+                    "type": "number"
+                  },
+                  "standard_unit": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "input_value": {
+                    "type": "number"
+                  },
+                  "input_unit": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "input_value_missing_reason": {
+                    "type": "string",
+                    "enum": [
+                      "not_provided_by_source",
+                      "not_exposed_by_route",
+                      "not_applicable"
+                    ]
+                  },
+                  "input_unit_missing_reason": {
+                    "type": "string",
+                    "enum": [
+                      "not_provided_by_source",
+                      "not_exposed_by_route",
+                      "not_applicable"
+                    ]
+                  }
+                },
+                "required": [
+                  "standard_value",
+                  "standard_unit"
+                ],
+                "additionalProperties": false
+              },
+              "duration_ms": {
+                "type": "integer",
+                "minimum": 0,
+                "maximum": 9007199254740991
+              },
+              "timestamp_base_text": {
+                "type": "string",
+                "minLength": 1
+              },
+              "timestamp_reconstruction_method": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "source_id",
+              "received_at",
+              "received_at_basis",
+              "quantity",
+              "recorded_at",
+              "input_timestamp",
+              "value"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "record_id",
+          "revision",
+          "previous_revision",
+          "became_known_at",
+          "became_known_at_basis",
+          "changed_by",
+          "record_type",
+          "data"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "record_deletions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "description": "Stable UUIDv7 record ID"
+          },
+          "record_revision": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "deleted_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+            "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+          },
+          "deleted_by": {
+            "oneOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "author_type": {
+                    "type": "string",
+                    "const": "athlete"
+                  }
+                },
+                "required": [
+                  "author_type"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "author_type": {
+                    "type": "string",
+                    "const": "agent"
+                  },
+                  "agent": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "agent_version": {
+                    "type": "string",
+                    "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+                  }
+                },
+                "required": [
+                  "author_type",
+                  "agent"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "object",
+                "properties": {
+                  "author_type": {
+                    "type": "string",
+                    "const": "tool"
+                  },
+                  "tool": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "tool_version": {
+                    "type": "string",
+                    "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
+                  }
+                },
+                "required": [
+                  "author_type",
+                  "tool",
+                  "tool_version"
+                ],
+                "additionalProperties": false
+              }
+            ]
+          }
+        },
+        "required": [
+          "record_id",
+          "record_revision",
+          "deleted_at",
+          "deleted_by"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "record_import_keys": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "description": "Stable UUIDv7 record ID"
+          },
+          "match_key_method": {
+            "type": "string",
+            "minLength": 1
+          },
+          "match_key": {
+            "type": "string",
+            "minLength": 1
+          },
+          "imported_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+            "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+          }
+        },
+        "required": [
+          "record_id",
+          "match_key_method",
+          "match_key",
+          "imported_at"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "athleticstandard_version",
+    "source_id",
+    "quantity",
+    "start_at",
+    "end_at",
+    "records",
+    "record_revisions",
+    "record_deletions",
+    "record_import_keys"
+  ],
+  "additionalProperties": false
+}

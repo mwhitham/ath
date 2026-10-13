@@ -8,7 +8,7 @@ Never commit a real health export or athlete file. This rule applies to public a
 
 Keep real validation data in encrypted storage outside Git. Public bug reports, tests, and decisions must use the smallest invented example that proves the behavior. Remove exact workout dates, locations, birth dates, travel clues, device inventories, and sample values.
 
-Files under `tests/fixtures/exports/` are synthetic. Adding one requires an explicit entry in the allowlist in `scripts/check-public-data.ts` and `.gitignore`. The generated demo athlete is the only approved `.ath.json` file.
+Files under `tests/fixtures/exports/` and `examples/demo-athlete/` are synthetic. Adding one requires an explicit entry in the allowlist in `scripts/check-public-data.ts`. Health-data files also require an explicit exception in `.gitignore`.
 
 Do not upload real exports to public continuous integration. Run private validation locally and publish only a sanitized conclusion.
 

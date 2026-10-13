@@ -55,6 +55,7 @@ export function bareGuide(cwd: string): string {
     `ath — Athletic Standard. Working on ${name} in this folder.`,
     ``,
     `  ath stats                      what is in the file, and where it came from`,
+    `  ath records list               stable IDs for the records in the database`,
     `  ath log HRV 61 this morning    write something down`,
     `  ath import <export>            load more device data`,
     `  ath predict fran               predict Fran — needs a model in a bare terminal`,
@@ -78,6 +79,11 @@ Examples:
 
 The file is created here, called athlete${FILE_SUFFIX}, with the well-known
 benchmarks already defined. Nothing leaves your machine.
+
+For a complete v1 package restore, create an empty destination:
+    $ ath init -y --empty
+    $ ath import ./saved-package
+    $ ath import ./saved-package --yes
 
 The agent skill is written to .agents/skills, which Claude Code, Cursor,
 Codex, and Gemini CLI read, and into any of .claude, .cursor, .codex,
@@ -112,28 +118,79 @@ Examples:
   Check one somewhere else:
     $ ath check ~/training/athlete${FILE_SUFFIX}
 
-An error means the file breaks a rule of the format and says which rule.
-A warning means something is worth knowing but the file is still valid —
-sample series travelling without their sidecar folder is the usual one.`,
+An error means the database breaks a rule of the format and says which rule.
+A warning means something is worth knowing but the database is still valid.
+The check covers SQLite integrity, schema versions, foreign keys, domain rules,
+record relationships, revision chains, session ordering, and attachments.
+
+Also build and validate a temporary complete JSON package:
+    $ ath check --validate-export`,
 
   import: `
 Examples:
 
-  An Apple Health export, straight from the zip:
-    $ ath import ~/Downloads/export.zip
+  Preview a complete v1 package:
+    $ ath import ~/Backups/athletic-standard-export
 
-  A WHOOP or Oura CSV:
-    $ ath import ~/Downloads/physiological_cycles.csv
+  Apply it only after the preview has no conflicts:
+    $ ath import ~/Backups/athletic-standard-export --yes
 
-Importing the same export twice is safe: records already in the file are
-recognised and skipped, so nothing is counted twice.
+  Preview a provider export:
+    $ ath import ~/Downloads/apple_health_export.zip
+    $ ath import ~/Downloads/whoop-export
+    $ ath import ~/Downloads/oura-export
 
-Each app or device inside an export becomes its own source, because a
-watch and a ring measuring the same thing are two answers, not one. See
-them with \`ath stats\`.
+The default is always a preview. \`--json\` is also only a preview and
+never confirms a write. Provider rows keep separate Apple Health, WHOOP,
+and Oura source routes. Repeating an unchanged export reports matching
+records. A corrected provider row creates a retained revision.
 
-If a workout you logged earlier now has a device session on the same day,
-the import offers to attach them.`,
+For a v1 package, an empty database adopts the package database ID and
+exact revision history. A database with the same ID can accept new
+records and later revisions. Import never deletes a local record merely
+because a package omits it. A different database ID is refused because
+it may belong to another athlete. Unknown fields and records that v1 cannot
+represent are listed in the preview and block the write. No flag discards them.
+Athletic Standard 0.x JSON files are
+prerelease formats and are not imported by v1.`,
+
+  conflicts: `
+Examples:
+
+  Show complete local and imported values for every current conflict:
+    $ ath conflicts show
+
+  Keep the local record:
+    $ ath conflicts resolve <record-id> --choice local
+
+  Accept the imported record as a new local revision:
+    $ ath conflicts resolve <record-id> --choice imported
+
+  Supply a complete corrected data object as a new local revision:
+    $ ath conflicts resolve <record-id> --choice corrected \\
+        --data '{"...":"..."}'
+
+These commands change only a temporary conflict file. They do not change athlete
+data. After every conflict has a choice, rerun the exact package import with
+--yes. A changed package or database makes every saved choice stale.`,
+
+  export: `
+Examples:
+
+  Write a complete portable package:
+    $ ath export ./athlete-backup
+
+  Return the command result as JSON:
+    $ ath export ./athlete-backup --json
+
+SQLite remains the live record. The exported JSON package is a snapshot
+and does not stay synchronized. The package includes complete current
+records, retained revisions, deletions, dense samples, and permitted
+attachments. The manifest is written last.
+
+The export has no time by default, so two exports of the same database
+revision are byte-identical. Supply a fixed --exported-at only when a
+manifest time is needed.`,
 
   log: `
 Examples:
@@ -141,76 +198,49 @@ Examples:
   A note, taken exactly as typed. No quotes needed:
     $ ath log slept badly, about 5 hours
 
-  A measurement read off a device by hand:
-    $ ath log HRV 61 this morning
+  A manual measurement. Name RMSSD or SDNN rather than saying only HRV:
+    $ ath log RMSSD 61 ms
 
   How something felt, with a rating:
     $ ath log sore quads 4/5
 
-  A one-line workout:
+  A benchmark result:
     $ ath log Fran in 4:41 rx
 
-  Round times at the end. \`//\` marks the result; \`Times:\` does the same:
-    $ ath log e5m x 6: 16 echo bike cals, 12 t2b, 8 deadlift at 225 // 1:46, 1:25
+  A photo attached to one athlete report:
+    $ ath log Meal photo --attachment ./receipt.png
 
-  A workout of several lines. Run \`ath log\` on its own, paste it, and
-  press Ctrl-D. A box height writes as 20" and a shell would break on it,
-  which is why it is pasted rather than quoted:
+  A structured record from an agent. Run \`ath log\`, paste one record
+  object or an array, and press Ctrl-D:
     $ ath log
-    7 ROUNDS FOR REPS
-    40s ALT DB SNATCH 55lbs / 20s REST
-    40s BOX STEP UPS 20" / 20s REST
-    245 TOTAL REPS
+    {"record_type":"goal","data":{"authorship":{...},"title":"Fran under 4:30"}}
     ^D
 
-  Nothing is written until you say so. First you see what was understood:
+Plain text creates one record. A structured JSON array creates one
+validated batch. The preview shows every stable ID and complete record
+before one transaction writes anything. \`--json\` returns that preview
+and never confirms a write. Pass \`--yes\` only after approval.
 
-      kind     workout result
-      date     2026-09-07  (today)
-      score    245 reps
-      name     2026-09-07
-      attach   17:25 to 17:48 on whoop-1
-      workout  7 ROUNDS FOR REPS
-               40s ALT DB SNATCH 55lbs / 20s REST
-               40s BOX STEP UPS 20" / 20s REST
-               245 TOTAL REPS
-
-    Save this?
-      [y] yes, on the 17:25–17:48 session
-      [n] no
-
-  A workout from an earlier day. The date goes first, as year-month-day:
-    $ ath log 2026-09-04
-
-What this reads on its own: measurement names it knows, numbers, units,
-ratings like 4/5, clock times, a list of round times, and rep totals.
-Everything else becomes a note with your words kept exactly. It never
-turns a sentence into a measurement on a guess — the worst it can do is
-file something as a note. One command writes one record.
-
-One workout on one day makes one result. Logging a second is refused,
-because a duplicate is counted by every average afterwards and nothing
-looks wrong. If you really did it twice, pass --again.
-
-An agent connected to this file does more: it recognises that a paste is
-Fran, names the benchmark, and passes structured JSON instead of text.`,
+--attachment accepts PNG, JPEG, WebP, or PDF files up to 25 MiB. Pass it
+more than once for several files. Exactly one athlete report or nutrition
+entry in the batch owns them. No file is copied during a JSON preview.`,
 
   link: `
 Examples:
 
-  Attach today's Fran to the session that started at 17:25:
-    $ ath link fran 17:25
+  Find the stable IDs and current result revision:
+    $ ath records list --type benchmark_result
+    $ ath records list --type workout_session
 
-  When the benchmark has several results, say which day:
-    $ ath link fran@2026-09-04 17:25
+  Preview the link:
+    $ ath link <result-id> <session-id> --revision 1 --json
 
-  When two devices recorded the same minute, say which one:
-    $ ath link fran whoop-1@2026-09-04T17:25:00Z
+  Write it after review:
+    $ ath link <result-id> <session-id> --revision 1 --yes
 
-Device data usually arrives days after the workout, so a result with no
-session attached is normal rather than broken. Every import offers the
-matches that have become possible; this command is for the rest, and for
-fixing one that went to the wrong session.`,
+The benchmark result owns this link. Linking creates a new revision of
+that result. A stale --revision is refused rather than overwriting a
+correction made after the preview.`,
 
   predict: `
 Examples:
@@ -297,39 +327,110 @@ report file this names.`,
   grade: `
 Examples:
 
-  What actually happened, scored against the open prediction:
-    $ ath grade fran --actual 4:32
+  Find the prediction and result IDs:
+    $ ath records list --type prediction
+    $ ath records list --type benchmark_result
 
-  Reps and loads, in their own units:
-    $ ath grade cindy --actual 245
-    $ ath grade back-squat --actual 142.5kg
+  Preview the exact link and grade:
+    $ ath grade <prediction-id> --result <result-id> --json
 
-  An attempt from an earlier day:
-    $ ath grade fran --actual 4:32 --date 2026-09-04
+  Write after review:
+    $ ath grade <prediction-id> --result <result-id> --yes
 
-  See what it would write, and write nothing:
-    $ ath grade fran --actual 4:32 --dry-run
+\`ath grade\` never logs a result. It grades two records that already
+exist. It creates a stable prediction-result link when needed and saves
+the deterministic arithmetic against exact revisions.
 
-Grading writes, so it shows what it will write and asks once, the same as
-\`ath log\`. Where your watch recorded a session that day, it offers to
-attach the result to it. The verdict comes after.
+A result inside the prediction's stated range is a hit. Anything else is
+a miss. A prediction error analysis is a separate authored record written
+through structured \`ath log\`, not through a grade flag.`,
 
-If the result is already in the file, it is graded rather than written
-again. A different score on a day that already has one is refused: pass
---again if you really attempted it twice.
+  correct: `
+Examples:
 
-A result inside the prediction's stated range is a hit, and prints one
-line. Anything else is a miss and prints the dossier: the day's own
-measurements, everything self-reported in the 72 hours before, and any
-day in the last week that sat far from your own baseline.
+  Read the current revision and complete data:
+    $ ath records show <record-id> --history --json
 
-An agent reads that dossier and writes the analysis back:
-    $ ath grade fran --analysis '{"direction":"slower", ...}'
+  Preview a complete replacement:
+    $ ath correct <record-id> --revision 2 --data '{"...":"..."}' --json
 
-Every cause it names is checked against the file first. Where nothing
-explains the miss, "unexplained": true is the honest answer.
+  Write after review:
+    $ ath correct <record-id> --revision 2 --data '{"...":"..."}' --yes
 
-With no prediction open, the result is simply logged and grading stops.`,
+Correction keeps the stable ID and complete earlier revisions. The
+expected revision prevents a stale preview from overwriting newer data.
+Use --attachment while correcting an athlete report or nutrition entry to
+create and link a supported file in the same database revision.`,
+
+  delete: `
+Examples:
+
+  Preview a normal deletion:
+    $ ath delete <record-id> --revision 2 --json
+
+  Hide it from current views after review:
+    $ ath delete <record-id> --revision 2 --yes
+
+Normal deletion retains the complete record and revision history. Privacy
+erasure is a different command because it removes values and cannot be
+undone from the database.`,
+
+  erase: `
+Examples:
+
+  Preview the record, every dependent record, and each attachment:
+    $ ath erase <record-id> --revision 2 --json
+
+  Permanently erase after reviewing that preview:
+    $ ath erase <record-id> --revision 2 --yes \\
+        --confirm-erasure <record-id>
+
+Erasure removes the current record, its revision history, records that
+depend on it, and their attachment files. It leaves only value-free
+markers saying which stable IDs were erased.
+
+This cannot be undone from the database. Scripts need both --yes and an
+exact --confirm-erasure value. Interactive use asks the same two
+questions. \`--json\` and \`--dry-run\` never erase anything.`,
+
+  calculate: `
+Examples:
+
+  A 90-day baseline, kept separate for each source:
+    $ ath calculate baseline hrv_rmssd --from 2026-07-01 --to 2026-09-28
+
+  Daily totals in an explicit calendar timezone:
+    $ ath calculate summary steps --group day --from 2026-09-01 \\
+        --to 2026-09-30 --timezone America/Chicago
+
+  Compare two sources without pooling them:
+    $ ath calculate compare-sources resting_heart_rate \\
+        --source <source-id> --compare-source <other-source-id>
+
+  Correlate same-day means:
+    $ ath calculate correlation hrv_rmssd --other-quantity resting_heart_rate \\
+        --source <source-id> --timezone America/Chicago
+
+  Baseline WHOOP recovery scores that have an absolute source time:
+    $ ath calculate baseline recovery --record-kind provider-score
+
+  Summarize Oura readiness by Oura's own assigned day:
+    $ ath calculate provider-period-summary readiness \\
+        --record-kind provider-score --period-type oura_day_unspecified
+
+Named operations are summary, baseline, trend, coverage, compare-sources,
+correlation, workout-drift, and provider-period-summary. The provider-period
+operation requires --period-type and never turns that period into a calendar day.
+
+Record kinds are measurement, provider-score, provider-summary, and
+session-summary. Measurement is the default. Naming the kind keeps measurements,
+scores, and source-reported totals separate even when their names are similar.
+
+The result names its method, exact record revisions, exclusions, sources, date
+range, and timezone or provider period when one was used.
+
+Manual sources never enter these device calculations. Different sources,
+RMSSD and SDNN, temperature types, and distance types are never pooled.`,
 
   stats: `
 Examples:
@@ -362,18 +463,41 @@ Examples:
   Every sample, not a daily summary:
     $ ath series heart_rate --raw --from 2026-08-14 --to 2026-08-14
 
-Dense sample streams live in files beside the document rather than in it,
-so the document stays small enough to read. This command reads them back.
-\`ath stats\` lists which series exist.`,
+Calendar days use the timezone saved in the athlete profile. Pass a different
+one explicitly when needed:
+    $ ath series heart_rate --from 2026-08-14 --to 2026-08-14 --timezone America/Denver
+
+Dense samples live in SQLite. This command reads them without replacing the
+provider summaries that may describe the same workout or night. \`ath stats\`
+lists which series exist.`,
+
+  records: `
+Examples:
+
+  Find stable IDs for all current records:
+    $ ath records list
+
+  List only predictions:
+    $ ath records list --type prediction
+
+  Show one record and its complete revision timeline:
+    $ ath records show 01890f3e-e7d3-7cc0-88c8-000000000010 --history
+
+  Show the records it links to and the records that link to it:
+    $ ath records show 01890f3e-e7d3-7cc0-88c8-000000000010 --links
+
+\`ath records list\` is for finding stable IDs. \`ath records show\` reads one
+logical record, a named revision, its history, and its links. Use \`ath stats\`
+for the fixed overview and \`ath series\` for dense samples.`,
 };
 
 /** The line under the grouped command list on bare `ath --help`. */
 export const HELP_FOOTER = `
 Every command has examples of its own: \`ath <command> --help\`.
 
-The file is yours and it is local. It is one JSON document you can read,
-edit, back up, and move. Device measurements and things you reported
-yourself are kept apart on purpose, and no command mixes them.
+The database is yours and it is local. SQLite is the live record. JSON exports
+are portable snapshots and do not stay synchronized. Device measurements and
+things you reported yourself are kept apart on purpose.
 
 A prediction needs a model. In a harness the model is already there.
 There is no Athletic Standard subscription.

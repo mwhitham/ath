@@ -13,8 +13,16 @@ const approvedSyntheticFixtures = new Map<string, string>([
     "0d223b8086d575fd327acac7e134efcae417e5c9f315411f93c859dd97e5cacf",
   ],
   [
+    "examples/demo-athlete/athlete.ath.sqlite",
+    "317ee514b34c60a6b57a8f0915612a55d4f4e45200b3c2e2c7f374e1714ab05c",
+  ],
+  [
+    "examples/demo-athlete/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png",
+    "d3fe8e599fb1deea9821063c744434802875c26cceeb9f2d55e8566b15a012f4",
+  ],
+  [
     "tests/fixtures/exports/apple/export.xml",
-    "01ac134b87a3f0e7793ab7831898d3e54fba062491f1b8c3c9a1d7a229788f44",
+    "fbb3b4f8ee38f575f32387dc48b5d695caaf76f7de16d920659a1617efae7fcf",
   ],
   [
     "tests/fixtures/exports/apple/electrocardiograms/ecg_2026-08-07.csv",
@@ -59,6 +67,9 @@ const requiredIgnoreRules = [
   "private-validation/",
   "validation-data/",
   "*.ath.json",
+  "*.ath.sqlite",
+  "*.ath.sqlite-wal",
+  "*.ath.sqlite-shm",
   "*.fit",
   "*.gpx",
   "*.xml",
@@ -74,7 +85,16 @@ function trackedFiles(): string[] {
 
 function isHealthDataFile(path: string): boolean {
   const lower = path.toLowerCase();
-  const sensitiveEndings = [".ath.json", ".csv", ".fit", ".gpx", ".tcx", ".xml", ".zip"];
+  const sensitiveEndings = [
+    ".ath.json",
+    ".ath.sqlite",
+    ".csv",
+    ".fit",
+    ".gpx",
+    ".tcx",
+    ".xml",
+    ".zip",
+  ];
   if (sensitiveEndings.some((ending) => lower.endsWith(ending))) return true;
 
   const name = basename(lower);
@@ -82,6 +102,10 @@ function isHealthDataFile(path: string): boolean {
     name.endsWith(".json") &&
     /(apple[-_ ]?health|athlete|export|garmin|healthkit|oura|whoop)/.test(name)
   );
+}
+
+function isFixturePath(path: string): boolean {
+  return path.startsWith("examples/demo-athlete/") || path.startsWith("tests/fixtures/exports/");
 }
 
 function sha256(path: string): string {
@@ -98,7 +122,7 @@ const ignoreLines = new Set(
 );
 
 for (const path of tracked) {
-  if (isHealthDataFile(path) && !approvedSyntheticFixtures.has(path)) {
+  if ((isHealthDataFile(path) || isFixturePath(path)) && !approvedSyntheticFixtures.has(path)) {
     errors.push(
       `${path}: health-data file is not on the synthetic-fixture allowlist. ` +
         "Remove it from Git. If it is invented test data, review it and add its exact path and hash.",
@@ -120,7 +144,7 @@ for (const [path, expectedHash] of approvedSyntheticFixtures) {
     );
   }
 
-  if (!ignoreLines.has(`!${path}`)) {
+  if (isHealthDataFile(path) && !ignoreLines.has(`!${path}`)) {
     errors.push(`${path}: add an explicit !${path} exception to .gitignore.`);
   }
 }

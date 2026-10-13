@@ -1,141 +1,220 @@
 ---
 name: athletic-standard
-description: Reads and writes an athlete's Athletic Standard file (.ath.json) with the ath CLI. Applies when someone logs a workout, a lift, a benchmark result, HRV, resting heart rate, sleep, soreness, or how they feel; asks what their training or recovery data shows; asks for a prediction on a benchmark such as Fran or a 5k; reports a result to grade a prediction against; wants to backtest predictions on past results; or imports an Apple Health, WHOOP, or Oura export. Also applies to any question about a .ath.json file or the ath command.
+description: Reads and writes an athlete's Athletic Standard SQLite database (.ath.sqlite) with the ath CLI. Applies when someone logs a workout, lift, named benchmark such as Fran, HRV as RMSSD or SDNN, resting heart rate, sleep, soreness, nutrition, or another athlete report; asks what training or recovery data shows; asks for a benchmark prediction or backtest; reports a result to grade; imports Apple Health, WHOOP, Oura, or an Athletic Standard v1 package; exports a complete package; or asks about Athletic Standard records, revisions, calculations, deletion, or privacy erasure.
 license: MIT
-compatibility: Requires the ath CLI (npm package athleticstandard) on PATH. No network needed.
+compatibility: Requires the ath CLI (npm package athleticstandard) on PATH. Local database use needs no network. Optional terminal model calls need a configured gateway.
 metadata:
-  version: "0.4.3"
+  version: "1.0.0"
 ---
 
 # Athletic Standard
 
-An Athletic Standard file is one JSON document holding one athlete's training and
-recovery data. It sits on the athlete's own machine. `ath` is the command that reads
-and writes it.
+The live local record is one SQLite database named `athlete.ath.sqlite`. `ath` reads
+and writes it. A JSON package is an explicit complete snapshot. It is not a second
+live copy.
 
-This skill expects format version **0.4.3**. `ath check` prints the version of the
-file in front of you. A file on an older version still loads; a newer one may hold
-fields described nowhere here, so say so rather than guessing at them.
+This skill expects Athletic Standard **1.0.0**. Prerelease `0.x` JSON documents are
+not imported.
 
-Not an app, not a coach, not medical advice. Describe what the data shows and what it
-does not. Do not prescribe training or diagnose anything.
+Local use needs no account, network connection, subscription, or hosted service.
+Optional bare-terminal prediction and backtest commands can call a model gateway.
+
+The database contains sensitive health data. It is not encrypted by `ath`. Recommend
+operating-system disk encryption. Anyone who can read the file can read the athlete
+record.
+
+Not an app, not a coach, not medical advice. Describe what the data shows. Do not
+prescribe training or diagnose a condition.
 
 ## Start here
 
-1. Run `ath stats --json`. It says what is in the file, which device wrote each
-   measurement, over what days, and how many observations each average rests on. Run
-   it every time rather than working from an earlier run. The file changes underneath
-   you.
-2. Pick the command from the table below. Full options and examples for every one are
-   in [references/cli.md](references/cli.md).
-3. Pass `--json`. Every command that produces output for you has it.
-4. Before any command that writes (`log`, `link`, `grade`, `import`), show the athlete
-   what will be written and wait for a yes. Pass `-y` only after they have agreed.
-5. For a prediction: run `ath predict <benchmark> --json` to get the evidence, write
-   the prediction yourself from it, then save it with `ath log`. You are the model, so
-   no key and no gateway are needed.
+1. Run `ath stats --json`. It reports current counts, sources, coverage, and
+   baselines.
+2. Use `ath records list --json` when stable record IDs are needed.
+3. Choose a command below. Full options and examples are in
+   [references/cli.md](references/cli.md).
+4. Pass `--json` for structured output. On commands that require confirmation,
+   `--json` is a preview and never acts as `--yes`.
+5. Before changing athlete data with `log`, `link`, `correct`, `delete`, `erase`,
+   `grade`, or `import`, show the preview and wait for approval. Then run the command
+   without `--json` and confirm, or pass `--yes`.
+6. Erasure needs a second confirmation. Never supply
+   `--confirm-erasure <record-id>` until the full dependency preview has been
+   approved.
+7. For a prediction, run `ath predict <benchmark> --json`. This returns evidence,
+   not a prediction. Reason over it and save a v1 `prediction` record through
+   structured `ath log`.
 
-## The one rule the format is built on
+## The two-tier wall
 
-Measured signals and self-reported signals never mix. A measurement came off a device
-and names the source that wrote it. A self-reported entry is what the athlete said,
-and it structurally cannot name a device.
+Measured records and athlete reports never mix.
 
-The consequence for you: a predicted number comes from measured signals. What the
-athlete reported about themselves can widen or narrow your confidence and can explain
-a result afterwards, but it does not move the number.
+A measured record must have a `source_id`. The database enforces the source
+reference. A hand-entered measurement uses the `manual` source. It never counts as a
+device measurement or enters a device baseline.
 
-## What `ath stats` tells you that decides what you can say
+An `athlete_report` or `nutrition_entry` has no source field. It cannot claim that a
+device measured the athlete's words, rating, meal, or note.
 
-- **Sources.** Each app or device is its own source. Two of them measuring the same
-  quantity give two answers and are never averaged together. If they disagree, say
-  which one you used and by how much they differ.
-- **Coverage.** Every number the tool prints carries the count it rests on, the days
-  it covers, how many of those days actually have data, and the rule used. A mean
-  over 90 nights and a mean over 4 look identical until you read that line.
+Authored records are separate again. Predictions, grades, plans, goals, reviews, and
+model interpretations name their author and exact evidence record revisions.
 
-## The commands
+Use measured records for the predicted number. Athlete reports may change confidence
+and may support a later explanation. Keep the distinction explicit.
+
+## Stable IDs and revisions
+
+Every logical record has a UUIDv7 `record_id` and a positive
+`current_revision`. Corrections keep the ID and add a complete revision. Evidence
+names both the record ID and revision.
+
+Use:
+
+```sh
+ath records list --type <record-type> --json
+ath records show <record-id> --history --links --json
+```
+
+Do not build links from timestamps. Use stable record IDs.
+
+## Commands
 
 Set up:
 
-| Command | What it does |
+| Command | Purpose |
 |---|---|
-| `ath init` | create a new athlete file here, with the well-known benchmarks defined |
-| `ath skill` | show where this skill is installed and whether it is current; `ath skill install` refreshes it |
-| `ath --update` | install the latest ath, and replace the agent skill if one is already here |
-| `ath key` | save or show a gateway key for terminal use; never stored in the athlete file |
-| `ath models` | list live text models that can reason, or save the usual one |
+| `ath init` | Create `athlete.ath.sqlite`, a manual source, and standard benchmarks |
+| `ath init --empty` | Create a revision-zero restore destination |
+| `ath skill` | Show installed skill copies and whether they are current |
+| `ath skill install` | Refresh local skill copies |
+| `ath --update` | Update `ath` and refresh a skill already present |
+| `ath key` | Manage an optional terminal model-gateway key outside athlete data |
+| `ath models` | List gateway models or save a terminal default |
 
-Get data in:
+Import, export, and create:
 
-| Command | What it does |
+| Command | Purpose |
 |---|---|
-| `ath import <path>` | load an Apple Health, WHOOP, or Oura export into the file |
-| `ath log [entry...]` | write a workout result, a measurement, how they felt, or a prediction |
-| `ath link <result> <session>` | attach a workout result to the device session it happened in |
+| `ath import <path>` | Preview a provider export or complete v1 package |
+| `ath import <path> --yes` | Apply a conflict-free preview in one transaction |
+| `ath conflicts show` | Show complete local and imported values from a package conflict |
+| `ath conflicts resolve <record-id>` | Record a local, imported, or corrected choice without changing athlete data |
+| `ath export <directory>` | Write a complete deterministic JSON package |
+| `ath log [entry...]` | Create one plain-text record or one structured object or array |
+| `ath link <result-id> <session-id> --revision <n>` | Revise a benchmark result to link a workout session |
+| `ath correct <record-id>` | Replace complete current data and retain the old revision |
+| `ath delete <record-id>` | Hide the current record while retaining history |
+| `ath erase <record-id>` | Irreversibly remove values and every stored dependency |
 
-Read:
+`ath log --attachment <path>` adds PNG, JPEG, WebP, or PDF files to exactly one
+athlete report or nutrition entry. `ath correct --attachment <path>` can add one to
+an existing report or nutrition entry. Preview first. `--json` never copies a file.
 
-| Command | What it does |
+Read and calculate:
+
+| Command | Purpose |
 |---|---|
-| `ath check [file]` | whether the file still obeys every rule of the format |
-| `ath series <quantity>` | a sample stream back, one row per day or every raw sample |
-| `ath stats [file]` | what is in the file: counts, date ranges, sources, and baselines |
+| `ath check [file]` | Check SQLite integrity, schema versions, foreign keys, revisions, relationships, domain rules, sessions, and attachments |
+| `ath stats [file]` | Show the fixed overview |
+| `ath records list` | Find current stable IDs in stable order |
+| `ath records show <record-id>` | Read a current record, revision, history, and links |
+| `ath series <quantity>` | Read dense samples from SQLite |
+| `ath calculate <operation> <quantity>` | Run named arithmetic without writing athlete data |
+
+The calculation operations are `summary`, `baseline`, `trend`, `coverage`,
+`compare-sources`, `correlation`, `workout-drift`, and
+`provider-period-summary`. Use `--record-kind` to choose a measurement, provider
+score, provider summary, or summary nested in a session. Measurements are the
+default. The provider-period operation also requires `--period-type`. It groups by
+the stored Oura day, WHOOP cycle, or Apple activity-summary day without turning that
+period into a calendar day.
+
+Results remain separate by source. Manual sources are excluded. RMSSD and SDNN are
+different quantities and never share a calculation. A receipt lists at most 1,000
+input revisions and says when the list was shortened. Arithmetic refuses more than
+100,000 inputs until the request is narrowed.
 
 Predict and grade:
 
-| Command | What it does |
+| Command | Purpose |
 |---|---|
-| `ath predict <benchmark> --json` | the evidence for a prediction; the prediction is yours to write |
-| `ath grade <benchmark> --actual <score>` | record what happened and score the prediction against it |
-| `ath backtest` | replay past results through one or more models; writes a report, not the athlete file |
-| `ath share` | not built yet; names the latest backtest report |
+| `ath predict <benchmark> --json` | Return evidence for a harness |
+| `ath predict <benchmark>` | Optional terminal model call that may save after confirmation |
+| `ath grade <prediction-id> --result <record-id>` | Grade one existing prediction against one existing result |
+| `ath backtest` | Replay history and write a report, without changing athlete data |
+| `ath share` | Not built; names the latest backtest report |
 
-Full options, arguments, and examples for each: [references/cli.md](references/cli.md).
+`ath grade` never logs a result. A result is entered only through `ath log`. Explicit
+grading creates or reuses the exact prediction-result link and writes a deterministic
+grade. If the result record was corrected, grading revises the existing link so
+older grades keep the earlier exact link revision.
 
-`key`, `models`, `backtest`, and `share` are for a person at a terminal. They call a
-model through a gateway the person paid for. Inside a harness you are the model, so
-you do not use them. Bare `ath predict` (without `--json`) also calls a gateway; in a
-harness always pass `--json`.
+## Import and export
 
-Common flags: `--file <path>` points at a file other than the one in this folder.
-`--dry-run` shows what a write would do and writes nothing. `--as-of <date>` makes
-`predict` see only what was known on that day.
+Provider import always starts with a preview. Review new, matching, changed, skipped,
+and conflicting records. A package preview instead reports unrepresentable and
+unknown records. Run again with `--yes` only when the preview is acceptable. A
+conflict is never resolved by guessing.
 
-## What you must hold, because no tool can
+Provider rows use route-specific import keys. Repeating unchanged data is a match.
+Changed content with the same key creates a revision.
 
-- **Recorded activity is not actual activity.** A day with no workout session recorded
-  is a day with no recording. It may or may not have been a rest day. Say which you
-  mean.
-- **Association is not cause.** Two things moving together is a thing to notice, not a
-  reason. When you name a cause, say what would have to be true for it to be one.
-- **Every claim traces to a row.** Cite the date and the value. If you cannot point at
-  the row, do not make the claim.
-- **Name what is missing.** Gaps change an answer as much as the data does. `ath
-  predict` names its own gaps; carry them into what you say.
-- **A number the athlete typed is not a device reading.** `ath log` files it under the
-  manual source. Never present it as if a device measured it.
+For a v1 package conflict, run `ath conflicts show`. Record one explicit choice for
+each record with `ath conflicts resolve`: `local`, `imported`, or `corrected`.
+These commands change only a temporary conflict file. Rerun the same package import
+with `--yes` after every conflict is resolved. A changed package or database makes
+the choices stale.
 
-## What you do not need to hold, because the tools do
+`ath export` writes:
 
-Units are converted at import and stored canonically. Duplicate records are
-reconciled by type, timestamp, and source. Averages are never pooled across sources.
-Sleep is stored as actual sleep and as time in bed, separately, and every command
-that prints one says which it printed. SDNN and RMSSD are separate measurements and
-never share a baseline.
+```text
+athlete.ath.json
+series/*.ath-series.json
+attachments/*
+export-manifest.json
+```
 
-Do not re-implement any of that. If a command seems to be getting it wrong, that is a
-bug in the command, not something to work around in prose.
+The package contains current records, retained revisions, normal deletions, erasure
+markers, provider import keys, generated sample files, and permitted attachments.
+The manifest contains hashes, byte counts, record counts, the source database ID,
+and the database revision.
 
-## Open these when the question needs them
+Export time is absent by default. The same database revision and options produce the
+same bytes. The package does not stay synchronized with SQLite.
 
-- [references/cli.md](references/cli.md) — every command, its options, and its
-  examples, as `ath <command> --help` prints them.
-- [references/format.md](references/format.md) — the record types, their fields, and
-  their units.
-- [references/logging.md](references/logging.md) — how to turn what someone said into
-  a record, and how to name a workout they did not name.
-- [references/predicting.md](references/predicting.md) — how to read the evidence
-  package and write a prediction worth grading.
-- [references/grading.md](references/grading.md) — what to do with a hit, and what to
-  do with a miss.
+## Delete and erase
+
+`ath delete` is reversible through retained history. It writes a deletion record and
+hides the current record.
+
+`ath erase` is for privacy removal. It removes values, revisions, samples, dependent
+records, and attachment files. It may leave only value-free erasure markers. It
+cannot remove copies already present in exports, backups, snapshots, journals, or
+storage-device history.
+
+The erasure preview records the database revision and complete dependency set. The
+write is refused if either changes. Interactive use asks for confirmation and then
+requires the exact record ID. Non-interactive use needs both `--yes` and
+`--confirm-erasure <record-id>`. `--json` never erases.
+
+## What still needs judgment
+
+- No recorded workout means no recording. It does not prove a rest day.
+- Association does not prove cause.
+- Cite dates, values, source IDs, record IDs, and revisions.
+- State missing coverage and conflicting sources.
+- A hand-entered value is not a device reading.
+- Provider scores may support a claim, but they are source-reported composites.
+- RMSSD and SDNN are different statistics.
+
+## Open these when needed
+
+- [references/cli.md](references/cli.md) — generated command options and examples.
+- [references/format.md](references/format.md) — record envelopes, record types, and
+  package layout.
+- [references/logging.md](references/logging.md) — v1 structured logging and
+  benchmark naming.
+- [references/predicting.md](references/predicting.md) — prediction evidence and the
+  v1 prediction record.
+- [references/grading.md](references/grading.md) — explicit grading and prediction
+  error analysis.

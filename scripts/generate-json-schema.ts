@@ -8,22 +8,71 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { z } from "zod";
 import { AthleticStandardFile, ATHLETIC_STANDARD_VERSION } from "../src/schema.js";
+import {
+  ATHLETIC_STANDARD_VERSION as V1_ATHLETIC_STANDARD_VERSION,
+  AthleticStandardPackage,
+  ExportManifest,
+  MeasurementSeriesFile,
+} from "../src/v1/schema.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 
-const jsonSchema = z.toJSONSchema(AthleticStandardFile, {
-  target: "draft-2020-12",
-  io: "input",
-  unrepresentable: "any",
-});
+function generateSchema(
+  schema: z.ZodType,
+  id: string,
+  title: string,
+  outputPath: string,
+): void {
+  const jsonSchema = z.toJSONSchema(schema, {
+    target: "draft-2020-12",
+    io: "input",
+    unrepresentable: "any",
+  });
 
-const out = {
-  $schema: "https://json-schema.org/draft/2020-12/schema",
-  $id: `https://athleticstandard.ai/schema/${ATHLETIC_STANDARD_VERSION}/athleticstandard.schema.json`,
-  title: "Athletic Standard file",
-  ...jsonSchema,
-};
+  const out = {
+    $schema: "https://json-schema.org/draft/2020-12/schema",
+    $id: id,
+    title,
+    ...jsonSchema,
+  };
 
-mkdirSync(join(root, "schema"), { recursive: true });
-writeFileSync(join(root, "schema", "athleticstandard.schema.json"), JSON.stringify(out, null, 2) + "\n");
-console.log("wrote schema/athleticstandard.schema.json");
+  const absolutePath = join(root, outputPath);
+  mkdirSync(dirname(absolutePath), { recursive: true });
+  writeFileSync(absolutePath, JSON.stringify(out, null, 2) + "\n");
+  console.log(`wrote ${outputPath}`);
+}
+
+generateSchema(
+  AthleticStandardFile,
+  `https://athleticstandard.ai/schema/${ATHLETIC_STANDARD_VERSION}/athleticstandard.schema.json`,
+  "Athletic Standard 0.4.3 file",
+  `schema/${ATHLETIC_STANDARD_VERSION}/athleticstandard.schema.json`,
+);
+
+generateSchema(
+  AthleticStandardPackage,
+  `https://athleticstandard.ai/schema/${V1_ATHLETIC_STANDARD_VERSION}/athleticstandard.schema.json`,
+  "Athletic Standard portable package document",
+  "schema/1.0.0/athleticstandard.schema.json",
+);
+
+generateSchema(
+  AthleticStandardPackage,
+  `https://athleticstandard.ai/schema/${V1_ATHLETIC_STANDARD_VERSION}/athleticstandard.schema.json`,
+  "Athletic Standard portable package document",
+  "schema/athleticstandard.schema.json",
+);
+
+generateSchema(
+  ExportManifest,
+  `https://athleticstandard.ai/schema/${V1_ATHLETIC_STANDARD_VERSION}/export-manifest.schema.json`,
+  "Athletic Standard export manifest",
+  "schema/1.0.0/export-manifest.schema.json",
+);
+
+generateSchema(
+  MeasurementSeriesFile,
+  `https://athleticstandard.ai/schema/${V1_ATHLETIC_STANDARD_VERSION}/measurement-series.schema.json`,
+  "Athletic Standard measurement-series file",
+  "schema/1.0.0/measurement-series.schema.json",
+);
