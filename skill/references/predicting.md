@@ -1,103 +1,184 @@
 # Making a prediction
 
-A prediction needs a model. You are the model. The harness already has one, so you
-do not need a gateway key.
+Inside an agent harness, the harness model makes the prediction. No gateway key is
+needed.
 
-Run `ath predict <benchmark> --json`. It prints evidence, not a prediction. Evidence
-alone is never a prediction. Reason over it, then write the number with `ath log`.
+Run:
 
-## What comes back
-
-Four sections, and a list of gaps the tool found for you.
-
-1. **Prior results on this benchmark**, plus results on benchmarks of the same kind.
-   This is the strongest evidence there is: the same work, done before, by this
-   athlete. The twenty most recent are shown; if there are more, the section says how
-   many and `ath stats` counts them all.
-2. **The last 28 days, day by day.** Actual rows, one per day per source, with sleep,
-   training sessions, vendor scores, and every self-reported entry in the window word
-   for word. The section ends with what it rests on: readings counted, days present
-   out of days in the window.
-3. **Long-range averages**, each carrying its count, its date range, its spread, and
-   the source it came from. One source each, never pooled.
-4. **Past predictions on this benchmark**, with their grades, who made each one, and
-   the lesson from each miss.
-
-Sections 2 and 3 overlap on purpose. Check a few of the averages against the rows
-before you lean on them. A summary that does not match the rows underneath it is the
-failure this layout exists to catch.
-
-## How to read it
-
-**Start with section 1.** How many results are there, over what span, and which way
-are they moving? Two results eleven months apart is not a trend.
-
-**Then section 4.** If you have been wrong on this benchmark before, the lesson from
-that miss is the most useful sentence in the whole package. Apply it before you reason
-from anything else. Each entry names the agent and model that made it, so check
-whether the misses belong to one of them or to all of them.
-
-**Then section 2, for the last week.** You are looking for whether the recent days
-depart from the athlete's normal, and section 3 tells you what normal is. Read the
-sleep column as two numbers: actual sleep and time in bed are different, and a bad
-night can be either short or broken.
-
-**Read the gaps last, and take them seriously.** Days with no data, a benchmark with
-one prior result, two sources disagreeing — each of those should widen your range or
-lower your confidence, and you should say which one did it.
-
-## Writing the prediction
-
-The number comes from measured signals. Self-reported entries widen or narrow the
-range and explain a result afterwards; they do not move the number. Vendor scores —
-WHOOP recovery, Oura readiness — may corroborate, and are not evidence on their own,
-because nobody outside the vendor knows what goes into them.
-
-**Always state a range.** A prediction with no range cannot be graded as a hit; it is
-scored on error alone and counted as a miss whatever it does. The range is the claim
-about how sure you are, and grading is where that claim is tested. Make it narrow
-enough to be wrong.
-
-**Reasoning must cite dates and values.** "HRV has been steady" is not reasoning.
-"HRV 60–63 ms every night from 2026-08-01 to 2026-08-10, against a 90-day mean of
-60.5" is.
-
-**Say how thin the evidence is, in the reasoning itself.** One prior result means a
-wide range and low confidence, and the reasoning should say so in those words.
-
-Write it with `ath log`:
-
-```
-ath log '{
-  "id": "fran-2026-09-07",
-  "benchmark": "fran",
-  "created_at": "2026-09-07T09:00:00-07:00",
-  "predicted": { "duration_s": 275 },
-  "range": { "low": { "duration_s": 265 }, "high": { "duration_s": 290 } },
-  "confidence": "moderate",
-  "reasoning": "Four prior results, 5:07 down to 4:35 over 15 months...",
-  "evidence_window": { "from": "2026-08-11", "to": "2026-09-07" },
-  "model": "<your model name>",
-  "agent": "<the program you are running in, e.g. Claude Code>"
-}' -y
+```sh
+ath predict <benchmark> --json
 ```
 
-`confidence` is `low`, `moderate`, or `high`. The score field must match how the
-benchmark is scored: `duration_s` for time, `reps` for reps, `weight_kg` for load.
+This command returns evidence. It does not return or save a prediction. Its response
+starts with:
 
-**`agent` is required and `ath log` refuses a prediction without it.** A prediction is
-a claim, and six months from now a claim nobody signed cannot be weighed against the
-ones that were right. Name the program you are running in, not the model — `model` is
-already a separate field, and the same model behaves differently under different
-scaffolding.
+```json
+{
+  "purpose": "prediction_evidence",
+  "is_prediction": false
+}
+```
 
-Do not send `ath_version`. The tool writes its own version and overwrites anything you
-pass, because that is a fact it knows and you would be guessing at.
+Reason over the evidence, then save a v1 `prediction` record through structured
+`ath log`.
 
-## Testing yourself on the past
+## Evidence response
 
-`ath predict <benchmark> --as-of <date> --json` hides everything after that day. Make
-the prediction from what was knowable then, then look at what happened. That is the
-only honest way to find out whether your reasoning works on this athlete. Replaying
-a whole history is `ath backtest`, which needs a gateway key and is not the daily
-harness path.
+The v1 response has:
+
+| Field | Meaning |
+|---|---|
+| `purpose` | Literal `prediction_evidence` |
+| `is_prediction` | Literal `false` |
+| `as_of` | Exact UTC knowledge cutoff |
+| `calendar_time_zone` | Optional IANA timezone used to resolve a calendar `--as-of` |
+| `benchmark` | Current benchmark-definition envelope at the cutoff |
+| `prior_results` | Earlier results for that benchmark |
+| `device_measurements` | Non-manual point measurements from the prior 90 days |
+| `athlete_reports` | Athlete reports from the prior 90 days |
+| `sleep_sessions` | Sleep sessions from the prior 90 days |
+| `workout_sessions` | Workout sessions from the prior 90 days |
+| `prior_predictions` | Earlier predictions for that benchmark |
+| `gaps` | Missing evidence and query-limit warnings |
+
+Each item is a current record envelope with `record_id`, `current_revision`, and
+typed `data`. Use those values for exact evidence references.
+
+The evidence response does not silently pool sources. Each measured item still names
+its `source_id`. Run `ath records show <source-id> --json` when the source details
+matter.
+
+`device_measurements` excludes the manual source. Athlete reports remain separate
+and have no source.
+
+The response is a bounded evidence view. Use `ath stats --json`,
+`ath calculate ... --json`, `ath series ... --json`, and
+`ath records show ... --json` when the question needs coverage, baselines, samples,
+links, grades, or revisions not present in this response.
+
+## Historical cutoff
+
+```sh
+ath predict <benchmark> --as-of 2026-10-01 --timezone America/Chicago --json
+```
+
+A calendar date needs an explicit or saved IANA timezone. An exact UTC timestamp
+does not.
+
+Historical visibility uses each revision's `became_known_at`. A record with an
+earlier event time is not visible before the database learned it. The response also
+excludes an event whose own event time is after the cutoff.
+
+Do not look at later records before making a historical prediction.
+
+## Read the evidence
+
+1. Start with `prior_results`. Check count, dates, score type, and direction of
+   change. A small number of results does not establish a trend.
+2. Read recent device measurements by source. Do not combine two devices into one
+   baseline.
+3. Keep RMSSD and SDNN separate. Keep temperature quantities and activity-specific
+   distances separate.
+4. Read sleep and workout sessions as source records. A missing session means no
+   recording, not proof that nothing happened.
+5. Read athlete reports as the athlete's claims. They may change confidence or
+   explain uncertainty. Do not present them as device measurements.
+6. Read prior predictions. Follow links with `ath records show <id> --links --json`
+   when earlier grades or analyses matter.
+7. Carry every item in `gaps` into the confidence and reasoning.
+
+Provider scores are source-reported composites. If separately inspected, they may
+support a claim. Do not treat them as raw sensor measurements.
+
+## Structured prediction record
+
+Use the benchmark definition's UUIDv7 `record_id`, not only its key. Include exact
+evidence revisions actually used.
+
+```json
+{
+  "record_type": "prediction",
+  "data": {
+    "authorship": {
+      "author": {
+        "author_type": "agent",
+        "agent": "agent-harness",
+        "model": "model-id"
+      },
+      "authored_at": "2026-10-13T04:00:00.000Z",
+      "evidence": [
+        {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 2
+        }
+      ],
+      "content_version": 1,
+      "status": "active"
+    },
+    "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000001",
+    "predicted_score": {
+      "duration_s": 275
+    },
+    "predicted_range": {
+      "low": {
+        "duration_s": 265
+      },
+      "high": {
+        "duration_s": 290
+      }
+    },
+    "confidence": "moderate",
+    "reasoning": "The reasoning cites exact dated results and measurements, separates sources, and states the missing coverage."
+  }
+}
+```
+
+`confidence` is `low`, `moderate`, or `high`.
+
+The score field must match the benchmark:
+
+- `duration_s` for time;
+- `reps` for reps;
+- `weight_kg` for load.
+
+`predicted_range` is optional in the schema. Include it when a useful uncertainty
+range can be stated. Grading can only mark `result_in_predicted_range: true` when a
+range exists.
+
+The agent author requires both `agent` and `model`. `agent_version` and
+`model_version` are optional. Do not put change-actor fields beside the authorship
+object.
+
+Reasoning should cite dates, values, source IDs when relevant, and evidence limits.
+Do not replace exact evidence with vague trend language.
+
+## Save only after approval
+
+Preview:
+
+```sh
+ath log '<prediction-object>' --agent agent-harness --json
+```
+
+Show the complete record. `--json` never acts as confirmation. After approval:
+
+```sh
+ath log '<prediction-object>' --agent agent-harness --yes
+```
+
+The tool creates a UUIDv7 `record_id` when one was not supplied.
+
+## Bare terminal behavior
+
+Bare `ath predict <benchmark>` is different. It calls the selected gateway model,
+prints a preview, and may save that model's prediction after confirmation. It needs
+a Vercel or OpenRouter key stored outside athlete data.
+
+Inside a harness, always use `--json` and write the harness model's prediction
+through `ath log`.
+
+## Backtesting
+
+`ath backtest` replays eligible historical results with gateway models. It uses
+knowledge-time cutoffs and writes a report beside the database. It does not change
+athlete data.

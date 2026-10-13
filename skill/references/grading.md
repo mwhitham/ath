@@ -1,100 +1,166 @@
-# Grading a prediction
+# Grading an existing prediction
 
-When the athlete reports a result on a benchmark, grade it. Run:
+`ath grade` grades one existing prediction against one existing benchmark result.
+It never records a result.
 
-```
-ath grade fran --actual 4:32
-```
+Enter a result through `ath log`. Then find both stable IDs:
 
-Write the score in the benchmark's own unit: a clock for time, a plain number for
-reps, a number with a unit for load. Add `--date` when the attempt was not today.
-
-Grading writes, so it shows a summary of what it will write and asks once, the same
-as `ath log`. Where a wearable recorded a session that day, the question includes the
-session match. The verdict comes after the write.
-
-Pass `-y` to skip the question, or `--dry-run` to see the summary and write nothing.
-`-y` attaches the session when there is exactly one that day; where there are two it
-attaches neither and says so, because picking one would be a guess.
-
-The command records the result, writes the actual into the open prediction, and
-computes the error. If no prediction was open, it logs the result and stops. There
-was no claim, so there is nothing to be right or wrong about.
-
-## One attempt makes one result
-
-If the result is already in the file — the athlete logged it, and you are grading it
-afterwards — the command grades what is there rather than writing a second copy.
-
-A *different* score on a day that already has a result is refused, because one of the
-two is wrong and writing both would leave the file claiming each. Correct the score,
-or pass `--again` if the athlete genuinely attempted the benchmark twice that day.
-
-## Hit
-
-The result landed inside the stated range. The command prints one comparison line.
-Relay it and stop.
-
-Do not analyse a hit. Explaining why a prediction landed where it was meant to is a
-story told afterwards, and the story will sound convincing whether or not it is true.
-
-## Miss
-
-Anything outside the range, and anything predicted without a range. The command
-classifies it — minor under 5 percent, significant to 15, severe above — and prints
-the dossier.
-
-Beating the prediction is a miss too. Coming in 15 percent faster is the same size of
-modelling failure as coming in 15 percent slower, and it gets the same treatment.
-
-## The dossier
-
-Three parts, in the order they should be weighed:
-
-1. **The day of the attempt.** Last night's sleep, that morning's measurements, the
-   session itself. Most trusted, because it is measured and it is closest in time.
-2. **Everything self-reported in the 72 hours before**, word for word.
-3. **Days in the last week that sat far from the athlete's own baseline.** Each one
-   shows the day's figure, the baseline it is measured against, the spread, how many
-   standard deviations out it is, and what that baseline rests on. Check the count
-   before you lean on the deviation: two standard deviations from a mean of six days
-   is not the same claim as two from a mean of ninety.
-
-Nothing in the dossier is a cause. It is the material from which a cause might be
-argued.
-
-## Writing the analysis
-
-Send it back through the same command:
-
-```
-ath grade fran --analysis '{
-  "direction": "slower",
-  "severity": "significant",
-  "candidate_causes": [
-    { "signal": { "tier": "hard", "type": "sleep_session", "date": "2026-09-07" },
-      "explanation": "5h01m of actual sleep against a 7h04m average over the last 90 nights" }
-  ],
-  "unexplained": false,
-  "lesson": "short sleep the night before costs this athlete time on short benchmarks"
-}'
+```sh
+ath records list --type prediction --json
+ath records list --type benchmark_result --json
 ```
 
-Rules, and the first one is checked by the tool before anything is written:
+Preview the grade:
 
-1. **Every cause names a signal in the file** — its tier, its type, and its day. A
-   cause the file does not hold is rejected and nothing is saved.
-2. **Order them by trust**: the day's measured signals first, then the self-reported
-   entries from the 72-hour window, then the week's unusual days.
-3. **When nothing explains it, set `unexplained: true`** and leave the causes empty.
-   Then ask the athlete one question — "the prediction missed by 12 percent and
-   nothing in the data explains it. Anything unusual? Ill, judged more strictly, new
-   equipment?" — and log whatever they say with `ath log` as a self-reported entry. If
-   they have nothing, it stays unexplained. Do not invent a cause to fill the field.
-4. **`lesson` is one sentence, written for a future prediction.** It appears in
-   section 4 of the evidence package next time, which is the whole point of writing
-   it. "Poor sleep costs this athlete time on short benchmarks" is useful. "The
-   prediction was too optimistic" is not.
+```sh
+ath grade <prediction-id> --result <result-id> --json
+```
 
-`direction` is `faster`, `slower`, `higher`, or `lower` — the first two for a time,
-the last two for reps or load.
+The preview shows:
+
+- the exact prediction ID and revision;
+- the exact result ID and revision;
+- whether a prediction-result link will be created or reused;
+- the complete tool-authored grade data;
+- `write_confirmed: false`.
+
+`--json` never acts as confirmation. After approval, repeat without `--json`:
+
+```sh
+ath grade <prediction-id> --result <result-id> --yes
+```
+
+The prediction and result must use the same benchmark definition. Both must be
+current and not normally deleted.
+
+## What grading writes
+
+If the exact prediction and result revisions are not linked, grading creates a
+UUIDv7 `prediction_result_link`. If the same result record was corrected, grading
+revises its existing link to name the new result revision. Older grades keep
+pointing to the older link revision.
+
+It then creates a UUIDv7 `prediction_grade` that points to the exact link revision.
+The grade stores:
+
+- the tool authorship and calculation version;
+- the exact link revision as evidence;
+- `signed_error`;
+- `absolute_error_percentage`;
+- `result_in_predicted_range`;
+- the exact predicted and actual score objects.
+
+The default calculation version is `prediction-grade-v1`. A later deterministic
+implementation may be named explicitly:
+
+```sh
+ath grade <prediction-id> --result <result-id> \
+  --calculation-version prediction-grade-v2 --json
+```
+
+Several calculation versions may grade the same exact link without changing the
+prediction or result.
+
+## Arithmetic
+
+The benchmark definition selects `duration_s`, `reps`, or `weight_kg`.
+
+```text
+signed_error = predicted value - actual value
+absolute_error_percentage = abs(signed_error) / actual value * 100
+```
+
+The reference command rounds signed error to two decimal places and absolute error
+percentage to one decimal place.
+
+`result_in_predicted_range` is true only when the prediction has a range and the
+actual value is between its low and high values, inclusive. A prediction without a
+range is not a range hit.
+
+The arithmetic is performed by code. Do not replace it with a model judgment.
+
+## Result logging may grade automatically
+
+`ath log` remains the only result-entry command.
+
+When a new result matches exactly one open prediction, its transaction can also
+create the prediction-result link and grade. No open prediction writes only the
+result. Several possible predictions produce no guessed link or grade.
+
+Use explicit `ath grade <prediction-id> --result <result-id>` for:
+
+- an imported result;
+- an ambiguous result;
+- a corrected result;
+- a later grade calculation version.
+
+## Prediction error analysis
+
+A prediction error analysis is a separate authored record. It is not a grade option.
+Write it through structured `ath log` after reading the exact grade and supporting
+records:
+
+```sh
+ath records show <grade-id> --links --json
+ath records show <evidence-id> --revision <revision> --json
+```
+
+The structured object is:
+
+```json
+{
+  "record_type": "prediction_error_analysis",
+  "data": {
+    "authorship": {
+      "author": {
+        "author_type": "agent",
+        "agent": "agent-harness",
+        "model": "model-id"
+      },
+      "authored_at": "2026-10-13T04:00:00.000Z",
+      "evidence": [
+        {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000030",
+          "revision": 1
+        }
+      ],
+      "content_version": 1,
+      "status": "active"
+    },
+    "prediction_grade": {
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000030",
+      "revision": 1
+    },
+    "error_direction": "slower",
+    "error_severity": "significant",
+    "causes": [
+      {
+        "evidence": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000020",
+          "revision": 2
+        },
+        "explanation": "The cited sleep-session revision reports less sleep than the comparison period."
+      }
+    ],
+    "unexplained": false,
+    "lesson": "State the evidence limit more clearly in the next prediction."
+  }
+}
+```
+
+`error_direction` is `faster`, `slower`, `higher`, or `lower`.
+`error_severity` is `minor`, `significant`, or `severe`.
+
+Every claimed cause must name an existing exact record revision. The explanation
+must say what that record supports. If no recorded evidence supports a cause, use an
+empty `causes` array and set `unexplained: true`.
+
+Do not infer that association proves cause. Keep the analysis tied to stored
+evidence and state uncertainty.
+
+Preview, obtain approval, and then write:
+
+```sh
+ath log '<analysis-object>' --json
+ath log '<analysis-object>' --yes
+```

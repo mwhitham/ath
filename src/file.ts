@@ -1,42 +1,69 @@
 /**
- * Finding, loading, and saving the athlete file.
- * The file is the database: one JSON document, local, no locks, no daemon.
+ * Find the live SQLite athlete database.
+ *
+ * The JSON helpers remain private compatibility code while commands are moved to
+ * the v1 database. New commands must not treat a JSON export as the live record.
  */
 import { readdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { AthleticStandardFile, type AthleticStandardFileT } from "./schema.js";
 import { validateAthleticStandardFile } from "./validate.js";
 
-export const FILE_SUFFIX = ".ath.json";
+export const FILE_SUFFIX = ".ath.sqlite";
 export const DEFAULT_FILENAME = `athlete${FILE_SUFFIX}`;
+export const PORTABLE_FILE_SUFFIX = ".ath.json";
 
 /**
- * Resolve which file to operate on: an explicit --file path, or the single
- * *.ath.json in the current directory. Multiple candidates is an
- * error we refuse to guess about.
+ * Resolve which live database to operate on.
+ *
+ * Discovery intentionally uses only athlete.ath.sqlite. Another database needs an
+ * explicit --file so a directory can safely hold exports and alternate records.
  */
 export function findFile(explicitPath?: string, cwd = process.cwd()): string {
   if (explicitPath) {
     const p = resolve(cwd, explicitPath);
     if (!existsSync(p)) throw new Error(`file not found: ${p}`);
+    if (p.endsWith(PORTABLE_FILE_SUFFIX)) {
+      throw new Error(
+        `Athletic Standard prerelease JSON files are not supported by v1. ` +
+          `Keep ${p} unchanged and run \`ath init\` to create a v1 SQLite database.`,
+      );
+    }
+    if (!p.endsWith(FILE_SUFFIX)) {
+      throw new Error(
+        `the live athlete record must be a ${FILE_SUFFIX} SQLite file, not ${p}`,
+      );
+    }
     return p;
   }
-  const candidates = readdirSync(cwd).filter((f) => f.endsWith(FILE_SUFFIX));
-  if (candidates.length === 0) {
+
+  const defaultPath = resolve(cwd, DEFAULT_FILENAME);
+  if (existsSync(defaultPath)) {
+    return defaultPath;
+  }
+
+  const portableFiles = readdirSync(cwd).filter((file) =>
+    file.endsWith(PORTABLE_FILE_SUFFIX),
+  );
+  if (portableFiles.length === 1) {
     throw new Error(
-      `no ${FILE_SUFFIX} file in ${cwd} — run \`ath init\` to create one, or pass --file`,
+      `found ${portableFiles[0]}, but Athletic Standard prerelease JSON files are not ` +
+        `supported by v1. Keep it unchanged and run \`ath init\` to create ${DEFAULT_FILENAME}.`,
     );
   }
-  if (candidates.length > 1) {
-    throw new Error(
-      `multiple athlete files in ${cwd} (${candidates.join(", ")}) — pass --file to choose`,
-    );
-  }
-  return resolve(cwd, candidates[0]!);
+
+  throw new Error(
+    `no ${DEFAULT_FILENAME} in ${cwd} — run \`ath init\` to create one, or pass --file`,
+  );
 }
 
 /** Load without validating (callers that validate should use `check`-style flows). */
 export function loadFileRaw(path: string): unknown {
+  if (path.endsWith(FILE_SUFFIX)) {
+    throw new Error(
+      `this command has not been moved to the v1 SQLite database yet. Nothing was written.`,
+    );
+  }
   return JSON.parse(readFileSync(path, "utf8"));
 }
 

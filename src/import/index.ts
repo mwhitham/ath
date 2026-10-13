@@ -5,7 +5,13 @@
  * (source upsert, deduplication that always includes the device, series replacement)
  * live in one place and apply identically to every vendor.
  */
-import type { AthleticStandardFileT, SeriesQuantity, SeriesRefT } from "../schema.js";
+import {
+  ATHLETIC_STANDARD_VERSION,
+  type AthleticStandardFileT,
+  type SeriesQuantity,
+  type SeriesRefT,
+  type SourceT,
+} from "../schema.js";
 import { assembleSeriesRef, writeSeriesFile } from "../series.js";
 import { silentProgress, type Progress } from "../progress.js";
 import { detectExport, readCsvBundle, type DetectedExport } from "./detect.js";
@@ -34,6 +40,14 @@ export interface ImportResult {
   label: string;
 }
 
+export interface ParsedProviderExport {
+  format: DetectedExport["format"];
+  route: "apple_health" | "whoop_csv" | "oura_csv";
+  label: string;
+  sources: SourceT[];
+  payload: Awaited<ReturnType<typeof importAppleHealth>>;
+}
+
 /** Thrown when the file was written before readings were labelled by writer (D45). */
 export class PooledFileError extends Error {
   constructor(sourceIds: string[]) {
@@ -45,6 +59,79 @@ export class PooledFileError extends Error {
     );
     this.name = "PooledFileError";
   }
+}
+
+async function parseProviderExportInto(
+  file: AthleticStandardFileT,
+  exportPath: string,
+  progress: Progress,
+): Promise<ParsedProviderExport> {
+  const detected = await detectExport(exportPath);
+  const label = `${VENDOR_LABELS[detected.format]} export`;
+  const route =
+    detected.format === "apple"
+      ? "apple_health"
+      : detected.format === "whoop"
+        ? "whoop_csv"
+        : "oura_csv";
+  const container =
+    detected.container === "zip"
+      ? "zip export"
+      : detected.container === "directory"
+        ? "export folder"
+        : detected.format === "apple"
+          ? "export.xml"
+          : "CSV export";
+
+  const vendorLabel = VENDOR_LABELS[detected.format];
+  const sources: SourceBook = {
+    forWriter: (spec) => {
+      const who = `${spec.writer}${spec.sensor ? ` ${spec.sensor}` : ""}`;
+      const detail =
+        spec.writer === vendorLabel
+          ? `${vendorLabel} ${container}`
+          : `${who} via ${vendorLabel} ${container}`;
+      return sourceFor(file, { ...spec, via: route, detail });
+    },
+    manual: () => manualSourceFor(file),
+  };
+
+  const payload =
+    detected.format === "apple"
+      ? await importAppleHealth(detected, sources, progress)
+      : detected.format === "whoop"
+        ? importWhoop(await readCsvBundle(detected), sources)
+        : importOura(await readCsvBundle(detected), sources);
+
+  return {
+    format: detected.format,
+    route,
+    label,
+    sources: file.sources,
+    payload,
+  };
+}
+
+/**
+ * Parse a provider export without applying the old JSON merge rules.
+ *
+ * The provider parsers remain shared while v1 maps their output into stable SQLite
+ * records, revisions, and import keys.
+ */
+export async function parseProviderExport(
+  exportPath: string,
+  progress: Progress = silentProgress,
+): Promise<ParsedProviderExport> {
+  const file: AthleticStandardFileT = {
+    athleticstandard_version: ATHLETIC_STANDARD_VERSION,
+    athlete: {},
+    sources: [],
+    hard_signals: [],
+    soft_signals: [],
+    benchmarks: [],
+    predictions: [],
+  };
+  return parseProviderExportInto(file, exportPath, progress);
 }
 
 /**
@@ -63,40 +150,8 @@ export async function importExport(
   // Captured before parsing, because sources are created as writers are met (D52).
   const knownSources = new Set(file.sources.map((s) => s.id));
 
-  const detected = await detectExport(exportPath);
-  const label = `${VENDOR_LABELS[detected.format]} export`;
-  const via =
-    detected.format === "apple" ? "apple_health" : detected.format === "whoop" ? "whoop_csv" : "oura_csv";
-  const container =
-    detected.container === "zip"
-      ? "zip export"
-      : detected.container === "directory"
-        ? "export folder"
-        : detected.format === "apple"
-          ? "export.xml"
-          : "CSV export";
-
-  // One place owns how a source describes itself, so the three importers cannot
-  // drift into three phrasings for the same idea.
-  const vendorLabel = VENDOR_LABELS[detected.format];
-  const sources: SourceBook = {
-    forWriter: (spec) => {
-      const who = `${spec.writer}${spec.sensor ? ` ${spec.sensor}` : ""}`;
-      // "WHOOP via WHOOP CSV export" says the same thing twice.
-      const route = spec.writer === vendorLabel ? `${vendorLabel} ${container}` : `${who} via ${vendorLabel} ${container}`;
-      return sourceFor(file, { ...spec, via, detail: route });
-    },
-    manual: () => manualSourceFor(file),
-  };
-
-  // WHOOP and Oura exports import in under a second, so only the Apple importer
-  // reports progress; a bar that appears and vanishes is noise.
-  const payload =
-    detected.format === "apple"
-      ? await importAppleHealth(detected, sources, progress)
-      : detected.format === "whoop"
-        ? importWhoop(await readCsvBundle(detected), sources)
-        : importOura(await readCsvBundle(detected), sources);
+  const parsed = await parseProviderExportInto(file, exportPath, progress);
+  const { payload, label } = parsed;
 
   // Sidecars are written before the document is touched, because a coverage record
   // hashes every day on disk for its quantity — including days written by earlier

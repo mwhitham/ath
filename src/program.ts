@@ -9,51 +9,22 @@
  */
 import { Command } from "commander";
 import { existsSync } from "node:fs";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import {
   ATHLETIC_STANDARD_VERSION,
-  SERIES_QUANTITY_UNITS,
-  type AthleticStandardFileT,
-} from "./schema.js";
-import {
-  validateAthleticStandardFile,
-  type ValidationIssue,
-  type ValidationResult,
-} from "./validate.js";
-import { findFile, loadFile, loadFileRaw, saveFile, DEFAULT_FILENAME, FILE_SUFFIX } from "./file.js";
+  ErasureReasonCode,
+  PredictionData,
+  ProviderReportingPeriodType,
+  RecordType,
+  SERIES_QUANTITY_UNITS as V1_SERIES_QUANTITY_UNITS,
+  SeriesQuantitySchema,
+} from "./v1/schema.js";
+import { findFile, DEFAULT_FILENAME, FILE_SUFFIX } from "./file.js";
 import { SEED_BENCHMARKS } from "./benchmarks.js";
-import { renderStats, statsAsJson } from "./stats.js";
-import { checkSeriesRef, SERIES_DIR, seriesDirectory } from "./series.js";
-import {
-  coverageOfDays,
-  matchingRefs,
-  readRawDays,
-  renderDaySummaries,
-  renderRawDays,
-  summarizeDays,
-} from "./seriesview.js";
-import {
-  applyDraft,
-  buildDraft,
-  draftAsJson,
-  linkResult,
-  LogRefusal,
-  renderDraft,
-  renderQuestion,
-  renderWritten,
-  today,
-  waitingMatches,
-  type Confirm,
-} from "./log.js";
-import { evidenceFor } from "./context.js";
-import {
-  benchmarkOrRefuse,
-  evidenceAsJson,
-  planPredict,
-  PredictRefusal,
-  renderPrediction,
-} from "./predict.js";
+import { PredictRefusal } from "./predict-errors.js";
 import {
   clearKey,
   describeKeyStatus,
@@ -63,21 +34,10 @@ import {
   savedGateways,
   setKey,
 } from "./keyring.js";
-import { loadCatalog, renderModelList, requireOnList, writeDefaultModel } from "./models.js";
-import { planBacktest, renderReport, runBacktest, writeReport } from "./backtest.js";
+import { loadCatalog, renderModelList, requireOnList, resolveModel, writeDefaultModel } from "./models.js";
+import { complete } from "./gateway.js";
 import { latestReport, shareRefusal } from "./share.js";
-import {
-  analysisAsJson,
-  applyGrade,
-  attachAnalysis,
-  gradeAsJson,
-  GradeRefusal,
-  planGrade,
-  renderGrade,
-} from "./grade.js";
 import { bareGuide, EXAMPLES, GROUPS, HELP_FOOTER } from "./help.js";
-import { importExport, PooledFileError, UnknownExportError } from "./import/index.js";
-import { silentProgress, terminalProgress } from "./progress.js";
 import {
   ALWAYS_DIR,
   installSkill,
@@ -88,8 +48,61 @@ import {
   UNVERSIONED,
   type SkillCopy,
 } from "./skill.js";
-import { mergeSummaryAsJson, renderMergeSummary } from "./import/merge.js";
 import { candidatePaths, runUpdate } from "./update.js";
+import {
+  checkDatabase,
+  CALCULATION_OPERATIONS,
+  CALCULATION_RECORD_KINDS,
+  calculate,
+  addAttachmentsToLogPlan,
+  assertPackageConflictSetCurrent,
+  clearPackageConflictSet,
+  conflictResolutions,
+  correctRecord,
+  createDatabase,
+  databaseStats,
+  deleteRecord,
+  eraseRecord,
+  exportRecords,
+  gradePrediction,
+  importProviderRecords,
+  importRecords,
+  listRecords,
+  loadAthleticStandardPackage,
+  openDatabase,
+  PackageRepresentationError,
+  planLogEntry,
+  planPredictionGrade,
+  prepareAttachments,
+  previewPackageImport,
+  previewProviderImport,
+  previewRecordErasure,
+  readPackageConflictSet,
+  readImportedPackageRecord,
+  readRecord,
+  readRecordLinks,
+  readRecordRevisions,
+  readSeriesView,
+  renderDatabaseStats,
+  renderCalculation,
+  renderRecord,
+  renderRecordList,
+  renderSeriesView,
+  runV1Backtest,
+  writeV1BacktestReport,
+  applyLogPlan,
+  buildEvidence,
+  resolveAsOfTime,
+  resolvePackageConflict,
+  savePackageConflictSet,
+  writeRecord,
+  writeRecordChanges,
+  writeRecords,
+  withPreparedAttachmentFiles,
+  type AthleticDatabase,
+  type LogPlan,
+  type PackageImportResolution,
+} from "./db/index.js";
 
 /** The whole command tree. `cli.ts` parses it; the skill generator reads its help. */
 export function buildProgram(): Command {
@@ -145,12 +158,17 @@ export function buildProgram(): Command {
     .option("--birth-year <year>", "birth year, which some readings are read against")
     .option("--sex <sex>", "male | female, for the same reason")
     .option("--units <units>", "metric | imperial — display only; stored values are always metric", "metric")
+    .option("--timezone <name>", "default IANA timezone for calendar views, such as America/Chicago")
     .option("--file <path>", "write somewhere other than the default name", DEFAULT_FILENAME)
     .option("-y, --yes", "skip the questions and use the flags and defaults")
+    .option("--empty", "create no athlete records, for restoring a v1 package")
     .option("--no-skill", "do not install the agent skill, even if an agent folder is here")
     .option("--json", "structured output, for an agent rather than a person")
     .action(async (opts) => {
       const outPath = resolve(process.cwd(), opts.file);
+      if (!outPath.endsWith(FILE_SUFFIX)) {
+        fail(`the live database name must end in ${FILE_SUFFIX}: ${outPath}`);
+      }
       if (existsSync(outPath)) {
         fail(
           `${outPath} already exists, and overwriting it would lose whatever is in it. ` +
@@ -158,40 +176,93 @@ export function buildProgram(): Command {
         );
       }
 
-      let { name, birthYear, sex } = { name: opts.name, birthYear: opts.birthYear, sex: opts.sex };
+      let { name, birthYear, sex, timezone } = {
+        name: opts.name,
+        birthYear: opts.birthYear,
+        sex: opts.sex,
+        timezone: opts.timezone,
+      };
       if (!opts.yes && !opts.json) {
         const rl = createInterface({ input: process.stdin, output: process.stdout });
         name = name ?? ((await rl.question("Name (optional): ")) || undefined);
         birthYear = birthYear ?? ((await rl.question("Birth year (optional): ")) || undefined);
         sex = sex ?? ((await rl.question("Sex, male/female (optional): ")) || undefined);
+        timezone =
+          timezone ??
+          ((await rl.question("Default timezone, such as America/Chicago (optional): ")) ||
+            undefined);
         rl.close();
       }
 
-      const file: AthleticStandardFileT = {
-        athleticstandard_version: ATHLETIC_STANDARD_VERSION,
-        athlete: {
-          ...(name ? { name } : {}),
-          ...(birthYear ? { birth_year: Number(birthYear) } : {}),
-          ...(sex === "male" || sex === "female" ? { sex } : {}),
-          units: opts.units === "imperial" ? "imperial" : "metric",
-        },
-        sources: [{ id: "manual-1", kind: "manual", detail: "Hand-entered data" }],
-        hard_signals: [],
-        soft_signals: [],
-        benchmarks: SEED_BENCHMARKS,
-        predictions: [],
+      const createdAt = new Date().toISOString();
+      const toolActor = {
+        author_type: "tool" as const,
+        tool: "ath",
+        tool_version: ATHLETIC_STANDARD_VERSION,
       };
-
-      const result = validateAthleticStandardFile(file);
-      if (!result.valid) {
-        fail(
-          `refusing to write an invalid file — nothing was created:\n` +
-            result.issues.map((i) => `  ${i.path}: ${i.message}`).join("\n") +
-            `\nCheck the values you passed, and try again.`,
+      let database: AthleticDatabase | undefined;
+      let seeded;
+      try {
+        database = await createDatabase(outPath, { createdAt });
+        if (!opts.empty) seeded = await writeRecords(database, [
+          {
+            record_type: "athlete_profile",
+            created_at: createdAt,
+            changed_by: toolActor,
+            data: {
+              ...(name ? { name } : {}),
+              ...(birthYear ? { birth_year: Number(birthYear) } : {}),
+              ...(sex === "male" || sex === "female" ? { sex } : {}),
+              display_units: opts.units === "imperial" ? "imperial" : "metric",
+              ...(timezone ? { default_time_zone: timezone } : {}),
+            },
+          },
+          {
+            record_type: "source",
+            created_at: createdAt,
+            changed_by: toolActor,
+            data: {
+              source_type: "manual",
+              data_writer: "ath",
+              data_route: "manual_entry",
+              detail: "Manually recorded data",
+            },
+          },
+          ...SEED_BENCHMARKS.map((benchmark) => ({
+            record_type: "benchmark_definition" as const,
+            created_at: createdAt,
+            changed_by: toolActor,
+            data: {
+              authorship: {
+                author: {
+                  ...toolActor,
+                  calculation_version: "benchmark-definition-v1",
+                },
+                authored_at: createdAt,
+                evidence: [],
+                content_version: 1,
+                status: "active" as const,
+              },
+              benchmark_key: benchmark.id,
+              benchmark_type: benchmark.kind,
+              score_type: benchmark.score_type,
+              definition: benchmark.definition,
+              tags: benchmark.tags,
+            },
+          })),
+        ]);
+      } catch (error) {
+        database?.close();
+        await Promise.all(
+          [outPath, `${outPath}-wal`, `${outPath}-shm`].map((path) =>
+            rm(path, { force: true }),
+          ),
+        );
+        return fail(
+          `could not create a valid v1 database: ${(error as Error).message}. Nothing was kept.`,
         );
       }
-
-      saveFile(outPath, file);
+      database.close();
 
       // The skill always goes to .agents/skills, which every major harness reads,
       // and into any harness folder already here (D79).
@@ -203,7 +274,10 @@ export function buildProgram(): Command {
             {
               created: outPath,
               athleticstandard_version: ATHLETIC_STANDARD_VERSION,
-              benchmarks: SEED_BENCHMARKS.map((b) => b.id),
+              database_revision: seeded?.database_revision ?? 0,
+              benchmark_record_ids: (seeded?.records ?? [])
+                .filter((record) => record.record_type === "benchmark_definition")
+                .map((record) => record.record_id),
               skill_installed: installed,
             },
             null,
@@ -213,7 +287,11 @@ export function buildProgram(): Command {
         return;
       }
       console.log(`created ${outPath}`);
-      console.log(`  seeded ${SEED_BENCHMARKS.length} benchmarks: ${SEED_BENCHMARKS.map((b) => b.id).join(", ")}`);
+      if (opts.empty) {
+        console.log("  empty database, ready for a v1 package restore");
+      } else {
+        console.log(`  seeded ${SEED_BENCHMARKS.length} benchmarks: ${SEED_BENCHMARKS.map((b) => b.id).join(", ")}`);
+      }
       for (const path of installed) console.log(`  installed the agent skill into ${path}`);
       if (installed.length > 0) {
         console.log(
@@ -260,239 +338,817 @@ export function buildProgram(): Command {
   program
     .command("import")
     .helpGroup(GROUPS.getIn)
-    .description("load an Apple Health, WHOOP, or Oura export into the file")
+    .description("preview and import a v1 package or Apple Health, WHOOP, or Oura export")
     .addHelpText("after", EXAMPLES.import!)
-    .argument("<path>", "the export: a zip, a folder, an export.xml, or a CSV")
-    .option("--file <path>", "import into a file other than the one in this folder")
-    .option("--json", "structured output, for an agent rather than a person")
-    .action(async (exportPath: string, opts: { file?: string; json?: boolean }) => {
+    .argument("<path>", "v1 package or supported provider export")
+    .option("--file <path>", "import into a database other than the one in this folder")
+    .option("-y, --yes", "apply a conflict-free preview")
+    .option("--json", "structured preview; never confirms the write")
+    .action(async (
+      importPath: string,
+      opts: { file?: string; yes?: boolean; json?: boolean },
+    ) => {
       const athletePath = findOrFail(opts.file);
-      let file: AthleticStandardFileT;
+      const database = await openOrFail(athletePath, opts.json);
       try {
-        file = loadFile(athletePath);
-      } catch (e) {
-        return fail((e as Error).message);
-      }
-
-      // The bar draws on stderr and only when a person is watching. Piped output and
-      // tests get the summary alone.
-      const progress = process.stderr.isTTY && !opts.json ? terminalProgress() : silentProgress;
-      let result;
-      try {
-        result = await importExport(file, athletePath, resolve(process.cwd(), exportPath), progress);
-      } catch (e) {
-        progress.finish();
-        if (e instanceof UnknownExportError) return fail((e as Error).message);
-        if (e instanceof PooledFileError) return fail((e as Error).message);
-        return fail(
-          `could not read that export: ${(e as Error).message}\n` +
-            `  Point at the zip as it was downloaded, the folder it unzips to, an export.xml, ` +
-            `or a vendor CSV. Nothing was written.`,
-        );
-      }
-
-      // Refuse to write a file the import would have made invalid.
-      const validation = validateAthleticStandardFile(file);
-      if (!validation.valid) {
-        const first = validation.issues.filter((i) => i.severity === "error").slice(0, 5);
-        return fail(
-          `import would produce an invalid file, so nothing was written:\n` +
-            first.map((i) => `  ${i.path}: ${i.message}`).join("\n") +
-            `\nRun \`ath check\` to see the file as it stands. This is a bug in the importer, ` +
-            `not something you did.`,
-        );
-      }
-
-      saveFile(athletePath, file);
-
-      // A result with no session is a match still waiting. Device data usually lands
-      // days after the workout was logged, so every import asks again about the ones
-      // that have become possible (D53).
-      const waiting = waitingMatches(file);
-
-      if (opts.json) {
+        const resolvedImportPath = resolve(process.cwd(), importPath);
+        if (!isAthleticStandardPackagePath(resolvedImportPath)) {
+          const preview = await previewProviderImport(database, resolvedImportPath);
+          const output = {
+            provider: preview.provider,
+            imported: preview.label,
+            destination_database_revision: preview.database_revision,
+            new_records: preview.new_records,
+            matching_records: preview.matching_records,
+            changed_records: preview.changed_records,
+            conflicts: preview.conflicts,
+            skipped: preview.skipped,
+            write_confirmed: false,
+          };
+          if (opts.json) {
+            console.log(JSON.stringify(output, null, 2));
+            return;
+          }
+          console.log(renderProviderImportPreview(output));
+          if (!opts.yes) {
+            console.log("nothing written; pass --yes after reviewing this preview");
+            return;
+          }
+          if (preview.conflicts.length > 0) {
+            return fail(
+              `import has ${preview.conflicts.length} unresolved conflict` +
+                `${preview.conflicts.length === 1 ? "" : "s"}; nothing was written`,
+            );
+          }
+          const imported = await importProviderRecords(database, preview);
+          console.log(
+            `imported ${preview.label}: ${imported.new_record_count} new, ` +
+              `${imported.changed_record_count} changed, ` +
+              `${imported.matching_record_count} matching at database revision ` +
+              `${imported.database_revision}`,
+          );
+          return;
+        }
+        const loaded = await loadAthleticStandardPackage(resolvedImportPath);
+        const preview = await previewPackageImport(database, loaded);
+        const output = {
+          source_database_id: preview.source_database_id,
+          source_database_revision: preview.source_database_revision,
+          destination_database_id: preview.destination_database_id,
+          destination_database_revision: preview.destination_database_revision,
+          restore: preview.restore,
+          new_records: preview.new_records,
+          new_record_count: preview.new_record_count,
+          matching_records: preview.matching_records,
+          matching_record_count: preview.matching_record_count,
+          changed_records: preview.changed_records,
+          changed_record_count: preview.changed_record_count,
+          record_lists_truncated: preview.record_lists_truncated,
+          conflicts: preview.conflicts,
+          unrepresentable_records: preview.unrepresentable_records,
+          unknown_fields: preview.unknown_fields,
+          write_confirmed: false,
+        };
+        if (opts.json) {
+          if (preview.conflicts.length > 0) {
+            await savePackageConflictSet(database, preview);
+          } else {
+            await clearPackageConflictSet(database);
+          }
+          console.log(JSON.stringify(output, null, 2));
+          return;
+        }
+        console.log(renderImportPreview(output));
+        if (!opts.yes) {
+          if (preview.conflicts.length > 0) {
+            const saved = await savePackageConflictSet(database, preview);
+            if (saved !== null) {
+              console.log(
+                "review with ath conflicts show, then record each choice with ath conflicts resolve",
+              );
+            }
+          } else {
+            await clearPackageConflictSet(database);
+          }
+          console.log("nothing written; pass --yes after reviewing this preview");
+          return;
+        }
+        let resolutions: PackageImportResolution[] = [];
+        if (preview.conflicts.length > 0) {
+          const state = await readPackageConflictSet(database);
+          await assertPackageConflictSetCurrent(database, state, preview);
+          resolutions = conflictResolutions(state);
+          if (resolutions.length !== preview.conflicts.length) {
+            return fail(
+              `import has ${preview.conflicts.length - resolutions.length} unresolved ` +
+                `conflict${preview.conflicts.length - resolutions.length === 1 ? "" : "s"}; ` +
+                "use ath conflicts show and ath conflicts resolve",
+            );
+          }
+        }
+        const imported = await importRecords(database, preview, resolutions);
+        await clearPackageConflictSet(database);
         console.log(
-          JSON.stringify(
-            {
-              ...mergeSummaryAsJson(result.summary, result.label),
-              waiting_matches: waiting.map((m) => ({
-                benchmark: m.result.benchmark,
-                recorded_at: m.result.recorded_at,
-                candidates: m.candidates,
-              })),
-            },
-            null,
-            2,
-          ),
+          `${imported.restored ? "restored" : "imported"} package at database revision ` +
+            `${imported.database_revision}`,
         );
-        return;
+      } catch (error) {
+        if (error instanceof PackageRepresentationError) {
+          const destination = await databaseStats(database);
+          const output = {
+            source_database_id:
+              error.source_database_id ?? "unavailable",
+            source_database_revision:
+              error.source_database_revision ?? 0,
+            destination_database_id: destination.database_id,
+            destination_database_revision: destination.database_revision,
+            restore:
+              destination.database_revision === 0 &&
+              destination.current_records.total === 0,
+            new_records: [],
+            new_record_count: 0,
+            matching_records: [],
+            matching_record_count: 0,
+            changed_records: [],
+            changed_record_count: 0,
+            record_lists_truncated: false,
+            conflicts: [],
+            unrepresentable_records: error.unrepresentable_records,
+            unknown_fields: error.unknown_fields,
+            write_confirmed: false,
+          };
+          console.log(
+            opts.json
+              ? JSON.stringify(output, null, 2)
+              : renderImportPreview(output),
+          );
+          if (!opts.json) {
+            console.log(
+              "nothing written; every unknown field and unrepresentable record must be resolved",
+            );
+          }
+          return;
+        }
+        return fail((error as Error).message);
+      } finally {
+        database.close();
       }
+    });
 
-      console.log(renderMergeSummary(result.summary, result.label));
-      if (waiting.length === 0) return;
+  const conflictsCmd = program
+    .command("conflicts")
+    .helpGroup(GROUPS.getIn)
+    .description("review and resolve the temporary conflicts from a package import")
+    .addHelpText("after", EXAMPLES.conflicts!);
 
-      const linked = await offerWaitingMatches(waiting);
-      if (linked > 0) {
-        const check = validateAthleticStandardFile(file);
-        if (!check.valid) {
-          return fail(
-            `that link would make the file invalid, so nothing was written. ` +
-              `Run \`ath check\` to see what is wrong with the file first.`,
+  conflictsCmd
+    .command("show")
+    .description("show complete local and imported values from the current conflict preview")
+    .argument("[record-id]", "show one conflicting stable record ID")
+    .option("--file <path>", "read conflicts for a database other than the one in this folder")
+    .option("--json", "structured output")
+    .action(async (
+      recordId: string | undefined,
+      opts: { file?: string; json?: boolean },
+    ) => {
+      const path = findOrFail(opts.file);
+      const database = await openOrFail(path, opts.json);
+      try {
+        const state = await readPackageConflictSet(database);
+        const loaded = await loadAthleticStandardPackage(state.source_path);
+        const preview = await previewPackageImport(database, loaded);
+        await assertPackageConflictSetCurrent(database, state, preview);
+        const selected =
+          recordId === undefined
+            ? state.conflicts
+            : state.conflicts.filter(
+                (conflict) => conflict.record_id === recordId,
+              );
+        if (selected.length === 0) {
+          return fail(`record is not in the temporary conflict set: ${recordId}`);
+        }
+        const conflicts = await Promise.all(
+          selected.map(async (conflict) => ({
+            record_id: conflict.record_id,
+            message: conflict.message,
+            local: await readRecord(database, conflict.record_id),
+            imported: await readImportedPackageRecord(
+              loaded,
+              conflict.record_id,
+            ),
+            resolution: conflict.resolution ?? null,
+          })),
+        );
+        const output = {
+          source_path: state.source_path,
+          source_database_revision: state.source_database_revision,
+          destination_database_revision: state.destination_database_revision,
+          conflicts,
+        };
+        console.log(JSON.stringify(output, null, 2));
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
+      }
+    });
+
+  conflictsCmd
+    .command("resolve")
+    .description("choose the local, imported, or a corrected value for one conflict")
+    .argument("<record-id>", "conflicting stable record ID")
+    .requiredOption("--choice <choice>", "local, imported, or corrected")
+    .option("--data <json>", "complete corrected data object; required with corrected")
+    .option("--file <path>", "resolve conflicts for a database other than the one in this folder")
+    .option("--json", "structured output")
+    .action(async (
+      recordId: string,
+      opts: {
+        choice: string;
+        data?: string;
+        file?: string;
+        json?: boolean;
+      },
+    ) => {
+      if (!["local", "imported", "corrected"].includes(opts.choice)) {
+        return fail("--choice must be local, imported, or corrected");
+      }
+      if (opts.choice === "corrected" && opts.data === undefined) {
+        return fail("--data is required when --choice is corrected");
+      }
+      if (opts.choice !== "corrected" && opts.data !== undefined) {
+        return fail("--data is used only when --choice is corrected");
+      }
+      let data: unknown;
+      if (opts.data !== undefined) {
+        try {
+          data = JSON.parse(opts.data);
+        } catch (error) {
+          return fail(`--data is not valid JSON: ${(error as Error).message}`);
+        }
+      }
+      const path = findOrFail(opts.file);
+      const database = await openOrFail(path, opts.json);
+      try {
+        const state = await readPackageConflictSet(database);
+        const loaded = await loadAthleticStandardPackage(state.source_path);
+        const preview = await previewPackageImport(database, loaded);
+        await assertPackageConflictSetCurrent(database, state, preview);
+        const resolution: PackageImportResolution =
+          opts.choice === "corrected"
+            ? { record_id: recordId, choice: "corrected", data }
+            : {
+                record_id: recordId,
+                choice: opts.choice as "local" | "imported",
+              };
+        const next = await resolvePackageConflict(
+          database,
+          state,
+          recordId,
+          resolution,
+        );
+        const unresolved = next.conflicts.filter(
+          (conflict) => conflict.resolution === undefined,
+        ).length;
+        const output = {
+          record_id: recordId,
+          choice: resolution.choice,
+          unresolved_conflicts: unresolved,
+          athlete_data_changed: false,
+        };
+        if (opts.json) {
+          console.log(JSON.stringify(output, null, 2));
+        } else {
+          console.log(
+            `recorded ${resolution.choice} for ${recordId}; ${unresolved} unresolved ` +
+              `conflict${unresolved === 1 ? "" : "s"}`,
+          );
+          console.log(
+            `nothing written to athlete data; run ath import ${state.source_path} --yes after all conflicts are resolved`,
           );
         }
-        saveFile(athletePath, file);
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
+      }
+    });
+
+  program
+    .command("export")
+    .helpGroup(GROUPS.getIn)
+    .description("write a complete deterministic Athletic Standard JSON package")
+    .addHelpText("after", EXAMPLES.export!)
+    .argument("<directory>", "new directory to create for the package")
+    .option("--exported-at <timestamp>", "include this exact UTC export time in the manifest")
+    .option("--file <path>", "export a database other than the one in this folder")
+    .option("--json", "structured command result")
+    .action(async (
+      directory: string,
+      opts: { exportedAt?: string; file?: string; json?: boolean },
+    ) => {
+      const path = findOrFail(opts.file);
+      const database = await openOrFail(path, opts.json);
+      try {
+        const result = await exportRecords(
+          database,
+          resolve(process.cwd(), directory),
+          opts.exportedAt === undefined
+            ? {}
+            : { exported_at: opts.exportedAt },
+        );
+        if (opts.json) {
+          console.log(JSON.stringify(result, null, 2));
+          return;
+        }
+        console.log(
+          `exported database revision ${result.database_revision} to ${result.directory}`,
+        );
+        console.log("  athlete.ath.json");
+        console.log("  export-manifest.json");
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
       }
     });
 
   program
     .command("log")
     .helpGroup(GROUPS.getIn)
-    .description("write something down: a workout result, a measurement, or how you felt")
+    .description("write one plain-text record or one validated structured batch")
     .addHelpText("after", EXAMPLES.log!)
     .argument("[entry...]", "the entry, unquoted. Leave it off to paste one, ending with Ctrl-D")
     .option("--benchmark <name>", "name the workout yourself, instead of naming it after the day")
-    .option("--date <date>", "the day it happened, as YYYY-MM-DD. Leave it off for today")
-    .option("--scaling <rx|scaled>", "whether the workout was done as written, or scaled")
+    .option("--at <timestamp>", "exact UTC event time with milliseconds; defaults to now")
+    .option("--agent <name>", "name the agent making a structured write")
+    .option(
+      "--attachment <path>",
+      "attach a PNG, JPEG, WebP, or PDF; pass more than once for several files",
+      collectValues,
+      [] as string[],
+    )
     .option("--file <path>", "write to a file other than the one in this folder")
     .option("-y, --yes", "write it without asking — for scripts, and when you are sure")
-    .option("--again", "record a second result on a day that already has one")
     .option("--dry-run", "show what would be written, and write nothing")
-    .option("--json", "structured output, for an agent rather than a person")
-    .action(async (words: string[], opts: LogOptions) => {
+    .option("--json", "structured preview for an agent; never confirms the write")
+    .action(async (words: string[], opts: V1LogOptions) => {
       const path = findOrFail(opts.file);
-      let file: AthleticStandardFileT;
+      const database = await openOrFail(path, opts.json);
       try {
-        file = loadFile(path);
-      } catch (e) {
-        return fail((e as Error).message);
-      }
-
-      // No words on the line means the entry is being pasted. A workout runs to several
-      // lines and often carries a `"` for the box height, and a shell breaks on both,
-      // so reading the paste is the only way to take one unquoted (D58).
-      const text = words.length > 0 ? words.join(" ") : await readStdin();
-      if (text.trim() === "") {
-        return fail(
-          `nothing to log. Type it on the line — \`ath log slept badly, about 5 hours\` — or run ` +
-            `\`ath log\` on its own and paste it, ending with Ctrl-D.`,
-        );
-      }
-
-      let draft;
-      try {
-        draft = buildDraft(file, {
+        const text = words.length > 0 ? words.join(" ") : await readStdin();
+        const actor =
+          opts.agent === undefined
+            ? ({ author_type: "athlete" } as const)
+            : ({ author_type: "agent", agent: opts.agent } as const);
+        let plan = await planLogEntry(database, {
           text,
-          benchmark: opts.benchmark,
-          date: opts.date,
-          scaling: opts.scaling,
-          again: opts.again,
-          confirm: whoAnswers(opts),
+          actor,
+          ...(opts.at === undefined ? {} : { created_at: opts.at }),
+          ...(opts.benchmark === undefined ? {} : { benchmark: opts.benchmark }),
         });
-      } catch (e) {
-        if (e instanceof LogRefusal) return fail((e as Error).message);
-        throw e;
-      }
-
-      if (draft.blocks.length === 0) {
-        return fail(
-          `nothing in that could be logged. Try a shorter entry — ` +
-            `\`ath log slept badly, about 5 hours\` — and see \`ath log --help\` for what it reads.`,
+        const attachments = await prepareAttachments(
+          database,
+          opts.attachment ?? [],
+          actor,
+          plan.inputs[0]?.created_at ?? new Date().toISOString(),
         );
-      }
-
-      // The summary, then one question. Every guess the tool made is on the screen
-      // before anything reaches the file (D56).
-      if (!opts.json) console.log(renderDraft(draft));
-
-      if (opts.dryRun) {
-        // The question is shown rather than asked, so a preview shows the whole shape
-        // including the extra key a second candidate session adds.
-        if (opts.json) console.log(JSON.stringify(draftAsJson(draft, false), null, 2));
-        else console.log(`\n${renderQuestion(draft)}\nnothing written (--dry-run)`);
-        return;
-      }
-
-      if (!opts.yes && !opts.json && process.stdout.isTTY) {
-        const answer = await askOnTerminal(`\n${renderQuestion(draft)} `);
-        if (answer === null) {
-          return fail(
-            `there is no terminal to ask on, so nothing was written. ` +
-              `Pass --yes to write it without the question, or --dry-run to see what it would be.`,
-          );
+        plan = addAttachmentsToLogPlan(plan, attachments);
+        const preview = {
+          file: path,
+          interpretation: plan.interpretation,
+          records: plan.inputs.map((input) => ({
+            record_id: input.record_id,
+            record_type: input.record_type,
+            created_at: input.created_at,
+            data: input.data,
+          })),
+          write_confirmed: false,
+        };
+        if (opts.json) {
+          console.log(JSON.stringify(preview, null, 2));
+          return;
         }
-        const choice = Number(answer);
-        if (Number.isInteger(choice) && choice >= 2 && choice <= draft.candidates.length) {
-          draft.chosenCandidate = choice - 1;
-        } else if (!/^y(es)?$/i.test(answer)) {
+        console.log(renderLogPlan(plan));
+        if (opts.dryRun) {
+          console.log("nothing written (--dry-run)");
+          return;
+        }
+        if (!(await confirmWrite(opts, "Write these records?"))) {
           console.log("nothing written");
           return;
         }
-      }
-
-      try {
-        applyDraft(file, draft);
-      } catch (e) {
-        if (e instanceof LogRefusal) return fail((e as Error).message);
-        throw e;
-      }
-
-      const validation = validateAthleticStandardFile(file);
-      if (!validation.valid) {
-        const first = validation.issues.filter((i) => i.severity === "error").slice(0, 5);
-        return fail(
-          `that would make the file invalid, so nothing was written:\n` +
-            first.map((i) => `  ${i.path}: ${i.message}`).join("\n"),
+        const written = await withPreparedAttachmentFiles(
+          database,
+          attachments,
+          () => applyLogPlan(database, plan),
         );
+        console.log(
+          `wrote ${written.records.length} record${written.records.length === 1 ? "" : "s"} ` +
+            `at database revision ${written.database_revision}`,
+        );
+        for (const record of written.records) {
+          console.log(`  ${record.record_id}  ${record.record_type}`);
+        }
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
       }
-
-      saveFile(path, file);
-      console.log(opts.json ? JSON.stringify(draftAsJson(draft, true), null, 2) : `\n${renderWritten(draft)}`);
     });
 
   program
     .command("link")
     .helpGroup(GROUPS.getIn)
-    .description("attach a workout result to the device session it happened in")
+    .description("attach a benchmark result to the workout session it happened in")
     .addHelpText("after", EXAMPLES.link!)
-    .argument("<result>", "the benchmark, e.g. `fran`, or `fran@2026-09-04` when there are several")
-    .argument("<session>", "the session's start: `17:25`, a full timestamp, or `whoop-1@<timestamp>`")
-    .option("--file <path>", "change a file other than the one in this folder")
-    .option("--json", "structured output, for an agent rather than a person")
-    .action((result: string, session: string, opts: { file?: string; json?: boolean }) => {
+    .argument("<result-id>", "stable benchmark-result record ID")
+    .argument("<session-id>", "stable workout-session record ID")
+    .requiredOption("--revision <number>", "current result revision from the preview", parsePositiveInteger)
+    .option("--file <path>", "change a database other than the one in this folder")
+    .option("-y, --yes", "write without asking after reviewing the preview")
+    .option("--dry-run", "show what would change and write nothing")
+    .option("--json", "structured preview; never confirms the write")
+    .action(async (
+      resultId: string,
+      sessionId: string,
+      opts: { revision: number; file?: string; yes?: boolean; dryRun?: boolean; json?: boolean },
+    ) => {
       const path = findOrFail(opts.file);
-      let file: AthleticStandardFileT;
+      const database = await openOrFail(path, opts.json);
       try {
-        file = loadFile(path);
-      } catch (e) {
-        return fail((e as Error).message);
+        const result = await readRecord(database, resultId);
+        if (result?.record_type !== "benchmark_result" || result.is_deleted) {
+          return fail(`${resultId} is not a current benchmark result`);
+        }
+        const session = await readRecord(database, sessionId);
+        if (session?.record_type !== "workout_session" || session.is_deleted) {
+          return fail(`${sessionId} is not a current workout session`);
+        }
+        const preview = {
+          file: path,
+          record_id: result.record_id,
+          expected_revision: opts.revision,
+          current_revision: result.current_revision,
+          old_workout_session_id: result.data.workout_session_id ?? null,
+          new_workout_session_id: session.record_id,
+          write_confirmed: false,
+        };
+        if (opts.json) {
+          console.log(JSON.stringify(preview, null, 2));
+          return;
+        }
+        console.log(
+          `result ${result.record_id} revision ${result.current_revision}\n` +
+            `  workout session: ${result.data.workout_session_id ?? "none"} → ${session.record_id}`,
+        );
+        if (opts.dryRun) {
+          console.log("nothing written (--dry-run)");
+          return;
+        }
+        if (!(await confirmWrite(opts, "Write this link as a correction?"))) {
+          console.log("nothing written");
+          return;
+        }
+        const corrected = await correctRecord(database, {
+          record_id: result.record_id,
+          expected_revision: opts.revision,
+          changed_by: { author_type: "athlete" },
+          data: { ...result.data, workout_session_id: session.record_id },
+        });
+        console.log(
+          `linked ${result.record_id} to ${session.record_id} at revision ${corrected.record.current_revision}`,
+        );
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
       }
+    });
 
-      let outcome;
+  program
+    .command("correct")
+    .helpGroup(GROUPS.getIn)
+    .description("replace one record's complete data and retain its prior revision")
+    .addHelpText("after", EXAMPLES.correct!)
+    .argument("<record-id>", "stable record ID")
+    .requiredOption("--revision <number>", "current revision from the preview", parsePositiveInteger)
+    .requiredOption("--data <json>", "complete replacement for the record's data object")
+    .option("--agent <name>", "name the agent making the correction")
+    .option(
+      "--attachment <path>",
+      "attach a PNG, JPEG, WebP, or PDF; pass more than once for several files",
+      collectValues,
+      [] as string[],
+    )
+    .option("--file <path>", "change a database other than the one in this folder")
+    .option("-y, --yes", "write without asking after reviewing the preview")
+    .option("--dry-run", "show what would change and write nothing")
+    .option("--json", "structured preview; never confirms the write")
+    .action(async (
+      recordId: string,
+      opts: {
+        revision: number;
+        data: string;
+        agent?: string;
+        attachment?: string[];
+        file?: string;
+        yes?: boolean;
+        dryRun?: boolean;
+        json?: boolean;
+      },
+    ) => {
+      const path = findOrFail(opts.file);
+      const database = await openOrFail(path, opts.json);
       try {
-        outcome = linkResult(file, result, session);
-      } catch (e) {
-        if (e instanceof LogRefusal) return fail((e as Error).message);
-        throw e;
+        const current = await readRecord(database, recordId);
+        if (current === null || current.is_deleted) {
+          return fail(`current record not found: ${recordId}`);
+        }
+        let data: unknown;
+        try {
+          data = JSON.parse(opts.data);
+        } catch (error) {
+          return fail(`--data is not valid JSON: ${(error as Error).message}`);
+        }
+        const actor =
+          opts.agent === undefined
+            ? ({ author_type: "athlete" } as const)
+            : ({ author_type: "agent", agent: opts.agent } as const);
+        const attachments = await prepareAttachments(
+          database,
+          opts.attachment ?? [],
+          actor,
+          new Date().toISOString(),
+        );
+        if (
+          attachments.length > 0 &&
+          current.record_type !== "athlete_report" &&
+          current.record_type !== "nutrition_entry"
+        ) {
+          return fail(
+            "--attachment can correct only an athlete_report or nutrition_entry",
+          );
+        }
+        if (
+          attachments.length > 0 &&
+          (typeof data !== "object" || data === null || Array.isArray(data))
+        ) {
+          return fail("--data must be a complete record data object");
+        }
+        const correctedData =
+          attachments.length === 0
+            ? data
+            : {
+                ...(data as Record<string, unknown>),
+                attachment_ids: [
+                  ...(
+                    (data as { attachment_ids?: string[] }).attachment_ids ??
+                    []
+                  ),
+                  ...attachments.map(
+                    (attachment) => attachment.input.record_id!,
+                  ),
+                ],
+              };
+        const preview = {
+          file: path,
+          record_id: current.record_id,
+          record_type: current.record_type,
+          expected_revision: opts.revision,
+          current_revision: current.current_revision,
+          before: current.data,
+          after: correctedData,
+          attachments: attachments.map((attachment) => ({
+            record_id: attachment.input.record_id,
+            data: attachment.input.data,
+          })),
+          write_confirmed: false,
+        };
+        if (opts.json) {
+          console.log(JSON.stringify(preview, null, 2));
+          return;
+        }
+        console.log(JSON.stringify(preview, null, 2));
+        if (opts.dryRun) {
+          console.log("nothing written (--dry-run)");
+          return;
+        }
+        if (!(await confirmWrite(opts, "Write this correction?"))) {
+          console.log("nothing written");
+          return;
+        }
+        const corrected =
+          attachments.length === 0
+            ? await correctRecord(database, {
+                record_id: current.record_id,
+                expected_revision: opts.revision,
+                changed_by: actor,
+                data: correctedData,
+              })
+            : await withPreparedAttachmentFiles(
+                database,
+                attachments,
+                async () => {
+                  const written = await writeRecordChanges(database, {
+                    records: attachments.map(
+                      (attachment) => attachment.input,
+                    ),
+                    corrections: [{
+                      record_id: current.record_id,
+                      expected_revision: opts.revision,
+                      changed_by: actor,
+                      data: correctedData,
+                    }],
+                  });
+                  const record = written.records.find(
+                    (record) => record.record_id === current.record_id,
+                  );
+                  if (record === undefined) {
+                    throw new Error("attachment correction did not return its record");
+                  }
+                  return {
+                    record,
+                    database_revision: written.database_revision,
+                  };
+                },
+              );
+        console.log(
+          `corrected ${current.record_id} to revision ${corrected.record.current_revision} ` +
+            `(database revision ${corrected.database_revision})`,
+        );
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
       }
+    });
 
-      const validation = validateAthleticStandardFile(file);
-      if (!validation.valid) {
+  program
+    .command("delete")
+    .helpGroup(GROUPS.getIn)
+    .description("hide one current record while retaining its complete history")
+    .addHelpText("after", EXAMPLES.delete!)
+    .argument("<record-id>", "stable record ID")
+    .requiredOption("--revision <number>", "current revision from the preview", parsePositiveInteger)
+    .option("--file <path>", "change a database other than the one in this folder")
+    .option("-y, --yes", "write without asking after reviewing the preview")
+    .option("--dry-run", "show what would change and write nothing")
+    .option("--json", "structured preview; never confirms the write")
+    .action(async (
+      recordId: string,
+      opts: {
+        revision: number;
+        file?: string;
+        yes?: boolean;
+        dryRun?: boolean;
+        json?: boolean;
+      },
+    ) => {
+      const path = findOrFail(opts.file);
+      const database = await openOrFail(path, opts.json);
+      try {
+        const current = await readRecord(database, recordId);
+        if (current === null || current.is_deleted) {
+          return fail(`current record not found: ${recordId}`);
+        }
+        const preview = {
+          file: path,
+          record_id: current.record_id,
+          record_type: current.record_type,
+          expected_revision: opts.revision,
+          current_revision: current.current_revision,
+          retained_history: true,
+          write_confirmed: false,
+        };
+        if (opts.json) {
+          console.log(JSON.stringify(preview, null, 2));
+          return;
+        }
+        console.log(JSON.stringify(preview, null, 2));
+        if (opts.dryRun) {
+          console.log("nothing written (--dry-run)");
+          return;
+        }
+        if (!(await confirmWrite(opts, "Delete this record from current views?"))) {
+          console.log("nothing written");
+          return;
+        }
+        const deleted = await deleteRecord(database, {
+          record_id: current.record_id,
+          expected_revision: opts.revision,
+          deleted_by: { author_type: "athlete" },
+        });
+        console.log(
+          `deleted ${deleted.record_id} at database revision ${deleted.database_revision}; history retained`,
+        );
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
+      }
+    });
+
+  program
+    .command("erase")
+    .helpGroup(GROUPS.getIn)
+    .description("permanently remove one record and every record that depends on it")
+    .addHelpText("after", EXAMPLES.erase!)
+    .argument("<record-id>", "stable record ID to erase")
+    .requiredOption("--revision <number>", "current revision from the preview", parsePositiveInteger)
+    .option(
+      "--reason <code>",
+      `one of: ${ErasureReasonCode.options.join(", ")}`,
+      "athlete_request",
+    )
+    .option("--confirm-erasure <record-id>", "second confirmation: repeat the record ID exactly")
+    .option("--file <path>", "change a database other than the one in this folder")
+    .option("-y, --yes", "accept the first confirmation after reviewing the preview")
+    .option("--dry-run", "show everything that would be erased and write nothing")
+    .option("--json", "structured preview; never confirms the erasure")
+    .action(async (
+      recordId: string,
+      opts: {
+        revision: number;
+        reason: string;
+        confirmErasure?: string;
+        file?: string;
+        yes?: boolean;
+        dryRun?: boolean;
+        json?: boolean;
+      },
+    ) => {
+      const reason = ErasureReasonCode.safeParse(opts.reason);
+      if (!reason.success) {
         return fail(
-          `that link would make the file invalid, so nothing was written. ` +
-            `Run \`ath check\` to see what is wrong with the file first.`,
+          `unknown erasure reason '${opts.reason}'. Use ${ErasureReasonCode.options.join(", ")}`,
         );
       }
-      saveFile(path, file);
-
-      if (opts.json) {
-        console.log(JSON.stringify(outcome, null, 2));
-        return;
+      const path = findOrFail(opts.file);
+      const database = await openOrFail(path, opts.json);
+      try {
+        const preview = await previewRecordErasure(database, recordId, opts.revision);
+        const output = {
+          file: path,
+          root_record_id: preview.root_record_id,
+          expected_revision: preview.root_expected_revision,
+          database_revision: preview.database_revision,
+          permanent: true,
+          records: preview.records,
+          attachments: preview.attachments,
+          reason_code: reason.data,
+          write_confirmed: false,
+        };
+        if (opts.json) {
+          console.log(JSON.stringify(output, null, 2));
+          return;
+        }
+        console.log(JSON.stringify(output, null, 2));
+        console.log(
+          `WARNING: this permanently removes ${preview.records.length} record` +
+            `${preview.records.length === 1 ? "" : "s"} and cannot be undone from the database.`,
+        );
+        if (opts.dryRun) {
+          console.log("nothing erased (--dry-run)");
+          return;
+        }
+        if (!(await confirmWrite(opts, "Permanently erase these records?"))) {
+          console.log("nothing erased");
+          return;
+        }
+        let secondConfirmation = opts.confirmErasure;
+        if (secondConfirmation === undefined) {
+          if (!process.stdin.isTTY || !process.stdout.isTTY) {
+            return fail(
+              "second confirmation is required in non-interactive use; pass " +
+                `--confirm-erasure ${preview.root_record_id}`,
+            );
+          }
+          secondConfirmation = await askOnTerminal(
+            `Type the record ID ${preview.root_record_id} to confirm permanent erasure: `,
+          ) ?? undefined;
+        }
+        if (secondConfirmation !== preview.root_record_id) {
+          return fail(
+            "second confirmation did not exactly match the record ID; nothing was erased",
+          );
+        }
+        const erased = await eraseRecord(database, {
+          preview,
+          reason_code: reason.data,
+        });
+        console.log(
+          `erased ${erased.erased_record_ids.length} record` +
+            `${erased.erased_record_ids.length === 1 ? "" : "s"} and ` +
+            `${erased.erased_attachment_count} attachment file` +
+            `${erased.erased_attachment_count === 1 ? "" : "s"} ` +
+            `at database revision ${erased.database_revision}`,
+        );
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
       }
-      console.log(
-        `${outcome.benchmark} on ${outcome.recordedAt.slice(0, 10)} is now linked to the ` +
-          `${outcome.session.start.slice(11, 16)} session on ${outcome.session.source}` +
-          (outcome.replaced ? ` (was ${outcome.replaced.start.slice(11, 16)} on ${outcome.replaced.source})` : ""),
-      );
     });
 
   program
@@ -501,43 +1157,62 @@ export function buildProgram(): Command {
     .description("make sure the file still obeys every rule of the format")
     .addHelpText("after", EXAMPLES.check!)
     .argument("[file]", "the file to check (default: the one in this folder)")
+    .option("--file <path>", "check a database other than the one in this folder")
+    .option("--validate-export", "also build and validate a temporary complete JSON package")
     .option("--json", "structured output, for an agent rather than a person")
-    .action((fileArg, opts: { json?: boolean }) => {
-      const path = findOrFail(fileArg);
-      const raw = loadFileRaw(path);
-      const result = validateAthleticStandardFile(raw);
-      const issues = [...result.issues, ...seriesIssues(path, result)];
-      const errors = issues.filter((i) => i.severity === "error");
-      const warnings = issues.filter((i) => i.severity === "warning");
-
-      // The file's own version, not the tool's. A 0.2.0 file read by a 0.3.0 tool is
-      // valid and is still a 0.2.0 file, and saying otherwise hides that from the reader.
-      const version =
-        (raw as { athleticstandard_version?: string }).athleticstandard_version ?? null;
-
-      if (opts.json) {
-        console.log(
-          JSON.stringify(
-            { file: path, athleticstandard_version: version, valid: errors.length === 0, issues },
-            null,
-            2,
-          ),
-        );
-        if (errors.length > 0) process.exit(1);
-        return;
+    .action(async (
+      fileArg,
+      opts: { file?: string; validateExport?: boolean; json?: boolean },
+    ) => {
+      const path = findOrFail(opts.file ?? fileArg);
+      const database = await openOrFail(path, opts.json);
+      try {
+        const result = await checkDatabase(database);
+        let exportValidated = false;
+        if (opts.validateExport) {
+          const temporary = await mkdtemp(join(tmpdir(), "ath-check-export-"));
+          try {
+            await exportRecords(database, join(temporary, "package"));
+            exportValidated = true;
+          } finally {
+            await rm(temporary, { recursive: true, force: true });
+          }
+        }
+        if (opts.json) {
+          console.log(
+            JSON.stringify(
+              { file: path, ...result, export_validated: exportValidated },
+              null,
+              2,
+            ),
+          );
+        } else {
+          for (const issue of result.issues) {
+            const target = issue.record_id === undefined ? "" : ` ${issue.record_id}`;
+            const line = `${issue.severity}  ${issue.check}${target}: ${issue.message}`;
+            if (issue.severity === "error") console.error(line);
+            else console.warn(line);
+          }
+          if (result.valid) {
+            console.log(
+              `${path}: valid Athletic Standard ${result.metadata?.athleticstandard_version ?? ATHLETIC_STANDARD_VERSION} database ` +
+                `(${result.record_count} records)`,
+            );
+            if (exportValidated) {
+              console.log("ok  export: complete JSON package validated");
+            }
+          } else {
+            console.error(
+              `\n${path}: INVALID — ${result.issues.filter((issue) => issue.severity === "error").length} error(s)`,
+            );
+          }
+        }
+        if (!result.valid) {
+          process.exitCode = 1;
+        }
+      } finally {
+        database.close();
       }
-
-      for (const i of errors) console.error(`error  ${i.path}: ${i.message}`);
-      for (const i of warnings) console.warn(`warn   ${i.path}: ${i.message}`);
-
-      if (errors.length > 0) {
-        console.error(`\n${path}: INVALID — ${errors.length} error(s), ${warnings.length} warning(s)`);
-        process.exit(1);
-      }
-      console.log(
-        `${path}: valid Athletic Standard ${version ?? ATHLETIC_STANDARD_VERSION} file` +
-          (warnings.length > 0 ? ` (${warnings.length} warning(s))` : ""),
-      );
     });
 
   const keyCmd = program
@@ -635,91 +1310,114 @@ export function buildProgram(): Command {
     .argument("<benchmark>", "the benchmark to predict, e.g. `fran`. See them all with `ath stats`")
     .option("--model <name>", "the model for this run. See them with `ath models`")
     .option("--gateway <name>", "vercel or openrouter, when both keys are available")
-    .option("--as-of <date>", "pretend it is this day, hiding everything after it. Does not write. Replay the past with ath backtest (YYYY-MM-DD)")
+    .option("--as-of <time>", "historical day (YYYY-MM-DD) or exact UTC timestamp")
+    .option("--timezone <name>", "IANA timezone when --as-of is a calendar day")
     .option("--file <path>", "read a file other than the one in this folder")
     .option("-y, --yes", "write the prediction without asking")
     .option("--dry-run", "show the prediction, and write nothing")
     .option("--json", "evidence for a harness, not a prediction")
     .action(async (benchmarkId: string, opts: PredictCliOptions) => {
       const path = findOrFail(opts.file);
-      let file: AthleticStandardFileT;
+      const database = await openOrFail(path, opts.json);
       try {
-        file = loadFile(path);
-      } catch (e) {
-        return fail((e as Error).message);
-      }
-
-      const asOf = opts.asOf ?? today();
-      if (!/^\d{4}-\d{2}-\d{2}$/.test(asOf) || Number.isNaN(Date.parse(`${asOf}T00:00:00Z`))) {
-        return fail(`--as-of takes a day written as YYYY-MM-DD, not '${asOf}'.`);
-      }
-
-      let benchmark;
-      try {
-        benchmark = benchmarkOrRefuse(file, benchmarkId);
-      } catch (e) {
-        if (e instanceof PredictRefusal) return fail((e as Error).message);
-        throw e;
-      }
-
-      // --json is evidence for a harness. It is not a prediction, and it needs no key.
-      if (opts.json) {
-        const evidence = evidenceFor(file, path, benchmark, asOf);
-        console.log(JSON.stringify(evidenceAsJson(evidence), null, 2));
-        return;
-      }
-
-      let plan;
-      try {
-        plan = await planPredict(file, path, benchmark, {
-          asOf,
-          asOfPassed: opts.asOf !== undefined,
-          ...(opts.model ? { model: opts.model } : {}),
-          ...(opts.gateway ? { gateway: parseGateway(opts.gateway) } : {}),
-          ...(opts.dryRun ? { dryRun: true } : {}),
+        const asOf = await resolveAsOfTime(database, opts.asOf, opts.timezone);
+        const evidence = await buildEvidence(database, {
+          benchmark: benchmarkId,
+          as_of: asOf.as_of,
         });
-      } catch (e) {
-        if (e instanceof PredictRefusal || e instanceof KeyRefusal) return fail((e as Error).message);
-        throw e;
-      }
-
-      console.log(renderPrediction(plan));
-
-      if (!plan.canWrite) {
-        console.log(`\n${plan.holdReason}`);
-        return;
-      }
-
-      if (!opts.yes && process.stdout.isTTY) {
-        const answer = await askOnTerminal(`\nSave this?\n  [y] yes\n  [n] no\n`);
-        if (answer === null) {
-          return fail(
-            `there is no terminal to ask on, so nothing was written. ` +
-              `Pass --yes to write it without the question, or --dry-run to see what it would be.`,
+        if (opts.json) {
+          console.log(
+            JSON.stringify(
+              {
+                ...evidence,
+                ...(asOf.time_zone === undefined
+                  ? {}
+                  : { calendar_time_zone: asOf.time_zone }),
+              },
+              null,
+              2,
+            ),
           );
+          return;
         }
-        if (!/^y(es)?$/i.test(answer)) {
+        const selected = await resolveModel(
+          path,
+          opts.model,
+          opts.gateway === undefined ? undefined : parseGateway(opts.gateway),
+        );
+        const response = await complete({
+          gateway: selected.gateway,
+          model: selected.model,
+          system:
+            "Return only JSON with predicted_score, optional predicted_range, confidence, and reasoning. " +
+            "Use the benchmark score fields duration_s, reps, or weight_kg. Do not add medical advice.",
+          user: JSON.stringify(evidence),
+        });
+        const modelOutput = parsePredictionResponse(response.content);
+        const authoredAt = new Date().toISOString();
+        const evidenceReferences = [
+          evidence.benchmark,
+          ...evidence.prior_results,
+          ...evidence.device_measurements,
+          ...evidence.athlete_reports,
+          ...evidence.sleep_sessions,
+          ...evidence.workout_sessions,
+        ].map((record) => ({
+          record_id: record.record_id,
+          revision: record.current_revision,
+        }));
+        const data = PredictionData.parse({
+          authorship: {
+            author: {
+              author_type: "agent",
+              agent: "ath-terminal",
+              agent_version: ATHLETIC_STANDARD_VERSION,
+              model: response.model,
+            },
+            authored_at: authoredAt,
+            evidence: evidenceReferences,
+            content_version: 1,
+            status: "active",
+          },
+          benchmark_definition_id: evidence.benchmark.record_id,
+          ...modelOutput,
+        });
+        const preview = {
+          benchmark: evidence.benchmark.data.benchmark_key,
+          model: response.model,
+          data,
+          write_confirmed: false,
+        };
+        console.log(JSON.stringify(preview, null, 2));
+        if (opts.dryRun) {
+          console.log("nothing written (--dry-run)");
+          return;
+        }
+        if (!(await confirmWrite(opts, "Save this prediction?"))) {
           console.log("nothing written");
           return;
         }
-      } else if (!opts.yes) {
-        return fail(
-          `there is no terminal to ask on, so nothing was written. ` +
-            `Pass --yes to write it without the question, or --dry-run to see what it would be.`,
+        const written = await writeRecord(database, {
+          record_type: "prediction",
+          created_at: authoredAt,
+          changed_by: {
+            author_type: "agent",
+            agent: "ath-terminal",
+            agent_version: ATHLETIC_STANDARD_VERSION,
+          },
+          data,
+        });
+        console.log(
+          `saved prediction ${written.record.record_id} at database revision ${written.database_revision}`,
         );
+      } catch (error) {
+        if (error instanceof PredictRefusal || error instanceof KeyRefusal) {
+          return fail(error.message);
+        }
+        return fail((error as Error).message);
+      } finally {
+        database.close();
       }
-
-      applyDraft(file, plan.draft);
-      const validation = validateAthleticStandardFile(file);
-      if (!validation.valid) {
-        const first = validation.issues.filter((i) => i.severity === "error").slice(0, 5);
-        return fail(
-          `that would make the file invalid, so nothing was written:\n` +
-            first.map((i) => `  ${i.path}: ${i.message}`).join("\n"),
-        );
-      }
-      saveFile(path, file);
-      console.log(`\n${renderWritten(plan.draft)}`);
     });
 
   program
@@ -735,56 +1433,69 @@ export function buildProgram(): Command {
     .option("--json", "structured output, for an agent rather than a person")
     .action(async (opts: BacktestCliOptions) => {
       const path = findOrFail(opts.file);
-      let file: AthleticStandardFileT;
+      const database = await openOrFail(path, opts.json);
       try {
-        file = loadFile(path);
-      } catch (e) {
-        return fail((e as Error).message);
-      }
-
-      let plan;
-      try {
-        plan = await planBacktest(file, path, {
-          ...(opts.model && opts.model.length > 0 ? { models: opts.model } : {}),
-          ...(opts.all ? { all: true } : {}),
-          ...(opts.gateway ? { gateway: parseGateway(opts.gateway) } : {}),
+        const requestedGateway =
+          opts.gateway === undefined ? undefined : parseGateway(opts.gateway);
+        let gateway: "vercel" | "openrouter";
+        let models: string[];
+        if (opts.all) {
+          const catalog = await loadCatalog(requestedGateway);
+          gateway = catalog.gateway;
+          models = catalog.models.map((model) => model.id);
+        } else if (opts.model !== undefined && opts.model.length > 0) {
+          const catalog = await loadCatalog(requestedGateway);
+          gateway = catalog.gateway;
+          models = opts.model.map((model) => requireOnList(model, catalog.models));
+        } else {
+          const selected = await resolveModel(path, undefined, requestedGateway);
+          gateway = selected.gateway;
+          models = [selected.model];
+        }
+        if (opts.all && !opts.yes) {
+          if (!(await confirmWrite(opts, `Run a backtest with ${models.length} models?`))) {
+            console.log("nothing run");
+            return;
+          }
+        }
+        const beforeRevision = (await databaseStats(database)).database_revision;
+        const report = await runV1Backtest(database, {
+          models,
+          gateway,
+          complete,
         });
-      } catch (e) {
-        if (e instanceof PredictRefusal || e instanceof KeyRefusal) return fail((e as Error).message);
-        throw e;
-      }
-
-      if (opts.all && !opts.yes) {
-        const calls = plan.models.length * plan.targets.length;
-        const question =
-          `This will call ${plan.models.length} models on ${plan.targets.length} ` +
-          `replayable results (${calls} calls). Continue? [y] yes  [n] no `;
-        if (!process.stdout.isTTY) {
-          return fail(
-            `this will call ${plan.models.length} models on ${plan.targets.length} results. ` +
-              `Pass --yes to run it without the question.`,
+        const afterRevision = (await databaseStats(database)).database_revision;
+        if (beforeRevision !== afterRevision) {
+          return fail("backtest changed the athlete database; report was not written");
+        }
+        const reportPath = await writeV1BacktestReport(path, report);
+        if (opts.json) {
+          console.log(JSON.stringify({ report: reportPath, ...report }, null, 2));
+          return;
+        }
+        console.log(
+          `replayed ${report.replayable_result_count} results with ${models.length} model` +
+            `${models.length === 1 ? "" : "s"}`,
+        );
+        for (const summary of report.summary) {
+          console.log(
+            `  ${summary.model}: ${summary.completed} completed, ${summary.failed} failed, ` +
+              `median absolute error ${summary.median_absolute_error_percentage ?? "—"}%`,
           );
         }
-        const answer = await askOnTerminal(question);
-        if (answer === null || !/^y(es)?$/i.test(answer ?? "")) {
+        console.log(`wrote ${reportPath}`);
+      } catch (error) {
+        if (error instanceof PredictRefusal || error instanceof KeyRefusal) {
+          return fail(error.message);
+        }
+        if (error instanceof Error && error.message === "nothing run") {
           console.log("nothing run");
           return;
         }
+        return fail((error as Error).message);
+      } finally {
+        database.close();
       }
-
-      const before = loadFile(path);
-      const report = await runBacktest(file, path, plan);
-      const after = JSON.stringify(loadFile(path));
-      if (after !== JSON.stringify(before)) {
-        return fail(`backtest would have changed the athlete file, so the report was not written. This is a bug.`);
-      }
-
-      const reportPath = writeReport(path, report, new Date());
-      if (opts.json) {
-        console.log(JSON.stringify({ report: reportPath, ...report }, null, 2));
-        return;
-      }
-      console.log(renderReport(report, reportPath));
     });
 
   program
@@ -801,7 +1512,9 @@ export function buildProgram(): Command {
       } catch {
         path = undefined;
       }
-      const report = path ? latestReport(path) : latestReport(join(process.cwd(), "athlete.ath.json"));
+      const report = path
+        ? latestReport(path)
+        : latestReport(join(process.cwd(), DEFAULT_FILENAME));
       if (opts.json) {
         console.log(JSON.stringify({ built: false, latest_report: report ?? null }, null, 2));
         return;
@@ -812,121 +1525,210 @@ export function buildProgram(): Command {
   program
     .command("grade")
     .helpGroup(GROUPS.predict)
-    .description("record what actually happened, and score the prediction against it")
+    .description("grade an existing prediction against an existing benchmark result")
     .addHelpText("after", EXAMPLES.grade!)
-    .argument("<benchmark>", "the benchmark that was attempted, e.g. `fran`")
-    .option("--actual <score>", "what happened: `4:32` for a time, `245` for reps, `100kg` for a load")
-    .option("--date <date>", "the day of the attempt, as YYYY-MM-DD. Leave it off for today")
-    .option("--scaling <rx|scaled>", "whether the workout was done as written, or scaled")
-    .option("--analysis <json>", "the agent's write-up of a miss, after it has read the dossier")
-    .option("--file <path>", "change a file other than the one in this folder")
-    .option("-y, --yes", "write it without asking — for scripts, and when you are sure")
-    .option("--again", "record a second attempt on a day that already has a result")
+    .argument("<prediction-id>", "stable prediction record ID")
+    .requiredOption("--result <record-id>", "stable benchmark-result record ID")
+    .option("--calculation-version <version>", "grade calculation version", "prediction-grade-v1")
+    .option("--file <path>", "change a database other than the one in this folder")
+    .option("-y, --yes", "write without asking after reviewing the preview")
     .option("--dry-run", "show what would be written, and write nothing")
-    .option("--json", "structured output, for an agent rather than a person")
-    .action(async (benchmarkId: string, opts: GradeCliOptions) => {
+    .option("--json", "structured preview; never confirms the write")
+    .action(async (
+      predictionId: string,
+      opts: {
+        result: string;
+        calculationVersion: string;
+        file?: string;
+        yes?: boolean;
+        dryRun?: boolean;
+        json?: boolean;
+      },
+    ) => {
       const path = findOrFail(opts.file);
-      let file: AthleticStandardFileT;
+      const database = await openOrFail(path, opts.json);
       try {
-        file = loadFile(path);
-      } catch (e) {
-        return fail((e as Error).message);
+        const plan = await planPredictionGrade(database, {
+          prediction_id: predictionId,
+          result_id: opts.result,
+          calculation_version: opts.calculationVersion,
+          actor: {
+            author_type: "tool",
+            tool: "ath",
+            tool_version: ATHLETIC_STANDARD_VERSION,
+          },
+        });
+        const preview = {
+          file: path,
+          prediction: {
+            record_id: plan.prediction.record_id,
+            revision: plan.prediction.current_revision,
+          },
+          result: {
+            record_id: plan.result.record_id,
+            revision: plan.result.current_revision,
+          },
+          prediction_result_link:
+            plan.link_input !== null
+              ? {
+                  action: "create",
+                  record_id: plan.link_input.record_id,
+                  data: plan.link_input.data,
+                }
+              : plan.link_correction !== null
+                ? {
+                    action: "revise",
+                    record_id: plan.existing_link!.record_id,
+                    current_revision: plan.existing_link!.current_revision,
+                    new_revision: plan.existing_link!.current_revision + 1,
+                    data: plan.link_correction.data,
+                  }
+              : {
+                  action: "reuse",
+                  record_id: plan.existing_link!.record_id,
+                  revision: plan.existing_link!.current_revision,
+                },
+          grade: {
+            record_id: plan.grade_input.record_id,
+            data: plan.grade_input.data,
+          },
+          write_confirmed: false,
+        };
+        if (opts.json) {
+          console.log(JSON.stringify(preview, null, 2));
+          return;
+        }
+        console.log(JSON.stringify(preview, null, 2));
+        if (opts.dryRun) {
+          console.log("nothing written (--dry-run)");
+          return;
+        }
+        if (!(await confirmWrite(opts, "Write this grade?"))) {
+          console.log("nothing written");
+          return;
+        }
+        const written = await gradePrediction(database, plan);
+        if (written.grade.record_type !== "prediction_grade") {
+          return fail("grade write returned the wrong record type");
+        }
+        console.log(
+          `${written.grade.data.result_in_predicted_range ? "hit" : "miss"} — signed error ` +
+            `${written.grade.data.signed_error}, absolute error ` +
+            `${written.grade.data.absolute_error_percentage}%`,
+        );
+        console.log(
+          `grade ${written.grade.record_id} at database revision ${written.database_revision}`,
+        );
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
       }
+    });
 
-      let benchmark;
-      try {
-        benchmark = benchmarkOrRefuse(file, benchmarkId);
-      } catch (e) {
-        if (e instanceof PredictRefusal) return fail((e as Error).message);
-        throw e;
-      }
-
-      if (opts.analysis === undefined && opts.actual === undefined) {
+  program
+    .command("calculate")
+    .helpGroup(GROUPS.read)
+    .description("run a named calculation without writing athlete data")
+    .addHelpText("after", EXAMPLES.calculate!)
+    .argument("<operation>", `one of: ${CALCULATION_OPERATIONS.join(", ")}`)
+    .argument("<quantity>", "measurement quantity, provider metric, or summary type")
+    .option(
+      "--record-kind <kind>",
+      `one of: ${CALCULATION_RECORD_KINDS.join(", ")}`,
+      "measurement",
+    )
+    .option(
+      "--period-type <type>",
+      "provider period type; required for provider-period-summary",
+    )
+    .option("--source <id>", "use one source only")
+    .option("--compare-source <id>", "second source for compare-sources or correlation")
+    .option("--other-quantity <quantity>", "second quantity for correlation")
+    .option("--session <record-id>", "workout session for workout-drift")
+    .option("--from <time>", "earliest day (YYYY-MM-DD) or exact UTC timestamp")
+    .option("--to <time>", "latest day (YYYY-MM-DD) or exact UTC timestamp")
+    .option("--timezone <name>", "IANA timezone for calendar operations")
+    .option("--group <period>", "none, day, week, or month", "none")
+    .option("--file <path>", "read a database other than the one in this folder")
+    .option("--json", "structured calculation receipt")
+    .action(async (
+      operation: string,
+      quantity: string,
+      opts: {
+        recordKind: string;
+        periodType?: string;
+        source?: string;
+        compareSource?: string;
+        otherQuantity?: string;
+        session?: string;
+        from?: string;
+        to?: string;
+        timezone?: string;
+        group: string;
+        file?: string;
+        json?: boolean;
+      },
+    ) => {
+      if (!CALCULATION_OPERATIONS.includes(operation as never)) {
         return fail(
-          `say what happened: \`ath grade ${benchmarkId} --actual 4:32\`. ` +
-            `Use --analysis afterwards to write up a miss.`,
+          `unknown calculation '${operation}'. Use ${CALCULATION_OPERATIONS.join(", ")}`,
         );
       }
-
-      // Two calls, in the order the grading procedure runs: the result and the grade
-      // first, then the analysis an agent wrote after reading the dossier (D62).
-      const confirm = whoAnswers(opts);
+      if (!["none", "day", "week", "month"].includes(opts.group)) {
+        return fail("unknown --group value. Use none, day, week, or month");
+      }
+      if (!CALCULATION_RECORD_KINDS.includes(opts.recordKind as never)) {
+        return fail(
+          `unknown --record-kind '${opts.recordKind}'. Use ` +
+            CALCULATION_RECORD_KINDS.join(", "),
+        );
+      }
+      const periodType =
+        opts.periodType === undefined
+          ? undefined
+          : ProviderReportingPeriodType.safeParse(opts.periodType);
+      if (periodType !== undefined && !periodType.success) {
+        return fail(
+          `unknown --period-type '${opts.periodType}'. Use ` +
+            ProviderReportingPeriodType.options.join(", "),
+        );
+      }
+      const path = findOrFail(opts.file);
+      const database = await openOrFail(path, opts.json);
       try {
-        const outcome = opts.actual
-          ? planGrade(file, path, benchmark, opts.actual, {
-              date: opts.date,
-              scaling: opts.scaling,
-              again: opts.again,
-              confirm,
-            })
-          : null;
-
-        // Grading writes, so it shows what it will write and asks once, the same as
-        // `ath log`. The verdict comes after, because it is the consequence of the
-        // write rather than something to agree to (D65).
-        if (outcome && !opts.json) console.log(renderDraft(outcome.draft));
-
-        if (opts.dryRun) {
-          if (opts.json && outcome) console.log(JSON.stringify(gradeAsJson(outcome, false), null, 2));
-          else if (outcome) console.log(`\n${renderQuestion(outcome.draft)}\nnothing written (--dry-run)`);
-          else console.log("nothing written (--dry-run)");
-          return;
-        }
-
-        if (outcome && confirm === "ask" && !opts.yes && !opts.json && process.stdout.isTTY) {
-          const answer = await askOnTerminal(`\n${renderQuestion(outcome.draft)} `);
-          if (answer === null) {
-            return fail(
-              `there is no terminal to ask on, so nothing was written. ` +
-                `Pass --yes to write it without the question, or --dry-run to see what it would be.`,
-            );
-          }
-          const choice = Number(answer);
-          if (Number.isInteger(choice) && choice >= 2 && choice <= outcome.draft.candidates.length) {
-            outcome.draft.chosenCandidate = choice - 1;
-          } else if (!/^y(es)?$/i.test(answer)) {
-            console.log("nothing written");
-            return;
-          }
-        }
-
-        const written =
-          opts.analysis !== undefined
-            ? analysisAsJson(attachAnalysis(file, benchmark, opts.analysis))
-            : null;
-        if (outcome) applyGrade(file, outcome);
-
-        const validation = validateAthleticStandardFile(file);
-        if (!validation.valid) {
-          const first = validation.issues.filter((i) => i.severity === "error").slice(0, 5);
-          return fail(
-            `that would make the file invalid, so nothing was written:\n` +
-              first.map((i) => `  ${i.path}: ${i.message}`).join("\n"),
-          );
-        }
-        saveFile(path, file);
-
-        if (opts.json) {
-          console.log(
-            JSON.stringify(
-              { ...(outcome ? gradeAsJson(outcome, true) : {}), ...(written ?? {}) },
-              null,
-              2,
-            ),
-          );
-          return;
-        }
-        if (outcome) console.log(`\n${renderGrade(outcome)}`);
-        if (written) {
-          console.log(
-            `analysis attached to '${written.prediction}'` +
-              ((written.miss_analysis as { unexplained: boolean }).unexplained ? ", marked unexplained" : ""),
-          );
-        }
-      } catch (e) {
-        if (e instanceof GradeRefusal) return fail((e as Error).message);
-        if (e instanceof LogRefusal) return fail((e as Error).message);
-        throw e;
+        const calculation = await calculate(database, {
+          operation: operation as (typeof CALCULATION_OPERATIONS)[number],
+          quantity,
+          record_kind:
+            opts.recordKind as (typeof CALCULATION_RECORD_KINDS)[number],
+          ...(periodType === undefined
+            ? {}
+            : { provider_period_type: periodType.data }),
+          group: opts.group as "none" | "day" | "week" | "month",
+          ...(opts.source === undefined ? {} : { source_id: opts.source }),
+          ...(opts.compareSource === undefined
+            ? {}
+            : { compare_source_id: opts.compareSource }),
+          ...(opts.otherQuantity === undefined
+            ? {}
+            : { other_quantity: opts.otherQuantity }),
+          ...(opts.session === undefined
+            ? {}
+            : { workout_session_id: opts.session }),
+          ...(opts.from === undefined ? {} : { from: opts.from }),
+          ...(opts.to === undefined ? {} : { to: opts.to }),
+          ...(opts.timezone === undefined ? {} : { time_zone: opts.timezone }),
+        });
+        console.log(
+          opts.json
+            ? JSON.stringify(calculation, null, 2)
+            : renderCalculation(calculation),
+        );
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
       }
     });
 
@@ -935,88 +1737,61 @@ export function buildProgram(): Command {
     .helpGroup(GROUPS.read)
     .description("read a sample series back: one row per day, or the raw samples")
     .addHelpText("after", EXAMPLES.series!)
-    .argument("<quantity>", `one of: ${Object.keys(SERIES_QUANTITY_UNITS).join(", ")}`)
-    .option("--from <date>", "earliest day to include (YYYY-MM-DD)")
-    .option("--to <date>", "latest day to include (YYYY-MM-DD)")
-    .option("--source <id>", "one device only, for when two measured the same thing — `ath stats` lists the ids")
+    .argument("<quantity>", `one of: ${Object.keys(V1_SERIES_QUANTITY_UNITS).join(", ")}`)
+    .option("--from <time>", "earliest day (YYYY-MM-DD) or exact UTC timestamp")
+    .option("--to <time>", "latest day (YYYY-MM-DD) or exact UTC timestamp")
+    .option("--source <id>", "one source only, for when two measured the same thing — `ath stats` lists the ids")
+    .option("--timezone <name>", "IANA timezone for calendar days; uses the athlete profile when omitted")
+    .option("--limit <count>", "maximum samples to read", parsePositiveInteger, 10_000)
     .option("--raw", "every sample, rather than one row per day")
     .option("--json", "structured output, for an agent rather than a person")
     .option("--file <path>", "read a file other than the one in this folder")
-    .action(
-      (
-        quantity: string,
-        opts: { from?: string; to?: string; source?: string; raw?: boolean; json?: boolean; file?: string },
-      ) => {
-        if (!(quantity in SERIES_QUANTITY_UNITS)) {
-          return fail(
-            `unknown quantity '${quantity}'. Known quantities: ` +
-              Object.keys(SERIES_QUANTITY_UNITS).join(", ") +
-              `. \`ath stats\` lists the ones this file actually holds.`,
-          );
-        }
-        const unit = SERIES_QUANTITY_UNITS[quantity as keyof typeof SERIES_QUANTITY_UNITS];
-
-        const path = findOrFail(opts.file);
-        let file: AthleticStandardFileT;
-        try {
-          file = loadFile(path);
-        } catch (e) {
-          return fail((e as Error).message);
-        }
-
-        const query = { quantity, from: opts.from, to: opts.to, source: opts.source };
-        const refs = matchingRefs(file, query);
-        if (refs.length === 0) {
-          const available = [
-            ...new Set(
-              file.hard_signals
-                .filter((s) => s.type === "series_ref")
-                .map((s) => (s as { quantity: string }).quantity),
-            ),
-          ].sort();
+    .action(async (
+      quantity: string,
+      opts: {
+        from?: string;
+        to?: string;
+        source?: string;
+        timezone?: string;
+        limit: number;
+        raw?: boolean;
+        json?: boolean;
+        file?: string;
+      },
+    ) => {
+      const parsedQuantity = SeriesQuantitySchema.safeParse(quantity);
+      if (!parsedQuantity.success) {
+        return fail(
+          `unknown quantity '${quantity}'. Known quantities: ` +
+            Object.keys(V1_SERIES_QUANTITY_UNITS).join(", ") +
+            `. \`ath stats\` lists the ones this database actually holds.`,
+        );
+      }
+      const path = findOrFail(opts.file);
+      const database = await openOrFail(path, opts.json);
+      try {
+        const view = await readSeriesView(database, parsedQuantity.data, {
+          ...(opts.from === undefined ? {} : { from: opts.from }),
+          ...(opts.to === undefined ? {} : { to: opts.to }),
+          ...(opts.source === undefined ? {} : { source_id: opts.source }),
+          ...(opts.timezone === undefined ? {} : { time_zone: opts.timezone }),
+          ...(opts.raw ? { raw: true } : {}),
+          limit: opts.limit,
+        });
+        if ((view.samples?.length ?? view.days?.length ?? 0) === 0) {
           return fail(
             opts.source
-              ? `no ${quantity} series from '${opts.source}'. Drop --source to see every ` +
-                `device that recorded it, or run \`ath stats\` for the source ids.`
-              : `no ${quantity} series in this file. Recorded: ${available.join(", ") || "none"}. ` +
-                `Import a device export to add more.`,
+              ? `no ${quantity} samples from '${opts.source}'. Drop --source or run \`ath stats\` for source IDs.`
+              : `no ${quantity} samples matched. Run \`ath stats\` to see the recorded series.`,
           );
         }
-
-        if (opts.raw) {
-          const days = readRawDays(path, refs, query);
-          console.log(
-            opts.json
-              ? JSON.stringify(
-                  {
-                    quantity,
-                    unit,
-                    coverage: coverageOfDays(
-                      quantity,
-                      days.map((d) => ({ day: d.day, source: d.source, n: d.samples.length })),
-                    ),
-                    days,
-                  },
-                  null,
-                  2,
-                )
-              : renderRawDays(quantity, unit, days),
-          );
-          return;
-        }
-
-        const rows = summarizeDays(path, refs, query);
-        console.log(
-          opts.json
-            ? JSON.stringify(
-                { quantity, unit, coverage: coverageOfDays(quantity, rows), days: rows },
-                null,
-                2,
-              )
-            : renderDaySummaries(quantity, unit, rows),
-        );
-      },
-    );
+        console.log(opts.json ? JSON.stringify(view, null, 2) : renderSeriesView(view));
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
+      }
+    });
 
   program
     .command("stats")
@@ -1024,134 +1799,152 @@ export function buildProgram(): Command {
     .description("what is in the file: counts, date ranges, sources, and baselines")
     .addHelpText("after", EXAMPLES.stats!)
     .argument("[file]", "the file to summarize (default: the one in this folder)")
+    .option("--file <path>", "summarize a database other than the one in this folder")
     .option("--json", "structured output, for an agent rather than a person")
-    .action((fileArg, opts: { json?: boolean }) => {
-      const path = findOrFail(fileArg);
-      const file = loadFile(path);
-      console.log(
-        opts.json ? JSON.stringify(statsAsJson(file, path), null, 2) : renderStats(file, path),
-      );
+    .action(async (fileArg, opts: { file?: string; json?: boolean }) => {
+      const path = findOrFail(opts.file ?? fileArg);
+      const database = await openOrFail(path, opts.json);
+      try {
+        const stats = await databaseStats(database);
+        console.log(
+          opts.json ? JSON.stringify(stats, null, 2) : renderDatabaseStats(stats),
+        );
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
+      }
+    });
+
+  const recordsCommand = program
+    .command("records")
+    .helpGroup(GROUPS.read)
+    .description("find stable record IDs, inspect one record, and read its revision history")
+    .addHelpText("after", EXAMPLES.records!);
+
+  recordsCommand
+    .command("list")
+    .description("list current records in stable order")
+    .option("--type <record-type>", "show one record type")
+    .option("--include-deleted", "include records hidden by a normal deletion")
+    .option("--limit <count>", "maximum records to return", parsePositiveInteger, 100)
+    .option("--file <path>", "read a database other than the one in this folder")
+    .option("--json", "structured output, for an agent rather than a person")
+    .action(async (opts: {
+      type?: string;
+      includeDeleted?: boolean;
+      limit: number;
+      file?: string;
+      json?: boolean;
+    }) => {
+      const recordType = opts.type === undefined ? undefined : RecordType.safeParse(opts.type);
+      if (recordType !== undefined && !recordType.success) {
+        return fail(
+          `unknown record type '${opts.type}'. Known types: ${RecordType.options.join(", ")}`,
+        );
+      }
+      const path = findOrFail(opts.file);
+      const database = await openOrFail(path, opts.json);
+      try {
+        const records = await listRecords(database, {
+          ...(recordType === undefined ? {} : { record_type: recordType.data }),
+          ...(opts.includeDeleted ? { include_deleted: true } : {}),
+          limit: opts.limit,
+        });
+        console.log(
+          opts.json
+            ? JSON.stringify({ file: path, records }, null, 2)
+            : renderRecordList(records),
+        );
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
+      }
+    });
+
+  recordsCommand
+    .command("show")
+    .description("show one record, one revision, its history, or its links")
+    .argument("<record-id>", "stable UUIDv7 record ID")
+    .option("--revision <number>", "show this retained revision", parsePositiveInteger)
+    .option("--history", "include the revision timeline")
+    .option("--links", "include incoming and outgoing record links")
+    .option("--file <path>", "read a database other than the one in this folder")
+    .option("--json", "structured output, for an agent rather than a person")
+    .action(async (
+      recordId: string,
+      opts: {
+        revision?: number;
+        history?: boolean;
+        links?: boolean;
+        file?: string;
+        json?: boolean;
+      },
+    ) => {
+      const path = findOrFail(opts.file);
+      const database = await openOrFail(path, opts.json);
+      try {
+        const record = await readRecord(database, recordId);
+        if (record === null) {
+          return fail(`record not found: ${recordId}`);
+        }
+        const revisions =
+          opts.revision !== undefined || opts.history
+            ? await readRecordRevisions(database, recordId)
+            : undefined;
+        const shownRevision =
+          opts.revision === undefined
+            ? undefined
+            : revisions?.find((revision) => revision.revision === opts.revision);
+        if (opts.revision !== undefined && shownRevision === undefined) {
+          return fail(
+            `record ${recordId} has no revision ${opts.revision}; current revision is ${record.current_revision}`,
+          );
+        }
+        const links = opts.links ? await readRecordLinks(database, recordId) : undefined;
+        if (opts.json) {
+          console.log(
+            JSON.stringify(
+              {
+                file: path,
+                record,
+                ...(shownRevision === undefined
+                  ? {}
+                  : { shown_revision: shownRevision }),
+                ...(opts.history ? { history: revisions } : {}),
+                ...(links === undefined ? {} : { links }),
+              },
+              null,
+              2,
+            ),
+          );
+        } else {
+          console.log(
+            renderRecord(record, {
+              ...(shownRevision === undefined ? {} : { revision: shownRevision }),
+              ...(opts.history && revisions !== undefined ? { history: revisions } : {}),
+              ...(links === undefined ? {} : { links }),
+            }),
+          );
+        }
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
+      }
     });
 
   return program;
 }
 
-/**
- * Verify the sample series the document describes (D25, narrowed by D40).
- *
- * One rule: hash what is on disk for each quantity and compare. A missing day, an
- * extra day, and an edited day all change the hash, all say the same thing, and all
- * have the same remedy — import again, which rewrites the files and the record
- * together. Telling those apart would hand the reader a distinction they cannot act
- * on differently.
- *
- * No `series/` folder at all is the exception, and it is normal: that is the
- * document travelling without its sidecars, which it is meant to survive.
- */
-function seriesIssues(path: string, result: ValidationResult): ValidationIssue[] {
-  if (!result.valid) return [];
-
-  let file: AthleticStandardFileT;
-  try {
-    file = loadFile(path);
-  } catch {
-    return [];
-  }
-
-  const refs = file.hard_signals.filter(
-    (s): s is Extract<typeof s, { type: "series_ref" }> => s.type === "series_ref",
-  );
-  if (refs.length === 0) return [];
-
-  if (!existsSync(seriesDirectory(path))) {
-    return [
-      {
-        severity: "warning",
-        path: SERIES_DIR,
-        message:
-          `series data not present — the document describes ${refs.length} series but the ` +
-          `${SERIES_DIR}/ folder is not here. Everything else still reads normally.`,
-      },
-    ];
-  }
-
-  const issues: ValidationIssue[] = [];
-  for (const ref of refs) {
-    if (checkSeriesRef(path, ref).status === "mismatch") {
-      issues.push({
-        severity: "error",
-        path: `${SERIES_DIR}/${ref.quantity}`,
-        message:
-          `${ref.quantity} for ${ref.source} doesn't match what was recorded — ` +
-          `re-import to fix`,
-      });
-    }
-  }
-  return issues;
-}
-
-/**
- * Offer each waiting match, and return how many were attached.
- *
- * With no terminal it prints the candidates and the command that links them, because
- * a match nobody was told about is a match nobody makes.
- */
-async function offerWaitingMatches(waiting: ReturnType<typeof waitingMatches>): Promise<number> {
-  const plural = waiting.length === 1 ? "result" : "results";
-  console.log(
-    `\n${waiting.length} ${plural} logged earlier now have a session on the same day:`,
-  );
-
-  let linked = 0;
-  for (const { result, candidates } of waiting) {
-    const day = result.recorded_at.slice(0, 10);
-    const best = candidates[0]!;
-    console.log(`  ${result.benchmark} on ${day} — ${best.label}`);
-
-    if (!process.stdout.isTTY) {
-      console.log(`    ath link ${result.benchmark}@${day} ${best.start.slice(11, 16)}`);
-      continue;
-    }
-
-    const extra = candidates
-      .slice(1, 4)
-      .map((c, i) => `  [${i + 2}] the ${c.start.slice(11, 16)} one`)
-      .join("");
-    const answer = await askOnTerminal(`    link it? [y] yes  [n] no${extra} `);
-    if (answer === null) return linked;
-    const choice = Number(answer);
-    const pick =
-      Number.isInteger(choice) && choice >= 2 && choice <= candidates.length
-        ? candidates[choice - 1]!
-        : /^y(es)?$/i.test(answer)
-          ? best
-          : null;
-    if (!pick) continue;
-    result.session = { source: pick.source, start: pick.start };
-    linked++;
-  }
-  return linked;
-}
-
-interface GradeCliOptions {
-  actual?: string;
-  date?: string;
-  scaling?: "rx" | "scaled";
-  analysis?: string;
-  file?: string;
-  yes?: boolean;
-  again?: boolean;
-  dryRun?: boolean;
-  json?: boolean;
-}
-
-interface LogOptions {
+interface V1LogOptions {
   benchmark?: string;
-  date?: string;
-  scaling?: "rx" | "scaled";
+  at?: string;
+  agent?: string;
+  attachment?: string[];
   file?: string;
   yes?: boolean;
-  again?: boolean;
   dryRun?: boolean;
   json?: boolean;
 }
@@ -1160,6 +1953,7 @@ interface PredictCliOptions {
   model?: string;
   gateway?: string;
   asOf?: string;
+  timezone?: string;
   file?: string;
   yes?: boolean;
   dryRun?: boolean;
@@ -1179,22 +1973,161 @@ function collectModels(value: string, prev: string[]): string[] {
   return [...prev, value];
 }
 
+function collectValues(value: string, previous: string[]): string[] {
+  return [...previous, value];
+}
+
+function parsePositiveInteger(value: string): number {
+  const parsed = Number(value);
+  if (!Number.isInteger(parsed) || parsed < 1) {
+    throw new Error(`expected a positive whole number, not '${value}'`);
+  }
+  return parsed;
+}
+
+function parsePredictionResponse(content: string): Record<string, unknown> {
+  const trimmed = content
+    .trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/, "");
+  let value: unknown;
+  try {
+    value = JSON.parse(trimmed);
+  } catch (error) {
+    throw new Error(`model did not return valid prediction JSON: ${(error as Error).message}`);
+  }
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    throw new Error("model prediction response must be one JSON object");
+  }
+  return value as Record<string, unknown>;
+}
+
+function renderImportPreview(preview: {
+  source_database_id: string;
+  source_database_revision: number;
+  destination_database_id: string;
+  destination_database_revision: number;
+  restore: boolean;
+  new_records: readonly string[];
+  new_record_count: number;
+  matching_records: readonly string[];
+  matching_record_count: number;
+  changed_records: readonly string[];
+  changed_record_count: number;
+  record_lists_truncated: boolean;
+  conflicts: readonly { record_id?: string; message: string }[];
+  unrepresentable_records: readonly string[];
+  unknown_fields: readonly string[];
+}): string {
+  const lines = [
+    `${preview.restore ? "restore" : "merge"} preview`,
+    `  source database:      ${preview.source_database_id} revision ${preview.source_database_revision}`,
+    `  destination database: ${preview.destination_database_id} revision ${preview.destination_database_revision}`,
+    `  new records:          ${preview.new_record_count}`,
+    `  matching records:     ${preview.matching_record_count}`,
+    `  changed records:      ${preview.changed_record_count}`,
+    `  conflicts:            ${preview.conflicts.length}`,
+    `  unrepresentable:       ${preview.unrepresentable_records.length}`,
+    `  unknown fields:        ${preview.unknown_fields.length}`,
+  ];
+  if (preview.record_lists_truncated) {
+    lines.push("  record ID lists:      first 1,000 per category");
+  }
+  for (const conflict of preview.conflicts) {
+    lines.push(
+      `    ${conflict.record_id === undefined ? "" : `${conflict.record_id}: `}` +
+        conflict.message,
+    );
+  }
+  return lines.join("\n");
+}
+
+function renderProviderImportPreview(preview: {
+  imported: string;
+  destination_database_revision: number;
+  new_records: readonly { record_id: string; record_type: string }[];
+  matching_records: readonly { record_id: string; record_type: string }[];
+  changed_records: readonly {
+    record_id: string;
+    record_type: string;
+    current_revision: number;
+  }[];
+  conflicts: readonly { record_id?: string; message: string }[];
+  skipped: Readonly<Record<string, { count: number; example?: string }>>;
+}): string {
+  const skippedCount = Object.values(preview.skipped).reduce(
+    (total, skipped) => total + skipped.count,
+    0,
+  );
+  const lines = [
+    `${preview.imported} preview`,
+    `  destination revision: ${preview.destination_database_revision}`,
+    `  new records:         ${preview.new_records.length}`,
+    `  matching records:    ${preview.matching_records.length}`,
+    `  changed records:     ${preview.changed_records.length}`,
+    `  conflicts:           ${preview.conflicts.length}`,
+    `  skipped rows:        ${skippedCount}`,
+  ];
+  for (const conflict of preview.conflicts) {
+    lines.push(
+      `    ${conflict.record_id === undefined ? "" : `${conflict.record_id}: `}` +
+        conflict.message,
+    );
+  }
+  for (const [reason, skipped] of Object.entries(preview.skipped)) {
+    lines.push(
+      `    skipped ${skipped.count} — ${reason}` +
+        `${skipped.example === undefined ? "" : ` (example: ${skipped.example})`}`,
+    );
+  }
+  return lines.join("\n");
+}
+
+function isAthleticStandardPackagePath(path: string): boolean {
+  return (
+    path.toLowerCase().endsWith(".json") ||
+    existsSync(join(path, "athlete.ath.json"))
+  );
+}
+
 function parseGateway(value: string): "vercel" | "openrouter" {
   if (isGatewayName(value)) return value;
   fail(`unknown gateway '${value}'. Use vercel or openrouter.`);
 }
 
-/**
- * Who will answer the one question, which is what the session match turns on (D68).
- *
- * `--yes` is agreement in advance, not permission to choose between two real
- * sessions. `--dry-run` previews the interactive run, so it answers the same way a
- * terminal would. Everything else has nobody to ask.
- */
-function whoAnswers(opts: { yes?: boolean; dryRun?: boolean; json?: boolean }): Confirm {
-  if (opts.yes) return "assume";
-  if (opts.dryRun || (process.stdout.isTTY === true && !opts.json)) return "ask";
-  return "none";
+function renderLogPlan(plan: LogPlan): string {
+  const lines = [
+    `understood: ${plan.interpretation}`,
+    `records to write: ${plan.inputs.length}`,
+  ];
+  for (const input of plan.inputs) {
+    lines.push(`  ${input.record_id}  ${input.record_type}`);
+    lines.push(
+      ...JSON.stringify(input.data, null, 2)
+        .split("\n")
+        .map((line) => `    ${line}`),
+    );
+  }
+  return lines.join("\n");
+}
+
+async function confirmWrite(
+  opts: { yes?: boolean; dryRun?: boolean; json?: boolean },
+  question: string,
+): Promise<boolean> {
+  if (opts.json || opts.dryRun) {
+    return false;
+  }
+  if (opts.yes) {
+    return true;
+  }
+  if (!process.stdout.isTTY) {
+    fail(
+      `there is no terminal to ask on, so nothing was written. Pass --yes after reviewing the preview.`,
+    );
+  }
+  const answer = await askOnTerminal(`${question} [y] yes  [n] no `);
+  return /^y(es)?$/i.test(answer ?? "");
 }
 
 /** Everything piped or pasted, to the end. Empty when nothing is coming. */
@@ -1237,6 +2170,18 @@ function findOrFail(fileArg?: string): string {
     return findFile(fileArg);
   } catch (e) {
     return fail((e as Error).message);
+  }
+}
+
+async function openOrFail(path: string, json = false): Promise<AthleticDatabase> {
+  try {
+    return await openDatabase(path, {
+      onSecurityWarning: (warning) => {
+        if (!json) console.warn(`ath: warning: ${warning}`);
+      },
+    });
+  } catch (error) {
+    return fail((error as Error).message);
   }
 }
 

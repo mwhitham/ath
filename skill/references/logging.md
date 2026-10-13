@@ -1,125 +1,286 @@
-# Logging what someone said
+# Logging v1 records
 
-Write through `ath log`. It takes either what a person typed, or structured JSON
-from you. Use the JSON. A prediction you made is written here, naming you and your
-model. When the terminal itself called a model, `ath predict` writes that one.
+`ath log` is the general record-creation command. It is the only command that enters
+a benchmark result.
 
-## Pass JSON, and let the shape decide
+It accepts either:
 
-Three shapes, and they do not overlap, so nothing is guessed:
+- one plain-text entry for a common manual record; or
+- one v1 `{ "record_type": "...", "data": { ... } }` object; or
+- an array of those v1 objects, written in one transaction.
 
-- A `type` from the measured list is a measurement.
-- A `type` from the self-reported list is a self-reported entry.
-- `predicted` and `confidence`, with no `type`, is a prediction.
+## Preview before writing
 
-Pass one object, or an array of them when you have several records to write at once. Typed text is always one record per command.
+For an agent, preview with `--json`:
 
+```sh
+ath log RMSSD 61 ms --json
 ```
-ath log '{"type":"hrv_rmssd","value":61,"unit":"ms","recorded_at":"2026-09-07T06:10:00-07:00"}'
+
+`--json` never acts as confirmation. Show the returned interpretation and records.
+After approval, repeat the command without `--json` and pass `--yes`:
+
+```sh
+ath log RMSSD 61 ms --yes
 ```
 
-Leave `source` off a measurement and it goes to the manual source, which is right:
-the athlete read it off a screen and typed it. Only name a device source for data an
-importer actually wrote.
+Without `--yes`, an interactive terminal asks before writing.
 
-## Echo the interpretation back before you write
+## Plain text
 
-Say what you understood, in one short summary, and let the athlete correct it. `ath
-log` shows its own summary and asks once when a person runs it; when you run it with
-`-y` there is nobody to ask, so you are the one who has to ask.
+The plain-text parser is intentionally narrow. It supports:
 
-The thing worth checking is the kind. Which side of the wall a record lands on is the
-one guess that cannot be undone by eye later: a sentence filed as a measurement looks
-like a measurement forever.
+- a known point quantity, number, and exact standard unit;
+- a time-scored benchmark result such as `Fran in 4:41 rx`;
+- a rating such as `sore quads 4/5`;
+- any other text as an athlete note.
 
-## Rules that are yours to keep
+Examples:
 
-- **Never write a device source for a number someone typed.**
-- **Keep the athlete's words.** Put the sentence in `note`. Your paraphrase is not the
-  record.
-- **A rating needs its scale.** `4/5` is `rating: 4, scale: "1-5"`.
-- **Free text is never a prediction.** A prediction is reasoned from evidence, and it
-  gets written only after you have read `ath predict --json`.
-- **When you are unsure between a measurement and a note, write the note.** A note
-  loses nothing. A wrong measurement corrupts a baseline.
+```sh
+ath log RMSSD 61 ms
+ath log resting heart rate 52 bpm
+ath log sore quads 4/5
+ath log Fran in 4:41 rx
+ath log Easy session, no soreness
+```
 
-## Naming a workout
+Say `RMSSD` or `SDNN`. Plain `HRV` is refused because those statistics must not
+share a baseline.
 
-A workout logged without a name still gets one, because the benchmark is how every
-later comparison finds it. Without you, `ath log` names it after its date. That works
-and loses nothing — the definition holds the text word for word either way — but a
-date is a poor name for something that has one.
+A point measurement entered as text uses the database's `manual` source. It is
+never treated as device evidence.
 
-So name it, and pass `--benchmark <name>`. Three cases:
+Use `--at 2026-10-13T04:00:00.000Z` for an exact earlier event time. Normalized
+times use UTC with fixed millisecond precision.
 
-1. **It is a known benchmark, as written.** Use that name: `fran`, `grace`, `murph`.
-   Check the definition matches, including loads and rep scheme. Fran at 43 kg is
-   Fran; Fran at 30 kg is not.
-2. **It is a near variation.** Say so in the name: `fran-dumbbell`, `helen-rowing`,
-   `murph-partitioned`. The name should tell a reader in a year what changed.
-3. **It is neither.** Make something short and memorable that gestures at the work:
-   `emom-30-snatch`, `chipper-2026-09-04`. Two words at most.
+Use `--benchmark <key>` to name a time-scored result when the text does not contain
+the intended benchmark name. If the key does not exist, the plain path creates a
+custom time-scored benchmark definition in the same transaction.
 
-A benchmark that does not exist yet is created by `ath log`, not refused. Use the
-same name again when the same workout is repeated, or the comparison the benchmark
-exists for will not work.
+Reuse a benchmark key only when the test definition is the same. A near variation
+with different movements, loading, distance, or scoring needs a new definition.
+Common named keys include `fran` and `murph`. Keep each `hyrox` course or division
+under the definition that describes its exact stations and scoring.
 
-Score type follows the workout: for time is `time`, for reps or rounds is `reps`, a
-one-rep max is `load`. A benchmark's score type cannot change once results exist, so
-if a repeat is scored differently, it is a different benchmark.
+Use structured input for rep scores, load scores, plans, predictions, nutrition,
+and other records outside the narrow text parser.
 
-## The reference list
+## Attachments
 
-Enough to recognise the common ones. Definitions are the standard versions; check the
-loads before matching.
+Attach a PNG, JPEG, WebP, or PDF to one athlete report or nutrition entry:
 
-**CrossFit benchmarks (time unless noted)**
+```sh
+ath log Meal photo --attachment ./receipt.png --json
+ath log Meal photo --attachment ./receipt.png --yes
+```
 
-| Name | Work |
-|---|---|
-| fran | 21-15-9 thrusters 43/29 kg, pull-ups |
-| grace | 30 clean and jerks 61/43 kg |
-| isabel | 30 snatches 61/43 kg |
-| elizabeth | 21-15-9 cleans 61/43 kg, ring dips |
-| diane | 21-15-9 deadlifts 102/70 kg, handstand push-ups |
-| helen | 3 rounds: 400 m run, 21 kettlebell swings 24/16 kg, 12 pull-ups |
-| jackie | 1000 m row, 50 thrusters 20/15 kg, 30 pull-ups |
-| karen | 150 wall balls 9/6 kg |
-| annie | 50-40-30-20-10 double-unders, sit-ups |
-| barbara | 5 rounds: 20 pull-ups, 30 push-ups, 40 sit-ups, 50 squats, 3 min rest |
-| chelsea | EMOM 30 min: 5 pull-ups, 10 push-ups, 15 squats (reps) |
-| cindy | 20 min AMRAP: 5 pull-ups, 10 push-ups, 15 squats (reps) |
-| angie | 100 each: pull-ups, push-ups, sit-ups, squats |
-| nancy | 5 rounds: 400 m run, 15 overhead squats 43/29 kg |
-| kelly | 5 rounds: 400 m run, 30 box jumps 24/20 in, 30 wall balls |
-| linda | 10-9-8…1 deadlift 1.5x bw, bench 1x bw, clean 0.75x bw |
-| mary | 20 min AMRAP: 5 handstand push-ups, 10 pistols, 15 pull-ups (reps) |
-| nicole | 20 min AMRAP: 400 m run, max pull-ups (reps) |
+Pass `--attachment` more than once for several files. Each file may be at most
+25 MiB. The command reads the real file type from its bytes. It refuses symbolic
+links, unsupported images, and a file whose bytes do not match a supported type.
 
-**Hero workouts (time)**
+The preview includes the attachment records and links. `--json` does not copy any
+file. After confirmation, the records, hashes, links, and owner-only stored files
+are written together. A structured batch with attachments must have exactly one
+`athlete_report` or `nutrition_entry` to own them.
 
-| Name | Work |
-|---|---|
-| murph | 1 mile run, 100 pull-ups, 200 push-ups, 300 squats, 1 mile run, vest 9/6 kg |
-| dt | 5 rounds: 12 deadlifts, 9 hang power cleans, 6 push jerks, 70/47 kg |
-| chad | 1000 box step-ups 20 in, ruck 20/14 kg |
-| jt | 21-15-9 handstand push-ups, ring dips, push-ups |
-| randy | 75 power snatches 34/24 kg |
-| the-seven | 7 rounds: 7 each of handstand push-ups, thrusters, knees-to-elbows, deadlifts, burpees, kettlebell swings, pull-ups |
+## Structured envelope
 
-**HYROX (time)**
+Each item has:
 
-Full: 8 × (1 km run + station), stations in order — ski erg 1000 m, sled push 50 m,
-sled pull 50 m, burpee broad jumps 80 m, row 1000 m, farmers carry 200 m, sandbag
-lunges 100 m, wall balls 100/75 reps. Also `hyrox-doubles`, `hyrox-relay`, and the
-single stations when trained alone.
+| Top-level field | Required | Meaning |
+|---|---|---|
+| `record_type` | yes | A v1 record type except the tool-managed prediction-result link and grade |
+| `data` | yes | Complete typed v1 data object |
+| `record_id` | no | Lowercase UUIDv7; generated when omitted |
+| `created_at` | no | UTC millisecond timestamp; current time when omitted |
 
-**Running and endurance (time)**
+Example athlete report:
 
-`1-mile-run`, `5k-run`, `10k-run`, `half-marathon`, `marathon`, `70.3`, `ironman`.
+```json
+{
+  "record_type": "athlete_report",
+  "data": {
+    "report_type": "soreness",
+    "reported_at": "2026-10-13T04:00:00.000Z",
+    "input_reported_at": {
+      "timestamp_text": "2026-10-13T04:00:00.000Z",
+      "utc_offset_text": "Z",
+      "utc_offset_meaning": "documented_recording_offset",
+      "timestamp_basis": "source_instant"
+    },
+    "reported_via": "text",
+    "rating": 4,
+    "rating_scale": "1-5",
+    "body_region": "quads",
+    "note": "Quads sore after intervals, 4/5."
+  }
+}
+```
 
-**Lifts (load)**
+Run `ath log`, paste the object, and press Ctrl-D. A shell-quoted JSON object also
+works.
 
-`back-squat`, `front-squat`, `deadlift`, `bench-press`, `strict-press`, `power-clean`,
-`clean-and-jerk`, `snatch`. Name the rep count when it is not a single:
-`back-squat-3rm`.
+An array uses the same item envelope:
+
+```json
+[
+  {
+    "record_type": "athlete_report",
+    "data": {
+      "report_type": "energy",
+      "reported_at": "2026-10-13T04:00:00.000Z",
+      "input_reported_at": {
+        "timestamp_text": "2026-10-13T04:00:00.000Z",
+        "utc_offset_text": "Z",
+        "utc_offset_meaning": "documented_recording_offset",
+        "timestamp_basis": "source_instant"
+      },
+      "reported_via": "text",
+      "rating": 3,
+      "rating_scale": "1-5",
+      "note": "Energy 3/5."
+    }
+  },
+  {
+    "record_type": "goal",
+    "data": {
+      "authorship": {
+        "author": {
+          "author_type": "agent",
+          "agent": "agent-harness",
+          "model": "model-id"
+        },
+        "authored_at": "2026-10-13T04:00:00.000Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "title": "Repeat the current benchmark"
+    }
+  }
+]
+```
+
+Every item is validated before the batch writes. One invalid item means nothing is
+written.
+
+Structured logging cannot create `prediction_result_link` or `prediction_grade`
+records. Those records must come from automatic result handling or `ath grade`, so
+the tool can validate the exact prediction and result revisions and calculate the
+grade.
+
+`--agent <name>` names the actor making the structured database change. It does not
+fill `data.authorship`. An authored record must still identify its athlete, agent,
+or tool author inside `data`.
+
+## Structured measured records
+
+Structured measured data needs an existing source ID. Find sources first:
+
+```sh
+ath records list --type source --json
+```
+
+Do not claim a device source for a number supplied by the athlete. Use the manual
+source ID for hand-entered measurements and results.
+
+Example point measurement:
+
+```json
+{
+  "record_type": "point_measurement",
+  "data": {
+    "source_id": "01890f3e-e7d3-7cc0-88c8-000000000001",
+    "received_at": "2026-10-13T04:00:00.000Z",
+    "received_at_basis": "local_write_time",
+    "quantity": "hrv_rmssd",
+    "recorded_at": "2026-10-13T04:00:00.000Z",
+    "input_timestamp": {
+      "timestamp_text": "2026-10-13T04:00:00.000Z",
+      "utc_offset_text": "Z",
+      "utc_offset_meaning": "documented_recording_offset",
+      "timestamp_basis": "source_instant"
+    },
+    "value": {
+      "standard_value": 61,
+      "standard_unit": "ms",
+      "input_value": 61,
+      "input_unit": "ms"
+    }
+  }
+}
+```
+
+Every measured record requires `source_id`, `received_at`, and
+`received_at_basis`. Source values keep both the standard value and source receipt.
+See [format.md](format.md) for other measured fields and units.
+
+Athlete reports and nutrition entries have no `source_id`. Unknown fields are
+rejected by their v1 data schemas.
+
+## Authored records
+
+Predictions, grades, error analyses, plans, planned sessions, coaching notes, saved
+reviews, goals, benchmark definitions, and nutrition interpretations carry
+`authorship`.
+
+Agent authorship requires:
+
+```json
+{
+  "author": {
+    "author_type": "agent",
+    "agent": "agent-harness",
+    "model": "model-id"
+  },
+  "authored_at": "2026-10-13T04:00:00.000Z",
+  "evidence": [
+    {
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+      "revision": 1
+    }
+  ],
+  "content_version": 1,
+  "status": "active"
+}
+```
+
+Evidence always names an exact record ID and revision.
+
+## Benchmark results and automatic grading
+
+A structured benchmark result names `benchmark_definition_id`, not a benchmark key.
+Find it with:
+
+```sh
+ath records list --type benchmark_definition --json
+```
+
+When a new result has exactly one matching open prediction, the same log transaction
+adds a `prediction_result_link` and a tool-authored `prediction_grade`. The preview
+shows all records.
+
+No open prediction means only the result is written. Several matching predictions
+mean no link or grade is guessed. Use explicit grading afterwards:
+
+```sh
+ath grade <prediction-id> --result <result-id> --json
+```
+
+## Corrections are not new logs
+
+Use `ath correct` to replace the complete data of an existing record while keeping
+its ID and prior revisions:
+
+```sh
+ath records show <record-id> --history --json
+ath correct <record-id> --revision <current-revision> \
+  --data '<complete-data-object>' --json
+```
+
+Pass `--attachment <path>` while correcting an athlete report or nutrition entry to
+create and link a new attachment in the same database revision.
+
+Use `ath link` to add or change a benchmark result's workout-session link. Do not
+log a duplicate result to correct a value or link.

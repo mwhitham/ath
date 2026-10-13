@@ -41,6 +41,22 @@ export interface Sample {
   at: string;
   value: number;
   durationMs?: number;
+  inputTimestampText?: string;
+  inputUtcOffsetText?: string;
+  inputUtcOffsetMeaning?:
+    | "documented_recording_offset"
+    | "provider_cycle_offset"
+    | "route_rendering_offset"
+    | "meaning_not_documented";
+  inputTimestampBasis?:
+    | "source_instant"
+    | "source_offset_timestamp"
+    | "source_local_timestamp_with_documented_offset"
+    | "reconstructed_from_series_start";
+  inputSourceTimeZone?: string;
+  inputSourceTimeZoneMeaning?: "apple_health_object_creation_time_zone";
+  inputValue?: number;
+  inputUnit?: string;
 }
 
 /** Stable field order and a trailing newline, so sidecars diff cleanly under git. */
@@ -84,6 +100,8 @@ export interface BuiltSeries {
   n: number;
   sha256: string;
   content: string;
+  /** Parser-only receipts. They are not written to the 0.x sidecar encoding. */
+  samples: readonly Sample[];
 }
 
 /**
@@ -126,6 +144,7 @@ export function buildSeries(
     n: sorted.length,
     sha256: hashSeriesContent(content),
     content,
+    samples: sorted,
   };
 }
 
