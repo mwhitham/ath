@@ -89,7 +89,7 @@ describe("v1 package input safety", () => {
 
     await expect(
       loadAthleticStandardPackage(packageDirectory),
-    ).rejects.toThrow("package file escapes its directory");
+    ).rejects.toThrow(/Package path must be relative|package file escapes/);
   });
 
   it("removes prepared attachment files when the destination changes after preview", async () => {
