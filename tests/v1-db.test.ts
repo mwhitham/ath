@@ -1,6 +1,7 @@
 import { chmod, lstat, mkdir, mkdtemp, rm, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
 import { afterEach, describe, expect, it } from "vitest";
@@ -820,20 +821,42 @@ describe("v1 WAL behavior", () => {
 
   it("discards an uncommitted write when a connection closes", async () => {
     const { database, path } = await newDatabase();
-    const interrupted = createClient({ url: pathToFileURL(path).href });
-    await interrupted.execute("PRAGMA foreign_keys = ON");
-    await interrupted.execute("BEGIN IMMEDIATE");
-    await interrupted.execute({
-      sql: `
-        INSERT INTO record_erasure_markers (
-          record_id,
-          erased_at,
-          reason_code
-        ) VALUES (?, ?, 'other')
-      `,
-      args: [reportId, createdAt],
+    const interrupted = spawnSync(
+      process.execPath,
+      [
+        "--input-type=module",
+        "--eval",
+        `
+          import { createClient } from "@libsql/client";
+          const [databaseUrl, recordId, erasedAt] = process.argv.slice(1);
+          const client = createClient({ url: databaseUrl });
+          await client.execute("PRAGMA foreign_keys = ON");
+          await client.execute("BEGIN IMMEDIATE");
+          await client.execute({
+            sql: \`
+              INSERT INTO record_erasure_markers (
+                record_id,
+                erased_at,
+                reason_code
+              ) VALUES (?, ?, 'other')
+            \`,
+            args: [recordId, erasedAt],
+          });
+          process.exit(0);
+        `,
+        pathToFileURL(path).href,
+        reportId,
+        createdAt,
+      ],
+      {
+        cwd: process.cwd(),
+        encoding: "utf8",
+      },
+    );
+    expect(interrupted).toMatchObject({
+      status: 0,
+      signal: null,
     });
-    interrupted.close();
 
     const recovered = await databaseClient(database).execute({
       sql: "SELECT COUNT(*) AS count FROM record_erasure_markers WHERE record_id = ?",
