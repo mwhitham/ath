@@ -70,6 +70,7 @@ import {
   listRecords,
   loadAthleticStandardPackage,
   openDatabase,
+  PackageRepresentationError,
   planLogEntry,
   planPredictionGrade,
   prepareAttachments,
@@ -452,6 +453,42 @@ export function buildProgram(): Command {
             `${imported.database_revision}`,
         );
       } catch (error) {
+        if (error instanceof PackageRepresentationError) {
+          const destination = await databaseStats(database);
+          const output = {
+            source_database_id:
+              error.source_database_id ?? "unavailable",
+            source_database_revision:
+              error.source_database_revision ?? 0,
+            destination_database_id: destination.database_id,
+            destination_database_revision: destination.database_revision,
+            restore:
+              destination.database_revision === 0 &&
+              destination.current_records.total === 0,
+            new_records: [],
+            new_record_count: 0,
+            matching_records: [],
+            matching_record_count: 0,
+            changed_records: [],
+            changed_record_count: 0,
+            record_lists_truncated: false,
+            conflicts: [],
+            unrepresentable_records: error.unrepresentable_records,
+            unknown_fields: error.unknown_fields,
+            write_confirmed: false,
+          };
+          console.log(
+            opts.json
+              ? JSON.stringify(output, null, 2)
+              : renderImportPreview(output),
+          );
+          if (!opts.json) {
+            console.log(
+              "nothing written; every unknown field and unrepresentable record must be resolved",
+            );
+          }
+          return;
+        }
         return fail((error as Error).message);
       } finally {
         database.close();

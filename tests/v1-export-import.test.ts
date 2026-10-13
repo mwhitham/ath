@@ -3,6 +3,8 @@ import {
   mkdtempSync,
   readFileSync,
   readdirSync,
+  rmSync,
+  writeFileSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
@@ -324,5 +326,60 @@ describe("v1 package restore", () => {
     ], directory);
     expect(prerelease.code).toBe(1);
     expect(prerelease.stdout).toContain("prerelease JSON format");
+  });
+
+  it("reports unknown fields and unrepresentable records without writing", () => {
+    const directory = mkdtempSync(join(tmpdir(), "ath-v1-unsupported-package-"));
+    const packageDirectory = join(directory, "package");
+    expect(
+      ath(["export", packageDirectory, "--file", FIXTURE], directory).code,
+    ).toBe(0);
+    rmSync(join(packageDirectory, "export-manifest.json"));
+    const documentPath = join(packageDirectory, "athlete.ath.json");
+    const document = JSON.parse(readFileSync(documentPath, "utf8")) as {
+      database_id: string;
+      database_revision: number;
+      records: Array<{ current_revision: number }>;
+      future_package_field?: string;
+    };
+    document.future_package_field = "not understood by v1";
+    document.records[0]!.current_revision = 0;
+    writeFileSync(documentPath, `${JSON.stringify(document)}\n`, { mode: 0o600 });
+
+    const destination = join(directory, "destination.ath.sqlite");
+    expect(
+      ath(
+        ["init", "--empty", "--no-skill", "--file", destination, "--yes"],
+        directory,
+      ).code,
+    ).toBe(0);
+    const preview = ath(
+      [
+        "import",
+        packageDirectory,
+        "--file",
+        destination,
+        "--json",
+        "--yes",
+      ],
+      directory,
+    );
+    expect(preview.code).toBe(0);
+    expect(JSON.parse(preview.stdout)).toMatchObject({
+      source_database_id: document.database_id,
+      source_database_revision: document.database_revision,
+      new_record_count: 0,
+      unknown_fields: ["future_package_field"],
+      unrepresentable_records: [expect.stringContaining("current_revision")],
+      write_confirmed: false,
+    });
+    expect(
+      JSON.parse(
+        ath(
+          ["records", "list", "--file", destination, "--json"],
+          directory,
+        ).stdout,
+      ).records,
+    ).toEqual([]);
   });
 });

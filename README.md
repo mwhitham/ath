@@ -88,7 +88,8 @@ ath import ~/Downloads/apple_health_export.zip
 
 Provider previews report new, matching, changed, skipped, and conflicting records.
 Package previews report new, matching, changed, conflicting, unrepresentable, and
-unknown records. Apply a conflict-free preview with a second command:
+unknown records. Unknown or unrepresentable content blocks the write. No option
+silently discards it. Apply a conflict-free preview with a second command:
 
 ```sh
 ath import ~/Downloads/apple_health_export.zip --yes

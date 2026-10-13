@@ -45,6 +45,91 @@ const MAX_DOCUMENT_BYTES = 512 * 1024 * 1024;
 const MAX_PACKAGE_FILES = 10_000;
 const MAX_PACKAGE_RECORDS = 50_000_000;
 const MAX_JSON_NESTING = 128;
+const MAX_REPRESENTATION_ISSUES = 1_000;
+
+export class PackageRepresentationError extends Error {
+  readonly source_database_id?: string;
+  readonly source_database_revision?: number;
+  readonly unrepresentable_records: string[];
+  readonly unknown_fields: string[];
+
+  constructor(options: {
+    source_database_id?: string;
+    source_database_revision?: number;
+    unrepresentable_records?: string[];
+    unknown_fields?: string[];
+  }) {
+    super("package has unknown fields or records that v1 cannot represent");
+    this.name = "PackageRepresentationError";
+    this.source_database_id = options.source_database_id;
+    this.source_database_revision = options.source_database_revision;
+    this.unrepresentable_records =
+      options.unrepresentable_records?.slice(0, MAX_REPRESENTATION_ISSUES) ?? [];
+    this.unknown_fields =
+      options.unknown_fields?.slice(0, MAX_REPRESENTATION_ISSUES) ?? [];
+  }
+}
+
+function rawPackageMetadata(value: unknown): {
+  source_database_id?: string;
+  source_database_revision?: number;
+} {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return {};
+  }
+  const record = value as Record<string, unknown>;
+  return {
+    ...(typeof record.database_id === "string"
+      ? { source_database_id: record.database_id }
+      : {}),
+    ...(typeof record.database_revision === "number" &&
+    Number.isSafeInteger(record.database_revision) &&
+    record.database_revision >= 0
+      ? { source_database_revision: record.database_revision }
+      : {}),
+  };
+}
+
+function representationError(
+  value: unknown,
+  issues: readonly {
+    code: string;
+    path: readonly PropertyKey[];
+    message: string;
+    keys?: readonly string[];
+  }[],
+  options: {
+    prefix?: string;
+    source_database_id?: string;
+    source_database_revision?: number;
+  } = {},
+): PackageRepresentationError {
+  const unknownFields: string[] = [];
+  const unrepresentableRecords: string[] = [];
+  const formatPath = (path: readonly PropertyKey[]) =>
+    [options.prefix, ...path.map(String)].filter(Boolean).join(".");
+  for (const issue of issues) {
+    if (issue.code === "unrecognized_keys" && issue.keys !== undefined) {
+      for (const key of issue.keys) {
+        unknownFields.push(formatPath([...issue.path, key]));
+      }
+      continue;
+    }
+    const path = formatPath(issue.path) || options.prefix || "package";
+    unrepresentableRecords.push(`${path}: ${issue.message}`);
+  }
+  return new PackageRepresentationError({
+    ...rawPackageMetadata(value),
+    ...(options.source_database_id === undefined
+      ? {}
+      : { source_database_id: options.source_database_id }),
+    ...(options.source_database_revision === undefined
+      ? {}
+      : { source_database_revision: options.source_database_revision }),
+    unknown_fields: [...new Set(unknownFields)].sort(),
+    unrepresentable_records: [...new Set(unrepresentableRecords)].sort(),
+  });
+}
 
 export interface LoadedPackage {
   package: AthleticStandardPackageT;
@@ -204,16 +289,26 @@ export async function loadAthleticStandardPackage(
     );
   }
   if (version !== ATHLETIC_STANDARD_VERSION) {
-    throw new Error(
-      `unsupported Athletic Standard package version: ${version ?? "missing"}`,
-    );
+    throw new PackageRepresentationError({
+      ...rawPackageMetadata(document.value),
+      ...(version === undefined
+        ? {
+            unrepresentable_records: [
+              "athleticstandard_version: required version field is missing",
+            ],
+          }
+        : {
+            unknown_fields: [
+              `athleticstandard_version: ${version} is not supported by ${ATHLETIC_STANDARD_VERSION}`,
+            ],
+          }),
+    });
   }
   const parsedPackage = AthleticStandardPackage.safeParse(document.value);
   if (!parsedPackage.success) {
-    const first = parsedPackage.error.issues[0];
-    throw new Error(
-      `package cannot be represented: ${first?.path.join(".") || "root"}: ` +
-        `${first?.message ?? "invalid package"}`,
+    throw representationError(
+      document.value,
+      parsedPackage.error.issues,
     );
   }
   const packageValue = parsedPackage.data;
@@ -228,7 +323,19 @@ export async function loadAthleticStandardPackage(
     fingerprintParts.push(
       `export-manifest.json\u0000${manifestDocument.bytes.byteLength}\u0000${sha256(manifestDocument.bytes)}`,
     );
-    manifest = ExportManifest.parse(manifestDocument.value);
+    const parsedManifest = ExportManifest.safeParse(manifestDocument.value);
+    if (!parsedManifest.success) {
+      throw representationError(
+        manifestDocument.value,
+        parsedManifest.error.issues,
+        {
+          prefix: "export-manifest.json",
+          source_database_id: packageValue.database_id,
+          source_database_revision: packageValue.database_revision,
+        },
+      );
+    }
+    manifest = parsedManifest.data;
     if (manifest.files.length > MAX_PACKAGE_FILES + 2) {
       throw new Error(`package has more than ${MAX_PACKAGE_FILES + 2} files`);
     }
@@ -283,7 +390,15 @@ export async function loadAthleticStandardPackage(
     if (sha256(file.bytes) !== reference.sha256) {
       throw new Error(`series hash does not match package reference: ${reference.file}`);
     }
-    const parsed = MeasurementSeriesFile.parse(file.value);
+    const parsedSeries = MeasurementSeriesFile.safeParse(file.value);
+    if (!parsedSeries.success) {
+      throw representationError(file.value, parsedSeries.error.issues, {
+        prefix: reference.file,
+        source_database_id: packageValue.database_id,
+        source_database_revision: packageValue.database_revision,
+      });
+    }
+    const parsed = parsedSeries.data;
     if (
       parsed.source_id !== reference.source_id ||
       parsed.quantity !== reference.quantity ||

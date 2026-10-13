@@ -149,7 +149,9 @@ For a v1 package, an empty database adopts the package database ID and
 exact revision history. A database with the same ID can accept new
 records and later revisions. Import never deletes a local record merely
 because a package omits it. A different database ID is refused because
-it may belong to another athlete. Athletic Standard 0.x JSON files are
+it may belong to another athlete. Unknown fields and records that v1 cannot
+represent are listed in the preview and block the write. No flag discards them.
+Athletic Standard 0.x JSON files are
 prerelease formats and are not imported by v1.`,
 
   conflicts: `
