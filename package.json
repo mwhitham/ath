@@ -1,7 +1,7 @@
 {
   "name": "athleticstandard",
   "version": "1.0.0",
-  "description": "An open, local-first file format for an athlete's training and recovery data, built for AI agents to read. Device measurements and self-reported notes stay separate.",
+  "description": "An open, local-first SQLite format for an athlete's training and recovery data, with complete JSON import and export.",
   "license": "MIT",
   "homepage": "https://athleticstandard.ai",
   "repository": {
@@ -38,7 +38,19 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
-    }
+    },
+    "./database": {
+      "types": "./dist/database.d.ts",
+      "import": "./dist/database.js"
+    },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "import": "./dist/schema.js"
+    },
+    "./json-schema": "./schema/1.0.0/athleticstandard.schema.json",
+    "./json-schema/export-manifest": "./schema/1.0.0/export-manifest.schema.json",
+    "./json-schema/measurement-series": "./schema/1.0.0/measurement-series.schema.json",
+    "./skill": "./skill/SKILL.md"
   },
   "bin": {
     "ath": "dist/cli.js"

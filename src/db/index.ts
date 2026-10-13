@@ -15,6 +15,7 @@ export {
 export {
   correctRecord,
   deleteRecord,
+  readRecord as getRecord,
   listRecords,
   readRecord,
   readRecordRevisions,
@@ -112,7 +113,9 @@ export {
   clearPackageConflictSet,
   conflictResolutions,
   packageConflictSetPath,
+  previewConflict,
   readPackageConflictSet,
+  resolveConflict,
   resolvePackageConflict,
   savePackageConflictSet,
   type PackageConflictSet,

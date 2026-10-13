@@ -37,6 +37,19 @@ global install.
 Run `ath --update` to update the package. Run `ath skill install` to refresh the
 local agent skill without updating the package.
 
+TypeScript and JavaScript callers can import the public parts directly:
+
+```ts
+import { AthleticStandardPackage } from "athleticstandard/schema";
+import { openDatabase, queryMeasurements } from "athleticstandard/database";
+```
+
+The JSON schemas are exported as `athleticstandard/json-schema`,
+`athleticstandard/json-schema/export-manifest`, and
+`athleticstandard/json-schema/measurement-series`. The Agent Skill is exported as
+`athleticstandard/skill`. The retired prerelease JSON runtime is not part of the v1
+package API.
+
 ## Create a database
 
 ```sh

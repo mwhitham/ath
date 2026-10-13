@@ -10,6 +10,7 @@ import type {
   PackageImportPreview,
   PackageImportResolution,
 } from "./import-package.js";
+import { readImportedPackageRecord } from "./import-package.js";
 import { readDatabaseMetadata } from "./migrate.js";
 import { readRecord } from "./records.js";
 
@@ -164,6 +165,30 @@ export async function assertPackageConflictSetCurrent(
   }
 }
 
+export async function previewConflict(
+  database: AthleticDatabase,
+  preview: PackageImportPreview,
+  recordId: string,
+): Promise<{
+  record_id: string;
+  message: string;
+  local: Awaited<ReturnType<typeof readRecord>>;
+  imported: Awaited<ReturnType<typeof readImportedPackageRecord>>;
+}> {
+  const conflict = preview.conflicts.find(
+    (candidate) => candidate.record_id === recordId,
+  );
+  if (conflict === undefined) {
+    throw new Error(`record is not in the package conflict preview: ${recordId}`);
+  }
+  return {
+    record_id: recordId,
+    message: conflict.message,
+    local: await readRecord(database, recordId),
+    imported: await readImportedPackageRecord(preview.loaded, recordId),
+  };
+}
+
 export async function resolvePackageConflict(
   database: AthleticDatabase,
   state: PackageConflictSet,
@@ -197,6 +222,8 @@ export async function resolvePackageConflict(
   await writeConflictSet(database, next);
   return next;
 }
+
+export const resolveConflict = resolvePackageConflict;
 
 export function conflictResolutions(
   state: PackageConflictSet,
