@@ -291,6 +291,48 @@ describe("v1 package restore", () => {
       ).code,
     ).toBe(0);
     expect(
+      ath(
+        [
+          "log",
+          "Database changed after conflict choices",
+          "--file",
+          local,
+          "--yes",
+        ],
+        directory,
+      ).code,
+    ).toBe(0);
+    const stale = ath(
+      ["import", incomingPackage, "--file", local, "--yes"],
+      directory,
+    );
+    expect(stale.code).toBe(1);
+    expect(stale.stdout).toContain(
+      "changed after the conflict preview",
+    );
+
+    expect(
+      ath(
+        ["import", incomingPackage, "--file", local, "--json"],
+        directory,
+      ).code,
+    ).toBe(0);
+    expect(
+      ath(
+        [
+          "conflicts",
+          "resolve",
+          profileId,
+          "--choice",
+          "imported",
+          "--file",
+          local,
+          "--json",
+        ],
+        directory,
+      ).code,
+    ).toBe(0);
+    expect(
       ath(["import", incomingPackage, "--file", local, "--yes"], directory).code,
     ).toBe(0);
     expect(

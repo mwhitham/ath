@@ -6,6 +6,7 @@ import {
   calculate,
   createDatabase,
   createUuidV7,
+  resolveCalendarRange,
   writeRecords,
   type AthleticDatabase,
 } from "../src/db/index.js";
@@ -180,6 +181,32 @@ describe("runtime calculations", () => {
       source: { source_id: sourceA, mean: 65 },
       comparison_source: { source_id: sourceB, mean: 52.5 },
       mean_difference: 12.5,
+    });
+  });
+
+  it("uses the real short and long day boundaries in an IANA timezone", async () => {
+    const { database } = await calculationDatabase();
+    await expect(
+      resolveCalendarRange(database, {
+        from: "2026-03-08",
+        to: "2026-03-08",
+        time_zone: "America/Chicago",
+      }),
+    ).resolves.toMatchObject({
+      from: "2026-03-08T06:00:00.000Z",
+      to: "2026-03-09T04:59:59.999Z",
+      time_zone: "America/Chicago",
+    });
+    await expect(
+      resolveCalendarRange(database, {
+        from: "2026-11-01",
+        to: "2026-11-01",
+        time_zone: "America/Chicago",
+      }),
+    ).resolves.toMatchObject({
+      from: "2026-11-01T05:00:00.000Z",
+      to: "2026-11-02T05:59:59.999Z",
+      time_zone: "America/Chicago",
     });
   });
 });

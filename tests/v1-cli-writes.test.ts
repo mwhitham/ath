@@ -267,6 +267,56 @@ describe("v1 ath log", () => {
     expect(records(directory, "prediction_result_link")).toHaveLength(1);
     expect(records(directory, "prediction_grade")).toHaveLength(1);
   });
+
+  it("logs a prediction error analysis as authored work", () => {
+    const directory = fixtureCopy();
+    const grade = records(directory, "prediction_grade")[0]!;
+    const analysis = JSON.stringify({
+      record_type: "prediction_error_analysis",
+      data: {
+        authorship: {
+          author: {
+            author_type: "agent",
+            agent: "test-agent",
+            model: "test-model",
+          },
+          authored_at: "2026-10-13T12:00:00.000Z",
+          evidence: [
+            {
+              record_id: grade.record_id,
+              revision: grade.current_revision,
+            },
+          ],
+          content_version: 1,
+          status: "active",
+        },
+        prediction_grade: {
+          record_id: grade.record_id,
+          revision: grade.current_revision,
+        },
+        error_direction: "slower",
+        error_severity: "minor",
+        causes: [],
+        unexplained: true,
+        lesson: "Collect another result before assigning a cause.",
+      },
+    });
+    expect(
+      ath(
+        [
+          "log",
+          analysis,
+          "--agent",
+          "test-agent",
+          "--at",
+          "2026-10-13T12:00:00.000Z",
+          "--yes",
+        ],
+        directory,
+      ).code,
+    ).toBe(0);
+    expect(records(directory, "prediction_error_analysis")).toHaveLength(2);
+  });
 });
 
 describe("v1 corrections, links, deletion, and explicit grading", () => {
@@ -458,6 +508,46 @@ describe("v1 corrections, links, deletion, and explicit grading", () => {
       ath(["grade", predictionId, "--result", resultId, "--yes"], directory).code,
     ).toBe(0);
     expect(records(directory, "prediction_grade")).toHaveLength(2);
+    expect(
+      ath(
+        [
+          "grade",
+          predictionId,
+          "--result",
+          resultId,
+          "--calculation-version",
+          "prediction-grade-v2-test",
+          "--yes",
+        ],
+        directory,
+      ).code,
+    ).toBe(0);
+    const grades = records(directory, "prediction_grade");
+    expect(grades).toHaveLength(3);
+    expect(
+      grades.map((grade) => {
+        const data = grade.data as {
+          authorship: { author: { calculation_version?: string } };
+          prediction_result_link: { revision: number };
+        };
+        return {
+          calculation_version:
+            data.authorship.author.calculation_version,
+          link_revision: data.prediction_result_link.revision,
+        };
+      }),
+    ).toEqual(
+      expect.arrayContaining([
+        {
+          calculation_version: "prediction-grade-v1",
+          link_revision: 1,
+        },
+        {
+          calculation_version: "prediction-grade-v2-test",
+          link_revision: 1,
+        },
+      ]),
+    );
     expect(records(directory, "benchmark_result")).toHaveLength(1);
   });
 
@@ -511,6 +601,14 @@ describe("v1 corrections, links, deletion, and explicit grading", () => {
         content_version: 2,
       },
     });
-    expect(records(directory, "prediction_grade")).toHaveLength(2);
+    const grades = records(directory, "prediction_grade");
+    expect(grades).toHaveLength(2);
+    expect(
+      grades.map((grade) =>
+        (grade.data as {
+          prediction_result_link: { revision: number };
+        }).prediction_result_link.revision,
+      ).sort(),
+    ).toEqual([1, 2]);
   });
 });

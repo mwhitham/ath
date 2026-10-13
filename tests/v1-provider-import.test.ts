@@ -5,9 +5,13 @@ import { afterEach, describe, expect, it } from "vitest";
 import {
   calculate,
   createDatabase,
+  exportRecords,
   importProviderRecords,
+  importRecords,
   listRecords,
+  loadAthleticStandardPackage,
   previewProviderImport,
+  previewPackageImport,
   readRecordRevisions,
   type AthleticDatabase,
 } from "../src/db/index.js";
@@ -389,6 +393,61 @@ describe("v1 provider import", () => {
         },
       ]),
     );
+  });
+
+  it("uses restored provider keys for a later correction", async () => {
+    const original = await emptyDatabase();
+    const source = resolve(fixtures, "whoop");
+    const firstPreview = await previewProviderImport(original, source, {
+      received_at: receivedAt,
+    });
+    await importProviderRecords(original, firstPreview);
+    const originalHrv = (await listRecords(original, {
+      record_type: "point_measurement",
+      limit: 10_000,
+    })).find(
+      (record) =>
+        record.record_type === "point_measurement" &&
+        record.data.quantity === "hrv_rmssd" &&
+        record.data.value.standard_value === 68.4,
+    )!;
+
+    const root = mkdtempSync(join(tmpdir(), "ath-provider-restore-"));
+    const packageDirectory = join(root, "package");
+    await exportRecords(original, packageDirectory);
+    const restored = await createDatabase(join(root, "restored.ath.sqlite"), {
+      createdAt: "2026-10-13T13:00:00.000Z",
+    });
+    opened.push(restored);
+    const loaded = await loadAthleticStandardPackage(packageDirectory);
+    const restorePreview = await previewPackageImport(restored, loaded);
+    await importRecords(restored, restorePreview);
+
+    const correctedDirectory = join(root, "corrected");
+    cpSync(source, correctedDirectory, { recursive: true });
+    const cycles = join(correctedDirectory, "physiological_cycles.csv");
+    writeFileSync(
+      cycles,
+      readFileSync(cycles, "utf8").replace(",68.4,", ",69.4,"),
+    );
+    const correction = await previewProviderImport(
+      restored,
+      correctedDirectory,
+      { received_at: "2026-10-15T12:00:00.000Z" },
+    );
+    expect(correction.conflicts).toEqual([]);
+    expect(correction.new_records).toEqual([]);
+    expect(correction.changed_records).toEqual([
+      {
+        record_id: originalHrv.record_id,
+        record_type: "point_measurement",
+        current_revision: 1,
+      },
+    ]);
+    await importProviderRecords(restored, correction);
+    expect(
+      await readRecordRevisions(restored, originalHrv.record_id),
+    ).toHaveLength(2);
   });
 
   it("imports Apple dense samples as stable SQLite records", async () => {
