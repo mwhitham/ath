@@ -1,6 +1,6 @@
 ---
 name: athletic-standard
-description: Reads and writes an athlete's Athletic Standard SQLite database (.ath.sqlite) with the ath CLI. Applies when someone logs a workout, lift, named benchmark such as Fran, HRV as RMSSD or SDNN, resting heart rate, sleep, soreness, nutrition, or another athlete report; asks what training or recovery data shows; asks for a benchmark prediction; reports a result to grade; imports Apple Health, WHOOP, Oura, or an Athletic Standard v1 package; exports a complete package; or asks about Athletic Standard records, revisions, calculations, deletion, or privacy erasure.
+description: Reads and writes an athlete's Athletic Standard SQLite database (.ath.sqlite) with the ath CLI. Applies when someone logs a workout, lift, named benchmark such as Fran, HRV as RMSSD or SDNN, resting heart rate, sleep, soreness, nutrition, or another athlete report; asks what training or recovery data shows; asks for a benchmark prediction or backtest; reports a result to grade; imports Apple Health, WHOOP, Oura, or an Athletic Standard v1 package; exports a complete package; or asks about Athletic Standard records, revisions, calculations, deletion, or privacy erasure.
 license: MIT
 compatibility: Requires the ath CLI (npm package athleticstandard) on PATH. Local database use needs no network. Optional terminal model calls need a configured gateway.
 metadata:
