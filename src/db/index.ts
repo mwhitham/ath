@@ -102,7 +102,18 @@ export {
   type LoadedPackage,
   type PackageImportConflict,
   type PackageImportPreview,
+  type PackageImportResolution,
 } from "./import-package.js";
+export {
+  assertPackageConflictSetCurrent,
+  clearPackageConflictSet,
+  conflictResolutions,
+  packageConflictSetPath,
+  readPackageConflictSet,
+  resolvePackageConflict,
+  savePackageConflictSet,
+  type PackageConflictSet,
+} from "./conflicts.js";
 export {
   eraseRecord,
   previewRecordErasure,

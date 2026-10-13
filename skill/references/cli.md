@@ -15,6 +15,9 @@ is offered, it shows the write and writes nothing.
 - [ath skill](#ath-skill) — where the agent skill is installed, and whether each copy is current
 - [ath skill install](#ath-skill-install) — copy the skill into .agents/skills and every harness folder here
 - [ath import](#ath-import) — preview and import a v1 package or Apple Health, WHOOP, or Oura export
+- [ath conflicts](#ath-conflicts) — review and resolve the temporary conflicts from a package import
+- [ath conflicts show](#ath-conflicts-show) — show complete local and imported values from the current conflict preview
+- [ath conflicts resolve](#ath-conflicts-resolve) — choose the local, imported, or a corrected value for one conflict
 - [ath export](#ath-export) — write a complete deterministic Athletic Standard JSON package
 - [ath log](#ath-log) — write one plain-text record or one validated structured batch
 - [ath link](#ath-link) — attach a benchmark result to the workout session it happened in
@@ -58,6 +61,7 @@ Set up:
 
 Get your data in:
   import [options] <path>                     preview and import a v1 package or Apple Health, WHOOP, or Oura export
+  conflicts                                   review and resolve the temporary conflicts from a package import
   export [options] <directory>                write a complete deterministic Athletic Standard JSON package
   log [options] [entry...]                    write one plain-text record or one validated structured batch
   link [options] <result-id> <session-id>     attach a benchmark result to the workout session it happened in
@@ -147,6 +151,59 @@ Options:
   -y, --yes      apply a conflict-free preview
   --json         structured preview; never confirms the write
   -h, --help     display help for command
+```
+
+## ath conflicts
+
+```
+Usage: ath conflicts [options] [command]
+
+review and resolve the temporary conflicts from a package import
+
+Options:
+  -h, --help                     display help for command
+
+Commands:
+  show [options] [record-id]     show complete local and imported values from
+                                 the current conflict preview
+  resolve [options] <record-id>  choose the local, imported, or a corrected
+                                 value for one conflict
+  help [command]                 display help for command
+```
+
+## ath conflicts show
+
+```
+Usage: ath conflicts show [options] [record-id]
+
+show complete local and imported values from the current conflict preview
+
+Arguments:
+  record-id      show one conflicting stable record ID
+
+Options:
+  --file <path>  read conflicts for a database other than the one in this folder
+  --json         structured output
+  -h, --help     display help for command
+```
+
+## ath conflicts resolve
+
+```
+Usage: ath conflicts resolve [options] <record-id>
+
+choose the local, imported, or a corrected value for one conflict
+
+Arguments:
+  record-id          conflicting stable record ID
+
+Options:
+  --choice <choice>  local, imported, or corrected
+  --data <json>      complete corrected data object; required with corrected
+  --file <path>      resolve conflicts for a database other than the one in this
+                     folder
+  --json             structured output
+  -h, --help         display help for command
 ```
 
 ## ath export

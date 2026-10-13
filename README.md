@@ -85,6 +85,21 @@ Provider rows use route-specific import keys. Importing unchanged data reports a
 match. Changed data with the same key creates a new revision of the existing
 record. It does not create a second record.
 
+When a v1 package conflicts with local history, the preview creates a temporary
+conflict set:
+
+```sh
+ath conflicts show
+ath conflicts resolve <record-id> --choice local
+ath conflicts resolve <record-id> --choice imported
+ath conflicts resolve <record-id> --choice corrected --data '<complete-data-json>'
+ath import ./saved-package --yes
+```
+
+The conflict commands do not change athlete data. The final import writes the
+non-conflicting records and every chosen resolution in one transaction. A changed
+package or database makes the choices stale.
+
 Apple Health, WHOOP, and Oura routes remain separate sources. Records from two
 devices also remain separate. A manual source never enters a device baseline.
 

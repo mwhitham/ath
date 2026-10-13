@@ -148,6 +148,26 @@ because a package omits it. A different database ID is refused because
 it may belong to another athlete. Athletic Standard 0.x JSON files are
 prerelease formats and are not imported by v1.`,
 
+  conflicts: `
+Examples:
+
+  Show complete local and imported values for every current conflict:
+    $ ath conflicts show
+
+  Keep the local record:
+    $ ath conflicts resolve <record-id> --choice local
+
+  Accept the imported record as a new local revision:
+    $ ath conflicts resolve <record-id> --choice imported
+
+  Supply a complete corrected data object as a new local revision:
+    $ ath conflicts resolve <record-id> --choice corrected \\
+        --data '{"...":"..."}'
+
+These commands change only a temporary conflict file. They do not change athlete
+data. After every conflict has a choice, rerun the exact package import with
+--yes. A changed package or database makes every saved choice stale.`,
+
   export: `
 Examples:
 

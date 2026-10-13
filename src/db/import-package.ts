@@ -12,8 +12,10 @@ import type { Transaction } from "@libsql/client";
 import {
   ATHLETIC_STANDARD_VERSION,
   AthleticStandardPackage,
+  CurrentRecord,
   ExportManifest,
   MeasurementSeriesFile,
+  RecordRevision,
   type AthleticStandardPackageT,
   type CurrentRecordT,
   type MeasurementSeriesFileT,
@@ -49,6 +51,8 @@ export interface LoadedPackage {
   all_revisions: RecordRevisionT[];
   all_deletions: RecordDeletionT[];
   all_import_keys: RecordImportKeyT[];
+  source_path: string;
+  source_fingerprint: string;
   source_directory: string;
   attachment_files: Map<string, string>;
 }
@@ -56,6 +60,12 @@ export interface LoadedPackage {
 export interface PackageImportConflict {
   record_id?: string;
   message: string;
+}
+
+export interface PackageImportResolution {
+  record_id: string;
+  choice: "local" | "imported" | "corrected";
+  data?: unknown;
 }
 
 export interface PackageImportPreview {
@@ -137,6 +147,9 @@ export async function loadAthleticStandardPackage(
 ): Promise<LoadedPackage> {
   const { documentPath, sourceDirectory } = await packageDocumentPath(inputPath);
   const document = await safeReadJson(documentPath);
+  const fingerprintParts = [
+    `athlete.ath.json\u0000${document.bytes.byteLength}\u0000${sha256(document.bytes)}`,
+  ];
   const version = packageVersion(document.value);
   if (version !== undefined && /^0\./.test(version)) {
     throw new Error(
@@ -165,6 +178,9 @@ export async function loadAthleticStandardPackage(
   let manifest: ReturnType<typeof ExportManifest.parse> | undefined;
   try {
     const manifestDocument = await safeReadJson(manifestPath);
+    fingerprintParts.push(
+      `export-manifest.json\u0000${manifestDocument.bytes.byteLength}\u0000${sha256(manifestDocument.bytes)}`,
+    );
     manifest = ExportManifest.parse(manifestDocument.value);
     if (
       manifest.source_database_id !== packageValue.database_id ||
@@ -190,6 +206,9 @@ export async function loadAthleticStandardPackage(
   for (const reference of packageValue.measurement_series_files) {
     const path = resolvePackageFile(sourceDirectory, reference.file);
     const file = await safeReadJson(path);
+    fingerprintParts.push(
+      `${reference.file}\u0000${file.bytes.byteLength}\u0000${sha256(file.bytes)}`,
+    );
     if (sha256(file.bytes) !== reference.sha256) {
       throw new Error(`series hash does not match package reference: ${reference.file}`);
     }
@@ -243,6 +262,9 @@ export async function loadAthleticStandardPackage(
     const path = resolvePackageFile(sourceDirectory, relativePath);
     await refuseSymbolicLinkComponents(path);
     const bytes = await readFile(path);
+    fingerprintParts.push(
+      `${relativePath}\u0000${bytes.byteLength}\u0000${sha256(bytes)}`,
+    );
     if (
       bytes.byteLength !== record.data.byte_count ||
       sha256(bytes) !== record.data.sha256
@@ -267,6 +289,10 @@ export async function loadAthleticStandardPackage(
     all_revisions: allRevisions,
     all_deletions: allDeletions,
     all_import_keys: allImportKeys,
+    source_path: resolve(inputPath),
+    source_fingerprint: sha256(
+      Buffer.from(fingerprintParts.sort().join("\n"), "utf8"),
+    ),
     source_directory: sourceDirectory,
     attachment_files: attachmentFiles,
   };
@@ -480,6 +506,7 @@ async function insertErasureMarker(
 async function prepareAttachments(
   database: AthleticDatabase,
   loaded: LoadedPackage,
+  resolutions: ReadonlyMap<string, PackageImportResolution>,
 ): Promise<Array<{ temporary: string; final: string }>> {
   if (database.localPath === undefined || loaded.attachment_files.size === 0) {
     return [];
@@ -489,6 +516,9 @@ async function prepareAttachments(
   await refuseSymbolicLinkComponents(directory);
   const prepared: Array<{ temporary: string; final: string }> = [];
   for (const record of loaded.all_records) {
+    if (resolutions.get(record.record_id)?.choice === "local") {
+      continue;
+    }
     if (record.record_type !== "attachment" || record.is_deleted) {
       continue;
     }
@@ -523,16 +553,39 @@ async function prepareAttachments(
 export async function importRecords(
   database: AthleticDatabase,
   preview: PackageImportPreview,
+  resolutions: readonly PackageImportResolution[] = [],
 ): Promise<{ database_revision: number; restored: boolean }> {
+  const resolutionById = new Map<string, PackageImportResolution>();
+  for (const resolution of resolutions) {
+    if (resolutionById.has(resolution.record_id)) {
+      throw new Error(`conflict has more than one resolution: ${resolution.record_id}`);
+    }
+    resolutionById.set(resolution.record_id, resolution);
+  }
+  const unresolvedConflicts = preview.conflicts.filter(
+    (conflict) =>
+      conflict.record_id === undefined ||
+      !resolutionById.has(conflict.record_id),
+  );
   if (
-    preview.conflicts.length > 0 ||
+    unresolvedConflicts.length > 0 ||
     preview.unrepresentable_records.length > 0 ||
     preview.unknown_fields.length > 0
   ) {
     throw new Error("import has unresolved conflicts or unsupported records");
   }
-  const preparedAttachments = await prepareAttachments(database, preview.loaded);
+  for (const recordId of resolutionById.keys()) {
+    if (!preview.conflicts.some((conflict) => conflict.record_id === recordId)) {
+      throw new Error(`resolution does not match an import conflict: ${recordId}`);
+    }
+  }
+  const preparedAttachments = await prepareAttachments(
+    database,
+    preview.loaded,
+    resolutionById,
+  );
   const movedAttachments: string[] = [];
+  const resolutionTime = new Date().toISOString();
   try {
     const result = await withWriteTransaction(database, async (transaction) => {
       const state = await transaction.execute(
@@ -555,6 +608,7 @@ export async function importRecords(
 
       const newIds = new Set(preview.new_records);
       const changedIds = new Set(preview.changed_records);
+      const resolvedRecords: CurrentRecordT[] = [];
 
       if (preview.restore) {
         for (const record of preview.loaded.all_records) {
@@ -626,12 +680,99 @@ export async function importRecords(
             });
           }
         }
+        for (const resolution of resolutionById.values()) {
+          if (resolution.choice === "local") {
+            continue;
+          }
+          const imported = preview.loaded.all_records.find(
+            (record) => record.record_id === resolution.record_id,
+          );
+          if (imported === undefined) {
+            throw new Error(
+              `imported conflict record is missing: ${resolution.record_id}`,
+            );
+          }
+          const currentResult = await transaction.execute({
+            sql: `
+              SELECT
+                records.record_type,
+                records.current_revision,
+                records.created_at,
+                records.is_deleted,
+                record_revisions.became_known_at
+              FROM records
+              JOIN record_revisions
+                ON record_revisions.record_id = records.record_id
+               AND record_revisions.revision = records.current_revision
+              WHERE records.record_id = ?
+            `,
+            args: [resolution.record_id],
+          });
+          const current = currentResult.rows[0];
+          if (current === undefined) {
+            throw new Error(
+              `local conflict record is missing: ${resolution.record_id}`,
+            );
+          }
+          if (
+            current.record_type !== imported.record_type ||
+            Number(current.is_deleted) !== 0 ||
+            imported.is_deleted
+          ) {
+            throw new Error(
+              `conflict cannot change record type or deleted state: ${resolution.record_id}`,
+            );
+          }
+          if (
+            Date.parse(resolutionTime) <
+            Date.parse(String(current.became_known_at))
+          ) {
+            throw new Error(
+              `conflict resolution time precedes the current revision: ${resolution.record_id}`,
+            );
+          }
+          const currentRevision = Number(current.current_revision);
+          const resolvedRecord = CurrentRecord.parse({
+            record_id: resolution.record_id,
+            record_type: current.record_type,
+            created_at: current.created_at,
+            current_revision: currentRevision + 1,
+            is_deleted: false,
+            data:
+              resolution.choice === "imported"
+                ? imported.data
+                : resolution.data,
+          });
+          const revision = RecordRevision.parse({
+            record_id: resolvedRecord.record_id,
+            record_type: resolvedRecord.record_type,
+            revision: resolvedRecord.current_revision,
+            previous_revision: currentRevision,
+            became_known_at: resolutionTime,
+            became_known_at_basis: "package_merge",
+            changed_by: { author_type: "athlete" },
+            data: resolvedRecord.data,
+          });
+          await insertRevision(transaction, revision);
+          await upsertTypedRecord(transaction, resolvedRecord);
+          await transaction.execute({
+            sql: "UPDATE records SET current_revision = ? WHERE record_id = ?",
+            args: [resolvedRecord.current_revision, resolvedRecord.record_id],
+          });
+          resolvedRecords.push(resolvedRecord);
+        }
         for (const record of preview.loaded.all_records) {
           if (newIds.has(record.record_id) || changedIds.has(record.record_id)) {
             await validateTypedRelationships(transaction, record);
           }
         }
+        for (const record of resolvedRecords) {
+          await validateTypedRelationships(transaction, record);
+        }
         for (const deletion of preview.loaded.all_deletions) {
+          if (resolutionById.has(deletion.record_id)) {
+            continue;
+          }
           const existing = await transaction.execute({
             sql: "SELECT 1 AS present FROM record_deletions WHERE record_id = ?",
             args: [deletion.record_id],
@@ -641,6 +782,9 @@ export async function importRecords(
           }
         }
         for (const importKey of preview.loaded.all_import_keys) {
+          if (resolutionById.get(importKey.record_id)?.choice === "local") {
+            continue;
+          }
           const existing = await transaction.execute({
             sql: `
               SELECT record_id

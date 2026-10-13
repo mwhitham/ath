@@ -97,6 +97,8 @@ Import, export, and create:
 |---|---|
 | `ath import <path>` | Preview a provider export or complete v1 package |
 | `ath import <path> --yes` | Apply a conflict-free preview in one transaction |
+| `ath conflicts show` | Show complete local and imported values from a package conflict |
+| `ath conflicts resolve <record-id>` | Record a local, imported, or corrected choice without changing athlete data |
 | `ath export <directory>` | Write a complete deterministic JSON package |
 | `ath log [entry...]` | Create one plain-text record or one structured object or array |
 | `ath link <result-id> <session-id> --revision <n>` | Revise a benchmark result to link a workout session |
@@ -146,6 +148,12 @@ conflict is never resolved by guessing.
 
 Provider rows use route-specific import keys. Repeating unchanged data is a match.
 Changed content with the same key creates a revision.
+
+For a v1 package conflict, run `ath conflicts show`. Record one explicit choice for
+each record with `ath conflicts resolve`: `local`, `imported`, or `corrected`.
+These commands change only a temporary conflict file. Rerun the same package import
+with `--yes` after every conflict is resolved. A changed package or database makes
+the choices stale.
 
 `ath export` writes:
 

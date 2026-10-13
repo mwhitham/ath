@@ -51,6 +51,9 @@ import {
   checkDatabase,
   CALCULATION_OPERATIONS,
   calculate,
+  assertPackageConflictSetCurrent,
+  clearPackageConflictSet,
+  conflictResolutions,
   correctRecord,
   createDatabase,
   databaseStats,
@@ -68,6 +71,7 @@ import {
   previewPackageImport,
   previewProviderImport,
   previewRecordErasure,
+  readPackageConflictSet,
   readRecord,
   readRecordLinks,
   readRecordRevisions,
@@ -82,10 +86,13 @@ import {
   applyLogPlan,
   buildEvidence,
   resolveAsOfTime,
+  resolvePackageConflict,
+  savePackageConflictSet,
   writeRecord,
   writeRecords,
   type AthleticDatabase,
   type LogPlan,
+  type PackageImportResolution,
 } from "./db/index.js";
 
 /** The whole command tree. `cli.ts` parses it; the skill generator reads its help. */
@@ -390,25 +397,187 @@ export function buildProgram(): Command {
           write_confirmed: false,
         };
         if (opts.json) {
+          if (preview.conflicts.length > 0) {
+            await savePackageConflictSet(database, preview);
+          } else {
+            await clearPackageConflictSet(database);
+          }
           console.log(JSON.stringify(output, null, 2));
           return;
         }
         console.log(renderImportPreview(output));
         if (!opts.yes) {
+          if (preview.conflicts.length > 0) {
+            const saved = await savePackageConflictSet(database, preview);
+            if (saved !== null) {
+              console.log(
+                "review with ath conflicts show, then record each choice with ath conflicts resolve",
+              );
+            }
+          } else {
+            await clearPackageConflictSet(database);
+          }
           console.log("nothing written; pass --yes after reviewing this preview");
           return;
         }
+        let resolutions: PackageImportResolution[] = [];
         if (preview.conflicts.length > 0) {
-          return fail(
-            `import has ${preview.conflicts.length} unresolved conflict` +
-              `${preview.conflicts.length === 1 ? "" : "s"}; nothing was written`,
-          );
+          const state = await readPackageConflictSet(database);
+          await assertPackageConflictSetCurrent(database, state, preview);
+          resolutions = conflictResolutions(state);
+          if (resolutions.length !== preview.conflicts.length) {
+            return fail(
+              `import has ${preview.conflicts.length - resolutions.length} unresolved ` +
+                `conflict${preview.conflicts.length - resolutions.length === 1 ? "" : "s"}; ` +
+                "use ath conflicts show and ath conflicts resolve",
+            );
+          }
         }
-        const imported = await importRecords(database, preview);
+        const imported = await importRecords(database, preview, resolutions);
+        await clearPackageConflictSet(database);
         console.log(
           `${imported.restored ? "restored" : "imported"} package at database revision ` +
             `${imported.database_revision}`,
         );
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
+      }
+    });
+
+  const conflictsCmd = program
+    .command("conflicts")
+    .helpGroup(GROUPS.getIn)
+    .description("review and resolve the temporary conflicts from a package import")
+    .addHelpText("after", EXAMPLES.conflicts!);
+
+  conflictsCmd
+    .command("show")
+    .description("show complete local and imported values from the current conflict preview")
+    .argument("[record-id]", "show one conflicting stable record ID")
+    .option("--file <path>", "read conflicts for a database other than the one in this folder")
+    .option("--json", "structured output")
+    .action(async (
+      recordId: string | undefined,
+      opts: { file?: string; json?: boolean },
+    ) => {
+      const path = findOrFail(opts.file);
+      const database = await openOrFail(path, opts.json);
+      try {
+        const state = await readPackageConflictSet(database);
+        const loaded = await loadAthleticStandardPackage(state.source_path);
+        const preview = await previewPackageImport(database, loaded);
+        await assertPackageConflictSetCurrent(database, state, preview);
+        const selected =
+          recordId === undefined
+            ? state.conflicts
+            : state.conflicts.filter(
+                (conflict) => conflict.record_id === recordId,
+              );
+        if (selected.length === 0) {
+          return fail(`record is not in the temporary conflict set: ${recordId}`);
+        }
+        const conflicts = await Promise.all(
+          selected.map(async (conflict) => ({
+            record_id: conflict.record_id,
+            message: conflict.message,
+            local: await readRecord(database, conflict.record_id),
+            imported:
+              loaded.all_records.find(
+                (record) => record.record_id === conflict.record_id,
+              ) ?? null,
+            resolution: conflict.resolution ?? null,
+          })),
+        );
+        const output = {
+          source_path: state.source_path,
+          source_database_revision: state.source_database_revision,
+          destination_database_revision: state.destination_database_revision,
+          conflicts,
+        };
+        console.log(JSON.stringify(output, null, 2));
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
+      }
+    });
+
+  conflictsCmd
+    .command("resolve")
+    .description("choose the local, imported, or a corrected value for one conflict")
+    .argument("<record-id>", "conflicting stable record ID")
+    .requiredOption("--choice <choice>", "local, imported, or corrected")
+    .option("--data <json>", "complete corrected data object; required with corrected")
+    .option("--file <path>", "resolve conflicts for a database other than the one in this folder")
+    .option("--json", "structured output")
+    .action(async (
+      recordId: string,
+      opts: {
+        choice: string;
+        data?: string;
+        file?: string;
+        json?: boolean;
+      },
+    ) => {
+      if (!["local", "imported", "corrected"].includes(opts.choice)) {
+        return fail("--choice must be local, imported, or corrected");
+      }
+      if (opts.choice === "corrected" && opts.data === undefined) {
+        return fail("--data is required when --choice is corrected");
+      }
+      if (opts.choice !== "corrected" && opts.data !== undefined) {
+        return fail("--data is used only when --choice is corrected");
+      }
+      let data: unknown;
+      if (opts.data !== undefined) {
+        try {
+          data = JSON.parse(opts.data);
+        } catch (error) {
+          return fail(`--data is not valid JSON: ${(error as Error).message}`);
+        }
+      }
+      const path = findOrFail(opts.file);
+      const database = await openOrFail(path, opts.json);
+      try {
+        const state = await readPackageConflictSet(database);
+        const loaded = await loadAthleticStandardPackage(state.source_path);
+        const preview = await previewPackageImport(database, loaded);
+        await assertPackageConflictSetCurrent(database, state, preview);
+        const resolution: PackageImportResolution =
+          opts.choice === "corrected"
+            ? { record_id: recordId, choice: "corrected", data }
+            : {
+                record_id: recordId,
+                choice: opts.choice as "local" | "imported",
+              };
+        const next = await resolvePackageConflict(
+          database,
+          state,
+          recordId,
+          resolution,
+        );
+        const unresolved = next.conflicts.filter(
+          (conflict) => conflict.resolution === undefined,
+        ).length;
+        const output = {
+          record_id: recordId,
+          choice: resolution.choice,
+          unresolved_conflicts: unresolved,
+          athlete_data_changed: false,
+        };
+        if (opts.json) {
+          console.log(JSON.stringify(output, null, 2));
+        } else {
+          console.log(
+            `recorded ${resolution.choice} for ${recordId}; ${unresolved} unresolved ` +
+              `conflict${unresolved === 1 ? "" : "s"}`,
+          );
+          console.log(
+            `nothing written to athlete data; run ath import ${state.source_path} --yes after all conflicts are resolved`,
+          );
+        }
       } catch (error) {
         return fail((error as Error).message);
       } finally {

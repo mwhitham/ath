@@ -1,5 +1,9 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync, readdirSync } from "node:fs";
+import {
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -192,6 +196,108 @@ describe("v1 package restore", () => {
     for (let index = 0; index < originalFiles.length; index++) {
       expect(originalFiles[index]![1].equals(restoredFiles[index]![1])).toBe(true);
     }
+  });
+
+  it("shows and applies an explicit package conflict resolution", () => {
+    const directory = mkdtempSync(join(tmpdir(), "ath-v1-conflict-"));
+    const basePackage = join(directory, "base-package");
+    expect(ath(["export", basePackage, "--file", FIXTURE], directory).code).toBe(0);
+
+    const local = join(directory, "local.ath.sqlite");
+    const imported = join(directory, "imported.ath.sqlite");
+    for (const database of [local, imported]) {
+      expect(
+        ath(["init", "-y", "--empty", "--no-skill", "--file", database], directory)
+          .code,
+      ).toBe(0);
+      expect(
+        ath(["import", basePackage, "--file", database, "--yes"], directory).code,
+      ).toBe(0);
+    }
+
+    const profileId = "01890f3e-e7d3-7cc0-88c8-000000000002";
+    const profile = JSON.parse(
+      ath(
+        ["records", "show", profileId, "--file", local, "--json"],
+        directory,
+      ).stdout,
+    ).record as { data: Record<string, unknown> };
+    for (const [database, name] of [
+      [local, "Local name"],
+      [imported, "Imported name"],
+    ] as const) {
+      expect(
+        ath(
+          [
+            "correct",
+            profileId,
+            "--revision",
+            "1",
+            "--data",
+            JSON.stringify({ ...profile.data, name }),
+            "--file",
+            database,
+            "--yes",
+          ],
+          directory,
+        ).code,
+      ).toBe(0);
+    }
+
+    const incomingPackage = join(directory, "incoming-package");
+    expect(
+      ath(["export", incomingPackage, "--file", imported], directory).code,
+    ).toBe(0);
+    const preview = ath(
+      ["import", incomingPackage, "--file", local, "--json"],
+      directory,
+    );
+    expect(preview.code).toBe(0);
+    expect(JSON.parse(preview.stdout).conflicts).toMatchObject([
+      { record_id: profileId, message: "record revision history differs" },
+    ]);
+
+    const shown = ath(
+      ["conflicts", "show", profileId, "--file", local, "--json"],
+      directory,
+    );
+    expect(shown.code).toBe(0);
+    expect(JSON.parse(shown.stdout).conflicts[0]).toMatchObject({
+      record_id: profileId,
+      local: { data: { name: "Local name" } },
+      imported: { data: { name: "Imported name" } },
+      resolution: null,
+    });
+
+    expect(
+      ath(
+        [
+          "conflicts",
+          "resolve",
+          profileId,
+          "--choice",
+          "imported",
+          "--file",
+          local,
+          "--json",
+        ],
+        directory,
+      ).code,
+    ).toBe(0);
+    expect(
+      ath(["import", incomingPackage, "--file", local, "--yes"], directory).code,
+    ).toBe(0);
+    expect(
+      JSON.parse(
+        ath(
+          ["records", "show", profileId, "--file", local, "--json"],
+          directory,
+        ).stdout,
+      ).record,
+    ).toMatchObject({
+      current_revision: 3,
+      data: { name: "Imported name" },
+    });
   });
 
   it("refuses a different nonempty database and every prerelease JSON file", () => {
