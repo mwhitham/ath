@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { copyFileSync, mkdtempSync, readFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -9,6 +9,10 @@ const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../src/cli.ts");
 const TSX = resolve(here, "../node_modules/.bin/tsx");
 const FIXTURE = resolve(here, "../examples/demo-athlete/athlete.ath.sqlite");
+const FIXTURE_ATTACHMENT = resolve(
+  here,
+  "../examples/demo-athlete/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png",
+);
 
 function ath(args: string[], cwd: string, stdin = ""): { stdout: string; code: number } {
   try {
@@ -37,6 +41,11 @@ function newDatabase(): string {
 function fixtureCopy(): string {
   const directory = mkdtempSync(join(tmpdir(), "ath-v1-cli-"));
   copyFileSync(FIXTURE, join(directory, "athlete.ath.sqlite"));
+  mkdirSync(join(directory, "attachments"));
+  copyFileSync(
+    FIXTURE_ATTACHMENT,
+    join(directory, "attachments", "01890f3e-e7d3-7cc0-88c8-00000000000e.png"),
+  );
   return directory;
 }
 
