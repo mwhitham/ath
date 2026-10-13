@@ -639,6 +639,7 @@ function sameLogicalData(left: unknown, right: unknown): boolean {
     return Object.fromEntries(
       Object.entries(value as Record<string, unknown>)
         .filter(([key]) => key !== "received_at" && key !== "received_at_basis")
+        .sort(([left], [right]) => left.localeCompare(right))
         .map(([key, child]) => [key, withoutReceipt(child)]),
     );
   };
