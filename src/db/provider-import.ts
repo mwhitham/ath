@@ -406,7 +406,9 @@ function providerSummaryDraft(
   const method = `${parsed.route}/v1`;
   const time = providerPeriods(parsed, summary.recorded_at, {
     input_timestamp: summary.input_timestamp,
-    provider_reporting_periods: summary.provider_reporting_periods,
+    ...(summary.provider_reporting_periods === undefined
+      ? {}
+      : { provider_reporting_periods: summary.provider_reporting_periods }),
   });
   const anchor =
     time.recorded_at ??
