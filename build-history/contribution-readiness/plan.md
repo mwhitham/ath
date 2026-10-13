@@ -116,7 +116,9 @@ The existing `athleticstandard` npm name and `ath` command remain supported.
 The root package re-exports the supported APIs from the workspace packages.
 The split packages should start as workspace packages. Publishing them under
 the `@ath` scope happens only after package ownership and release policy are
-confirmed.
+confirmed. While they are private workspaces, the root build must bundle their
+code into `athleticstandard`; a published package cannot refer to an
+unpublished workspace dependency.
 
 The `spec/` directory is language-neutral. Generated files may also remain at
 their current package paths for compatibility. One generator writes both
@@ -128,13 +130,14 @@ There are four different contracts. Their versions must not be conflated.
 
 1. `athleticstandard_version` versions athlete-owned record content.
 2. `sql_schema_version` versions the SQLite encoding and migrations.
-3. `CORE_API_VERSION` versions the public extension interfaces and test-vector
-   behavior.
+3. `CORE_API_VERSION` versions the public extension interfaces.
 4. The npm package version versions shipped TypeScript and CLI behavior.
 
 An npm release may change without changing the record format. An additive SQL
 index may change the SQL version without changing record content. A breaking
-importer interface changes `CORE_API_VERSION`.
+importer interface changes `CORE_API_VERSION`. Each conformance vector names
+the contract and version it tests. Record, SQL, core API, and local API vectors
+do not share one version.
 
 ### 4.2 Swift and other non-JavaScript clients
 
@@ -142,7 +145,8 @@ The first supported route is direct SQLite reading:
 
 - Publish ordered `.sql` migration files.
 - Publish the required SQLite version and compile options.
-- Publish stable read views or named reference queries.
+- Publish stable read views. Views give clients one versioned read contract
+  inside SQLite. Example queries alone do not.
 - Publish JSON decoding fixtures for `record_revisions.record_json`.
 - Add a small Swift example using one library chosen in section 7.
 
@@ -183,11 +187,11 @@ Scope:
 
 - Merge [#5](https://github.com/mwhitham/ath/pull/5) after it is rebased.
 - Treat its `.github/workflows/ci.yml`, `CONTRIBUTING.md`,
-  `scripts/check-public-data.ts`, `.gitignore`, and package script as the
-  starting point.
+  `scripts/check-public-data.ts`, `.gitignore`, `AGENTS.md`, and package script
+  as the starting point.
 - Rebase each later pull request after #5.
-- Close or replace [#13](https://github.com/mwhitham/ath/pull/13) after its
-  owner confirms it is superseded by merged #14. Do not copy its old plan.
+- Treat [#13](https://github.com/mwhitham/ath/pull/13) as superseded by merged
+  #14. It has no remaining change to carry into this plan.
 
 Files touched: only the files already owned by #5.
 
@@ -200,13 +204,11 @@ Acceptance:
 Risk: a stale rebase could drop the v1 fixture exceptions added by #14.
 Review the combined `.gitignore` and public-data allowlist.
 
-### PR 1 — Add contribution governance and public guides
+### PR 1 — Add contribution governance
 
 Scope:
 
 - Expand #5's `CONTRIBUTING.md` rather than replacing it.
-- Add `ARCHITECTURE.md`, `docs/build-on-ath.md`, and
-  `docs/extensions.md`.
 - Add `.github/PULL_REQUEST_TEMPLATE.md`,
   `.github/ISSUE_TEMPLATE/bug.yml`,
   `.github/ISSUE_TEMPLATE/importer.yml`,
@@ -215,23 +217,15 @@ Scope:
 - Add `.github/CODEOWNERS` after owners are confirmed.
 - Add DCO sign-off instructions and a sign-off check if section 7 approves
   DCO.
-- Change `package.json#homepage` and the gateway referrer in
-  `src/gateway.ts` to `https://ath.fit`.
 
 Files touched:
 
 - `CONTRIBUTING.md`
-- `ARCHITECTURE.md`
-- `docs/build-on-ath.md`
-- `docs/extensions.md`
 - `.github/**`
-- `package.json`
-- `src/gateway.ts`
 - documentation tests
 
 Acceptance:
 
-- A new contributor can identify the record, package, and adapter boundaries.
 - Each issue form asks for synthetic data only.
 - The pull request template requires fixture safety and generated-file checks.
 - DCO and owner checks match the decisions in section 7.
@@ -240,6 +234,38 @@ Acceptance:
 
 Risk: governance files can block all contributions when owner names or DCO
 rules are wrong. Land required checks only after a test pull request passes.
+
+### PR 1A — Add architecture and build-on guides
+
+Scope:
+
+- Add `ARCHITECTURE.md`, `docs/build-on-ath.md`, and
+  `docs/extensions.md`.
+- Document the current package, record, store, importer, CLI, and service
+  boundaries before moving files.
+- Change `package.json#homepage` and the gateway referrer in
+  `src/gateway.ts` to `https://ath.fit`.
+
+Files touched:
+
+- `ARCHITECTURE.md`
+- `docs/build-on-ath.md`
+- `docs/extensions.md`
+- `README.md`
+- `package.json`
+- `src/gateway.ts`
+- documentation tests
+
+Acceptance:
+
+- A new contributor can identify each current boundary and its planned
+  package.
+- The build-on guide labels direct SQLite writes unsupported.
+- Public links use `ath.fit`.
+- No private repository is required to follow the guide.
+
+Risk: an architecture guide can promise the target before it exists. Mark
+current behavior and planned behavior separately.
 
 ### PR 2 — Publish the SQLite contract as plain SQL
 
@@ -324,9 +350,11 @@ Scope:
 - Replace root `export *` statements with an explicit reviewed export list
   while preserving all currently supported names.
 - Add stability markers: stable, experimental, and internal.
+- Define stable tool IDs, data-group IDs, and the `community.<id>` grammar for
+  later manifests.
 - Generate an API reference from the actual exported types.
 - Add an API report test that requires review for additions and removals.
-- Add deprecation rules and a minimum support window.
+- Apply the deprecation and support policy chosen in section 7.
 
 Files touched:
 
@@ -346,6 +374,7 @@ Acceptance:
 - Deep imports outside `package.json#exports` remain unsupported.
 - A public removal or type break fails the API report check.
 - `CORE_API_VERSION` is available to manifests and runtime checks.
+- Stable tool IDs and data-group IDs have one generated public list.
 
 Risk: an explicit list can accidentally remove a schema export that a user
 already imports. Compare the built package before and after and keep aliases
@@ -387,40 +416,89 @@ Risk: package splitting can introduce duplicate Zod copies or declaration
 paths that only work in the workspace. Test packed tarballs, not only source
 imports.
 
-### PR 6 — Extract SQLite storage and explicit adapters
+### PR 6 — Extract SQLite storage without behavior changes
 
 Scope:
 
 - Move database operations to `packages/store/`.
-- Define database, file, clock, random-ID, archive, and secret-store adapters.
-- Keep local file security checks in the Node adapter.
 - Keep the public database handle opaque for JavaScript callers.
-- Add stable read views or reference queries for non-JavaScript readers.
 - Keep `athleticstandard/database` as a compatibility wrapper.
 
 Files touched:
 
 - `packages/store/**`
 - `src/db/**`
-- `src/file.ts`
-- `src/series.ts`
-- `src/keyring.ts`
 - `src/index.ts`
 - `tsup.config.ts`
 - package export tests
 
 Acceptance:
 
-- Store domain operations can be tested with injected clock and ID sources.
 - Node file, zip, and keyring code is absent from `@ath/core`.
 - Existing database imports and CLI behavior remain unchanged.
-- Swift can execute every documented read query against the demo database.
-- File permission and symbolic-link protections still pass on supported
-  platforms.
+- Packed `athleticstandard` contains the store code even while `@ath/store`
+  remains an unpublished workspace.
 
-Risk: file security is platform-specific. An abstract adapter must not turn
-owner-only permissions or symbolic-link refusal into optional behavior without
-an explicit warning.
+Risk: moving modules can change declaration paths or package initialization.
+Compare packed exports and database behavior before and after the move.
+
+### PR 6A — Add value and platform adapters
+
+Scope:
+
+- Define clock, random-ID, database-client, file, archive, and secret-store
+  adapters.
+- Move Node file, zip, and keyring work behind Node adapters.
+- Keep local file security checks mandatory in the Node file adapter.
+- Inject clock and ID sources into store domain operations.
+
+Files touched:
+
+- `packages/store/src/adapters/**`
+- `packages/store/src/**`
+- `src/file.ts`
+- `src/series.ts`
+- `src/import/zip.ts`
+- `src/keyring.ts`
+- adapter and platform tests
+
+Acceptance:
+
+- Store operations can be tested with fixed clock and ID sources.
+- Pure packages contain no Node built-ins.
+- File permission and symbolic-link protections pass on supported platforms.
+- A missing security capability produces a refusal or explicit warning.
+
+Risk: an adapter can make a required security check look optional. Keep the
+safe Node adapter as the CLI default and test every refusal.
+
+### PR 6B — Publish stable SQLite read views
+
+Scope:
+
+- Add versioned SQL views for supported cross-language reads.
+- Document each view's columns, JSON fields, ordering, and version policy.
+- Add drift and query-plan tests against the demo database.
+- Keep direct third-party writes unsupported.
+
+Files touched:
+
+- `spec/sql/migrations/**`
+- `spec/sql/README.md`
+- `packages/store/src/migrations/**`
+- `tests/v1-db.test.ts`
+- `spec/conformance/sql/**`
+- `docs/build-on-ath.md`
+
+Acceptance:
+
+- Plain `sqlite3` can run every documented read against the demo database.
+- View changes require a SQL migration and contract-vector update.
+- Raw storage tables remain documented as internal encoding details.
+- The views expose source IDs for every measured value.
+
+Risk: a stable view becomes a long-term contract. Keep the first set small and
+limited to real app read needs.
 
 ### PR 7 — Define the importer interface and registry
 
@@ -432,7 +510,6 @@ Scope:
 - Replace `VENDOR_LABELS` and nested format branches in
   `src/import/index.ts` with a deterministic registry.
 - Register Apple Health, WHOOP, and Oura as built-ins.
-- Retire or isolate the unused 0.x `importExport` path.
 - Make detection report ambiguity instead of picking the first match.
 - Version each importer's matching recipe, preserving D108.
 
@@ -453,12 +530,39 @@ Acceptance:
 - A synthetic importer can be registered in a test without editing a switch.
 - Duplicate IDs, ambiguous detection, unsupported versions, and invalid
   payloads fail with clear errors.
-- `ImportPayload` has one v1 model rather than old hard/soft signal types.
 - Existing Apple, WHOOP, and Oura fixture results do not change.
 - No importer writes directly to SQLite.
 
+Risk: changing detection order can change which importer receives an
+ambiguous file. Add ambiguity fixtures before replacing the branches.
+
+### PR 7A — Remove the 0.x importer model
+
+Scope:
+
+- Replace `HardSignalT` and `SoftSignalT` in `ImportPayload` with v1 draft
+  records.
+- Move matching-key creation into the versioned importer result.
+- Retire or isolate the unused `src/import/index.ts#importExport` path.
+- Remove old model dependencies from `src/db/provider-import.ts`.
+
+Files touched:
+
+- `packages/importers/**`
+- `src/import/**`
+- `src/db/provider-import.ts`
+- `src/schema.ts`
+- importer conformance fixtures and tests
+
+Acceptance:
+
+- `ImportPayload` has one v1 model.
+- Existing provider record IDs, matching keys, source facts, and receipts do
+  not change.
+- The supported v1 CLI does not call the old JSON merge path.
+
 Risk: moving off the 0.x intermediate model can change IDs or matching keys.
-Lock current imports with conformance fixtures before changing the model.
+Lock current results with conformance fixtures before changing the model.
 
 ### PR 8 — Define calculation extensions and portable vectors
 
@@ -496,14 +600,10 @@ Risk: a generic calculation interface may hide operation-specific safety
 limits. Keep per-operation limits and evidence rules in the descriptor and
 tests.
 
-### PR 9 — Separate the CLI application from reusable operations
+### PR 9 — Centralize runtime configuration and fix model paths
 
 Scope:
 
-- Introduce an application service that returns typed results and errors.
-- Inject output, error output, exit status, clock, configuration, and prompts
-  into the CLI layer.
-- Remove direct `console.*` and `process.exit*` use from reusable operations.
 - Centralize package name, command name, Skill name, keyring service, public
   site, and model gateway settings.
 - Fix `src/models.ts#defaultModelPath` for `.ath.sqlite`.
@@ -512,7 +612,6 @@ Scope:
 Files touched:
 
 - `src/program.ts`
-- `src/cli.ts`
 - `src/config.ts`
 - `src/update.ts`
 - `src/keyring.ts`
@@ -522,11 +621,35 @@ Files touched:
 
 Acceptance:
 
+- Branding and service constants have one reviewed source.
+- Model settings are placed correctly beside `.ath.sqlite`.
+- Existing command output and gateway behavior do not change.
+
+Risk: changing keyring service names would orphan saved keys. Keep the current
+service value as the default and treat any rename as a separate migration.
+
+### PR 9A — Separate the CLI application from output and process state
+
+Scope:
+
+- Introduce an application service that returns typed results and errors.
+- Inject output, error output, exit status, clock, configuration, and prompts
+  into the CLI layer.
+- Remove direct `console.*` and `process.exit*` use from reusable operations.
+
+Files touched:
+
+- `src/program.ts`
+- `src/cli.ts`
+- `src/application/**`
+- command tests
+- generated `skill/references/cli.md`
+
+Acceptance:
+
 - Commands can run in tests without changing global process state.
 - JSON command output contains no warnings or progress text on standard output.
 - Existing command names, options, exit codes, and text remain covered.
-- Branding and service constants have one reviewed source.
-- Model settings are placed correctly beside `.ath.sqlite`.
 
 Risk: changing output plumbing can break scripts that parse JSON or rely on
 exit codes. Snapshot both standard output streams and status for each command.
@@ -541,8 +664,8 @@ Scope:
 - Add an optional extension envelope keyed by validated community IDs.
 - Set JSON value depth, byte, and collection limits.
 - Make an extension inherit the tier and source rules of its parent record.
-- Preserve unknown extension values byte-for-byte through SQLite and JSON
-  export and import.
+- Preserve unknown extension values through SQLite and JSON export and import.
+  Deterministic export may normalize JSON bytes while preserving the value.
 - Require a published extension schema for entries accepted into this
   repository.
 - Refuse an extension that attempts to replace core measured quantities,
@@ -587,6 +710,8 @@ Scope:
   - `kind`
   - `version`, as one exact semantic version
   - `coreRange`, as a supported `CORE_API_VERSION` range
+  - `formatRange`, as the supported `athleticstandard_version` range
+  - `cliRange` for Skills that call `ath`
   - `tools`, limited to stable tool IDs
   - `writeMode`, limited to `read` or `propose`
   - `dataGroups`, limited to documented groups
@@ -617,11 +742,12 @@ Acceptance:
 - Tool and data-group values come from generated allowlists.
 - Every entry has an SPDX-compatible license.
 - Examples use only synthetic data and cannot write without confirmation.
+- Skills that call the CLI declare both `coreRange` and `cliRange`.
 
 Risk: `coreRange` can claim compatibility that tests do not prove. Catalog
 generation must include only versions that pass the contract runner.
 
-### PR 12 — Add community safety checks and catalog generation
+### PR 12 — Add isolated community contract checks
 
 Scope:
 
@@ -633,35 +759,61 @@ Scope:
 - Calculation checks cover deterministic vectors, source separation,
   evidence, and resource limits.
 - Add a machine-readable public policy file for blocked capabilities.
-- Generate `community/community-catalog.json` from validated manifests.
-- Check catalog drift on pull requests and regenerate it during release.
 - Extend #5's public-data check instead of creating a second health-data
   scanner.
+- Run executable importer and calculation checks in a process with no secrets,
+  filtered environment variables, network denial, a read-only checkout, one
+  temporary writable directory, memory limits, and time limits.
 
 Files touched:
 
 - `community/policy.json`
-- `community/community-catalog.json`
 - `scripts/check-community.ts`
-- `scripts/generate-community-catalog.ts`
 - `tests/community/**`
+- `package.json`
+- `.github/workflows/ci.yml`
+
+Acceptance:
+
+- A manifest alone cannot cause code execution.
+- Entries with blocked tools, direct-write claims, real data, network use, or
+  failed fixtures are excluded and fail CI.
+- Executable checks cannot read repository secrets, write outside their
+  temporary directory, or reach the network.
+
+Risk: text scanning cannot prove a Skill is safe. Treat it as one check, not a
+security boundary. Human review and a narrow runtime permission model remain
+required.
+
+### PR 12A — Generate the release community catalog
+
+Scope:
+
+- Generate `community/community-catalog.json` from validated manifests and
+  passing contract results.
+- Check catalog drift on pull requests.
+- Regenerate and verify the catalog during release.
+- Record item version, core, format, and CLI ranges, license, deprecation, and
+  fixture result.
+
+Files touched:
+
+- `community/community-catalog.json`
+- `scripts/generate-community-catalog.ts`
+- catalog tests
 - `package.json`
 - `.github/workflows/ci.yml`
 - release workflows
 
 Acceptance:
 
-- A manifest alone cannot cause code execution.
 - Catalog order and bytes are deterministic.
-- Entries with blocked tools, direct-write claims, real data, network use, or
-  failed fixtures are excluded and fail CI.
-- Each catalog row records item version, compatible core range, license,
-  deprecation, and fixture result.
 - A release fails when the checked catalog is stale.
+- Failed or blocked entries never appear in the catalog.
+- Catalog generation reads results but never runs entry code.
 
-Risk: text scanning cannot prove a Skill is safe. Treat it as one check, not a
-security boundary. Human review and a narrow runtime permission model remain
-required.
+Risk: a generated catalog can be mistaken for approval. Include the
+compatibility-only meaning in the file metadata and public docs.
 
 ### PR 13 — Support selected multiple skills
 
@@ -699,7 +851,7 @@ Acceptance:
 Risk: listing community work can look like endorsement. The command and docs
 must distinguish compatibility checks from review or recommendation.
 
-### PR 14 — Add an optional local HTTP API and OpenAPI
+### PR 14 — Add an optional read-only local HTTP API and OpenAPI
 
 Do not start this pull request until the API decision in section 7 is approved.
 
@@ -710,7 +862,7 @@ Scope:
 - Bind to loopback only by default.
 - Require a random session token, deny broad cross-origin access, and emit no
   telemetry.
-- Separate read routes from preview and confirmed write routes.
+- Expose read routes only.
 - Version routes independently from npm package paths.
 - Add request limits and shutdown behavior.
 
@@ -729,13 +881,43 @@ Acceptance:
 - OpenAPI validation passes and generated clients call every documented route.
 - The server cannot bind publicly without an explicit unsafe-development
   option.
-- Write routes use preview then confirmation and preserve database
-  transactions.
 - Tests prove no health data enters logs.
-- A Swift client can read the demo database through a generated client.
+- A generated test client can read the demo database.
 
 Risk: a loopback health-data server is still reachable by local processes and
 browser attacks. Token, origin, logging, and bind tests are release gates.
+
+### PR 14A — Add local HTTP writes after user-presence approval
+
+Do not start this pull request until section 7 chooses a user-presence rule.
+
+Scope:
+
+- Add preview and confirmed write routes over the application service.
+- Bind a confirmation to the exact preview, database revision, caller
+  session, expiry time, and approved user-presence mechanism.
+- Preserve one database transaction and current conflict behavior.
+- Add replay, stale-preview, cross-session, and concurrent-write tests.
+
+Files touched:
+
+- `packages/server/**`
+- `spec/openapi/ath-local-v1.yaml`
+- `src/application/**`
+- server write and security tests
+- `docs/build-on-ath.md`
+
+Acceptance:
+
+- Calling preview and confirm in sequence is not itself proof of a person.
+- A stale, changed, replayed, or cross-session confirmation is refused.
+- The approved user-presence mechanism is tested at the boundary that supplies
+  it.
+- Writes have the same result as the matching CLI operation.
+
+Risk: any client with a bearer token can automate both calls unless a separate
+user-presence signal exists. Keep the server read-only until that signal is
+approved.
 
 ### PR 15 — Consider stdio MCP separately
 
@@ -769,17 +951,14 @@ Risk: MCP adds another public API and can use much more agent context than a
 Skill plus CLI. Skip this pull request unless a concrete host integration
 needs it.
 
-### PR 16 — Publish the Swift example and complete release checks
+### PR 16 — Publish the Swift reader example
 
 Scope:
 
 - Add a minimal Swift package under `examples/swift-reader/`.
 - Use the approved SQLite library and decode at least sources, point
   measurements, sleep sessions, and workout sessions.
-- Run the language-neutral conformance fixtures from Swift.
-- Add package-tarball tests for all published JavaScript entry points.
-- Add release notes that map any changed imports, format versions, SQL
-  versions, and community API versions.
+- Run the read-contract subset of the language-neutral fixtures from Swift.
 
 Files touched:
 
@@ -787,20 +966,46 @@ Files touched:
 - `docs/build-on-ath.md`
 - `spec/conformance/**`
 - `.github/workflows/ci.yml`
-- release workflows
-- package tarball tests
 
 Acceptance:
 
 - The example opens a copied demo database read-only and performs no migration.
 - It passes on macOS and Linux Swift runners.
 - It does not depend on Node or private services.
-- Published tarballs contain all promised spec and community files.
-- Release notes contain the migration table from section 6.
 
 Risk: GRDB and SQLite.swift have different licensing, package, and API tradeoffs.
 Choose one before writing the example. Keep raw SQL examples available so the
 contract does not depend on that library.
+
+### PR 16A — Complete package and release checks
+
+Scope:
+
+- Add packed-tarball tests for every published JavaScript entry point.
+- Verify each promised spec, migration, conformance, Skill, and community file
+  is present in the package that claims to ship it.
+- Add a release-note template that maps changed npm, core API, SQL, format, and
+  local API versions.
+- Align pull-request and release workflow runtime versions.
+
+Files touched:
+
+- package tarball tests
+- `package.json`
+- `.github/workflows/ci.yml`
+- release workflows
+- release-note template
+
+Acceptance:
+
+- Tests install packed artifacts in an empty project with no workspace links.
+- Published tarballs contain every promised public file.
+- Release notes contain the compatibility table from section 6.
+- Pull-request and release jobs use the approved Node and package-manager
+  versions.
+
+Risk: source tests can pass while packed declarations or workspace dependencies
+are missing. The release gate must test only tarballs, not the checkout.
 
 ## 6. Compatibility and migration
 
@@ -820,8 +1025,9 @@ contract does not depend on that library.
 | Direct third-party SQLite writes | Yes if declared supported without a full write contract. | Keep writes unsupported until another implementation passes revision, link, erasure, migration, concurrency, and round-trip fixtures. |
 
 No pull request may silently rewrite an athlete database merely because the npm
-package was updated. SQL migration remains an explicit database-open or
-explicit migration action with rollback tests.
+package was updated. The approved trigger must be one of: an explicit
+`ath migrate` command, or a confirmed migration during database open. Both
+need preview, backup guidance, and rollback tests.
 
 ## 7. Decisions Mike must make
 
@@ -845,8 +1051,9 @@ D-number before its implementation pull request.
      implementation passes the full write suite.
 
 4. **Swift library:** should the maintained example use GRDB or SQLite.swift?
-   - Recommendation: choose GRDB for the maintained example, while keeping
-     the SQL contract library-neutral.
+   - Recommendation: use SQLite.swift if Linux CI remains required. GRDB's
+     Linux support is community-maintained. Keep the SQL contract
+     library-neutral either way.
 
 5. **Extensions:** should extensions live on every record, only selected
    records, or in separate linked records?
@@ -901,6 +1108,26 @@ D-number before its implementation pull request.
     - Recommendation: built-ins ship in the exact-pinned package. Larger or
       optional items may use separately exact-pinned public packages after
       publishing policy exists.
+
+15. **SQL migration trigger:** should an old database migrate only through
+    `ath migrate`, or through a confirmed database-open flow too?
+    - Recommendation: start with explicit `ath migrate --dry-run` followed by
+      confirmation. A library caller uses the same preview and apply API.
+
+16. **SQLite read contract:** are versioned SQL views stable, or are example
+    queries the only promise?
+    - Recommendation: make a small set of views stable. Raw tables remain the
+      versioned encoding and may change through migrations.
+
+17. **API support policy:** how long must a deprecated stable TypeScript name
+    remain available?
+    - Recommendation: keep it through the next major npm release and document
+      the replacement in the release where deprecation starts.
+
+18. **HTTP user presence:** what proves a person approved a local HTTP write?
+    - Recommendation: keep HTTP read-only until an app-owned confirmation
+      channel can bind approval to one exact preview. Two API calls are not
+      proof of a person.
 
 ## 8. Release gates
 
