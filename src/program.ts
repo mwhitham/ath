@@ -764,6 +764,12 @@ export function buildProgram(): Command {
         }
         let secondConfirmation = opts.confirmErasure;
         if (secondConfirmation === undefined) {
+          if (!process.stdin.isTTY || !process.stdout.isTTY) {
+            return fail(
+              "second confirmation is required in non-interactive use; pass " +
+                `--confirm-erasure ${preview.root_record_id}`,
+            );
+          }
           secondConfirmation = await askOnTerminal(
             `Type the record ID ${preview.root_record_id} to confirm permanent erasure: `,
           ) ?? undefined;
