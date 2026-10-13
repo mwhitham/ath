@@ -1233,16 +1233,24 @@ export function buildProgram(): Command {
             revision: plan.result.current_revision,
           },
           prediction_result_link:
-            plan.existing_link === null
+            plan.link_input !== null
               ? {
                   action: "create",
-                  record_id: plan.link_input!.record_id,
-                  data: plan.link_input!.data,
+                  record_id: plan.link_input.record_id,
+                  data: plan.link_input.data,
                 }
+              : plan.link_correction !== null
+                ? {
+                    action: "revise",
+                    record_id: plan.existing_link!.record_id,
+                    current_revision: plan.existing_link!.current_revision,
+                    new_revision: plan.existing_link!.current_revision + 1,
+                    data: plan.link_correction.data,
+                  }
               : {
                   action: "reuse",
-                  record_id: plan.existing_link.record_id,
-                  revision: plan.existing_link.current_revision,
+                  record_id: plan.existing_link!.record_id,
+                  revision: plan.existing_link!.current_revision,
                 },
           grade: {
             record_id: plan.grade_input.record_id,

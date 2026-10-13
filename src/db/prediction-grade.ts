@@ -4,7 +4,12 @@ import {
 } from "../v1/schema.js";
 import { databaseClient, type AthleticDatabase } from "./client.js";
 import { createUuidV7 } from "./uuid.js";
-import { readRecord, writeRecords, type WriteRecordInput } from "./records.js";
+import {
+  readRecord,
+  writeRecordChanges,
+  type CorrectRecordInput,
+  type WriteRecordInput,
+} from "./records.js";
 
 export interface PredictionGradePlan {
   prediction: Extract<CurrentRecordT, { record_type: "prediction" }>;
@@ -14,6 +19,7 @@ export interface PredictionGradePlan {
     { record_type: "prediction_result_link" }
   > | null;
   link_input: WriteRecordInput | null;
+  link_correction: CorrectRecordInput | null;
   grade_input: WriteRecordInput;
 }
 
@@ -103,8 +109,10 @@ export async function planPredictionGrade(
         AND prediction_result_links.prediction_id = ?
         AND prediction_result_links.prediction_revision = ?
         AND prediction_result_links.benchmark_result_id = ?
-        AND prediction_result_links.benchmark_result_revision = ?
-      ORDER BY records.created_at, records.record_id
+      ORDER BY
+        prediction_result_links.benchmark_result_revision = ? DESC,
+        records.created_at DESC,
+        records.record_id DESC
       LIMIT 1
     `,
     args: [
@@ -125,7 +133,13 @@ export async function planPredictionGrade(
 
   const createdAt = input.created_at ?? new Date().toISOString();
   const linkId = existingLink?.record_id ?? createUuidV7();
-  const linkRevision = existingLink?.current_revision ?? 1;
+  const linkNeedsRevision =
+    existingLink !== null &&
+    existingLink.data.benchmark_result.revision !== resultRecord.current_revision;
+  const linkRevision =
+    existingLink === null
+      ? 1
+      : existingLink.current_revision + (linkNeedsRevision ? 1 : 0);
   const linkInput: WriteRecordInput | null =
     existingLink === null
       ? {
@@ -146,6 +160,25 @@ export async function planPredictionGrade(
             linked_at: createdAt,
             content_version: 1,
             status: "active",
+          },
+        }
+      : null;
+  const linkCorrection: CorrectRecordInput | null =
+    existingLink !== null && linkNeedsRevision
+      ? {
+          record_id: existingLink.record_id,
+          expected_revision: existingLink.current_revision,
+          changed_by: input.actor,
+          became_known_at: createdAt,
+          data: {
+            ...existingLink.data,
+            benchmark_result: {
+              record_id: resultRecord.record_id,
+              revision: resultRecord.current_revision,
+            },
+            created_by: input.actor,
+            linked_at: createdAt,
+            content_version: existingLink.data.content_version + 1,
           },
         }
       : null;
@@ -186,6 +219,7 @@ export async function planPredictionGrade(
     result: resultRecord,
     existing_link: existingLink,
     link_input: linkInput,
+    link_correction: linkCorrection,
     grade_input: gradeInput,
   };
 }
@@ -198,11 +232,13 @@ export async function gradePrediction(
   grade: CurrentRecordT;
   database_revision: number;
 }> {
-  const inputs =
-    plan.link_input === null
-      ? [plan.grade_input]
-      : [plan.link_input, plan.grade_input];
-  const written = await writeRecords(database, inputs, {
+  const written = await writeRecordChanges(database, {
+    corrections:
+      plan.link_correction === null ? [] : [plan.link_correction],
+    records:
+      plan.link_input === null
+        ? [plan.grade_input]
+        : [plan.link_input, plan.grade_input],
     expected_current_revisions: [
       {
         record_id: plan.prediction.record_id,
@@ -223,8 +259,9 @@ export async function gradePrediction(
     ],
   });
   const link =
-    plan.existing_link ??
-    written.records.find((record) => record.record_type === "prediction_result_link");
+    written.records.find(
+      (record) => record.record_type === "prediction_result_link",
+    ) ?? plan.existing_link;
   const grade = written.records.find(
     (record) => record.record_type === "prediction_grade",
   );

@@ -465,6 +465,14 @@ function planStructured(
     }
     const raw = item as Record<string, unknown>;
     const recordType = RecordType.parse(raw.record_type);
+    if (
+      recordType === "prediction_result_link" ||
+      recordType === "prediction_grade"
+    ) {
+      throw new Error(
+        `structured log cannot create ${recordType}; use ath grade so the tool validates and writes it`,
+      );
+    }
     const recordId =
       typeof raw.record_id === "string" ? raw.record_id : createUuidV7();
     const itemCreatedAt =

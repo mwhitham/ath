@@ -140,6 +140,22 @@ describe("v1 ath log", () => {
     expect(records(directory, "athlete_report")).toHaveLength(0);
   });
 
+  it.each(["prediction_result_link", "prediction_grade"])(
+    "refuses caller-created %s records",
+    (recordType) => {
+      const directory = newDatabase();
+      const result = ath(
+        ["log", JSON.stringify({ record_type: recordType, data: {} }), "--yes"],
+        directory,
+      );
+      expect(result.code).toBe(1);
+      expect(result.stdout).toContain(
+        `structured log cannot create ${recordType}; use ath grade`,
+      );
+      expect(records(directory, recordType)).toHaveLength(0);
+    },
+  );
+
   it("links and grades one open prediction when a result is unambiguous", () => {
     const directory = newDatabase();
     const benchmark = records(directory, "benchmark_definition").find(
@@ -352,5 +368,58 @@ describe("v1 corrections, links, deletion, and explicit grading", () => {
     ).toBe(0);
     expect(records(directory, "prediction_grade")).toHaveLength(2);
     expect(records(directory, "benchmark_result")).toHaveLength(1);
+  });
+
+  it("revises the existing result link when grading a corrected result", () => {
+    const directory = fixtureCopy();
+    const predictionId = "01890f3e-e7d3-7cc0-88c8-000000000010";
+    const resultId = "01890f3e-e7d3-7cc0-88c8-00000000000b";
+    const result = records(directory, "benchmark_result")[0]!;
+    const correctedData = {
+      ...(result.data as Record<string, unknown>),
+      score: { duration_s: 301 },
+    };
+    expect(
+      ath(
+        [
+          "correct",
+          resultId,
+          "--revision",
+          "1",
+          "--data",
+          JSON.stringify(correctedData),
+          "--yes",
+        ],
+        directory,
+      ).code,
+    ).toBe(0);
+
+    const preview = ath(
+      ["grade", predictionId, "--result", resultId, "--json"],
+      directory,
+    );
+    expect(preview.code).toBe(0);
+    expect(JSON.parse(preview.stdout)).toMatchObject({
+      result: { record_id: resultId, revision: 2 },
+      prediction_result_link: {
+        action: "revise",
+        current_revision: 1,
+        new_revision: 2,
+      },
+    });
+
+    expect(
+      ath(["grade", predictionId, "--result", resultId, "--yes"], directory).code,
+    ).toBe(0);
+    const links = records(directory, "prediction_result_link");
+    expect(links).toHaveLength(1);
+    expect(links[0]).toMatchObject({
+      current_revision: 2,
+      data: {
+        benchmark_result: { record_id: resultId, revision: 2 },
+        content_version: 2,
+      },
+    });
+    expect(records(directory, "prediction_grade")).toHaveLength(2);
   });
 });
