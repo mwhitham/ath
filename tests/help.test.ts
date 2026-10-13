@@ -139,11 +139,12 @@ describe("errors name the remedy", () => {
     expect(res.stdout).toContain("nothing to log");
   });
 
-  it("clearly refuses import until its SQLite implementation lands", () => {
+  it("says why an invalid package cannot be imported", () => {
     const dir = dirWithFile();
     writeFileSync(join(dir, "nonsense.txt"), "this is not an export\n");
     const res = ath(["import", "nonsense.txt"], dir);
     expect(res.code).toBe(1);
-    expect(res.stdout).toContain("not been moved to the v1 SQLite database yet");
+    expect(res.stdout).toContain("package JSON is invalid");
+    expect(res.stdout).toContain("nonsense.txt");
   });
 });
