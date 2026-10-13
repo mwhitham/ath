@@ -1,5 +1,5 @@
-import { chmod, lstat, mkdir } from "node:fs/promises";
-import { dirname, resolve } from "node:path";
+import { chmod, lstat } from "node:fs/promises";
+import { parse, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createClient, type Client, type ResultSet } from "@libsql/client";
 
@@ -9,11 +9,20 @@ export const SQLITE_BUSY_TIMEOUT_MS = 5_000;
 export const SQL_SCHEMA_VERSION = 1;
 
 export interface AthleticDatabase {
-  readonly client: Client;
   readonly url: string;
   readonly isLocal: boolean;
   readonly localPath?: string;
   close(): void;
+}
+
+const clients = new WeakMap<AthleticDatabase, Client>();
+
+export function databaseClient(database: AthleticDatabase): Client {
+  const client = clients.get(database);
+  if (client === undefined) {
+    throw new Error("Athletic Standard database is closed");
+  }
+  return client;
 }
 
 function firstNumber(result: ResultSet, column: string): number {
@@ -29,23 +38,19 @@ function firstNumber(result: ResultSet, column: string): number {
 }
 
 async function configureConnection(database: AthleticDatabase): Promise<void> {
-  await database.client.execute("PRAGMA foreign_keys = ON");
-  await database.client.execute(`PRAGMA busy_timeout = ${SQLITE_BUSY_TIMEOUT_MS}`);
+  const client = databaseClient(database);
+  await client.execute("PRAGMA foreign_keys = ON");
 
   const foreignKeys = firstNumber(
-    await database.client.execute("PRAGMA foreign_keys"),
+    await client.execute("PRAGMA foreign_keys"),
     "foreign_keys",
   );
   if (foreignKeys !== 1) {
     throw new Error("SQLite foreign-key enforcement could not be enabled");
   }
-
-  if (database.isLocal) {
-    await database.client.execute("PRAGMA journal_mode = WAL");
-  }
 }
 
-function parseTarget(target: string): {
+export function parseDatabaseTarget(target: string): {
   url: string;
   isLocal: boolean;
   localPath?: string;
@@ -61,45 +66,58 @@ function parseTarget(target: string): {
   return { url: pathToFileURL(localPath).href, isLocal: true, localPath };
 }
 
-async function refuseSymbolicLink(path: string, allowMissing: boolean): Promise<void> {
-  try {
-    const stat = await lstat(path);
-    if (stat.isSymbolicLink()) {
-      throw new Error(`Refusing to open database through a symbolic link: ${path}`);
+export async function refuseSymbolicLinkComponents(
+  path: string,
+  options: { allowMissingTail?: boolean } = {},
+): Promise<void> {
+  const absolutePath = resolve(path);
+  const pathParts = absolutePath
+    .slice(parse(absolutePath).root.length)
+    .split(sep)
+    .filter(Boolean);
+  let currentPath = parse(absolutePath).root;
+  for (const part of pathParts) {
+    currentPath = resolve(currentPath, part);
+    try {
+      const stat = await lstat(currentPath);
+      if (stat.isSymbolicLink()) {
+        throw new Error(`Refusing to use path through a symbolic link: ${currentPath}`);
+      }
+    } catch (error) {
+      if (
+        options.allowMissingTail === true &&
+        error instanceof Error &&
+        "code" in error &&
+        error.code === "ENOENT"
+      ) {
+        return;
+      }
+      throw error;
     }
-  } catch (error) {
-    if (
-      allowMissing &&
-      error instanceof Error &&
-      "code" in error &&
-      error.code === "ENOENT"
-    ) {
-      return;
-    }
-    throw error;
   }
 }
 
-export async function connectDatabase(
-  target: string,
-  options: { allowMissingLocalFile?: boolean } = {},
-): Promise<AthleticDatabase> {
-  const parsed = parseTarget(target);
+export async function connectDatabase(target: string): Promise<AthleticDatabase> {
+  const parsed = parseDatabaseTarget(target);
   if (parsed.localPath !== undefined) {
-    await refuseSymbolicLink(parsed.localPath, options.allowMissingLocalFile === true);
-    if (options.allowMissingLocalFile === true) {
-      await mkdir(dirname(parsed.localPath), { recursive: true, mode: 0o700 });
-    }
+    await refuseSymbolicLinkComponents(parsed.localPath);
   }
 
-  const client = createClient({ url: parsed.url, intMode: "number" });
+  const client = createClient({
+    url: parsed.url,
+    intMode: "number",
+    timeout: SQLITE_BUSY_TIMEOUT_MS,
+  });
   const database: AthleticDatabase = {
-    client,
     url: parsed.url,
     isLocal: parsed.isLocal,
     ...(parsed.localPath === undefined ? {} : { localPath: parsed.localPath }),
-    close: () => client.close(),
+    close: () => {
+      client.close();
+      clients.delete(database);
+    },
   };
+  clients.set(database, client);
 
   try {
     await configureConnection(database);
@@ -114,14 +132,35 @@ export async function readApplicationId(database: AthleticDatabase): Promise<num
   if (!database.isLocal) {
     return null;
   }
-  return firstNumber(await database.client.execute("PRAGMA application_id"), "application_id");
+  return firstNumber(await databaseClient(database).execute("PRAGMA application_id"), "application_id");
 }
 
 export async function readUserVersion(database: AthleticDatabase): Promise<number | null> {
   if (!database.isLocal) {
     return null;
   }
-  return firstNumber(await database.client.execute("PRAGMA user_version"), "user_version");
+  return firstNumber(await databaseClient(database).execute("PRAGMA user_version"), "user_version");
+}
+
+export async function enableLocalWal(database: AthleticDatabase): Promise<void> {
+  if (!database.isLocal) {
+    return;
+  }
+  const result = await databaseClient(database).execute("PRAGMA journal_mode = WAL");
+  const mode = String(result.rows[0]?.journal_mode).toLowerCase();
+  if (mode !== "wal") {
+    throw new Error(`SQLite did not enable WAL mode: ${mode}`);
+  }
+}
+
+async function chmodIfPresent(path: string, mode: number): Promise<void> {
+  try {
+    await chmod(path, mode);
+  } catch (error) {
+    if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) {
+      throw error;
+    }
+  }
 }
 
 export async function setOwnerOnlyDatabasePermissions(
@@ -130,5 +169,9 @@ export async function setOwnerOnlyDatabasePermissions(
   if (database.localPath === undefined || process.platform === "win32") {
     return;
   }
-  await chmod(database.localPath, 0o600);
+  await Promise.all([
+    chmodIfPresent(database.localPath, 0o600),
+    chmodIfPresent(`${database.localPath}-wal`, 0o600),
+    chmodIfPresent(`${database.localPath}-shm`, 0o600),
+  ]);
 }

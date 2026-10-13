@@ -202,6 +202,23 @@ CREATE TABLE point_measurement_calculations (
     ON DELETE CASCADE
 ) STRICT;
 
+CREATE TABLE point_measurement_calculation_inputs (
+  point_measurement_id TEXT NOT NULL,
+  calculation_order INTEGER NOT NULL,
+  input_order INTEGER NOT NULL CHECK (input_order >= 0),
+  evidence_record_id TEXT NOT NULL,
+  evidence_revision INTEGER NOT NULL,
+  PRIMARY KEY (point_measurement_id, calculation_order, input_order),
+  FOREIGN KEY (point_measurement_id, calculation_order)
+    REFERENCES point_measurement_calculations (
+      point_measurement_id,
+      calculation_order
+    )
+    ON DELETE CASCADE,
+  FOREIGN KEY (evidence_record_id, evidence_revision)
+    REFERENCES record_revisions (record_id, revision)
+) STRICT;
+
 CREATE TABLE measurement_samples (
   record_id TEXT PRIMARY KEY,
   record_type TEXT NOT NULL DEFAULT 'measurement_sample'
@@ -400,6 +417,19 @@ CREATE TABLE attachments (
     ON DELETE CASCADE
 ) STRICT;
 
+CREATE TABLE record_attachment_links (
+  owner_record_id TEXT NOT NULL,
+  attachment_order INTEGER NOT NULL CHECK (attachment_order >= 0),
+  attachment_record_id TEXT NOT NULL,
+  PRIMARY KEY (owner_record_id, attachment_order),
+  UNIQUE (owner_record_id, attachment_record_id),
+  FOREIGN KEY (owner_record_id)
+    REFERENCES records (record_id)
+    ON DELETE CASCADE,
+  FOREIGN KEY (attachment_record_id)
+    REFERENCES attachments (record_id)
+) STRICT;
+
 CREATE TABLE benchmark_definitions (
   record_id TEXT PRIMARY KEY,
   record_type TEXT NOT NULL DEFAULT 'benchmark_definition'
@@ -447,8 +477,12 @@ CREATE TABLE prediction_result_links (
   FOREIGN KEY (record_id, record_type)
     REFERENCES records (record_id, record_type)
     ON DELETE CASCADE,
+  FOREIGN KEY (prediction_id)
+    REFERENCES predictions (record_id),
   FOREIGN KEY (prediction_id, prediction_revision)
     REFERENCES record_revisions (record_id, revision),
+  FOREIGN KEY (benchmark_result_id)
+    REFERENCES benchmark_results (record_id),
   FOREIGN KEY (benchmark_result_id, benchmark_result_revision)
     REFERENCES record_revisions (record_id, revision)
 ) STRICT;
@@ -470,6 +504,8 @@ CREATE TABLE prediction_grades (
   FOREIGN KEY (record_id, record_type)
     REFERENCES records (record_id, record_type)
     ON DELETE CASCADE,
+  FOREIGN KEY (prediction_result_link_id)
+    REFERENCES prediction_result_links (record_id),
   FOREIGN KEY (prediction_result_link_id, prediction_result_link_revision)
     REFERENCES record_revisions (record_id, revision)
 ) STRICT;
@@ -488,6 +524,8 @@ CREATE TABLE prediction_error_analyses (
   FOREIGN KEY (record_id, record_type)
     REFERENCES records (record_id, record_type)
     ON DELETE CASCADE,
+  FOREIGN KEY (prediction_grade_id)
+    REFERENCES prediction_grades (record_id),
   FOREIGN KEY (prediction_grade_id, prediction_grade_revision)
     REFERENCES record_revisions (record_id, revision)
 ) STRICT;
@@ -590,6 +628,7 @@ CREATE TABLE goals (
   record_type TEXT NOT NULL DEFAULT 'goal' CHECK (record_type = 'goal'),
   title TEXT NOT NULL,
   target_date TEXT,
+  target_benchmark_definition_id TEXT,
   authored_at TEXT NOT NULL,
   author_type TEXT NOT NULL,
   content_version INTEGER NOT NULL,
@@ -597,7 +636,9 @@ CREATE TABLE goals (
   data_json TEXT NOT NULL CHECK (json_valid(data_json)),
   FOREIGN KEY (record_id, record_type)
     REFERENCES records (record_id, record_type)
-    ON DELETE CASCADE
+    ON DELETE CASCADE,
+  FOREIGN KEY (target_benchmark_definition_id)
+    REFERENCES benchmark_definitions (record_id)
 ) STRICT;
 
 CREATE TABLE nutrition_model_interpretations (

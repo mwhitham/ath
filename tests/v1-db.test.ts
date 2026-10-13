@@ -1,9 +1,10 @@
-import { lstat, mkdtemp, rm, symlink } from "node:fs/promises";
+import { lstat, mkdir, mkdtemp, rm, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
 import { afterEach, describe, expect, it } from "vitest";
+import { database as publicDatabase } from "../src/index.js";
 import {
   createDatabase,
   correctRecord,
@@ -11,17 +12,20 @@ import {
   listRecords,
   migrateDatabase,
   openDatabase,
-  readApplicationId,
   readDatabaseMetadata,
   readRecord,
   readRecordRevisions,
-  readUserVersion,
   SQLITE_APPLICATION_ID,
   SQL_SCHEMA_VERSION,
   writeRecord,
   writeRecords,
   type AthleticDatabase,
 } from "../src/db/index.js";
+import {
+  databaseClient,
+  readApplicationId,
+  readUserVersion,
+} from "../src/db/client.js";
 
 const databaseId = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e01";
 const sourceId = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e02";
@@ -126,12 +130,12 @@ describe("v1 database creation and opening", () => {
       created_at: createdAt,
     });
 
-    const foreignKeys = await database.client.execute("PRAGMA foreign_keys");
+    const foreignKeys = await databaseClient(database).execute("PRAGMA foreign_keys");
     expect(Number(foreignKeys.rows[0]?.foreign_keys)).toBe(1);
-    const journalMode = await database.client.execute("PRAGMA journal_mode");
+    const journalMode = await databaseClient(database).execute("PRAGMA journal_mode");
     expect(String(journalMode.rows[0]?.journal_mode).toLowerCase()).toBe("wal");
 
-    const tables = await database.client.execute(
+    const tables = await databaseClient(database).execute(
       "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name",
     );
     const tableNames = tables.rows.map((row) => String(row.name));
@@ -144,17 +148,48 @@ describe("v1 database creation and opening", () => {
         "record_deletions",
         "record_erasure_markers",
         "record_import_keys",
+        "athlete_profile",
         "sources",
+        "source_devices",
         "point_measurements",
+        "point_measurement_calculations",
+        "point_measurement_calculation_inputs",
         "measurement_samples",
+        "sleep_sessions",
+        "workout_sessions",
+        "workout_session_segments",
+        "benchmark_results",
+        "benchmark_result_segments",
+        "provider_scores",
+        "provider_reporting_periods",
         "athlete_reports",
+        "nutrition_entries",
+        "reported_nutrition_items",
+        "attachments",
+        "record_attachment_links",
+        "benchmark_definitions",
+        "predictions",
+        "prediction_result_links",
+        "prediction_grades",
+        "prediction_error_analyses",
+        "prediction_error_causes",
+        "training_plans",
+        "planned_sessions",
+        "planned_session_blocks",
+        "coaching_notes",
+        "saved_training_reviews",
+        "goals",
+        "nutrition_model_interpretations",
         "authored_record_evidence",
       ]),
     );
 
     if (process.platform !== "win32") {
-      const mode = (await lstat(path)).mode & 0o777;
-      expect(mode).toBe(0o600);
+      await writeRecord(database, sourceInput());
+      for (const suffix of ["", "-wal", "-shm"]) {
+        const mode = (await lstat(`${path}${suffix}`)).mode & 0o777;
+        expect(mode).toBe(0o600);
+      }
     }
   });
 
@@ -177,9 +212,16 @@ describe("v1 database creation and opening", () => {
     const path = await tempDatabasePath();
     const client = createClient({ url: pathToFileURL(path).href });
     await client.execute("PRAGMA application_id = 1234");
+    const before = await client.execute("PRAGMA journal_mode");
+    expect(String(before.rows[0]?.journal_mode).toLowerCase()).toBe("delete");
     client.close();
 
     await expect(openDatabase(path)).rejects.toThrow("does not belong");
+
+    const afterClient = createClient({ url: pathToFileURL(path).href });
+    const after = await afterClient.execute("PRAGMA journal_mode");
+    expect(String(after.rows[0]?.journal_mode).toLowerCase()).toBe("delete");
+    afterClient.close();
   });
 
   it.runIf(process.platform !== "win32")(
@@ -193,6 +235,47 @@ describe("v1 database creation and opening", () => {
       await expect(openDatabase(link)).rejects.toThrow("symbolic link");
     },
   );
+
+  it.runIf(process.platform !== "win32")(
+    "refuses a database path through a symbolic-link parent",
+    async () => {
+      const directory = await mkdtemp(join(tmpdir(), "ath-v1-parent-"));
+      temporaryDirectories.push(directory);
+      const realParent = join(directory, "real");
+      const linkedParent = join(directory, "linked");
+      await mkdir(realParent);
+      await symlink(realParent, linkedParent);
+      await expect(createDatabase(join(linkedParent, "athlete.ath.sqlite"))).rejects.toThrow(
+        "symbolic link",
+      );
+    },
+  );
+
+  it("applies the busy timeout to transaction connections", async () => {
+    const { database } = await newDatabase();
+    const transaction = await databaseClient(database).transaction("read");
+    try {
+      const timeout = await transaction.execute("PRAGMA busy_timeout");
+      expect(Number(timeout.rows[0]?.timeout)).toBe(5_000);
+    } finally {
+      await transaction.rollback();
+      transaction.close();
+    }
+  });
+
+  it("refuses a local user_version that disagrees with metadata", async () => {
+    const { database, path } = await newDatabase();
+    await databaseClient(database).execute("PRAGMA user_version = 2");
+    database.close();
+    openDatabases.pop();
+    await expect(openDatabase(path)).rejects.toThrow("does not match");
+  });
+
+  it("does not expose a raw SQL client or transaction callback publicly", () => {
+    expect(publicDatabase).not.toHaveProperty("connectDatabase");
+    expect(publicDatabase).not.toHaveProperty("databaseClient");
+    expect(publicDatabase).not.toHaveProperty("withWriteTransaction");
+  });
 });
 
 describe("v1 record writes and revisions", () => {
@@ -222,7 +305,7 @@ describe("v1 record writes and revisions", () => {
     ).rejects.toThrow();
 
     expect(await listRecords(database)).toEqual([]);
-    const state = await database.client.execute(
+    const state = await databaseClient(database).execute(
       "SELECT current_revision FROM database_state WHERE singleton_id = 1",
     );
     expect(Number(state.rows[0]?.current_revision)).toBe(0);
@@ -291,6 +374,87 @@ describe("v1 record writes and revisions", () => {
       }),
     ).rejects.toThrow();
     expect(await readRecord(database, reportId)).toBeNull();
+  });
+
+  it("enforces typed prediction-ledger references", async () => {
+    const { database } = await newDatabase();
+    await writeRecord(database, sourceInput());
+    await expect(
+      writeRecord(database, {
+        record_type: "prediction_result_link",
+        record_id: "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e05",
+        created_at: createdAt,
+        changed_by: toolActor,
+        data: {
+          prediction: { record_id: sourceId, revision: 1 },
+          benchmark_result: { record_id: sourceId, revision: 1 },
+          created_by: toolActor,
+          linked_at: createdAt,
+          content_version: 1,
+          status: "active",
+        },
+      }),
+    ).rejects.toThrow();
+  });
+
+  it("enforces attachment, calculation-input, and goal-target links", async () => {
+    const { database } = await newDatabase();
+    const missingId = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1eee";
+
+    await expect(
+      writeRecord(database, {
+        record_type: "athlete_report",
+        record_id: reportId,
+        created_at: createdAt,
+        changed_by: toolActor,
+        data: {
+          report_type: "soreness",
+          reported_at: createdAt,
+          input_reported_at: timestampReceipt,
+          reported_via: "text",
+          attachment_ids: [missingId],
+        },
+      }),
+    ).rejects.toThrow();
+
+    await writeRecord(database, sourceInput());
+    await expect(
+      writeRecord(database, {
+        ...pointInput(),
+        data: {
+          ...pointInput().data,
+          calculations: [
+            {
+              from_quantity: "hrv_beats",
+              method: "rmssd",
+              calculation_version: "1",
+              input_records: [{ record_id: missingId, revision: 1 }],
+            },
+          ],
+        },
+      }),
+    ).rejects.toThrow();
+
+    await expect(
+      writeRecord(database, {
+        record_type: "goal",
+        record_id: "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e06",
+        created_at: createdAt,
+        changed_by: toolActor,
+        data: {
+          authorship: {
+            author: { author_type: "athlete" },
+            authored_at: createdAt,
+            evidence: [],
+            content_version: 1,
+            status: "active",
+          },
+          title: "Improve Fran",
+          target_benchmark_definition_id: missingId,
+          target_score: { duration_s: 240 },
+        },
+      }),
+    ).rejects.toThrow();
   });
 });
 

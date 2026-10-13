@@ -1,6 +1,5 @@
-import { lstat, unlink } from "node:fs/promises";
-import { resolve } from "node:path";
-import { fileURLToPath } from "node:url";
+import { lstat, mkdir, open as openFile, unlink } from "node:fs/promises";
+import { dirname } from "node:path";
 import type { Transaction } from "@libsql/client";
 import {
   ATHLETIC_STANDARD_VERSION,
@@ -9,8 +8,12 @@ import {
 } from "../v1/schema.js";
 import {
   connectDatabase,
+  databaseClient,
+  enableLocalWal,
+  parseDatabaseTarget,
   readApplicationId,
   readUserVersion,
+  refuseSymbolicLinkComponents,
   setOwnerOnlyDatabasePermissions,
   SQL_SCHEMA_VERSION,
   SQLITE_APPLICATION_ID,
@@ -47,7 +50,7 @@ export async function readDatabaseMetadata(
 ): Promise<DatabaseMetadata> {
   let result;
   try {
-    result = await database.client.execute(
+    result = await databaseClient(database).execute(
       "SELECT application_marker, sql_schema_version, athleticstandard_version, database_id, created_at FROM database_metadata WHERE singleton_id = 1",
     );
   } catch (error) {
@@ -101,8 +104,12 @@ async function installInitialSchema(
   databaseId: string,
   createdAt: string,
 ): Promise<void> {
-  const transaction = await database.client.transaction("write");
+  const transaction = await databaseClient(database).transaction("write");
   try {
+    const foreignKeys = await transaction.execute("PRAGMA foreign_keys");
+    if (Number(foreignKeys.rows[0]?.foreign_keys) !== 1) {
+      throw new Error("SQLite foreign-key enforcement is disabled in migration transaction");
+    }
     await transaction.executeMultiple(INITIAL_SCHEMA_SQL);
     await transaction.execute({
       sql: `
@@ -139,31 +146,55 @@ async function installInitialSchema(
   }
 }
 
-async function pathExists(path: string): Promise<boolean> {
+interface PreparedLocalFile {
+  path: string;
+  device: bigint;
+  inode: bigint;
+}
+
+async function prepareLocalDatabaseFile(path: string): Promise<PreparedLocalFile> {
+  await refuseSymbolicLinkComponents(path, { allowMissingTail: true });
+  await mkdir(dirname(path), { recursive: true, mode: 0o700 });
+  await refuseSymbolicLinkComponents(dirname(path));
+
+  let file;
   try {
-    await lstat(path);
-    return true;
+    file = await openFile(path, "wx", 0o600);
   } catch (error) {
-    if (error instanceof Error && "code" in error && error.code === "ENOENT") {
-      return false;
+    if (error instanceof Error && "code" in error && error.code === "EEXIST") {
+      throw new Error(`Refusing to replace existing database: ${path}`);
     }
     throw error;
   }
+
+  try {
+    const stat = await file.stat({ bigint: true });
+    return { path, device: stat.dev, inode: stat.ino };
+  } finally {
+    await file.close();
+  }
 }
 
-function localPathForTarget(target: string): string | undefined {
-  if (target.startsWith("file:")) {
-    return resolve(fileURLToPath(target));
+async function removePartialLocalDatabase(prepared: PreparedLocalFile): Promise<void> {
+  let current;
+  try {
+    current = await lstat(prepared.path, { bigint: true });
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "ENOENT") {
+      return;
+    }
+    throw error;
   }
-  if (/^[a-z][a-z0-9+.-]*:\/\//i.test(target)) {
-    return undefined;
+  if (
+    current.isSymbolicLink() ||
+    current.dev !== prepared.device ||
+    current.ino !== prepared.inode
+  ) {
+    return;
   }
-  return resolve(target);
-}
 
-async function removePartialLocalDatabase(path: string): Promise<void> {
   await Promise.all(
-    [path, `${path}-wal`, `${path}-shm`].map(async (candidate) => {
+    [prepared.path, `${prepared.path}-wal`, `${prepared.path}-shm`].map(async (candidate) => {
       try {
         await unlink(candidate);
       } catch (error) {
@@ -185,20 +216,29 @@ export async function createDatabase(
   const databaseId = DatabaseId.parse(options.databaseId ?? createUuidV7());
   const createdAt = UtcTimestamp.parse(options.createdAt ?? new Date().toISOString());
 
-  const localPath = localPathForTarget(target);
-  if (localPath !== undefined && (await pathExists(localPath))) {
-    throw new Error(`Refusing to replace existing database: ${localPath}`);
-  }
-
-  const database = await connectDatabase(target, { allowMissingLocalFile: true });
+  const parsedTarget = parseDatabaseTarget(target);
+  const prepared =
+    parsedTarget.localPath === undefined
+      ? undefined
+      : await prepareLocalDatabaseFile(parsedTarget.localPath);
+  let database: AthleticDatabase;
   try {
+    database = await connectDatabase(target);
+  } catch (error) {
+    if (prepared !== undefined) {
+      await removePartialLocalDatabase(prepared);
+    }
+    throw error;
+  }
+  try {
+    await enableLocalWal(database);
     await installInitialSchema(database, databaseId, createdAt);
     await setOwnerOnlyDatabasePermissions(database);
     return database;
   } catch (error) {
     database.close();
-    if (database.localPath !== undefined) {
-      await removePartialLocalDatabase(database.localPath);
+    if (prepared !== undefined) {
+      await removePartialLocalDatabase(prepared);
     }
     throw error;
   }
@@ -231,6 +271,7 @@ export async function openDatabase(target: string): Promise<AthleticDatabase> {
         `SQLite user_version ${userVersion} does not match database metadata ${metadata.sql_schema_version}`,
       );
     }
+    await enableLocalWal(database);
     return database;
   } catch (error) {
     database.close();

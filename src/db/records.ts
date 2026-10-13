@@ -12,7 +12,7 @@ import {
   type RecordRevisionT,
   type RecordTypeT,
 } from "../v1/schema.js";
-import type { AthleticDatabase } from "./client.js";
+import { databaseClient, type AthleticDatabase } from "./client.js";
 import { withWriteTransaction } from "./transaction.js";
 import { createUuidV7 } from "./uuid.js";
 
@@ -172,6 +172,29 @@ async function replaceAuthoredEvidence(
   }
 }
 
+async function replaceAttachmentLinks(
+  transaction: Transaction,
+  recordId: string,
+  attachmentIds: readonly string[],
+): Promise<void> {
+  await transaction.execute({
+    sql: "DELETE FROM record_attachment_links WHERE owner_record_id = ?",
+    args: [recordId],
+  });
+  for (const [index, attachmentId] of attachmentIds.entries()) {
+    await transaction.execute({
+      sql: `
+        INSERT INTO record_attachment_links (
+          owner_record_id,
+          attachment_order,
+          attachment_record_id
+        ) VALUES (?, ?, ?)
+      `,
+      args: [recordId, index, attachmentId],
+    });
+  }
+}
+
 async function upsertTypedRecord(
   transaction: Transaction,
   record: CurrentRecordT,
@@ -223,6 +246,34 @@ async function upsertTypedRecord(
         record.record_id,
         record.data.calculations ?? [],
       );
+      await transaction.execute({
+        sql: "DELETE FROM point_measurement_calculation_inputs WHERE point_measurement_id = ?",
+        args: [record.record_id],
+      });
+      for (const [calculationIndex, calculation] of (
+        record.data.calculations ?? []
+      ).entries()) {
+        for (const [inputIndex, input] of calculation.input_records.entries()) {
+          await transaction.execute({
+            sql: `
+              INSERT INTO point_measurement_calculation_inputs (
+                point_measurement_id,
+                calculation_order,
+                input_order,
+                evidence_record_id,
+                evidence_revision
+              ) VALUES (?, ?, ?, ?, ?)
+            `,
+            args: [
+              record.record_id,
+              calculationIndex,
+              inputIndex,
+              input.record_id,
+              input.revision,
+            ],
+          });
+        }
+      }
       break;
     case "measurement_sample":
       await upsertTypedRow(transaction, "measurement_samples", record, [
@@ -300,6 +351,11 @@ async function upsertTypedRecord(
         ["report_type", record.data.report_type],
         ["reported_at", record.data.reported_at],
       ]);
+      await replaceAttachmentLinks(
+        transaction,
+        record.record_id,
+        record.data.attachment_ids ?? [],
+      );
       break;
     case "nutrition_entry":
       await upsertTypedRow(transaction, "nutrition_entries", record, [
@@ -314,6 +370,11 @@ async function upsertTypedRecord(
         "item_json",
         record.record_id,
         record.data.reported_items,
+      );
+      await replaceAttachmentLinks(
+        transaction,
+        record.record_id,
+        record.data.attachment_ids ?? [],
       );
       break;
     case "attachment":
@@ -456,6 +517,10 @@ async function upsertTypedRecord(
       await upsertTypedRow(transaction, "goals", record, [
         ["title", record.data.title],
         ["target_date", nullable(record.data.target_date)],
+        [
+          "target_benchmark_definition_id",
+          nullable(record.data.target_benchmark_definition_id),
+        ],
         ["authored_at", record.data.authorship.authored_at],
         ["author_type", record.data.authorship.author.author_type],
         ["content_version", record.data.authorship.content_version],
@@ -665,7 +730,7 @@ export async function readRecord(
   database: AthleticDatabase,
   recordId: string,
 ): Promise<CurrentRecordT | null> {
-  const result = await database.client.execute({
+  const result = await databaseClient(database).execute({
     sql: `
       SELECT
         records.record_id,
@@ -715,7 +780,7 @@ export async function listRecords(
   }
   args.push(limit);
 
-  const result = await database.client.execute({
+  const result = await databaseClient(database).execute({
     sql: `
       SELECT
         records.record_id,
@@ -752,7 +817,7 @@ export async function readRecordRevisions(
   recordId: string,
 ): Promise<RecordRevisionT[]> {
   const parsedRecordId = RecordId.parse(recordId);
-  const result = await database.client.execute({
+  const result = await databaseClient(database).execute({
     sql: `
       SELECT
         record_id,
