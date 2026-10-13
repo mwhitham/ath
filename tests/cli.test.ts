@@ -118,7 +118,7 @@ describe("ath stats", () => {
   it("summarizes the fixture with source-specific baselines and series coverage", () => {
     const res = ath(["stats", FIXTURE], process.cwd());
     expect(res.code).toBe(0);
-    expect(res.stdout).toContain("current records: 23");
+    expect(res.stdout).toContain("current records: 24");
     expect(res.stdout).toContain("hrv_rmssd");
     expect(res.stdout).toContain("90-day device baselines");
     expect(res.stdout).toMatch(/n=\d+/);

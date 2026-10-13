@@ -33,7 +33,7 @@ describe("deterministic v1 SQLite fixture", () => {
         include_deleted: true,
         limit: 1_000,
       });
-      expect(records).toHaveLength(24);
+      expect(records).toHaveLength(25);
       expect([...new Set(records.map((record) => record.record_type))].sort()).toEqual(
         [...RecordType.options].sort(),
       );

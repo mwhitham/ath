@@ -58,6 +58,11 @@ Use `--benchmark <key>` to name a time-scored result when the text does not cont
 the intended benchmark name. If the key does not exist, the plain path creates a
 custom time-scored benchmark definition in the same transaction.
 
+Reuse a benchmark key only when the test definition is the same. A near variation
+with different movements, loading, distance, or scoring needs a new definition.
+Common named keys include `fran` and `murph`. Keep each `hyrox` course or division
+under the definition that describes its exact stations and scoring.
+
 Use structured input for rep scores, load scores, plans, predictions, nutrition,
 and other records outside the narrow text parser.
 

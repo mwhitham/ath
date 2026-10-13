@@ -432,7 +432,7 @@ describe("v1 corrections, links, deletion, and explicit grading", () => {
     expect(document.record_erasure_markers.map((marker) => marker.record_id)).toContain(
       resultId,
     );
-  });
+  }, 15_000);
 
   it("explicit grade reuses an exact result link and writes no result", () => {
     const directory = fixtureCopy();

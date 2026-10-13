@@ -76,8 +76,8 @@ describe("the skill", () => {
   });
 
   it("leaves to the tools what the tools enforce (D46)", () => {
-    expect(skillText()).toContain("What you do not need to hold, because the tools do");
-    expect(skillText()).toContain("never pooled");
+    expect(skillText()).toContain("The database enforces the source");
+    expect(skillText()).toContain("never share a calculation");
   });
 });
 
