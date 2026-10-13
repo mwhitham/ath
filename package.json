@@ -60,6 +60,7 @@
     "generate:skill-cli": "tsx scripts/generate-skill-cli.ts"
   },
   "dependencies": {
+    "@libsql/client": "^0.18.0",
     "commander": "^15.0.0",
     "papaparse": "^5.7.0",
     "sax": "^1.6.1",
