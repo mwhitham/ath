@@ -1,10 +1,10 @@
 import { open as openFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { CompleteRequest, CompleteResponse } from "../gateway.js";
-import type { CurrentRecordT } from "../v1/schema.js";
-import type { AthleticDatabase } from "./client.js";
+import { CurrentRecord, type CurrentRecordT } from "../v1/schema.js";
+import { databaseClient, type AthleticDatabase } from "./client.js";
 import { buildEvidence } from "./evidence.js";
-import { listRecords, readRecordRevisions } from "./records.js";
+import { readRecordRevisions } from "./records.js";
 
 export interface BacktestReplay {
   model: string;
@@ -82,6 +82,36 @@ function median(values: readonly number[]): number | null {
   return Math.round(value * 10) / 10;
 }
 
+async function backtestRecords(
+  database: AthleticDatabase,
+): Promise<CurrentRecordT[]> {
+  const result = await databaseClient(database).execute(`
+    SELECT
+      records.record_id,
+      records.record_type,
+      records.current_revision,
+      records.created_at,
+      records.is_deleted,
+      record_revisions.record_json
+    FROM records
+    JOIN record_revisions
+      ON record_revisions.record_id = records.record_id
+     AND record_revisions.revision = records.current_revision
+    WHERE records.record_type IN ('benchmark_definition', 'benchmark_result')
+    ORDER BY records.created_at, records.record_id
+  `);
+  return result.rows.map((row) =>
+    CurrentRecord.parse({
+      record_id: row.record_id,
+      record_type: row.record_type,
+      current_revision: Number(row.current_revision),
+      created_at: row.created_at,
+      is_deleted: Number(row.is_deleted) === 1,
+      data: JSON.parse(String(row.record_json)) as unknown,
+    }),
+  );
+}
+
 export async function runV1Backtest(
   database: AthleticDatabase,
   input: {
@@ -94,7 +124,7 @@ export async function runV1Backtest(
   if (input.models.length === 0) {
     throw new Error("backtest needs at least one model");
   }
-  const records = await listRecords(database, { include_deleted: true, limit: 10_000 });
+  const records = await backtestRecords(database);
   const definitions = new Map(
     records
       .filter(
