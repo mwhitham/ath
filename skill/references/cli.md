@@ -15,8 +15,10 @@ is offered, it shows the write and writes nothing.
 - [ath skill](#ath-skill) — where the agent skill is installed, and whether each copy is current
 - [ath skill install](#ath-skill-install) — copy the skill into .agents/skills and every harness folder here
 - [ath import](#ath-import) — load an Apple Health, WHOOP, or Oura export into the file
-- [ath log](#ath-log) — write something down: a workout result, a measurement, or how you felt
-- [ath link](#ath-link) — attach a workout result to the device session it happened in
+- [ath log](#ath-log) — write one plain-text record or one validated structured batch
+- [ath link](#ath-link) — attach a benchmark result to the workout session it happened in
+- [ath correct](#ath-correct) — replace one record's complete data and retain its prior revision
+- [ath delete](#ath-delete) — hide one current record while retaining its complete history
 - [ath check](#ath-check) — make sure the file still obeys every rule of the format
 - [ath key](#ath-key) — save or show a gateway key — never stored in the athlete file
 - [ath key set](#ath-key-set) — save a Vercel or OpenRouter key in the OS password store
@@ -25,7 +27,7 @@ is offered, it shows the write and writes nothing.
 - [ath predict](#ath-predict) — predict a benchmark — needs a model in a bare terminal; --json is evidence
 - [ath backtest](#ath-backtest) — replay history with one or more models — writes a report, not the athlete file
 - [ath share](#ath-share) — not built yet — names the latest backtest report
-- [ath grade](#ath-grade) — record what actually happened, and score the prediction against it
+- [ath grade](#ath-grade) — grade an existing prediction against an existing benchmark result
 - [ath series](#ath-series) — read a sample series back: one row per day, or the raw samples
 - [ath stats](#ath-stats) — what is in the file: counts, date ranges, sources, and baselines
 - [ath records](#ath-records) — find stable record IDs, inspect one record, and read its revision history
@@ -41,49 +43,34 @@ Athletic Standard — an open, local-first format for training and recovery data
 that keeps measured signals apart from self-reported ones.
 
 Options:
-  -V, --version                      output the version number
-  --update                           install the latest ath with the tool that
-                                     installed it, and replace the agent skill
-                                     if one is already in this folder
-  -h, --help                         display help for command
+  -V, --version                            output the version number
+  --update                                 install the latest ath with the tool that installed it, and replace the agent skill if one is already in this folder
+  -h, --help                               display help for command
 
 Set up:
-  init [options]                     create a new athlete.ath.sqlite here, with
-                                     the well-known benchmarks defined
-  skill [options]                    where the agent skill is installed, and
-                                     whether each copy is current
-  key [options]                      save or show a gateway key — never stored
-                                     in the athlete file
-  models [options]                   list live text models that can reason, or
-                                     save your usual one
+  init [options]                           create a new athlete.ath.sqlite here, with the well-known benchmarks defined
+  skill [options]                          where the agent skill is installed, and whether each copy is current
+  key [options]                            save or show a gateway key — never stored in the athlete file
+  models [options]                         list live text models that can reason, or save your usual one
 
 Get your data in:
-  import [options] <path>            load an Apple Health, WHOOP, or Oura export
-                                     into the file
-  log [options] [entry...]           write something down: a workout result, a
-                                     measurement, or how you felt
-  link [options] <result> <session>  attach a workout result to the device
-                                     session it happened in
+  import [options] <path>                  load an Apple Health, WHOOP, or Oura export into the file
+  log [options] [entry...]                 write one plain-text record or one validated structured batch
+  link [options] <result-id> <session-id>  attach a benchmark result to the workout session it happened in
+  correct [options] <record-id>            replace one record's complete data and retain its prior revision
+  delete [options] <record-id>             hide one current record while retaining its complete history
 
 Read your data:
-  check [options] [file]             make sure the file still obeys every rule
-                                     of the format
-  series [options] <quantity>        read a sample series back: one row per day,
-                                     or the raw samples
-  stats [options] [file]             what is in the file: counts, date ranges,
-                                     sources, and baselines
-  records                            find stable record IDs, inspect one record,
-                                     and read its revision history
+  check [options] [file]                   make sure the file still obeys every rule of the format
+  series [options] <quantity>              read a sample series back: one row per day, or the raw samples
+  stats [options] [file]                   what is in the file: counts, date ranges, sources, and baselines
+  records                                  find stable record IDs, inspect one record, and read its revision history
 
 Predict and grade:
-  predict [options] <benchmark>      predict a benchmark — needs a model in a
-                                     bare terminal; --json is evidence
-  backtest [options]                 replay history with one or more models —
-                                     writes a report, not the athlete file
-  share [options]                    not built yet — names the latest backtest
-                                     report
-  grade [options] <benchmark>        record what actually happened, and score
-                                     the prediction against it
+  predict [options] <benchmark>            predict a benchmark — needs a model in a bare terminal; --json is evidence
+  backtest [options]                       replay history with one or more models — writes a report, not the athlete file
+  share [options]                          not built yet — names the latest backtest report
+  grade [options] <prediction-id>          grade an existing prediction against an existing benchmark result
 ```
 
 ## ath init
@@ -159,44 +146,83 @@ Options:
 ```
 Usage: ath log [options] [entry...]
 
-write something down: a workout result, a measurement, or how you felt
+write one plain-text record or one validated structured batch
 
 Arguments:
-  entry                  the entry, unquoted. Leave it off to paste one, ending
-                         with Ctrl-D
+  entry               the entry, unquoted. Leave it off to paste one, ending
+                      with Ctrl-D
 
 Options:
-  --benchmark <name>     name the workout yourself, instead of naming it after
-                         the day
-  --date <date>          the day it happened, as YYYY-MM-DD. Leave it off for
-                         today
-  --scaling <rx|scaled>  whether the workout was done as written, or scaled
-  --file <path>          write to a file other than the one in this folder
-  -y, --yes              write it without asking — for scripts, and when you are
-                         sure
-  --again                record a second result on a day that already has one
-  --dry-run              show what would be written, and write nothing
-  --json                 structured output, for an agent rather than a person
-  -h, --help             display help for command
+  --benchmark <name>  name the workout yourself, instead of naming it after the
+                      day
+  --at <timestamp>    exact UTC event time with milliseconds; defaults to now
+  --agent <name>      name the agent making a structured write
+  --file <path>       write to a file other than the one in this folder
+  -y, --yes           write it without asking — for scripts, and when you are
+                      sure
+  --dry-run           show what would be written, and write nothing
+  --json              structured preview for an agent; never confirms the write
+  -h, --help          display help for command
 ```
 
 ## ath link
 
 ```
-Usage: ath link [options] <result> <session>
+Usage: ath link [options] <result-id> <session-id>
 
-attach a workout result to the device session it happened in
+attach a benchmark result to the workout session it happened in
 
 Arguments:
-  result         the benchmark, e.g. `fran`, or `fran@2026-09-04` when there are
-                 several
-  session        the session's start: `17:25`, a full timestamp, or
-                 `whoop-1@<timestamp>`
+  result-id            stable benchmark-result record ID
+  session-id           stable workout-session record ID
 
 Options:
-  --file <path>  change a file other than the one in this folder
-  --json         structured output, for an agent rather than a person
-  -h, --help     display help for command
+  --revision <number>  current result revision from the preview
+  --file <path>        change a database other than the one in this folder
+  -y, --yes            write without asking after reviewing the preview
+  --dry-run            show what would change and write nothing
+  --json               structured preview; never confirms the write
+  -h, --help           display help for command
+```
+
+## ath correct
+
+```
+Usage: ath correct [options] <record-id>
+
+replace one record's complete data and retain its prior revision
+
+Arguments:
+  record-id            stable record ID
+
+Options:
+  --revision <number>  current revision from the preview
+  --data <json>        complete replacement for the record's data object
+  --agent <name>       name the agent making the correction
+  --file <path>        change a database other than the one in this folder
+  -y, --yes            write without asking after reviewing the preview
+  --dry-run            show what would change and write nothing
+  --json               structured preview; never confirms the write
+  -h, --help           display help for command
+```
+
+## ath delete
+
+```
+Usage: ath delete [options] <record-id>
+
+hide one current record while retaining its complete history
+
+Arguments:
+  record-id            stable record ID
+
+Options:
+  --revision <number>  current revision from the preview
+  --file <path>        change a database other than the one in this folder
+  -y, --yes            write without asking after reviewing the preview
+  --dry-run            show what would change and write nothing
+  --json               structured preview; never confirms the write
+  -h, --help           display help for command
 ```
 
 ## ath check
@@ -283,19 +309,19 @@ Usage: ath predict [options] <benchmark>
 predict a benchmark — needs a model in a bare terminal; --json is evidence
 
 Arguments:
-  benchmark         the benchmark to predict, e.g. `fran`. See them all with
-                    `ath stats`
+  benchmark          the benchmark to predict, e.g. `fran`. See them all with
+                     `ath stats`
 
 Options:
-  --model <name>    the model for this run. See them with `ath models`
-  --gateway <name>  vercel or openrouter, when both keys are available
-  --as-of <date>    pretend it is this day, hiding everything after it. Does not
-                    write. Replay the past with ath backtest (YYYY-MM-DD)
-  --file <path>     read a file other than the one in this folder
-  -y, --yes         write the prediction without asking
-  --dry-run         show the prediction, and write nothing
-  --json            evidence for a harness, not a prediction
-  -h, --help        display help for command
+  --model <name>     the model for this run. See them with `ath models`
+  --gateway <name>   vercel or openrouter, when both keys are available
+  --as-of <time>     historical day (YYYY-MM-DD) or exact UTC timestamp
+  --timezone <name>  IANA timezone when --as-of is a calendar day
+  --file <path>      read a file other than the one in this folder
+  -y, --yes          write the prediction without asking
+  --dry-run          show the prediction, and write nothing
+  --json             evidence for a harness, not a prediction
+  -h, --help         display help for command
 ```
 
 ## ath backtest
@@ -333,29 +359,24 @@ Options:
 ## ath grade
 
 ```
-Usage: ath grade [options] <benchmark>
+Usage: ath grade [options] <prediction-id>
 
-record what actually happened, and score the prediction against it
+grade an existing prediction against an existing benchmark result
 
 Arguments:
-  benchmark              the benchmark that was attempted, e.g. `fran`
+  prediction-id                    stable prediction record ID
 
 Options:
-  --actual <score>       what happened: `4:32` for a time, `245` for reps,
-                         `100kg` for a load
-  --date <date>          the day of the attempt, as YYYY-MM-DD. Leave it off for
-                         today
-  --scaling <rx|scaled>  whether the workout was done as written, or scaled
-  --analysis <json>      the agent's write-up of a miss, after it has read the
-                         dossier
-  --file <path>          change a file other than the one in this folder
-  -y, --yes              write it without asking — for scripts, and when you are
-                         sure
-  --again                record a second attempt on a day that already has a
-                         result
-  --dry-run              show what would be written, and write nothing
-  --json                 structured output, for an agent rather than a person
-  -h, --help             display help for command
+  --result <record-id>             stable benchmark-result record ID
+  --calculation-version <version>  grade calculation version (default:
+                                   "prediction-grade-v1")
+  --file <path>                    change a database other than the one in this
+                                   folder
+  -y, --yes                        write without asking after reviewing the
+                                   preview
+  --dry-run                        show what would be written, and write nothing
+  --json                           structured preview; never confirms the write
+  -h, --help                       display help for command
 ```
 
 ## ath series

@@ -53,6 +53,15 @@ export interface ListRecordOptions {
   limit?: number;
 }
 
+export interface ExpectedCurrentRevision {
+  record_id: string;
+  revision: number;
+}
+
+export interface WriteRecordsOptions {
+  expected_current_revisions?: readonly ExpectedCurrentRevision[];
+}
+
 function requiredJson(value: unknown): string {
   const json = JSON.stringify(value);
   if (json === undefined) {
@@ -747,12 +756,31 @@ async function incrementDatabaseRevision(transaction: Transaction): Promise<numb
 export async function writeRecords(
   database: AthleticDatabase,
   inputs: readonly WriteRecordInput[],
+  options: WriteRecordsOptions = {},
 ): Promise<{ records: CurrentRecordT[]; database_revision: number }> {
   if (inputs.length === 0) {
     throw new Error("writeRecords needs at least one record");
   }
 
   return withWriteTransaction(database, async (transaction) => {
+    for (const expected of options.expected_current_revisions ?? []) {
+      const result = await transaction.execute({
+        sql: "SELECT current_revision, is_deleted FROM records WHERE record_id = ?",
+        args: [RecordId.parse(expected.record_id)],
+      });
+      const row = result.rows[0];
+      if (row === undefined) {
+        throw new Error(`Expected record does not exist: ${expected.record_id}`);
+      }
+      if (
+        Number(row.current_revision) !== expected.revision ||
+        Number(row.is_deleted) !== 0
+      ) {
+        throw new Error(
+          `Record ${expected.record_id} changed after preview; preview it again`,
+        );
+      }
+    }
     const records: CurrentRecordT[] = [];
     for (const input of inputs) {
       const changedBy = RecordActor.parse(input.changed_by);

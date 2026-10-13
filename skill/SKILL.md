@@ -1,21 +1,20 @@
 ---
 name: athletic-standard
-description: Reads and writes an athlete's Athletic Standard file (.ath.json) with the ath CLI. Applies when someone logs a workout, a lift, a benchmark result, HRV, resting heart rate, sleep, soreness, or how they feel; asks what their training or recovery data shows; asks for a prediction on a benchmark such as Fran or a 5k; reports a result to grade a prediction against; wants to backtest predictions on past results; or imports an Apple Health, WHOOP, or Oura export. Also applies to any question about a .ath.json file or the ath command.
+description: Reads and writes an athlete's Athletic Standard SQLite database (.ath.sqlite) with the ath CLI. Applies when someone logs a workout, a lift, a benchmark result, HRV, resting heart rate, sleep, soreness, or how they feel; asks what their training or recovery data shows; asks for a prediction on a benchmark such as Fran or a 5k; reports a result to grade a prediction against; wants to backtest predictions on past results; or imports an Apple Health, WHOOP, Oura, or Athletic Standard JSON export. Also applies to any question about an .ath.sqlite database, an Athletic Standard JSON package, or the ath command.
 license: MIT
 compatibility: Requires the ath CLI (npm package athleticstandard) on PATH. No network needed.
 metadata:
-  version: "0.4.3"
+  version: "1.0.0"
 ---
 
 # Athletic Standard
 
-An Athletic Standard file is one JSON document holding one athlete's training and
-recovery data. It sits on the athlete's own machine. `ath` is the command that reads
-and writes it.
+An Athletic Standard live record is one SQLite database holding one athlete's
+training and recovery data. It sits on the athlete's own machine. `ath` is the
+command that reads and writes it. JSON packages are explicit portable snapshots.
 
-This skill expects format version **0.4.3**. `ath check` prints the version of the
-file in front of you. A file on an older version still loads; a newer one may hold
-fields described nowhere here, so say so rather than guessing at them.
+This skill expects format version **1.0.0**. `ath check` prints the version of the
+database in front of you. Prerelease `0.x` JSON files are not imported.
 
 Not an app, not a coach, not medical advice. Describe what the data shows and what it
 does not. Do not prescribe training or diagnose anything.
@@ -29,8 +28,9 @@ does not. Do not prescribe training or diagnose anything.
 2. Pick the command from the table below. Full options and examples for every one are
    in [references/cli.md](references/cli.md).
 3. Pass `--json`. Every command that produces output for you has it.
-4. Before any command that writes (`log`, `link`, `grade`, `import`), show the athlete
-   what will be written and wait for a yes. Pass `-y` only after they have agreed.
+4. Before any command that writes (`log`, `link`, `correct`, `delete`, `grade`,
+   `import`), show the athlete what will be written and wait for a yes. `--json`
+   previews and never confirms a write. Pass `-y` only after they have agreed.
 5. For a prediction: run `ath predict <benchmark> --json` to get the evidence, write
    the prediction yourself from it, then save it with `ath log`. You are the model, so
    no key and no gateway are needed.
@@ -72,13 +72,16 @@ Get data in:
 |---|---|
 | `ath import <path>` | load an Apple Health, WHOOP, or Oura export into the file |
 | `ath log [entry...]` | write a workout result, a measurement, how they felt, or a prediction |
-| `ath link <result> <session>` | attach a workout result to the device session it happened in |
+| `ath link <result-id> <session-id>` | attach a workout result to the device session it happened in |
+| `ath correct <record-id>` | retain the old revision and replace the complete current record data |
+| `ath delete <record-id>` | hide a current record while retaining its history |
 
 Read:
 
 | Command | What it does |
 |---|---|
 | `ath check [file]` | whether the file still obeys every rule of the format |
+| `ath records` | find stable record IDs and inspect records, revisions, and links |
 | `ath series <quantity>` | a sample stream back, one row per day or every raw sample |
 | `ath stats [file]` | what is in the file: counts, date ranges, sources, and baselines |
 
@@ -87,7 +90,7 @@ Predict and grade:
 | Command | What it does |
 |---|---|
 | `ath predict <benchmark> --json` | the evidence for a prediction; the prediction is yours to write |
-| `ath grade <benchmark> --actual <score>` | record what happened and score the prediction against it |
+| `ath grade <prediction-id> --result <record-id>` | grade an existing prediction against an existing result |
 | `ath backtest` | replay past results through one or more models; writes a report, not the athlete file |
 | `ath share` | not built yet; names the latest backtest report |
 

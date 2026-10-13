@@ -143,6 +143,30 @@ async function savedTimeZone(database: AthleticDatabase): Promise<string | undef
   return typeof value === "string" ? value : undefined;
 }
 
+export async function resolveAsOfTime(
+  database: AthleticDatabase,
+  value: string | undefined,
+  explicitTimeZone?: string,
+): Promise<{ as_of: string; time_zone?: string }> {
+  if (value === undefined) {
+    return { as_of: new Date().toISOString() };
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return { as_of: UtcTimestamp.parse(value) };
+  }
+  const timeZone = explicitTimeZone ?? (await savedTimeZone(database));
+  if (timeZone === undefined) {
+    throw new Error(
+      "a calendar --as-of date needs --timezone <IANA name> or a default timezone in the athlete profile",
+    );
+  }
+  const nextDay = startOfDateInZone(nextCalendarDate(value), timeZone);
+  return {
+    as_of: new Date(Date.parse(nextDay) - 1).toISOString(),
+    time_zone: timeZone,
+  };
+}
+
 async function resolveRange(
   database: AthleticDatabase,
   options: SeriesViewOptions,

@@ -142,76 +142,42 @@ Examples:
   A note, taken exactly as typed. No quotes needed:
     $ ath log slept badly, about 5 hours
 
-  A measurement read off a device by hand:
-    $ ath log HRV 61 this morning
+  A manual measurement. Name RMSSD or SDNN rather than saying only HRV:
+    $ ath log RMSSD 61 ms
 
   How something felt, with a rating:
     $ ath log sore quads 4/5
 
-  A one-line workout:
+  A benchmark result:
     $ ath log Fran in 4:41 rx
 
-  Round times at the end. \`//\` marks the result; \`Times:\` does the same:
-    $ ath log e5m x 6: 16 echo bike cals, 12 t2b, 8 deadlift at 225 // 1:46, 1:25
-
-  A workout of several lines. Run \`ath log\` on its own, paste it, and
-  press Ctrl-D. A box height writes as 20" and a shell would break on it,
-  which is why it is pasted rather than quoted:
+  A structured record from an agent. Run \`ath log\`, paste one record
+  object or an array, and press Ctrl-D:
     $ ath log
-    7 ROUNDS FOR REPS
-    40s ALT DB SNATCH 55lbs / 20s REST
-    40s BOX STEP UPS 20" / 20s REST
-    245 TOTAL REPS
+    {"record_type":"goal","data":{"authorship":{...},"title":"Fran under 4:30"}}
     ^D
 
-  Nothing is written until you say so. First you see what was understood:
-
-      kind     workout result
-      date     2026-09-07  (today)
-      score    245 reps
-      name     2026-09-07
-      attach   17:25 to 17:48 on whoop-1
-      workout  7 ROUNDS FOR REPS
-               40s ALT DB SNATCH 55lbs / 20s REST
-               40s BOX STEP UPS 20" / 20s REST
-               245 TOTAL REPS
-
-    Save this?
-      [y] yes, on the 17:25–17:48 session
-      [n] no
-
-  A workout from an earlier day. The date goes first, as year-month-day:
-    $ ath log 2026-09-04
-
-What this reads on its own: measurement names it knows, numbers, units,
-ratings like 4/5, clock times, a list of round times, and rep totals.
-Everything else becomes a note with your words kept exactly. It never
-turns a sentence into a measurement on a guess — the worst it can do is
-file something as a note. One command writes one record.
-
-One workout on one day makes one result. Logging a second is refused,
-because a duplicate is counted by every average afterwards and nothing
-looks wrong. If you really did it twice, pass --again.
-
-An agent connected to this file does more: it recognises that a paste is
-Fran, names the benchmark, and passes structured JSON instead of text.`,
+Plain text creates one record. A structured JSON array creates one
+validated batch. The preview shows every stable ID and complete record
+before one transaction writes anything. \`--json\` returns that preview
+and never confirms a write. Pass \`--yes\` only after approval.`,
 
   link: `
 Examples:
 
-  Attach today's Fran to the session that started at 17:25:
-    $ ath link fran 17:25
+  Find the stable IDs and current result revision:
+    $ ath records list --type benchmark_result
+    $ ath records list --type workout_session
 
-  When the benchmark has several results, say which day:
-    $ ath link fran@2026-09-04 17:25
+  Preview the link:
+    $ ath link <result-id> <session-id> --revision 1 --json
 
-  When two devices recorded the same minute, say which one:
-    $ ath link fran whoop-1@2026-09-04T17:25:00Z
+  Write it after review:
+    $ ath link <result-id> <session-id> --revision 1 --yes
 
-Device data usually arrives days after the workout, so a result with no
-session attached is normal rather than broken. Every import offers the
-matches that have become possible; this command is for the rest, and for
-fixing one that went to the wrong session.`,
+The benchmark result owns this link. Linking creates a new revision of
+that result. A stale --revision is refused rather than overwriting a
+correction made after the preview.`,
 
   predict: `
 Examples:
@@ -298,39 +264,51 @@ report file this names.`,
   grade: `
 Examples:
 
-  What actually happened, scored against the open prediction:
-    $ ath grade fran --actual 4:32
+  Find the prediction and result IDs:
+    $ ath records list --type prediction
+    $ ath records list --type benchmark_result
 
-  Reps and loads, in their own units:
-    $ ath grade cindy --actual 245
-    $ ath grade back-squat --actual 142.5kg
+  Preview the exact link and grade:
+    $ ath grade <prediction-id> --result <result-id> --json
 
-  An attempt from an earlier day:
-    $ ath grade fran --actual 4:32 --date 2026-09-04
+  Write after review:
+    $ ath grade <prediction-id> --result <result-id> --yes
 
-  See what it would write, and write nothing:
-    $ ath grade fran --actual 4:32 --dry-run
+\`ath grade\` never logs a result. It grades two records that already
+exist. It creates a stable prediction-result link when needed and saves
+the deterministic arithmetic against exact revisions.
 
-Grading writes, so it shows what it will write and asks once, the same as
-\`ath log\`. Where your watch recorded a session that day, it offers to
-attach the result to it. The verdict comes after.
+A result inside the prediction's stated range is a hit. Anything else is
+a miss. A prediction error analysis is a separate authored record written
+through structured \`ath log\`, not through a grade flag.`,
 
-If the result is already in the file, it is graded rather than written
-again. A different score on a day that already has one is refused: pass
---again if you really attempted it twice.
+  correct: `
+Examples:
 
-A result inside the prediction's stated range is a hit, and prints one
-line. Anything else is a miss and prints the dossier: the day's own
-measurements, everything self-reported in the 72 hours before, and any
-day in the last week that sat far from your own baseline.
+  Read the current revision and complete data:
+    $ ath records show <record-id> --history --json
 
-An agent reads that dossier and writes the analysis back:
-    $ ath grade fran --analysis '{"direction":"slower", ...}'
+  Preview a complete replacement:
+    $ ath correct <record-id> --revision 2 --data '{"...":"..."}' --json
 
-Every cause it names is checked against the file first. Where nothing
-explains the miss, "unexplained": true is the honest answer.
+  Write after review:
+    $ ath correct <record-id> --revision 2 --data '{"...":"..."}' --yes
 
-With no prediction open, the result is simply logged and grading stops.`,
+Correction keeps the stable ID and complete earlier revisions. The
+expected revision prevents a stale preview from overwriting newer data.`,
+
+  delete: `
+Examples:
+
+  Preview a normal deletion:
+    $ ath delete <record-id> --revision 2 --json
+
+  Hide it from current views after review:
+    $ ath delete <record-id> --revision 2 --yes
+
+Normal deletion retains the complete record and revision history. Privacy
+erasure is a different command because it removes values and cannot be
+undone from the database.`,
 
   stats: `
 Examples:

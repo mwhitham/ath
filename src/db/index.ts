@@ -22,8 +22,10 @@ export {
   writeRecords,
   type CorrectRecordInput,
   type DeleteRecordInput,
+  type ExpectedCurrentRevision,
   type ListRecordOptions,
   type WriteRecordInput,
+  type WriteRecordsOptions,
 } from "./records.js";
 export {
   queryMeasurements,
@@ -52,6 +54,7 @@ export {
 } from "./stats.js";
 export {
   readSeriesView,
+  resolveAsOfTime,
   renderSeriesView,
   type SeriesDay,
   type SeriesView,
@@ -63,3 +66,24 @@ export {
   renderRecordList,
   type RecordLink,
 } from "./records-view.js";
+export {
+  applyLogPlan,
+  planLogEntry,
+  type LogPlan,
+  type StructuredLogInput,
+} from "./log-entry.js";
+export {
+  gradePrediction,
+  planPredictionGrade,
+  type PredictionGradePlan,
+} from "./prediction-grade.js";
+export {
+  buildEvidence,
+  type PredictionEvidence,
+} from "./evidence.js";
+export {
+  runV1Backtest,
+  writeV1BacktestReport,
+  type BacktestReplay,
+  type V1BacktestReport,
+} from "./backtest.js";
