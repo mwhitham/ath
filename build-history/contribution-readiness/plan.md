@@ -923,7 +923,7 @@ approved.
 
 This is optional. HTTP and OpenAPI do not require it.
 
-Scope if approved:
+Scope:
 
 - Record a decision that supersedes D7 for a narrow local use.
 - Implement stdio MCP as a small adapter over the application service.
