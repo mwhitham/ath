@@ -18,7 +18,7 @@ const emptyDir = () => mkdtempSync(join(tmpdir(), "ath-help-"));
 
 function dirWithFile(): string {
   const dir = emptyDir();
-  expect(ath(["init", "-y"], dir).code).toBe(0);
+  expect(ath(["init", "-y", "--timezone", "America/Chicago"], dir).code).toBe(0);
   return dir;
 }
 
@@ -34,45 +34,53 @@ describe("ath --help — written for someone who has never run this (D50)", () =
     expect(res.stdout.indexOf("Read your data:")).toBeLessThan(res.stdout.indexOf("Predict and grade:"));
   });
 
-  it("gives every command worked examples with real values", () => {
-    for (const command of [
-      "init",
-      "check",
-      "import",
-      "log",
-      "link",
-      "predict",
-      "grade",
-      "stats",
-      "series",
-      "key",
-      "models",
-      "backtest",
-      "share",
-      "skill",
-    ]) {
-      const res = ath([command, "--help"], emptyDir());
-      expect(res.stdout, `${command} --help`).toContain("Examples:");
-      expect(res.stdout, `${command} --help`).toContain(`$ ath ${command}`);
-    }
-  });
+  it(
+    "gives every command worked examples with real values",
+    () => {
+      for (const command of [
+        "init",
+        "check",
+        "import",
+        "conflicts",
+        "export",
+        "log",
+        "link",
+        "correct",
+        "delete",
+        "erase",
+        "calculate",
+        "predict",
+        "grade",
+        "stats",
+        "series",
+        "records",
+        "key",
+        "models",
+        "backtest",
+        "share",
+        "skill",
+      ]) {
+        const res = ath([command, "--help"], emptyDir());
+        expect(res.stdout, `${command} --help`).toContain("Examples:");
+        expect(res.stdout, `${command} --help`).toContain(`$ ath ${command}`);
+      }
+    },
+    20_000,
+  );
 
-  it("shows the whole shape of ath log at once: an entry, the summary, the question (D60)", () => {
+  it("shows plain-text and structured log examples with the confirmation rule", () => {
     const res = ath(["log", "--help"], emptyDir());
     expect(res.stdout).toContain("$ ath log slept badly, about 5 hours");
-    expect(res.stdout).toContain("kind     workout result");
-    expect(res.stdout).toContain("score    245 reps");
-    expect(res.stdout).toContain("Save this?");
-    expect(res.stdout).toContain("[y] yes, on the 17:25–17:48 session");
-    expect(res.stdout).toContain("[n] no");
-    expect(res.stdout).toContain("An agent connected to this file does more");
+    expect(res.stdout).toContain("structured record");
+    expect(res.stdout).toContain("--json");
+    expect(res.stdout).toContain("never confirms a write");
   });
 
   it("says when an option would be used, not only what it is", () => {
     // Help wraps to the terminal width, so compare on the words rather than the lines.
     const flat = (args: string[]) => ath(args, emptyDir()).stdout.replace(/\s+/g, " ");
     expect(flat(["series", "--help"])).toContain(
-      "one device only, for when two measured the same thing",
+      "one source only, for when two measured the same thing",
     );
     expect(flat(["predict", "--help"])).toContain(
       "A prediction needs a model",
@@ -84,7 +92,7 @@ describe("bare ath — a short guide, not the full list", () => {
   it("tells someone with no file how to make one", () => {
     const res = ath([], emptyDir());
     expect(res.code).toBe(0);
-    expect(res.stdout).toContain("There is no .ath.json file in this folder");
+    expect(res.stdout).toContain("There is no .ath.sqlite file in this folder");
     expect(res.stdout).toContain("ath init");
     expect(res.stdout).not.toContain("Set up:");
   });
@@ -93,7 +101,7 @@ describe("bare ath — a short guide, not the full list", () => {
     const dir = dirWithFile();
     const res = ath([], dir);
     expect(res.code).toBe(0);
-    expect(res.stdout).toContain("Working on athlete.ath.json in this folder");
+    expect(res.stdout).toContain("Working on athlete.ath.sqlite in this folder");
     expect(res.stdout).toContain("ath stats");
     expect(res.stdout).not.toContain("There is no");
   });
@@ -131,14 +139,15 @@ describe("errors name the remedy", () => {
     const dir = dirWithFile();
     const res = ath(["log", "--dry-run"], dir);
     expect(res.code).toBe(1);
-    expect(res.stdout).toContain("ath log slept badly, about 5 hours");
+    expect(res.stdout).toContain("nothing to log");
   });
 
-  it("says how to read an export it could not open", () => {
+  it("says why an invalid package cannot be imported", () => {
     const dir = dirWithFile();
     writeFileSync(join(dir, "nonsense.txt"), "this is not an export\n");
     const res = ath(["import", "nonsense.txt"], dir);
     expect(res.code).toBe(1);
-    expect(res.stdout).toMatch(/zip|export\.xml|CSV/);
+    expect(res.stdout).toContain("is not a supported export");
+    expect(res.stdout).toContain("nonsense.txt");
   });
 });

@@ -5,7 +5,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { buildProgram } from "../src/program.js";
-import { ATHLETIC_STANDARD_VERSION } from "../src/schema.js";
+import { ATHLETIC_STANDARD_VERSION } from "../src/v1/schema.js";
 import {
   AGENT_DIRS,
   ALWAYS_DIR,
@@ -76,8 +76,8 @@ describe("the skill", () => {
   });
 
   it("leaves to the tools what the tools enforce (D46)", () => {
-    expect(skillText()).toContain("What you do not need to hold, because the tools do");
-    expect(skillText()).toContain("never pooled");
+    expect(skillText()).toContain("The database enforces the source");
+    expect(skillText()).toContain("never share a calculation");
   });
 });
 
@@ -92,7 +92,7 @@ describe("the frontmatter follows the Agent Skills shape", () => {
     const description = meta.description as string;
     expect(description.length).toBeLessThan(1024);
     expect(description).not.toMatch(/^Use\b/);
-    for (const trigger of ["workout", "HRV", "sleep", "soreness", "Fran", "backtest", "Apple Health", "WHOOP", "Oura", ".ath.json"]) {
+    for (const trigger of ["workout", "HRV", "sleep", "soreness", "Fran", "backtest", "Apple Health", "WHOOP", "Oura", ".ath.sqlite"]) {
       expect(description, trigger).toContain(trigger);
     }
   });
@@ -243,7 +243,7 @@ describe("the stale warning (D79)", () => {
 
     expect(ath(["stats", "--json"], dir).stderr).toBe("");
     expect(ath(["skill"], dir).stderr).toBe("");
-    expect(ath(["init", "-y", "--file", "other.ath.json", "--no-skill"], dir).stderr).toBe("");
+    expect(ath(["init", "-y", "--file", "other.ath.sqlite", "--no-skill"], dir).stderr).toBe("");
   });
 
   it("says nothing when no copy is installed or every copy is current", () => {
