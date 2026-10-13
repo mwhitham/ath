@@ -45,8 +45,8 @@ function generateSchema(
 generateSchema(
   AthleticStandardFile,
   `https://athleticstandard.ai/schema/${ATHLETIC_STANDARD_VERSION}/athleticstandard.schema.json`,
-  "Athletic Standard file",
-  "schema/athleticstandard.schema.json",
+  "Athletic Standard 0.4.3 file",
+  `schema/${ATHLETIC_STANDARD_VERSION}/athleticstandard.schema.json`,
 );
 
 generateSchema(
@@ -54,6 +54,13 @@ generateSchema(
   `https://athleticstandard.ai/schema/${V1_ATHLETIC_STANDARD_VERSION}/athleticstandard.schema.json`,
   "Athletic Standard portable package document",
   "schema/1.0.0/athleticstandard.schema.json",
+);
+
+generateSchema(
+  AthleticStandardPackage,
+  `https://athleticstandard.ai/schema/${V1_ATHLETIC_STANDARD_VERSION}/athleticstandard.schema.json`,
+  "Athletic Standard portable package document",
+  "schema/athleticstandard.schema.json",
 );
 
 generateSchema(
