@@ -64,7 +64,7 @@ describe("v1 deterministic package export", () => {
     expect(packageDocument.database_id).toBe(
       "01890f3e-e7d3-7cc0-88c8-000000000001",
     );
-    expect(packageDocument.records).toHaveLength(23);
+    expect(packageDocument.records).toHaveLength(24);
     expect(packageDocument.measurement_series_files).toHaveLength(1);
 
     const seriesReference = packageDocument.measurement_series_files[0]!;
@@ -170,7 +170,7 @@ describe("v1 package restore", () => {
           "--json",
         ], directory).stdout,
       ).records,
-    ).toHaveLength(24);
+    ).toHaveLength(25);
     expect(
       JSON.parse(
         ath([
