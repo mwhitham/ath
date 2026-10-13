@@ -17,6 +17,7 @@ import {
   ATHLETIC_STANDARD_VERSION,
   ErasureReasonCode,
   PredictionData,
+  ProviderReportingPeriodType,
   RecordType,
   SERIES_QUANTITY_UNITS as V1_SERIES_QUANTITY_UNITS,
   SeriesQuantitySchema,
@@ -51,6 +52,7 @@ import { candidatePaths, runUpdate } from "./update.js";
 import {
   checkDatabase,
   CALCULATION_OPERATIONS,
+  CALCULATION_RECORD_KINDS,
   calculate,
   addAttachmentsToLogPlan,
   assertPackageConflictSetCurrent,
@@ -1593,7 +1595,16 @@ export function buildProgram(): Command {
     .description("run a named calculation without writing athlete data")
     .addHelpText("after", EXAMPLES.calculate!)
     .argument("<operation>", `one of: ${CALCULATION_OPERATIONS.join(", ")}`)
-    .argument("<quantity>", "measurement or sample quantity")
+    .argument("<quantity>", "measurement quantity, provider metric, or summary type")
+    .option(
+      "--record-kind <kind>",
+      `one of: ${CALCULATION_RECORD_KINDS.join(", ")}`,
+      "measurement",
+    )
+    .option(
+      "--period-type <type>",
+      "provider period type; required for provider-period-summary",
+    )
     .option("--source <id>", "use one source only")
     .option("--compare-source <id>", "second source for compare-sources or correlation")
     .option("--other-quantity <quantity>", "second quantity for correlation")
@@ -1608,6 +1619,8 @@ export function buildProgram(): Command {
       operation: string,
       quantity: string,
       opts: {
+        recordKind: string;
+        periodType?: string;
         source?: string;
         compareSource?: string;
         otherQuantity?: string;
@@ -1628,12 +1641,33 @@ export function buildProgram(): Command {
       if (!["none", "day", "week", "month"].includes(opts.group)) {
         return fail("unknown --group value. Use none, day, week, or month");
       }
+      if (!CALCULATION_RECORD_KINDS.includes(opts.recordKind as never)) {
+        return fail(
+          `unknown --record-kind '${opts.recordKind}'. Use ` +
+            CALCULATION_RECORD_KINDS.join(", "),
+        );
+      }
+      const periodType =
+        opts.periodType === undefined
+          ? undefined
+          : ProviderReportingPeriodType.safeParse(opts.periodType);
+      if (periodType !== undefined && !periodType.success) {
+        return fail(
+          `unknown --period-type '${opts.periodType}'. Use ` +
+            ProviderReportingPeriodType.options.join(", "),
+        );
+      }
       const path = findOrFail(opts.file);
       const database = await openOrFail(path, opts.json);
       try {
         const calculation = await calculate(database, {
           operation: operation as (typeof CALCULATION_OPERATIONS)[number],
           quantity,
+          record_kind:
+            opts.recordKind as (typeof CALCULATION_RECORD_KINDS)[number],
+          ...(periodType === undefined
+            ? {}
+            : { provider_period_type: periodType.data }),
           group: opts.group as "none" | "day" | "week" | "month",
           ...(opts.source === undefined ? {} : { source_id: opts.source }),
           ...(opts.compareSource === undefined

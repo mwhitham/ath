@@ -122,11 +122,17 @@ Read and calculate:
 | `ath calculate <operation> <quantity>` | Run named arithmetic without writing athlete data |
 
 The calculation operations are `summary`, `baseline`, `trend`, `coverage`,
-`compare-sources`, `correlation`, and `workout-drift`. Results remain separate by
-source. Manual sources are excluded. RMSSD and SDNN are different quantities and
-never share a calculation. A receipt lists at most 1,000 input revisions and says
-when the list was shortened. Arithmetic refuses more than 100,000 inputs until the
-request is narrowed.
+`compare-sources`, `correlation`, `workout-drift`, and
+`provider-period-summary`. Use `--record-kind` to choose a measurement, provider
+score, provider summary, or summary nested in a session. Measurements are the
+default. The provider-period operation also requires `--period-type`. It groups by
+the stored Oura day, WHOOP cycle, or Apple activity-summary day without turning that
+period into a calendar day.
+
+Results remain separate by source. Manual sources are excluded. RMSSD and SDNN are
+different quantities and never share a calculation. A receipt lists at most 1,000
+input revisions and says when the list was shortened. Arithmetic refuses more than
+100,000 inputs until the request is narrowed.
 
 Predict and grade:
 

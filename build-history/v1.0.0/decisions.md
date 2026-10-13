@@ -906,3 +906,31 @@ Rejected alternatives:
   measurement taken at one instant.
 - **Recalculate and discard the source summary.** Rejected because the source's
   reported answer is part of the athlete record even when raw samples also exist.
+
+## D111. Provider-period arithmetic is an explicit calculation
+
+`ath calculate provider-period-summary` groups values by the exact provider period
+stored on each record. It requires `--period-type`. It does not turn an Oura day,
+WHOOP cycle, or Apple activity-summary day into a calendar day.
+
+The command accepts `--record-kind` so a measurement, provider score, provider
+summary, and summary nested in a session cannot be mixed because they share a name.
+The default kind is `measurement`. Provider scores and provider summaries that carry
+an absolute instant may also use the existing summary, baseline, trend, comparison,
+and correlation operations. Date-only values use the provider-period operation.
+
+Results stay separate by source and provider period. Each result names the period
+type, complete stored period, record revisions, unit, exclusions, and arithmetic
+method. `--from` and `--to` compare the provider date when one exists. Otherwise they
+compare the provider period start instant. No IANA timezone is needed because this
+operation does not choose calendar boundaries.
+
+Rejected alternatives:
+
+- **Treat a provider date as UTC midnight.** Rejected because the source supplied a
+  date or physiological period, not that instant.
+- **Include provider scores and summaries in measurement calculations by name.**
+  Rejected because a score, a reported total, and a sample can use similar names
+  while answering different questions.
+- **Make provider periods a calendar grouping option.** Rejected because that would
+  make two different time rules look interchangeable.

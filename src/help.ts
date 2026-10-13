@@ -409,9 +409,23 @@ Examples:
     $ ath calculate correlation hrv_rmssd --other-quantity resting_heart_rate \\
         --source <source-id> --timezone America/Chicago
 
+  Baseline WHOOP recovery scores that have an absolute source time:
+    $ ath calculate baseline recovery --record-kind provider-score
+
+  Summarize Oura readiness by Oura's own assigned day:
+    $ ath calculate provider-period-summary readiness \\
+        --record-kind provider-score --period-type oura_day_unspecified
+
 Named operations are summary, baseline, trend, coverage, compare-sources,
-correlation, and workout-drift. The result names its method, exact record
-revisions, exclusions, sources, date range, and timezone.
+correlation, workout-drift, and provider-period-summary. The provider-period
+operation requires --period-type and never turns that period into a calendar day.
+
+Record kinds are measurement, provider-score, provider-summary, and
+session-summary. Measurement is the default. Naming the kind keeps measurements,
+scores, and source-reported totals separate even when their names are similar.
+
+The result names its method, exact record revisions, exclusions, sources, date
+range, and timezone or provider period when one was used.
 
 Manual sources never enter these device calculations. Different sources,
 RMSSD and SDNN, temperature types, and distance types are never pooled.`,

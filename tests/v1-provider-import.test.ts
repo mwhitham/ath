@@ -3,6 +3,7 @@ import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
+  calculate,
   createDatabase,
   importProviderRecords,
   listRecords,
@@ -130,6 +131,76 @@ describe("v1 provider import", () => {
         record.data.recorded_at.endsWith(".000Z"),
     )).toBe(true);
 
+    const recoveryBaseline = await calculate(database, {
+      operation: "baseline",
+      quantity: "recovery",
+      record_kind: "provider-score",
+    });
+    expect(recoveryBaseline).toMatchObject({
+      record_kind: "provider-score",
+      unit: "0-100",
+      result: [{ source_id: expect.any(String), count: 2, mean: 74 }],
+    });
+    const cycleStrain = await calculate(database, {
+      operation: "provider-period-summary",
+      quantity: "strain",
+      record_kind: "provider-score",
+      provider_period_type: "whoop_physiological_cycle",
+    });
+    expect(cycleStrain).toMatchObject({
+      provider_period_type: "whoop_physiological_cycle",
+      result: [
+        {
+          source_id: expect.any(String),
+          periods: [
+            {
+              provider_period: {
+                period_type: "whoop_physiological_cycle",
+                start_at: "2026-08-09T05:10:00.000Z",
+              },
+              count: 1,
+              mean: 14.2,
+            },
+            {
+              provider_period: {
+                period_type: "whoop_physiological_cycle",
+                start_at: "2026-08-10T05:05:00.000Z",
+              },
+              count: 1,
+              mean: 9.8,
+            },
+          ],
+        },
+      ],
+    });
+    const workoutHeartRateByCycle = await calculate(database, {
+      operation: "provider-period-summary",
+      quantity: "average_heart_rate",
+      record_kind: "session-summary",
+      provider_period_type: "whoop_physiological_cycle",
+    });
+    expect(workoutHeartRateByCycle).toMatchObject({
+      unit: "bpm",
+      result: [
+        {
+          periods: [
+            {
+              provider_period: {
+                start_at: "2026-08-09T05:10:00.000Z",
+              },
+              mean: 142,
+            },
+            {
+              provider_period: {
+                start_at: "2026-08-10T05:05:00.000Z",
+              },
+              mean: 138,
+            },
+          ],
+        },
+      ],
+    });
+
     const repeat = await previewProviderImport(database, source, {
       received_at: "2026-10-14T12:00:00.000Z",
     });
@@ -236,6 +307,35 @@ describe("v1 provider import", () => {
         ? readiness.data.recorded_at
         : "wrong record type",
     ).toBeUndefined();
+    const readinessByOuraDay = await calculate(database, {
+      operation: "provider-period-summary",
+      quantity: "readiness",
+      record_kind: "provider-score",
+      provider_period_type: "oura_day_unspecified",
+    });
+    expect(readinessByOuraDay).toMatchObject({
+      unit: "0-100",
+      result: [
+        {
+          periods: [
+            {
+              provider_period: {
+                period_type: "oura_day_unspecified",
+                provider_date: "2026-08-09",
+              },
+              mean: 74,
+            },
+            {
+              provider_period: {
+                period_type: "oura_day_unspecified",
+                provider_date: "2026-08-10",
+              },
+              mean: 88,
+            },
+          ],
+        },
+      ],
+    });
     expect(
       scores.find(
         (record) =>
@@ -426,6 +526,28 @@ describe("v1 provider import", () => {
           record.data.recorded_at === undefined,
       ),
     ).toBe(true);
+    const activeEnergyByAppleDay = await calculate(database, {
+      operation: "provider-period-summary",
+      quantity: "active_energy_burned",
+      record_kind: "provider-summary",
+      provider_period_type: "apple_activity_summary_day",
+    });
+    expect(activeEnergyByAppleDay).toMatchObject({
+      unit: "kcal",
+      result: [
+        {
+          periods: [
+            {
+              provider_period: {
+                period_type: "apple_activity_summary_day",
+                provider_date: "2026-08-09",
+              },
+              mean: 612.4,
+            },
+          ],
+        },
+      ],
+    });
 
     const repeat = await previewProviderImport(
       database,
@@ -543,6 +665,90 @@ describe("v1 provider import", () => {
       expect(repeat.new_records, testCase.provider).toEqual([]);
       expect(repeat.changed_records, testCase.provider).toEqual([]);
       expect(repeat.matching_records.length, testCase.provider).toBeGreaterThan(0);
+
+      if (testCase.provider === "whoop") {
+        writeFileSync(
+          file,
+          readFileSync(file, "utf8").replace(",68.4,", ",69.4,"),
+        );
+        const ambiguousCorrection = await previewProviderImport(
+          database,
+          directory,
+          { received_at: "2026-10-15T12:00:00.000Z" },
+        );
+        expect(ambiguousCorrection.conflicts).toEqual([
+          expect.objectContaining({
+            message:
+              "an indistinguishable duplicate group changed; the importer will not guess which row was corrected",
+          }),
+        ]);
+        await expect(
+          importProviderRecords(database, ambiguousCorrection),
+        ).rejects.toThrow("unresolved conflicts");
+      }
     }
+  });
+
+  it("keeps an Oura sleep-day measurement date-only when bedtime is absent", async () => {
+    const database = await emptyDatabase();
+    const directory = mkdtempSync(join(tmpdir(), "ath-oura-date-only-sleep-"));
+    writeFileSync(
+      join(directory, "oura_sleep.csv"),
+      "day,average_hrv\n2026-08-09,63\n",
+    );
+
+    const preview = await previewProviderImport(database, directory, {
+      received_at: receivedAt,
+    });
+    expect(preview.conflicts).toEqual([]);
+    await importProviderRecords(database, preview);
+    const measurements = await listRecords(database, {
+      record_type: "point_measurement",
+      limit: 100,
+    });
+    expect(measurements).toMatchObject([
+      {
+        data: {
+          quantity: "hrv_rmssd",
+          input_timestamp: {
+            timestamp_missing_reason: "not_provided_by_source",
+          },
+          provider_reporting_periods: [
+            {
+              period_type: "oura_sleep_day",
+              provider_date: "2026-08-09",
+            },
+          ],
+        },
+      },
+    ]);
+    expect(
+      measurements[0]?.record_type === "point_measurement"
+        ? measurements[0].data.recorded_at
+        : "wrong record type",
+    ).toBeUndefined();
+
+    const bySleepDay = await calculate(database, {
+      operation: "provider-period-summary",
+      quantity: "hrv_rmssd",
+      provider_period_type: "oura_sleep_day",
+    });
+    expect(bySleepDay).toMatchObject({
+      unit: "ms",
+      result: [
+        {
+          periods: [
+            {
+              provider_period: {
+                period_type: "oura_sleep_day",
+                provider_date: "2026-08-09",
+              },
+              count: 1,
+              mean: 63,
+            },
+          ],
+        },
+      ],
+    });
   });
 });

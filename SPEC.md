@@ -255,6 +255,12 @@ The period types are:
 These values must not be renamed to a generic day or silently combined with
 midnight-to-midnight calendar totals.
 
+`ath calculate provider-period-summary` groups records by one exact period type.
+It requires `--period-type`. `--record-kind` keeps measurements, provider scores,
+provider summaries, and summaries nested in sessions separate. The operation uses a
+stored provider date when present. Otherwise it uses the stored period start. It
+does not invent a timestamp or apply a calendar timezone.
+
 ### 5.4 Measured record fields
 
 The seven measured record types are `point_measurement`, `measurement_sample`,

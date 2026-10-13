@@ -231,15 +231,27 @@ ath calculate baseline hrv_rmssd --from 2026-07-01 --to 2026-09-30
 ath calculate summary steps --group day --timezone America/Chicago
 ath calculate compare-sources resting_heart_rate \
   --source <source-id> --compare-source <other-source-id>
+ath calculate baseline recovery --record-kind provider-score
+ath calculate provider-period-summary readiness \
+  --record-kind provider-score --period-type oura_day_unspecified
 ```
 
 The operations are `summary`, `baseline`, `trend`, `coverage`,
-`compare-sources`, `correlation`, and `workout-drift`. Results name their method,
-sources, input revisions, exclusions, range, and timezone when one was used.
-A receipt lists at most 1,000 input revisions and says when that list was shortened.
-Arithmetic refuses more than 100,000 inputs until the request is narrowed. It never
-calculates from a silently shortened input set. Sources are not pooled. Manual
-sources are excluded.
+`compare-sources`, `correlation`, `workout-drift`, and
+`provider-period-summary`. Record kinds are `measurement`, `provider-score`,
+`provider-summary`, and `session-summary`. Measurements are the default. Naming the
+kind prevents a provider score or reported total from being mixed with a sensor
+measurement that has a similar name.
+
+`provider-period-summary` requires `--period-type`. It groups by the exact Oura day,
+WHOOP cycle, or Apple activity-summary day stored on each record. It never relabels
+that period as a midnight-to-midnight calendar day.
+
+Results name their method, sources, input revisions, exclusions, range, and timezone
+or provider period when one was used. A receipt lists at most 1,000 input revisions
+and says when that list was shortened. Arithmetic refuses more than 100,000 inputs
+until the request is narrowed. It never calculates from a silently shortened input
+set. Sources are not pooled. Manual sources are excluded.
 
 ## Export a complete package
 

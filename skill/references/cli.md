@@ -502,10 +502,17 @@ run a named calculation without writing athlete data
 
 Arguments:
   operation                    one of: summary, baseline, trend, coverage,
-                               compare-sources, correlation, workout-drift
-  quantity                     measurement or sample quantity
+                               compare-sources, correlation, workout-drift,
+                               provider-period-summary
+  quantity                     measurement quantity, provider metric, or summary
+                               type
 
 Options:
+  --record-kind <kind>         one of: measurement, provider-score,
+                               provider-summary, session-summary (default:
+                               "measurement")
+  --period-type <type>         provider period type; required for
+                               provider-period-summary
   --source <id>                use one source only
   --compare-source <id>        second source for compare-sources or correlation
   --other-quantity <quantity>  second quantity for correlation

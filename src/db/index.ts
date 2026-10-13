@@ -133,12 +133,15 @@ export {
 } from "./provider-import.js";
 export {
   CALCULATION_OPERATIONS,
+  CALCULATION_RECORD_KINDS,
   calculate,
   renderCalculation,
   type CalculateOptions,
   type CalculationGroup,
   type CalculationOperation,
+  type CalculationRecordKind,
   type CalculationResult,
+  type ProviderPeriodType,
 } from "./calculate.js";
 export {
   addAttachmentsToLogPlan,
