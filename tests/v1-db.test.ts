@@ -828,8 +828,8 @@ describe("v1 WAL behavior", () => {
         INSERT INTO record_erasure_markers (
           record_id,
           erased_at,
-          erasure_reason
-        ) VALUES (?, ?, 'interrupted test write')
+          reason_code
+        ) VALUES (?, ?, 'other')
       `,
       args: [reportId, createdAt],
     });
