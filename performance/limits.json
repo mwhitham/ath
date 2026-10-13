@@ -1,6 +1,105 @@
 {
   "limits_version": 1,
   "performance_seed": "ath-v1-performance-seed-2",
-  "reference_run": null,
-  "targets": {}
+  "reference_run": {
+    "git_sha": "22170d7773f8f0d5177caa5fc0aee0579606cd89",
+    "cpu_model": "Intel(R) Xeon(R) Processor",
+    "logical_cpus": 4,
+    "total_memory_bytes": 16791945216,
+    "platform": "linux",
+    "runs": {
+      "100000": {
+        "measured_at": "2026-10-13T12:20:00.000Z",
+        "database_bytes": 193298432
+      },
+      "3000000": {
+        "measured_at": "2026-10-13T12:25:00.000Z",
+        "database_bytes": 5794226176
+      }
+    }
+  },
+  "targets": {
+    "100000": {
+      "max_peak_rss_delta_bytes": 1073741824,
+      "operations": {
+        "latest_value": {
+          "measured_p95_ms": 0.368,
+          "limit_ms": 5
+        },
+        "evidence_28d": {
+          "measured_p95_ms": 0.96,
+          "limit_ms": 10
+        },
+        "baseline_90d": {
+          "measured_p95_ms": 38.185,
+          "limit_ms": 100
+        },
+        "workout_drift": {
+          "measured_p95_ms": 8.396,
+          "limit_ms": 50
+        },
+        "cross_source_comparison": {
+          "measured_p95_ms": 63.617,
+          "limit_ms": 150
+        },
+        "full_json_export": {
+          "measured_p95_ms": 11224.28,
+          "limit_ms": 20000
+        },
+        "database_check": {
+          "measured_p95_ms": 7654.133,
+          "limit_ms": 15000
+        },
+        "initial_import": {
+          "measured_p95_ms": 26236.383,
+          "limit_ms": 45000
+        },
+        "incremental_import": {
+          "measured_p95_ms": 9.73,
+          "limit_ms": 100
+        }
+      }
+    },
+    "3000000": {
+      "max_peak_rss_delta_bytes": 6442450944,
+      "operations": {
+        "latest_value": {
+          "measured_p95_ms": 0.411,
+          "limit_ms": 5
+        },
+        "evidence_28d": {
+          "measured_p95_ms": 1.032,
+          "limit_ms": 10
+        },
+        "baseline_90d": {
+          "measured_p95_ms": 402.67,
+          "limit_ms": 1000
+        },
+        "workout_drift": {
+          "measured_p95_ms": 8.241,
+          "limit_ms": 50
+        },
+        "cross_source_comparison": {
+          "measured_p95_ms": 748.477,
+          "limit_ms": 1500
+        },
+        "full_json_export": {
+          "measured_p95_ms": 527329.502,
+          "limit_ms": 900000
+        },
+        "database_check": {
+          "measured_p95_ms": 339537.828,
+          "limit_ms": 600000
+        },
+        "initial_import": {
+          "measured_p95_ms": 1040625.192,
+          "limit_ms": 1800000
+        },
+        "incremental_import": {
+          "measured_p95_ms": 539.346,
+          "limit_ms": 5000
+        }
+      }
+    }
+  }
 }

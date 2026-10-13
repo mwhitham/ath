@@ -22,7 +22,7 @@ pnpm performance:run -- \
 
 The required sizes are 100,000 and 3 million current records. The 100,000-record
 run is part of normal release CI. The 3-million-record run uses the separate large
-release job. Its generated database is about 5.6 GB.
+release job. Its generated database is about 5.8 GB.
 
 The generator uses `ath-v1-performance-seed-2`. Each database includes three
 sources that record the same quantities, dense all-day and workout samples,
@@ -52,5 +52,6 @@ Read measurements use one open connection after one discarded warmup. This does 
 clear SQLite's page cache or the operating system's file cache. Import, export, and
 database check run once because each processes the complete fixture.
 
-`limits.json` is filled only from a successful measured run on the named reference
-runner. It is not a claim about other hardware.
+`limits.json` records the first successful measurements and review limits from the
+named reference runner. The limits include time per operation and peak process
+memory growth. They are not claims about other hardware.
