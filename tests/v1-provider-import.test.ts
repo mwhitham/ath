@@ -502,7 +502,8 @@ describe("v1 provider import", () => {
         },
         matches: (key: unknown[]) =>
           key[0] === "point_measurement" &&
-          key[2] === "resting_heart_rate",
+          key[2] === "resting_heart_rate" &&
+          key[3] === "2026-08-09T13:14:00.000Z",
       },
     ] as const;
 
