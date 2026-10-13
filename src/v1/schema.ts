@@ -287,10 +287,10 @@ const sourceValueFields = {
 
 function validateSourceValue(
   value: {
-    input_value?: number;
-    input_unit?: string;
-    input_value_missing_reason?: z.infer<typeof MissingReason>;
-    input_unit_missing_reason?: z.infer<typeof MissingReason>;
+    input_value?: number | undefined;
+    input_unit?: string | undefined;
+    input_value_missing_reason?: z.infer<typeof MissingReason> | undefined;
+    input_unit_missing_reason?: z.infer<typeof MissingReason> | undefined;
   },
   context: z.RefinementCtx,
 ): void {
