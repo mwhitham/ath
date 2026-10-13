@@ -831,8 +831,8 @@ describe("v1 WAL behavior", () => {
           const [databaseUrl, recordId, erasedAt] = process.argv.slice(1);
           const client = createClient({ url: databaseUrl });
           await client.execute("PRAGMA foreign_keys = ON");
-          await client.execute("BEGIN IMMEDIATE");
-          await client.execute({
+          const transaction = await client.transaction("write");
+          await transaction.execute({
             sql: \`
               INSERT INTO record_erasure_markers (
                 record_id,
