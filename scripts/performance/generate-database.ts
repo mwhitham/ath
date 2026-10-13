@@ -136,7 +136,7 @@ const SAMPLE_DATA_SQL = `
         WHEN (performance_numbers.n / 3) % 6 = 0 THEN 'heart_rate'
         WHEN (performance_numbers.n / 3) % 6 = 1 THEN 'steps'
         WHEN (performance_numbers.n / 3) % 6 = 2 THEN 'active_energy'
-        WHEN (performance_numbers.n / 3) % 6 = 3 THEN 'hrv_rmssd'
+        WHEN (performance_numbers.n / 3) % 6 = 3 THEN 'hrv_sdnn'
         WHEN (performance_numbers.n / 3) % 6 = 4 THEN 'respiratory_rate'
         ELSE 'distance_walking_running'
       END,
