@@ -342,12 +342,13 @@ Usage: ath check [options] [file]
 make sure the file still obeys every rule of the format
 
 Arguments:
-  file           the file to check (default: the one in this folder)
+  file               the file to check (default: the one in this folder)
 
 Options:
-  --file <path>  check a database other than the one in this folder
-  --json         structured output, for an agent rather than a person
-  -h, --help     display help for command
+  --file <path>      check a database other than the one in this folder
+  --validate-export  also build and validate a temporary complete JSON package
+  --json             structured output, for an agent rather than a person
+  -h, --help         display help for command
 ```
 
 ## ath key

@@ -120,7 +120,11 @@ Examples:
 
 An error means the database breaks a rule of the format and says which rule.
 A warning means something is worth knowing but the database is still valid.
-The check covers SQLite integrity, foreign keys, domain rules, and attachments.`,
+The check covers SQLite integrity, schema versions, foreign keys, domain rules,
+record relationships, revision chains, session ordering, and attachments.
+
+Also build and validate a temporary complete JSON package:
+    $ ath check --validate-export`,
 
   import: `
 Examples:

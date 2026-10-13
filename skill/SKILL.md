@@ -110,7 +110,7 @@ Read and calculate:
 
 | Command | Purpose |
 |---|---|
-| `ath check [file]` | Check SQLite integrity, foreign keys, domain rules, and attachments |
+| `ath check [file]` | Check SQLite integrity, schema versions, foreign keys, revisions, relationships, domain rules, sessions, and attachments |
 | `ath stats [file]` | Show the fixed overview |
 | `ath records list` | Find current stable IDs in stable order |
 | `ath records show <record-id>` | Read a current record, revision, history, and links |

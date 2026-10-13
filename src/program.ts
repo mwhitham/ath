@@ -9,7 +9,8 @@
  */
 import { Command } from "commander";
 import { existsSync } from "node:fs";
-import { rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import {
@@ -1014,14 +1015,34 @@ export function buildProgram(): Command {
     .addHelpText("after", EXAMPLES.check!)
     .argument("[file]", "the file to check (default: the one in this folder)")
     .option("--file <path>", "check a database other than the one in this folder")
+    .option("--validate-export", "also build and validate a temporary complete JSON package")
     .option("--json", "structured output, for an agent rather than a person")
-    .action(async (fileArg, opts: { file?: string; json?: boolean }) => {
+    .action(async (
+      fileArg,
+      opts: { file?: string; validateExport?: boolean; json?: boolean },
+    ) => {
       const path = findOrFail(opts.file ?? fileArg);
       const database = await openOrFail(path, opts.json);
       try {
         const result = await checkDatabase(database);
+        let exportValidated = false;
+        if (opts.validateExport) {
+          const temporary = await mkdtemp(join(tmpdir(), "ath-check-export-"));
+          try {
+            await exportRecords(database, join(temporary, "package"));
+            exportValidated = true;
+          } finally {
+            await rm(temporary, { recursive: true, force: true });
+          }
+        }
         if (opts.json) {
-          console.log(JSON.stringify({ file: path, ...result }, null, 2));
+          console.log(
+            JSON.stringify(
+              { file: path, ...result, export_validated: exportValidated },
+              null,
+              2,
+            ),
+          );
         } else {
           for (const issue of result.issues) {
             const target = issue.record_id === undefined ? "" : ` ${issue.record_id}`;
@@ -1034,6 +1055,9 @@ export function buildProgram(): Command {
               `${path}: valid Athletic Standard ${result.metadata?.athleticstandard_version ?? ATHLETIC_STANDARD_VERSION} database ` +
                 `(${result.record_count} records)`,
             );
+            if (exportValidated) {
+              console.log("ok  export: complete JSON package validated");
+            }
           } else {
             console.error(
               `\n${path}: INVALID — ${result.issues.filter((issue) => issue.severity === "error").length} error(s)`,

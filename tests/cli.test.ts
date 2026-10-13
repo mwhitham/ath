@@ -79,6 +79,18 @@ describe("ath check", () => {
     expect(res.stdout).toContain("valid Athletic Standard");
   });
 
+  it("can validate a complete temporary export without leaving it behind", () => {
+    const res = ath(
+      ["check", FIXTURE, "--validate-export", "--json"],
+      process.cwd(),
+    );
+    expect(res.code).toBe(0);
+    expect(JSON.parse(res.stdout)).toMatchObject({
+      valid: true,
+      export_validated: true,
+    });
+  });
+
   it("fails a foreign-key violation with a pointed message", async () => {
     const dir = mkdtempSync(join(tmpdir(), "ath-"));
     const copy = join(dir, "athlete.ath.sqlite");

@@ -4,12 +4,22 @@ import { join } from "node:path";
 import {
   CurrentRecord,
   RecordDeletion,
+  RecordErasureMarker,
   RecordRevision,
   type CurrentRecordT,
 } from "../v1/schema.js";
-import { databaseClient, type AthleticDatabase } from "./client.js";
+import {
+  databaseClient,
+  readApplicationId,
+  readUserVersion,
+  refuseSymbolicLinkComponents,
+  SQL_SCHEMA_VERSION,
+  SQLITE_APPLICATION_ID,
+  type AthleticDatabase,
+} from "./client.js";
 import { readDatabaseMetadata, type DatabaseMetadata } from "./migrate.js";
 import { storedAttachmentName } from "./attachments.js";
+import { validateTypedRelationships } from "./records.js";
 
 export interface DatabaseCheckIssue {
   severity: "error" | "warning";
@@ -71,6 +81,7 @@ async function checkAttachment(
   const path = join(database.localPath, "..", "attachments", storedAttachmentName(record));
   let bytes: Buffer;
   try {
+    await refuseSymbolicLinkComponents(path);
     bytes = await readFile(path);
   } catch (error) {
     issues.push({
@@ -116,6 +127,44 @@ export async function checkDatabase(
   }
 
   const client = databaseClient(database);
+  const foreignKeysEnabled = await client.execute("PRAGMA foreign_keys");
+  if (Number(foreignKeysEnabled.rows[0]?.foreign_keys) !== 1) {
+    issues.push({
+      severity: "error",
+      check: "foreign_key",
+      message: "SQLite foreign-key enforcement is disabled",
+    });
+  }
+  if (metadata !== null) {
+    if (metadata.sql_schema_version !== SQL_SCHEMA_VERSION) {
+      issues.push({
+        severity: "error",
+        check: "schema_version",
+        message:
+          `database metadata schema version is ${metadata.sql_schema_version}, ` +
+          `expected ${SQL_SCHEMA_VERSION}`,
+      });
+    }
+    const userVersion = await readUserVersion(database);
+    if (userVersion !== null && userVersion !== metadata.sql_schema_version) {
+      issues.push({
+        severity: "error",
+        check: "schema_version",
+        message:
+          `SQLite user_version is ${userVersion}, but database metadata says ` +
+          `${metadata.sql_schema_version}`,
+      });
+    }
+    const applicationId = await readApplicationId(database);
+    if (applicationId !== null && applicationId !== SQLITE_APPLICATION_ID) {
+      issues.push({
+        severity: "error",
+        check: "application_id",
+        message:
+          `SQLite application_id is ${applicationId}, expected ${SQLITE_APPLICATION_ID}`,
+      });
+    }
+  }
   const integrity = await client.execute("PRAGMA integrity_check");
   for (const row of integrity.rows) {
     const message = String(row.integrity_check);
@@ -155,13 +204,22 @@ export async function checkDatabase(
       records.is_deleted,
       record_revisions.record_json
     FROM records
-    JOIN record_revisions
+    LEFT JOIN record_revisions
       ON record_revisions.record_id = records.record_id
      AND record_revisions.revision = records.current_revision
     ORDER BY records.record_id
   `);
   const records: CurrentRecordT[] = [];
   for (const row of currentRows.rows) {
+    if (row.record_json === null) {
+      issues.push({
+        severity: "error",
+        check: "revision",
+        record_id: String(row.record_id),
+        message: `current revision ${String(row.current_revision)} is missing`,
+      });
+      continue;
+    }
     const parsed = CurrentRecord.safeParse({
       record_id: row.record_id,
       record_type: row.record_type,
@@ -195,6 +253,11 @@ export async function checkDatabase(
     FROM record_revisions
     ORDER BY record_id, revision
   `);
+  const revisionsByRecord = new Map<string, Array<{
+    revision: number;
+    previous_revision: number | null;
+    record_type: string;
+  }>>();
   for (const row of revisionRows.rows) {
     const parsed = RecordRevision.safeParse({
       record_id: row.record_id,
@@ -213,6 +276,51 @@ export async function checkDatabase(
         check: "revision",
         record_id: String(row.record_id),
         message: validationMessage(parsed.error),
+      });
+    } else {
+      const group = revisionsByRecord.get(parsed.data.record_id) ?? [];
+      group.push({
+        revision: parsed.data.revision,
+        previous_revision: parsed.data.previous_revision,
+        record_type: parsed.data.record_type,
+      });
+      revisionsByRecord.set(parsed.data.record_id, group);
+    }
+  }
+
+  for (const row of currentRows.rows) {
+    const recordId = String(row.record_id);
+    const revisions = revisionsByRecord.get(recordId) ?? [];
+    for (const [index, revision] of revisions.entries()) {
+      const expectedRevision = index + 1;
+      const expectedPrevious = index === 0 ? null : index;
+      if (
+        revision.revision !== expectedRevision ||
+        revision.previous_revision !== expectedPrevious ||
+        revision.record_type !== row.record_type
+      ) {
+        issues.push({
+          severity: "error",
+          check: "revision_chain",
+          record_id: recordId,
+          message:
+            `revision chain breaks at stored revision ${revision.revision}; ` +
+            `expected ${expectedRevision} after ${String(expectedPrevious)}`,
+        });
+        break;
+      }
+    }
+    if (
+      revisions.length > 0 &&
+      revisions.at(-1)?.revision !== Number(row.current_revision)
+    ) {
+      issues.push({
+        severity: "error",
+        check: "revision_chain",
+        record_id: recordId,
+        message:
+          `current revision is ${String(row.current_revision)}, but retained history ` +
+          `ends at ${String(revisions.at(-1)?.revision)}`,
       });
     }
   }
@@ -235,6 +343,34 @@ export async function checkDatabase(
         check: "deletion",
         record_id: String(row.record_id),
         message: validationMessage(parsed.error),
+      });
+    }
+  }
+
+  const erasureRows = await client.execute(
+    "SELECT record_id, erased_at, reason_code FROM record_erasure_markers ORDER BY record_id",
+  );
+  for (const row of erasureRows.rows) {
+    const parsed = RecordErasureMarker.safeParse({
+      record_id: row.record_id,
+      erased_at: row.erased_at,
+      reason_code: row.reason_code,
+    });
+    if (!parsed.success) {
+      issues.push({
+        severity: "error",
+        check: "erasure_marker",
+        record_id: String(row.record_id),
+        message: validationMessage(parsed.error),
+      });
+      continue;
+    }
+    if (currentRows.rows.some((record) => record.record_id === row.record_id)) {
+      issues.push({
+        severity: "error",
+        check: "erasure_marker",
+        record_id: parsed.data.record_id,
+        message: "erased record still has a current record row",
       });
     }
   }
@@ -262,6 +398,21 @@ export async function checkDatabase(
         message: `${record.record_type} is missing its ${table} row`,
       });
     }
+    const typedData = await client.execute({
+      sql: `SELECT data_json FROM ${table} WHERE record_id = ?`,
+      args: [record.record_id],
+    });
+    if (
+      typedData.rows[0] !== undefined &&
+      String(typedData.rows[0].data_json) !== JSON.stringify(record.data)
+    ) {
+      issues.push({
+        severity: "error",
+        check: "typed_table",
+        record_id: record.record_id,
+        message: `${table}.data_json does not match the current revision`,
+      });
+    }
     if (record.is_deleted !== deletedIds.has(record.record_id)) {
       issues.push({
         severity: "error",
@@ -273,12 +424,63 @@ export async function checkDatabase(
     if (record.record_type === "attachment" && !record.is_deleted) {
       await checkAttachment(database, record, issues);
     }
+    if (record.record_type === "workout_session") {
+      const durationMs =
+        Date.parse(record.data.end_at) - Date.parse(record.data.start_at);
+      for (const [index, segment] of (record.data.segments ?? []).entries()) {
+        if (
+          segment.start_offset_ms !== undefined &&
+          segment.end_offset_ms !== undefined &&
+          segment.end_offset_ms < segment.start_offset_ms
+        ) {
+          issues.push({
+            severity: "error",
+            check: "session_order",
+            record_id: record.record_id,
+            message: `segment ${index + 1} ends before it starts`,
+          });
+        }
+        if (
+          (segment.start_offset_ms ?? 0) > durationMs ||
+          (segment.end_offset_ms ?? 0) > durationMs
+        ) {
+          issues.push({
+            severity: "error",
+            check: "session_order",
+            record_id: record.record_id,
+            message: `segment ${index + 1} falls outside the workout session`,
+          });
+        }
+      }
+    }
+  }
+
+  const relationshipTransaction = await client.transaction("read");
+  try {
+    for (const record of records) {
+      if (record.is_deleted) {
+        continue;
+      }
+      try {
+        await validateTypedRelationships(relationshipTransaction, record);
+      } catch (error) {
+        issues.push({
+          severity: "error",
+          check: "record_relationship",
+          record_id: record.record_id,
+          message: (error as Error).message,
+        });
+      }
+    }
+    await relationshipTransaction.rollback();
+  } finally {
+    relationshipTransaction.close();
   }
 
   return {
     metadata,
     valid: !issues.some((issue) => issue.severity === "error"),
-    record_count: records.length,
+    record_count: currentRows.rows.length,
     issues,
   };
 }
