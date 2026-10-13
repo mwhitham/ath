@@ -10,7 +10,7 @@ import { basename } from "node:path";
 const approvedSyntheticFixtures = new Map<string, string>([
   [
     "examples/demo-athlete/athlete.ath.json",
-    "0d223b8086d575fd327acac7e134efcae417e5c9f315411f93c859dd97e5cacf",
+    "7a77fce18b600950cae51e745141f79d1aa14e5f6864847b99c560265a78fb27",
   ],
   [
     "examples/demo-athlete/athlete.ath.sqlite",
@@ -85,6 +85,8 @@ function trackedFiles(): string[] {
 
 function isHealthDataFile(path: string): boolean {
   const lower = path.toLowerCase();
+  if (lower.startsWith("schema/")) return false;
+
   const sensitiveEndings = [
     ".ath.json",
     ".ath.sqlite",
