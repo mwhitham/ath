@@ -1,0 +1,70 @@
+name: Release performance
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "v1.0.0-*"
+
+permissions:
+  contents: read
+
+jobs:
+  functional-and-100k:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm typecheck && pnpm test && pnpm build
+      - run: >-
+          pnpm performance:generate -- --records 100000
+          --output performance/generated/100k
+      - run: >-
+          pnpm performance:run --
+          --database performance/generated/100k/athlete.ath.sqlite
+          --output performance/results/100k.json
+          --measured-at "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
+          --repetitions 3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: performance-100k
+          path: performance/results/100k.json
+
+  large:
+    runs-on: [self-hosted, linux, x64, ath-performance]
+    timeout-minutes: 360
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - records: 3000000
+            name: 3m
+          - records: 30000000
+            name: 30m
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: >-
+          pnpm performance:generate -- --records ${{ matrix.records }}
+          --output performance/generated/${{ matrix.name }}
+      - run: >-
+          pnpm performance:run --
+          --database performance/generated/${{ matrix.name }}/athlete.ath.sqlite
+          --output performance/results/${{ matrix.name }}.json
+          --measured-at "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
+          --repetitions 3
+      - uses: actions/upload-artifact@v4
+        with:
+          name: performance-${{ matrix.name }}
+          path: performance/results/${{ matrix.name }}.json

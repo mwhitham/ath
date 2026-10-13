@@ -54,10 +54,15 @@ export async function buildEvidence(
     benchmark: string;
     as_of?: string;
     limit?: number;
+    window_days?: number;
   },
 ): Promise<PredictionEvidence> {
   const asOf = UtcTimestamp.parse(input.as_of ?? new Date().toISOString());
   const limit = input.limit ?? 100_000;
+  const windowDays = input.window_days ?? 90;
+  if (!Number.isInteger(windowDays) || windowDays < 1 || windowDays > 3_650) {
+    throw new Error("Evidence window must be between 1 and 3650 days");
+  }
   const records = await queryRecordsAsOf(database, { as_of: asOf, limit });
   const benchmark = records.find(
     (
@@ -95,12 +100,12 @@ export async function buildEvidence(
       )
       .map((source) => [source.record_id, source]),
   );
-  const within90Days = (record: CurrentRecordT) => {
+  const withinWindow = (record: CurrentRecordT) => {
     const at = eventAt(record);
     return (
       at !== null &&
       at <= asOf &&
-      Date.parse(at) >= Date.parse(asOf) - 90 * 86_400_000
+      Date.parse(at) >= Date.parse(asOf) - windowDays * 86_400_000
     );
   };
   const deviceMeasurements = records.filter(
@@ -109,26 +114,26 @@ export async function buildEvidence(
     ): record is Extract<CurrentRecordT, { record_type: "point_measurement" }> =>
       record.record_type === "point_measurement" &&
       visibleByEventTime(record, asOf) &&
-      within90Days(record) &&
+      withinWindow(record) &&
       sources.get(record.data.source_id)?.data.source_type !== "manual",
   );
   const athleteReports = records.filter(
     (
       record,
     ): record is Extract<CurrentRecordT, { record_type: "athlete_report" }> =>
-      record.record_type === "athlete_report" && within90Days(record),
+      record.record_type === "athlete_report" && withinWindow(record),
   );
   const sleepSessions = records.filter(
     (
       record,
     ): record is Extract<CurrentRecordT, { record_type: "sleep_session" }> =>
-      record.record_type === "sleep_session" && within90Days(record),
+      record.record_type === "sleep_session" && withinWindow(record),
   );
   const workoutSessions = records.filter(
     (
       record,
     ): record is Extract<CurrentRecordT, { record_type: "workout_session" }> =>
-      record.record_type === "workout_session" && within90Days(record),
+      record.record_type === "workout_session" && withinWindow(record),
   );
   const priorResults = records.filter(
     (
@@ -151,10 +156,14 @@ export async function buildEvidence(
     gaps.push("No earlier result exists for this benchmark.");
   }
   if (deviceMeasurements.length === 0) {
-    gaps.push("No device point measurements exist in the prior 90 days.");
+    gaps.push(
+      `No device point measurements exist in the prior ${windowDays} days.`,
+    );
   }
   if (sleepSessions.length === 0) {
-    gaps.push("No recorded sleep session exists in the prior 90 days.");
+    gaps.push(
+      `No recorded sleep session exists in the prior ${windowDays} days.`,
+    );
   }
   if (records.length === limit) {
     gaps.push(`Evidence reached the ${limit}-record query limit.`);

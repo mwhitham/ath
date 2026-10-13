@@ -71,7 +71,8 @@
     "generate:fixture": "tsx scripts/generate-fixture.ts",
     "generate:v1-fixture": "tsx scripts/generate-v1-fixture.ts",
     "generate:skill-cli": "tsx scripts/generate-skill-cli.ts",
-    "performance:generate": "tsx scripts/performance/generate-database.ts"
+    "performance:generate": "tsx scripts/performance/generate-database.ts",
+    "performance:run": "tsx scripts/performance/run-benchmarks.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",

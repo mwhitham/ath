@@ -934,3 +934,38 @@ Rejected alternatives:
   while answering different questions.
 - **Make provider periods a calendar grouping option.** Rejected because that would
   make two different time rules look interchangeable.
+
+## D112. A changed row in an indistinguishable provider group is a conflict
+
+This decision supersedes the collision-group matching rule in D97. It confirms the
+later rule in D108.
+
+An unchanged repeated provider export still matches each row by its route key and
+collision position. If any row changes inside a group whose matching fields are
+otherwise identical, the import reports a conflict. Document order cannot prove
+which existing record received the correction. A collision position is safe for an
+unchanged repeat, but it is not evidence about row history after content changes.
+
+Rejected alternatives:
+
+- **Apply the correction to the same collision position.** Rejected because a
+  provider may reorder equal rows between exports.
+- **Choose whichever old row leaves the most unchanged matches.** Rejected because
+  identical old rows can still leave more than one equally valid history.
+
+## D113. A package may contain 100 million record and history objects
+
+The package cap is 100 million current-record, revision, deletion, and import-key
+objects. The 30-million-record release fixture needs at least 60 million objects
+because each current record has a first revision. The remaining room covers normal
+corrections, deletions, and import keys without removing a hard refusal limit.
+
+Each JSON file remains limited to 512 MiB. Dense samples remain split into bounded
+series files and are read one file at a time. The larger object count does not allow
+one unbounded JSON document.
+
+Rejected alternatives:
+
+- **Keep the 50-million-object cap.** Rejected because a valid 30-million-record
+  database could not complete the required export and restore release test.
+- **Remove the object cap.** Rejected because package input remains untrusted.

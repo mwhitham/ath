@@ -30,6 +30,7 @@ export interface SeriesQuery extends TimeRange {
   source_id?: string;
   include_manual?: boolean;
   limit?: number;
+  order?: "ascending" | "descending";
 }
 
 export interface SessionQuery extends TimeRange {
@@ -156,7 +157,9 @@ export async function querySeries(
        AND record_revisions.revision = records.current_revision
       JOIN sources ON sources.record_id = measurement_samples.source_id
       WHERE ${conditions.join(" AND ")}
-      ORDER BY measurement_samples.recorded_at, records.record_id
+      ORDER BY
+        measurement_samples.recorded_at ${query.order === "descending" ? "DESC" : "ASC"},
+        records.record_id ${query.order === "descending" ? "DESC" : "ASC"}
       LIMIT ?
     `,
     args,

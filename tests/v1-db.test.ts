@@ -677,6 +677,7 @@ describe("v1 record queries", () => {
   it("queries dense samples by quantity, source, and UTC bounds", async () => {
     const { database } = await newDatabase();
     const sampleId = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e22";
+    const laterSampleId = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e23";
     await writeRecords(database, [
       sourceInput(),
       {
@@ -700,6 +701,30 @@ describe("v1 record queries", () => {
           received_at_basis: "import_time",
         },
       },
+      {
+        record_type: "measurement_sample",
+        record_id: laterSampleId,
+        created_at: createdAt,
+        changed_by: toolActor,
+        became_known_at_basis: "provider_import",
+        data: {
+          source_id: sourceId,
+          quantity: "heart_rate",
+          recorded_at: "2026-08-09T11:13:00.000Z",
+          input_timestamp: {
+            ...timestampReceipt,
+            timestamp_text: "2026-08-09T11:13:00.000Z",
+          },
+          value: {
+            standard_value: 143,
+            standard_unit: "bpm",
+            input_value: 143,
+            input_unit: "count/min",
+          },
+          received_at: createdAt,
+          received_at_basis: "import_time",
+        },
+      },
     ]);
 
     expect(
@@ -709,7 +734,18 @@ describe("v1 record queries", () => {
         from: "2026-08-09T11:00:00.000Z",
         to: "2026-08-09T12:00:00.000Z",
       }),
-    ).toMatchObject([{ record_id: sampleId }]);
+    ).toMatchObject([
+      { record_id: sampleId },
+      { record_id: laterSampleId },
+    ]);
+    expect(
+      await querySeries(database, {
+        quantity: "heart_rate",
+        source_id: sourceId,
+        order: "descending",
+        limit: 1,
+      }),
+    ).toMatchObject([{ record_id: laterSampleId }]);
     expect(
       await querySeries(database, {
         quantity: "heart_rate",

@@ -996,7 +996,8 @@ A conforming implementation must:
 The reference CLI applies these input limits:
 
 - 512 MiB and 128 nested object or array levels for one package JSON file;
-- 10,000 generated series files and 50 million records in one package;
+- 10,000 generated series files and 100 million current-record, revision,
+  deletion, and import-key objects in one package;
 - 100,000 entries, 16 GiB for one expanded entry, and 64 GiB expanded in one
   provider archive;
 - a 1,000:1 maximum archive expansion ratio;

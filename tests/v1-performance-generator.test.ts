@@ -6,6 +6,7 @@ import {
   generatePerformanceDatabase,
   PERFORMANCE_FIXTURE_SEED,
 } from "../scripts/performance/generate-database.js";
+import { runPerformanceBenchmarks } from "../scripts/performance/run-benchmarks.js";
 import { checkDatabase, openDatabase } from "../src/db/index.js";
 import { databaseClient } from "../src/db/client.js";
 
@@ -50,6 +51,27 @@ describe("v1 performance database generator", () => {
       expect(Number(counts.rows[0]?.sample_sources)).toBe(3);
       expect(Number(counts.rows[0]?.corrections)).toBeGreaterThan(0);
       expect(Number(counts.rows[0]?.deletions)).toBeGreaterThan(0);
+      const workoutSamples = await client.execute({
+        sql: `
+          SELECT
+            COUNT(*) AS count,
+            MIN(recorded_at) AS first_at,
+            MAX(recorded_at) AS last_at
+          FROM measurement_samples
+          WHERE source_id = ?
+            AND quantity = 'heart_rate'
+            AND recorded_at >= '2026-08-10T17:25:00.000Z'
+            AND recorded_at <= '2026-08-10T17:48:00.000Z'
+        `,
+        args: ["01890f3e-e7d3-7cc0-88c8-000000000003"],
+      });
+      expect(Number(workoutSamples.rows[0]?.count)).toBeGreaterThan(2);
+      expect(String(workoutSamples.rows[0]?.first_at)).toBe(
+        "2026-08-10T17:25:00.000Z",
+      );
+      expect(String(workoutSamples.rows[0]?.last_at)).toBeGreaterThan(
+        "2026-08-10T17:36:30.000Z",
+      );
 
       const types = await client.execute(
         "SELECT COUNT(DISTINCT record_type) AS count FROM records",
@@ -67,4 +89,35 @@ describe("v1 performance database generator", () => {
       database.close();
     }
   });
+
+  it("runs all nine release measurements and writes a report", async () => {
+    const root = await mkdtemp(join(tmpdir(), "ath-v1-performance-run-"));
+    temporaryDirectories.push(root);
+    const generated = await generatePerformanceDatabase({
+      output_directory: join(root, "database"),
+      record_count: 1_000,
+    });
+    const report = await runPerformanceBenchmarks({
+      database_path: generated.database_path,
+      output_path: join(root, "result.json"),
+      read_repetitions: 1,
+      keep_work: false,
+      measured_at: "2026-10-13T06:00:00.000Z",
+    });
+
+    expect(report.performance_seed).toBe(PERFORMANCE_FIXTURE_SEED);
+    expect(report.target_record_count).toBe(1_000);
+    expect(report.operations.map((operation) => operation.id)).toEqual([
+      "latest_value",
+      "evidence_28d",
+      "baseline_90d",
+      "workout_drift",
+      "cross_source_comparison",
+      "full_json_export",
+      "database_check",
+      "initial_import",
+      "incremental_import",
+    ]);
+    expect(report.operations.every((operation) => operation.success)).toBe(true);
+  }, 30_000);
 });

@@ -15,7 +15,7 @@ import {
 import { databaseClient } from "../../src/db/client.js";
 import { withWriteTransaction } from "../../src/db/transaction.js";
 
-export const PERFORMANCE_FIXTURE_SEED = "ath-v1-performance-seed-1";
+export const PERFORMANCE_FIXTURE_SEED = "ath-v1-performance-seed-2";
 export const RELEASE_RECORD_COUNTS = [
   100_000,
   3_000_000,
@@ -145,7 +145,7 @@ const SAMPLE_DATA_SQL = `
         WHEN performance_numbers.n < 7560
           THEN strftime(
             '%Y-%m-%dT%H:%M:%fZ',
-            1786302000 + CAST(performance_numbers.n / 3 AS INTEGER),
+            1786382700 + CAST(performance_numbers.n / 3 AS INTEGER),
             'unixepoch'
           )
         ELSE strftime(
@@ -162,7 +162,7 @@ const SAMPLE_DATA_SQL = `
             WHEN performance_numbers.n < 7560
               THEN strftime(
                 '%Y-%m-%dT%H:%M:%fZ',
-                1786302000 + CAST(performance_numbers.n / 3 AS INTEGER),
+                1786382700 + CAST(performance_numbers.n / 3 AS INTEGER),
                 'unixepoch'
               )
             ELSE strftime(
