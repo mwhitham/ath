@@ -1,579 +1,981 @@
-# The Athletic Standard Format — Specification v0.4.3
+# Athletic Standard Format Specification v1.0.0
 
-**Status:** draft · **File extension:** `.ath.json` · **Schema:** [`schema/athleticstandard.schema.json`](schema/athleticstandard.schema.json) (JSON Schema draft 2020-12, generated from the Zod definitions in [`src/schema.ts`](src/schema.ts), which are normative)
+**Status:** public v1 format
+**Live local file:** `athlete.ath.sqlite`
+**Portable package:** `athlete.ath.json` plus generated files
+**Normative schemas:** [`src/v1/schema.ts`](src/v1/schema.ts)
+**Generated JSON Schemas:** [`schema/1.0.0/`](schema/1.0.0/)
 
-Athletic Standard is an open, local-first file format for a functional-fitness athlete's training and recovery state over time, designed for AI agents to reason over.
+Athletic Standard is an open, local-first record for one athlete's training and
+recovery data. SQLite is the sole live local record. JSON is an explicit, complete
+package for export, import, inspection, and backup.
 
-## Design principles
+Local use needs no account, network connection, subscription, or hosted service.
 
-1. **The file is the database.** One JSON document per athlete. No server, no DBMS, no accounts. The format must be fully usable with nothing but a text editor and an LLM.
-2. **The two-tier wall.** Device-measured data (*hard signals*) and self-reported data (*soft signals*) never mix, and the separation is structural, not conventional: hard signals **must** carry provenance (a `source` reference); soft signals **cannot** (the field does not exist, and objects reject unknown keys). An agent reading the file always knows which numbers were measured and which were self-reported.
-3. **Predictions live in the file.** An agent's predictions are written into the document before the attempt and graded after, so the file keeps a record of whether each prediction was right.
-4. **Canonical units, no ambiguity.** Every measurement type has exactly one unit, adopted from [Open Wearables](https://github.com/the-momentum/open-wearables)' canonical table. There are no unitless `value` fields.
-5. **Append-friendly, diff-friendly.** Arrays of timestamped records, stable field order, pure text. Photos live in a sibling `attachments/` folder and dense sample streams in a sibling `series/` folder, both referenced by filename and content hash; the document itself never embeds binary data or millions of samples.
-6. **Readings from different devices are never merged.** Every measurement keeps the source that produced it, and baselines are computed per source. Two devices disagree by more than the change a prediction is trying to read, so averaging them would describe neither.
+## 1. One logical model, two encodings
 
-## Top-level structure
+The Zod schemas in `src/v1/schema.ts` define athlete-owned records. SQLite and the
+JSON package encode the same logical records.
+
+| Encoding | Use |
+|---|---|
+| SQLite | Live local record read and written by `ath` |
+| JSON package | Complete portable snapshot used by explicit export and import |
+
+An exported package does not update when the database changes. Editing a package
+does not change the database. A package changes SQLite only through a confirmed
+import.
+
+Dense samples live in SQLite. They use generated JSON series files only inside an
+exported package.
+
+## 2. Record IDs, revisions, and database revisions
+
+Every logical record has a stable lowercase UUIDv7 `record_id`. New records and new
+database IDs use UUIDv7. A UUIDv7 time component helps database insertion order. It
+is not an event timestamp.
+
+A correction keeps the `record_id` and creates the next positive integer record
+revision. Revision 1 has `previous_revision: null`. Every later revision points to
+the previous integer.
+
+The database also has a nonnegative `database_revision`. One committed athlete-data
+transaction increments it once, even when that transaction writes several records.
+
+Links to a current logical record use its UUIDv7 ID. Evidence and historical links
+use both `record_id` and `revision`:
 
 ```json
 {
-  "athleticstandard_version": "0.4.3",
-  "athlete": { },
-  "sources": [ ],
-  "hard_signals": [ ],
-  "soft_signals": [ ],
-  "benchmarks": [ ],
-  "predictions": [ ]
+  "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+  "revision": 2
 }
 ```
 
-| Field | Required | Description |
-|---|---|---|
-| `athleticstandard_version` | yes | Semver. See [Versioning](#versioning). |
-| `athlete` | yes | Profile (all fields optional). |
-| `sources` | yes | Provenance registry for hard signals. |
-| `hard_signals` | yes | Tier 1: measured data. |
-| `soft_signals` | yes | Tier 2: self-reported data. |
-| `benchmarks` | yes | Benchmark definitions referenced by results and predictions. |
-| `predictions` | yes | The graded prediction ledger. |
+## 3. Time and dates
 
-All timestamps are ISO 8601 with timezone (UTC `Z` or explicit offset — never naive local time). All dates are `YYYY-MM-DD`. All identifiers are lowercase alphanumeric with `-`/`_`.
+Every normalized instant is UTC text with fixed millisecond precision:
 
-### `athlete`
-
-| Field | Type | Notes |
-|---|---|---|
-| `name` | string | optional |
-| `birth_year` | integer | optional, 1900–2100 |
-| `sex` | `male` \| `female` | optional; as relevant to performance modeling |
-| `units` | `metric` \| `imperial` | **display preference only** — stored values are always canonical units |
-
-## `sources`
-
-Every hard signal references a source by id. This registry is what makes "measured" auditable.
-
-| Field | Required | Type | Notes |
-|---|---|---|---|
-| `id` | yes | id | unique within the file, e.g. `whoop-1` |
-| `kind` | yes | `wearable` \| `export_file` \| `connector` \| `manual` | |
-| `vendor` | no | string | `whoop`, `oura`, `apple`, `withings`, … |
-| `writer` | no | string | the app or device that wrote the readings, as the export names it: `"Apple Watch"`, `"WHOOP"`, `"Withings"` |
-| `via` | no | string | how the readings arrived: `apple_health`, `whoop_csv`, `oura_csv` |
-| `devices` | no | array | every distinct physical device seen writing under this name; see below |
-| `sensor` | no | string | which sensor within the device, when one device has several |
-| `detail` | no | string | human-readable, e.g. `"Withings via Apple Health zip export"` |
-
-**One source per writer, not per export file.** An export file is a container. One Apple Health export carries readings from the watch, the phone, a bathroom scale, a blood-pressure cuff, and any app that writes into Health — including WHOOP and Oura. Each of those is its own source, because a baseline pooled across a watch and a scale describes neither. The importer reads the writer's name from each record and files it accordingly: `apple-watch-1`, `iphone-1`, `withings-1`, `omron-1`, `oura-1`. Readings from two writers are never merged, even when they share a timestamp and a value — two devices agreeing is two observations.
-
-**`via`** separates the same writer arriving by two routes. WHOOP's copy of its readings inside an Apple Health export is a rounded subset of WHOOP's own CSV export, so they are two sources (`via: "apple_health"` and `via: "whoop_csv"`), and a reader who wants to know how much the relay lost can compare them.
-
-**`devices`** records the physical hardware without splitting on it. Each entry may hold `name`, `manufacturer`, `model`, and `hardware` (e.g. `Watch6,2`). Software versions and memory addresses are never kept: they change without the device changing. A replaced watch that keeps its name stays one source and lists both devices here, because the alternative — one source per hardware generation — would also split a single watch whose older records lack a device attribute.
-
-Each entry also carries the days it wrote over and how much: `from` and `to` (calendar dates) and `n` (records written into the document, counted after duplicates are reconciled). This is the device index. Without it, a replaced watch keeping its name leaves two entries with nothing saying when the change happened or how much each one wrote, and three years of readings sit under one name with no visible seam.
-
-These three cannot be recomputed later, because a reading names its source and never its device, so they are stored. A source's own window and record count are not stored, because every hard signal names its source and every `series_ref` carries its own dates — those are computed at read time and shown by `ath stats`.
-
-Sidecar samples are not counted in `n`. They are counted per quantity by `series_ref`, which is where the sample counts live. Exports that name no device — WHOOP's and Oura's CSVs — leave `devices` absent, and the source still reports source-level coverage.
-
-**`sensor`** exists because one device can hold sensors of very different accuracy. An Apple Watch times heartbeats optically all day and electrically when the wearer takes an ECG; the electrical figure is the reference standard while the optical one carries roughly 29% error. Those get separate sources — `apple-watch-1` and `apple-watch-ecg-1` — so their baselines never pool, for the same reason two different devices do not pool.
-
-**Hand-typed readings inside an export** — a height entered in the Health app — go under the file's `manual` source, not under a device. The export names the Health app itself as the writer, and the Health app measured nothing.
-
-Ids are handed out in import order, so the id alone does not say which route a source is. The `writer` and `via` fields do.
-
-**The `manual` kind** exists so a typed-in number ("my HRV was 54 this morning") can be stored as a measurement *without claiming device provenance*. Agents should weight `manual`-sourced hard signals below device-sourced ones. Writing a typed-in number under a device source is a spec violation.
-
-## `hard_signals` — Tier 1, measured
-
-Six record shapes. Every record has a `source` reference and an optional `note`.
-
-### Point measurements
-
-A single timestamped reading.
-
-```json
-{ "type": "hrv_rmssd", "value": 62, "unit": "ms",
-  "recorded_at": "2026-08-09T06:12:00Z", "source": "whoop-1" }
+```text
+YYYY-MM-DDTHH:mm:ss.SSSZ
 ```
 
-| `type` | Canonical unit | Notes |
+Fixed-width UTC timestamps sort in instant order in SQLite. Importers may round a
+source instant to the nearest millisecond for the normalized field. They preserve
+the original timestamp text separately.
+
+A calendar date is `YYYY-MM-DD`. A date-only provider record remains date-only.
+Import must not invent midnight or any other instant.
+
+Calendar calculations use an explicit IANA timezone such as `America/Chicago`, or
+the saved `athlete_profile.default_time_zone`. They refuse when a timezone is needed
+and neither is available. A profile timezone is a calculation choice. It is not
+evidence that all historical records happened there.
+
+Provider reporting periods remain distinct from calendar dates. See
+[Provider reporting periods](#53-provider-reporting-periods).
+
+## 4. Record lifecycle envelopes
+
+### 4.1 Current record
+
+Every current record has these fields:
+
+| Field | Type | Meaning |
 |---|---|---|
-| `hrv_rmssd` | `ms` | |
-| `hrv_sdnn` | `ms` | a different statistic from RMSSD; never share a baseline. Also a series quantity |
-| `resting_heart_rate` | `bpm` | |
-| `walking_heart_rate` | `bpm` | a walking average, not a resting value |
-| `hr_recovery` | `bpm` | one-minute drop after effort |
-| `body_weight` | `kg` | |
-| `respiratory_rate` | `brpm` | also a series quantity |
-| `vo2_max` | `ml/kg/min` | |
-| `oxygen_saturation` | `%` | also a series quantity |
-| `body_temperature` | `°C` | an actual body temperature |
-| `skin_temperature` | `°C` | measured at the skin |
-| `wrist_temperature_sleeping` | `°C` | overnight wrist measurement |
-| `temperature_deviation` | `°C` | a signed delta from a vendor baseline |
-| `height` | `cm` | |
-| `lean_body_mass` | `kg` | |
-| `body_fat_percentage` | `%` | |
-| `blood_pressure_systolic` | `mmHg` | |
-| `blood_pressure_diastolic` | `mmHg` | |
+| `record_id` | lowercase UUIDv7 | Stable logical record ID |
+| `record_type` | one of 23 values | Selects the typed `data` object |
+| `created_at` | UTC timestamp | Time the Athletic Standard record was created |
+| `current_revision` | positive integer | Latest retained revision |
+| `is_deleted` | boolean | Whether normal deletion hides the record from current views |
+| `data` | typed object | Complete current logical state |
 
-Blood pressure is here because it is a cardiovascular measurement that bears on the load a session imposes, and it is standard in athlete screening. Diagnostic findings are a different thing and stay out of the format: atrial fibrillation burden, low-heart-rate events, and walking steadiness are conclusions about disease, and this format is not medical advice.
+A normally deleted record remains a current envelope with `is_deleted: true`. Its
+data and revisions remain until a retention rule or privacy erasure removes them.
 
-The `unit` field is mandatory and must equal the canonical unit — it is redundant on purpose, so a record read in isolation is never ambiguous.
+### 4.2 Retained revision
 
-**Why three types appear here and in the series table.** How often a device measures something decides where it is stored, and devices differ. An Apple Watch samples SDNN, respiratory rate, and blood oxygen repeatedly through a night; WHOOP and Oura report one figure per night for each. A stream of readings and a figure summarizing a night are different measurements, so they get different record shapes: samples go to a sidecar, a night's figure stays here as a reading. Nothing is averaged to fit — a sidecar holds every sample the device recorded, with its own timestamp. Ask for either through `readingsFor()`, which returns both and says which it found.
+Every retained revision has:
 
-**Why four temperature types.** They are not interchangeable. Core temperature falls during sleep because the extremities warm and shed heat, so wrist temperature runs roughly an hour ahead of core and inverted, with a daily swing of about 6 °C. A wrist reading is a circadian marker, not a thermometer for the body. Averaging these together would cancel out the signal. `temperature_deviation` is a fourth thing again: a difference from a personal baseline, meaningless if read as a temperature.
+| Field | Type | Meaning |
+|---|---|---|
+| `record_id` | lowercase UUIDv7 | Owning record |
+| `record_type` | record type | Must match the current record |
+| `revision` | positive integer | This revision number |
+| `previous_revision` | integer or `null` | `null` for revision 1, otherwise `revision - 1` |
+| `became_known_at` | UTC timestamp | When this state became available to the database |
+| `became_known_at_basis` | enum | `local_write`, `provider_import`, `package_restore`, or `package_merge` |
+| `changed_by` | record actor | Actor that made the change |
+| `data` | typed object | Complete state at this revision |
 
-`temperature_deviation` is the only point type whose value may be negative or zero. Every other reading is positive.
+A correction cannot use a `became_known_at` earlier than the prior revision.
+Historical prediction and backtest queries use revision knowledge time, not only the
+event time inside `data`.
 
-#### `derived` — values this tool computed
+### 4.3 Record actors
 
-A point measurement may carry a `derived` block, meaning the value was computed here rather than reported by the device:
+`changed_by`, `deleted_by`, and link creators use one of:
 
 ```json
-{ "type": "hrv_rmssd", "value": 44.2, "unit": "ms",
-  "recorded_at": "2026-08-09T06:12:00-07:00", "source": "apple-watch-1",
-  "derived": { "from": "hrv_beats", "method": "rmssd", "window_s": 61,
-               "n_beats": 68, "n_dropped": 2 } }
+{ "author_type": "athlete" }
 ```
-
-| Field | Required | Notes |
-|---|---|---|
-| `from` | yes | series quantity the value was computed from |
-| `method` | yes | computation applied, e.g. `rmssd` |
-| `window_s` | no | length of the window used |
-| `n_beats` | no | usable samples the value rests on |
-| `n_dropped` | no | samples discarded as implausible |
-| `signal_quality` | no | how far the signal stood above the background |
-
-`signal_quality` is worth carrying because noise degrades the *timing* of each beat rather than the count of them, so it inflates variability rather than reducing it. On a synthetic recording where every beat was found, added noise pushed RMSSD from 25 ms to 33 ms through jitter alone. A reader given this figure can discount a poor recording.
-
-The block records enough to reproduce or dispute the number. Absence of `derived` means the device reported the value. Agents should weight a derived value by the receipts it carries, and the validator requires the cited series to be present in the file for the same source and day.
-
-### `series_ref` — coverage of dense samples held in sibling files
-
-Heart rate all day, one sample per second inside a workout, and beat-to-beat intervals are streams rather than readings. Keeping them inline would add roughly 22 MB a year to a document measured at 0.43 MB, so they live in sibling files.
-
-One record describes a whole quantity, not a single day:
 
 ```json
-{ "type": "series_ref", "quantity": "heart_rate", "unit": "bpm",
-  "source": "apple-watch-1", "from": "2023-06-01", "to": "2026-08-30",
-  "days": 1120, "n": 410131, "sha256": "d7c1f30127…" }
+{
+  "author_type": "agent",
+  "agent": "agent-name",
+  "agent_version": "1.2.3"
+}
 ```
 
-| Field | Notes |
+```json
+{
+  "author_type": "tool",
+  "tool": "ath",
+  "tool_version": "1.0.0"
+}
+```
+
+`agent_version` is optional. Tool versions are semantic versions.
+
+### 4.4 Normal deletion
+
+A deletion has:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `record_id` | UUIDv7 | Deleted record |
+| `record_revision` | positive integer | Revision that was current when deleted |
+| `deleted_at` | UTC timestamp | Deletion time |
+| `deleted_by` | record actor | Actor that deleted it |
+
+The deletion names an existing retained revision. It hides the record from current
+queries without removing its values or history.
+
+### 4.5 Privacy erasure marker
+
+Privacy erasure may leave only:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `record_id` | UUIDv7 | Stable ID that was erased |
+| `erased_at` | UTC timestamp | Erasure time |
+| `reason_code` | enum | `athlete_request`, `legal_requirement`, `recorded_in_error`, or `other` |
+
+The marker has no foreign key to `records`, because the parent may be gone. It
+contains no record type, health value, event time, source detail, free text,
+revision, or attachment hash.
+
+### 4.6 Provider import key
+
+Provider imports match future rows through:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `record_id` | UUIDv7 | Existing Athletic Standard record |
+| `match_key_method` | nonempty string | Versioned route recipe |
+| `match_key` | nonempty string | Stable route-specific key |
+| `imported_at` | UTC timestamp | Time the key was recorded |
+
+The current methods are `apple_health/v1`, `whoop_csv/v1`, and `oura_csv/v1`.
+A provider record ID is used when available. Otherwise the route uses stable source
+fields and a collision position for otherwise indistinguishable rows.
+
+The same key and content is a match. The same key with changed content creates a
+revision. An unresolved duplicate or conflicting correction is refused rather than
+matched by guess.
+
+## 5. Shared logical objects
+
+### 5.1 Authorship
+
+Authored records use one `authorship` object:
+
+| Field | Type | Meaning |
+|---|---|---|
+| `author` | authored-record author | Who wrote the claim |
+| `authored_at` | UTC timestamp | When it was written |
+| `evidence` | evidence reference array | Ordered exact record revisions used |
+| `content_version` | positive integer | Version of the authored content |
+| `status` | enum | `draft`, `active`, `completed`, `superseded`, or `cancelled` |
+
+An athlete author is `{ "author_type": "athlete" }`.
+
+An agent author requires `author_type: "agent"`, `agent`, and `model`. It may also
+have `agent_version` and `model_version`.
+
+A tool author requires `author_type: "tool"`, `tool`, `tool_version`, and
+`calculation_version`.
+
+### 5.2 Input timestamp receipts
+
+Source and report times preserve source text in an input receipt:
+
+| Field | Required | Type |
+|---|---|---|
+| `timestamp_text` | when supplied | nonempty string |
+| `timestamp_missing_reason` | when text is absent | missing-reason enum |
+| `timestamp_basis` | with timestamp text | `source_instant`, `source_offset_timestamp`, `source_local_timestamp_with_documented_offset`, or `reconstructed_from_series_start` |
+| `utc_offset_text` | when supplied | nonempty string |
+| `utc_offset_missing_reason` | when offset text is absent | missing-reason enum |
+| `utc_offset_meaning` | with offset text | `documented_recording_offset`, `provider_cycle_offset`, `route_rendering_offset`, or `meaning_not_documented` |
+
+Missing reasons are `not_provided_by_source`, `not_exposed_by_route`, and
+`not_applicable`. A supplied value cannot also carry its missing reason.
+
+### 5.3 Provider reporting periods
+
+A provider reporting period has:
+
+| Field | Required | Type |
+|---|---|---|
+| `period_type` | yes | provider-period enum |
+| `provider_period_id` | no | nonempty string |
+| `provider_date` | no | calendar date |
+| `start_at`, `end_at` | no | normalized UTC timestamps |
+| `input_start_timestamp`, `input_end_timestamp` | no | input timestamp receipts |
+| `timezone_offset_text` | no | preserved offset text |
+| `timezone_offset_meaning` | with offset text | offset-meaning enum |
+| `timezone_offset_missing_reason` | no | missing-reason enum |
+
+At least one of `provider_period_id`, `provider_date`, or `start_at` is required.
+An end cannot precede a start.
+
+The period types are:
+
+- `whoop_physiological_cycle`
+- `oura_activity_day`
+- `oura_sleep_day`
+- `oura_calendar_day`
+- `oura_day_unspecified`
+- `apple_activity_summary_day`
+
+These values must not be renamed to a generic day or silently combined with
+midnight-to-midnight calendar totals.
+
+### 5.4 Measured record fields
+
+The six measured record types are `point_measurement`, `measurement_sample`,
+`sleep_session`, `workout_session`, `benchmark_result`, and `provider_score`.
+Their `data` objects all include:
+
+| Field | Required | Type |
+|---|---|---|
+| `source_id` | yes | source record UUIDv7 |
+| `provider_record_id` | no | nonempty source record ID |
+| `provider_reporting_periods` | no | provider reporting period array |
+| `received_at` | yes | normalized UTC timestamp |
+| `received_at_basis` | yes | `provider_supplied`, `connector_received_time`, `file_modified_time`, `import_time`, or `local_write_time` |
+
+The source foreign key is required. A source of type `manual` marks a hand-entered
+measurement or benchmark result. It does not turn that record into device evidence.
+
+### 5.5 Source values and summaries
+
+A source value has:
+
+| Field | Required | Type |
+|---|---|---|
+| `standard_value` | yes | number |
+| `standard_unit` | yes | nonempty string |
+| `input_value` | when supplied by source | number |
+| `input_value_missing_reason` | when input value is absent | missing-reason enum |
+| `input_unit` | when supplied by source | nonempty string |
+| `input_unit_missing_reason` | when input unit is absent | missing-reason enum |
+
+Exactly one of each input value and its missing reason is present. The same rule
+applies to the input unit.
+
+A source-reported summary adds a required nonempty `summary_type`. Sleep sessions,
+workout sessions, and workout segments use arrays of these summaries. A provider
+summary remains a source fact even when samples also exist.
+
+### 5.6 Score
+
+A score is an object with at least one of:
+
+| Field | Type |
 |---|---|
-| `from`, `to` | first and last day with samples |
-| `days` | days that have a file; not every day in the span need have one |
-| `n` | total samples across those days |
-| `sha256` | hash over each day's hash, in date order |
+| `duration_s` | positive number |
+| `reps` | positive integer |
+| `weight_kg` | positive number |
 
-Per-day records were the first design and they recreated the problem sidecars existed to solve. A real import produced 24,448 of them and a 10.5 MB document, about 3 million tokens, which no agent can read. Grouped, the same data needs 18 records and 8 KB, and the size stops growing with the length of the history.
+## 6. The 23 record types
 
-`days` and `n` describe coverage to a reader. They play no part in verification — the hash does that alone.
+### 6.1 `athlete_profile`
 
-Individual days are not listed because they do not need to be: a sidecar's name is fully determined by its day, quantity, and source. Read them with `ath series`, which also computes the per-day minimum, maximum, and mean rather than storing them.
-
-| `quantity` | Canonical unit | Notes |
+| Data field | Required | Type |
 |---|---|---|
-| `heart_rate` | `bpm` | |
-| `hrv_beats` | `ms` | beat-to-beat intervals, timed optically |
-| `ecg_beats` | `ms` | beat-to-beat intervals, timed from an ECG waveform |
-| `hrv_sdnn` | `ms` | also a point type: a device that samples it writes a series, one reporting a nightly figure writes a reading |
-| `respiratory_rate` | `brpm` | also a point type, for the same reason |
-| `oxygen_saturation` | `%` | also a point type, for the same reason |
-| `steps` | `count` | |
-| `active_energy` | `kcal` | |
-| `basal_energy` | `kcal` | resting energy; modelled by the device, not measured |
-| `exercise_time` | `min` | minutes at brisk-walk intensity or above |
-| `physical_effort` | `MET` | the device's effort estimate |
-| `flights_climbed` | `count` | |
-| `distance_walking_running` | `m` | |
-| `distance_cycling` | `m` | |
-| `distance_swimming` | `m` | |
-| `running_speed` | `m/s` | |
-| `running_power` | `W` | rate of work needed to hold pace |
-| `running_stride_length` | `m` | |
-| `running_vertical_oscillation` | `cm` | pelvis rise per stride |
-| `running_ground_contact_time` | `ms` | |
-| `walking_speed` | `m/s` | |
-| `walking_step_length` | `m` | |
-| `walking_asymmetry_percentage` | `%` | one foot moving differently from the other |
-| `time_in_daylight` | `min` | |
+| `name` | no | nonempty string |
+| `birth_year` | no | integer, 1900 through 2100 |
+| `sex` | no | `male` or `female` |
+| `display_units` | no | `metric` or `imperial` |
+| `default_time_zone` | no | valid IANA timezone |
 
-Distance is split by modality because a multi-sport athlete's disciplines are separate questions: a slow swim and a slow run are different problems, and one summed number cannot tell them apart.
+Stored measurement units do not change with `display_units`.
 
-The running group is what a device records stride by stride during a run. These are the measurements that distinguish an effort that was slow because the athlete was unrecovered from one that was slow because form degraded late — a distinction any prediction about a run or a HYROX has to make.
+### 6.2 `source`
 
-Walking asymmetry deserves a note: one foot moving at a different speed from the other is a plausible early sign of injury, and it trends over months.
-
-Nothing is averaged or downsampled anywhere: the sidecars hold every sample the source contained, and the document's `days` and `n` describe what is there without pre-digesting it.
-
-A sidecar is one quantity, one day, one source:
-
-```json
-{ "athleticstandard_version": "0.4.3", "quantity": "heart_rate", "unit": "bpm",
-  "start": "2026-08-09T00:00:12-07:00", "source": "apple-watch-1",
-  "offsets_ms": [0, 300000], "values": [62, 64] }
-```
-
-`offsets_ms` and `values` are parallel arrays of equal length, offsets measured in milliseconds from `start`. Milliseconds rather than seconds because beat intervals are about 850 ms apart, and whole seconds would collapse beats sharing a second into one instant.
-
-A sample that covers a span rather than an instant — "420 steps from 9:00 to 9:05" — keeps its length in a third parallel array, `durations_ms`. It is present only when at least one sample on that day has a span, so a day of heart-rate readings does not carry a column of zeros. Steps, energy, distance, exercise time and Apple's HRV windows have spans; heart rate, oxygen saturation and respiratory rate do not.
-
-```json
-{ "athleticstandard_version": "0.4.3", "quantity": "steps", "unit": "count",
-  "start": "2026-08-09T09:00:00-07:00", "source": "iphone-1",
-  "offsets_ms": [0, 300000], "values": [420, 388], "durations_ms": [300000, 300000] }
-```
-
-The span is kept because a total is a rate only if its length survives: 420 steps over five minutes and 420 steps over an hour are different walks. It also shows where a device stopped recording, which the start times alone cannot. Two writers of the same quantity never share a sidecar: the filename carries the source, so a watch's calories and a ring's calories for the same run are two files with two totals.
-
-#### Verifying a series
-
-One rule: hash what is on disk for the quantity and compare it to `sha256`. A missing day, an extra day, and an edited day all change the hash, all report the same thing, and all have the same remedy — import again, which rewrites the files and the record together.
-
-The causes are deliberately not distinguished. Knowing which of the three happened does not change what anyone would do about it.
-
-The one exception is an absent `series/` folder, which is reported once as "series data not present" and skips series checks entirely. That is the document travelling without its sidecars, and it must stay usable.
-
-### `vendor_score` — device-computed composites
-
-WHOOP recovery and strain, Oura readiness and sleep score. A device produced them, so they carry a source and belong to Tier 1, but they are not measurements: they are proprietary composites on per-vendor scales.
-
-```json
-{ "type": "vendor_score", "metric": "recovery", "value": 67, "scale": "0-100",
-  "recorded_at": "2026-08-09T06:12:00-07:00", "source": "whoop-1" }
-```
-
-| Field | Required | Notes |
+| Data field | Required | Type |
 |---|---|---|
-| `metric` | yes | vendor's name for the score, e.g. `recovery`, `strain`, `readiness` |
-| `value` | yes | may be negative or zero |
-| `scale` | yes | the range it is read against, e.g. `"0-100"` or `"0-21"` |
+| `source_type` | yes | `wearable`, `export_file`, `connector`, or `manual` |
+| `data_writer` | yes | nonempty string |
+| `data_route` | yes | nonempty string |
+| `vendor` | no | nonempty string |
+| `sensor_type` | no | nonempty string |
+| `detail` | no | nonempty string |
 
-`scale` is mandatory for the same reason a soft-signal rating needs one: a bare 14 means nothing until you know WHOOP strain runs 0–21.
+SQLite treats `data_writer`, `data_route`, and the optional `sensor_type` as the
+source key. Two routes remain separate even when the writer is the same.
 
-**A vendor score must not drive a predicted number on its own.** A tidy score is exactly what a model repeats instead of reading the data underneath. An agent may cite one as corroboration; the predicted number comes from measurements.
+### 6.3 `source_device`
 
-### `sleep_session`
-
-A night of sleep as one record: `start`, `end`, `source`, and an `aggregates` object with optional `duration_s` (actual sleep), `time_in_bed_s`, `efficiency_pct` (0–100), `deep_s`, `rem_s`, `light_s`, `awake_s`, `interruptions`.
-
-### `workout_session`
-
-A training session: `start`, `end`, `source`, an `aggregates` object (optional `activity` label, `avg_hr_bpm`, `max_hr_bpm`, `energy_kcal`, `distance_m`, `elevation_gain_m`), and optional `segments` — ordered, labeled sub-efforts, which is how run splits and HYROX station times are represented:
-
-```json
-"segments": [
-  { "label": "km 1", "duration_s": 305, "distance_m": 1000 },
-  { "label": "ski erg", "duration_s": 261 }
-]
-```
-
-### `benchmark_result`
-
-A scored attempt at a defined benchmark. A result is measured fact even when hand-entered — but then its `source` is `manual`, keeping the trust level visible.
-
-```json
-{ "type": "benchmark_result", "benchmark": "fran",
-  "recorded_at": "2026-08-09T17:30:00Z", "source": "manual-1",
-  "result": { "duration_s": 281 }, "scaling": "rx",
-  "session": { "source": "whoop-1", "start": "2026-08-09T17:25:00Z" },
-  "segments": [
-    { "label": "1", "duration_s": 106 },
-    { "label": "2", "duration_s": 85 }
-  ],
-  "note": "unbroken thrusters first two rounds" }
-```
-
-`result` is a **score object**: at least one of `duration_s` (for time-scored benchmarks), `reps`, `weight_kg`. The key matching the benchmark's `score_type` is required (validated); extra keys are allowed. `scaling` is `rx` | `scaled`, optional.
-
-**`segments`** is the same shape as on a workout session: ordered, labeled sub-efforts. On a result they are hand-logged — round times, splits the athlete wrote down. They are not copied from the device session. When the result is a list of round times, `result.duration_s` is their sum and the summary shows the list.
-
-**`session`** names the `workout_session` this result was recorded during, by that session's `source` and `start`. Those two fields already identify a session uniquely — they are the key the importers reconcile duplicates on — so the reference survives a re-import unchanged and no importer has to invent an id. The validator requires it to resolve to a session that exists.
-
-It is optional, and most results do not have it. Device data usually arrives days after the workout was logged, so a result with no `session` is a match still waiting rather than an error. That state needs no extra field to record it: the absence is the record. Every import looks for unlinked results whose day now has a session and offers the match, and `ath link` makes or corrects one by hand.
-
-## `soft_signals` — Tier 2, self-reported
-
-```json
-{ "type": "sleep_quality", "reported_at": "2026-08-09T07:00:00Z",
-  "rating": 2, "scale": "1-5", "note": "neighbor's dog, maybe 5 hours",
-  "provenance": { "via": "text" } }
-```
-
-| Field | Required | Notes |
+| Data field | Required | Type |
 |---|---|---|
-| `type` | yes | `sleep_quality` \| `soreness` \| `stress` \| `mood` \| `energy` \| `nutrition` \| `note` |
-| `reported_at` | yes | timestamp |
-| `rating` | no | **requires `scale`** — a rating without a scale is meaningless and fails validation |
-| `scale` | with rating | e.g. `"1-5"` |
-| `body_region` | no | for `soreness`, e.g. `"quads"` |
-| `note` | no | freeform |
-| `provenance` | no | defaults to `{ "via": "text" }` |
+| `source_id` | yes | source UUIDv7 |
+| `name`, `manufacturer`, `model`, `hardware`, `serial_number` | no | nonempty strings |
+| `coverage_start_date`, `coverage_end_date` | no | calendar dates |
+| `accepted_record_count` | no | nonnegative integer |
 
-**Provenance** records how the entry came to exist: `via` is `text` | `voice` | `photo`. Photo-derived entries (e.g. a meal photo interpreted by a vision model) **must** name the interpreting model in `interpreted_by` and may reference the image:
+A source device is independently revisioned. Descriptive hardware does not split a
+source when writer, route, and sensor type remain the same.
 
-```json
-"provenance": { "via": "photo", "interpreted_by": "claude-sonnet-4-5",
-  "attachment": { "file": "2026-08-09-lunch.jpg", "sha256": "…" } }
-```
+### 6.4 `point_measurement`
 
-The AI's *description* lives in `note` inside the file, so the document remains self-sufficient even if it travels without its attachments. AI-interpreted entries are one step further from ground truth than typed ones; agents should weigh them accordingly — but they are still Tier 2. Interpretation never promotes data to Tier 1.
+In addition to the measured fields:
 
-### How an agent should use the two tiers
-
-Hard signals drive predictions. Soft signals **adjust confidence and explain misses** — they may widen or narrow a stated range, and they supply candidate causes when a prediction is wrong, but the predicted number itself derives from measured data. This division is the format's core opinion.
-
-Note that self-reported data sometimes arrives inside a device export. WHOOP's journal is the wearer's own answers about alcohol, caffeine, and similar. Those are soft signals with no `source`, because the tier follows who reported the number, not which file carried it.
-
-## Multiple devices
-
-An athlete may wear several devices that measure the same night. The format keeps them apart.
-
-**Readings from different sources are never merged.** Every hard signal carries a `source`, and deduplication includes it, so three devices measuring one night produce three records. Two readings sharing a timestamp are not duplicates if they came from different devices.
-
-**Baselines are computed per source and per type, never pooled.** This is already required between `hrv_sdnn` and `hrv_rmssd`, which are different statistics. It is equally required between two devices that both report RMSSD.
-
-The reason is measured. Against an ECG reference across 536 nights, nocturnal HRV error was about 6% on an Oura Gen 4, 7% on an Oura Gen 3, 8% on a WHOOP 4.0, 10.5% on a Garmin Fenix 6, and 16% on a Polar Grit X Pro. An Apple Watch Series 9 and Ultra 2 underestimated HRV by 8.31 ms against a chest strap, about 29% error. Resting heart rate behaved differently: every device landed within roughly 1 bpm of ECG.
-
-So resting heart rate is broadly comparable across devices and HRV is not. The disagreement between two devices is larger than the day-to-day change a prediction is reading, so pooling them would add more error than signal.
-
-**Disagreement is preserved, not resolved.** The format never picks a winner and never averages. Both readings stay with their sources, so the difference between two devices on the same night remains recoverable — which keeps a useful question answerable: for this athlete, which device is worth trusting for which signal.
-
-## `benchmarks`
-
-| Field | Required | Notes |
+| Data field | Required | Type |
 |---|---|---|
-| `id` | yes | unique, e.g. `fran` |
-| `kind` | yes | `named_wod` \| `run` \| `hyrox` \| `lift` \| `custom` |
-| `score_type` | yes | `time` \| `reps` \| `load` |
-| `definition` | yes | human-readable, e.g. `"21-15-9 reps for time: thrusters 95/65 lb, pull-ups"` |
-| `tags` | no | freeform, e.g. `["short", "high-power"]` |
+| `quantity` | yes | point quantity |
+| `recorded_at` | no | normalized UTC timestamp |
+| `input_timestamp` | yes | input timestamp receipt |
+| `value` | yes | source value |
+| `calculations` | no | point calculation array |
 
-Custom benchmarks are first-class: define your gym's quarterly test once, reference it forever.
+A point calculation has required `from_quantity`, `method`,
+`calculation_version`, and `input_records`. Optional fields are `window_s`,
+`usable_sample_count`, `dropped_sample_count`, and `signal_quality`.
 
-## `predictions` — the ledger
+| Quantity | Standard unit |
+|---|---|
+| `hrv_rmssd`, `hrv_sdnn` | `ms` |
+| `resting_heart_rate`, `hr_recovery`, `walking_heart_rate` | `bpm` |
+| `body_weight`, `lean_body_mass` | `kg` |
+| `respiratory_rate` | `brpm` |
+| `vo2_max` | `ml/kg/min` |
+| `oxygen_saturation`, `body_fat_percentage` | `%` |
+| `body_temperature`, `skin_temperature`, `wrist_temperature_sleeping`, `temperature_deviation` | `°C` |
+| `height` | `cm` |
+| `blood_pressure_systolic`, `blood_pressure_diastolic` | `mmHg` |
 
-Written by an agent **before** the attempt; graded after; append-only by convention (validators warn when history is mutated).
+`temperature_deviation` may be zero or negative. Other point values must be
+positive. RMSSD and SDNN are different quantities and never share a baseline.
 
-```json
-{ "id": "pred-2026-08-09-fran", "benchmark": "fran",
-  "created_at": "2026-08-09T15:00:00Z",
-  "predicted": { "duration_s": 275 },
-  "range": { "low": { "duration_s": 265 }, "high": { "duration_s": 290 } },
-  "confidence": "moderate",
-  "reasoning": "Last Fran 4:41 on 2026-06-02. HRV 61-66ms all week vs 63ms baseline. …",
-  "evidence_window": { "from": "2026-06-01", "to": "2026-08-09" },
-  "model": "claude-sonnet-4-5",
-  "agent": "Claude Code",
-  "ath_version": "0.4.3",
-  "actual": null, "grade": null, "miss_analysis": null }
-```
+### 6.5 `measurement_sample`
 
-| Field | Required | Notes |
+In addition to the measured fields:
+
+| Data field | Required | Type |
 |---|---|---|
-| `id`, `benchmark`, `created_at` | yes | |
-| `predicted` | yes | score object matching the benchmark's `score_type` |
-| `range` | no | stated uncertainty: `low`/`high` score objects. Grading tests whether the actual landed inside. A prediction that stated no range is never a hit |
-| `confidence` | yes | `low` \| `moderate` \| `high` |
-| `reasoning` | yes | must cite specific dates and values, not vague trends |
-| `evidence_window` | yes | the date range of data the prediction considered |
-| `model` | yes | which model produced it |
-| `agent` | no | the program the model ran inside, e.g. `Claude Code`. Optional in the format so older files load; `ath log` refuses a prediction that omits it |
-| `ath_version` | no | the version of `ath` that wrote the prediction. Written by the tool, which knows it. A file upgraded later does not change it |
-| `actual` | after attempt | `{ result, recorded_at }` — must not precede `created_at` (validated) |
-| `grade` | after grading | `{ signed_error, abs_error_pct, in_range }` — computed deterministically, never by the LLM |
-| `miss_analysis` | on misses | see below |
+| `quantity` | yes | sample quantity |
+| `recorded_at` | yes | normalized UTC timestamp |
+| `input_timestamp` | yes | input timestamp receipt |
+| `value` | yes | source value |
+| `duration_ms` | no | nonnegative integer |
+| `timestamp_base_text` | for reconstructed samples | nonempty string |
+| `timestamp_reconstruction_method` | for reconstructed samples | nonempty string |
 
-### The prediction points at its result
+The reconstruction fields are both present only when
+`input_timestamp.timestamp_basis` is `reconstructed_from_series_start`.
 
-`actual.recorded_at` together with the prediction's `benchmark` identifies a `benchmark_result` in `hard_signals`. Validators check that the result exists and that the two scores agree.
+| Quantity | Standard unit |
+|---|---|
+| `heart_rate` | `bpm` |
+| `hrv_beats`, `ecg_beats`, `hrv_sdnn` | `ms` |
+| `respiratory_rate` | `brpm` |
+| `oxygen_saturation` | `%` |
+| `steps`, `flights_climbed` | `count` |
+| `active_energy`, `basal_energy` | `kcal` |
+| `distance_walking_running`, `distance_cycling`, `distance_swimming` | `m` |
+| `running_speed`, `walking_speed` | `m/s` |
+| `running_power` | `W` |
+| `running_stride_length`, `walking_step_length` | `m` |
+| `running_vertical_oscillation` | `cm` |
+| `running_ground_contact_time` | `ms` |
+| `physical_effort` | `MET` |
+| `exercise_time`, `time_in_daylight` | `min` |
+| `walking_asymmetry_percentage` | `%` |
 
-That is the second of two links joining the three records that describe one attempt. The first is `benchmark_result.session`, which names the workout session the effort was recorded in. So the chain runs prediction → result → session, and can be walked from either end.
+Distances remain separate by activity. Samples from separate sources remain
+separate.
 
-No id was added for either link. A result is identified by its benchmark and its instant, and a session by its source and its start.
+### 6.6 `sleep_session`
 
-### `miss_analysis`
+In addition to the measured fields:
 
-Required semantics: every candidate cause references a signal that exists in the file; if nothing in the file explains the miss, `unexplained` must be `true` (validated: no causes + not unexplained = error).
+| Data field | Required | Type |
+|---|---|---|
+| `start_at`, `end_at` | yes | normalized UTC timestamps |
+| `input_start_timestamp`, `input_end_timestamp` | yes | input timestamp receipts |
+| `source_reported_summaries` | yes | source summary array |
 
-```json
-{ "direction": "slower", "severity": "significant",
-  "candidate_causes": [
-    { "signal": { "tier": "hard", "type": "sleep_session", "date": "2026-08-08" },
-      "explanation": "5.1h sleep vs 7.4h baseline the night before" }
-  ],
-  "unexplained": false,
-  "lesson": "poor sleep the night before cost ~8% on a short high-power benchmark" }
+`end_at` cannot precede `start_at`.
+
+### 6.7 `workout_session`
+
+In addition to the measured fields:
+
+| Data field | Required | Type |
+|---|---|---|
+| `start_at`, `end_at` | yes | normalized UTC timestamps |
+| `input_start_timestamp`, `input_end_timestamp` | yes | input timestamp receipts |
+| `activity_type` | no | nonempty string |
+| `source_reported_summaries` | yes | source summary array |
+| `segments` | no | workout segment array |
+
+A segment requires `label` and `source_reported_summaries`. It may have
+`start_offset_ms` and `end_offset_ms`.
+
+### 6.8 `benchmark_result`
+
+In addition to the measured fields:
+
+| Data field | Required | Type |
+|---|---|---|
+| `benchmark_definition_id` | yes | benchmark definition UUIDv7 |
+| `recorded_at` | yes | normalized UTC timestamp |
+| `input_timestamp` | yes | input timestamp receipt |
+| `score` | yes | score object |
+| `input_score_text` | no | nonempty source text |
+| `scaling` | no | `rx` or `scaled` |
+| `workout_session_id` | no | workout session UUIDv7 |
+| `segments` | no | ordered result segments |
+
+A result segment requires `label` and may contain a `score`. The optional workout
+link is a stable UUID.
+
+### 6.9 `provider_score`
+
+In addition to the measured fields:
+
+| Data field | Required | Type |
+|---|---|---|
+| `metric` | yes | nonempty provider metric |
+| `value` | yes | source value |
+| `scale` | yes | nonempty provider scale |
+| `recorded_at` | no | normalized UTC timestamp |
+| `input_timestamp` | yes | input timestamp receipt |
+
+A provider score needs either `recorded_at` or at least one provider reporting
+period. It stores a source-reported composite such as recovery, strain, readiness,
+or sleep score. It is not a sensor measurement.
+
+### 6.10 `athlete_report`
+
+| Data field | Required | Type |
+|---|---|---|
+| `report_type` | yes | `sleep_quality`, `soreness`, `stress`, `mood`, `energy`, or `note` |
+| `reported_at` | yes | normalized UTC timestamp |
+| `input_reported_at` | yes | input timestamp receipt |
+| `reported_via` | yes | `text`, `voice`, or `photo` |
+| `rating` | no | number |
+| `rating_scale` | with `rating` | nonempty string |
+| `body_region` | no | nonempty string |
+| `note` | no | nonempty string |
+| `attachment_ids` | no | attachment UUIDv7 array |
+
+This record has no source field. Unknown fields are rejected.
+
+### 6.11 `nutrition_entry`
+
+| Data field | Required | Type |
+|---|---|---|
+| `reported_at` | yes | normalized UTC timestamp |
+| `input_reported_at` | yes | input timestamp receipt |
+| `reported_via` | yes | `text`, `voice`, or `photo` |
+| `athlete_description` | yes | nonempty string |
+| `reported_items` | yes | reported nutrition item array |
+| `attachment_ids` | no | attachment UUIDv7 array |
+
+Each item requires `food_description`. It may have `amount`, `amount_unit`, and a
+nutrient array. Each nutrient requires `nutrient_name`, numeric `amount`, and
+`unit`. This record has no source field.
+
+Model-inferred nutrition belongs in a separate
+`nutrition_model_interpretation` record.
+
+### 6.12 `attachment`
+
+| Data field | Required | Type |
+|---|---|---|
+| `file_name` | yes | nonempty original name |
+| `media_type` | yes | nonempty media type |
+| `byte_count` | yes | nonnegative integer |
+| `sha256` | yes | lowercase 64-character SHA-256 |
+| `description` | no | nonempty string |
+
+Binary bytes are sibling files. They are not embedded in record JSON.
+
+### 6.13 `benchmark_definition`
+
+This is an authored record.
+
+| Data field | Required | Type |
+|---|---|---|
+| `authorship` | yes | authorship object |
+| `benchmark_key` | yes | lowercase letters, digits, hyphens, and underscores |
+| `benchmark_type` | yes | `named_wod`, `run`, `hyrox`, `lift`, or `custom` |
+| `score_type` | yes | `time`, `reps`, or `load` |
+| `definition` | yes | nonempty string |
+| `tags` | no | nonempty string array |
+
+### 6.14 `prediction`
+
+This is an authored record.
+
+| Data field | Required | Type |
+|---|---|---|
+| `authorship` | yes | authorship object |
+| `benchmark_definition_id` | yes | benchmark definition UUIDv7 |
+| `predicted_score` | yes | score |
+| `predicted_range` | no | `{ "low": score, "high": score }` |
+| `confidence` | yes | `low`, `moderate`, or `high` |
+| `reasoning` | yes | nonempty string |
+
+The prediction is a separate record from its result, link, grade, and later error
+analysis.
+
+### 6.15 `prediction_result_link`
+
+| Data field | Required | Type |
+|---|---|---|
+| `prediction` | yes | exact evidence reference |
+| `benchmark_result` | yes | exact evidence reference |
+| `created_by` | yes | record actor |
+| `linked_at` | yes | normalized UTC timestamp |
+| `content_version` | yes | positive integer |
+| `status` | yes | authored-record status |
+
+The prediction and result must use the same benchmark definition.
+A corrected result creates a new revision of this link. Existing grades keep their
+earlier exact link revision.
+
+### 6.16 `prediction_grade`
+
+This is a tool-authored record.
+
+| Data field | Required | Type |
+|---|---|---|
+| `authorship` | yes | authorship object |
+| `prediction_result_link` | yes | exact link revision |
+| `signed_error` | yes | number |
+| `absolute_error_percentage` | yes | nonnegative number |
+| `result_in_predicted_range` | yes | boolean |
+| `predicted_score` | yes | copied exact predicted score |
+| `actual_score` | yes | copied exact result score |
+
+The stored scores and arithmetic must match the exact linked revisions and the
+named calculation version.
+
+### 6.17 `prediction_error_analysis`
+
+This is an authored record.
+
+| Data field | Required | Type |
+|---|---|---|
+| `authorship` | yes | authorship object |
+| `prediction_grade` | yes | exact grade revision |
+| `error_direction` | yes | `faster`, `slower`, `higher`, or `lower` |
+| `error_severity` | yes | `minor`, `significant`, or `severe` |
+| `causes` | yes | ordered cause array |
+| `unexplained` | yes | boolean |
+| `lesson` | no | nonempty string |
+
+Each cause has an exact `evidence` reference and nonempty `explanation`. An analysis
+with no causes must set `unexplained: true`.
+
+### 6.18 `training_plan`
+
+This is an authored record.
+
+| Data field | Required | Type |
+|---|---|---|
+| `authorship` | yes | authorship object |
+| `title` | yes | nonempty string |
+| `objective` | no | nonempty string |
+| `start_date`, `end_date` | no | calendar dates |
+
+Storing a plan does not authorize the CLI or an agent to prescribe training.
+
+### 6.19 `planned_session`
+
+This is an authored record.
+
+| Data field | Required | Type |
+|---|---|---|
+| `authorship` | yes | authorship object |
+| `training_plan_id` | no | training plan UUIDv7 |
+| `title` | yes | nonempty string |
+| `scheduled_date` | conditionally | calendar date |
+| `scheduled_start_at` | conditionally | normalized UTC timestamp |
+| `activity_type` | no | nonempty string |
+| `blocks` | yes | planned block array |
+| `completion_status` | yes | `planned`, `completed`, `skipped`, or `cancelled` |
+| `completed_workout_session_id` | no | workout session UUIDv7 |
+
+At least one of `scheduled_date` and `scheduled_start_at` is required.
+
+A block requires `block_type` and `title`. It may contain `instructions`,
+`planned_duration_s`, `planned_distance_m`, `planned_reps`, and
+`planned_weight_kg`.
+
+The planned session owns the optional completion link. The measured workout does
+not store a second link back.
+
+### 6.20 `coaching_note`
+
+This is an authored record.
+
+| Data field | Required | Type |
+|---|---|---|
+| `authorship` | yes | authorship object |
+| `title` | no | nonempty string |
+| `note` | yes | nonempty string |
+| `applies_from`, `applies_to` | no | calendar dates |
+
+### 6.21 `saved_training_review`
+
+This is an authored record.
+
+| Data field | Required | Type |
+|---|---|---|
+| `authorship` | yes | authorship object |
+| `period_start`, `period_end` | yes | calendar dates |
+| `summary` | yes | nonempty string |
+| `recommendations` | no | nonempty string array |
+
+### 6.22 `goal`
+
+This is an authored record.
+
+| Data field | Required | Type |
+|---|---|---|
+| `authorship` | yes | authorship object |
+| `title` | yes | nonempty string |
+| `description` | no | nonempty string |
+| `target_date` | no | calendar date |
+| `target_benchmark_definition_id` | no | benchmark definition UUIDv7 |
+| `target_score` | no | score |
+
+### 6.23 `nutrition_model_interpretation`
+
+This is an authored record.
+
+| Data field | Required | Type |
+|---|---|---|
+| `authorship` | yes | authorship object |
+| `nutrition_entry_id` | yes | nutrition entry UUIDv7 |
+| `confidence` | yes | number from 0 through 1 |
+| `interpreted_items` | yes | reported nutrition item array |
+| `explanation` | no | nonempty string |
+
+The athlete's original nutrition claim remains in the linked source-free
+`nutrition_entry`.
+
+## 7. SQLite encoding
+
+### 7.1 Database metadata
+
+`database_metadata` is the sole format metadata table:
+
+| Column | Meaning |
+|---|---|
+| `application_marker` | `ATH1` |
+| `sql_schema_version` | Positive SQL migration version |
+| `athleticstandard_version` | `1.0.0` |
+| `database_id` | Stable UUIDv7 database ID |
+| `created_at` | Database creation timestamp |
+
+`database_state.current_revision` stores the database-wide revision.
+
+A local file uses SQLite application ID `0x41544831` and mirrors the SQL schema
+version into `PRAGMA user_version`. `database_metadata` remains authoritative for
+adapters that cannot use local file header values.
+
+Every local connection enables:
+
+```sql
+PRAGMA foreign_keys = ON;
+PRAGMA busy_timeout = 5000;
 ```
 
-`severity`: `minor` (<5% error) | `significant` (5–15%) | `severe` (>15%). `direction`: `faster` | `slower` (time) or `higher` | `lower` (reps/load). `lesson` is one sentence written for the *next* prediction to read.
+Local files use WAL mode. Every athlete-data write uses one transaction.
 
-## Versioning
+### 7.2 Generic record tables
 
-`athleticstandard_version` is semver. Within a major version:
+`records` stores `record_id`, `record_type`, `current_revision`, `created_at`, and
+`is_deleted`.
 
-- **Minor** versions may only **add optional fields** or enum values. A v0.1 reader can read a v0.2 file by ignoring unknown fields.
-- **Patch** versions are clarifications only.
-- Breaking changes (removing/renaming fields, changing units) require a major bump and a documented migration.
+`record_revisions` stores every complete revision as `record_json`, with its type,
+number, prior revision, knowledge time, knowledge-time basis, and change actor.
 
-Validators should accept any file whose major version they support and warn on newer minors.
+`record_deletions`, `record_erasure_markers`, and `record_import_keys` encode the
+lifecycle objects from section 4.
 
-## Validation
+The current typed tables are:
 
-Two layers, both required for a file to be conformant:
-
-1. **Schema** (`schema/athleticstandard.schema.json`): shapes, types, enums, canonical units, strict objects (unknown keys rejected).
-2. **Semantic rules** (reference implementation: `src/validate.ts`): source and benchmark references resolve; a `benchmark_result.session` resolves to a workout session with that source and start; ids unique; session `end` after `start`; series coverage does not end before it begins; score keys match `score_type`; ratings carry scales; vendor scores carry scales; photo provenance names its interpreter; a `derived` value cites a series whose coverage includes the day it was computed for; series units match their quantity; actuals don't precede predictions; a graded prediction's `actual` resolves to a `benchmark_result` with a matching score; grades require actuals; miss analyses require grades; empty cause lists must be marked unexplained.
-3. **Sidecar checks** for any `series_ref`: hash what is on disk for the quantity and compare. A mismatch is one error naming the quantity. An absent `series/` folder is a single warning, not an error.
-
-## Appendix A — Prior art and mapping
-
-The study behind the format. Athletic Standard deliberately reuses existing vocabulary where good vocabulary exists; its contributions are the two-tier wall, benchmarks, and the prediction ledger — none of which exist in any surveyed model.
-
-### Open Wearables (primary anchor)
-
-[Open Wearables](https://github.com/the-momentum/open-wearables) (MIT, self-hosted) normalizes multi-provider wearable data into a unified model: **Events** (sessions with start/end and aggregates), **Time Series** (timestamped point values), device/ID mapping, and canonical units (HRV in ms, HR in bpm, distance in meters, temperature in °C, timestamps UTC). Athletic Standard adopts this design directly:
-
-| Open Wearables | Athletic Standard |
+| Record type | SQLite table |
 |---|---|
-| Time Series sample (`heart_rate_variability_rmssd`, ms) | point measurement `hrv_rmssd` |
-| Time Series sample (`resting_heart_rate`, bpm) | point measurement `resting_heart_rate` |
-| Sleep event + aggregates | `sleep_session` |
-| Workout event + aggregates | `workout_session` |
-| ExternalDeviceMapping | `sources[]` |
-| canonical-units table | canonical-units rule |
+| `athlete_profile` | `athlete_profile` |
+| `source` | `sources` |
+| `source_device` | `source_devices` |
+| `point_measurement` | `point_measurements` |
+| `measurement_sample` | `measurement_samples` |
+| `sleep_session` | `sleep_sessions` |
+| `workout_session` | `workout_sessions` |
+| `benchmark_result` | `benchmark_results` |
+| `provider_score` | `provider_scores` |
+| `athlete_report` | `athlete_reports` |
+| `nutrition_entry` | `nutrition_entries` |
+| `attachment` | `attachments` |
+| `benchmark_definition` | `benchmark_definitions` |
+| `prediction` | `predictions` |
+| `prediction_result_link` | `prediction_result_links` |
+| `prediction_grade` | `prediction_grades` |
+| `prediction_error_analysis` | `prediction_error_analyses` |
+| `training_plan` | `training_plans` |
+| `planned_session` | `planned_sessions` |
+| `coaching_note` | `coaching_notes` |
+| `saved_training_review` | `saved_training_reviews` |
+| `goal` | `goals` |
+| `nutrition_model_interpretation` | `nutrition_model_interpretations` |
 
-What OW has no concept of — and Athletic Standard adds: self-reported (soft) signals, benchmark definitions/results, the prediction ledger, and portability as a single file rather than a database+API. Open Wearables moves data between devices and a store. Athletic Standard is the file you keep.
+Each typed table stores indexed fields in named columns and the complete current
+logical `data` object in `data_json`. The typed row and latest revision are updated
+in the same transaction.
 
-### Apple HealthKit export
+Ordered nested values use child tables:
 
-The de-facto consumer aggregation hub (both ChatGPT Health and Claude's connectors standardized on it in 2026). Its export is a monolithic XML of typed samples (`HKQuantityTypeIdentifierHeartRateVariabilitySDNN` etc.) with device metadata — provenance-rich but verbose. Athletic Standard's importer maps its sample types to point measurements, its category sleep records to `sleep_session`, and its dense samples to sidecar series.
+- `point_measurement_calculations`
+- `point_measurement_calculation_inputs`
+- `workout_session_segments`
+- `benchmark_result_segments`
+- `provider_reporting_periods`
+- `reported_nutrition_items`
+- `record_attachment_links`
+- `authored_record_evidence`
+- `prediction_error_causes`
+- `planned_session_blocks`
 
-Apple publishes HRV as SDNN only, but each SDNN record carries the beat readings it was computed from, so RMSSD is recoverable — see [Appendix B](#appendix-b--importer-mappings). Design lesson taken: per-sample source attribution, and shipping the raw beats alongside the summary. Design lesson rejected: 200-character type identifiers.
+These child rows belong to their parent record state. They do not get independent
+record IDs. Correcting one creates a revision of the parent.
 
-### Garmin FIT
+Foreign keys cover sources, exact evidence revisions, benchmark definitions,
+prediction-result links, grades, attachments, plans, nutrition interpretations,
+and workout completion links. Measured rows require a source foreign key.
+Athlete-report and nutrition tables have no source column.
 
-Binary, compact, superb for high-frequency in-workout telemetry (per-second GPS/HR). Wrong layer for Athletic Standard: a FIT file is one activity's raw stream; Athletic Standard stores the *session-level* summary and segments, and can cite a FIT file as a source `detail`.
+## 8. Portable JSON package
 
-### WHOOP / Oura CSV exports
+An export directory may contain:
 
-Flat daily-summary tables (recovery/sleep/strain per day). Trivially mappable to point measurements and sessions; they are Athletic Standard's v1 import path. Design lesson taken: a day-per-row summary is the granularity that recovery reasoning actually uses.
+```text
+athlete.ath.json
+series/
+  <source-id>-<quantity>.ath-series.json
+attachments/
+  <stored attachment files>
+export-manifest.json
+```
 
-### Terra API
+The `series/` and `attachments/` directories are present only when needed.
 
-Commercial normalization layer with a well-designed JSON model across providers. Closed and subscription-based — the thing Athletic Standard must not depend on, but its schema choices corroborate the Events/samples split.
+### 8.1 `athlete.ath.json`
 
-### Open mHealth
+The main document has:
 
-Pioneered open JSON schemas for mobile health data points (IEEE 1752); strong on units and provenance, clinical in orientation, no training/performance concepts, and per-datapoint schemas rather than a whole-athlete document. Athletic Standard follows its rigor on units, not its granularity.
-
-## Appendix B — Importer mappings
-
-What `ath import` reads from each export, and what it deliberately does not.
-
-**Units are converted explicitly, never assumed.** A vendor's unit strings vary with locale and with the wearer's display settings, so the same identifier can arrive in miles or metres, Fahrenheit or Celsius, a fraction or a percentage. An unrecognized unit is a counted skip naming the identifier and the unit seen. It is never treated as though it were already canonical, because a skipped row is visible and gets fixed while a mile stored as a metre passes validation and quietly poisons a baseline.
-
-### Apple Health `export.xml`
-
-Point measurements:
-
-| HealthKit identifier | Athletic Standard |
+| Field | Type |
 |---|---|
-| `RestingHeartRate` | `resting_heart_rate` |
-| `WalkingHeartRateAverage` | `walking_heart_rate` |
-| `HeartRateRecoveryOneMinute` | `hr_recovery` |
-| `BodyMass` | `body_weight` |
-| `LeanBodyMass` | `lean_body_mass` |
-| `BodyFatPercentage` | `body_fat_percentage` |
-| `Height` | `height` |
-| `VO2Max` | `vo2_max` |
-| `AppleSleepingWristTemperature` | `wrist_temperature_sleeping` |
-| `BodyTemperature` | `body_temperature` |
-| `BloodPressureSystolic` / `BloodPressureDiastolic` | the two blood pressure types |
+| `athleticstandard_version` | literal `1.0.0` |
+| `database_id` | UUIDv7 |
+| `database_revision` | nonnegative integer |
+| `records` | every current non-sample record envelope |
+| `record_revisions` | every retained non-sample revision |
+| `record_deletions` | deletion objects for non-sample records |
+| `record_erasure_markers` | all value-free erasure markers |
+| `record_import_keys` | import keys for non-sample records |
+| `measurement_series_files` | generated series file references |
 
-Sessions: `SleepAnalysis` records cluster into `sleep_session`; `Workout` plus its `WorkoutEvent` laps becomes `workout_session` with `segments`.
+A generated series file reference has:
 
-Series:
-
-| HealthKit identifier | Series quantity |
+| Field | Type |
 |---|---|
-| `HeartRate` | `heart_rate` |
-| `HeartRateVariabilitySDNN` | `hrv_sdnn` — Apple samples it, so it is a series here |
-| `RespiratoryRate` | `respiratory_rate` — the same |
-| `OxygenSaturation` | `oxygen_saturation` — the same |
-| `StepCount` | `steps` |
-| `ActiveEnergyBurned` | `active_energy` |
-| `BasalEnergyBurned` | `basal_energy` |
-| `AppleExerciseTime` | `exercise_time` |
-| `PhysicalEffort` | `physical_effort` |
-| `FlightsClimbed` | `flights_climbed` |
-| `DistanceWalkingRunning` / `Cycling` / `Swimming` | three separate distance series |
-| `RunningSpeed` / `RunningPower` / `RunningStrideLength` / `RunningVerticalOscillation` / `RunningGroundContactTime` | the five running quantities |
-| `WalkingSpeed` / `WalkingStepLength` / `WalkingAsymmetryPercentage` | the three gait quantities |
-| `TimeInDaylight` | `time_in_daylight` |
+| `file` | safe relative package path |
+| `sha256` | lowercase SHA-256 |
+| `source_id` | source UUIDv7 |
+| `quantity` | sample quantity |
+| `start_at`, `end_at` | normalized UTC bounds |
+| `sample_count` | nonnegative integer |
+| `revision_count` | nonnegative integer |
+| `deletion_count` | nonnegative integer |
+| `import_key_count` | nonnegative integer |
 
-Skipped, each for a stated reason rather than for want of a name: diagnostic findings (atrial fibrillation burden, low-heart-rate events, walking steadiness), all audio exposure types, derived or goal values (body mass index, sleep duration goal), frailty-oriented mobility measures that stay near-constant for a trained athlete (double support percentage, stand time, stair speeds), clinical and FHIR-shaped records, ECG voltage, and any unrecognized identifier.
+### 8.2 Generated measurement-series files
 
-**Beat lists.** Each SDNN record carries a `HeartRateVariabilityMetadataList` of instantaneous beat readings, roughly 60 seconds of them. Those become an `hrv_beats` series plus a derived `hrv_rmssd`. Without this, an Apple Watch wearer has no statistic comparable to WHOOP or Oura, because Apple publishes SDNN only.
+Each series file covers one current source and quantity. It has:
 
-A short window is enough for RMSSD: in athletes a 60-second window agreed with the standard 5-minute measurement at ICC 0.98, and in 3,387 adults RMSSD from even a 10-second recording was a valid proxy (r = 0.86, rising to 0.94 averaged over three windows). SDNN needs longer windows and agrees worse at every length, which is why only RMSSD is derived.
-
-**Missed beats are excluded from the calculation, not just counted.** RMSSD is built from the difference between *successive* intervals. If the device failed to detect a beat, the intervals either side of the gap are not successive, and treating them as though they were invents a large difference — so a dropped beat would read as high variability, which is precisely backwards. Continuity is therefore checked against the timestamp on each beat, the sequence is split wherever the gap exceeds 1.5 times the interval the later beat reports, and pairs spanning a gap contribute nothing.
-
-Remaining guard rails: intervals outside 300–2000 ms are discarded as implausible and counted, at least 10 continuous pairs and a 10-second window are required, and no value is written at all when too little survives. A weak number that looks like a measurement is worse than no number.
-
-**ECG recordings** in the export's `electrocardiograms/` folder are about 30 seconds of single-lead waveform near 511 Hz. Beats are located with the standard Pan–Tompkins method: band-pass to 5–15 Hz where the QRS complex lives, differentiate for its slope, square, integrate over 150 ms, then take peaks above an adaptive threshold with a 200 ms refractory period. Peaks are then localized on the band-passed signal rather than the integrated one, since integration smears a peak in time and the whole purpose here is interval precision.
-
-The intervals become an `ecg_beats` series and a derived `hrv_rmssd`, under a source with `sensor: "ecg"`.
-
-Three rules govern what is kept:
-
-- **The waveform is not stored.** Beat intervals are a performance measurement; the waveform is a clinical artifact.
-- **The rhythm classification is not stored either**, but it *is* read, as a gate. A recording that is not sinus rhythm is refused before any interval is computed, because in atrial fibrillation the rhythm is irregular by definition and RMSSD would measure the arrhythmia rather than autonomic state. Reading a classification to exclude a recording is not the same as recording a diagnosis.
-- **A separate source, always.** Never pooled with the optically measured readings from the same watch.
-
-**Workout routes** in `workout-routes/` are GPX tracks, one per outdoor workout, matched to a workout by overlapping time rather than by filename. They yield `segments` of one split per kilometre and an `elevation_gain_m` aggregate.
-
-Raw coordinates are never stored: a GPS track begins and ends at the athlete's home, and splits and elevation carry none of that. Split boundaries are interpolated rather than snapped to the nearest recorded point, which would otherwise put a second or two of error into every split. Elevation changes under a metre between points are ignored, because GPS altitude wobbles by several metres at a standstill and summing every positive wobble turns a flat course into a mountain. A workout that already carries laps the wearer set keeps them, since a deliberate division means more than an even kilometre.
-
-### WHOOP standard CSV export
-
-| Column | Athletic Standard |
+| Field | Type |
 |---|---|
-| `Heart rate variability (ms)` | `hrv_rmssd` |
-| `Resting heart rate (bpm)` | `resting_heart_rate` |
-| `Respiratory rate (rpm)` | `respiratory_rate` |
-| `Skin temp (celsius)` | `skin_temperature` |
-| `Blood oxygen %` | `oxygen_saturation` |
-| sleep onset/wake + stage minutes | `sleep_session` (minutes → seconds) |
-| workout rows | `workout_session` |
-| `Recovery score %` | `vendor_score` `recovery`, scale `0-100` |
-| `Day Strain` | `vendor_score` `strain`, scale `0-21` |
-| `journal_entries.csv` | soft signals, no `source` |
+| `athleticstandard_version` | literal `1.0.0` |
+| `source_id` | source UUIDv7 |
+| `quantity` | sample quantity |
+| `start_at`, `end_at` | normalized UTC bounds |
+| `records` | current `measurement_sample` envelopes |
+| `record_revisions` | all retained revisions for those samples |
+| `record_deletions` | their deletion objects |
+| `record_import_keys` | their provider import keys |
 
-Timestamps are local, with the offset in a `Cycle timezone` column. Journal questions map to existing soft types where the fit is honest, and anything else keeps its question text as a `note`.
+All revisions of a sample stay in the file chosen by its current source, quantity,
+and time. Erasure markers stay in the main document because an erased sample no
+longer has source, quantity, or time values.
 
-### Oura CSV export
+### 8.3 Attachments
 
-| Column | Athletic Standard |
+Every current non-deleted attachment record must have matching bytes in the
+package. Export fails when the byte count or SHA-256 does not match. Attachment
+files are listed in the manifest.
+
+### 8.4 `export-manifest.json`
+
+The manifest has:
+
+| Field | Type |
 |---|---|
-| `average_hrv` | `hrv_rmssd` |
-| `lowest_heart_rate` | `resting_heart_rate` |
-| `average_breath` | `respiratory_rate` |
-| `spo2_percentage` | `oxygen_saturation` |
-| `vo2_max` | `vo2_max` |
-| `temperature_deviation` | `temperature_deviation` |
-| bedtime + stage durations | `sleep_session` (already seconds) |
-| `readiness_score`, `sleep_score` | `vendor_score`, scale `0-100` |
-| readiness contributors | `vendor_score` `readiness_contributor_*` |
+| `athleticstandard_version` | literal `1.0.0` |
+| `source_database_id` | UUIDv7 |
+| `database_revision` | nonnegative integer |
+| `exported_at` | optional normalized UTC timestamp |
+| `files` | file entries |
+| `record_counts` | one count entry per record type |
+| `erasure_marker_count` | nonnegative integer |
 
-**One trap worth naming.** Oura publishes a readiness contributor called "resting heart rate" that is a 0–100 sub-score, not a pulse. Reading it as a heart rate would put a number near 90 into a resting-HR baseline. The genuine figure is `lowest_heart_rate`.
+Each file entry contains `file`, `sha256`, and `byte_count`.
 
-## Appendix C — Non-goals
+Each record count contains `record_type`, `current_record_count`,
+`revision_count`, `deletion_count`, and `import_key_count`.
 
-Athletic Standard is not an app, not a coach, and not medical advice. It does not model general health records (see FHIR), nutrition databases, or programming/workout *planning* — it represents state and evidence so that agents can reason about them.
+The manifest is written last. Its `files` array lists every other exported package
+file, not the manifest itself. `exported_at` is absent by default. The reference
+writer uses UTF-8, two-space indentation, sorted object keys, stable array ordering,
+and one final newline. Two exports of the same database revision with the same
+explicit options are byte-identical.
+
+### 8.5 Complete history rules
+
+A complete package includes every revision from 1 through each current record's
+`current_revision`. The latest revision data equals the current record data.
+
+Validation refuses:
+
+- missing or duplicate current records;
+- missing, duplicate, or broken revision chains;
+- a revision whose type differs from its current record;
+- a deletion without its retained current record;
+- disagreement between `is_deleted` and the deletion object;
+- an import key without its current record;
+- one import key resolving to two records;
+- an erasure marker whose record still exists;
+- duplicate or unsafe package paths.
+
+The generated JSON Schemas give exhaustive object validation:
+
+- [`schema/1.0.0/athleticstandard.schema.json`](schema/1.0.0/athleticstandard.schema.json)
+- [`schema/1.0.0/measurement-series.schema.json`](schema/1.0.0/measurement-series.schema.json)
+- [`schema/1.0.0/export-manifest.schema.json`](schema/1.0.0/export-manifest.schema.json)
+
+## 9. Source separation and the two-tier wall
+
+The two-tier wall is structural. Measured records require `source_id`.
+`athlete_report` and `nutrition_entry` cannot contain it.
+
+Authored records are a third class. They name an author and exact evidence. They are
+not measurements and are not athlete reports.
+
+Calculations remain separate by quantity and source unless the operation explicitly
+compares sources. Device baselines exclude `manual` sources. RMSSD and SDNN never
+share a calculation. Temperature quantities and activity-specific distances also
+remain separate.
+
+Provider scores and source-reported summaries are retained as facts reported by a
+source. They do not replace the samples that support another question.
+
+## 10. Import, export, and restore behavior
+
+Provider and package imports preview before writing. `--yes` applies a
+conflict-free preview in one transaction. `--json` may return the preview, but it
+never acts as confirmation.
+
+A v1 package import:
+
+- preserves record IDs, creation times, revisions, knowledge times, import keys,
+  and erasure markers;
+- refuses unknown fields and records it cannot represent;
+- does not delete a local record merely because the package omits it;
+- refuses prerelease Athletic Standard versions below `1.0.0`.
+
+An empty destination at database revision zero adopts the package database ID and
+exact database revision. A nonempty destination may merge only a package with the
+same database ID. A different database ID is refused.
+
+One stable read transaction captures an export database revision. The package
+contains athlete-owned records and permitted attachments. It excludes gateway keys,
+connector grants, model preferences, unsaved backtest reports, accounts, billing,
+and service operations.
+
+## 11. Delete and erase
+
+`ath delete` is normal deletion. It writes a deletion object and keeps record values
+and revisions.
+
+`ath erase` is privacy erasure. It previews the named record, linked dependents, and
+attachments. Non-interactive use requires `--yes` and
+`--confirm-erasure <record-id>`.
+
+Erasure removes current values, value-bearing revisions, samples, dependent derived
+records, and attachment files. It may leave only value-free erasure markers.
+
+Erasure cannot promise removal from an earlier export, backup, filesystem snapshot,
+SQLite journal, or storage-device history.
+
+## 12. Security and integrity
+
+The SQLite database and attachments contain sensitive health and training data.
+Athletic Standard does not provide application-level encryption. Use
+operating-system disk encryption. Anyone who can read the files can read the
+athlete record.
+
+A conforming implementation must:
+
+- create databases, attachments, temporary files, and exports with owner-only
+  permissions where supported;
+- refuse to write health data through symbolic links;
+- warn about existing paths readable by other local users;
+- refuse a database directory writable by other local users;
+- treat packages, provider exports, archives, attachments, photos, and existing
+  databases as untrusted input;
+- reject archive traversal, absolute archive paths, links, mismatched file types,
+  unsupported images, and size-limit violations;
+- use parameterized SQL and transactions;
+- check SQLite integrity, foreign keys, schema versions, record rules, the
+  two-tier wall, exact evidence, and attachment hashes.
+
+Do not copy an open WAL database as a backup. Use `ath export` or SQLite's online
+backup operation. A closed, checkpointed database may be copied.
+
+## 13. Version behavior
+
+The format and package version are `1.0.0`. The portable document, generated series
+files, export manifest, and live database metadata all carry that version.
+
+Normative package and record data objects are strict. Unknown fields are rejected.
+The v1 importer refuses Athletic Standard `0.x` documents without modifying them.

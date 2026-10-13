@@ -1,304 +1,309 @@
 # Athletic Standard
 
-A file on your computer that holds your training and recovery data, in a form an AI can read and reason about.
+Athletic Standard is an open, local-first record for training and recovery data.
+The live record is one SQLite database:
 
-## Why you might want it
-
-**It's yours.** One plain text file you can open, copy, back up, or move to another tool. No account, no subscription, no company holding it.
-
-**It keeps measured and self-reported apart.** Numbers from a watch (sleep, heart rate, workout times) are stored separately from things you report yourself (soreness, mood, stress). An AI reading the file always knows which numbers were measured and which you typed in, so it can weigh them differently.
-
-**It knows what a workout is.** A benchmark is one specific effort with a real result, scored by time, reps, or weight: Fran or Murph, a 5k or a marathon, a 2k row, a 400m swim, a threshold bike test, an Olympic-distance triathlon, a back squat one-rep max, a HYROX station. You can define your own. Long efforts can also be broken into parts — a triathlon's swim, bike, and run, or the laps of a run — so a bad swim and a bad run don't blur into one finishing time.
-
-**It writes predictions down before you train, then checks them.** Your agent predicts how a benchmark will go, records why, and after the attempt records whether it was right. Over time you can see how often it's actually correct.
-
-Not an app. Not a coach. Not medical advice.
-
-## Setting up
-
-**1. Install Node.js.** Go to [nodejs.org](https://nodejs.org), download the version marked **LTS**, and open the installer. It's free. This is the program that runs Athletic Standard.
-
-**2. Open a terminal.** On a Mac, press Cmd+Space and type "terminal". On Windows, press Start and type "powershell". A window opens where you type commands. That's where everything below goes.
-
-To confirm Node installed, type this and press Enter:
-
-```
-node -v
+```text
+athlete.ath.sqlite
 ```
 
-If it prints a number starting with `v20` or higher, you're ready.
+The `ath` command reads and writes that database. Local use needs no account,
+network connection, subscription, or hosted service.
 
-**3. Install Athletic Standard.**
+Athletic Standard keeps measured records separate from athlete reports. A measured
+record must name its source. An athlete report cannot name one. Sources also remain
+separate when two devices measure the same quantity.
 
-```
+Not an app, not a coach, not medical advice.
+
+## Security
+
+The database contains sensitive health and training data. Athletic Standard creates
+local files with owner-only permissions where the operating system supports them,
+but it does not encrypt the database itself. Use operating-system disk encryption.
+Anyone who can read the database file can read the athlete record.
+
+## Install
+
+Athletic Standard needs Node.js 20 or newer.
+
+```sh
 npm install -g athleticstandard
 ```
 
-`npm` came with Node, so it's already on your machine. This installs a command called `ath`, which is what you'll type from now on. If you already use pnpm or bun, `pnpm add -g athleticstandard` and `bun add -g athleticstandard` do the same thing.
+This installs the `ath` command. `npx athleticstandard` can be used instead of a
+global install.
 
-To get a newer version later, run `ath --update`. That reinstalls ath and replaces the agent skill if one is already in the folder you are in. If you installed before 0.4.2, run the install command above once more first. That older ath does not have `--update`.
+Run `ath --update` to update the package. Run `ath skill install` to refresh the
+local agent skill without updating the package.
 
-If it fails with a permissions error, or you'd rather not install anything at all, you can skip this step. Type `npx athleticstandard` instead of `ath` every time — it fetches and runs the current version on the spot.
+## Create a database
 
-## Creating your file
-
-Make a folder to keep your training data in, then create the file inside it:
-
-```
-mkdir my-training
-cd my-training
+```sh
+mkdir training-record
+cd training-record
 ath init
 ```
 
-`ath init` asks for your name, birth year, and sex. All three are optional — press Enter to skip any of them. It then writes a file called `athlete.ath.json`, already stocked with some common benchmarks like Fran and a 5k.
+`ath init` asks for optional profile fields and creates
+`athlete.ath.sqlite`. It also adds a manual source and the standard benchmark
+definitions. Pass `--timezone America/Chicago` to set the default IANA timezone for
+calendar calculations.
 
-Every command below reads and writes that one file, so run them from this same folder.
+The command installs the agent skill into `.agents/skills/` and supported agent
+folders already present. Pass `--no-skill` to skip that step.
 
-`ath init` also writes an agent skill to `.agents/skills/`, which Claude Code, Cursor, Codex, and Gemini CLI all read, and into any of `.claude`, `.cursor`, `.codex`, `.gemini`, or `.github` already here. An agent working in this folder then knows how to read and write the file properly. Pass `--no-skill` if you'd rather it didn't. `ath skill` shows each copy and whether it is current. `ath --update` replaces those copies after an upgrade, when they are already there. `ath skill install` replaces them without upgrading ath.
+Use an empty database only as the destination for a complete v1 restore:
 
-Typing `ath` on its own tells you what to do next. Every command has examples of its own under `ath <command> --help`.
-
-## Writing things down
-
-`ath log` is the only command that writes. It takes a workout result, a measurement you read off a screen, or how something felt — and you never need quotes.
-
-**Something you want written down.** Type it on the line, and it's kept in your words:
-
-```
-ath log slept badly, about 5 hours
+```sh
+ath init --empty -y
+ath import ./saved-package
+ath import ./saved-package --yes
 ```
 
-That one it files under sleep. Anything it doesn't recognise is kept as a plain note instead, and your words are kept either way.
+Athletic Standard v1 does not import prerelease `0.x` Athletic Standard documents.
+The old npm package remains available for reading those files.
 
-**How something felt, with a rating.** It picks up the rating and the body part:
+## Import provider data
 
+`ath import` reads Apple Health, WHOOP, Oura, and complete Athletic Standard v1
+packages. The first run is always a preview:
+
+```sh
+ath import ~/Downloads/apple_health_export.zip
 ```
+
+Provider previews report new, matching, changed, skipped, and conflicting records.
+Package previews report new, matching, changed, conflicting, unrepresentable, and
+unknown records. Apply a conflict-free preview with a second command:
+
+```sh
+ath import ~/Downloads/apple_health_export.zip --yes
+```
+
+Provider rows use route-specific import keys. Importing unchanged data reports a
+match. Changed data with the same key creates a new revision of the existing
+record. It does not create a second record.
+
+Apple Health, WHOOP, and Oura routes remain separate sources. Records from two
+devices also remain separate. A manual source never enters a device baseline.
+
+## Log records
+
+`ath log` is the general creation command. It is also the only command that enters a
+benchmark result.
+
+Plain text covers common entries:
+
+```sh
+ath log RMSSD 61 ms
 ath log sore quads 4/5
-```
-
-**A measurement you typed in yourself.** It's filed under "hand-entered", never as if a device measured it:
-
-```
-ath log HRV 61 this morning
-```
-
-**A one-line workout:**
-
-```
 ath log Fran in 4:41 rx
 ```
 
-**A workout that runs to several lines.** Run `ath log` on its own, paste it in, and press Ctrl-D. A box height is written `20"` and a shell would break on that, which is why it's pasted rather than quoted:
+Say `RMSSD` or `SDNN`. They are different statistics and never share a baseline.
 
-```
-ath log
-```
+Structured input is one v1 object or an array of v1 objects. Every item has
+`record_type` and `data`. Prediction-result links and grades are tool-managed and
+cannot be supplied this way:
 
-```
-7 ROUNDS FOR REPS
-40s ALT DB SNATCH 55lbs / 20s REST
-40s BOX STEP UPS 20" / 20s REST
-245 TOTAL REPS
-```
-
-**A workout from an earlier day.** The date goes first, written year-month-day:
-
-```
-ath log 2026-09-04
-```
-
-**Round times at the end.** Put them after `//`, or after `Times:`. Each time is kept, so they can be read later:
-
-```
-ath log e5m x 6: 16 echo bike cals, 12 t2b, 8 deadlift at 225 // 1:46, 1:25, 1:25, 1:38, 2:31, 2:58
-```
-
-Nothing is written until you say so. First you see exactly what it understood:
-
-```
-  kind     workout result
-  date     2026-09-07  (today)
-  score    245 reps
-  name     2026-09-07
-  attach   17:25 to 17:48 on whoop-1
-  workout  7 ROUNDS FOR REPS
-           40s ALT DB SNATCH 55lbs / 20s REST
-           40s BOX STEP UPS 20" / 20s REST
-           245 TOTAL REPS
-
-Save this?
-  [y] yes, on the 17:25–17:48 session
-  [n] no
+```sh
+ath log '{
+  "record_type": "athlete_report",
+  "data": {
+    "report_type": "note",
+    "reported_at": "2026-10-13T04:00:00.000Z",
+    "input_reported_at": {
+      "timestamp_text": "2026-10-13T04:00:00.000Z",
+      "utc_offset_text": "Z",
+      "utc_offset_meaning": "documented_recording_offset",
+      "timestamp_basis": "source_instant"
+    },
+    "reported_via": "text",
+    "note": "Easy session; no soreness."
+  }
+}'
 ```
 
-The first line is the one worth reading. It says which side of the wall the entry lands on — measured, or something you reported — and that's the decision you can't spot by eye later.
+`record_id` and `created_at` may be supplied beside `record_type`. When omitted,
+`ath` creates a UUIDv7 record ID and uses the current time. A structured array is
+validated and written in one transaction.
 
-That `attach` line is the tool noticing you have a recorded workout at the same time as the result, and offering to attach the two. Usually your watch hasn't synced yet, so there's nothing to attach; the next `ath import` offers the match once the data arrives, and `ath link` does it by hand.
+The command shows a preview before writing. `--json` returns the preview and never
+acts as confirmation. After review, run the command without `--json` and confirm in
+the terminal, or pass `--yes`.
 
-### What it reads on its own, and what changes with an agent
+When a new benchmark result matches exactly one open prediction, the same
+transaction also creates a prediction-result link and a grade. It does not guess
+when no prediction or several predictions match.
 
-The terminal has no AI in it. It matches a list of measurement names, numbers, units, ratings like `4/5`, clock times, and rep totals. That's the whole of it — and it can only fail downward, into a note. Nothing it misreads can become a measurement, because that needs an exact hit on a name it knows plus a number and a unit that fits.
+## Read and change records
 
-| You type | A bare terminal writes | With an agent connected |
-|---|---|---|
-| `slept badly, about 5 hours` | a sleep entry, your words kept exactly | the same |
-| `sore quads 4/5` | soreness, quads, 4 out of 5 | the same |
-| `HRV 61 this morning` | a hand-entered HRV measurement of 61 ms | the same |
-| `quads are wrecked` | a plain note — "wrecked" is in no list | soreness, quads, unrated |
-| `slept 5 hours` | a sleep entry, not a measured night — a sleep record needs a start and an end | the same, for the same reason |
-| a pasted 21-15-9 thruster and pull-up workout | a workout result named after the day | a workout result named `fran` |
-| a pasted 21-15-9 with dumbbells | a workout result named after the day | a workout result named `fran-dumbbell` |
-| `temperature 36.8` | refused — it names four different measurements, and asks which | the same refusal |
+Use the fixed overview first:
 
-Your words are kept exactly in every one of those cases, so nothing a bare terminal files as a note is lost. The difference an agent makes is recognising a workout and naming it, which is what lets you compare the same effort a year apart.
-
-## Reading your file
-
-Two commands tell you what's in it.
-
-**`ath stats`** prints a plain summary — how many measurements you have, the dates they cover, your recent averages, and which benchmarks you've recorded results for.
-
-```
+```sh
 ath stats
-```
-
-**`ath check`** confirms the file is still valid: nothing missing, nothing contradicting itself. Worth running after you or an AI has edited the file.
-
-```
 ath check
 ```
 
-The file is ordinary text, so you can also just open `athlete.ath.json` in any text editor and read it yourself.
+Use stable record IDs for revisions and links:
 
-## Loading data from your watch
-
-Download an export from your device, then hand it over in one command. A normal export already has what's needed, so there is nothing to connect, authorize, or pay for.
-
-```
-ath import ~/Downloads/export.zip
+```sh
+ath records list
+ath records list --type prediction
+ath records show <record-id> --history --links
 ```
 
-That works for an Apple Health `export.zip`, a WHOOP CSV export, or an Oura export. You don't say which is which — it works that out. It prints what it added, and importing the same file twice adds nothing.
+`ath records list` shows current records in stable order. `ath records show` can
+show one retained revision, the full revision history, and incoming or outgoing
+links.
 
-**Where to get the export:**
+Corrections keep the record ID and retain the prior complete state:
 
-| Device | How |
-|---|---|
-| Apple Watch | Health app → your picture → Export All Health Data |
-| WHOOP | WHOOP app → More → Data Export |
-| Oura | Membership Hub → Export data |
-
-You can import from more than one device. Readings are never mixed together: each one keeps a note of which device measured it, and the averages in `ath stats` are listed per device. That matters because devices genuinely disagree about heart rate variability — by more than the day-to-day change you'd be looking for — so a single blended number would be misleading. Resting heart rate is a different story: devices agree closely on that.
-
-This holds inside one export too. An Apple Health export carries readings from everything that writes into Health — the watch, the phone in your pocket, a smart scale, a blood-pressure cuff, and other wearables' apps. Each is filed under its own name (`apple-watch-1`, `iphone-1`, `withings-1`, and so on), and `ath stats` lists them all with what wrote them. Numbers you typed into the Health app yourself are filed as hand-entered, not as a device.
-
-**Running data comes across in detail.** If you run outdoors with a watch that records it, you get speed, power, stride length, ground contact time, and how much your body rises with each stride — not just the total distance. That's the difference between knowing a run was slow and knowing whether your form fell apart in the last mile.
-
-**Your runs get split up.** Apple saves the route of every outdoor workout, so each run is broken into per-kilometre times plus how much climbing you did. A single finishing time can't tell you the last kilometre was 40% slower than the first; splits can. The route itself is thrown away after the splits are worked out — your file never stores where you actually went, because that would be a map of your home and your regular routes.
-
-**If you've taken ECGs, they're used as a reference.** Your watch measures heart rate variability with a light sensor all day, and studies put that roughly 29% off from a proper chest strap. But an ECG measures the electrical signal directly, and that *is* the accurate way. So each ECG you've recorded is read for its heartbeat timing and stored separately from your everyday readings — which lets you see how far your own watch drifts, for you, rather than trusting an average from a study of strangers.
-
-Two things it won't do with those. It doesn't keep the ECG trace itself or what the Health app concluded about your heart rhythm; that belongs with your doctor, not in a training file. And if a recording wasn't a normal rhythm, it's skipped rather than used, because heartbeat variation only means "well recovered" when the rhythm is normal in the first place.
-
-**A folder appears next to your file.** Things measured constantly, like heart rate all day, would make `athlete.ath.json` tens of megabytes and no longer something you can open and read. Those samples go into a `series/` folder beside it instead. Nothing is thinned out or averaged away — it's all kept, just not in the middle of the document. There's one small file per day per measurement, so asking about last week reads seven files rather than a whole year.
-
-Your file keeps a one-line summary of each measurement — what it covers and how many samples — rather than a line per day. With eleven years of step counts that's the difference between a readable file and a ten-megabyte one.
-
-**Where a measurement lands depends on how often your device takes it.** An Apple Watch checks your breathing rate, HRV and blood oxygen many times a night, so those go to the folder. WHOOP and Oura report one figure per night for the same three, and one figure per night stays in the file. Both are the same measurement and you ask for them the same way; a night of readings and a single figure summarising that night are just not the same thing, so they aren't stored as though they were.
-
-Keep the folder with the file. If it goes missing, `ath check` says so and your file still works.
-
-## Reading the detailed data
-
-`ath stats` gives you the overview. For the day-by-day detail, `ath series`:
-
+```sh
+ath correct <record-id> --revision 2 --data '<complete-data-json>' --json
+ath correct <record-id> --revision 2 --data '<complete-data-json>' --yes
 ```
+
+`--revision` prevents an old preview from overwriting a newer change.
+
+`ath link <result-id> <session-id> --revision <current-revision>` links a benchmark
+result to a workout session. The link is stored as a new revision of the benchmark
+result. A stale revision is refused.
+
+Normal deletion and privacy erasure are different operations:
+
+```sh
+ath delete <record-id> --revision 2 --json
+ath erase <record-id> --revision 2 --json
+```
+
+`ath delete` hides the current record and keeps its revisions. `ath erase` removes
+the record's values, value-bearing revisions, dependent records, and attachment
+files. The preview records the database revision and complete dependency set. The
+write is refused if either changes before confirmation. Interactive use asks for
+normal confirmation and then requires the exact record ID. Non-interactive use
+needs both flags:
+
+```sh
+ath erase <record-id> --revision 2 --reason athlete_request --yes \
+  --confirm-erasure <record-id>
+```
+
+`--json` never performs erasure. Erasure cannot remove copies already present in
+exports, backups, filesystem
+snapshots, SQLite journals, or storage-device history.
+
+## Read samples and calculate results
+
+Dense samples live in SQLite. There are no separate live sample files.
+
+```sh
 ath series heart_rate
+ath series heart_rate --raw --from 2026-10-01 --to 2026-10-07
 ```
 
+`ath calculate` runs named operations without writing athlete data:
+
+```sh
+ath calculate baseline hrv_rmssd --from 2026-07-01 --to 2026-09-30
+ath calculate summary steps --group day --timezone America/Chicago
+ath calculate compare-sources resting_heart_rate \
+  --source <source-id> --compare-source <other-source-id>
 ```
-heart_rate (bpm) — 7 days
 
-  2026-08-24  n=288  min 48  max 171  mean 64.2
-  2026-08-25  n=291  min 47  max 166  mean 63.8
-  ...
+The operations are `summary`, `baseline`, `trend`, `coverage`,
+`compare-sources`, `correlation`, and `workout-drift`. Results name their method,
+sources, input revisions, exclusions, range, and timezone when one was used.
+A receipt lists at most 1,000 input revisions and says when that list was shortened.
+Arithmetic refuses more than 100,000 inputs until the request is narrowed. It never
+calculates from a silently shortened input set. Sources are not pooled. Manual
+sources are excluded.
+
+## Export a complete package
+
+```sh
+ath export ./athlete-backup
 ```
 
-Narrow it with `--from` and `--to`, pick a device with `--source`, get every individual reading with `--raw`, or ask for JSON with `--json`.
+SQLite remains the sole live local record. The export is a complete portable
+snapshot. It does not stay synchronized with the database.
 
-**Your own notes come across too.** If you answered WHOOP's daily questions about alcohol, caffeine, or how you slept, those come in as self-reported entries — kept separate from measurements, because you reported them rather than a sensor.
+An exported directory contains:
 
-**Some things are skipped, and it tells you which.** Anything Athletic Standard doesn't have a name for is counted and reported rather than guessed at, with an example so you can see what it was. The same goes for a measurement in an unfamiliar unit: it gets reported instead of assumed, because a distance in miles quietly stored as metres would look like perfectly good data.
-
-Deliberately left out: medical records from your health provider, and findings that belong with a doctor rather than a training file — irregular heart rhythm notifications, for instance. Also hearing and headphone volume, which have nothing to do with training. Blood pressure *is* kept, because it genuinely bears on how hard a session is on you.
-
-## Predicting, and finding out whether you were right
-
-This is the part the file exists for. A record of training that never commits to a claim about tomorrow can't be shown to be right or wrong.
-
-A prediction needs a model. Where that model lives depends on where you run.
-
-**In Claude Code, Cursor, or Codex** the model is already there. You do not need a gateway key, and there is no Athletic Standard subscription. Run `ath predict fran --json` for the evidence, reason, and write the prediction with `ath log`, naming the agent and the model.
-
-**In a bare terminal** `ath predict fran` calls the model you chose. That needs a Vercel or OpenRouter key, saved with `ath key set` into the computer's password store — never into the athlete file. It prints the number, the range, the model, then the evidence it used, and asks once before writing. No key → it refuses. Evidence alone is never a prediction.
-
+```text
+athlete-backup/
+  athlete.ath.json
+  series/
+    <source-id>-<quantity>.ath-series.json
+  attachments/
+    <stored attachment files>
+  export-manifest.json
 ```
-ath key set vercel
-ath models
-ath models --default openai/gpt-oss-120b
-ath predict fran --model qwen/qwen3-235b-a22b
-ath predict fran
+
+`athlete.ath.json` contains every current non-sample record, every retained
+non-sample revision, normal deletions, erasure markers, provider import keys, and
+references to generated sample files. Each generated sample file contains current
+sample records and their history. The manifest lists file hashes, byte counts,
+record counts, the source database ID, and the database revision.
+
+The export time is absent by default. Two exports from the same database revision
+with the same options are byte-identical. Pass a fixed `--exported-at` value only
+when the manifest needs one.
+
+Importing an exported package is explicit and uses the same preview-then-`--yes`
+workflow as a provider import.
+
+## Predict and grade
+
+Inside an agent harness, ask the database for prediction evidence:
+
+```sh
 ath predict fran --json
 ```
 
-`--json` is evidence for a harness: your previous Frans, the last 28 days day by day, long-range averages with the count and spread behind each one, past predictions on Fran, and what's missing. It is not a prediction.
+This returns evidence, not a prediction. The agent writes a `prediction` record
+through structured `ath log`.
 
-`--as-of 2026-06-01` hides everything after a past day and does not write. Replaying the past is `ath backtest`.
+In a terminal, bare `ath predict fran` can call a selected model and save its
+prediction after confirmation. That optional model call needs a Vercel or OpenRouter
+key in the operating-system password store. Local database use does not need that
+key or a network connection.
 
-Every prediction records who made it — the agent, the model it ran, and the version of `ath` that wrote it. Six months from now, a prediction nobody signed can't be weighed against the ones that were right, so `ath log` refuses one that doesn't say. When the CLI produced the number, it writes `agent: "ath predict"` and that model.
+Results are entered with `ath log`. Explicit grading only joins two records that
+already exist:
 
-**`ath grade fran --actual 4:32`** records what happened and scores the open prediction against it. Like `ath log`, it shows what it's about to write and asks once — including which of that day's recorded sessions the result belongs to, if your watch caught one. The verdict comes after.
+```sh
+ath records list --type prediction
+ath records list --type benchmark_result
+ath grade <prediction-id> --result <result-id> --json
+ath grade <prediction-id> --result <result-id> --yes
+```
 
-Inside the range it stated is a hit, and prints one line. Anything else is a miss, and prints the dossier: last night's sleep, that morning's readings, everything you reported in the 72 hours before, and any day in the last week that sat far from your own normal. Your agent reads that and writes up what it thinks went wrong — and every cause it names is checked against the file first, so it can't invent one.
+`ath grade` never logs a result. It creates a UUIDv7 prediction-result link when one
+does not exist. A corrected result revises the existing link, so older grades retain
+their exact link revision. The command saves deterministic grade arithmetic against
+the current link revision.
 
-If no prediction was open, the result is simply recorded and that's that. If you'd already logged the result, it's graded rather than written twice.
+A prediction error analysis is a separate authored record written through
+structured `ath log`.
 
-**`ath backtest`** replays every result that has an earlier result on the same benchmark. Evidence is as of the day before. It grades with the same math as `ath grade`. It does not write the athlete file. You pick models with `--model`, or pass `--all` to run every live text model that can reason, after it shows the count. The report's `summary` is the later share payload; `ath share` is not built and names that file.
+`ath backtest` replays historical results and writes a report beside the database.
+It does not change athlete data.
 
-**One workout on one day makes one result.** Logging a second is refused, and the refusal shows you the one already there. A duplicate result is counted by every average and every trend afterwards, and nothing about the file looks wrong — which is exactly the kind of quiet mistake this format exists to prevent. If you really did do it twice, pass `--again`.
+## Record model
 
-## Where this is up to
+Every logical record has a stable UUIDv7 ID and numbered revisions. A correction
+keeps the ID. Evidence names both the record ID and revision.
 
-Early days. Version 0.4.3.
+The format defines 23 record types for profile data, sources, measurements,
+sessions, athlete reports, nutrition, attachments, benchmarks, predictions, plans,
+goals, and saved authored work. [`SPEC.md`](SPEC.md) is the public field reference.
+The generated v1 JSON Schemas are in [`schema/1.0.0/`](schema/1.0.0/).
 
-Working today: creating a file, loading exports from Apple Health, WHOOP, and Oura, checking and summarizing it, reading the detailed measurements back, logging what you did, predicting in a harness or from a bare terminal, grading, explaining a miss, and backtesting models against a held-back history.
-
-### What changed in 0.4.3
-
-- **MIT License.** The npm package, the skill, and the repository use the MIT License. The file format is unchanged: a 0.4.0 file still loads.
-
-### What changed in 0.4.2
-
-- **`ath --update`.** Reinstalls ath with npm, pnpm, or bun, whichever installed it. If the folder you are in already has an agent skill, it replaces that skill. The file format is unchanged: a 0.4.0 file still loads.
-
-### What changed in 0.4.1
-
-- **Apache License 2.0.** The npm package, the skill, and the repository use Apache 2.0. The file format is unchanged: a 0.4.0 file still loads.
-
-### What changed in 0.4
-
-- **`ath backtest`.** Replays every result that has an earlier result on the same benchmark, with evidence as of the day before, and ranks the models you name. It writes a report file, not the athlete file. This closes the last open step of the first plan.
-- **A prediction needs a model.** In a harness the model is already there, and `ath predict --json` gives it the evidence. In a bare terminal `ath predict` calls a model through a Vercel or OpenRouter key you save with `ath key set`. The key lives in the computer's password store, never in the athlete file. There is no subscription.
-- **`ath models`** lists every live text model that can reason, open weights included, and saves your usual one.
-- **`ath log`** writes one entry per run, keeps commas inside a sentence, takes round times after `//`, and asks a plainer question about which device session to attach to.
-- **`benchmark_result.segments`** holds hand-logged round times. Every 0.3 file still loads.
-- **The agent skill** now covers every command and carries a reference generated from `ath --help`, so it cannot drift. `ath init` installs it to `.agents/skills`, which Claude Code, Cursor, Codex, and Gemini CLI all read. `ath skill` shows whether each copy is current and `ath skill install` refreshes it.
-
-Coming next: `ath share`, which today only names the backtest report it would send.
-
-## Reference
-
-[SPEC.md](SPEC.md) documents every field in the file. [docs/connections.md](docs/connections.md) covers what each wearable actually hands over, and what it holds back. [skill/](skill/) is the agent skill `ath init` installs — worth reading even if you never use an agent, because it says plainly what the tools guarantee and what they don't.
+Provider data research is in
+[`docs/connections.md`](docs/connections.md). The installed agent instructions are
+in [`skill/`](skill/).
 
 ## License
 
