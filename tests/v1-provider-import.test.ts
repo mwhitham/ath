@@ -475,14 +475,18 @@ describe("v1 provider import", () => {
         file: "physiological_cycles.csv",
         duplicate: duplicateCsvFirstRow,
         matches: (key: unknown[]) =>
-          key[0] === "point_measurement" && key[2] === "hrv_rmssd",
+          key[0] === "point_measurement" &&
+          key[2] === "hrv_rmssd" &&
+          key[3] === "2026-08-09T13:05:00.000Z",
       },
       {
         provider: "oura",
         file: "oura_daily_readiness.csv",
         duplicate: duplicateCsvFirstRow,
         matches: (key: unknown[]) =>
-          key[0] === "provider_score" && key[2] === "readiness",
+          key[0] === "provider_score" &&
+          key[2] === "readiness" &&
+          key[3] === "2026-08-09",
       },
       {
         provider: "apple",
