@@ -8,7 +8,7 @@ import {
   rm,
 } from "node:fs/promises";
 import { dirname, isAbsolute, join, relative, resolve } from "node:path";
-import type { Transaction } from "@libsql/client";
+import type { InStatement, Transaction } from "@libsql/client";
 import {
   ATHLETIC_STANDARD_VERSION,
   AthleticStandardPackage,
@@ -48,11 +48,19 @@ const MAX_JSON_NESTING = 128;
 
 export interface LoadedPackage {
   package: AthleticStandardPackageT;
-  series: MeasurementSeriesFileT[];
+  series_files: Array<{
+    reference: AthleticStandardPackageT["measurement_series_files"][number];
+    path: string;
+  }>;
+  /** Non-sample records held in athlete.ath.json. Series records are loaded one file at a time. */
   all_records: CurrentRecordT[];
+  /** Non-sample revisions held in athlete.ath.json. */
   all_revisions: RecordRevisionT[];
+  /** Non-sample deletions held in athlete.ath.json. */
   all_deletions: RecordDeletionT[];
+  /** Non-sample import keys held in athlete.ath.json. */
   all_import_keys: RecordImportKeyT[];
+  sample_record_id_examples: string[];
   source_path: string;
   source_fingerprint: string;
   source_directory: string;
@@ -77,13 +85,19 @@ export interface PackageImportPreview {
   destination_database_revision: number;
   restore: boolean;
   new_records: string[];
+  new_record_count: number;
   matching_records: string[];
+  matching_record_count: number;
   changed_records: string[];
+  changed_record_count: number;
+  record_lists_truncated: boolean;
   conflicts: PackageImportConflict[];
   unrepresentable_records: string[];
   unknown_fields: string[];
   loaded: LoadedPackage;
 }
+
+const MAX_PREVIEW_RECORD_IDS = 1_000;
 
 function sha256(bytes: Uint8Array): string {
   return createHash("sha256").update(bytes).digest("hex");
@@ -238,8 +252,29 @@ export async function loadAthleticStandardPackage(
     }
   }
 
-  const series: MeasurementSeriesFileT[] = [];
-  for (const reference of packageValue.measurement_series_files) {
+  const seriesFiles: LoadedPackage["series_files"] = [];
+  const sampleRecordIdExamples: string[] = [];
+  const seriesBoundaries = new Map<
+    string,
+    { end_at: string; record_ids_at_end: Set<string> }
+  >();
+  let packageObjectCount =
+    packageValue.records.length +
+    packageValue.record_revisions.length +
+    packageValue.record_deletions.length +
+    packageValue.record_import_keys.length +
+    packageValue.record_erasure_markers.length;
+  const orderedSeriesReferences = [
+    ...packageValue.measurement_series_files,
+  ].sort(
+    (left, right) =>
+      left.source_id.localeCompare(right.source_id) ||
+      left.quantity.localeCompare(right.quantity) ||
+      left.start_at.localeCompare(right.start_at) ||
+      left.end_at.localeCompare(right.end_at) ||
+      left.file.localeCompare(right.file),
+  );
+  for (const reference of orderedSeriesReferences) {
     const path = resolvePackageFile(sourceDirectory, reference.file);
     const file = await safeReadJson(path);
     fingerprintParts.push(
@@ -259,46 +294,60 @@ export async function loadAthleticStandardPackage(
     ) {
       throw new Error(`series counts or grouping do not match: ${reference.file}`);
     }
-    series.push(parsed);
+    const group = `${parsed.source_id}\u0000${parsed.quantity}`;
+    const previous = seriesBoundaries.get(group);
+    if (previous !== undefined && parsed.start_at < previous.end_at) {
+      throw new Error(
+        `measurement-series time ranges overlap: ${reference.file}`,
+      );
+    }
+    if (previous !== undefined && parsed.start_at === previous.end_at) {
+      const repeated = parsed.records.find(
+        (record) =>
+          record.data.recorded_at === parsed.start_at &&
+          previous.record_ids_at_end.has(record.record_id),
+      );
+      if (repeated !== undefined) {
+        throw new Error(
+          `package repeats record ID across series files: ${repeated.record_id}`,
+        );
+      }
+    }
+    seriesBoundaries.set(group, {
+      end_at: parsed.end_at,
+      record_ids_at_end: new Set(
+        parsed.records
+          .filter((record) => record.data.recorded_at === parsed.end_at)
+          .map((record) => record.record_id),
+      ),
+    });
+    for (const record of parsed.records) {
+      if (sampleRecordIdExamples.length >= MAX_PREVIEW_RECORD_IDS) {
+        break;
+      }
+      sampleRecordIdExamples.push(record.record_id);
+    }
+    packageObjectCount +=
+      parsed.records.length +
+      parsed.record_revisions.length +
+      parsed.record_deletions.length +
+      parsed.record_import_keys.length;
+    if (packageObjectCount > MAX_PACKAGE_RECORDS) {
+      throw new Error(
+        `package has more than ${MAX_PACKAGE_RECORDS} record and history objects`,
+      );
+    }
+    seriesFiles.push({ reference, path });
   }
 
-  const allRecords = [
-    ...packageValue.records,
-    ...series.flatMap((file) => file.records),
-  ];
-  const allRevisions = [
-    ...packageValue.record_revisions,
-    ...series.flatMap((file) => file.record_revisions),
-  ];
-  const allDeletions = [
-    ...packageValue.record_deletions,
-    ...series.flatMap((file) => file.record_deletions),
-  ];
-  const allImportKeys = [
-    ...packageValue.record_import_keys,
-    ...series.flatMap((file) => file.record_import_keys),
-  ];
-  const packageObjectCount =
-    allRecords.length +
-    allRevisions.length +
-    allDeletions.length +
-    allImportKeys.length +
-    packageValue.record_erasure_markers.length;
   if (packageObjectCount > MAX_PACKAGE_RECORDS) {
     throw new Error(
       `package has more than ${MAX_PACKAGE_RECORDS} record and history objects`,
     );
   }
-  const recordIds = new Set<string>();
-  for (const record of allRecords) {
-    if (recordIds.has(record.record_id)) {
-      throw new Error(`package repeats record ID across files: ${record.record_id}`);
-    }
-    recordIds.add(record.record_id);
-  }
 
   const attachmentFiles = new Map<string, string>();
-  for (const record of allRecords) {
+  for (const record of packageValue.records) {
     if (record.record_type !== "attachment" || record.is_deleted) {
       continue;
     }
@@ -329,11 +378,12 @@ export async function loadAthleticStandardPackage(
 
   return {
     package: packageValue,
-    series,
-    all_records: allRecords,
-    all_revisions: allRevisions,
-    all_deletions: allDeletions,
-    all_import_keys: allImportKeys,
+    series_files: seriesFiles,
+    all_records: packageValue.records,
+    all_revisions: packageValue.record_revisions,
+    all_deletions: packageValue.record_deletions,
+    all_import_keys: packageValue.record_import_keys,
+    sample_record_id_examples: sampleRecordIdExamples,
     source_path: resolve(inputPath),
     source_fingerprint: sha256(
       Buffer.from(fingerprintParts.sort().join("\n"), "utf8"),
@@ -343,19 +393,93 @@ export async function loadAthleticStandardPackage(
   };
 }
 
+interface PackageRecordBatch {
+  records: CurrentRecordT[];
+  revisions: RecordRevisionT[];
+  deletions: RecordDeletionT[];
+  importKeys: RecordImportKeyT[];
+}
+
+async function readLoadedSeriesFile(
+  file: LoadedPackage["series_files"][number],
+): Promise<MeasurementSeriesFileT> {
+  const document = await safeReadJson(file.path);
+  if (sha256(document.bytes) !== file.reference.sha256) {
+    throw new Error(
+      `series hash changed after package load: ${file.reference.file}`,
+    );
+  }
+  const parsed = MeasurementSeriesFile.parse(document.value);
+  if (
+    parsed.source_id !== file.reference.source_id ||
+    parsed.quantity !== file.reference.quantity ||
+    parsed.records.length !== file.reference.sample_count ||
+    parsed.record_revisions.length !== file.reference.revision_count ||
+    parsed.record_deletions.length !== file.reference.deletion_count ||
+    parsed.record_import_keys.length !== file.reference.import_key_count
+  ) {
+    throw new Error(
+      `series counts or grouping changed after package load: ${file.reference.file}`,
+    );
+  }
+  return parsed;
+}
+
+async function* packageRecordBatches(
+  loaded: LoadedPackage,
+): AsyncGenerator<PackageRecordBatch> {
+  yield {
+    records: loaded.all_records,
+    revisions: loaded.all_revisions,
+    deletions: loaded.all_deletions,
+    importKeys: loaded.all_import_keys,
+  };
+  for (const file of loaded.series_files) {
+    const series = await readLoadedSeriesFile(file);
+    yield {
+      records: series.records,
+      revisions: series.record_revisions,
+      deletions: series.record_deletions,
+      importKeys: series.record_import_keys,
+    };
+  }
+}
+
+export async function readImportedPackageRecord(
+  loaded: LoadedPackage,
+  recordId: string,
+): Promise<CurrentRecordT | null> {
+  const main = loaded.all_records.find(
+    (record) => record.record_id === recordId,
+  );
+  if (main !== undefined) {
+    return main;
+  }
+  for (const file of loaded.series_files) {
+    const series = await readLoadedSeriesFile(file);
+    const record = series.records.find(
+      (candidate) => candidate.record_id === recordId,
+    );
+    if (record !== undefined) {
+      return record;
+    }
+  }
+  return null;
+}
+
 function sameValue(left: unknown, right: unknown): boolean {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
 async function localRecordsById(
-  database: AthleticDatabase,
+  executor: Pick<Transaction, "execute">,
   recordIds: readonly string[],
 ): Promise<Map<string, CurrentRecordT>> {
   const records = new Map<string, CurrentRecordT>();
   const chunkSize = 400;
   for (let offset = 0; offset < recordIds.length; offset += chunkSize) {
     const chunk = recordIds.slice(offset, offset + chunkSize);
-    const result = await databaseClient(database).execute({
+    const result = await executor.execute({
       sql: `
         SELECT
           records.record_id,
@@ -388,14 +512,14 @@ async function localRecordsById(
 }
 
 async function localRevisionsById(
-  database: AthleticDatabase,
+  executor: Pick<Transaction, "execute">,
   recordIds: readonly string[],
 ): Promise<Map<string, RecordRevisionT[]>> {
   const revisions = new Map<string, RecordRevisionT[]>();
   const chunkSize = 400;
   for (let offset = 0; offset < recordIds.length; offset += chunkSize) {
     const chunk = recordIds.slice(offset, offset + chunkSize);
-    const result = await databaseClient(database).execute({
+    const result = await executor.execute({
       sql: `
         SELECT
           record_id,
@@ -432,48 +556,37 @@ async function localRevisionsById(
   return revisions;
 }
 
-export async function previewPackageImport(
-  database: AthleticDatabase,
-  loaded: LoadedPackage,
-): Promise<PackageImportPreview> {
-  const metadata = await readDatabaseMetadata(database);
-  const state = await databaseClient(database).execute(
-    "SELECT current_revision FROM database_state WHERE singleton_id = 1",
-  );
-  const destinationRevision = Number(state.rows[0]?.current_revision);
-  const localRecordCount = await databaseClient(database).execute(
-    "SELECT COUNT(*) AS count FROM records",
-  );
-  const restore =
-    destinationRevision === 0 &&
-    Number(localRecordCount.rows[0]?.count) === 0;
-  const conflicts: PackageImportConflict[] = [];
-  if (!restore && metadata.database_id !== loaded.package.database_id) {
-    conflicts.push({
-      message:
-        `destination database ${metadata.database_id} differs from package ` +
-        `${loaded.package.database_id}; live databases are not merged`,
-    });
-  }
-  const importedIds = loaded.all_records.map((record) => record.record_id);
-  const localById = await localRecordsById(database, importedIds);
+interface PackageBatchClassification {
+  newIds: Set<string>;
+  matchingIds: Set<string>;
+  changedIds: Set<string>;
+  conflicts: PackageImportConflict[];
+}
+
+async function classifyPackageBatch(
+  executor: Pick<Transaction, "execute">,
+  batch: PackageRecordBatch,
+): Promise<PackageBatchClassification> {
+  const importedIds = batch.records.map((record) => record.record_id);
+  const localById = await localRecordsById(executor, importedIds);
   const localRevisions = await localRevisionsById(
-    database,
+    executor,
     [...localById.keys()],
   );
   const importedRevisions = new Map<string, RecordRevisionT[]>();
-  for (const revision of loaded.all_revisions) {
+  for (const revision of batch.revisions) {
     const group = importedRevisions.get(revision.record_id) ?? [];
     group.push(revision);
     importedRevisions.set(revision.record_id, group);
   }
-  const newRecords: string[] = [];
-  const matchingRecords: string[] = [];
-  const changedRecords: string[] = [];
-  for (const imported of loaded.all_records) {
+  const newIds = new Set<string>();
+  const matchingIds = new Set<string>();
+  const changedIds = new Set<string>();
+  const conflicts: PackageImportConflict[] = [];
+  for (const imported of batch.records) {
     const local = localById.get(imported.record_id);
     if (local === undefined) {
-      newRecords.push(imported.record_id);
+      newIds.add(imported.record_id);
       continue;
     }
     const currentLocalRevisions = localRevisions.get(imported.record_id) ?? [];
@@ -497,20 +610,90 @@ export async function previewPackageImport(
       incoming.length === currentLocalRevisions.length &&
       sameValue(local, imported)
     ) {
-      matchingRecords.push(imported.record_id);
+      matchingIds.add(imported.record_id);
       continue;
     }
     if (
       incoming.length > currentLocalRevisions.length &&
       incoming.length === imported.current_revision
     ) {
-      changedRecords.push(imported.record_id);
+      changedIds.add(imported.record_id);
       continue;
     }
     conflicts.push({
       record_id: imported.record_id,
       message: "current record does not match its imported revision history",
     });
+  }
+  return { newIds, matchingIds, changedIds, conflicts };
+}
+
+export async function previewPackageImport(
+  database: AthleticDatabase,
+  loaded: LoadedPackage,
+): Promise<PackageImportPreview> {
+  const metadata = await readDatabaseMetadata(database);
+  const state = await databaseClient(database).execute(
+    "SELECT current_revision FROM database_state WHERE singleton_id = 1",
+  );
+  const destinationRevision = Number(state.rows[0]?.current_revision);
+  const localRecordCount = await databaseClient(database).execute(
+    "SELECT COUNT(*) AS count FROM records",
+  );
+  const restore =
+    destinationRevision === 0 &&
+    Number(localRecordCount.rows[0]?.count) === 0;
+  const conflicts: PackageImportConflict[] = [];
+  if (!restore && metadata.database_id !== loaded.package.database_id) {
+    conflicts.push({
+      message:
+        `destination database ${metadata.database_id} differs from package ` +
+        `${loaded.package.database_id}; live databases are not merged`,
+    });
+  }
+  const newRecords: string[] = [];
+  const matchingRecords: string[] = [];
+  const changedRecords: string[] = [];
+  let newRecordCount = 0;
+  let matchingRecordCount = 0;
+  let changedRecordCount = 0;
+  const addExample = (examples: string[], recordId: string) => {
+    if (examples.length < MAX_PREVIEW_RECORD_IDS) {
+      examples.push(recordId);
+    }
+  };
+
+  if (restore) {
+    newRecordCount =
+      loaded.all_records.length +
+      loaded.package.measurement_series_files.reduce(
+        (total, file) => total + file.sample_count,
+        0,
+      );
+    for (const record of loaded.all_records) {
+      addExample(newRecords, record.record_id);
+    }
+    for (const recordId of loaded.sample_record_id_examples) {
+      addExample(newRecords, recordId);
+    }
+  } else if (metadata.database_id === loaded.package.database_id) {
+    const client = databaseClient(database);
+    for await (const batch of packageRecordBatches(loaded)) {
+      const classification = await classifyPackageBatch(client, batch);
+      conflicts.push(...classification.conflicts);
+      for (const recordId of classification.newIds) {
+        newRecordCount++;
+        addExample(newRecords, recordId);
+      }
+      for (const recordId of classification.matchingIds) {
+        matchingRecordCount++;
+        addExample(matchingRecords, recordId);
+      }
+      for (const recordId of classification.changedIds) {
+        changedRecordCount++;
+        addExample(changedRecords, recordId);
+      }
+    }
   }
   return {
     source_database_id: loaded.package.database_id,
@@ -519,12 +702,235 @@ export async function previewPackageImport(
     destination_database_revision: destinationRevision,
     restore,
     new_records: newRecords.sort(),
+    new_record_count: newRecordCount,
     matching_records: matchingRecords.sort(),
+    matching_record_count: matchingRecordCount,
     changed_records: changedRecords.sort(),
+    changed_record_count: changedRecordCount,
+    record_lists_truncated:
+      newRecordCount > newRecords.length ||
+      matchingRecordCount > matchingRecords.length ||
+      changedRecordCount > changedRecords.length,
     conflicts,
     unrepresentable_records: [],
     unknown_fields: [],
     loaded,
+  };
+}
+
+async function executeStatementBatches(
+  transaction: Transaction,
+  statements: InStatement[],
+): Promise<void> {
+  const batchSize = 500;
+  for (let offset = 0; offset < statements.length; offset += batchSize) {
+    await transaction.batch(statements.slice(offset, offset + batchSize));
+  }
+}
+
+function sampleParentStatement(
+  record: Extract<CurrentRecordT, { record_type: "measurement_sample" }>,
+): InStatement {
+  return {
+    sql: `
+      INSERT INTO records (
+        record_id,
+        record_type,
+        current_revision,
+        created_at,
+        is_deleted
+      ) VALUES (?, 'measurement_sample', ?, ?, ?)
+    `,
+    args: [
+      record.record_id,
+      record.current_revision,
+      record.created_at,
+      record.is_deleted ? 1 : 0,
+    ],
+  };
+}
+
+function revisionStatement(revision: RecordRevisionT): InStatement {
+  return {
+    sql: `
+      INSERT INTO record_revisions (
+        record_id,
+        revision,
+        record_type,
+        record_json,
+        became_known_at,
+        became_known_at_basis,
+        changed_by_json,
+        previous_revision
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+    args: [
+      revision.record_id,
+      revision.revision,
+      revision.record_type,
+      JSON.stringify(revision.data),
+      revision.became_known_at,
+      revision.became_known_at_basis,
+      JSON.stringify(revision.changed_by),
+      revision.previous_revision,
+    ],
+  };
+}
+
+function sampleTypedStatement(
+  record: Extract<CurrentRecordT, { record_type: "measurement_sample" }>,
+): InStatement {
+  return {
+    sql: `
+      INSERT INTO measurement_samples (
+        record_id,
+        record_type,
+        source_id,
+        quantity,
+        recorded_at,
+        standard_value,
+        standard_unit,
+        duration_ms,
+        provider_record_id,
+        received_at,
+        data_json
+      ) VALUES (?, 'measurement_sample', ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `,
+    args: [
+      record.record_id,
+      record.data.source_id,
+      record.data.quantity,
+      record.data.recorded_at,
+      record.data.value.standard_value,
+      record.data.value.standard_unit,
+      record.data.duration_ms ?? null,
+      record.data.provider_record_id ?? null,
+      record.data.received_at,
+      JSON.stringify(record.data),
+    ],
+  };
+}
+
+function samplePeriodStatements(
+  record: Extract<CurrentRecordT, { record_type: "measurement_sample" }>,
+): InStatement[] {
+  return (record.data.provider_reporting_periods ?? []).map(
+    (period, index) => ({
+      sql: `
+        INSERT INTO provider_reporting_periods (
+          owner_record_id,
+          period_order,
+          period_type,
+          provider_period_id,
+          provider_date,
+          start_at,
+          end_at,
+          period_json
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      `,
+      args: [
+        record.record_id,
+        index,
+        period.period_type,
+        period.provider_period_id ?? null,
+        period.provider_date ?? null,
+        period.start_at ?? null,
+        period.end_at ?? null,
+        JSON.stringify(period),
+      ],
+    }),
+  );
+}
+
+function deletionStatement(deletion: RecordDeletionT): InStatement {
+  return {
+    sql: `
+      INSERT INTO record_deletions (
+        record_id,
+        record_revision,
+        deleted_at,
+        deleted_by_json
+      ) VALUES (?, ?, ?, ?)
+    `,
+    args: [
+      deletion.record_id,
+      deletion.record_revision,
+      deletion.deleted_at,
+      JSON.stringify(deletion.deleted_by),
+    ],
+  };
+}
+
+function importKeyStatement(importKey: RecordImportKeyT): InStatement {
+  return {
+    sql: `
+      INSERT INTO record_import_keys (
+        record_id,
+        match_key_method,
+        match_key,
+        imported_at
+      ) VALUES (?, ?, ?, ?)
+    `,
+    args: [
+      importKey.record_id,
+      importKey.match_key_method,
+      importKey.match_key,
+      importKey.imported_at,
+    ],
+  };
+}
+
+async function insertNewSampleBatch(
+  transaction: Transaction,
+  batch: PackageRecordBatch,
+): Promise<void> {
+  const samples = batch.records.map((record) => {
+    if (record.record_type !== "measurement_sample") {
+      throw new Error("measurement-series file contains a non-sample record");
+    }
+    return record;
+  });
+  await executeStatementBatches(
+    transaction,
+    samples.map((record) => sampleParentStatement(record)),
+  );
+  await executeStatementBatches(
+    transaction,
+    batch.revisions.map((revision) => revisionStatement(revision)),
+  );
+  await executeStatementBatches(
+    transaction,
+    samples.map((record) => sampleTypedStatement(record)),
+  );
+  await executeStatementBatches(
+    transaction,
+    samples.flatMap((record) => samplePeriodStatements(record)),
+  );
+  await executeStatementBatches(
+    transaction,
+    batch.deletions.map((deletion) => deletionStatement(deletion)),
+  );
+  await executeStatementBatches(
+    transaction,
+    batch.importKeys.map((importKey) => importKeyStatement(importKey)),
+  );
+}
+
+function filterPackageBatch(
+  batch: PackageRecordBatch,
+  recordIds: ReadonlySet<string>,
+): PackageRecordBatch {
+  return {
+    records: batch.records.filter((record) => recordIds.has(record.record_id)),
+    revisions: batch.revisions.filter((revision) =>
+      recordIds.has(revision.record_id),
+    ),
+    deletions: batch.deletions.filter((deletion) =>
+      recordIds.has(deletion.record_id),
+    ),
+    importKeys: batch.importKeys.filter((importKey) =>
+      recordIds.has(importKey.record_id),
+    ),
   };
 }
 
@@ -742,28 +1148,41 @@ export async function importRecords(
         throw new Error("destination database changed after preview");
       }
 
-      const newIds = new Set(preview.new_records);
-      const changedIds = new Set(preview.changed_records);
       const resolvedRecords: CurrentRecordT[] = [];
 
       if (preview.restore) {
-        for (const record of preview.loaded.all_records) {
+        const mainBatch: PackageRecordBatch = {
+          records: preview.loaded.all_records,
+          revisions: preview.loaded.all_revisions,
+          deletions: preview.loaded.all_deletions,
+          importKeys: preview.loaded.all_import_keys,
+        };
+        for (const record of mainBatch.records) {
           await insertCurrentParent(transaction, record);
         }
-        for (const revision of preview.loaded.all_revisions) {
+        for (const revision of mainBatch.revisions) {
           await insertRevision(transaction, revision);
         }
-        for (const record of preview.loaded.all_records) {
+        for (const record of mainBatch.records) {
           await upsertTypedRecord(transaction, record);
         }
-        for (const record of preview.loaded.all_records) {
-          await validateTypedRelationships(transaction, record);
-        }
-        for (const deletion of preview.loaded.all_deletions) {
+        for (const deletion of mainBatch.deletions) {
           await insertDeletion(transaction, deletion);
         }
-        for (const importKey of preview.loaded.all_import_keys) {
+        for (const importKey of mainBatch.importKeys) {
           await insertImportKey(transaction, importKey);
+        }
+        for (const file of preview.loaded.series_files) {
+          const series = await readLoadedSeriesFile(file);
+          await insertNewSampleBatch(transaction, {
+            records: series.records,
+            revisions: series.record_revisions,
+            deletions: series.record_deletions,
+            importKeys: series.record_import_keys,
+          });
+        }
+        for (const record of mainBatch.records) {
+          await validateTypedRelationships(transaction, record);
         }
         for (const marker of preview.loaded.package.record_erasure_markers) {
           await insertErasureMarker(transaction, marker);
@@ -777,52 +1196,151 @@ export async function importRecords(
           args: [preview.source_database_revision],
         });
       } else {
-        for (const record of preview.loaded.all_records) {
-          if (newIds.has(record.record_id)) {
-            await insertCurrentParent(transaction, record);
+        const importedConflictRecords = new Map<string, CurrentRecordT>();
+        const recordsToValidate: CurrentRecordT[] = [];
+        let observedNew = 0;
+        let observedMatching = 0;
+        let observedChanged = 0;
+        for await (const batch of packageRecordBatches(preview.loaded)) {
+          const classification = await classifyPackageBatch(transaction, batch);
+          observedNew += classification.newIds.size;
+          observedMatching += classification.matchingIds.size;
+          observedChanged += classification.changedIds.size;
+          for (const conflict of classification.conflicts) {
+            if (conflict.record_id === undefined) {
+              throw new Error("package conflict changed after preview");
+            }
+            const expected = preview.conflicts.find(
+              (item) => item.record_id === conflict.record_id,
+            );
+            if (
+              expected === undefined ||
+              expected.message !== conflict.message
+            ) {
+              throw new Error("package conflict changed after preview");
+            }
+            const imported = batch.records.find(
+              (record) => record.record_id === conflict.record_id,
+            );
+            if (imported !== undefined) {
+              importedConflictRecords.set(imported.record_id, imported);
+            }
           }
-        }
-        for (const revision of preview.loaded.all_revisions) {
-          if (newIds.has(revision.record_id)) {
-            await insertRevision(transaction, revision);
-          } else if (changedIds.has(revision.record_id)) {
+
+          const newSampleIds = new Set(
+            batch.records
+              .filter(
+                (record) =>
+                  record.record_type === "measurement_sample" &&
+                  classification.newIds.has(record.record_id),
+              )
+              .map((record) => record.record_id),
+          );
+          if (newSampleIds.size > 0) {
+            await insertNewSampleBatch(
+              transaction,
+              filterPackageBatch(batch, newSampleIds),
+            );
+          }
+
+          const genericNewIds = new Set(
+            [...classification.newIds].filter(
+              (recordId) => !newSampleIds.has(recordId),
+            ),
+          );
+          for (const record of batch.records) {
+            if (genericNewIds.has(record.record_id)) {
+              await insertCurrentParent(transaction, record);
+            }
+          }
+          for (const revision of batch.revisions) {
+            if (genericNewIds.has(revision.record_id)) {
+              await insertRevision(transaction, revision);
+            } else if (classification.changedIds.has(revision.record_id)) {
+              const existing = await transaction.execute({
+                sql: `
+                  SELECT 1 AS present
+                  FROM record_revisions
+                  WHERE record_id = ? AND revision = ?
+                `,
+                args: [revision.record_id, revision.revision],
+              });
+              if (existing.rows.length === 0) {
+                await insertRevision(transaction, revision);
+              }
+            }
+          }
+          for (const record of batch.records) {
+            if (
+              genericNewIds.has(record.record_id) ||
+              classification.changedIds.has(record.record_id)
+            ) {
+              await upsertTypedRecord(transaction, record);
+              await transaction.execute({
+                sql: `
+                  UPDATE records
+                  SET current_revision = ?, is_deleted = ?
+                  WHERE record_id = ?
+                `,
+                args: [
+                  record.current_revision,
+                  record.is_deleted ? 1 : 0,
+                  record.record_id,
+                ],
+              });
+              recordsToValidate.push(record);
+            }
+          }
+
+          for (const deletion of batch.deletions) {
+            if (
+              newSampleIds.has(deletion.record_id) ||
+              resolutionById.has(deletion.record_id)
+            ) {
+              continue;
+            }
             const existing = await transaction.execute({
-              sql: `
-                SELECT 1 AS present
-                FROM record_revisions
-                WHERE record_id = ? AND revision = ?
-              `,
-              args: [revision.record_id, revision.revision],
+              sql: "SELECT 1 AS present FROM record_deletions WHERE record_id = ?",
+              args: [deletion.record_id],
             });
             if (existing.rows.length === 0) {
-              await insertRevision(transaction, revision);
+              await insertDeletion(transaction, deletion);
+            }
+          }
+          for (const importKey of batch.importKeys) {
+            if (
+              newSampleIds.has(importKey.record_id) ||
+              resolutionById.get(importKey.record_id)?.choice === "local"
+            ) {
+              continue;
+            }
+            const existing = await transaction.execute({
+              sql: `
+                SELECT record_id
+                FROM record_import_keys
+                WHERE match_key_method = ? AND match_key = ?
+              `,
+              args: [importKey.match_key_method, importKey.match_key],
+            });
+            if (existing.rows.length === 0) {
+              await insertImportKey(transaction, importKey);
+            } else if (existing.rows[0]?.record_id !== importKey.record_id) {
+              throw new Error("provider import key changed after preview");
             }
           }
         }
-        for (const record of preview.loaded.all_records) {
-          if (newIds.has(record.record_id) || changedIds.has(record.record_id)) {
-            await upsertTypedRecord(transaction, record);
-            await transaction.execute({
-              sql: `
-                UPDATE records
-                SET current_revision = ?, is_deleted = ?
-                WHERE record_id = ?
-              `,
-              args: [
-                record.current_revision,
-                record.is_deleted ? 1 : 0,
-                record.record_id,
-              ],
-            });
-          }
+        if (
+          observedNew !== preview.new_record_count ||
+          observedMatching !== preview.matching_record_count ||
+          observedChanged !== preview.changed_record_count
+        ) {
+          throw new Error("package records changed after preview");
         }
         for (const resolution of resolutionById.values()) {
           if (resolution.choice === "local") {
             continue;
           }
-          const imported = preview.loaded.all_records.find(
-            (record) => record.record_id === resolution.record_id,
-          );
+          const imported = importedConflictRecords.get(resolution.record_id);
           if (imported === undefined) {
             throw new Error(
               `imported conflict record is missing: ${resolution.record_id}`,
@@ -897,43 +1415,11 @@ export async function importRecords(
           });
           resolvedRecords.push(resolvedRecord);
         }
-        for (const record of preview.loaded.all_records) {
-          if (newIds.has(record.record_id) || changedIds.has(record.record_id)) {
-            await validateTypedRelationships(transaction, record);
-          }
+        for (const record of recordsToValidate) {
+          await validateTypedRelationships(transaction, record);
         }
         for (const record of resolvedRecords) {
           await validateTypedRelationships(transaction, record);
-        }
-        for (const deletion of preview.loaded.all_deletions) {
-          if (resolutionById.has(deletion.record_id)) {
-            continue;
-          }
-          const existing = await transaction.execute({
-            sql: "SELECT 1 AS present FROM record_deletions WHERE record_id = ?",
-            args: [deletion.record_id],
-          });
-          if (existing.rows.length === 0) {
-            await insertDeletion(transaction, deletion);
-          }
-        }
-        for (const importKey of preview.loaded.all_import_keys) {
-          if (resolutionById.get(importKey.record_id)?.choice === "local") {
-            continue;
-          }
-          const existing = await transaction.execute({
-            sql: `
-              SELECT record_id
-              FROM record_import_keys
-              WHERE match_key_method = ? AND match_key = ?
-            `,
-            args: [importKey.match_key_method, importKey.match_key],
-          });
-          if (existing.rows.length === 0) {
-            await insertImportKey(transaction, importKey);
-          } else if (existing.rows[0]?.record_id !== importKey.record_id) {
-            throw new Error("provider import key changed after preview");
-          }
         }
         for (const marker of preview.loaded.package.record_erasure_markers) {
           const existing = await transaction.execute({

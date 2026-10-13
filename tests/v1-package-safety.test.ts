@@ -16,6 +16,7 @@ import {
   exportRecords,
   importRecords,
   loadAthleticStandardPackage,
+  listRecords,
   openDatabase,
   previewPackageImport,
   writeRecord,
@@ -127,5 +128,32 @@ describe("v1 package input safety", () => {
     const attachmentDirectory = join(directory, "attachments");
     mkdirSync(attachmentDirectory, { recursive: true });
     expect(readdirSync(attachmentDirectory)).toEqual([]);
+  });
+
+  it("refuses a series file changed after preview and rolls back the restore", async () => {
+    const directory = temporaryDirectory("ath-package-changed-series-");
+    const source = await openDatabase(fixture);
+    databases.push(source);
+    const packageDirectory = join(directory, "package");
+    await exportRecords(source, packageDirectory);
+    const loaded = await loadAthleticStandardPackage(packageDirectory);
+
+    const destination = await createDatabase(
+      join(directory, "athlete.ath.sqlite"),
+      { createdAt: "2026-10-13T12:00:00.000Z" },
+    );
+    databases.push(destination);
+    const preview = await previewPackageImport(destination, loaded);
+    const seriesPath = loaded.series_files[0]!.path;
+    writeFileSync(
+      seriesPath,
+      `${readFileSync(seriesPath, "utf8")}\n`,
+      { mode: 0o600 },
+    );
+
+    await expect(importRecords(destination, preview)).rejects.toThrow(
+      "series hash changed after package load",
+    );
+    expect(await listRecords(destination, { limit: 100 })).toEqual([]);
   });
 });

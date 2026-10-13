@@ -131,7 +131,11 @@ describe("v1 package restore", () => {
     expect(JSON.parse(preview.stdout)).toMatchObject({
       restore: true,
       new_records: expect.any(Array),
+      new_record_count: 25,
       matching_records: [],
+      matching_record_count: 0,
+      changed_record_count: 0,
+      record_lists_truncated: false,
       conflicts: [],
       write_confirmed: false,
     });

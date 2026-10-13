@@ -75,6 +75,7 @@ import {
   previewProviderImport,
   previewRecordErasure,
   readPackageConflictSet,
+  readImportedPackageRecord,
   readRecord,
   readRecordLinks,
   readRecordRevisions,
@@ -394,8 +395,12 @@ export function buildProgram(): Command {
           destination_database_revision: preview.destination_database_revision,
           restore: preview.restore,
           new_records: preview.new_records,
+          new_record_count: preview.new_record_count,
           matching_records: preview.matching_records,
+          matching_record_count: preview.matching_record_count,
           changed_records: preview.changed_records,
+          changed_record_count: preview.changed_record_count,
+          record_lists_truncated: preview.record_lists_truncated,
           conflicts: preview.conflicts,
           unrepresentable_records: preview.unrepresentable_records,
           unknown_fields: preview.unknown_fields,
@@ -488,10 +493,10 @@ export function buildProgram(): Command {
             record_id: conflict.record_id,
             message: conflict.message,
             local: await readRecord(database, conflict.record_id),
-            imported:
-              loaded.all_records.find(
-                (record) => record.record_id === conflict.record_id,
-              ) ?? null,
+            imported: await readImportedPackageRecord(
+              loaded,
+              conflict.record_id,
+            ),
             resolution: conflict.resolution ?? null,
           })),
         );
@@ -1933,8 +1938,12 @@ function renderImportPreview(preview: {
   destination_database_revision: number;
   restore: boolean;
   new_records: readonly string[];
+  new_record_count: number;
   matching_records: readonly string[];
+  matching_record_count: number;
   changed_records: readonly string[];
+  changed_record_count: number;
+  record_lists_truncated: boolean;
   conflicts: readonly { record_id?: string; message: string }[];
   unrepresentable_records: readonly string[];
   unknown_fields: readonly string[];
@@ -1943,13 +1952,16 @@ function renderImportPreview(preview: {
     `${preview.restore ? "restore" : "merge"} preview`,
     `  source database:      ${preview.source_database_id} revision ${preview.source_database_revision}`,
     `  destination database: ${preview.destination_database_id} revision ${preview.destination_database_revision}`,
-    `  new records:          ${preview.new_records.length}`,
-    `  matching records:     ${preview.matching_records.length}`,
-    `  changed records:      ${preview.changed_records.length}`,
+    `  new records:          ${preview.new_record_count}`,
+    `  matching records:     ${preview.matching_record_count}`,
+    `  changed records:      ${preview.changed_record_count}`,
     `  conflicts:            ${preview.conflicts.length}`,
     `  unrepresentable:       ${preview.unrepresentable_records.length}`,
     `  unknown fields:        ${preview.unknown_fields.length}`,
   ];
+  if (preview.record_lists_truncated) {
+    lines.push("  record ID lists:      first 1,000 per category");
+  }
   for (const conflict of preview.conflicts) {
     lines.push(
       `    ${conflict.record_id === undefined ? "" : `${conflict.record_id}: `}` +

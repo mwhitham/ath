@@ -101,6 +101,7 @@ export {
   importRecords,
   loadAthleticStandardPackage,
   previewPackageImport,
+  readImportedPackageRecord,
   type LoadedPackage,
   type PackageImportConflict,
   type PackageImportPreview,
