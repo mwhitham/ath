@@ -79,6 +79,42 @@ describe("v1 performance database generator", () => {
       );
       expect(Number(types.rows[0]?.count)).toBe(24);
 
+      const evidencePlan = await client.execute(`
+        EXPLAIN QUERY PLAN
+        WITH visible_revisions AS (
+          SELECT
+            candidate_records.record_id,
+            (
+              SELECT MAX(candidate_revisions.revision)
+              FROM record_revisions AS candidate_revisions
+              WHERE candidate_revisions.record_id = candidate_records.record_id
+                AND candidate_revisions.became_known_at <= '2026-10-13T23:59:59.999Z'
+            ) AS revision
+          FROM records AS candidate_records
+          WHERE candidate_records.record_type IN (
+            'benchmark_definition',
+            'source',
+            'point_measurement',
+            'athlete_report',
+            'sleep_session',
+            'workout_session',
+            'benchmark_result',
+            'prediction'
+          )
+        )
+        SELECT visible_revisions.record_id
+        FROM visible_revisions
+        JOIN record_revisions
+          ON record_revisions.record_id = visible_revisions.record_id
+         AND record_revisions.revision = visible_revisions.revision
+        LIMIT 100000
+      `);
+      expect(
+        evidencePlan.rows.some((row) =>
+          String(row.detail).includes("records_record_type_idx"),
+        ),
+      ).toBe(true);
+
       const integrity = await client.execute("PRAGMA integrity_check");
       expect(integrity.rows).toEqual([{ integrity_check: "ok" }]);
       const foreignKeys = await client.execute("PRAGMA foreign_key_check");

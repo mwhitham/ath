@@ -36,17 +36,9 @@ jobs:
           name: performance-100k
           path: performance/results/100k.json
 
-  large:
+  three-million:
     runs-on: [self-hosted, linux, x64, ath-performance]
-    timeout-minutes: 360
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - records: 3000000
-            name: 3m
-          - records: 30000000
-            name: 30m
+    timeout-minutes: 180
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -56,15 +48,15 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: >-
-          pnpm performance:generate -- --records ${{ matrix.records }}
-          --output performance/generated/${{ matrix.name }}
+          pnpm performance:generate -- --records 3000000
+          --output performance/generated/3m
       - run: >-
           pnpm performance:run --
-          --database performance/generated/${{ matrix.name }}/athlete.ath.sqlite
-          --output performance/results/${{ matrix.name }}.json
+          --database performance/generated/3m/athlete.ath.sqlite
+          --output performance/results/3m.json
           --measured-at "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
           --repetitions 3
       - uses: actions/upload-artifact@v4
         with:
-          name: performance-${{ matrix.name }}
-          path: performance/results/${{ matrix.name }}.json
+          name: performance-3m
+          path: performance/results/3m.json

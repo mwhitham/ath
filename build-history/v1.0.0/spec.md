@@ -1023,3 +1023,10 @@ pnpm build
 
 Schema changes must also regenerate the JSON Schema and fixture. CLI or help changes
 must regenerate the Skill command reference.
+
+## 18. Approved release-test size change
+
+D114 supersedes the 30-million-record requirement in section 13. Required measured
+runs use 100,000 records in normal release CI and 3 million records in the separate
+large release job. Larger generated databases are optional investigation tools and
+are not a release gate.

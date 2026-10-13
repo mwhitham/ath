@@ -969,3 +969,31 @@ Rejected alternatives:
 - **Keep the 50-million-object cap.** Rejected because a valid 30-million-record
   database could not complete the required export and restore release test.
 - **Remove the object cap.** Rejected because package input remains untrusted.
+
+## D114. Require measured release runs at 100,000 and 3 million records
+
+This decision supersedes the required 30-million-record run in D95 and section 13
+of the v1.0.0 plan.
+
+Normal release CI measures 100,000 records. The separate large release job measures
+3 million records. The measured 3-million-record fixture is 5.6 GB, which already
+exceeds a 1 GB real record covering 15 years. A complete 30-million-record fixture
+is 58 GB and mostly measures hours of full-copy disk work during export, check, and
+restore.
+
+Large-data failures remain covered by focused tests. Workout calculations must apply
+session time bounds before their input limit. Historical evidence queries must select
+only the record types they use and must use the record-type index. The generator may
+still create larger databases for optional investigation, but they are not a release
+gate.
+
+The 100-million-object package refusal limit from D113 remains unchanged. It is an
+input safety limit, not a required fixture size.
+
+Rejected alternatives:
+
+- **Keep 30 million records as a release gate.** Rejected because it is far beyond
+  the expected local record and makes release proof depend mainly on disk-copy time.
+- **Test only 100,000 records.** Rejected because the 3-million-record run is large
+  enough to expose unsafe query bounds and remains practical as a separate release
+  job.

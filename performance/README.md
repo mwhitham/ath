@@ -20,11 +20,17 @@ pnpm performance:run -- \
   --repetitions 3
 ```
 
-The required sizes are 100,000, 3 million, and 30 million current records. The
-generator uses `ath-v1-performance-seed-2`. Each database includes three sources
-that record the same quantities, dense all-day and workout samples, summaries,
-scores, sessions, corrections, deletions, athlete reports, nutrition, plans, and
-predictions.
+The required sizes are 100,000 and 3 million current records. The 100,000-record
+run is part of normal release CI. The 3-million-record run uses the separate large
+release job. Its generated database is about 5.6 GB.
+
+The generator uses `ath-v1-performance-seed-2`. Each database includes three
+sources that record the same quantities, dense all-day and workout samples,
+summaries, scores, sessions, corrections, deletions, athlete reports, nutrition,
+plans, and predictions.
+
+Larger generated databases are optional investigation tools. They are not a
+release gate.
 
 The runner measures:
 
