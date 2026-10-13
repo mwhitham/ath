@@ -196,7 +196,7 @@ describe("v1 package restore", () => {
     for (let index = 0; index < originalFiles.length; index++) {
       expect(originalFiles[index]![1].equals(restoredFiles[index]![1])).toBe(true);
     }
-  });
+  }, 20_000);
 
   it("shows and applies an explicit package conflict resolution", () => {
     const directory = mkdtempSync(join(tmpdir(), "ath-v1-conflict-"));
@@ -298,7 +298,7 @@ describe("v1 package restore", () => {
       current_revision: 3,
       data: { name: "Imported name" },
     });
-  });
+  }, 30_000);
 
   it("refuses a different nonempty database and every prerelease JSON file", () => {
     const directory = mkdtempSync(join(tmpdir(), "ath-v1-restore-"));

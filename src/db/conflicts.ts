@@ -189,7 +189,11 @@ export async function resolvePackageConflict(
     });
   }
   const next = structuredClone(state);
-  next.conflicts[index]!.resolution = Resolution.parse(resolution);
+  next.conflicts[index]!.resolution = Resolution.parse(
+    resolution.choice === "corrected"
+      ? { choice: resolution.choice, data: resolution.data }
+      : { choice: resolution.choice },
+  );
   await writeConflictSet(database, next);
   return next;
 }

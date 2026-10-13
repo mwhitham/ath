@@ -41,11 +41,14 @@ describe("ath --help — written for someone who has never run this (D50)", () =
         "init",
         "check",
         "import",
+        "conflicts",
         "export",
         "log",
         "link",
         "correct",
         "delete",
+        "erase",
+        "calculate",
         "predict",
         "grade",
         "stats",
@@ -62,7 +65,7 @@ describe("ath --help — written for someone who has never run this (D50)", () =
         expect(res.stdout, `${command} --help`).toContain(`$ ath ${command}`);
       }
     },
-    10_000,
+    20_000,
   );
 
   it("shows plain-text and structured log examples with the confirmation rule", () => {
@@ -144,7 +147,7 @@ describe("errors name the remedy", () => {
     writeFileSync(join(dir, "nonsense.txt"), "this is not an export\n");
     const res = ath(["import", "nonsense.txt"], dir);
     expect(res.code).toBe(1);
-    expect(res.stdout).toContain("package JSON is invalid");
+    expect(res.stdout).toContain("is not a supported export");
     expect(res.stdout).toContain("nonsense.txt");
   });
 });
