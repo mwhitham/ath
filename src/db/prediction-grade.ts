@@ -265,7 +265,7 @@ export async function gradePrediction(
   const grade = written.records.find(
     (record) => record.record_type === "prediction_grade",
   );
-  if (link === undefined || grade === undefined) {
+  if (link === undefined || link === null || grade === undefined) {
     throw new Error("prediction grade write did not return its link and grade");
   }
   return { link, grade, database_revision: written.database_revision };
