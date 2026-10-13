@@ -38,6 +38,7 @@ interface ProviderRecordDraft {
   data: unknown;
   match_key_method: string;
   match_key: string;
+  collision_group?: string;
   existing_record_id?: string;
 }
 
@@ -230,12 +231,12 @@ async function resolveSourceIds(
     if (data.source_type === "manual" && existingId !== undefined) {
       continue;
     }
-    const key = [
+    const key = JSON.stringify([
       "source",
       data.data_writer,
       data.data_route,
       data.sensor_type ?? "",
-    ].join("\u0000");
+    ]);
     drafts.push({
       record_id: recordId,
       record_type: "source",
@@ -286,11 +287,14 @@ function draftKey(
   method: string,
   base: readonly string[],
   collisions: Map<string, number>,
-): string {
-  const stem = base.join("\u0000");
+): { match_key: string; collision_group: string } {
+  const stem = JSON.stringify(base);
   const ordinal = collisions.get(stem) ?? 0;
   collisions.set(stem, ordinal + 1);
-  return `${stem}\u0000${ordinal}`;
+  return {
+    match_key: JSON.stringify([...base, ordinal]),
+    collision_group: stem,
+  };
 }
 
 function hardSignalDraft(
@@ -307,6 +311,11 @@ function hardSignalDraft(
   if (signal.type === "sleep_session") {
     const start = normalizedUtc(signal.start);
     const end = normalizedUtc(signal.end);
+    const key = draftKey(
+      method,
+      ["sleep_session", sourceId, start],
+      collisions,
+    );
     return {
       record_id: createUuidV7(),
       record_type: "sleep_session",
@@ -321,16 +330,17 @@ function hardSignalDraft(
         source_reported_summaries: sourceReportedSummaries(signal.aggregates),
       },
       match_key_method: method,
-      match_key: draftKey(
-        method,
-        ["sleep_session", sourceId, start],
-        collisions,
-      ),
+      ...key,
     };
   }
   if (signal.type === "workout_session") {
     const start = normalizedUtc(signal.start);
     const end = normalizedUtc(signal.end);
+    const key = draftKey(
+      method,
+      ["workout_session", sourceId, start],
+      collisions,
+    );
     return {
       record_id: createUuidV7(),
       record_type: "workout_session",
@@ -360,11 +370,7 @@ function hardSignalDraft(
             }),
       },
       match_key_method: method,
-      match_key: draftKey(
-        method,
-        ["workout_session", sourceId, start],
-        collisions,
-      ),
+      ...key,
     };
   }
   if (signal.type === "vendor_score") {
@@ -373,6 +379,11 @@ function hardSignalDraft(
       time.recorded_at ??
       time.provider_reporting_periods?.[0]?.provider_date ??
       signal.recorded_at;
+    const key = draftKey(
+      method,
+      ["provider_score", sourceId, signal.metric, anchor],
+      collisions,
+    );
     return {
       record_id: createUuidV7(),
       record_type: "provider_score",
@@ -386,11 +397,7 @@ function hardSignalDraft(
         ...time,
       },
       match_key_method: method,
-      match_key: draftKey(
-        method,
-        ["provider_score", sourceId, signal.metric, anchor],
-        collisions,
-      ),
+      ...key,
     };
   }
 
@@ -400,6 +407,11 @@ function hardSignalDraft(
     time.recorded_at ??
     time.provider_reporting_periods?.[0]?.provider_date ??
     signal.recorded_at;
+  const key = draftKey(
+    method,
+    ["point_measurement", sourceId, quantity, anchor],
+    collisions,
+  );
   return {
     record_id: createUuidV7(),
     record_type: "point_measurement",
@@ -436,11 +448,7 @@ function hardSignalDraft(
           }),
     },
     match_key_method: method,
-    match_key: draftKey(
-      method,
-      ["point_measurement", sourceId, quantity, anchor],
-      collisions,
-    ),
+    ...key,
   };
 }
 
@@ -469,7 +477,7 @@ function softSignalDraft(
         reported_items: [],
       },
       match_key_method: method,
-      match_key: key,
+      ...key,
     };
   }
   return {
@@ -486,7 +494,7 @@ function softSignalDraft(
       ...(signal.note === undefined ? {} : { note: signal.note }),
     },
     match_key_method: method,
-    match_key: key,
+    ...key,
   };
 }
 
@@ -516,6 +524,11 @@ function seriesDrafts(
     for (const [index, offset] of file.offsets_ms.entries()) {
       const inputTimestamp = atOffsetOf(file.start, startMs + offset);
       const recordedAt = normalizedUtc(inputTimestamp);
+      const key = draftKey(
+        method,
+        ["measurement_sample", sourceId, quantity, recordedAt],
+        collisions,
+      );
       drafts.push({
         record_id: createUuidV7(),
         record_type: "measurement_sample",
@@ -537,11 +550,7 @@ function seriesDrafts(
           timestamp_reconstruction_method: "series_start_plus_offset_ms_v1",
         },
         match_key_method: method,
-        match_key: draftKey(
-          method,
-          ["measurement_sample", sourceId, quantity, recordedAt],
-          collisions,
-        ),
+        ...key,
       });
     }
   }
@@ -580,14 +589,14 @@ async function buildProviderPlan(
         accepted_record_count: acceptedByDevice.get(deviceKey) ?? observation.n,
       },
       match_key_method: `${parsed.route}/v1`,
-      match_key: [
+      match_key: JSON.stringify([
         "source_device",
         sourceId,
         observation.device.name ?? "",
         observation.device.manufacturer ?? "",
         observation.device.model ?? "",
         observation.device.hardware ?? "",
-      ].join("\u0000"),
+      ]),
     });
   }
 
@@ -687,15 +696,13 @@ function skipSummary(parsed: ParsedProviderExport): Record<string, { count: numb
   return Object.fromEntries(
     [...parsed.payload.skipped]
       .sort(([left], [right]) => left.localeCompare(right))
-      .map(([reason, count]) => [
-        reason,
-        {
-          count,
-          ...(parsed.payload.skipExamples.get(reason) === undefined
-            ? {}
-            : { example: parsed.payload.skipExamples.get(reason) }),
-        },
-      ]),
+      .map(([reason, count]) => {
+        const example = parsed.payload.skipExamples.get(reason);
+        return [
+          reason,
+          example === undefined ? { count } : { count, example },
+        ];
+      }),
   );
 }
 
@@ -755,12 +762,10 @@ export async function previewProviderImport(
 
   const collisionGroups = new Map<string, ProviderImportChange[]>();
   for (const change of changes) {
-    const parts = change.draft.match_key.split("\u0000");
-    const ordinal = parts.at(-1);
-    if (ordinal === undefined || !/^\d+$/.test(ordinal)) {
+    const base = change.draft.collision_group;
+    if (base === undefined) {
       continue;
     }
-    const base = parts.slice(0, -1).join("\u0000");
     const group = collisionGroups.get(base) ?? [];
     group.push(change);
     collisionGroups.set(base, group);

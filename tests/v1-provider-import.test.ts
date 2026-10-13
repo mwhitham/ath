@@ -113,7 +113,10 @@ describe("v1 provider import", () => {
     const readiness = scores.find(
       (record) =>
         record.record_type === "provider_score" &&
-        record.data.metric === "readiness",
+        record.data.metric === "readiness" &&
+        record.data.provider_reporting_periods?.some(
+          (period) => period.provider_date === "2026-08-09",
+        ),
     );
     expect(readiness).toMatchObject({
       record_type: "provider_score",
