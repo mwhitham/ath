@@ -1,4 +1,4 @@
-import { lstat, mkdir, mkdtemp, rm, symlink } from "node:fs/promises";
+import { chmod, lstat, mkdir, mkdtemp, rm, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -216,7 +216,9 @@ describe("v1 database creation and opening", () => {
     expect(String(before.rows[0]?.journal_mode).toLowerCase()).toBe("delete");
     client.close();
 
-    await expect(openDatabase(path)).rejects.toThrow("does not belong");
+    await expect(
+      openDatabase(path, { onSecurityWarning: () => undefined }),
+    ).rejects.toThrow("does not belong");
 
     const afterClient = createClient({ url: pathToFileURL(path).href });
     const after = await afterClient.execute("PRAGMA journal_mode");
@@ -270,6 +272,24 @@ describe("v1 database creation and opening", () => {
     openDatabases.pop();
     await expect(openDatabase(path)).rejects.toThrow("does not match");
   });
+
+  it.runIf(process.platform !== "win32")(
+    "warns before opening a database readable by other local users",
+    async () => {
+      const { database, path } = await newDatabase();
+      database.close();
+      openDatabases.pop();
+      await chmod(path, 0o644);
+      const warnings: string[] = [];
+      const reopened = await openDatabase(path, {
+        onSecurityWarning: (warning) => warnings.push(warning),
+      });
+      openDatabases.push(reopened);
+      expect(warnings).toContain(
+        `Sensitive athlete data path is readable by other local users: ${path}`,
+      );
+    },
+  );
 
   it("does not expose a raw SQL client or transaction callback publicly", () => {
     expect(publicDatabase).not.toHaveProperty("connectDatabase");
@@ -356,6 +376,21 @@ describe("v1 record writes and revisions", () => {
     expect((await readRecord(database, sourceId))?.current_revision).toBe(1);
   });
 
+  it("refuses a correction whose knowledge time precedes its current revision", async () => {
+    const { database } = await newDatabase();
+    await writeRecord(database, sourceInput());
+    await expect(
+      correctRecord(database, {
+        record_id: sourceId,
+        expected_revision: 1,
+        changed_by: toolActor,
+        became_known_at: "2026-08-08T12:00:00.000Z",
+        data: sourceInput().data,
+      }),
+    ).rejects.toThrow("cannot precede");
+    expect(await readRecordRevisions(database, sourceId)).toHaveLength(1);
+  });
+
   it("enforces the two-tier wall before SQL", async () => {
     const { database } = await newDatabase();
     await expect(
@@ -395,6 +430,147 @@ describe("v1 record writes and revisions", () => {
         },
       }),
     ).rejects.toThrow();
+  });
+
+  it("enforces matching benchmarks and exact grade arithmetic", async () => {
+    const { database } = await newDatabase();
+    const benchmarkOne = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e10";
+    const benchmarkTwo = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e11";
+    const resultOne = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e12";
+    const resultTwo = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e13";
+    const prediction = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e14";
+    const link = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e15";
+
+    const authorship = {
+      author: { author_type: "athlete" as const },
+      authored_at: createdAt,
+      evidence: [],
+      content_version: 1,
+      status: "active" as const,
+    };
+    await writeRecords(database, [
+      sourceInput(),
+      {
+        record_type: "benchmark_definition",
+        record_id: benchmarkOne,
+        created_at: createdAt,
+        changed_by: toolActor,
+        data: {
+          authorship,
+          benchmark_key: "fran",
+          benchmark_type: "named_wod",
+          score_type: "time",
+          definition: "21-15-9 thrusters and pull-ups",
+        },
+      },
+      {
+        record_type: "benchmark_definition",
+        record_id: benchmarkTwo,
+        created_at: createdAt,
+        changed_by: toolActor,
+        data: {
+          authorship,
+          benchmark_key: "grace",
+          benchmark_type: "named_wod",
+          score_type: "time",
+          definition: "30 clean and jerks",
+        },
+      },
+      ...([
+        [resultOne, benchmarkOne],
+        [resultTwo, benchmarkTwo],
+      ] as const).map(([record_id, benchmark_definition_id]) => ({
+        record_type: "benchmark_result" as const,
+        record_id,
+        created_at: createdAt,
+        changed_by: toolActor,
+        data: {
+          source_id: sourceId,
+          received_at: createdAt,
+          received_at_basis: "local_write_time" as const,
+          benchmark_definition_id,
+          recorded_at: "2026-08-10T12:00:00.000Z",
+          input_timestamp: timestampReceipt,
+          score: { duration_s: 300 },
+        },
+      })),
+      {
+        record_type: "prediction",
+        record_id: prediction,
+        created_at: createdAt,
+        changed_by: toolActor,
+        data: {
+          authorship,
+          benchmark_definition_id: benchmarkOne,
+          predicted_score: { duration_s: 280 },
+          predicted_range: {
+            low: { duration_s: 270 },
+            high: { duration_s: 290 },
+          },
+          confidence: "moderate",
+          reasoning: "Based on linked evidence",
+        },
+      },
+    ]);
+
+    await expect(
+      writeRecord(database, {
+        record_type: "prediction_result_link",
+        record_id: link,
+        created_at: createdAt,
+        changed_by: toolActor,
+        data: {
+          prediction: { record_id: prediction, revision: 1 },
+          benchmark_result: { record_id: resultTwo, revision: 1 },
+          created_by: toolActor,
+          linked_at: createdAt,
+          content_version: 1,
+          status: "active",
+        },
+      }),
+    ).rejects.toThrow("different benchmark definitions");
+
+    await writeRecord(database, {
+      record_type: "prediction_result_link",
+      record_id: link,
+      created_at: createdAt,
+      changed_by: toolActor,
+      data: {
+        prediction: { record_id: prediction, revision: 1 },
+        benchmark_result: { record_id: resultOne, revision: 1 },
+        created_by: toolActor,
+        linked_at: createdAt,
+        content_version: 1,
+        status: "active",
+      },
+    });
+
+    await expect(
+      writeRecord(database, {
+        record_type: "prediction_grade",
+        record_id: "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e16",
+        created_at: createdAt,
+        changed_by: toolActor,
+        data: {
+          authorship: {
+            author: {
+              ...toolActor,
+              calculation_version: "prediction-grade-v1",
+            },
+            authored_at: createdAt,
+            evidence: [{ record_id: link, revision: 1 }],
+            content_version: 1,
+            status: "active",
+          },
+          prediction_result_link: { record_id: link, revision: 1 },
+          signed_error: 0,
+          absolute_error_percentage: 0,
+          result_in_predicted_range: true,
+          predicted_score: { duration_s: 280 },
+          actual_score: { duration_s: 300 },
+        },
+      }),
+    ).rejects.toThrow("arithmetic");
   });
 
   it("enforces attachment, calculation-input, and goal-target links", async () => {

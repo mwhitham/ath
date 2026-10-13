@@ -269,8 +269,9 @@ nutrition_model_interpretation
 `point_measurement_calculations`, `workout_session_segments`,
 `benchmark_result_segments`,
 `provider_reporting_periods`, `reported_nutrition_items`, `authored_record_evidence`,
-`prediction_error_causes`, and `planned_session_blocks` are child rows. They do not
-have their own `record_type`.
+`prediction_error_causes`, `planned_session_blocks`,
+`point_measurement_calculation_inputs`, and `record_attachment_links` are child
+rows. They do not have their own `record_type`.
 
 Source devices are independently revisioned records. Their imported coverage windows
 and descriptive details may be corrected without replacing the source that owns
@@ -369,6 +370,7 @@ its `previous_revision`. The current typed row is updated in the same transactio
 An as-of query considers only revisions that became known by its cutoff. New local
 and provider writes use the time the database learned the revision. A v1 package
 restore preserves the recorded time and basis.
+A correction cannot use a `became_known_at` earlier than its prior revision.
 
 A row in `record_deletions` names `record_id`, `deleted_at`, the author, and the
 deleted `record_revision`. `record_id` references `records.record_id`, and
@@ -445,6 +447,9 @@ author of the prediction or measured result.
 `prediction_error_causes.prediction_error_analysis_id` name their parent records.
 The general evidence table stores ordered evidence for predictions, plans, reviews,
 goals, coaching notes, grades, and nutrition interpretations.
+Prediction-result links also reference the typed prediction and benchmark-result
+tables. A saved grade is checked against the exact linked revisions and deterministic
+grade arithmetic before it is written.
 
 Grades are calculated at runtime. A saved grade is an authored record of what the
 tool calculated at that time. It names the calculation version and inputs.
@@ -763,7 +768,8 @@ libSQL.
 Use raw, parameterized SQL migrations. Do not add an ORM until repeated application
 code shows a specific need.
 
-The database layer must expose domain operations rather than general SQL:
+The database layer must expose domain operations rather than general SQL. Its public
+database handle is opaque:
 
 ```text
 createDatabase

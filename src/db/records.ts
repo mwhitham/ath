@@ -2,10 +2,13 @@ import type { Transaction } from "@libsql/client";
 import {
   BecameKnownAtBasis,
   CurrentRecord,
+  BenchmarkResultData,
   RecordActor,
   RecordId,
   RecordRevision,
   RecordType,
+  PredictionData,
+  PredictionResultLinkData,
   UtcTimestamp,
   type CurrentRecordT,
   type RecordActorT,
@@ -543,6 +546,135 @@ async function upsertTypedRecord(
   await replaceAuthoredEvidence(transaction, record);
 }
 
+async function readTypedRevisionData(
+  transaction: Transaction,
+  recordId: string,
+  revision: number,
+  expectedRecordType: RecordTypeT,
+): Promise<unknown> {
+  const result = await transaction.execute({
+    sql: `
+      SELECT record_type, record_json
+      FROM record_revisions
+      WHERE record_id = ? AND revision = ?
+    `,
+    args: [recordId, revision],
+  });
+  const row = result.rows[0];
+  if (row === undefined) {
+    throw new Error(`Referenced record revision does not exist: ${recordId}@${revision}`);
+  }
+  if (row.record_type !== expectedRecordType) {
+    throw new Error(
+      `Referenced ${recordId}@${revision} is ${String(row.record_type)}, not ${expectedRecordType}`,
+    );
+  }
+  return JSON.parse(String(row.record_json)) as unknown;
+}
+
+function nativeScoreValue(
+  score: { duration_s?: number; reps?: number; weight_kg?: number },
+  scoreType: string,
+): number {
+  const value =
+    scoreType === "time"
+      ? score.duration_s
+      : scoreType === "reps"
+        ? score.reps
+        : score.weight_kg;
+  if (value === undefined) {
+    throw new Error(`Score does not contain the benchmark's ${scoreType} value`);
+  }
+  return value;
+}
+
+async function linkedPredictionAndResult(
+  transaction: Transaction,
+  linkData: {
+    prediction: { record_id: string; revision: number };
+    benchmark_result: { record_id: string; revision: number };
+  },
+): Promise<{
+  prediction: ReturnType<typeof PredictionData.parse>;
+  result: ReturnType<typeof BenchmarkResultData.parse>;
+}> {
+  const prediction = PredictionData.parse(
+    await readTypedRevisionData(
+      transaction,
+      linkData.prediction.record_id,
+      linkData.prediction.revision,
+      "prediction",
+    ),
+  );
+  const result = BenchmarkResultData.parse(
+    await readTypedRevisionData(
+      transaction,
+      linkData.benchmark_result.record_id,
+      linkData.benchmark_result.revision,
+      "benchmark_result",
+    ),
+  );
+  if (prediction.benchmark_definition_id !== result.benchmark_definition_id) {
+    throw new Error("Prediction and benchmark result use different benchmark definitions");
+  }
+  return { prediction, result };
+}
+
+async function validateTypedRelationships(
+  transaction: Transaction,
+  record: CurrentRecordT,
+): Promise<void> {
+  if (record.record_type === "prediction_result_link") {
+    await linkedPredictionAndResult(transaction, record.data);
+    return;
+  }
+  if (record.record_type !== "prediction_grade") {
+    return;
+  }
+
+  const linkData = PredictionResultLinkData.parse(
+    await readTypedRevisionData(
+      transaction,
+      record.data.prediction_result_link.record_id,
+      record.data.prediction_result_link.revision,
+      "prediction_result_link",
+    ),
+  );
+  const { prediction, result } = await linkedPredictionAndResult(transaction, linkData);
+  if (requiredJson(record.data.predicted_score) !== requiredJson(prediction.predicted_score)) {
+    throw new Error("Saved grade predicted score does not match the linked prediction revision");
+  }
+  if (requiredJson(record.data.actual_score) !== requiredJson(result.score)) {
+    throw new Error("Saved grade actual score does not match the linked result revision");
+  }
+
+  const benchmark = await transaction.execute({
+    sql: "SELECT score_type FROM benchmark_definitions WHERE record_id = ?",
+    args: [prediction.benchmark_definition_id],
+  });
+  const scoreType = benchmark.rows[0]?.score_type;
+  if (typeof scoreType !== "string") {
+    throw new Error("Linked benchmark definition does not exist");
+  }
+  const predictedValue = nativeScoreValue(prediction.predicted_score, scoreType);
+  const actualValue = nativeScoreValue(result.score, scoreType);
+  const signedError = Math.round((predictedValue - actualValue) * 100) / 100;
+  const absoluteErrorPercentage =
+    Math.round((Math.abs(signedError) / actualValue) * 1_000) / 10;
+  const inRange =
+    prediction.predicted_range !== undefined &&
+    actualValue >= nativeScoreValue(prediction.predicted_range.low, scoreType) &&
+    actualValue <= nativeScoreValue(prediction.predicted_range.high, scoreType);
+
+  if (
+    record.data.signed_error !== signedError ||
+    record.data.absolute_error_percentage !== absoluteErrorPercentage ||
+    record.data.result_in_predicted_range !== inRange
+  ) {
+    throw new Error("Saved grade arithmetic does not match its linked revisions");
+  }
+}
+
 async function insertRevision(
   transaction: Transaction,
   record: CurrentRecordT,
@@ -650,6 +782,9 @@ export async function writeRecords(
       await upsertTypedRecord(transaction, record);
       records.push(record);
     }
+    for (const record of records) {
+      await validateTypedRelationships(transaction, record);
+    }
     const databaseRevision = await incrementDatabaseRevision(transaction);
     return { records, database_revision: databaseRevision };
   });
@@ -679,9 +814,17 @@ export async function correctRecord(
   return withWriteTransaction(database, async (transaction) => {
     const result = await transaction.execute({
       sql: `
-        SELECT record_type, current_revision, created_at, is_deleted
+        SELECT
+          records.record_type,
+          records.current_revision,
+          records.created_at,
+          records.is_deleted,
+          record_revisions.became_known_at
         FROM records
-        WHERE record_id = ?
+        JOIN record_revisions
+          ON record_revisions.record_id = records.record_id
+         AND record_revisions.revision = records.current_revision
+        WHERE records.record_id = ?
       `,
       args: [recordId],
     });
@@ -697,6 +840,11 @@ export async function correctRecord(
     }
     if (Number(row.is_deleted) !== 0) {
       throw new Error(`Deleted record cannot be corrected: ${recordId}`);
+    }
+    if (Date.parse(becameKnownAt) < Date.parse(String(row.became_known_at))) {
+      throw new Error(
+        `Revision knowledge time cannot precede revision ${currentRevision}`,
+      );
     }
 
     const record = CurrentRecord.parse({
@@ -717,6 +865,7 @@ export async function correctRecord(
       currentRevision,
     );
     await upsertTypedRecord(transaction, record);
+    await validateTypedRelationships(transaction, record);
     await transaction.execute({
       sql: "UPDATE records SET current_revision = ? WHERE record_id = ?",
       args: [record.current_revision, record.record_id],

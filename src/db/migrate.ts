@@ -152,10 +152,37 @@ interface PreparedLocalFile {
   inode: bigint;
 }
 
+async function assertParentNotWritableByOtherUsers(path: string): Promise<void> {
+  if (process.platform === "win32") {
+    return;
+  }
+  const parent = await lstat(dirname(path));
+  if ((parent.mode & 0o022) !== 0) {
+    throw new Error(
+      `Refusing database path in a directory writable by other local users: ${dirname(path)}`,
+    );
+  }
+}
+
+async function assertSameFile(
+  path: string,
+  expected: { device: bigint; inode: bigint },
+): Promise<void> {
+  const current = await lstat(path, { bigint: true });
+  if (
+    current.isSymbolicLink() ||
+    current.dev !== expected.device ||
+    current.ino !== expected.inode
+  ) {
+    throw new Error(`Database file changed while it was being opened: ${path}`);
+  }
+}
+
 async function prepareLocalDatabaseFile(path: string): Promise<PreparedLocalFile> {
   await refuseSymbolicLinkComponents(path, { allowMissingTail: true });
   await mkdir(dirname(path), { recursive: true, mode: 0o700 });
   await refuseSymbolicLinkComponents(dirname(path));
+  await assertParentNotWritableByOtherUsers(path);
 
   let file;
   try {
@@ -231,6 +258,9 @@ export async function createDatabase(
     throw error;
   }
   try {
+    if (prepared !== undefined) {
+      await assertSameFile(prepared.path, prepared);
+    }
     await enableLocalWal(database);
     await installInitialSchema(database, databaseId, createdAt);
     await setOwnerOnlyDatabasePermissions(database);
@@ -244,9 +274,53 @@ export async function createDatabase(
   }
 }
 
-export async function openDatabase(target: string): Promise<AthleticDatabase> {
+export interface OpenDatabaseOptions {
+  onSecurityWarning?: (message: string) => void;
+}
+
+async function warnAboutReadablePaths(
+  path: string,
+  warn: (message: string) => void,
+): Promise<void> {
+  if (process.platform === "win32") {
+    return;
+  }
+  for (const candidate of [path, `${path}-wal`, `${path}-shm`, dirname(path)]) {
+    try {
+      const stat = await lstat(candidate);
+      if ((stat.mode & 0o044) !== 0) {
+        warn(`Sensitive athlete data path is readable by other local users: ${candidate}`);
+      }
+    } catch (error) {
+      if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) {
+        throw error;
+      }
+    }
+  }
+}
+
+export async function openDatabase(
+  target: string,
+  options: OpenDatabaseOptions = {},
+): Promise<AthleticDatabase> {
+  const parsedTarget = parseDatabaseTarget(target);
+  let expectedFile: { device: bigint; inode: bigint } | undefined;
+  if (parsedTarget.localPath !== undefined) {
+    await refuseSymbolicLinkComponents(parsedTarget.localPath);
+    await assertParentNotWritableByOtherUsers(parsedTarget.localPath);
+    await warnAboutReadablePaths(
+      parsedTarget.localPath,
+      options.onSecurityWarning ?? console.warn,
+    );
+    const stat = await lstat(parsedTarget.localPath, { bigint: true });
+    expectedFile = { device: stat.dev, inode: stat.ino };
+  }
+
   const database = await connectDatabase(target);
   try {
+    if (parsedTarget.localPath !== undefined && expectedFile !== undefined) {
+      await assertSameFile(parsedTarget.localPath, expectedFile);
+    }
     const applicationId = await readApplicationId(database);
     if (
       applicationId !== null &&

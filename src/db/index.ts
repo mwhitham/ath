@@ -10,6 +10,7 @@ export {
   openDatabase,
   readDatabaseMetadata,
   type DatabaseMetadata,
+  type OpenDatabaseOptions,
 } from "./migrate.js";
 export {
   correctRecord,

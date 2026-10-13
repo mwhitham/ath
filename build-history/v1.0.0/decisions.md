@@ -715,3 +715,42 @@ Rejected alternatives:
   retain sensitive text.
 - **Require calculation metadata for every tool action.** Rejected because deleting
   or linking a record is an action, not an arithmetic result.
+
+## D104. The database handle is opaque and every logical link has a foreign key
+
+The public database handle does not expose a SQL client or an arbitrary transaction
+callback. Public callers use domain operations such as `writeRecord`,
+`correctRecord`, and the named queries. Internal migration and transaction helpers
+remain package-private.
+
+SQL stores every logical record link that integrity and privacy erasure need to
+follow. `record_attachment_links` connects athlete reports and nutrition entries to
+attachments. `point_measurement_calculation_inputs` connects a calculated
+measurement to the exact input revisions. Goals use a foreign key for an optional
+benchmark target. Prediction links and grades reference both the expected typed
+table and the exact retained revision.
+
+A correction's `became_known_at` cannot precede the prior revision's knowledge time.
+A prediction-result link must join records for the same benchmark definition. A
+saved grade must copy the scores from its exact linked revisions, and its stored
+arithmetic must match the calculation version's deterministic method.
+
+A new local database file is created exclusively with owner-only permissions before
+SQLite enables WAL. WAL and shared-memory files also receive owner-only permissions.
+The local client applies the five-second timeout to every pooled connection.
+Foreign-key enforcement is checked inside every write transaction.
+
+An existing local file is inspected before WAL is enabled. Another nonzero
+application ID is refused without changing the file's journal mode. Opening warns
+when the database, WAL, shared-memory file, or database directory is readable by
+other local users. A database path in a directory writable by other local users is
+refused.
+
+Rejected alternatives:
+
+- **Expose the libSQL client for advanced callers.** Rejected because direct SQL can
+  bypass revisions, validation, and the two-tier wall.
+- **Keep links only in `data_json`.** Rejected because foreign-key checks and privacy
+  erasure could not find every dependent record.
+- **Enable WAL before checking the file.** Rejected because a refused foreign
+  database would be modified merely by inspection.
