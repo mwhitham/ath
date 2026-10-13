@@ -30,6 +30,7 @@ is offered, it shows the write and writes nothing.
 - [ath backtest](#ath-backtest) — replay history with one or more models — writes a report, not the athlete file
 - [ath share](#ath-share) — not built yet — names the latest backtest report
 - [ath grade](#ath-grade) — grade an existing prediction against an existing benchmark result
+- [ath calculate](#ath-calculate) — run a named calculation without writing athlete data
 - [ath series](#ath-series) — read a sample series back: one row per day, or the raw samples
 - [ath stats](#ath-stats) — what is in the file: counts, date ranges, sources, and baselines
 - [ath records](#ath-records) — find stable record IDs, inspect one record, and read its revision history
@@ -45,36 +46,37 @@ Athletic Standard — an open, local-first format for training and recovery data
 that keeps measured signals apart from self-reported ones.
 
 Options:
-  -V, --version                            output the version number
-  --update                                 install the latest ath with the tool that installed it, and replace the agent skill if one is already in this folder
-  -h, --help                               display help for command
+  -V, --version                               output the version number
+  --update                                    install the latest ath with the tool that installed it, and replace the agent skill if one is already in this folder
+  -h, --help                                  display help for command
 
 Set up:
-  init [options]                           create a new athlete.ath.sqlite here, with the well-known benchmarks defined
-  skill [options]                          where the agent skill is installed, and whether each copy is current
-  key [options]                            save or show a gateway key — never stored in the athlete file
-  models [options]                         list live text models that can reason, or save your usual one
+  init [options]                              create a new athlete.ath.sqlite here, with the well-known benchmarks defined
+  skill [options]                             where the agent skill is installed, and whether each copy is current
+  key [options]                               save or show a gateway key — never stored in the athlete file
+  models [options]                            list live text models that can reason, or save your usual one
 
 Get your data in:
-  import [options] <path>                  preview and import a v1 package or Apple Health, WHOOP, or Oura export
-  export [options] <directory>             write a complete deterministic Athletic Standard JSON package
-  log [options] [entry...]                 write one plain-text record or one validated structured batch
-  link [options] <result-id> <session-id>  attach a benchmark result to the workout session it happened in
-  correct [options] <record-id>            replace one record's complete data and retain its prior revision
-  delete [options] <record-id>             hide one current record while retaining its complete history
-  erase [options] <record-id>              permanently remove one record and every record that depends on it
+  import [options] <path>                     preview and import a v1 package or Apple Health, WHOOP, or Oura export
+  export [options] <directory>                write a complete deterministic Athletic Standard JSON package
+  log [options] [entry...]                    write one plain-text record or one validated structured batch
+  link [options] <result-id> <session-id>     attach a benchmark result to the workout session it happened in
+  correct [options] <record-id>               replace one record's complete data and retain its prior revision
+  delete [options] <record-id>                hide one current record while retaining its complete history
+  erase [options] <record-id>                 permanently remove one record and every record that depends on it
 
 Read your data:
-  check [options] [file]                   make sure the file still obeys every rule of the format
-  series [options] <quantity>              read a sample series back: one row per day, or the raw samples
-  stats [options] [file]                   what is in the file: counts, date ranges, sources, and baselines
-  records                                  find stable record IDs, inspect one record, and read its revision history
+  check [options] [file]                      make sure the file still obeys every rule of the format
+  calculate [options] <operation> <quantity>  run a named calculation without writing athlete data
+  series [options] <quantity>                 read a sample series back: one row per day, or the raw samples
+  stats [options] [file]                      what is in the file: counts, date ranges, sources, and baselines
+  records                                     find stable record IDs, inspect one record, and read its revision history
 
 Predict and grade:
-  predict [options] <benchmark>            predict a benchmark — needs a model in a bare terminal; --json is evidence
-  backtest [options]                       replay history with one or more models — writes a report, not the athlete file
-  share [options]                          not built yet — names the latest backtest report
-  grade [options] <prediction-id>          grade an existing prediction against an existing benchmark result
+  predict [options] <benchmark>               predict a benchmark — needs a model in a bare terminal; --json is evidence
+  backtest [options]                          replay history with one or more models — writes a report, not the athlete file
+  share [options]                             not built yet — names the latest backtest report
+  grade [options] <prediction-id>             grade an existing prediction against an existing benchmark result
 ```
 
 ## ath init
@@ -427,6 +429,32 @@ Options:
   --dry-run                        show what would be written, and write nothing
   --json                           structured preview; never confirms the write
   -h, --help                       display help for command
+```
+
+## ath calculate
+
+```
+Usage: ath calculate [options] <operation> <quantity>
+
+run a named calculation without writing athlete data
+
+Arguments:
+  operation                    one of: summary, baseline, trend, coverage,
+                               compare-sources, correlation, workout-drift
+  quantity                     measurement or sample quantity
+
+Options:
+  --source <id>                use one source only
+  --compare-source <id>        second source for compare-sources or correlation
+  --other-quantity <quantity>  second quantity for correlation
+  --session <record-id>        workout session for workout-drift
+  --from <time>                earliest day (YYYY-MM-DD) or exact UTC timestamp
+  --to <time>                  latest day (YYYY-MM-DD) or exact UTC timestamp
+  --timezone <name>            IANA timezone for calendar operations
+  --group <period>             none, day, week, or month (default: "none")
+  --file <path>                read a database other than the one in this folder
+  --json                       structured calculation receipt
+  -h, --help                   display help for command
 ```
 
 ## ath series

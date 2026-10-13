@@ -5,7 +5,7 @@ Tracks the build order from `spec.md`. Update when a step lands.
 | Step | Deliverable | Status |
 |---|---|---|
 | 0 | Confirm the next release is v1.0.0 after published v0.4.3 | ✅ done |
-| 1 | Approve the SQLite build plan and record D82 onward | ✅ D82–D108 recorded |
+| 1 | Approve the SQLite build plan and record D82 onward | ✅ D82–D109 recorded |
 | 2 | Define stable IDs, revisions, time and provider reporting periods, nutrition, plans, and authored records in Zod | ✅ done |
 | 3 | Add SQL migrations and the local libSQL adapter | ✅ done |
 | 4 | Generate the SQLite fixture and database test helpers | ✅ done |
@@ -27,6 +27,10 @@ historical query operations, deterministic SQLite fixture, and storage integrity
 tests. Steps 5 and 6 moved the read and write command flows to SQLite. The write
 commands now include stable-ID correction, linking, deletion, grading, and
 dependency-aware privacy erasure.
+
+Runtime reads now include named source-separated calculations for summaries,
+baselines, trends, calendar coverage, source comparisons, correlations, and workout
+drift.
 
 Step 7 now has deterministic package export, empty-database restore, same-database
 merge checks, dense sample files, and attachment checks. The temporary conflict

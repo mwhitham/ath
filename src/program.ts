@@ -49,6 +49,8 @@ import {
 import { candidatePaths, runUpdate } from "./update.js";
 import {
   checkDatabase,
+  CALCULATION_OPERATIONS,
+  calculate,
   correctRecord,
   createDatabase,
   databaseStats,
@@ -71,6 +73,7 @@ import {
   readRecordRevisions,
   readSeriesView,
   renderDatabaseStats,
+  renderCalculation,
   renderRecord,
   renderRecordList,
   renderSeriesView,
@@ -1271,6 +1274,80 @@ export function buildProgram(): Command {
         );
         console.log(
           `grade ${written.grade.record_id} at database revision ${written.database_revision}`,
+        );
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
+      }
+    });
+
+  program
+    .command("calculate")
+    .helpGroup(GROUPS.read)
+    .description("run a named calculation without writing athlete data")
+    .addHelpText("after", EXAMPLES.calculate!)
+    .argument("<operation>", `one of: ${CALCULATION_OPERATIONS.join(", ")}`)
+    .argument("<quantity>", "measurement or sample quantity")
+    .option("--source <id>", "use one source only")
+    .option("--compare-source <id>", "second source for compare-sources or correlation")
+    .option("--other-quantity <quantity>", "second quantity for correlation")
+    .option("--session <record-id>", "workout session for workout-drift")
+    .option("--from <time>", "earliest day (YYYY-MM-DD) or exact UTC timestamp")
+    .option("--to <time>", "latest day (YYYY-MM-DD) or exact UTC timestamp")
+    .option("--timezone <name>", "IANA timezone for calendar operations")
+    .option("--group <period>", "none, day, week, or month", "none")
+    .option("--file <path>", "read a database other than the one in this folder")
+    .option("--json", "structured calculation receipt")
+    .action(async (
+      operation: string,
+      quantity: string,
+      opts: {
+        source?: string;
+        compareSource?: string;
+        otherQuantity?: string;
+        session?: string;
+        from?: string;
+        to?: string;
+        timezone?: string;
+        group: string;
+        file?: string;
+        json?: boolean;
+      },
+    ) => {
+      if (!CALCULATION_OPERATIONS.includes(operation as never)) {
+        return fail(
+          `unknown calculation '${operation}'. Use ${CALCULATION_OPERATIONS.join(", ")}`,
+        );
+      }
+      if (!["none", "day", "week", "month"].includes(opts.group)) {
+        return fail("unknown --group value. Use none, day, week, or month");
+      }
+      const path = findOrFail(opts.file);
+      const database = await openOrFail(path, opts.json);
+      try {
+        const calculation = await calculate(database, {
+          operation: operation as (typeof CALCULATION_OPERATIONS)[number],
+          quantity,
+          group: opts.group as "none" | "day" | "week" | "month",
+          ...(opts.source === undefined ? {} : { source_id: opts.source }),
+          ...(opts.compareSource === undefined
+            ? {}
+            : { compare_source_id: opts.compareSource }),
+          ...(opts.otherQuantity === undefined
+            ? {}
+            : { other_quantity: opts.otherQuantity }),
+          ...(opts.session === undefined
+            ? {}
+            : { workout_session_id: opts.session }),
+          ...(opts.from === undefined ? {} : { from: opts.from }),
+          ...(opts.to === undefined ? {} : { to: opts.to }),
+          ...(opts.timezone === undefined ? {} : { time_zone: opts.timezone }),
+        });
+        console.log(
+          opts.json
+            ? JSON.stringify(calculation, null, 2)
+            : renderCalculation(calculation),
         );
       } catch (error) {
         return fail((error as Error).message);

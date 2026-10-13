@@ -856,3 +856,32 @@ Rejected alternatives:
   WHOOP cycles, and Apple sample streams do not expose the same fields.
 - **Assign changed duplicate rows by their current order.** Rejected because provider
   export order can change independently of record meaning.
+
+## D109. Runtime arithmetic uses named, source-separated operations
+
+`ath calculate` accepts `summary`, `baseline`, `trend`, `coverage`,
+`compare-sources`, `correlation`, and `workout-drift`. It does not accept SQL.
+
+Summary and baseline results are separate for each source. A source comparison needs
+two named source IDs. Correlation pairs same-calendar-day means and names the IANA
+timezone. Coverage uses calendar dates and also requires an explicit or saved IANA
+timezone. Workout drift compares equal-duration halves of one named workout session.
+
+Every result names the calculation version, method, quantity, unit, sources, range,
+timezone when used, input record revisions, and exclusions. A receipt lists at most
+1,000 record references and states when that list is shortened. Arithmetic refuses
+more than 100,000 input records until the caller narrows the time range. It never
+returns a result calculated from a silently shortened input.
+
+Manual sources are excluded. One request uses one quantity, so RMSSD and SDNN,
+distinct temperature quantities, and activity-specific distance quantities cannot
+be combined by accident.
+
+Rejected alternatives:
+
+- **Expose arbitrary SQL.** Rejected because it can bypass source separation and the
+  two-tier wall.
+- **Pool sources for a larger sample.** Rejected because two devices measuring one
+  quantity provide two answers.
+- **Silently stop at an input limit.** Rejected because a partial baseline would look
+  complete.

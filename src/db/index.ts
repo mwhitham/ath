@@ -53,7 +53,9 @@ export {
   type SourceStats,
 } from "./stats.js";
 export {
+  calendarDateInZone,
   readSeriesView,
+  resolveCalendarRange,
   resolveAsOfTime,
   renderSeriesView,
   type SeriesDay,
@@ -115,3 +117,12 @@ export {
   type ProviderImportConflict,
   type ProviderImportPreview,
 } from "./provider-import.js";
+export {
+  CALCULATION_OPERATIONS,
+  calculate,
+  renderCalculation,
+  type CalculateOptions,
+  type CalculationGroup,
+  type CalculationOperation,
+  type CalculationResult,
+} from "./calculate.js";

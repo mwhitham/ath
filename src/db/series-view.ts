@@ -167,7 +167,7 @@ export async function resolveAsOfTime(
   };
 }
 
-async function resolveRange(
+export async function resolveCalendarRange(
   database: AthleticDatabase,
   options: SeriesViewOptions,
 ): Promise<InstantRange> {
@@ -212,7 +212,7 @@ async function resolveRange(
   };
 }
 
-function dateInZone(timestamp: string, timeZone: string): string {
+export function calendarDateInZone(timestamp: string, timeZone: string): string {
   const parts = partsAt(Date.parse(timestamp), formatterFor(timeZone));
   return `${parts.year.toString().padStart(4, "0")}-${parts.month
     .toString()
@@ -224,7 +224,7 @@ export async function readSeriesView(
   quantity: SeriesQuantity,
   options: SeriesViewOptions = {},
 ): Promise<SeriesView> {
-  const range = await resolveRange(database, options);
+  const range = await resolveCalendarRange(database, options);
   const limit = options.limit ?? 10_000;
   const records = await querySeries(database, {
     quantity,
@@ -257,7 +257,7 @@ export async function readSeriesView(
     if (record.record_type !== "measurement_sample") {
       continue;
     }
-    const date = dateInZone(record.data.recorded_at, range.time_zone!);
+    const date = calendarDateInZone(record.data.recorded_at, range.time_zone!);
     const key = `${date}\u0000${record.data.source_id}`;
     const group = groups.get(key) ?? {
       date,

@@ -358,6 +358,31 @@ This cannot be undone from the database. Scripts need both --yes and an
 exact --confirm-erasure value. Interactive use asks the same two
 questions. \`--json\` and \`--dry-run\` never erase anything.`,
 
+  calculate: `
+Examples:
+
+  A 90-day baseline, kept separate for each source:
+    $ ath calculate baseline hrv_rmssd --from 2026-07-01 --to 2026-09-28
+
+  Daily totals in an explicit calendar timezone:
+    $ ath calculate summary steps --group day --from 2026-09-01 \\
+        --to 2026-09-30 --timezone America/Chicago
+
+  Compare two sources without pooling them:
+    $ ath calculate compare-sources resting_heart_rate \\
+        --source <source-id> --compare-source <other-source-id>
+
+  Correlate same-day means:
+    $ ath calculate correlation hrv_rmssd --other-quantity resting_heart_rate \\
+        --source <source-id> --timezone America/Chicago
+
+Named operations are summary, baseline, trend, coverage, compare-sources,
+correlation, and workout-drift. The result names its method, exact record
+revisions, exclusions, sources, date range, and timezone.
+
+Manual sources never enter these device calculations. Different sources,
+RMSSD and SDNN, temperature types, and distance types are never pooled.`,
+
   stats: `
 Examples:
 
