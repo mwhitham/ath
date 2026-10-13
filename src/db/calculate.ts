@@ -707,6 +707,70 @@ export async function calculate(
     instantRecordKind === "measurement"
       ? knownMeasurementUnit(options.quantity)
       : undefined;
+  if (options.operation === "workout-drift") {
+    if (options.workout_session_id === undefined) {
+      throw new Error("workout-drift needs --session <workout-session-id>");
+    }
+    const session = await readRecord(database, options.workout_session_id);
+    if (session?.record_type !== "workout_session" || session.is_deleted) {
+      throw new Error(`${options.workout_session_id} is not a current workout session`);
+    }
+    const inputs = await readNumericInputs(
+      database,
+      options.quantity,
+      instantRecordKind,
+      {
+        ...(options.source_id === undefined
+          ? {}
+          : { source_id: options.source_id }),
+        from: session.data.start_at,
+        to: session.data.end_at,
+      },
+    );
+    if (inputs.length < 2) {
+      throw new Error("workout-drift needs at least two samples inside the session");
+    }
+    const unit = inputUnit(inputs, expectedUnit);
+    const midpoint =
+      Date.parse(session.data.start_at) +
+      (Date.parse(session.data.end_at) - Date.parse(session.data.start_at)) / 2;
+    const result = [...valuesBySource(inputs)].map(([sourceId, values]) => {
+      const first = values.filter((input) => Date.parse(input.recorded_at) < midpoint);
+      const second = values.filter((input) => Date.parse(input.recorded_at) >= midpoint);
+      if (first.length === 0 || second.length === 0) {
+        return {
+          source_id: sourceId,
+          available: false,
+          reason: "one half has no samples",
+        };
+      }
+      const firstMean = summarize(first.map((input) => input.value)).mean;
+      const secondMean = summarize(second.map((input) => input.value)).mean;
+      return {
+        source_id: sourceId,
+        available: true,
+        first_half_mean: firstMean,
+        second_half_mean: secondMean,
+        change: round(secondMean - firstMean),
+        change_percentage: round(((secondMean - firstMean) / firstMean) * 100),
+      };
+    });
+    return receipt(
+      options,
+      unit,
+      inputs,
+      {
+        from: session.data.start_at,
+        to: session.data.end_at,
+      },
+      "difference between means in equal-duration first and second workout halves",
+      {
+        workout_session_id: session.record_id,
+        sources: result,
+      },
+      ["manual sources excluded", "samples outside the workout session excluded"],
+    );
+  }
   const group = options.group ?? "none";
   const needsCalendar =
     group !== "none" ||
@@ -907,70 +971,6 @@ export async function calculate(
         paired_dates: dates,
       },
       ["manual sources excluded", "days missing either quantity excluded"],
-    );
-  }
-
-  if (options.operation === "workout-drift") {
-    if (options.workout_session_id === undefined) {
-      throw new Error("workout-drift needs --session <workout-session-id>");
-    }
-    const session = await readRecord(database, options.workout_session_id);
-    if (session?.record_type !== "workout_session" || session.is_deleted) {
-      throw new Error(`${options.workout_session_id} is not a current workout session`);
-    }
-    inputs = await readNumericInputs(
-      database,
-      options.quantity,
-      instantRecordKind,
-      {
-        ...(options.source_id === undefined
-          ? {}
-          : { source_id: options.source_id }),
-        from: session.data.start_at,
-        to: session.data.end_at,
-      },
-    );
-    if (inputs.length < 2) {
-      throw new Error("workout-drift needs at least two samples inside the session");
-    }
-    const midpoint =
-      Date.parse(session.data.start_at) +
-      (Date.parse(session.data.end_at) - Date.parse(session.data.start_at)) / 2;
-    const result = [...valuesBySource(inputs)].map(([sourceId, values]) => {
-      const first = values.filter((input) => Date.parse(input.recorded_at) < midpoint);
-      const second = values.filter((input) => Date.parse(input.recorded_at) >= midpoint);
-      if (first.length === 0 || second.length === 0) {
-        return {
-          source_id: sourceId,
-          available: false,
-          reason: "one half has no samples",
-        };
-      }
-      const firstMean = summarize(first.map((input) => input.value)).mean;
-      const secondMean = summarize(second.map((input) => input.value)).mean;
-      return {
-        source_id: sourceId,
-        available: true,
-        first_half_mean: firstMean,
-        second_half_mean: secondMean,
-        change: round(secondMean - firstMean),
-        change_percentage: round(((secondMean - firstMean) / firstMean) * 100),
-      };
-    });
-    return receipt(
-      options,
-      unit,
-      inputs,
-      {
-        from: session.data.start_at,
-        to: session.data.end_at,
-      },
-      "difference between means in equal-duration first and second workout halves",
-      {
-        workout_session_id: session.record_id,
-        sources: result,
-      },
-      ["manual sources excluded", "samples outside the workout session excluded"],
     );
   }
 
