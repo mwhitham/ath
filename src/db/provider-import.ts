@@ -6,6 +6,8 @@ import {
   SeriesQuantitySchema,
   UtcTimestamp,
   type CurrentRecordT,
+  type InputTimestampReceiptT,
+  type ProviderReportingPeriodT,
   type RecordTypeT,
 } from "../v1/schema.js";
 import type {
@@ -115,17 +117,86 @@ function timestampReceipt(
   };
 }
 
+function seriesSampleTimestampReceipt(
+  sample: {
+    inputTimestampText?: string;
+    inputUtcOffsetText?: string;
+    inputUtcOffsetMeaning?:
+      | "documented_recording_offset"
+      | "provider_cycle_offset"
+      | "route_rendering_offset"
+      | "meaning_not_documented";
+    inputTimestampBasis?:
+      | "source_instant"
+      | "source_offset_timestamp"
+      | "source_local_timestamp_with_documented_offset"
+      | "reconstructed_from_series_start";
+  },
+  fallback: string,
+  route: ParsedProviderExport["route"],
+): InputTimestampReceiptT {
+  if (sample.inputTimestampText === undefined) {
+    return {
+      ...timestampReceipt(fallback, route),
+      timestamp_basis: "reconstructed_from_series_start",
+    };
+  }
+  return {
+    timestamp_text: sample.inputTimestampText,
+    timestamp_basis:
+      sample.inputTimestampBasis ?? "source_offset_timestamp",
+    ...(sample.inputUtcOffsetText === undefined
+      ? { utc_offset_missing_reason: "not_provided_by_source" as const }
+      : {
+          utc_offset_text: sample.inputUtcOffsetText,
+          utc_offset_meaning:
+            sample.inputUtcOffsetMeaning ?? "meaning_not_documented",
+        }),
+  };
+}
+
 const missingTimestampReceipt = {
   timestamp_missing_reason: "not_provided_by_source" as const,
   utc_offset_missing_reason: "not_provided_by_source" as const,
 };
 
-function sourceValue(value: number, unit: string) {
+function sourceValue(
+  value: number,
+  unit: string,
+  input?: {
+    input_value?: number;
+    input_value_missing_reason?:
+      | "not_provided_by_source"
+      | "not_exposed_by_route"
+      | "not_applicable";
+    input_unit?: string;
+    input_unit_missing_reason?:
+      | "not_provided_by_source"
+      | "not_exposed_by_route"
+      | "not_applicable";
+  },
+) {
   return {
     standard_value: value,
     standard_unit: unit,
-    input_value: value,
-    input_unit: unit,
+    ...(input === undefined
+      ? { input_value: value, input_unit: unit }
+      : {
+          ...(input.input_value === undefined
+            ? {
+                input_value_missing_reason:
+                  input.input_value_missing_reason ??
+                  ("not_exposed_by_route" as const),
+              }
+            : { input_value: input.input_value }),
+          ...(input.input_unit === undefined
+            ? {
+                input_unit_missing_reason:
+                  input.input_unit_missing_reason ??
+                  ("not_exposed_by_route" as const),
+              }
+            : { input_unit: input.input_unit }),
+        }),
   };
 }
 
@@ -145,7 +216,13 @@ const summaryNames: Readonly<Record<string, { summary_type: string; unit: string
   elevation_gain_m: { summary_type: "elevation_gain", unit: "m" },
 };
 
-function sourceReportedSummaries(aggregates: Record<string, unknown>) {
+function sourceReportedSummaries(
+  aggregates: Record<string, unknown>,
+  inputSummaries?: Record<
+    string,
+    { input_value: number; input_unit: string }
+  >,
+) {
   const summaries = [];
   for (const [key, value] of Object.entries(aggregates)) {
     const named = summaryNames[key];
@@ -154,7 +231,7 @@ function sourceReportedSummaries(aggregates: Record<string, unknown>) {
     }
     summaries.push({
       summary_type: named.summary_type,
-      ...sourceValue(value, named.unit),
+      ...sourceValue(value, named.unit, inputSummaries?.[key]),
     });
   }
   return summaries;
@@ -252,15 +329,24 @@ async function resolveSourceIds(
 function providerPeriods(
   parsed: ParsedProviderExport,
   timestamp: string,
+  receipt?: {
+    input_timestamp?: InputTimestampReceiptT;
+    provider_reporting_periods?: ProviderReportingPeriodT[];
+  },
 ): {
   recorded_at?: string;
-  input_timestamp: ReturnType<typeof timestampReceipt> | typeof missingTimestampReceipt;
-  provider_reporting_periods?: Array<{
-    period_type: "oura_day_unspecified";
-    provider_date: string;
-    timezone_offset_missing_reason: "not_provided_by_source";
-  }>;
+  input_timestamp: InputTimestampReceiptT;
+  provider_reporting_periods?: ProviderReportingPeriodT[];
 } {
+  if (
+    receipt?.provider_reporting_periods !== undefined &&
+    receipt.input_timestamp === undefined
+  ) {
+    return {
+      input_timestamp: missingTimestampReceipt,
+      provider_reporting_periods: receipt.provider_reporting_periods,
+    };
+  }
   const normalized = normalizedUtc(timestamp);
   if (
     parsed.route === "oura_csv" &&
@@ -279,7 +365,11 @@ function providerPeriods(
   }
   return {
     recorded_at: normalized,
-    input_timestamp: timestampReceipt(timestamp, parsed.route),
+    input_timestamp:
+      receipt?.input_timestamp ?? timestampReceipt(timestamp, parsed.route),
+    ...(receipt?.provider_reporting_periods === undefined
+      ? {}
+      : { provider_reporting_periods: receipt.provider_reporting_periods }),
   };
 }
 
@@ -305,6 +395,15 @@ function hardSignalDraft(
   collisions: Map<string, number>,
 ): ProviderRecordDraft | null {
   const method = `${parsed.route}/v1`;
+  const receipt = parsed.payload.inputReceipts.get(signal);
+  const commonReceipt = {
+    ...(receipt?.provider_record_id === undefined
+      ? {}
+      : { provider_record_id: receipt.provider_record_id }),
+    ...(receipt?.provider_reporting_periods === undefined
+      ? {}
+      : { provider_reporting_periods: receipt.provider_reporting_periods }),
+  };
   if (signal.type === "series_ref" || signal.type === "benchmark_result") {
     return null;
   }
@@ -325,9 +424,17 @@ function hardSignalDraft(
         received_at_basis: "import_time",
         start_at: start,
         end_at: end,
-        input_start_timestamp: timestampReceipt(signal.start, parsed.route),
-        input_end_timestamp: timestampReceipt(signal.end, parsed.route),
-        source_reported_summaries: sourceReportedSummaries(signal.aggregates),
+        input_start_timestamp:
+          receipt?.input_start_timestamp ??
+          timestampReceipt(signal.start, parsed.route),
+        input_end_timestamp:
+          receipt?.input_end_timestamp ??
+          timestampReceipt(signal.end, parsed.route),
+        ...commonReceipt,
+        source_reported_summaries: sourceReportedSummaries(
+          signal.aggregates,
+          receipt?.input_summaries,
+        ),
       },
       match_key_method: method,
       ...key,
@@ -350,12 +457,20 @@ function hardSignalDraft(
         received_at_basis: "import_time",
         start_at: start,
         end_at: end,
-        input_start_timestamp: timestampReceipt(signal.start, parsed.route),
-        input_end_timestamp: timestampReceipt(signal.end, parsed.route),
+        input_start_timestamp:
+          receipt?.input_start_timestamp ??
+          timestampReceipt(signal.start, parsed.route),
+        input_end_timestamp:
+          receipt?.input_end_timestamp ??
+          timestampReceipt(signal.end, parsed.route),
+        ...commonReceipt,
         ...(signal.aggregates.activity === undefined
           ? {}
           : { activity_type: signal.aggregates.activity }),
-        source_reported_summaries: sourceReportedSummaries(signal.aggregates),
+        source_reported_summaries: sourceReportedSummaries(
+          signal.aggregates,
+          receipt?.input_summaries,
+        ),
         ...(signal.segments === undefined
           ? {}
           : {
@@ -374,7 +489,7 @@ function hardSignalDraft(
     };
   }
   if (signal.type === "vendor_score") {
-    const time = providerPeriods(parsed, signal.recorded_at);
+    const time = providerPeriods(parsed, signal.recorded_at, receipt);
     const anchor =
       time.recorded_at ??
       time.provider_reporting_periods?.[0]?.provider_date ??
@@ -392,9 +507,12 @@ function hardSignalDraft(
         received_at: receivedAt,
         received_at_basis: "import_time",
         metric: signal.metric,
-        value: sourceValue(signal.value, "score"),
+        value: sourceValue(signal.value, signal.scale, receipt),
         scale: signal.scale,
         ...time,
+        ...(receipt?.provider_record_id === undefined
+          ? {}
+          : { provider_record_id: receipt.provider_record_id }),
       },
       match_key_method: method,
       ...key,
@@ -402,7 +520,7 @@ function hardSignalDraft(
   }
 
   const quantity = PointMeasurementTypeSchema.parse(signal.type);
-  const time = providerPeriods(parsed, signal.recorded_at);
+  const time = providerPeriods(parsed, signal.recorded_at, receipt);
   const anchor =
     time.recorded_at ??
     time.provider_reporting_periods?.[0]?.provider_date ??
@@ -421,7 +539,10 @@ function hardSignalDraft(
       received_at_basis: "import_time",
       quantity,
       ...time,
-      value: sourceValue(signal.value, signal.unit),
+      value: sourceValue(signal.value, signal.unit, receipt),
+      ...(receipt?.provider_record_id === undefined
+        ? {}
+        : { provider_record_id: receipt.provider_record_id }),
       ...(signal.derived === undefined
         ? {}
         : {
@@ -459,6 +580,7 @@ function softSignalDraft(
   collisions: Map<string, number>,
 ): ProviderRecordDraft {
   const reportedAt = normalizedUtc(signal.reported_at);
+  const receipt = parsed.payload.inputReceipts.get(signal);
   const method = `${parsed.route}/v1`;
   const key = draftKey(
     method,
@@ -471,7 +593,9 @@ function softSignalDraft(
       record_type: "nutrition_entry",
       data: {
         reported_at: reportedAt,
-        input_reported_at: timestampReceipt(signal.reported_at, parsed.route),
+        input_reported_at:
+          receipt?.input_timestamp ??
+          timestampReceipt(signal.reported_at, parsed.route),
         reported_via: signal.provenance?.via ?? "text",
         athlete_description: signal.note ?? "Nutrition journal answer",
         reported_items: [],
@@ -486,7 +610,9 @@ function softSignalDraft(
     data: {
       report_type: signal.type,
       reported_at: reportedAt,
-      input_reported_at: timestampReceipt(signal.reported_at, parsed.route),
+      input_reported_at:
+        receipt?.input_timestamp ??
+        timestampReceipt(signal.reported_at, parsed.route),
       reported_via: signal.provenance?.via ?? "text",
       ...(signal.rating === undefined ? {} : { rating: signal.rating }),
       ...(signal.scale === undefined ? {} : { rating_scale: signal.scale }),
@@ -524,6 +650,15 @@ function seriesDrafts(
     for (const [index, offset] of file.offsets_ms.entries()) {
       const inputTimestamp = atOffsetOf(file.start, startMs + offset);
       const recordedAt = normalizedUtc(inputTimestamp);
+      const sample = built.samples[index];
+      if (sample === undefined) {
+        throw new Error(`Provider series receipt is missing sample ${index}`);
+      }
+      const inputReceipt = seriesSampleTimestampReceipt(
+        sample,
+        inputTimestamp,
+        parsed.route,
+      );
       const key = draftKey(
         method,
         ["measurement_sample", sourceId, quantity, recordedAt],
@@ -538,16 +673,32 @@ function seriesDrafts(
           received_at_basis: "import_time",
           quantity,
           recorded_at: recordedAt,
-          input_timestamp: {
-            ...timestampReceipt(inputTimestamp, parsed.route),
-            timestamp_basis: "reconstructed_from_series_start",
-          },
-          value: sourceValue(file.values[index]!, file.unit),
+          input_timestamp: inputReceipt,
+          value: sourceValue(
+            file.values[index]!,
+            file.unit,
+            sample.inputValue === undefined && sample.inputUnit === undefined
+              ? undefined
+              : {
+                  ...(sample.inputValue === undefined
+                    ? {}
+                    : { input_value: sample.inputValue }),
+                  ...(sample.inputUnit === undefined
+                    ? {}
+                    : { input_unit: sample.inputUnit }),
+                },
+          ),
           ...(file.durations_ms?.[index] === undefined
             ? {}
             : { duration_ms: file.durations_ms[index] }),
-          timestamp_base_text: file.start,
-          timestamp_reconstruction_method: "series_start_plus_offset_ms_v1",
+          ...(inputReceipt.timestamp_basis ===
+          "reconstructed_from_series_start"
+            ? {
+                timestamp_base_text: file.start,
+                timestamp_reconstruction_method:
+                  "series_start_plus_offset_ms_v1",
+              }
+            : {}),
         },
         match_key_method: method,
         ...key,

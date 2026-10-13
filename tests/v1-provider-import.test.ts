@@ -54,6 +54,33 @@ describe("v1 provider import", () => {
         record.data.quantity === "hrv_rmssd" &&
         record.data.value.standard_value === 68.4,
     )).toBe(true);
+    expect(
+      measurements.find(
+        (record) =>
+          record.record_type === "point_measurement" &&
+          record.data.quantity === "hrv_rmssd" &&
+          record.data.value.standard_value === 68.4,
+      ),
+    ).toMatchObject({
+      data: {
+        input_timestamp: {
+          timestamp_text: "2026-08-09 06:05:00",
+          utc_offset_text: "UTC-07:00",
+          utc_offset_meaning: "provider_cycle_offset",
+          timestamp_basis:
+            "source_local_timestamp_with_documented_offset",
+        },
+        value: { input_value: 68.4, input_unit: "ms" },
+        provider_reporting_periods: [
+          {
+            period_type: "whoop_physiological_cycle",
+            start_at: "2026-08-09T05:10:00.000Z",
+            end_at: "2026-08-09T13:20:00.000Z",
+            timezone_offset_text: "UTC-07:00",
+          },
+        ],
+      },
+    });
     expect(measurements.every(
       (record) =>
         record.record_type !== "point_measurement" ||
@@ -137,6 +164,29 @@ describe("v1 provider import", () => {
         ? readiness.data.recorded_at
         : "wrong record type",
     ).toBeUndefined();
+    expect(
+      scores.find(
+        (record) =>
+          record.record_type === "provider_score" &&
+          record.data.metric === "sleep_score" &&
+          record.data.provider_reporting_periods?.some(
+            (period) => period.provider_date === "2026-08-09",
+          ),
+      ),
+    ).toMatchObject({
+      data: {
+        recorded_at: "2026-08-09T13:08:00.000Z",
+        input_timestamp: {
+          timestamp_text: "2026-08-09T06:08:00-07:00",
+        },
+        provider_reporting_periods: [
+          {
+            period_type: "oura_sleep_day",
+            provider_date: "2026-08-09",
+          },
+        ],
+      },
+    });
   });
 
   it("imports Apple dense samples as stable SQLite records", async () => {
@@ -158,14 +208,50 @@ describe("v1 provider import", () => {
       limit: 10_000,
     });
     expect(samples.length).toBeGreaterThan(0);
-    expect(samples[0]).toMatchObject({
-      record_type: "measurement_sample",
-      current_revision: 1,
+    expect(
+      samples.some(
+        (record) =>
+          record.record_type === "measurement_sample" &&
+          record.data.input_timestamp.timestamp_text ===
+            "2026-08-09 18:30:00 -0700" &&
+          record.data.input_timestamp.utc_offset_text === "-0700" &&
+          record.data.value.input_value === 9.8 &&
+          record.data.value.input_unit === "kcal" &&
+          record.data.timestamp_reconstruction_method === undefined,
+      ),
+    ).toBe(true);
+    expect(
+      samples.some(
+        (record) =>
+          record.record_type === "measurement_sample" &&
+          record.data.input_timestamp.timestamp_basis ===
+            "reconstructed_from_series_start" &&
+          record.data.timestamp_reconstruction_method ===
+            "series_start_plus_offset_ms_v1",
+      ),
+    ).toBe(true);
+
+    const measurements = await listRecords(database, {
+      record_type: "point_measurement",
+      limit: 10_000,
+    });
+    expect(
+      measurements.find(
+        (record) =>
+          record.record_type === "point_measurement" &&
+          record.data.quantity === "body_weight",
+      ),
+    ).toMatchObject({
       data: {
         input_timestamp: {
-          timestamp_basis: "reconstructed_from_series_start",
+          timestamp_text: "2026-08-09 07:02:00 -0700",
+          utc_offset_text: "-0700",
         },
-        timestamp_reconstruction_method: "series_start_plus_offset_ms_v1",
+        value: {
+          input_value: 181.4,
+          input_unit: "lb",
+          standard_unit: "kg",
+        },
       },
     });
 

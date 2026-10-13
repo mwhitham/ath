@@ -151,6 +151,20 @@ export function parseAppleDate(raw: string): string | null {
   return null;
 }
 
+function appleTimestampReceipt(raw: string) {
+  const offset = /(Z|[+-]\d{2}:?\d{2})$/i.exec(raw.trim())?.[1];
+  return {
+    timestamp_text: raw,
+    timestamp_basis: "source_offset_timestamp" as const,
+    ...(offset === undefined
+      ? { utc_offset_missing_reason: "not_provided_by_source" as const }
+      : {
+          utc_offset_text: offset,
+          utc_offset_meaning: "meaning_not_documented" as const,
+        }),
+  };
+}
+
 /** Local calendar day of an offset timestamp, used to bucket series by day. */
 function localDay(timestamp: string): string {
   return timestamp.slice(0, 10);
@@ -181,6 +195,8 @@ function atOffsetOf(reference: string, instantMs: number): string {
 interface SleepFragment {
   start: string;
   end: string;
+  inputStart: string;
+  inputEnd: string;
   value: string;
   source: string;
   /** The device index entry this fragment came from, when the export named one. */
@@ -189,6 +205,7 @@ interface SleepFragment {
 
 interface BeatWindow {
   recordedAt: string;
+  inputRecordedAt: string;
   endsAt: string | null;
   beats: Beat[];
   source: string;
@@ -474,7 +491,7 @@ export async function importAppleHealth(
       countSkip(payload, "HRV beat windows too short or sparse for RMSSD");
       continue;
     }
-    payload.hardSignals.push({
+    const derivedReading = {
       type: "hrv_rmssd",
       value: rmssd.rmssd_ms,
       unit: "ms",
@@ -487,7 +504,13 @@ export async function importAppleHealth(
         n_beats: rmssd.n_beats,
         ...(rmssd.n_dropped > 0 ? { n_dropped: rmssd.n_dropped } : {}),
       },
+    } as HardSignalT;
+    payload.inputReceipts.set(derivedReading, {
+      input_timestamp: appleTimestampReceipt(window.inputRecordedAt),
+      input_value_missing_reason: "not_applicable",
+      input_unit_missing_reason: "not_applicable",
     });
+    payload.hardSignals.push(derivedReading);
   }
   for (const { source, day, samples } of beatsByDay.values()) {
     const built = buildSeries("hrv_beats", source, day, samples);
@@ -519,9 +542,15 @@ function parseAppleXml(
     let currentWorkout: {
       start: string;
       end: string;
+      inputStart: string;
+      inputEnd: string;
       writer: Writer;
       segments: { label: string; duration_s?: number }[];
       aggregates: Record<string, unknown>;
+      inputSummaries: Record<
+        string,
+        { input_value: number; input_unit: string }
+      >;
     } | null = null;
 
     parser.on("error", (err) => reject(err));
@@ -586,6 +615,10 @@ function parseAppleXml(
             break;
           }
           const aggregates: Record<string, unknown> = {};
+          const inputSummaries: Record<
+            string,
+            { input_value: number; input_unit: string }
+          > = {};
           const activity = (attrs.workoutActivityType ?? "").replace(/^HKWorkoutActivityType/, "");
           if (activity) aggregates.activity = activity.toLowerCase();
           const distance = Number(attrs.totalDistance);
@@ -593,10 +626,29 @@ function parseAppleXml(
             aggregates.distance_m = round(
               toMetres(distance, attrs.totalDistanceUnit ?? "m") ?? distance,
             );
+            inputSummaries.distance_m = {
+              input_value: distance,
+              input_unit: attrs.totalDistanceUnit ?? "m",
+            };
           }
           const energy = Number(attrs.totalEnergyBurned);
-          if (Number.isFinite(energy) && energy > 0) aggregates.energy_kcal = round(energy);
-          currentWorkout = { start, end, writer: writers.resolve(attrs), segments: [], aggregates };
+          if (Number.isFinite(energy) && energy > 0) {
+            aggregates.energy_kcal = round(energy);
+            inputSummaries.energy_kcal = {
+              input_value: energy,
+              input_unit: attrs.totalEnergyBurnedUnit ?? "kcal",
+            };
+          }
+          currentWorkout = {
+            start,
+            end,
+            inputStart: attrs.startDate!,
+            inputEnd: attrs.endDate!,
+            writer: writers.resolve(attrs),
+            segments: [],
+            aggregates,
+            inputSummaries,
+          };
           break;
         }
 
@@ -617,8 +669,20 @@ function parseAppleXml(
           if (!currentWorkout) break;
           const value = Number(attrs.value);
           if (!Number.isFinite(value) || value <= 0) break;
-          if (attrs.key === "HKAverageHeartRate") currentWorkout.aggregates.avg_hr_bpm = round(value);
-          if (attrs.key === "HKMaximumHeartRate") currentWorkout.aggregates.max_hr_bpm = round(value);
+          if (attrs.key === "HKAverageHeartRate") {
+            currentWorkout.aggregates.avg_hr_bpm = round(value);
+            currentWorkout.inputSummaries.avg_hr_bpm = {
+              input_value: value,
+              input_unit: "bpm",
+            };
+          }
+          if (attrs.key === "HKMaximumHeartRate") {
+            currentWorkout.aggregates.max_hr_bpm = round(value);
+            currentWorkout.inputSummaries.max_hr_bpm = {
+              input_value: value,
+              input_unit: "bpm",
+            };
+          }
           break;
         }
 
@@ -643,6 +707,13 @@ function parseAppleXml(
           ...(currentWorkout.segments.length > 0 ? { segments: currentWorkout.segments as never } : {}),
         };
         attribute(payload, session, currentWorkout.writer);
+        payload.inputReceipts.set(session, {
+          input_start_timestamp: appleTimestampReceipt(
+            currentWorkout.inputStart,
+          ),
+          input_end_timestamp: appleTimestampReceipt(currentWorkout.inputEnd),
+          input_summaries: currentWorkout.inputSummaries,
+        });
         acc.workouts.push(session);
         currentWorkout = null;
       }
@@ -667,6 +738,8 @@ function parseAppleXml(
         acc.sleepFragments.push({
           start: startDate,
           end: endDate,
+          inputStart: attrs.startDate!,
+          inputEnd: attrs.endDate!,
           value: attrs.value ?? "",
           source: writer.source,
           ...(writer.deviceKey ? { deviceKey: writer.deviceKey } : {}),
@@ -707,6 +780,13 @@ function parseAppleXml(
           source: writer.source,
         } as HardSignalT;
         attribute(payload, reading, writer);
+        payload.inputReceipts.set(reading, {
+          input_timestamp: appleTimestampReceipt(attrs.startDate!),
+          input_value: raw,
+          ...(attrs.unit === undefined
+            ? { input_unit_missing_reason: "not_provided_by_source" }
+            : { input_unit: attrs.unit }),
+        });
         acc.points.push(reading);
         return;
       }
@@ -745,6 +825,22 @@ function parseAppleXml(
           at: startDate,
           value: roundSample(value),
           ...(durationMs > 0 ? { durationMs } : {}),
+          inputTimestampText: attrs.startDate!,
+          ...(
+            /(Z|[+-]\d{2}:?\d{2})$/i.exec(attrs.startDate!.trim())?.[1] ===
+            undefined
+              ? {}
+              : {
+                  inputUtcOffsetText:
+                    /(Z|[+-]\d{2}:?\d{2})$/i.exec(
+                      attrs.startDate!.trim(),
+                    )![1],
+                }
+          ),
+          inputUtcOffsetMeaning: "meaning_not_documented",
+          inputTimestampBasis: "source_offset_timestamp",
+          inputValue: raw,
+          ...(attrs.unit === undefined ? {} : { inputUnit: attrs.unit }),
         });
         bucket.byDay.set(day, samples);
         acc.series.set(key, bucket);
@@ -752,7 +848,13 @@ function parseAppleXml(
         // An SDNN record may carry the beats it was computed from. Its end time comes
         // along because the window is what places each beat's clock.
         if (series.quantity === "hrv_sdnn") {
-          currentBeatWindow = { recordedAt: startDate, endsAt: endDate, beats: [], source };
+          currentBeatWindow = {
+            recordedAt: startDate,
+            inputRecordedAt: attrs.startDate!,
+            endsAt: endDate,
+            beats: [],
+            source,
+          };
         }
         return;
       }
@@ -905,7 +1007,7 @@ async function importEcgs(
       continue;
     }
 
-    payload.hardSignals.push({
+    const derivedReading = {
       type: "hrv_rmssd",
       value: rmssd.rmssd_ms,
       unit: "ms",
@@ -919,7 +1021,13 @@ async function importEcgs(
         ...(rmssd.n_dropped > 0 ? { n_dropped: rmssd.n_dropped } : {}),
         ...(beats.quality > 0 ? { signal_quality: beats.quality } : {}),
       },
+    } as HardSignalT;
+    payload.inputReceipts.set(derivedReading, {
+      input_timestamp: appleTimestampReceipt(beats.recordedAt),
+      input_value_missing_reason: "not_applicable",
+      input_unit_missing_reason: "not_applicable",
     });
+    payload.hardSignals.push(derivedReading);
   }
 
   for (const [day, samples] of beatsByDay) {
@@ -971,8 +1079,14 @@ function clusterNights(
   clusters.push(current);
 
   return clusters.flatMap((cluster) => {
-    const start = cluster.reduce((a, f) => (Date.parse(f.start) < Date.parse(a) ? f.start : a), cluster[0]!.start);
-    const end = cluster.reduce((a, f) => (Date.parse(f.end) > Date.parse(a) ? f.end : a), cluster[0]!.end);
+    const startFragment = cluster.reduce((a, f) =>
+      Date.parse(f.start) < Date.parse(a.start) ? f : a,
+    );
+    const endFragment = cluster.reduce((a, f) =>
+      Date.parse(f.end) > Date.parse(a.end) ? f : a,
+    );
+    const start = startFragment.start;
+    const end = endFragment.end;
     if (Date.parse(end) <= Date.parse(start)) return [];
 
     const seconds = (f: SleepFragment) => (Date.parse(f.end) - Date.parse(f.start)) / 1000;
@@ -1023,6 +1137,10 @@ function clusterNights(
     // shallow enough a miss, that counting it twice would be the worse answer.
     const deviceKey = cluster.find((f) => f.deviceKey)?.deviceKey;
     if (payload && deviceKey) payload.deviceOf.set(night, deviceKey);
+    payload?.inputReceipts.set(night, {
+      input_start_timestamp: appleTimestampReceipt(startFragment.inputStart),
+      input_end_timestamp: appleTimestampReceipt(endFragment.inputEnd),
+    });
 
     return [night];
   });
