@@ -8,3 +8,4 @@ export * from "./series.js";
 export * from "./seriesview.js";
 export * from "./hrv.js";
 export * from "./import/index.js";
+export * as v1 from "./v1/schema.js";

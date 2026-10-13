@@ -618,3 +618,51 @@ Rejected alternatives:
   source details is worse than a clear refusal.
 - **Keep the migration appendix as an implementation gate.** Rejected because the
   appendix now documents a design that v1 will not implement.
+
+## D102. The portable package uses typed record envelopes and separate sample files
+
+Each current record in portable JSON has `record_id`, `record_type`, `created_at`,
+`current_revision`, `is_deleted`, and a typed `data` object. Each retained revision
+has the same `record_type` and complete typed `data`, plus its revision number,
+previous revision, knowledge time, knowledge-time basis, and change author.
+
+`athlete.ath.json` contains every current record and retained revision except dense
+`measurement_sample` records. It also contains deletion records, erasure markers,
+provider import keys, and references to generated measurement-series files.
+
+Generated measurement-series files contain the current sample records and their
+revisions, deletion records, and provider import keys. Each file covers one source,
+quantity, and bounded time range. This keeps the main document inspectable without
+dropping stable sample IDs or sample history. Erasure markers remain in
+`athlete.ath.json` because privacy erasure may remove the source and quantity needed
+to place a marker in one series file.
+
+Authored record data uses one shared `authorship` object. It names the author,
+authoring time, evidence, content version, and status. Plan records use plain fields
+for their title, objective, dates, session blocks, completion state, and optional
+link to a completed workout. These fields store a plan; they do not authorize the
+CLI or agent to create one without athlete confirmation.
+
+Provider reporting periods use these distinct names:
+
+- `whoop_physiological_cycle`.
+- `oura_activity_day`.
+- `oura_sleep_day`.
+- `oura_calendar_day`.
+- `oura_day_unspecified`.
+- `apple_activity_summary_day`.
+
+The Zod schemas define the complete field rules. SQL may flatten nested JSON objects
+into named columns and child tables, but it must reconstruct the same typed `data`
+object without loss.
+
+Rejected alternatives:
+
+- **Put every sample in `athlete.ath.json`.** Rejected because dense streams would
+  make the main document too large to inspect while duplicating the purpose of the
+  generated series files.
+- **Export compact value arrays without record IDs or revisions.** Rejected because
+  the package could not restore corrections, deletion history, or provider import
+  matching.
+- **Mirror SQL tables directly in JSON.** Rejected because child-table layout is a
+  storage choice. The portable format should describe complete logical records.
