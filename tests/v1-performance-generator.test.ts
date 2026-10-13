@@ -33,7 +33,7 @@ describe("v1 performance database generator", () => {
       seed: PERFORMANCE_FIXTURE_SEED,
     });
     const database = await openDatabase(generated.database_path, {
-      warn: () => undefined,
+      onSecurityWarning: () => undefined,
     });
     try {
       const client = databaseClient(database);

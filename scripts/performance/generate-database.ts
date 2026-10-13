@@ -1,4 +1,11 @@
-import { cp, copyFile, mkdir, rm } from "node:fs/promises";
+import {
+  chmod,
+  cp,
+  copyFile,
+  mkdir,
+  readdir,
+  rm,
+} from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import {
@@ -62,11 +69,17 @@ async function copyBaseFixture(outputDirectory: string): Promise<string> {
   await mkdir(outputDirectory, { recursive: true, mode: 0o700 });
   const databasePath = join(outputDirectory, "athlete.ath.sqlite");
   await copyFile(FIXTURE_DATABASE, databasePath);
+  await chmod(databasePath, 0o600);
+  const attachmentDirectory = join(outputDirectory, "attachments");
   await cp(
     join(FIXTURE_DIRECTORY, "attachments"),
-    join(outputDirectory, "attachments"),
+    attachmentDirectory,
     { recursive: true },
   );
+  await chmod(attachmentDirectory, 0o700);
+  for (const file of await readdir(attachmentDirectory)) {
+    await chmod(join(attachmentDirectory, file), 0o600);
+  }
   return databasePath;
 }
 
@@ -352,7 +365,9 @@ export async function generatePerformanceDatabase(
   assertRecordCount(options.record_count);
   const outputDirectory = resolve(options.output_directory);
   const databasePath = await copyBaseFixture(outputDirectory);
-  const database = await openDatabase(databasePath, { warn: () => undefined });
+  const database = await openDatabase(databasePath, {
+    onSecurityWarning: () => undefined,
+  });
   try {
     await addPerformanceSources(database);
     const currentCount = await databaseClient(database).execute(
