@@ -268,7 +268,7 @@ nutrition_model_interpretation
 
 `point_measurement_calculations`, `workout_session_segments`,
 `benchmark_result_segments`,
-`provider_reporting_periods`, `reported_nutrition_items`, `prediction_evidence`,
+`provider_reporting_periods`, `reported_nutrition_items`, `authored_record_evidence`,
 `prediction_error_causes`, and `planned_session_blocks` are child rows. They do not
 have their own `record_type`.
 
@@ -364,7 +364,7 @@ activity-summary days retain distinct period types. A record may have both an
 absolute instant and a provider reporting period.
 
 Every revision stores the complete record state in `record_json`, when it
-`became_known_at`, the `became_known_at_basis`, the author of the change, and
+`became_known_at`, the `became_known_at_basis`, the actor that made the change, and
 its `previous_revision`. The current typed row is updated in the same transaction.
 An as-of query considers only revisions that became known by its cutoff. New local
 and provider writes use the time the database learned the revision. A v1 package
@@ -381,11 +381,12 @@ Normal correction and deletion use revisions and deletion records. Privacy erasu
 is a different operation. It removes the current typed row, all value-bearing
 revisions, samples, attachments, and derived records that depend on the erased
 record. It may also remove the parent `records` row. It may leave one row in
-`record_erasure_markers` with only `record_id`, `erased_at`, and `reason`. That table
-does not reference `records`, because the parent may no longer exist. The marker
-contains no record type, health value, event time, free text, source detail, revision,
-or attachment hash. An evidence reference checks erasure markers after the parent
-lookup fails. It resolves as `erased`; it never falls through to another record.
+`record_erasure_markers` with only `record_id`, `erased_at`, and a fixed
+`reason_code`. That table does not reference `records`, because the parent may no
+longer exist. The marker contains no record type, health value, event time, free
+text, source detail, revision, or attachment hash. An evidence reference checks
+erasure markers after the parent lookup fails. It resolves as `erased`; it never
+falls through to another record.
 
 ### 7.4 Athlete reports
 
@@ -421,7 +422,7 @@ nutrition entry.
 ```text
 benchmark_definitions
 predictions
-prediction_evidence
+authored_record_evidence
 prediction_result_links
 prediction_grades
 prediction_error_analyses
@@ -440,8 +441,10 @@ author of the prediction or measured result.
 
 `prediction_error_causes` stores each claimed cause and its exact evidence reference.
 
-`prediction_evidence.prediction_id`,
+`authored_record_evidence.authored_record_id`,
 `prediction_error_causes.prediction_error_analysis_id` name their parent records.
+The general evidence table stores ordered evidence for predictions, plans, reviews,
+goals, coaching notes, grades, and nutrition interpretations.
 
 Grades are calculated at runtime. A saved grade is an authored record of what the
 tool calculated at that time. It names the calculation version and inputs.
@@ -462,7 +465,8 @@ Plans are athlete-owned data and must round-trip through JSON.
 `planned_session_blocks.planned_session_id` links each block to its planned session.
 
 A planned session remains separate from a completed workout session. Completion may
-link the two without rewriting the plan as a measured workout.
+set `planned_sessions.completed_workout_session_id` without rewriting the plan as a
+measured workout. The workout does not store a second link back to the plan.
 
 ## 8. Recorded summaries and runtime calculations
 
@@ -629,8 +633,8 @@ A same-database merge includes records, revisions, provider import keys, and era
 markers. Imported records keep their exact `created_at`. Imported revisions keep
 their exact `became_known_at` and `became_known_at_basis`. A matching record revision
 must contain the same complete state. A provider import key must point to the same
-record. A matching erasure marker must contain the same erasure time and reason. Any
-difference is a conflict and the merge writes nothing until it is resolved.
+record. A matching erasure marker must contain the same erasure time and reason code.
+Any difference is a conflict and the merge writes nothing until it is resolved.
 
 An import never removes local records merely because they are absent from a JSON
 package. Deletion requires an imported deletion record or an explicit delete

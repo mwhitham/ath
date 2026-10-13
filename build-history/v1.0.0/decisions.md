@@ -666,3 +666,52 @@ Rejected alternatives:
   matching.
 - **Mirror SQL tables directly in JSON.** Rejected because child-table layout is a
   storage choice. The portable format should describe complete logical records.
+
+## D103. Normalized facts and package history must be exact
+
+Normalized instants use UTC text ending in `Z`. Input timestamp text and numeric
+offset text remain separate source receipts. Each receipt says what the route
+documents that offset to mean. An available source value, unit, timestamp, or offset
+cannot also carry a missing reason.
+
+A complete package includes every retained revision through each current record's
+`current_revision`. The current typed data must equal that final revision. Package
+validation refuses missing revisions, broken revision chains, duplicate records,
+or provider import keys that point to another record.
+
+The main document owns deletion records and provider import keys for non-sample
+records. A measurement-series file owns them for the sample records in that file.
+A current sample is placed by its current source, quantity, and time. All retained
+revisions of that sample stay with it even when an older revision had another
+source, quantity, or time. An erased sample has no value-bearing record left, so its
+value-free erasure marker stays in the main document.
+
+Privacy erasure markers use a fixed `reason_code`. They do not accept a free-text
+reason. Measured records do not accept athlete notes. A source-provided label or
+summary must use its named source field; an athlete comment is a separate
+source-free athlete report.
+
+Revision changes, deletions, and links name the actor that performed the action.
+They do not require a calculation version. A tool-authored calculated record names
+the tool version and calculation version as part of its authorship.
+
+All authored records store ordered evidence through
+`authored_record_evidence(authored_record_id, evidence_order,
+evidence_record_id, evidence_revision)`. This supersedes the prediction-only
+`prediction_evidence` table name. Prediction error causes continue to carry their
+own exact evidence reference because the reference is part of each claimed cause.
+
+The planned session owns its optional `completed_workout_session_id` link. A workout
+session does not store a second link back to the plan, so the two records cannot
+disagree.
+
+Rejected alternatives:
+
+- **Allow offsets on normalized timestamps.** Rejected because SQLite text ordering
+  would not reliably match instant ordering.
+- **Let a package omit old revisions.** Rejected because restore could not reproduce
+  historical evidence or knowledge-time queries.
+- **Store free-text erasure reasons.** Rejected because an erasure marker must not
+  retain sensitive text.
+- **Require calculation metadata for every tool action.** Rejected because deleting
+  or linking a record is an action, not an arithmetic result.

@@ -45,14 +45,14 @@
     "start_at": {
       "type": "string",
       "format": "date-time",
-      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
-      "description": "ISO 8601 timestamp with UTC or an explicit numeric offset"
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+      "description": "Normalized ISO 8601 timestamp in UTC"
     },
     "end_at": {
       "type": "string",
       "format": "date-time",
-      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
-      "description": "ISO 8601 timestamp with UTC or an explicit numeric offset"
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+      "description": "Normalized ISO 8601 timestamp in UTC"
     },
     "records": {
       "type": "array",
@@ -67,8 +67,8 @@
           "created_at": {
             "type": "string",
             "format": "date-time",
-            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
-            "description": "ISO 8601 timestamp with UTC or an explicit numeric offset"
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "description": "Normalized ISO 8601 timestamp in UTC"
           },
           "current_revision": {
             "type": "integer",
@@ -123,14 +123,14 @@
                     "start_at": {
                       "type": "string",
                       "format": "date-time",
-                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
-                      "description": "ISO 8601 timestamp with UTC or an explicit numeric offset"
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                      "description": "Normalized ISO 8601 timestamp in UTC"
                     },
                     "end_at": {
                       "type": "string",
                       "format": "date-time",
-                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
-                      "description": "ISO 8601 timestamp with UTC or an explicit numeric offset"
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                      "description": "Normalized ISO 8601 timestamp in UTC"
                     },
                     "input_start_timestamp": {
                       "type": "object",
@@ -142,6 +142,15 @@
                         "utc_offset_text": {
                           "type": "string",
                           "minLength": 1
+                        },
+                        "utc_offset_meaning": {
+                          "type": "string",
+                          "enum": [
+                            "documented_recording_offset",
+                            "provider_cycle_offset",
+                            "route_rendering_offset",
+                            "meaning_not_documented"
+                          ]
                         },
                         "timestamp_basis": {
                           "type": "string",
@@ -182,6 +191,15 @@
                           "type": "string",
                           "minLength": 1
                         },
+                        "utc_offset_meaning": {
+                          "type": "string",
+                          "enum": [
+                            "documented_recording_offset",
+                            "provider_cycle_offset",
+                            "route_rendering_offset",
+                            "meaning_not_documented"
+                          ]
+                        },
                         "timestamp_basis": {
                           "type": "string",
                           "enum": [
@@ -216,7 +234,20 @@
                     },
                     "timezone_offset_meaning": {
                       "type": "string",
-                      "minLength": 1
+                      "enum": [
+                        "documented_recording_offset",
+                        "provider_cycle_offset",
+                        "route_rendering_offset",
+                        "meaning_not_documented"
+                      ]
+                    },
+                    "timezone_offset_missing_reason": {
+                      "type": "string",
+                      "enum": [
+                        "not_provided_by_source",
+                        "not_exposed_by_route",
+                        "not_applicable"
+                      ]
                     }
                   },
                   "required": [
@@ -228,8 +259,8 @@
               "received_at": {
                 "type": "string",
                 "format": "date-time",
-                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
-                "description": "ISO 8601 timestamp with UTC or an explicit numeric offset"
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                "description": "Normalized ISO 8601 timestamp in UTC"
               },
               "received_at_basis": {
                 "type": "string",
@@ -273,8 +304,8 @@
               "recorded_at": {
                 "type": "string",
                 "format": "date-time",
-                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
-                "description": "ISO 8601 timestamp with UTC or an explicit numeric offset"
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                "description": "Normalized ISO 8601 timestamp in UTC"
               },
               "input_timestamp": {
                 "type": "object",
@@ -286,6 +317,15 @@
                   "utc_offset_text": {
                     "type": "string",
                     "minLength": 1
+                  },
+                  "utc_offset_meaning": {
+                    "type": "string",
+                    "enum": [
+                      "documented_recording_offset",
+                      "provider_cycle_offset",
+                      "route_rendering_offset",
+                      "meaning_not_documented"
+                    ]
                   },
                   "timestamp_basis": {
                     "type": "string",
@@ -422,8 +462,8 @@
           "became_known_at": {
             "type": "string",
             "format": "date-time",
-            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
-            "description": "ISO 8601 timestamp with UTC or an explicit numeric offset"
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "description": "Normalized ISO 8601 timestamp in UTC"
           },
           "became_known_at_basis": {
             "type": "string",
@@ -434,7 +474,7 @@
               "package_merge"
             ]
           },
-          "change_author": {
+          "changed_by": {
             "oneOf": [
               {
                 "type": "object",
@@ -463,20 +503,11 @@
                   "agent_version": {
                     "type": "string",
                     "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
-                  },
-                  "model": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "model_version": {
-                    "type": "string",
-                    "minLength": 1
                   }
                 },
                 "required": [
                   "author_type",
-                  "agent",
-                  "model"
+                  "agent"
                 ],
                 "additionalProperties": false
               },
@@ -494,17 +525,12 @@
                   "tool_version": {
                     "type": "string",
                     "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
-                  },
-                  "calculation_version": {
-                    "type": "string",
-                    "minLength": 1
                   }
                 },
                 "required": [
                   "author_type",
                   "tool",
-                  "tool_version",
-                  "calculation_version"
+                  "tool_version"
                 ],
                 "additionalProperties": false
               }
@@ -555,14 +581,14 @@
                     "start_at": {
                       "type": "string",
                       "format": "date-time",
-                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
-                      "description": "ISO 8601 timestamp with UTC or an explicit numeric offset"
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                      "description": "Normalized ISO 8601 timestamp in UTC"
                     },
                     "end_at": {
                       "type": "string",
                       "format": "date-time",
-                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
-                      "description": "ISO 8601 timestamp with UTC or an explicit numeric offset"
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                      "description": "Normalized ISO 8601 timestamp in UTC"
                     },
                     "input_start_timestamp": {
                       "type": "object",
@@ -574,6 +600,15 @@
                         "utc_offset_text": {
                           "type": "string",
                           "minLength": 1
+                        },
+                        "utc_offset_meaning": {
+                          "type": "string",
+                          "enum": [
+                            "documented_recording_offset",
+                            "provider_cycle_offset",
+                            "route_rendering_offset",
+                            "meaning_not_documented"
+                          ]
                         },
                         "timestamp_basis": {
                           "type": "string",
@@ -614,6 +649,15 @@
                           "type": "string",
                           "minLength": 1
                         },
+                        "utc_offset_meaning": {
+                          "type": "string",
+                          "enum": [
+                            "documented_recording_offset",
+                            "provider_cycle_offset",
+                            "route_rendering_offset",
+                            "meaning_not_documented"
+                          ]
+                        },
                         "timestamp_basis": {
                           "type": "string",
                           "enum": [
@@ -648,7 +692,20 @@
                     },
                     "timezone_offset_meaning": {
                       "type": "string",
-                      "minLength": 1
+                      "enum": [
+                        "documented_recording_offset",
+                        "provider_cycle_offset",
+                        "route_rendering_offset",
+                        "meaning_not_documented"
+                      ]
+                    },
+                    "timezone_offset_missing_reason": {
+                      "type": "string",
+                      "enum": [
+                        "not_provided_by_source",
+                        "not_exposed_by_route",
+                        "not_applicable"
+                      ]
                     }
                   },
                   "required": [
@@ -660,8 +717,8 @@
               "received_at": {
                 "type": "string",
                 "format": "date-time",
-                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
-                "description": "ISO 8601 timestamp with UTC or an explicit numeric offset"
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                "description": "Normalized ISO 8601 timestamp in UTC"
               },
               "received_at_basis": {
                 "type": "string",
@@ -705,8 +762,8 @@
               "recorded_at": {
                 "type": "string",
                 "format": "date-time",
-                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
-                "description": "ISO 8601 timestamp with UTC or an explicit numeric offset"
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                "description": "Normalized ISO 8601 timestamp in UTC"
               },
               "input_timestamp": {
                 "type": "object",
@@ -718,6 +775,15 @@
                   "utc_offset_text": {
                     "type": "string",
                     "minLength": 1
+                  },
+                  "utc_offset_meaning": {
+                    "type": "string",
+                    "enum": [
+                      "documented_recording_offset",
+                      "provider_cycle_offset",
+                      "route_rendering_offset",
+                      "meaning_not_documented"
+                    ]
                   },
                   "timestamp_basis": {
                     "type": "string",
@@ -819,7 +885,7 @@
           "previous_revision",
           "became_known_at",
           "became_known_at_basis",
-          "change_author",
+          "changed_by",
           "record_type",
           "data"
         ],
@@ -844,8 +910,8 @@
           "deleted_at": {
             "type": "string",
             "format": "date-time",
-            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
-            "description": "ISO 8601 timestamp with UTC or an explicit numeric offset"
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "description": "Normalized ISO 8601 timestamp in UTC"
           },
           "deleted_by": {
             "oneOf": [
@@ -876,20 +942,11 @@
                   "agent_version": {
                     "type": "string",
                     "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
-                  },
-                  "model": {
-                    "type": "string",
-                    "minLength": 1
-                  },
-                  "model_version": {
-                    "type": "string",
-                    "minLength": 1
                   }
                 },
                 "required": [
                   "author_type",
-                  "agent",
-                  "model"
+                  "agent"
                 ],
                 "additionalProperties": false
               },
@@ -907,17 +964,12 @@
                   "tool_version": {
                     "type": "string",
                     "pattern": "^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$"
-                  },
-                  "calculation_version": {
-                    "type": "string",
-                    "minLength": 1
                   }
                 },
                 "required": [
                   "author_type",
                   "tool",
-                  "tool_version",
-                  "calculation_version"
+                  "tool_version"
                 ],
                 "additionalProperties": false
               }
@@ -954,8 +1006,8 @@
           "imported_at": {
             "type": "string",
             "format": "date-time",
-            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
-            "description": "ISO 8601 timestamp with UTC or an explicit numeric offset"
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "description": "Normalized ISO 8601 timestamp in UTC"
           }
         },
         "required": [

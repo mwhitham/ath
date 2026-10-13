@@ -9,9 +9,9 @@ import { z } from "zod";
 
 export const ATHLETIC_STANDARD_VERSION = "1.0.0";
 
-export const Timestamp = z.iso
-  .datetime({ offset: true })
-  .describe("ISO 8601 timestamp with UTC or an explicit numeric offset");
+export const UtcTimestamp = z.iso
+  .datetime({ offset: false, local: false })
+  .describe("Normalized ISO 8601 timestamp in UTC");
 
 export const CalendarDate = z.iso.date().describe("ISO 8601 calendar date");
 
@@ -68,27 +68,39 @@ export const EvidenceReference = z.strictObject({
   revision: RecordRevisionNumber,
 });
 
-export const AthleteAuthor = z.strictObject({
+export const AthleteActor = z.strictObject({
   author_type: z.literal("athlete"),
 });
 
-export const AgentAuthor = z.strictObject({
+export const AgentActor = z.strictObject({
   author_type: z.literal("agent"),
   agent: z.string().min(1),
   agent_version: Semver.optional(),
+});
+
+export const ToolActor = z.strictObject({
+  author_type: z.literal("tool"),
+  tool: z.string().min(1),
+  tool_version: Semver,
+});
+
+export const RecordActor = z.discriminatedUnion("author_type", [
+  AthleteActor,
+  AgentActor,
+  ToolActor,
+]);
+
+export const AgentAuthor = AgentActor.extend({
   model: z.string().min(1),
   model_version: z.string().min(1).optional(),
 });
 
-export const ToolAuthor = z.strictObject({
-  author_type: z.literal("tool"),
-  tool: z.string().min(1),
-  tool_version: Semver,
+export const ToolAuthor = ToolActor.extend({
   calculation_version: z.string().min(1),
 });
 
-export const RecordAuthor = z.discriminatedUnion("author_type", [
-  AthleteAuthor,
+export const AuthoredRecordAuthor = z.discriminatedUnion("author_type", [
+  AthleteActor,
   AgentAuthor,
   ToolAuthor,
 ]);
@@ -102,8 +114,8 @@ export const AuthoredRecordStatus = z.enum([
 ]);
 
 export const AuthoredRecordMetadata = z.strictObject({
-  author: RecordAuthor,
-  authored_at: Timestamp,
+  author: AuthoredRecordAuthor,
+  authored_at: UtcTimestamp,
   evidence: z.array(EvidenceReference),
   content_version: z.number().int().positive(),
   status: AuthoredRecordStatus,
@@ -122,10 +134,18 @@ export const InputTimestampBasis = z.enum([
   "reconstructed_from_series_start",
 ]);
 
+export const UtcOffsetMeaning = z.enum([
+  "documented_recording_offset",
+  "provider_cycle_offset",
+  "route_rendering_offset",
+  "meaning_not_documented",
+]);
+
 export const InputTimestampReceipt = z
   .strictObject({
     timestamp_text: z.string().min(1).optional(),
     utc_offset_text: z.string().min(1).optional(),
+    utc_offset_meaning: UtcOffsetMeaning.optional(),
     timestamp_basis: InputTimestampBasis.optional(),
     timestamp_missing_reason: MissingReason.optional(),
     utc_offset_missing_reason: MissingReason.optional(),
@@ -136,6 +156,13 @@ export const InputTimestampReceipt = z
         code: "custom",
         path: ["timestamp_missing_reason"],
         message: "A missing input timestamp needs a reason",
+      });
+    }
+    if (value.timestamp_text !== undefined && value.timestamp_missing_reason !== undefined) {
+      context.addIssue({
+        code: "custom",
+        path: ["timestamp_missing_reason"],
+        message: "An available input timestamp cannot also be marked missing",
       });
     }
     if (value.timestamp_text !== undefined && value.timestamp_basis === undefined) {
@@ -150,6 +177,27 @@ export const InputTimestampReceipt = z
         code: "custom",
         path: ["utc_offset_missing_reason"],
         message: "A missing input UTC offset needs a reason",
+      });
+    }
+    if (value.utc_offset_text !== undefined && value.utc_offset_missing_reason !== undefined) {
+      context.addIssue({
+        code: "custom",
+        path: ["utc_offset_missing_reason"],
+        message: "An available input UTC offset cannot also be marked missing",
+      });
+    }
+    if (value.utc_offset_text !== undefined && value.utc_offset_meaning === undefined) {
+      context.addIssue({
+        code: "custom",
+        path: ["utc_offset_meaning"],
+        message: "An input UTC offset needs its documented meaning",
+      });
+    }
+    if (value.utc_offset_text === undefined && value.utc_offset_meaning !== undefined) {
+      context.addIssue({
+        code: "custom",
+        path: ["utc_offset_meaning"],
+        message: "UTC offset meaning requires UTC offset text",
       });
     }
   });
@@ -176,12 +224,13 @@ export const ProviderReportingPeriod = z
     period_type: ProviderReportingPeriodType,
     provider_period_id: z.string().min(1).optional(),
     provider_date: CalendarDate.optional(),
-    start_at: Timestamp.optional(),
-    end_at: Timestamp.optional(),
+    start_at: UtcTimestamp.optional(),
+    end_at: UtcTimestamp.optional(),
     input_start_timestamp: InputTimestampReceipt.optional(),
     input_end_timestamp: InputTimestampReceipt.optional(),
     timezone_offset_text: z.string().min(1).optional(),
-    timezone_offset_meaning: z.string().min(1).optional(),
+    timezone_offset_meaning: UtcOffsetMeaning.optional(),
+    timezone_offset_missing_reason: MissingReason.optional(),
   })
   .superRefine((value, context) => {
     if (
@@ -205,35 +254,105 @@ export const ProviderReportingPeriod = z
         message: "Provider reporting period end cannot precede its start",
       });
     }
+    if (
+      value.timezone_offset_text !== undefined &&
+      value.timezone_offset_meaning === undefined
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["timezone_offset_meaning"],
+        message: "A provider UTC offset needs its documented meaning",
+      });
+    }
+    if (
+      value.timezone_offset_text !== undefined &&
+      value.timezone_offset_missing_reason !== undefined
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["timezone_offset_missing_reason"],
+        message: "An available provider UTC offset cannot also be marked missing",
+      });
+    }
   });
 
-export const SourceValue = z.strictObject({
+const sourceValueFields = {
   standard_value: z.number(),
   standard_unit: z.string().min(1),
   input_value: z.number().optional(),
   input_unit: z.string().min(1).optional(),
   input_value_missing_reason: MissingReason.optional(),
   input_unit_missing_reason: MissingReason.optional(),
-});
+} as const;
 
-export const SourceReportedSummary = SourceValue.extend({
-  summary_type: z.string().min(1),
-});
+function validateSourceValue(
+  value: {
+    input_value?: number;
+    input_unit?: string;
+    input_value_missing_reason?: z.infer<typeof MissingReason>;
+    input_unit_missing_reason?: z.infer<typeof MissingReason>;
+  },
+  context: z.RefinementCtx,
+): void {
+  if ((value.input_value === undefined) === (value.input_value_missing_reason === undefined)) {
+    context.addIssue({
+      code: "custom",
+      path: ["input_value_missing_reason"],
+      message: "Provide the input value or one missing reason",
+    });
+  }
+  if ((value.input_unit === undefined) === (value.input_unit_missing_reason === undefined)) {
+    context.addIssue({
+      code: "custom",
+      path: ["input_unit_missing_reason"],
+      message: "Provide the input unit or one missing reason",
+    });
+  }
+}
+
+export const SourceValue = z
+  .strictObject(sourceValueFields)
+  .superRefine((value, context) => {
+    validateSourceValue(value, context);
+  });
+
+export const SourceReportedSummary = z
+  .strictObject({
+    ...sourceValueFields,
+    summary_type: z.string().min(1),
+  })
+  .superRefine((value, context) => {
+    validateSourceValue(value, context);
+  });
 
 const measuredRecordFields = {
   source_id: RecordId,
   provider_record_id: z.string().min(1).optional(),
   provider_reporting_periods: z.array(ProviderReportingPeriod).optional(),
-  received_at: Timestamp,
+  received_at: UtcTimestamp,
   received_at_basis: ReceivedAtBasis,
 } as const;
+
+function isIanaTimeZone(value: string): boolean {
+  try {
+    new Intl.DateTimeFormat("en-US", { timeZone: value }).format();
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export const AthleteProfileData = z.strictObject({
   name: z.string().min(1).optional(),
   birth_year: z.number().int().min(1900).max(2100).optional(),
   sex: z.enum(["male", "female"]).optional(),
   display_units: z.enum(["metric", "imperial"]).optional(),
-  default_time_zone: z.string().min(1).optional().describe("IANA timezone for calendar calculations"),
+  default_time_zone: z
+    .string()
+    .min(1)
+    .refine(isIanaTimeZone, "IANA timezone")
+    .optional()
+    .describe("IANA timezone for calendar calculations"),
 });
 
 export const SourceType = z.enum(["wearable", "export_file", "connector", "manual"]);
@@ -334,11 +453,10 @@ export const PointMeasurementData = z
   .strictObject({
     ...measuredRecordFields,
     quantity: PointMeasurementTypeSchema,
-    recorded_at: Timestamp.optional(),
+    recorded_at: UtcTimestamp.optional(),
     input_timestamp: InputTimestampReceipt,
     value: SourceValue,
     calculations: z.array(PointMeasurementCalculation).optional(),
-    note: z.string().optional(),
   })
   .superRefine((value, context) => {
     const expectedUnit = POINT_MEASUREMENT_UNITS[value.quantity];
@@ -362,7 +480,7 @@ export const MeasurementSampleData = z
   .strictObject({
     ...measuredRecordFields,
     quantity: SeriesQuantitySchema,
-    recorded_at: Timestamp,
+    recorded_at: UtcTimestamp,
     input_timestamp: InputTimestampReceipt,
     value: SourceValue,
     duration_ms: z.number().int().nonnegative().optional(),
@@ -378,17 +496,30 @@ export const MeasurementSampleData = z
         message: `${value.quantity} uses ${expectedUnit}`,
       });
     }
+    const reconstructed =
+      value.input_timestamp.timestamp_basis === "reconstructed_from_series_start";
+    if (
+      reconstructed !==
+      (value.timestamp_base_text !== undefined &&
+        value.timestamp_reconstruction_method !== undefined)
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["timestamp_reconstruction_method"],
+        message:
+          "A reconstructed timestamp needs its base and method, and other timestamps cannot claim them",
+      });
+    }
   });
 
 export const SleepSessionData = z
   .strictObject({
     ...measuredRecordFields,
-    start_at: Timestamp,
-    end_at: Timestamp,
+    start_at: UtcTimestamp,
+    end_at: UtcTimestamp,
     input_start_timestamp: InputTimestampReceipt,
     input_end_timestamp: InputTimestampReceipt,
     source_reported_summaries: z.array(SourceReportedSummary),
-    note: z.string().optional(),
   })
   .refine((value) => Date.parse(value.end_at) >= Date.parse(value.start_at), {
     path: ["end_at"],
@@ -405,15 +536,13 @@ export const WorkoutSessionSegment = z.strictObject({
 export const WorkoutSessionData = z
   .strictObject({
     ...measuredRecordFields,
-    start_at: Timestamp,
-    end_at: Timestamp,
+    start_at: UtcTimestamp,
+    end_at: UtcTimestamp,
     input_start_timestamp: InputTimestampReceipt,
     input_end_timestamp: InputTimestampReceipt,
     activity_type: z.string().min(1).optional(),
     source_reported_summaries: z.array(SourceReportedSummary),
     segments: z.array(WorkoutSessionSegment).optional(),
-    completed_planned_session_id: RecordId.optional(),
-    note: z.string().optional(),
   })
   .refine((value) => Date.parse(value.end_at) >= Date.parse(value.start_at), {
     path: ["end_at"],
@@ -435,20 +564,18 @@ export const Score = z
 export const BenchmarkResultSegment = z.strictObject({
   label: z.string().min(1),
   score: Score.optional(),
-  note: z.string().optional(),
 });
 
 export const BenchmarkResultData = z.strictObject({
   ...measuredRecordFields,
   benchmark_definition_id: RecordId,
-  recorded_at: Timestamp,
+  recorded_at: UtcTimestamp,
   input_timestamp: InputTimestampReceipt,
   score: Score,
   input_score_text: z.string().min(1).optional(),
   scaling: z.enum(["rx", "scaled"]).optional(),
   workout_session_id: RecordId.optional(),
   segments: z.array(BenchmarkResultSegment).optional(),
-  note: z.string().optional(),
 });
 
 export const ProviderScoreData = z
@@ -457,9 +584,8 @@ export const ProviderScoreData = z
     metric: z.string().min(1),
     value: SourceValue,
     scale: z.string().min(1),
-    recorded_at: Timestamp.optional(),
+    recorded_at: UtcTimestamp.optional(),
     input_timestamp: InputTimestampReceipt,
-    note: z.string().optional(),
   })
   .refine(
     (value) =>
@@ -484,7 +610,7 @@ export const AthleteReportType = z.enum([
 export const AthleteReportData = z
   .strictObject({
     report_type: AthleteReportType,
-    reported_at: Timestamp,
+    reported_at: UtcTimestamp,
     input_reported_at: InputTimestampReceipt,
     reported_via: z.enum(["text", "voice", "photo"]),
     rating: z.number().optional(),
@@ -512,7 +638,7 @@ export const ReportedNutritionItem = z.strictObject({
 });
 
 export const NutritionEntryData = z.strictObject({
-  reported_at: Timestamp,
+  reported_at: UtcTimestamp,
   input_reported_at: InputTimestampReceipt,
   reported_via: z.enum(["text", "voice", "photo"]),
   athlete_description: z.string().min(1),
@@ -557,8 +683,8 @@ export const PredictionData = z.strictObject({
 export const PredictionResultLinkData = z.strictObject({
   prediction: EvidenceReference,
   benchmark_result: EvidenceReference,
-  created_by: RecordAuthor,
-  linked_at: Timestamp,
+  created_by: RecordActor,
+  linked_at: UtcTimestamp,
   content_version: z.number().int().positive(),
   status: AuthoredRecordStatus,
 });
@@ -617,7 +743,7 @@ export const PlannedSessionData = z
     training_plan_id: RecordId.optional(),
     title: z.string().min(1),
     scheduled_date: CalendarDate.optional(),
-    scheduled_start_at: Timestamp.optional(),
+    scheduled_start_at: UtcTimestamp.optional(),
     activity_type: z.string().min(1).optional(),
     blocks: z.array(PlannedSessionBlock),
     completion_status: z.enum(["planned", "completed", "skipped", "cancelled"]),
@@ -666,7 +792,7 @@ export const NutritionModelInterpretationData = z.strictObject({
 
 const currentRecordFields = {
   record_id: RecordId,
-  created_at: Timestamp,
+  created_at: UtcTimestamp,
   current_revision: RecordRevisionNumber,
   is_deleted: z.boolean(),
 } as const;
@@ -776,9 +902,9 @@ const recordRevisionFields = {
   record_id: RecordId,
   revision: RecordRevisionNumber,
   previous_revision: RecordRevisionNumber.nullable(),
-  became_known_at: Timestamp,
+  became_known_at: UtcTimestamp,
   became_known_at_basis: BecameKnownAtBasis,
-  change_author: RecordAuthor,
+  changed_by: RecordActor,
 } as const;
 
 function recordRevisionVariant<const T extends RecordTypeT, S extends z.ZodType>(
@@ -901,32 +1027,35 @@ export const RecordRevision = z.union([
 export const RecordDeletion = z.strictObject({
   record_id: RecordId,
   record_revision: RecordRevisionNumber,
-  deleted_at: Timestamp,
-  deleted_by: RecordAuthor,
+  deleted_at: UtcTimestamp,
+  deleted_by: RecordActor,
 });
+
+export const ErasureReasonCode = z.enum([
+  "athlete_request",
+  "legal_requirement",
+  "recorded_in_error",
+  "other",
+]);
 
 export const RecordErasureMarker = z.strictObject({
   record_id: RecordId,
-  erased_at: Timestamp,
-  reason: z.string().min(1),
+  erased_at: UtcTimestamp,
+  reason_code: ErasureReasonCode,
 });
 
 export const RecordImportKey = z.strictObject({
   record_id: RecordId,
   match_key_method: z.string().min(1),
   match_key: z.string().min(1),
-  imported_at: Timestamp,
+  imported_at: UtcTimestamp,
 });
 
 export const PackageRelativePath = z
   .string()
   .min(1)
-  .refine(
-    (value) =>
-      !value.startsWith("/") &&
-      !value.startsWith("\\") &&
-      !value.includes("\\") &&
-      !value.split("/").includes(".."),
+  .regex(
+    /^(?!\/)(?!.*\\)(?!.*(?:^|\/)\.\.(?:\/|$)).+$/,
     "Package path must be relative and cannot traverse parent directories",
   );
 
@@ -935,27 +1064,212 @@ export const MeasurementSeriesFileReference = z.strictObject({
   sha256: Sha256,
   source_id: RecordId,
   quantity: SeriesQuantitySchema,
-  start_at: Timestamp,
-  end_at: Timestamp,
+  start_at: UtcTimestamp,
+  end_at: UtcTimestamp,
   sample_count: z.number().int().nonnegative(),
   revision_count: z.number().int().nonnegative(),
   deletion_count: z.number().int().nonnegative(),
   import_key_count: z.number().int().nonnegative(),
 });
 
+type CurrentHistoryRecord = {
+  record_id: string;
+  record_type: string;
+  current_revision: number;
+  is_deleted: boolean;
+  data: unknown;
+};
+
+type HistoryRevision = {
+  record_id: string;
+  record_type: string;
+  revision: number;
+  previous_revision: number | null;
+  data: unknown;
+};
+
+type HistoryDeletion = {
+  record_id: string;
+  record_revision: number;
+};
+
+type HistoryImportKey = {
+  record_id: string;
+  match_key_method: string;
+  match_key: string;
+};
+
+function validateCompleteRecordHistory(
+  records: readonly CurrentHistoryRecord[],
+  revisions: readonly HistoryRevision[],
+  deletions: readonly HistoryDeletion[],
+  importKeys: readonly HistoryImportKey[],
+  context: z.RefinementCtx,
+): void {
+  const recordsById = new Map<string, { record: CurrentHistoryRecord; index: number }>();
+  records.forEach((record, index) => {
+    if (recordsById.has(record.record_id)) {
+      context.addIssue({
+        code: "custom",
+        path: ["records", index, "record_id"],
+        message: "A package cannot contain the same current record twice",
+      });
+      return;
+    }
+    recordsById.set(record.record_id, { record, index });
+  });
+
+  const revisionsByRecord = new Map<string, HistoryRevision[]>();
+  const revisionKeys = new Set<string>();
+  revisions.forEach((revision, index) => {
+    const key = `${revision.record_id}:${revision.revision}`;
+    if (revisionKeys.has(key)) {
+      context.addIssue({
+        code: "custom",
+        path: ["record_revisions", index],
+        message: "A package cannot contain the same record revision twice",
+      });
+    }
+    revisionKeys.add(key);
+    const owner = recordsById.get(revision.record_id);
+    if (owner === undefined) {
+      context.addIssue({
+        code: "custom",
+        path: ["record_revisions", index, "record_id"],
+        message: "A retained revision needs its current record",
+      });
+    } else if (owner.record.record_type !== revision.record_type) {
+      context.addIssue({
+        code: "custom",
+        path: ["record_revisions", index, "record_type"],
+        message: "A revision must keep its record type",
+      });
+    }
+    const group = revisionsByRecord.get(revision.record_id) ?? [];
+    group.push(revision);
+    revisionsByRecord.set(revision.record_id, group);
+  });
+
+  const deletionByRecord = new Map<string, HistoryDeletion>();
+  deletions.forEach((deletion, index) => {
+    const owner = recordsById.get(deletion.record_id);
+    if (owner === undefined) {
+      context.addIssue({
+        code: "custom",
+        path: ["record_deletions", index, "record_id"],
+        message: "A deletion record needs its retained current record",
+      });
+    }
+    if (deletionByRecord.has(deletion.record_id)) {
+      context.addIssue({
+        code: "custom",
+        path: ["record_deletions", index, "record_id"],
+        message: "A record can have only one current deletion record",
+      });
+    }
+    deletionByRecord.set(deletion.record_id, deletion);
+  });
+
+  recordsById.forEach(({ record, index }) => {
+    const recordRevisions = (revisionsByRecord.get(record.record_id) ?? []).sort(
+      (left, right) => left.revision - right.revision,
+    );
+    if (recordRevisions.length !== record.current_revision) {
+      context.addIssue({
+        code: "custom",
+        path: ["records", index, "current_revision"],
+        message: "A complete package needs every revision through current_revision",
+      });
+    }
+    recordRevisions.forEach((revision, revisionIndex) => {
+      const expected = revisionIndex + 1;
+      if (revision.revision !== expected) {
+        context.addIssue({
+          code: "custom",
+          path: ["records", index, "current_revision"],
+          message: "Record revision numbers must be complete and consecutive",
+        });
+      }
+    });
+    const latestRevision = recordRevisions.at(-1);
+    if (
+      latestRevision !== undefined &&
+      (latestRevision.revision !== record.current_revision ||
+        JSON.stringify(latestRevision.data) !== JSON.stringify(record.data))
+    ) {
+      context.addIssue({
+        code: "custom",
+        path: ["records", index, "data"],
+        message: "The current record must equal its current retained revision",
+      });
+    }
+
+    const deletion = deletionByRecord.get(record.record_id);
+    if (record.is_deleted && deletion === undefined) {
+      context.addIssue({
+        code: "custom",
+        path: ["records", index, "is_deleted"],
+        message: "A deleted current record needs its deletion record",
+      });
+    }
+    if (!record.is_deleted && deletion !== undefined) {
+      context.addIssue({
+        code: "custom",
+        path: ["records", index, "is_deleted"],
+        message: "A current deletion record requires is_deleted",
+      });
+    }
+    if (deletion !== undefined && deletion.record_revision !== record.current_revision) {
+      context.addIssue({
+        code: "custom",
+        path: ["records", index, "current_revision"],
+        message: "A deletion record must name the current retained revision",
+      });
+    }
+  });
+
+  const importKeyOwners = new Map<string, string>();
+  importKeys.forEach((importKey, index) => {
+    if (!recordsById.has(importKey.record_id)) {
+      context.addIssue({
+        code: "custom",
+        path: ["record_import_keys", index, "record_id"],
+        message: "A provider import key needs its current record",
+      });
+    }
+    const key = `${importKey.match_key_method}\u0000${importKey.match_key}`;
+    const existingOwner = importKeyOwners.get(key);
+    if (existingOwner !== undefined && existingOwner !== importKey.record_id) {
+      context.addIssue({
+        code: "custom",
+        path: ["record_import_keys", index, "match_key"],
+        message: "One provider import key cannot identify two records",
+      });
+    }
+    importKeyOwners.set(key, importKey.record_id);
+  });
+}
+
 export const MeasurementSeriesFile = z
   .strictObject({
     athleticstandard_version: z.literal(ATHLETIC_STANDARD_VERSION),
     source_id: RecordId,
     quantity: SeriesQuantitySchema,
-    start_at: Timestamp,
-    end_at: Timestamp,
+    start_at: UtcTimestamp,
+    end_at: UtcTimestamp,
     records: z.array(MeasurementSampleRecord),
     record_revisions: z.array(MeasurementSampleRevision),
     record_deletions: z.array(RecordDeletion),
     record_import_keys: z.array(RecordImportKey),
   })
   .superRefine((value, context) => {
+    validateCompleteRecordHistory(
+      value.records,
+      value.record_revisions,
+      value.record_deletions,
+      value.record_import_keys,
+      context,
+    );
     if (Date.parse(value.end_at) < Date.parse(value.start_at)) {
       context.addIssue({
         code: "custom",
@@ -971,20 +1285,61 @@ export const MeasurementSeriesFile = z
           message: "Every sample must match the series source and quantity",
         });
       }
+      const recordedAt = Date.parse(record.data.recorded_at);
+      if (recordedAt < Date.parse(value.start_at) || recordedAt > Date.parse(value.end_at)) {
+        context.addIssue({
+          code: "custom",
+          path: ["records", index, "data", "recorded_at"],
+          message: "Every current sample must fall inside the series time bounds",
+        });
+      }
     });
   });
 
-export const AthleticStandardPackage = z.strictObject({
-  athleticstandard_version: z.literal(ATHLETIC_STANDARD_VERSION),
-  database_id: DatabaseId,
-  database_revision: z.number().int().nonnegative(),
-  records: z.array(NonSampleRecord),
-  record_revisions: z.array(NonSampleRecordRevision),
-  record_deletions: z.array(RecordDeletion),
-  record_erasure_markers: z.array(RecordErasureMarker),
-  record_import_keys: z.array(RecordImportKey),
-  measurement_series_files: z.array(MeasurementSeriesFileReference),
-});
+export const AthleticStandardPackage = z
+  .strictObject({
+    athleticstandard_version: z.literal(ATHLETIC_STANDARD_VERSION),
+    database_id: DatabaseId,
+    database_revision: z.number().int().nonnegative(),
+    records: z.array(NonSampleRecord),
+    record_revisions: z.array(NonSampleRecordRevision),
+    record_deletions: z.array(RecordDeletion),
+    record_erasure_markers: z.array(RecordErasureMarker),
+    record_import_keys: z.array(RecordImportKey),
+    measurement_series_files: z.array(MeasurementSeriesFileReference),
+  })
+  .superRefine((value, context) => {
+    validateCompleteRecordHistory(
+      value.records,
+      value.record_revisions,
+      value.record_deletions,
+      value.record_import_keys,
+      context,
+    );
+
+    const seriesFiles = new Set<string>();
+    value.measurement_series_files.forEach((file, index) => {
+      if (seriesFiles.has(file.file)) {
+        context.addIssue({
+          code: "custom",
+          path: ["measurement_series_files", index, "file"],
+          message: "A package cannot reference the same measurement-series file twice",
+        });
+      }
+      seriesFiles.add(file.file);
+    });
+
+    const recordIds = new Set(value.records.map((record) => record.record_id));
+    value.record_erasure_markers.forEach((marker, index) => {
+      if (recordIds.has(marker.record_id)) {
+        context.addIssue({
+          code: "custom",
+          path: ["record_erasure_markers", index, "record_id"],
+          message: "An erased record cannot remain in current package records",
+        });
+      }
+    });
+  });
 
 export const ManifestFile = z.strictObject({
   file: PackageRelativePath,
@@ -1004,7 +1359,7 @@ export const ExportManifest = z.strictObject({
   athleticstandard_version: z.literal(ATHLETIC_STANDARD_VERSION),
   source_database_id: DatabaseId,
   database_revision: z.number().int().nonnegative(),
-  exported_at: Timestamp.optional(),
+  exported_at: UtcTimestamp.optional(),
   files: z.array(ManifestFile),
   record_counts: z.array(ManifestRecordCount),
   erasure_marker_count: z.number().int().nonnegative(),
@@ -1012,7 +1367,8 @@ export const ExportManifest = z.strictObject({
 
 export type RecordIdT = z.infer<typeof RecordId>;
 export type EvidenceReferenceT = z.infer<typeof EvidenceReference>;
-export type RecordAuthorT = z.infer<typeof RecordAuthor>;
+export type RecordActorT = z.infer<typeof RecordActor>;
+export type AuthoredRecordAuthorT = z.infer<typeof AuthoredRecordAuthor>;
 export type ProviderReportingPeriodT = z.infer<typeof ProviderReportingPeriod>;
 export type CurrentRecordT = z.infer<typeof CurrentRecord>;
 export type NonSampleRecordT = z.infer<typeof NonSampleRecord>;

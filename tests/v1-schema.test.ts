@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   AgentAuthor,
   AthleticStandardPackage,
+  AthleteProfileRecord,
+  AuthoredRecordAuthor,
   AuthoredRecordMetadata,
   BecameKnownAtBasis,
   CurrentRecord,
@@ -10,7 +12,6 @@ import {
   PointMeasurementRecord,
   ProviderReportingPeriodType,
   ProviderScoreRecord,
-  RecordAuthor,
   RecordId,
   RecordRevision,
   RecordType,
@@ -31,6 +32,7 @@ const ids = {
 const timestampReceipt = {
   timestamp_text: "2026-08-09T06:12:00-05:00",
   utc_offset_text: "-05:00",
+  utc_offset_meaning: "provider_cycle_offset" as const,
   timestamp_basis: "source_offset_timestamp" as const,
 };
 
@@ -113,6 +115,21 @@ function sampleRecord() {
   };
 }
 
+function revisionFor(
+  record: ReturnType<typeof sourceRecord> | ReturnType<typeof pointRecord> | ReturnType<typeof sampleRecord>,
+) {
+  return {
+    record_id: record.record_id,
+    record_type: record.record_type,
+    revision: 1,
+    previous_revision: null,
+    became_known_at: record.created_at,
+    became_known_at_basis: "provider_import" as const,
+    changed_by: { author_type: "tool" as const, tool: "ath", tool_version: "1.0.0" },
+    data: record.data,
+  };
+}
+
 describe("v1 record IDs and types", () => {
   it("accepts lowercase UUIDv7 and rejects UUIDv4", () => {
     expect(RecordId.safeParse(ids.point).success).toBe(true);
@@ -177,6 +194,16 @@ describe("v1 two-tier wall", () => {
     expect(CurrentRecord.safeParse(report).success).toBe(false);
   });
 
+  it("does not let an athlete note appear source-backed on a measured record", () => {
+    const record = pointRecord();
+    expect(
+      PointMeasurementRecord.safeParse({
+        ...record,
+        data: { ...record.data, note: "I felt exhausted" },
+      }).success,
+    ).toBe(false);
+  });
+
   it("keeps SDNN and RMSSD as separate quantities", () => {
     expect(POINT_MEASUREMENT_UNITS.hrv_sdnn).toBe("ms");
     expect(POINT_MEASUREMENT_UNITS.hrv_rmssd).toBe("ms");
@@ -197,7 +224,7 @@ describe("v1 authorship", () => {
   });
 
   it("does not accept the removed unknown author type", () => {
-    expect(RecordAuthor.safeParse({ author_type: "unknown" }).success).toBe(false);
+    expect(AuthoredRecordAuthor.safeParse({ author_type: "unknown" }).success).toBe(false);
   });
 
   it("requires authored records to carry evidence, version, and status", () => {
@@ -265,6 +292,55 @@ describe("v1 time and provider periods", () => {
       "package_merge",
     ]);
   });
+
+  it("requires one source value or one reason that it is missing", () => {
+    const record = pointRecord();
+    const value = { ...record.data.value } as Record<string, unknown>;
+    delete value.input_value;
+    expect(
+      PointMeasurementRecord.safeParse({
+        ...record,
+        data: { ...record.data, value },
+      }).success,
+    ).toBe(false);
+
+    expect(
+      PointMeasurementRecord.safeParse({
+        ...record,
+        data: {
+          ...record.data,
+          value: {
+            ...record.data.value,
+            input_value_missing_reason: "not_provided_by_source",
+          },
+        },
+      }).success,
+    ).toBe(false);
+  });
+
+  it("rejects normalized timestamps that are not UTC", () => {
+    const record = pointRecord();
+    record.data.recorded_at = "2026-08-09T06:12:00-05:00";
+    expect(PointMeasurementRecord.safeParse(record).success).toBe(false);
+  });
+
+  it("validates saved calendar timezones as IANA names", () => {
+    const record = {
+      record_id: ids.report,
+      record_type: "athlete_profile",
+      created_at: "2026-08-09T12:00:00Z",
+      current_revision: 1,
+      is_deleted: false,
+      data: { default_time_zone: "America/Chicago" },
+    };
+    expect(AthleteProfileRecord.safeParse(record).success).toBe(true);
+    expect(
+      AthleteProfileRecord.safeParse({
+        ...record,
+        data: { default_time_zone: "Chicago time" },
+      }).success,
+    ).toBe(false);
+  });
 });
 
 describe("v1 revisions and portable package", () => {
@@ -276,7 +352,7 @@ describe("v1 revisions and portable package", () => {
       previous_revision: 1,
       became_known_at: "2026-08-10T12:00:00Z",
       became_known_at_basis: "provider_import",
-      change_author: athleteAuthor,
+      changed_by: athleteAuthor,
       data: sourceRecord().data,
     };
     expect(RecordRevision.safeParse(revision).success).toBe(true);
@@ -298,19 +374,34 @@ describe("v1 revisions and portable package", () => {
     expect(AthleticStandardPackage.safeParse(packageDocument).success).toBe(false);
   });
 
+  it("refuses a package that omits current record history", () => {
+    const packageDocument = {
+      athleticstandard_version: "1.0.0",
+      database_id: ids.database,
+      database_revision: 1,
+      records: [sourceRecord()],
+      record_revisions: [],
+      record_deletions: [],
+      record_erasure_markers: [],
+      record_import_keys: [],
+      measurement_series_files: [],
+    };
+    expect(AthleticStandardPackage.safeParse(packageDocument).success).toBe(false);
+  });
+
   it("keeps provider import keys and value-free erasure markers", () => {
     const packageDocument = {
       athleticstandard_version: "1.0.0",
       database_id: ids.database,
       database_revision: 3,
       records: [sourceRecord(), pointRecord()],
-      record_revisions: [],
+      record_revisions: [revisionFor(sourceRecord()), revisionFor(pointRecord())],
       record_deletions: [],
       record_erasure_markers: [
         {
           record_id: ids.report,
           erased_at: "2026-08-10T12:00:00Z",
-          reason: "athlete request",
+          reason_code: "athlete_request",
         },
       ],
       record_import_keys: [
@@ -324,6 +415,18 @@ describe("v1 revisions and portable package", () => {
       measurement_series_files: [],
     };
     expect(AthleticStandardPackage.safeParse(packageDocument).success).toBe(true);
+    expect(
+      AthleticStandardPackage.safeParse({
+        ...packageDocument,
+        record_erasure_markers: [
+          {
+            record_id: ids.report,
+            erased_at: "2026-08-10T12:00:00Z",
+            reason: "free-text reason",
+          },
+        ],
+      }).success,
+    ).toBe(false);
   });
 
   it("keeps dense samples in generated measurement-series files", () => {
@@ -334,7 +437,7 @@ describe("v1 revisions and portable package", () => {
       start_at: "2026-08-09T11:12:00Z",
       end_at: "2026-08-09T11:12:00Z",
       records: [sampleRecord()],
-      record_revisions: [],
+      record_revisions: [revisionFor(sampleRecord())],
       record_deletions: [],
       record_import_keys: [],
     };
