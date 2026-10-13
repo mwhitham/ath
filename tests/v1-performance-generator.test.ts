@@ -69,9 +69,10 @@ describe("v1 performance database generator", () => {
       expect(String(workoutSamples.rows[0]?.first_at)).toBe(
         "2026-08-10T17:25:00.000Z",
       );
-      expect(String(workoutSamples.rows[0]?.last_at)).toBeGreaterThan(
-        "2026-08-10T17:36:30.000Z",
-      );
+      expect(
+        String(workoutSamples.rows[0]?.last_at) >
+          "2026-08-10T17:36:30.000Z",
+      ).toBe(true);
 
       const types = await client.execute(
         "SELECT COUNT(DISTINCT record_type) AS count FROM records",
