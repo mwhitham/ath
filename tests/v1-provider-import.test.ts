@@ -10,6 +10,7 @@ import {
   readRecordRevisions,
   type AthleticDatabase,
 } from "../src/db/index.js";
+import { databaseClient } from "../src/db/client.js";
 
 const fixtures = resolve("tests/fixtures/exports");
 const opened: AthleticDatabase[] = [];
@@ -28,6 +29,47 @@ async function emptyDatabase(): Promise<AthleticDatabase> {
   });
   opened.push(database);
   return database;
+}
+
+async function sourceRecordId(
+  database: AthleticDatabase,
+  writer: string,
+): Promise<string> {
+  const sources = await listRecords(database, {
+    record_type: "source",
+    limit: 10_000,
+  });
+  const source = sources.find(
+    (record) =>
+      record.record_type === "source" &&
+      record.data.data_writer === writer,
+  );
+  if (source === undefined) {
+    throw new Error(`test source is missing: ${writer}`);
+  }
+  return source.record_id;
+}
+
+async function providerImportKeys(
+  database: AthleticDatabase,
+): Promise<Array<{ method: string; key: unknown[] }>> {
+  const result = await databaseClient(database).execute(`
+    SELECT match_key_method, match_key
+    FROM record_import_keys
+    ORDER BY match_key_method, match_key
+  `);
+  return result.rows.map((row) => ({
+    method: String(row.match_key_method),
+    key: JSON.parse(String(row.match_key)) as unknown[],
+  }));
+}
+
+function duplicateCsvFirstRow(text: string): string {
+  const [header, first, ...rest] = text.trimEnd().split(/\r?\n/);
+  if (header === undefined || first === undefined) {
+    throw new Error("test CSV needs a header and data row");
+  }
+  return [header, first, first, ...rest].join("\n") + "\n";
 }
 
 describe("v1 provider import", () => {
@@ -121,6 +163,36 @@ describe("v1 provider import", () => {
       became_known_at_basis: "provider_import",
       data: { value: { standard_value: 69.4 } },
     });
+
+    const sourceId = await sourceRecordId(database, "WHOOP");
+    await expect(providerImportKeys(database)).resolves.toEqual(
+      expect.arrayContaining([
+        {
+          method: "whoop_csv/v1",
+          key: ["source", "WHOOP", "whoop_csv", ""],
+        },
+        {
+          method: "whoop_csv/v1",
+          key: [
+            "point_measurement",
+            sourceId,
+            "hrv_rmssd",
+            "2026-08-09T13:05:00.000Z",
+            0,
+          ],
+        },
+        {
+          method: "whoop_csv/v1",
+          key: [
+            "provider_score",
+            sourceId,
+            "recovery",
+            "2026-08-09T13:05:00.000Z",
+            0,
+          ],
+        },
+      ]),
+    );
   });
 
   it("keeps Oura date-only scores as provider days rather than invented instants", async () => {
@@ -187,6 +259,36 @@ describe("v1 provider import", () => {
         ],
       },
     });
+
+    const sourceId = await sourceRecordId(database, "Oura");
+    await expect(providerImportKeys(database)).resolves.toEqual(
+      expect.arrayContaining([
+        {
+          method: "oura_csv/v1",
+          key: ["source", "Oura", "oura_csv", ""],
+        },
+        {
+          method: "oura_csv/v1",
+          key: [
+            "provider_score",
+            sourceId,
+            "readiness",
+            "2026-08-09",
+            0,
+          ],
+        },
+        {
+          method: "oura_csv/v1",
+          key: [
+            "point_measurement",
+            sourceId,
+            "hrv_rmssd",
+            "2026-08-09T13:08:00.000Z",
+            0,
+          ],
+        },
+      ]),
+    );
   });
 
   it("imports Apple dense samples as stable SQLite records", async () => {
@@ -333,5 +435,111 @@ describe("v1 provider import", () => {
     expect(repeat.new_records).toEqual([]);
     expect(repeat.changed_records).toEqual([]);
     expect(repeat.conflicts).toEqual([]);
+
+    const withingsSourceId = await sourceRecordId(database, "Withings");
+    const activitySourceId = await sourceRecordId(database, "Apple Health");
+    await expect(providerImportKeys(database)).resolves.toEqual(
+      expect.arrayContaining([
+        {
+          method: "apple_health/v1",
+          key: ["source", "Withings", "apple_health", ""],
+        },
+        {
+          method: "apple_health/v1",
+          key: [
+            "point_measurement",
+            withingsSourceId,
+            "body_weight",
+            "2026-08-09T14:02:00.000Z",
+            0,
+          ],
+        },
+        {
+          method: "apple_health/v1",
+          key: [
+            "provider_summary",
+            activitySourceId,
+            "active_energy_burned",
+            "2026-08-09",
+            0,
+          ],
+        },
+      ]),
+    );
+  });
+
+  it("keeps duplicate-row ordinals stable for every provider route", async () => {
+    const cases = [
+      {
+        provider: "whoop",
+        file: "physiological_cycles.csv",
+        duplicate: duplicateCsvFirstRow,
+        matches: (key: unknown[]) =>
+          key[0] === "point_measurement" && key[2] === "hrv_rmssd",
+      },
+      {
+        provider: "oura",
+        file: "oura_daily_readiness.csv",
+        duplicate: duplicateCsvFirstRow,
+        matches: (key: unknown[]) =>
+          key[0] === "provider_score" && key[2] === "readiness",
+      },
+      {
+        provider: "apple",
+        file: "export.xml",
+        duplicate: (text: string) => {
+          const record = text.match(
+            / <Record type="HKQuantityTypeIdentifierRestingHeartRate"[^\n]+\/>/,
+          )?.[0];
+          if (record === undefined) {
+            throw new Error("test Apple record is missing");
+          }
+          return text.replace(record, `${record}\n${record}`);
+        },
+        matches: (key: unknown[]) =>
+          key[0] === "point_measurement" &&
+          key[2] === "resting_heart_rate",
+      },
+    ] as const;
+
+    for (const testCase of cases) {
+      const database = await emptyDatabase();
+      const source = resolve(fixtures, testCase.provider);
+      const directory = mkdtempSync(
+        join(tmpdir(), `ath-${testCase.provider}-duplicate-`),
+      );
+      cpSync(source, directory, { recursive: true });
+      const file = join(directory, testCase.file);
+      writeFileSync(file, testCase.duplicate(readFileSync(file, "utf8")));
+
+      const preview = await previewProviderImport(database, directory, {
+        received_at: receivedAt,
+      });
+      expect(preview.conflicts, testCase.provider).toEqual([]);
+      await importProviderRecords(database, preview);
+
+      const keys = await providerImportKeys(database);
+      expect(
+        keys
+          .filter(
+            (row) =>
+              row.method === `${testCase.provider === "apple" ? "apple_health" : `${testCase.provider}_csv`}/v1` &&
+              testCase.matches(row.key),
+          )
+          .map((row) => row.key.at(-1))
+          .sort(),
+        testCase.provider,
+      ).toEqual([0, 1]);
+
+      const repeat = await previewProviderImport(database, directory, {
+        received_at: "2026-10-14T12:00:00.000Z",
+      });
+      expect(repeat.conflicts, testCase.provider).toEqual([]);
+      expect(repeat.new_records, testCase.provider).toEqual([]);
+      expect(repeat.changed_records, testCase.provider).toEqual([]);
+      expect(repeat.matching_records, testCase.provider).toHaveLength(
+        preview.new_records.length,
+      );
+    }
   });
 });
