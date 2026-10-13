@@ -5,14 +5,14 @@ Tracks the build order from `spec.md`. Update when a step lands.
 | Step | Deliverable | Status |
 |---|---|---|
 | 0 | Confirm the next release is v1.0.0 after published v0.4.3 | ✅ done |
-| 1 | Approve the SQLite build plan and record D82 onward | ✅ D82–D107 recorded |
+| 1 | Approve the SQLite build plan and record D82 onward | ✅ D82–D108 recorded |
 | 2 | Define stable IDs, revisions, time and provider reporting periods, nutrition, plans, and authored records in Zod | ✅ done |
 | 3 | Add SQL migrations and the local libSQL adapter | ✅ done |
 | 4 | Generate the SQLite fixture and database test helpers | ✅ done |
 | 5 | Move read commands to SQLite | ✅ done |
 | 6 | Move writes, result grading, prediction, backtest, deletion, and privacy erasure to SQLite transactions | ✅ done |
 | 7 | Add v1 JSON package import and deterministic JSON export | in progress — package restore and export work; conflict commands remain |
-| 8 | Migrate provider importers and dense samples using `appendix/time-and-provider-periods.md` | pending |
+| 8 | Migrate provider importers and dense samples using `appendix/time-and-provider-periods.md` | in progress — v1 transactional import and repeat matching work; raw source receipts need final audit |
 | 9 | Update checks, help, the Skill, SPEC, README, and package exports | pending |
 | 10 | Run functional, cross-platform, and measured performance suites | pending |
 | 11 | Release a prerelease for v1 package and database testing | pending |
@@ -31,3 +31,7 @@ dependency-aware privacy erasure.
 Step 7 now has deterministic package export, empty-database restore, same-database
 merge checks, dense sample files, and attachment checks. The temporary conflict
 workflow remains before that step is complete.
+
+Step 8 now detects Apple Health, WHOOP, and Oura exports. It maps their records and
+dense samples into SQLite, writes route-specific import keys, matches unchanged
+reimports, and stores provider corrections as revisions in one transaction.

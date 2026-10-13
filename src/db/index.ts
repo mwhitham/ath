@@ -109,3 +109,9 @@ export {
   type ErasurePreview,
   type ErasureRecord,
 } from "./erase.js";
+export {
+  importProviderRecords,
+  previewProviderImport,
+  type ProviderImportConflict,
+  type ProviderImportPreview,
+} from "./provider-import.js";

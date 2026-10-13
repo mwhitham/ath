@@ -14,7 +14,7 @@ is offered, it shows the write and writes nothing.
 - [ath init](#ath-init) — create a new athlete.ath.sqlite here, with the well-known benchmarks defined
 - [ath skill](#ath-skill) — where the agent skill is installed, and whether each copy is current
 - [ath skill install](#ath-skill-install) — copy the skill into .agents/skills and every harness folder here
-- [ath import](#ath-import) — preview and import a v1 Athletic Standard package
+- [ath import](#ath-import) — preview and import a v1 package or Apple Health, WHOOP, or Oura export
 - [ath export](#ath-export) — write a complete deterministic Athletic Standard JSON package
 - [ath log](#ath-log) — write one plain-text record or one validated structured batch
 - [ath link](#ath-link) — attach a benchmark result to the workout session it happened in
@@ -56,7 +56,7 @@ Set up:
   models [options]                         list live text models that can reason, or save your usual one
 
 Get your data in:
-  import [options] <path>                  preview and import a v1 Athletic Standard package
+  import [options] <path>                  preview and import a v1 package or Apple Health, WHOOP, or Oura export
   export [options] <directory>             write a complete deterministic Athletic Standard JSON package
   log [options] [entry...]                 write one plain-text record or one validated structured batch
   link [options] <result-id> <session-id>  attach a benchmark result to the workout session it happened in
@@ -135,10 +135,10 @@ Options:
 ```
 Usage: ath import [options] <path>
 
-preview and import a v1 Athletic Standard package
+preview and import a v1 package or Apple Health, WHOOP, or Oura export
 
 Arguments:
-  path           v1 package directory or athlete.ath.json document
+  path           v1 package or supported provider export
 
 Options:
   --file <path>  import into a database other than the one in this folder

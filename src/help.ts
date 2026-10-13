@@ -131,15 +131,22 @@ Examples:
   Apply it only after the preview has no conflicts:
     $ ath import ~/Backups/athletic-standard-export --yes
 
-The default is always a preview. \`--json\` is also only a preview and
-never confirms a write. An empty database adopts the package database ID
-and exact revision history. A database with the same ID can accept new
-records and later revisions.
+  Preview a provider export:
+    $ ath import ~/Downloads/apple_health_export.zip
+    $ ath import ~/Downloads/whoop-export
+    $ ath import ~/Downloads/oura-export
 
-An import never deletes a local record merely because the package omits
-it. A different database ID is refused because it may belong to another
-athlete. Athletic Standard 0.x JSON files are prerelease formats and are
-not imported by v1.`,
+The default is always a preview. \`--json\` is also only a preview and
+never confirms a write. Provider rows keep separate Apple Health, WHOOP,
+and Oura source routes. Repeating an unchanged export reports matching
+records. A corrected provider row creates a retained revision.
+
+For a v1 package, an empty database adopts the package database ID and
+exact revision history. A database with the same ID can accept new
+records and later revisions. Import never deletes a local record merely
+because a package omits it. A different database ID is refused because
+it may belong to another athlete. Athletic Standard 0.x JSON files are
+prerelease formats and are not imported by v1.`,
 
   export: `
 Examples:

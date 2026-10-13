@@ -56,6 +56,7 @@ import {
   eraseRecord,
   exportRecords,
   gradePrediction,
+  importProviderRecords,
   importRecords,
   listRecords,
   loadAthleticStandardPackage,
@@ -63,6 +64,7 @@ import {
   planLogEntry,
   planPredictionGrade,
   previewPackageImport,
+  previewProviderImport,
   previewRecordErasure,
   readRecord,
   readRecordLinks,
@@ -317,9 +319,9 @@ export function buildProgram(): Command {
   program
     .command("import")
     .helpGroup(GROUPS.getIn)
-    .description("preview and import a v1 Athletic Standard package")
+    .description("preview and import a v1 package or Apple Health, WHOOP, or Oura export")
     .addHelpText("after", EXAMPLES.import!)
-    .argument("<path>", "v1 package directory or athlete.ath.json document")
+    .argument("<path>", "v1 package or supported provider export")
     .option("--file <path>", "import into a database other than the one in this folder")
     .option("-y, --yes", "apply a conflict-free preview")
     .option("--json", "structured preview; never confirms the write")
@@ -330,9 +332,45 @@ export function buildProgram(): Command {
       const athletePath = findOrFail(opts.file);
       const database = await openOrFail(athletePath, opts.json);
       try {
-        const loaded = await loadAthleticStandardPackage(
-          resolve(process.cwd(), importPath),
-        );
+        const resolvedImportPath = resolve(process.cwd(), importPath);
+        if (!isAthleticStandardPackagePath(resolvedImportPath)) {
+          const preview = await previewProviderImport(database, resolvedImportPath);
+          const output = {
+            provider: preview.provider,
+            imported: preview.label,
+            destination_database_revision: preview.database_revision,
+            new_records: preview.new_records,
+            matching_records: preview.matching_records,
+            changed_records: preview.changed_records,
+            conflicts: preview.conflicts,
+            skipped: preview.skipped,
+            write_confirmed: false,
+          };
+          if (opts.json) {
+            console.log(JSON.stringify(output, null, 2));
+            return;
+          }
+          console.log(renderProviderImportPreview(output));
+          if (!opts.yes) {
+            console.log("nothing written; pass --yes after reviewing this preview");
+            return;
+          }
+          if (preview.conflicts.length > 0) {
+            return fail(
+              `import has ${preview.conflicts.length} unresolved conflict` +
+                `${preview.conflicts.length === 1 ? "" : "s"}; nothing was written`,
+            );
+          }
+          const imported = await importProviderRecords(database, preview);
+          console.log(
+            `imported ${preview.label}: ${imported.new_record_count} new, ` +
+              `${imported.changed_record_count} changed, ` +
+              `${imported.matching_record_count} matching at database revision ` +
+              `${imported.database_revision}`,
+          );
+          return;
+        }
+        const loaded = await loadAthleticStandardPackage(resolvedImportPath);
         const preview = await previewPackageImport(database, loaded);
         const output = {
           source_database_id: preview.source_database_id,
@@ -1537,6 +1575,54 @@ function renderImportPreview(preview: {
     );
   }
   return lines.join("\n");
+}
+
+function renderProviderImportPreview(preview: {
+  imported: string;
+  destination_database_revision: number;
+  new_records: readonly { record_id: string; record_type: string }[];
+  matching_records: readonly { record_id: string; record_type: string }[];
+  changed_records: readonly {
+    record_id: string;
+    record_type: string;
+    current_revision: number;
+  }[];
+  conflicts: readonly { record_id?: string; message: string }[];
+  skipped: Readonly<Record<string, { count: number; example?: string }>>;
+}): string {
+  const skippedCount = Object.values(preview.skipped).reduce(
+    (total, skipped) => total + skipped.count,
+    0,
+  );
+  const lines = [
+    `${preview.imported} preview`,
+    `  destination revision: ${preview.destination_database_revision}`,
+    `  new records:         ${preview.new_records.length}`,
+    `  matching records:    ${preview.matching_records.length}`,
+    `  changed records:     ${preview.changed_records.length}`,
+    `  conflicts:           ${preview.conflicts.length}`,
+    `  skipped rows:        ${skippedCount}`,
+  ];
+  for (const conflict of preview.conflicts) {
+    lines.push(
+      `    ${conflict.record_id === undefined ? "" : `${conflict.record_id}: `}` +
+        conflict.message,
+    );
+  }
+  for (const [reason, skipped] of Object.entries(preview.skipped)) {
+    lines.push(
+      `    skipped ${skipped.count} — ${reason}` +
+        `${skipped.example === undefined ? "" : ` (example: ${skipped.example})`}`,
+    );
+  }
+  return lines.join("\n");
+}
+
+function isAthleticStandardPackagePath(path: string): boolean {
+  return (
+    path.toLowerCase().endsWith(".json") ||
+    existsSync(join(path, "athlete.ath.json"))
+  );
 }
 
 function parseGateway(value: string): "vercel" | "openrouter" {

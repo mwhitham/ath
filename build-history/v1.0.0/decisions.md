@@ -822,3 +822,37 @@ Rejected alternatives:
   health data would remain readable on disk.
 - **Let `--yes` perform erasure by itself.** Rejected because normal write
   confirmation is not strong enough for an irreversible action.
+
+## D108. Each provider route has a versioned matching recipe
+
+Provider imports use `apple_health/v1`, `whoop_csv/v1`, or `oura_csv/v1` as
+`record_import_keys.match_key_method`.
+
+The matching fields are:
+
+- A source uses its writer, route, and sensor type.
+- A source device uses its source ID, name, manufacturer, model, and hardware.
+- A point measurement uses its source ID, quantity, and source time. An Oura
+  date-only row uses its provider date instead of an invented instant.
+- A sleep or workout session uses its source ID and start time.
+- A provider score uses its source ID, metric, and source time or provider date.
+- A dense sample uses its source ID, quantity, and normalized sample instant.
+- An athlete report or nutrition entry uses its type and reported time.
+
+When those fields do not distinguish two rows, the importer appends their order in
+the provider document. An unchanged repeat resolves to the existing records. If one
+of those otherwise indistinguishable rows changes, the import reports a conflict
+instead of guessing which existing record received the correction.
+
+Provider parsers continue to stream or bound their input as before. Their output is
+mapped into v1 records before any database write. One confirmed import writes new
+records, corrections, and matching keys in one transaction.
+
+Rejected alternatives:
+
+- **Use normalized values in matching keys.** Rejected because a provider correction
+  would create a second record instead of a revision.
+- **Use one matching recipe across all routes.** Rejected because Oura date rows,
+  WHOOP cycles, and Apple sample streams do not expose the same fields.
+- **Assign changed duplicate rows by their current order.** Rejected because provider
+  export order can change independently of record meaning.
