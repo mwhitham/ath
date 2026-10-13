@@ -6,7 +6,7 @@ import {
   generatePerformanceDatabase,
   PERFORMANCE_FIXTURE_SEED,
 } from "../scripts/performance/generate-database.js";
-import { openDatabase } from "../src/db/index.js";
+import { checkDatabase, openDatabase } from "../src/db/index.js";
 import { databaseClient } from "../src/db/client.js";
 
 const temporaryDirectories: string[] = [];
@@ -60,6 +60,9 @@ describe("v1 performance database generator", () => {
       expect(integrity.rows).toEqual([{ integrity_check: "ok" }]);
       const foreignKeys = await client.execute("PRAGMA foreign_key_check");
       expect(foreignKeys.rows).toEqual([]);
+      const check = await checkDatabase(database);
+      expect(check.issues).toEqual([]);
+      expect(check.valid).toBe(true);
     } finally {
       database.close();
     }

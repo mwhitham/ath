@@ -38,6 +38,27 @@ export interface DatabaseCheckResult {
   issues: DatabaseCheckIssue[];
 }
 
+const MAX_REPORTED_ISSUES = 1_000;
+
+class CheckIssues extends Array<DatabaseCheckIssue> {
+  truncatedCount = 0;
+  truncatedErrorCount = 0;
+
+  override push(...items: DatabaseCheckIssue[]): number {
+    for (const item of items) {
+      if (this.length < MAX_REPORTED_ISSUES) {
+        super.push(item);
+      } else {
+        this.truncatedCount++;
+        if (item.severity === "error") {
+          this.truncatedErrorCount++;
+        }
+      }
+    }
+    return this.length;
+  }
+}
+
 const typedTables: Readonly<Record<string, string>> = {
   athlete_profile: "athlete_profile",
   source: "sources",
@@ -128,7 +149,7 @@ async function checkAttachment(
 export async function checkDatabase(
   database: AthleticDatabase,
 ): Promise<DatabaseCheckResult> {
-  const issues: DatabaseCheckIssue[] = [];
+  const issues = new CheckIssues();
   let metadata: DatabaseMetadata | null = null;
   try {
     metadata = await readDatabaseMetadata(database);
@@ -534,10 +555,22 @@ export async function checkDatabase(
     relationshipTransaction.close();
   }
 
+  const reportedIssues: DatabaseCheckIssue[] = [...issues];
+  if (issues.truncatedCount > 0) {
+    reportedIssues.push({
+      severity: "warning",
+      check: "issue_limit",
+      message:
+        `${issues.truncatedCount} more issue${issues.truncatedCount === 1 ? " was" : "s were"} ` +
+        `not listed after the first ${MAX_REPORTED_ISSUES}`,
+    });
+  }
   return {
     metadata,
-    valid: !issues.some((issue) => issue.severity === "error"),
+    valid:
+      issues.truncatedErrorCount === 0 &&
+      !issues.some((issue) => issue.severity === "error"),
     record_count: recordCount,
-    issues,
+    issues: reportedIssues,
   };
 }

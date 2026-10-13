@@ -129,7 +129,7 @@ const SAMPLE_DATA_SQL = `
         ELSE '${IDS.sourceC}'
       END,
     'received_at', '${CREATED_AT}',
-    'received_at_basis', 'provider_import',
+    'received_at_basis', 'import_time',
     'quantity',
       CASE
         WHEN performance_numbers.n < 7560 THEN 'heart_rate'
