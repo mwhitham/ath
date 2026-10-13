@@ -61,6 +61,24 @@ custom time-scored benchmark definition in the same transaction.
 Use structured input for rep scores, load scores, plans, predictions, nutrition,
 and other records outside the narrow text parser.
 
+## Attachments
+
+Attach a PNG, JPEG, WebP, or PDF to one athlete report or nutrition entry:
+
+```sh
+ath log Meal photo --attachment ./receipt.png --json
+ath log Meal photo --attachment ./receipt.png --yes
+```
+
+Pass `--attachment` more than once for several files. Each file may be at most
+25 MiB. The command reads the real file type from its bytes. It refuses symbolic
+links, unsupported images, and a file whose bytes do not match a supported type.
+
+The preview includes the attachment records and links. `--json` does not copy any
+file. After confirmation, the records, hashes, links, and owner-only stored files
+are written together. A structured batch with attachments must have exactly one
+`athlete_report` or `nutrition_entry` to own them.
+
 ## Structured envelope
 
 Each item has:
@@ -255,6 +273,9 @@ ath records show <record-id> --history --json
 ath correct <record-id> --revision <current-revision> \
   --data '<complete-data-object>' --json
 ```
+
+Pass `--attachment <path>` while correcting an athlete report or nutrition entry to
+create and link a new attachment in the same database revision.
 
 Use `ath link` to add or change a benchmark result's workout-session link. Do not
 log a duplicate result to correct a value or link.

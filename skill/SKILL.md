@@ -106,6 +106,10 @@ Import, export, and create:
 | `ath delete <record-id>` | Hide the current record while retaining history |
 | `ath erase <record-id>` | Irreversibly remove values and every stored dependency |
 
+`ath log --attachment <path>` adds PNG, JPEG, WebP, or PDF files to exactly one
+athlete report or nutrition entry. `ath correct --attachment <path>` can add one to
+an existing report or nutrition entry. Preview first. `--json` never copies a file.
+
 Read and calculate:
 
 | Command | Purpose |

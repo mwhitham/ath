@@ -156,6 +156,56 @@ describe("v1 ath log", () => {
     },
   );
 
+  it("ingests and links an attachment only after confirmation", () => {
+    const directory = newDatabase();
+    const preview = ath(
+      [
+        "log",
+        "Meal photo",
+        "--attachment",
+        FIXTURE_ATTACHMENT,
+        "--json",
+        "--yes",
+      ],
+      directory,
+    );
+    expect(preview.code).toBe(0);
+    expect(JSON.parse(preview.stdout)).toMatchObject({
+      write_confirmed: false,
+      records: [
+        { record_type: "attachment" },
+        {
+          record_type: "athlete_report",
+          data: { attachment_ids: [expect.any(String)] },
+        },
+      ],
+    });
+    expect(records(directory, "attachment")).toHaveLength(0);
+
+    expect(
+      ath(
+        [
+          "log",
+          "Meal photo",
+          "--attachment",
+          FIXTURE_ATTACHMENT,
+          "--yes",
+        ],
+        directory,
+      ).code,
+    ).toBe(0);
+    const attachments = records(directory, "attachment");
+    const reports = records(directory, "athlete_report");
+    expect(attachments).toHaveLength(1);
+    expect(reports).toMatchObject([
+      {
+        data: {
+          attachment_ids: [attachments[0]!.record_id],
+        },
+      },
+    ]);
+  });
+
   it("links and grades one open prediction when a result is unambiguous", () => {
     const directory = newDatabase();
     const benchmark = records(directory, "benchmark_definition").find(
@@ -248,6 +298,47 @@ describe("v1 corrections, links, deletion, and explicit grading", () => {
       data: { name: "Corrected" },
     });
     expect(shown.history).toHaveLength(2);
+  });
+
+  it("adds an attachment and report correction in one database revision", () => {
+    const directory = newDatabase();
+    expect(ath(["log", "Meal note", "--yes"], directory).code).toBe(0);
+    const report = records(directory, "athlete_report")[0]!;
+    const before = JSON.parse(
+      ath(["stats", "--json"], directory).stdout,
+    ).database_revision as number;
+    const result = ath(
+      [
+        "correct",
+        String(report.record_id),
+        "--revision",
+        "1",
+        "--data",
+        JSON.stringify({
+          ...(report.data as Record<string, unknown>),
+          note: "Meal note with receipt",
+        }),
+        "--attachment",
+        FIXTURE_ATTACHMENT,
+        "--yes",
+      ],
+      directory,
+    );
+    expect(result.code).toBe(0);
+    const after = JSON.parse(
+      ath(["stats", "--json"], directory).stdout,
+    ).database_revision as number;
+    expect(after).toBe(before + 1);
+    const attachment = records(directory, "attachment")[0]!;
+    expect(records(directory, "athlete_report")).toMatchObject([
+      {
+        current_revision: 2,
+        data: {
+          note: "Meal note with receipt",
+          attachment_ids: [attachment.record_id],
+        },
+      },
+    ]);
   });
 
   it("links stable result and session IDs by creating a result revision", () => {

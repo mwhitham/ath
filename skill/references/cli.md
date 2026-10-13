@@ -231,20 +231,22 @@ Usage: ath log [options] [entry...]
 write one plain-text record or one validated structured batch
 
 Arguments:
-  entry               the entry, unquoted. Leave it off to paste one, ending
-                      with Ctrl-D
+  entry                the entry, unquoted. Leave it off to paste one, ending
+                       with Ctrl-D
 
 Options:
-  --benchmark <name>  name the workout yourself, instead of naming it after the
-                      day
-  --at <timestamp>    exact UTC event time with milliseconds; defaults to now
-  --agent <name>      name the agent making a structured write
-  --file <path>       write to a file other than the one in this folder
-  -y, --yes           write it without asking — for scripts, and when you are
-                      sure
-  --dry-run           show what would be written, and write nothing
-  --json              structured preview for an agent; never confirms the write
-  -h, --help          display help for command
+  --benchmark <name>   name the workout yourself, instead of naming it after the
+                       day
+  --at <timestamp>     exact UTC event time with milliseconds; defaults to now
+  --agent <name>       name the agent making a structured write
+  --attachment <path>  attach a PNG, JPEG, WebP, or PDF; pass more than once for
+                       several files (default: [])
+  --file <path>        write to a file other than the one in this folder
+  -y, --yes            write it without asking — for scripts, and when you are
+                       sure
+  --dry-run            show what would be written, and write nothing
+  --json               structured preview for an agent; never confirms the write
+  -h, --help           display help for command
 ```
 
 ## ath link
@@ -281,6 +283,8 @@ Options:
   --revision <number>  current revision from the preview
   --data <json>        complete replacement for the record's data object
   --agent <name>       name the agent making the correction
+  --attachment <path>  attach a PNG, JPEG, WebP, or PDF; pass more than once for
+                       several files (default: [])
   --file <path>        change a database other than the one in this folder
   -y, --yes            write without asking after reviewing the preview
   --dry-run            show what would change and write nothing

@@ -114,6 +114,7 @@ Plain text covers common entries:
 ath log RMSSD 61 ms
 ath log sore quads 4/5
 ath log Fran in 4:41 rx
+ath log Meal photo --attachment ./receipt.png
 ```
 
 Say `RMSSD` or `SDNN`. They are different statistics and never share a baseline.
@@ -143,6 +144,11 @@ ath log '{
 `record_id` and `created_at` may be supplied beside `record_type`. When omitted,
 `ath` creates a UUIDv7 record ID and uses the current time. A structured array is
 validated and written in one transaction.
+
+`--attachment` accepts PNG, JPEG, WebP, and PDF files up to 25 MiB. Pass it more
+than once for several files. The log batch must contain exactly one athlete report
+or nutrition entry to own them. The file hashes, attachment records, links, and
+owner-only stored files are written together after confirmation.
 
 The command shows a preview before writing. `--json` returns the preview and never
 acts as confirmation. After review, run the command without `--json` and confirm in

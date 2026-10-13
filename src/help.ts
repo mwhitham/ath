@@ -205,6 +205,9 @@ Examples:
   A benchmark result:
     $ ath log Fran in 4:41 rx
 
+  A photo attached to one athlete report:
+    $ ath log Meal photo --attachment ./receipt.png
+
   A structured record from an agent. Run \`ath log\`, paste one record
   object or an array, and press Ctrl-D:
     $ ath log
@@ -214,7 +217,11 @@ Examples:
 Plain text creates one record. A structured JSON array creates one
 validated batch. The preview shows every stable ID and complete record
 before one transaction writes anything. \`--json\` returns that preview
-and never confirms a write. Pass \`--yes\` only after approval.`,
+and never confirms a write. Pass \`--yes\` only after approval.
+
+--attachment accepts PNG, JPEG, WebP, or PDF files up to 25 MiB. Pass it
+more than once for several files. Exactly one athlete report or nutrition
+entry in the batch owns them. No file is copied during a JSON preview.`,
 
   link: `
 Examples:
@@ -349,7 +356,9 @@ Examples:
     $ ath correct <record-id> --revision 2 --data '{"...":"..."}' --yes
 
 Correction keeps the stable ID and complete earlier revisions. The
-expected revision prevents a stale preview from overwriting newer data.`,
+expected revision prevents a stale preview from overwriting newer data.
+Use --attachment while correcting an athlete report or nutrition entry to
+create and link a supported file in the same database revision.`,
 
   delete: `
 Examples:

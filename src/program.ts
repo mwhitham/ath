@@ -52,6 +52,7 @@ import {
   checkDatabase,
   CALCULATION_OPERATIONS,
   calculate,
+  addAttachmentsToLogPlan,
   assertPackageConflictSetCurrent,
   clearPackageConflictSet,
   conflictResolutions,
@@ -69,6 +70,7 @@ import {
   openDatabase,
   planLogEntry,
   planPredictionGrade,
+  prepareAttachments,
   previewPackageImport,
   previewProviderImport,
   previewRecordErasure,
@@ -90,7 +92,9 @@ import {
   resolvePackageConflict,
   savePackageConflictSet,
   writeRecord,
+  writeRecordChanges,
   writeRecords,
+  withPreparedAttachmentFiles,
   type AthleticDatabase,
   type LogPlan,
   type PackageImportResolution,
@@ -634,6 +638,12 @@ export function buildProgram(): Command {
     .option("--benchmark <name>", "name the workout yourself, instead of naming it after the day")
     .option("--at <timestamp>", "exact UTC event time with milliseconds; defaults to now")
     .option("--agent <name>", "name the agent making a structured write")
+    .option(
+      "--attachment <path>",
+      "attach a PNG, JPEG, WebP, or PDF; pass more than once for several files",
+      collectValues,
+      [] as string[],
+    )
     .option("--file <path>", "write to a file other than the one in this folder")
     .option("-y, --yes", "write it without asking — for scripts, and when you are sure")
     .option("--dry-run", "show what would be written, and write nothing")
@@ -643,15 +653,23 @@ export function buildProgram(): Command {
       const database = await openOrFail(path, opts.json);
       try {
         const text = words.length > 0 ? words.join(" ") : await readStdin();
-        const plan = await planLogEntry(database, {
+        const actor =
+          opts.agent === undefined
+            ? ({ author_type: "athlete" } as const)
+            : ({ author_type: "agent", agent: opts.agent } as const);
+        let plan = await planLogEntry(database, {
           text,
-          actor:
-            opts.agent === undefined
-              ? { author_type: "athlete" }
-              : { author_type: "agent", agent: opts.agent },
+          actor,
           ...(opts.at === undefined ? {} : { created_at: opts.at }),
           ...(opts.benchmark === undefined ? {} : { benchmark: opts.benchmark }),
         });
+        const attachments = await prepareAttachments(
+          database,
+          opts.attachment ?? [],
+          actor,
+          plan.inputs[0]?.created_at ?? new Date().toISOString(),
+        );
+        plan = addAttachmentsToLogPlan(plan, attachments);
         const preview = {
           file: path,
           interpretation: plan.interpretation,
@@ -676,7 +694,11 @@ export function buildProgram(): Command {
           console.log("nothing written");
           return;
         }
-        const written = await applyLogPlan(database, plan);
+        const written = await withPreparedAttachmentFiles(
+          database,
+          attachments,
+          () => applyLogPlan(database, plan),
+        );
         console.log(
           `wrote ${written.records.length} record${written.records.length === 1 ? "" : "s"} ` +
             `at database revision ${written.database_revision}`,
@@ -769,6 +791,12 @@ export function buildProgram(): Command {
     .requiredOption("--revision <number>", "current revision from the preview", parsePositiveInteger)
     .requiredOption("--data <json>", "complete replacement for the record's data object")
     .option("--agent <name>", "name the agent making the correction")
+    .option(
+      "--attachment <path>",
+      "attach a PNG, JPEG, WebP, or PDF; pass more than once for several files",
+      collectValues,
+      [] as string[],
+    )
     .option("--file <path>", "change a database other than the one in this folder")
     .option("-y, --yes", "write without asking after reviewing the preview")
     .option("--dry-run", "show what would change and write nothing")
@@ -779,6 +807,7 @@ export function buildProgram(): Command {
         revision: number;
         data: string;
         agent?: string;
+        attachment?: string[];
         file?: string;
         yes?: boolean;
         dryRun?: boolean;
@@ -798,6 +827,46 @@ export function buildProgram(): Command {
         } catch (error) {
           return fail(`--data is not valid JSON: ${(error as Error).message}`);
         }
+        const actor =
+          opts.agent === undefined
+            ? ({ author_type: "athlete" } as const)
+            : ({ author_type: "agent", agent: opts.agent } as const);
+        const attachments = await prepareAttachments(
+          database,
+          opts.attachment ?? [],
+          actor,
+          new Date().toISOString(),
+        );
+        if (
+          attachments.length > 0 &&
+          current.record_type !== "athlete_report" &&
+          current.record_type !== "nutrition_entry"
+        ) {
+          return fail(
+            "--attachment can correct only an athlete_report or nutrition_entry",
+          );
+        }
+        if (
+          attachments.length > 0 &&
+          (typeof data !== "object" || data === null || Array.isArray(data))
+        ) {
+          return fail("--data must be a complete record data object");
+        }
+        const correctedData =
+          attachments.length === 0
+            ? data
+            : {
+                ...(data as Record<string, unknown>),
+                attachment_ids: [
+                  ...(
+                    (data as { attachment_ids?: string[] }).attachment_ids ??
+                    []
+                  ),
+                  ...attachments.map(
+                    (attachment) => attachment.input.record_id!,
+                  ),
+                ],
+              };
         const preview = {
           file: path,
           record_id: current.record_id,
@@ -805,7 +874,11 @@ export function buildProgram(): Command {
           expected_revision: opts.revision,
           current_revision: current.current_revision,
           before: current.data,
-          after: data,
+          after: correctedData,
+          attachments: attachments.map((attachment) => ({
+            record_id: attachment.input.record_id,
+            data: attachment.input.data,
+          })),
           write_confirmed: false,
         };
         if (opts.json) {
@@ -821,15 +894,41 @@ export function buildProgram(): Command {
           console.log("nothing written");
           return;
         }
-        const corrected = await correctRecord(database, {
-          record_id: current.record_id,
-          expected_revision: opts.revision,
-          changed_by:
-            opts.agent === undefined
-              ? { author_type: "athlete" }
-              : { author_type: "agent", agent: opts.agent },
-          data,
-        });
+        const corrected =
+          attachments.length === 0
+            ? await correctRecord(database, {
+                record_id: current.record_id,
+                expected_revision: opts.revision,
+                changed_by: actor,
+                data: correctedData,
+              })
+            : await withPreparedAttachmentFiles(
+                database,
+                attachments,
+                async () => {
+                  const written = await writeRecordChanges(database, {
+                    records: attachments.map(
+                      (attachment) => attachment.input,
+                    ),
+                    corrections: [{
+                      record_id: current.record_id,
+                      expected_revision: opts.revision,
+                      changed_by: actor,
+                      data: correctedData,
+                    }],
+                  });
+                  const record = written.records.find(
+                    (record) => record.record_id === current.record_id,
+                  );
+                  if (record === undefined) {
+                    throw new Error("attachment correction did not return its record");
+                  }
+                  return {
+                    record,
+                    database_revision: written.database_revision,
+                  };
+                },
+              );
         console.log(
           `corrected ${current.record_id} to revision ${corrected.record.current_revision} ` +
             `(database revision ${corrected.database_revision})`,
@@ -1767,6 +1866,7 @@ interface V1LogOptions {
   benchmark?: string;
   at?: string;
   agent?: string;
+  attachment?: string[];
   file?: string;
   yes?: boolean;
   dryRun?: boolean;
@@ -1795,6 +1895,10 @@ interface BacktestCliOptions {
 
 function collectModels(value: string, prev: string[]): string[] {
   return [...prev, value];
+}
+
+function collectValues(value: string, previous: string[]): string[] {
+  return [...previous, value];
 }
 
 function parsePositiveInteger(value: string): number {

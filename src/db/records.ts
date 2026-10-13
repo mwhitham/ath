@@ -863,6 +863,11 @@ export async function writeRecordChanges(
     }
 
     const changedRecords: CurrentRecordT[] = [];
+    for (const create of creates) {
+      if (create.record_type === "attachment") {
+        await insertCreate(create);
+      }
+    }
     for (const correction of corrections) {
       const recordId = RecordId.parse(correction.record_id);
       const changedBy = RecordActor.parse(correction.changed_by);
@@ -929,7 +934,7 @@ export async function writeRecordChanges(
       changedRecords.push(record);
     }
 
-    for (const create of creates) {
+    async function insertCreate(create: WriteRecordInput): Promise<void> {
       const changedBy = RecordActor.parse(create.changed_by);
       const createdAt = UtcTimestamp.parse(
         create.created_at ?? new Date().toISOString(),
@@ -970,6 +975,11 @@ export async function writeRecordChanges(
       );
       await upsertTypedRecord(transaction, record);
       changedRecords.push(record);
+    }
+    for (const create of creates) {
+      if (create.record_type !== "attachment") {
+        await insertCreate(create);
+      }
     }
     for (const record of changedRecords) {
       await validateTypedRelationships(transaction, record);

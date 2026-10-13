@@ -19,12 +19,14 @@ export {
   readRecord,
   readRecordRevisions,
   writeRecord,
+  writeRecordChanges,
   writeRecords,
   type CorrectRecordInput,
   type DeleteRecordInput,
   type ExpectedCurrentRevision,
   type ListRecordOptions,
   type WriteRecordInput,
+  type WriteRecordChangesInput,
   type WriteRecordsOptions,
 } from "./records.js";
 export {
@@ -137,3 +139,10 @@ export {
   type CalculationOperation,
   type CalculationResult,
 } from "./calculate.js";
+export {
+  addAttachmentsToLogPlan,
+  MAX_ATTACHMENT_BYTES,
+  prepareAttachments,
+  withPreparedAttachmentFiles,
+  type PreparedAttachment,
+} from "./attachment-ingest.js";
