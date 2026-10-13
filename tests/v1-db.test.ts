@@ -9,9 +9,13 @@ import {
   createDatabase,
   correctRecord,
   createUuidV7,
+  deleteRecord,
   listRecords,
   migrateDatabase,
   openDatabase,
+  queryMeasurements,
+  queryRecordsAsOf,
+  querySeries,
   readDatabaseMetadata,
   readRecord,
   readRecordRevisions,
@@ -631,6 +635,147 @@ describe("v1 record writes and revisions", () => {
         },
       }),
     ).rejects.toThrow();
+  });
+});
+
+describe("v1 record queries", () => {
+  it("keeps manual measurements out of device queries by default", async () => {
+    const { database } = await newDatabase();
+    const manualSourceId = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e20";
+    const manualPointId = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e21";
+    await writeRecords(database, [
+      sourceInput(),
+      pointInput(),
+      {
+        record_type: "source",
+        record_id: manualSourceId,
+        created_at: createdAt,
+        changed_by: toolActor,
+        data: {
+          source_type: "manual",
+          data_writer: "ath",
+          data_route: "manual_entry",
+        },
+      },
+      {
+        ...pointInput(manualSourceId),
+        record_id: manualPointId,
+      },
+    ]);
+
+    expect((await queryMeasurements(database, { quantity: "hrv_rmssd" }))).toHaveLength(1);
+    expect(
+      await queryMeasurements(database, {
+        quantity: "hrv_rmssd",
+        include_manual: true,
+      }),
+    ).toHaveLength(2);
+  });
+
+  it("queries dense samples by quantity, source, and UTC bounds", async () => {
+    const { database } = await newDatabase();
+    const sampleId = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e22";
+    await writeRecords(database, [
+      sourceInput(),
+      {
+        record_type: "measurement_sample",
+        record_id: sampleId,
+        created_at: createdAt,
+        changed_by: toolActor,
+        became_known_at_basis: "provider_import",
+        data: {
+          source_id: sourceId,
+          quantity: "heart_rate",
+          recorded_at: "2026-08-09T11:12:00.000Z",
+          input_timestamp: timestampReceipt,
+          value: {
+            standard_value: 142,
+            standard_unit: "bpm",
+            input_value: 142,
+            input_unit: "count/min",
+          },
+          received_at: createdAt,
+          received_at_basis: "import_time",
+        },
+      },
+    ]);
+
+    expect(
+      await querySeries(database, {
+        quantity: "heart_rate",
+        source_id: sourceId,
+        from: "2026-08-09T11:00:00.000Z",
+        to: "2026-08-09T12:00:00.000Z",
+      }),
+    ).toMatchObject([{ record_id: sampleId }]);
+    expect(
+      await querySeries(database, {
+        quantity: "heart_rate",
+        from: "2026-08-10T00:00:00.000Z",
+      }),
+    ).toEqual([]);
+  });
+
+  it("reads the revision visible at an exact historical cutoff", async () => {
+    const { database } = await newDatabase();
+    await writeRecords(database, [sourceInput(), pointInput()]);
+    await correctRecord(database, {
+      record_id: pointId,
+      expected_revision: 1,
+      changed_by: toolActor,
+      became_known_at: "2026-08-10T12:00:00.000Z",
+      became_known_at_basis: "provider_import",
+      data: {
+        ...pointInput().data,
+        value: {
+          ...pointInput().data.value,
+          standard_value: 64,
+          input_value: 64,
+        },
+      },
+    });
+
+    const before = await queryRecordsAsOf(database, {
+      as_of: "2026-08-10T11:59:59.000Z",
+      record_type: "point_measurement",
+    });
+    const after = await queryRecordsAsOf(database, {
+      as_of: "2026-08-10T12:00:00.000Z",
+      record_type: "point_measurement",
+    });
+    expect(before[0]?.current_revision).toBe(1);
+    expect(after[0]?.current_revision).toBe(2);
+    if (before[0]?.record_type === "point_measurement") {
+      expect(before[0].data.value.standard_value).toBe(62);
+    }
+    if (after[0]?.record_type === "point_measurement") {
+      expect(after[0].data.value.standard_value).toBe(64);
+    }
+  });
+
+  it("hides a deletion from current and later historical queries", async () => {
+    const { database } = await newDatabase();
+    await writeRecord(database, sourceInput());
+    const deletion = await deleteRecord(database, {
+      record_id: sourceId,
+      expected_revision: 1,
+      deleted_by: toolActor,
+      deleted_at: "2026-08-10T12:00:00.000Z",
+    });
+    expect(deletion.database_revision).toBe(2);
+    expect(await listRecords(database)).toEqual([]);
+    expect(
+      await queryRecordsAsOf(database, {
+        as_of: "2026-08-10T11:59:59.000Z",
+        record_type: "source",
+      }),
+    ).toHaveLength(1);
+    expect(
+      await queryRecordsAsOf(database, {
+        as_of: "2026-08-10T12:00:00.000Z",
+        record_type: "source",
+      }),
+    ).toEqual([]);
   });
 });
 

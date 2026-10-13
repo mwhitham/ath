@@ -14,13 +14,26 @@ export {
 } from "./migrate.js";
 export {
   correctRecord,
+  deleteRecord,
   listRecords,
   readRecord,
   readRecordRevisions,
   writeRecord,
   writeRecords,
   type CorrectRecordInput,
+  type DeleteRecordInput,
   type ListRecordOptions,
   type WriteRecordInput,
 } from "./records.js";
+export {
+  queryMeasurements,
+  queryRecordsAsOf,
+  querySeries,
+  querySessions,
+  type AsOfQuery,
+  type MeasurementQuery,
+  type SeriesQuery,
+  type SessionQuery,
+  type TimeRange,
+} from "./query.js";
 export { createUuidV7 } from "./uuid.js";

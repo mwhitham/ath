@@ -40,6 +40,13 @@ export interface CorrectRecordInput {
   became_known_at_basis?: "local_write" | "provider_import" | "package_merge";
 }
 
+export interface DeleteRecordInput {
+  record_id: string;
+  expected_revision: number;
+  deleted_by: RecordActorT;
+  deleted_at?: string;
+}
+
 export interface ListRecordOptions {
   record_type?: RecordTypeT;
   include_deleted?: boolean;
@@ -876,6 +883,70 @@ export async function correctRecord(
     });
     const databaseRevision = await incrementDatabaseRevision(transaction);
     return { record, database_revision: databaseRevision };
+  });
+}
+
+export async function deleteRecord(
+  database: AthleticDatabase,
+  input: DeleteRecordInput,
+): Promise<{ record_id: string; record_revision: number; database_revision: number }> {
+  const recordId = RecordId.parse(input.record_id);
+  const deletedBy = RecordActor.parse(input.deleted_by);
+  const deletedAt = UtcTimestamp.parse(input.deleted_at ?? new Date().toISOString());
+
+  return withWriteTransaction(database, async (transaction) => {
+    const result = await transaction.execute({
+      sql: `
+        SELECT
+          records.current_revision,
+          records.is_deleted,
+          record_revisions.became_known_at
+        FROM records
+        JOIN record_revisions
+          ON record_revisions.record_id = records.record_id
+         AND record_revisions.revision = records.current_revision
+        WHERE records.record_id = ?
+      `,
+      args: [recordId],
+    });
+    const row = result.rows[0];
+    if (row === undefined) {
+      throw new Error(`Record not found: ${recordId}`);
+    }
+    const currentRevision = Number(row.current_revision);
+    if (currentRevision !== input.expected_revision) {
+      throw new Error(
+        `Record ${recordId} is at revision ${currentRevision}, not expected revision ${input.expected_revision}`,
+      );
+    }
+    if (Number(row.is_deleted) !== 0) {
+      throw new Error(`Record is already deleted: ${recordId}`);
+    }
+    if (Date.parse(deletedAt) < Date.parse(String(row.became_known_at))) {
+      throw new Error("Deletion time cannot precede the current revision knowledge time");
+    }
+
+    await transaction.execute({
+      sql: `
+        INSERT INTO record_deletions (
+          record_id,
+          record_revision,
+          deleted_at,
+          deleted_by_json
+        ) VALUES (?, ?, ?, ?)
+      `,
+      args: [recordId, currentRevision, deletedAt, requiredJson(deletedBy)],
+    });
+    await transaction.execute({
+      sql: "UPDATE records SET is_deleted = 1 WHERE record_id = ?",
+      args: [recordId],
+    });
+    const databaseRevision = await incrementDatabaseRevision(transaction);
+    return {
+      record_id: recordId,
+      record_revision: currentRevision,
+      database_revision: databaseRevision,
+    };
   });
 }
 
