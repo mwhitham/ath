@@ -36,8 +36,6 @@ import {
 import { readDatabaseMetadata } from "./migrate.js";
 import {
   incrementDatabaseRevision,
-  listRecords,
-  readRecordRevisions,
   upsertTypedRecord,
   validateTypedRelationships,
 } from "./records.js";
@@ -349,6 +347,91 @@ function sameValue(left: unknown, right: unknown): boolean {
   return JSON.stringify(left) === JSON.stringify(right);
 }
 
+async function localRecordsById(
+  database: AthleticDatabase,
+  recordIds: readonly string[],
+): Promise<Map<string, CurrentRecordT>> {
+  const records = new Map<string, CurrentRecordT>();
+  const chunkSize = 400;
+  for (let offset = 0; offset < recordIds.length; offset += chunkSize) {
+    const chunk = recordIds.slice(offset, offset + chunkSize);
+    const result = await databaseClient(database).execute({
+      sql: `
+        SELECT
+          records.record_id,
+          records.record_type,
+          records.current_revision,
+          records.created_at,
+          records.is_deleted,
+          record_revisions.record_json
+        FROM records
+        JOIN record_revisions
+          ON record_revisions.record_id = records.record_id
+         AND record_revisions.revision = records.current_revision
+        WHERE records.record_id IN (${chunk.map(() => "?").join(", ")})
+      `,
+      args: chunk,
+    });
+    for (const row of result.rows) {
+      const record = CurrentRecord.parse({
+        record_id: row.record_id,
+        record_type: row.record_type,
+        current_revision: Number(row.current_revision),
+        created_at: row.created_at,
+        is_deleted: Number(row.is_deleted) === 1,
+        data: JSON.parse(String(row.record_json)) as unknown,
+      });
+      records.set(record.record_id, record);
+    }
+  }
+  return records;
+}
+
+async function localRevisionsById(
+  database: AthleticDatabase,
+  recordIds: readonly string[],
+): Promise<Map<string, RecordRevisionT[]>> {
+  const revisions = new Map<string, RecordRevisionT[]>();
+  const chunkSize = 400;
+  for (let offset = 0; offset < recordIds.length; offset += chunkSize) {
+    const chunk = recordIds.slice(offset, offset + chunkSize);
+    const result = await databaseClient(database).execute({
+      sql: `
+        SELECT
+          record_id,
+          record_type,
+          revision,
+          previous_revision,
+          became_known_at,
+          became_known_at_basis,
+          changed_by_json,
+          record_json
+        FROM record_revisions
+        WHERE record_id IN (${chunk.map(() => "?").join(", ")})
+        ORDER BY record_id, revision
+      `,
+      args: chunk,
+    });
+    for (const row of result.rows) {
+      const revision = RecordRevision.parse({
+        record_id: row.record_id,
+        record_type: row.record_type,
+        revision: Number(row.revision),
+        previous_revision:
+          row.previous_revision === null ? null : Number(row.previous_revision),
+        became_known_at: row.became_known_at,
+        became_known_at_basis: row.became_known_at_basis,
+        changed_by: JSON.parse(String(row.changed_by_json)) as unknown,
+        data: JSON.parse(String(row.record_json)) as unknown,
+      });
+      const group = revisions.get(revision.record_id) ?? [];
+      group.push(revision);
+      revisions.set(revision.record_id, group);
+    }
+  }
+  return revisions;
+}
+
 export async function previewPackageImport(
   database: AthleticDatabase,
   loaded: LoadedPackage,
@@ -358,11 +441,12 @@ export async function previewPackageImport(
     "SELECT current_revision FROM database_state WHERE singleton_id = 1",
   );
   const destinationRevision = Number(state.rows[0]?.current_revision);
-  const localRecords = await listRecords(database, {
-    include_deleted: true,
-    limit: 10_000,
-  });
-  const restore = destinationRevision === 0 && localRecords.length === 0;
+  const localRecordCount = await databaseClient(database).execute(
+    "SELECT COUNT(*) AS count FROM records",
+  );
+  const restore =
+    destinationRevision === 0 &&
+    Number(localRecordCount.rows[0]?.count) === 0;
   const conflicts: PackageImportConflict[] = [];
   if (!restore && metadata.database_id !== loaded.package.database_id) {
     conflicts.push({
@@ -371,7 +455,12 @@ export async function previewPackageImport(
         `${loaded.package.database_id}; live databases are not merged`,
     });
   }
-  const localById = new Map(localRecords.map((record) => [record.record_id, record]));
+  const importedIds = loaded.all_records.map((record) => record.record_id);
+  const localById = await localRecordsById(database, importedIds);
+  const localRevisions = await localRevisionsById(
+    database,
+    [...localById.keys()],
+  );
   const importedRevisions = new Map<string, RecordRevisionT[]>();
   for (const revision of loaded.all_revisions) {
     const group = importedRevisions.get(revision.record_id) ?? [];
@@ -387,17 +476,17 @@ export async function previewPackageImport(
       newRecords.push(imported.record_id);
       continue;
     }
-    const localRevisions = await readRecordRevisions(database, imported.record_id);
+    const currentLocalRevisions = localRevisions.get(imported.record_id) ?? [];
     const incoming = importedRevisions.get(imported.record_id) ?? [];
-    const overlap = Math.min(localRevisions.length, incoming.length);
+    const overlap = Math.min(currentLocalRevisions.length, incoming.length);
     let prefixMatches = true;
     for (let index = 0; index < overlap; index++) {
-      if (!sameValue(localRevisions[index], incoming[index])) {
+      if (!sameValue(currentLocalRevisions[index], incoming[index])) {
         prefixMatches = false;
         break;
       }
     }
-    if (!prefixMatches || incoming.length < localRevisions.length) {
+    if (!prefixMatches || incoming.length < currentLocalRevisions.length) {
       conflicts.push({
         record_id: imported.record_id,
         message: "record revision history differs",
@@ -405,14 +494,14 @@ export async function previewPackageImport(
       continue;
     }
     if (
-      incoming.length === localRevisions.length &&
+      incoming.length === currentLocalRevisions.length &&
       sameValue(local, imported)
     ) {
       matchingRecords.push(imported.record_id);
       continue;
     }
     if (
-      incoming.length > localRevisions.length &&
+      incoming.length > currentLocalRevisions.length &&
       incoming.length === imported.current_revision
     ) {
       changedRecords.push(imported.record_id);
