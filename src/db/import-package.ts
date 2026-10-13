@@ -843,7 +843,7 @@ async function executeStatementBatches(
   transaction: Transaction,
   statements: InStatement[],
 ): Promise<void> {
-  const batchSize = 500;
+  const batchSize = 5_000;
   for (let offset = 0; offset < statements.length; offset += batchSize) {
     await transaction.batch(statements.slice(offset, offset + batchSize));
   }
