@@ -19,7 +19,7 @@ Read these before making decisions — they are the project's memory and outrank
 7. **`docs/connections.md`** — per-provider data research (what WHOOP/Oura/Garmin/Apple Health each provide via which path).
 8. **`SPEC.md`** — the public field-level format reference. The Zod schemas in `src/schema.ts` are normative; the JSON Schema is generated from them.
 
-For v1 storage, IDs, revisions, import behavior, and final schema names, D82–D103 supersede the relevant
+For v1 storage, IDs, revisions, import behavior, and final schema names, D82–D105 supersede the relevant
 parts of D4, D25, D36, D40, D43, D48, D62, D64, and D65. The old decisions still
 describe released 0.x behavior.
 

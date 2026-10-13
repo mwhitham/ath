@@ -5,10 +5,10 @@ Tracks the build order from `spec.md`. Update when a step lands.
 | Step | Deliverable | Status |
 |---|---|---|
 | 0 | Confirm the next release is v1.0.0 after published v0.4.3 | ✅ done |
-| 1 | Approve the SQLite build plan and record D82 onward | ✅ D82–D103 recorded |
+| 1 | Approve the SQLite build plan and record D82 onward | ✅ D82–D105 recorded |
 | 2 | Define stable IDs, revisions, time and provider reporting periods, nutrition, plans, and authored records in Zod | ✅ done |
-| 3 | Add SQL migrations and the local libSQL adapter | pending |
-| 4 | Generate the SQLite fixture and database test helpers | pending |
+| 3 | Add SQL migrations and the local libSQL adapter | ✅ done |
+| 4 | Generate the SQLite fixture and database test helpers | ✅ done |
 | 5 | Move read commands to SQLite | pending |
 | 6 | Move writes, result grading, prediction, and backtest to SQLite transactions | pending |
 | 7 | Add v1 JSON package import and deterministic JSON export | pending |
@@ -21,3 +21,7 @@ Tracks the build order from `spec.md`. Update when a step lands.
 D101 removed the prerelease-file migration gate. Runtime implementation begins at
 step 2 with the v1 domain schemas. Step 2 added the typed record, revision, portable
 package, measurement-series, and export-manifest schemas.
+
+Steps 3 and 4 added the raw SQL schema, opaque libSQL database handle, record and
+historical query operations, deterministic SQLite fixture, and storage integrity
+tests. Runtime command migration begins at step 5.
