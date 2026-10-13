@@ -1369,6 +1369,7 @@ export type RecordIdT = z.infer<typeof RecordId>;
 export type EvidenceReferenceT = z.infer<typeof EvidenceReference>;
 export type RecordActorT = z.infer<typeof RecordActor>;
 export type AuthoredRecordAuthorT = z.infer<typeof AuthoredRecordAuthor>;
+export type InputTimestampReceiptT = z.infer<typeof InputTimestampReceipt>;
 export type ProviderReportingPeriodT = z.infer<typeof ProviderReportingPeriod>;
 export type CurrentRecordT = z.infer<typeof CurrentRecord>;
 export type NonSampleRecordT = z.infer<typeof NonSampleRecord>;
