@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { openDatabase, resolveEvidenceReference } from "../src/db/index.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../src/cli.ts");
@@ -427,7 +428,7 @@ describe("v1 corrections, links, deletion, and explicit grading", () => {
     ]);
   });
 
-  it("requires two confirmations and erases dependent records and history", () => {
+  it("requires two confirmations and erases dependent records and history", async () => {
     const directory = fixtureCopy();
     const resultId = "01890f3e-e7d3-7cc0-88c8-00000000000b";
     const preview = ath([
@@ -482,6 +483,30 @@ describe("v1 corrections, links, deletion, and explicit grading", () => {
     expect(document.record_erasure_markers.map((marker) => marker.record_id)).toContain(
       resultId,
     );
+
+    const database = await openDatabase(join(directory, "athlete.ath.sqlite"), {
+      onSecurityWarning: () => undefined,
+    });
+    try {
+      await expect(
+        resolveEvidenceReference(database, {
+          record_id: resultId,
+          revision: 1,
+        }),
+      ).resolves.toMatchObject({
+        status: "erased",
+        reference: {
+          record_id: resultId,
+          revision: 1,
+        },
+        erasure_marker: {
+          record_id: resultId,
+          reason_code: "athlete_request",
+        },
+      });
+    } finally {
+      database.close();
+    }
   }, 15_000);
 
   it("explicit grade reuses an exact result link and writes no result", () => {

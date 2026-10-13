@@ -130,6 +130,10 @@ export {
   type ErasureRecord,
 } from "./erase.js";
 export {
+  resolveEvidenceReference,
+  type EvidenceReferenceResolution,
+} from "./evidence-reference.js";
+export {
   importProviderRecords,
   previewProviderImport,
   type ProviderImportConflict,
