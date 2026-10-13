@@ -333,6 +333,24 @@ Normal deletion retains the complete record and revision history. Privacy
 erasure is a different command because it removes values and cannot be
 undone from the database.`,
 
+  erase: `
+Examples:
+
+  Preview the record, every dependent record, and each attachment:
+    $ ath erase <record-id> --revision 2 --json
+
+  Permanently erase after reviewing that preview:
+    $ ath erase <record-id> --revision 2 --yes \\
+        --confirm-erasure <record-id>
+
+Erasure removes the current record, its revision history, records that
+depend on it, and their attachment files. It leaves only value-free
+markers saying which stable IDs were erased.
+
+This cannot be undone from the database. Scripts need both --yes and an
+exact --confirm-erasure value. Interactive use asks the same two
+questions. \`--json\` and \`--dry-run\` never erase anything.`,
+
   stats: `
 Examples:
 

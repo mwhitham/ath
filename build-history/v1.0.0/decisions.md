@@ -774,3 +774,51 @@ Rejected alternatives:
 - **Use SQLite date functions in every query.** Rejected because wrapping each
   timestamp column would prevent the existing bounded indexes from serving ordinary
   range queries.
+
+## D106. Empty initialization is an explicit restore destination
+
+`ath init --empty` creates a valid database at database revision zero without an
+athlete profile, sources, or benchmark definitions. A complete v1 package can restore
+into that database and adopt the package database ID and exact database revision.
+
+Normal `ath init` continues to create the athlete profile, manual source, and standard
+benchmark definitions. It is not empty and therefore cannot adopt another database
+ID.
+
+Rejected alternatives:
+
+- **Treat a normal initialized database as empty.** Rejected because it already owns
+  records and a database revision.
+- **Delete seeded records during restore.** Rejected because import must not silently
+  remove local records.
+
+## D107. Privacy erasure follows every stored dependency
+
+`ath erase` removes the named record and every current record whose stored link
+depends on it. This includes source-owned measurements, exact evidence references,
+prediction-result work, plan completion links, model interpretations, and
+attachments. The preview lists the complete set before any write.
+
+An attachment and every record that references it form one erasure set. This prevents
+the command from deleting an attachment file while leaving another current record
+that still claims it exists.
+
+The write requires the expected record revision and the unchanged database revision
+from the preview. Non-interactive use requires both `--yes` and
+`--confirm-erasure <record-id>`. Interactive use asks for confirmation and then
+requires the exact record ID. The transaction removes all current rows and
+value-bearing revisions, then leaves one value-free erasure marker per removed
+stable ID.
+
+Local attachment files are renamed out of their live names before the database
+transaction. A refused transaction restores those names. A successful transaction
+removes the renamed files.
+
+Rejected alternatives:
+
+- **Erase only the named row.** Rejected because linked records would retain values
+  derived from it or would point at data that no longer exists.
+- **Keep attachment files after erasing their records.** Rejected because the erased
+  health data would remain readable on disk.
+- **Let `--yes` perform erasure by itself.** Rejected because normal write
+  confirmation is not strong enough for an irreversible action.

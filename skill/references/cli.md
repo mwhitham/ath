@@ -20,6 +20,7 @@ is offered, it shows the write and writes nothing.
 - [ath link](#ath-link) — attach a benchmark result to the workout session it happened in
 - [ath correct](#ath-correct) — replace one record's complete data and retain its prior revision
 - [ath delete](#ath-delete) — hide one current record while retaining its complete history
+- [ath erase](#ath-erase) — permanently remove one record and every record that depends on it
 - [ath check](#ath-check) — make sure the file still obeys every rule of the format
 - [ath key](#ath-key) — save or show a gateway key — never stored in the athlete file
 - [ath key set](#ath-key-set) — save a Vercel or OpenRouter key in the OS password store
@@ -61,6 +62,7 @@ Get your data in:
   link [options] <result-id> <session-id>  attach a benchmark result to the workout session it happened in
   correct [options] <record-id>            replace one record's complete data and retain its prior revision
   delete [options] <record-id>             hide one current record while retaining its complete history
+  erase [options] <record-id>              permanently remove one record and every record that depends on it
 
 Read your data:
   check [options] [file]                   make sure the file still obeys every rule of the format
@@ -244,6 +246,33 @@ Options:
   --dry-run            show what would change and write nothing
   --json               structured preview; never confirms the write
   -h, --help           display help for command
+```
+
+## ath erase
+
+```
+Usage: ath erase [options] <record-id>
+
+permanently remove one record and every record that depends on it
+
+Arguments:
+  record-id                      stable record ID to erase
+
+Options:
+  --revision <number>            current revision from the preview
+  --reason <code>                one of: athlete_request, legal_requirement,
+                                 recorded_in_error, other (default:
+                                 "athlete_request")
+  --confirm-erasure <record-id>  second confirmation: repeat the record ID
+                                 exactly
+  --file <path>                  change a database other than the one in this
+                                 folder
+  -y, --yes                      accept the first confirmation after reviewing
+                                 the preview
+  --dry-run                      show everything that would be erased and write
+                                 nothing
+  --json                         structured preview; never confirms the erasure
+  -h, --help                     display help for command
 ```
 
 ## ath check

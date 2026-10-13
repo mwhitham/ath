@@ -14,6 +14,7 @@ import { join, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import {
   ATHLETIC_STANDARD_VERSION,
+  ErasureReasonCode,
   PredictionData,
   RecordType,
   SERIES_QUANTITY_UNITS as V1_SERIES_QUANTITY_UNITS,
@@ -52,6 +53,7 @@ import {
   createDatabase,
   databaseStats,
   deleteRecord,
+  eraseRecord,
   exportRecords,
   gradePrediction,
   importRecords,
@@ -61,6 +63,7 @@ import {
   planLogEntry,
   planPredictionGrade,
   previewPackageImport,
+  previewRecordErasure,
   readRecord,
   readRecordLinks,
   readRecordRevisions,
@@ -684,6 +687,102 @@ export function buildProgram(): Command {
         });
         console.log(
           `deleted ${deleted.record_id} at database revision ${deleted.database_revision}; history retained`,
+        );
+      } catch (error) {
+        return fail((error as Error).message);
+      } finally {
+        database.close();
+      }
+    });
+
+  program
+    .command("erase")
+    .helpGroup(GROUPS.getIn)
+    .description("permanently remove one record and every record that depends on it")
+    .addHelpText("after", EXAMPLES.erase!)
+    .argument("<record-id>", "stable record ID to erase")
+    .requiredOption("--revision <number>", "current revision from the preview", parsePositiveInteger)
+    .option(
+      "--reason <code>",
+      `one of: ${ErasureReasonCode.options.join(", ")}`,
+      "athlete_request",
+    )
+    .option("--confirm-erasure <record-id>", "second confirmation: repeat the record ID exactly")
+    .option("--file <path>", "change a database other than the one in this folder")
+    .option("-y, --yes", "accept the first confirmation after reviewing the preview")
+    .option("--dry-run", "show everything that would be erased and write nothing")
+    .option("--json", "structured preview; never confirms the erasure")
+    .action(async (
+      recordId: string,
+      opts: {
+        revision: number;
+        reason: string;
+        confirmErasure?: string;
+        file?: string;
+        yes?: boolean;
+        dryRun?: boolean;
+        json?: boolean;
+      },
+    ) => {
+      const reason = ErasureReasonCode.safeParse(opts.reason);
+      if (!reason.success) {
+        return fail(
+          `unknown erasure reason '${opts.reason}'. Use ${ErasureReasonCode.options.join(", ")}`,
+        );
+      }
+      const path = findOrFail(opts.file);
+      const database = await openOrFail(path, opts.json);
+      try {
+        const preview = await previewRecordErasure(database, recordId, opts.revision);
+        const output = {
+          file: path,
+          root_record_id: preview.root_record_id,
+          expected_revision: preview.root_expected_revision,
+          database_revision: preview.database_revision,
+          permanent: true,
+          records: preview.records,
+          attachments: preview.attachments,
+          reason_code: reason.data,
+          write_confirmed: false,
+        };
+        if (opts.json) {
+          console.log(JSON.stringify(output, null, 2));
+          return;
+        }
+        console.log(JSON.stringify(output, null, 2));
+        console.log(
+          `WARNING: this permanently removes ${preview.records.length} record` +
+            `${preview.records.length === 1 ? "" : "s"} and cannot be undone from the database.`,
+        );
+        if (opts.dryRun) {
+          console.log("nothing erased (--dry-run)");
+          return;
+        }
+        if (!(await confirmWrite(opts, "Permanently erase these records?"))) {
+          console.log("nothing erased");
+          return;
+        }
+        let secondConfirmation = opts.confirmErasure;
+        if (secondConfirmation === undefined) {
+          secondConfirmation = await askOnTerminal(
+            `Type the record ID ${preview.root_record_id} to confirm permanent erasure: `,
+          ) ?? undefined;
+        }
+        if (secondConfirmation !== preview.root_record_id) {
+          return fail(
+            "second confirmation did not exactly match the record ID; nothing was erased",
+          );
+        }
+        const erased = await eraseRecord(database, {
+          preview,
+          reason_code: reason.data,
+        });
+        console.log(
+          `erased ${erased.erased_record_ids.length} record` +
+            `${erased.erased_record_ids.length === 1 ? "" : "s"} and ` +
+            `${erased.erased_attachment_count} attachment file` +
+            `${erased.erased_attachment_count === 1 ? "" : "s"} ` +
+            `at database revision ${erased.database_revision}`,
         );
       } catch (error) {
         return fail((error as Error).message);

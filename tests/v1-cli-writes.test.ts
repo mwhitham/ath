@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { copyFileSync, mkdtempSync } from "node:fs";
+import { copyFileSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -259,6 +259,63 @@ describe("v1 corrections, links, deletion, and explicit grading", () => {
     expect(records(directory, "athlete_profile")).toMatchObject([
       { record_id: profile.record_id, is_deleted: true },
     ]);
+  });
+
+  it("requires two confirmations and erases dependent records and history", () => {
+    const directory = fixtureCopy();
+    const resultId = "01890f3e-e7d3-7cc0-88c8-00000000000b";
+    const preview = ath([
+      "erase",
+      resultId,
+      "--revision",
+      "1",
+      "--json",
+      "--yes",
+      "--confirm-erasure",
+      resultId,
+    ], directory);
+    expect(preview.code).toBe(0);
+    expect(JSON.parse(preview.stdout)).toMatchObject({
+      root_record_id: resultId,
+      permanent: true,
+      write_confirmed: false,
+    });
+    expect(records(directory, "benchmark_result")).toHaveLength(1);
+
+    const oneConfirmation = ath([
+      "erase",
+      resultId,
+      "--revision",
+      "1",
+      "--yes",
+    ], directory);
+    expect(oneConfirmation.code).toBe(1);
+    expect(oneConfirmation.stdout).toContain("second confirmation");
+    expect(records(directory, "benchmark_result")).toHaveLength(1);
+
+    const erased = ath([
+      "erase",
+      resultId,
+      "--revision",
+      "1",
+      "--yes",
+      "--confirm-erasure",
+      resultId,
+    ], directory);
+    expect(erased.code).toBe(0);
+    expect(records(directory, "benchmark_result")).toHaveLength(0);
+    expect(records(directory, "prediction_result_link")).toHaveLength(0);
+    expect(records(directory, "prediction_grade")).toHaveLength(0);
+    expect(records(directory, "prediction")).toHaveLength(1);
+
+    const exportDirectory = join(directory, "after-erasure");
+    expect(ath(["export", exportDirectory], directory).code).toBe(0);
+    const document = JSON.parse(
+      readFileSync(join(exportDirectory, "athlete.ath.json"), "utf8"),
+    ) as { record_erasure_markers: Array<{ record_id: string }> };
+    expect(document.record_erasure_markers.map((marker) => marker.record_id)).toContain(
+      resultId,
+    );
   });
 
   it("explicit grade reuses an exact result link and writes no result", () => {

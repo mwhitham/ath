@@ -101,3 +101,11 @@ export {
   type PackageImportConflict,
   type PackageImportPreview,
 } from "./import-package.js";
+export {
+  eraseRecord,
+  previewRecordErasure,
+  type EraseRecordInput,
+  type ErasureAttachment,
+  type ErasurePreview,
+  type ErasureRecord,
+} from "./erase.js";
