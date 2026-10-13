@@ -12,3 +12,7 @@ dist/
 *.ath.sqlite-wal
 *.ath.sqlite-shm
 
+# Large deterministic release fixtures are generated locally or in the release job.
+/performance/generated/
+/performance/results/local/
+

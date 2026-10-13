@@ -58,7 +58,8 @@
     "generate:json-schema": "tsx scripts/generate-json-schema.ts",
     "generate:fixture": "tsx scripts/generate-fixture.ts",
     "generate:v1-fixture": "tsx scripts/generate-v1-fixture.ts",
-    "generate:skill-cli": "tsx scripts/generate-skill-cli.ts"
+    "generate:skill-cli": "tsx scripts/generate-skill-cli.ts",
+    "performance:generate": "tsx scripts/performance/generate-database.ts"
   },
   "dependencies": {
     "@libsql/client": "^0.18.0",
