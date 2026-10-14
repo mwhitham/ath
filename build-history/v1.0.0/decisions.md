@@ -997,3 +997,276 @@ Rejected alternatives:
 - **Test only 100,000 records.** Rejected because the 3-million-record run is large
   enough to expose unsafe query bounds and remains practical as a separate release
   job.
+
+## D115. Split internal workspace packages before publishing them
+
+The repository first splits pure logic, storage, and importers into private workspace
+packages behind the existing `athleticstandard` package. The root package bundles
+their code and keeps the current package name, CLI, and supported entry points.
+Scoped `@ath/*` packages are published only after a concrete need and packed-package
+tests prove they work outside the workspace.
+
+This follows the [contribution readiness plan](appendix/contribution-readiness.md).
+
+Rejected alternatives:
+
+- **Publish every workspace package immediately.** Rejected because it creates more
+  versioned public APIs before their boundaries have been exercised.
+- **Keep one source package forever.** Rejected because pure logic, storage, and
+  importers need enforceable internal boundaries.
+
+## D116. Direct third-party SQLite writes are supported and SQLite enforces critical rules
+
+Builders may write Athletic Standard databases directly with SQLite. They do not
+need the Node library, CLI, a local service, or a maintained language binding.
+Every client must enable `PRAGMA foreign_keys = ON`.
+
+Critical correctness rules also use database constraints and triggers. The schema
+uses `STRICT` tables, `CHECK`, `NOT NULL`, `UNIQUE`, foreign keys, and SQLite JSON
+functions. Triggers enforce the two-tier wall, record and revision agreement,
+revision and deletion rules, current-revision pointers, and protected links even
+when application code is bypassed. Conformance tests execute direct SQL rather than
+assuming the Node operations are the only writer.
+
+D104 still keeps the JavaScript database handle opaque and keeps arbitrary SQL out
+of the JavaScript API. This decision supersedes any reading of D104 that direct SQL
+writes by another implementation are unsupported. It also strengthens D83: SQLite
+is a public encoding with enforced write rules, while Zod remains the logical record
+definition.
+
+This follows the [contribution readiness plan](appendix/contribution-readiness.md).
+
+Rejected alternatives:
+
+- **Require every writer to use the Node package.** Rejected because the SQLite file
+  is the cross-language foundation.
+- **Document rules without enforcing them in SQLite.** Rejected because another
+  writer could then create a file the official reader cannot safely interpret.
+- **Rely on foreign keys alone.** Rejected because foreign-key enforcement is a
+  per-connection setting and does not express every critical cross-table rule.
+
+## D117. Official runtimes execute only reviewed code compiled into releases
+
+Official Athletic Standard and the hosted product do not load third-party importer
+or calculation code at runtime. Code approved for official use is reviewed, tested,
+and compiled into a release. Forks may choose another loading model.
+
+This follows the [contribution readiness plan](appendix/contribution-readiness.md).
+
+Rejected alternatives:
+
+- **Load code from the community catalog.** Rejected because catalog metadata and
+  compatibility tests are not a runtime trust boundary.
+- **Forbid plugin loading in forks.** Rejected because forks control their own
+  runtime and risk policy.
+
+## D118. v1 records have a namespaced extension envelope
+
+Every v1 record may carry an optional, namespaced, size-limited `extensions`
+envelope. Extension values inherit the parent record's measured,
+athlete-reported, or authored class. An extension cannot add a source to an athlete
+report or remove the source requirement from measured data.
+
+All v1 readers, SQLite writes, JSON import, and JSON export preserve extension
+values. A minimal pass-through implementation is sufficient for v1.0.0. It must land
+before v1.0.0 is published to npm; npm still publishes 0.4.3. This partially
+supersedes D91 for the defined envelope: unknown namespaced values inside a valid
+envelope are preserved rather than discarded. D91's unknown-field refusal remains
+in force outside the envelope.
+
+Separate linked extension record types may be added later without replacing the
+envelope. An extension becomes an official field only after repeated use, stable
+meaning across builders, clear tier rules, and a separately approved format change.
+
+This follows the [contribution readiness plan](appendix/contribution-readiness.md).
+
+Rejected alternatives:
+
+- **Wait until after v1.0.0.** Rejected because strict v1 readers would otherwise
+  need a format change before builders have any safe extension point.
+- **Allow arbitrary unknown top-level fields.** Rejected because strict validation
+  would no longer distinguish an extension from a typo or unsupported format.
+- **Start with separate linked extension records only.** Rejected because a
+  pass-through envelope is the smaller useful v1 foundation.
+
+## D119. Community catalog inclusion means tests passed, not endorsement
+
+An entry appears in `community-catalog.json` only after its manifest and synthetic
+contract tests pass. Inclusion does not mean the project recommends its training
+advice, accepts medical claims, approves its security for every use, or approves it
+for the hosted product. Hosted promotion is a separate review.
+
+This follows the [contribution readiness plan](appendix/contribution-readiness.md).
+
+Rejected alternatives:
+
+- **Treat catalog inclusion as project approval.** Rejected because compatibility
+  checks cannot establish coaching quality or suitability for every athlete.
+- **Promote every catalog entry into the hosted product.** Rejected because hosted
+  use has a separate risk and product review.
+
+## D120. Named local community Skills may be installed explicitly
+
+A community Skill may be installed only when the person or agent names it. The
+official bundled Skill remains the default. Read commands never install or refresh
+a Skill. The installer never fetches a remote Skill and never installs the whole
+catalog.
+
+This supersedes D41's decision not to build community distribution. D41's concern
+about implied endorsement remains and is answered by D119. D79 remains in force for
+the official bundled Skill and its current install locations.
+
+This follows the [contribution readiness plan](appendix/contribution-readiness.md).
+
+Rejected alternatives:
+
+- **Auto-install compatible Skills.** Rejected because a read or setup command
+  should not silently add agent instructions.
+- **Fetch Skills from catalog URLs.** Rejected because remote fetching adds a code
+  and content supply chain that the local repository does not need.
+- **Keep community installation entirely out of the CLI.** Rejected because an
+  explicit local install removes repeated manual copying without implying approval.
+
+## D121. The public foundation stays thin until a builder needs more
+
+The v1 public foundation is the SQLite file, public specification, conformance
+vectors, existing CLI, and official Skills. It does not add a local HTTP service, a
+local MCP server, a maintained Swift library or example, a Rust core, or another
+maintained language port now.
+
+D7 remains in force: CLI plus Skill is the agent interface, and MCP is not added.
+A future Rust core may ship inside the npm package behind existing APIs. Any future
+service or port must start from a concrete builder need and pass the same conformance
+vectors.
+
+This follows the [contribution readiness plan](appendix/contribution-readiness.md).
+
+Rejected alternatives:
+
+- **Build every likely client surface before demand.** Rejected because each surface
+  adds maintenance without removing a demonstrated blocker.
+- **Forbid future ports.** Rejected because shared vectors are intended to let
+  builders add the smallest implementation they need.
+
+## D122. Contributions use DCO sign-off, MIT, and no CLA
+
+Every contribution requires Developer Certificate of Origin sign-off. The repository
+keeps the MIT license and does not require a contributor license agreement.
+
+This follows the [contribution readiness plan](appendix/contribution-readiness.md).
+
+Rejected alternatives:
+
+- **Add a contributor license agreement.** Rejected because no identified legal
+  need justifies a second contribution agreement.
+- **Require no contribution attestation.** Rejected because DCO sign-off provides a
+  lightweight record that contributors may submit their work.
+
+## D123. Critical public contracts have explicit owners
+
+`@mwhitham` owns `spec/`, `src/db/migrations/`, `src/v1/schema.ts`, `schema/`,
+`.github/workflows/release-*.yml`, and `community/policy.json`. Other areas may be
+reviewed by any maintainer and have no catch-all required owner.
+
+This is a narrow exception to the repository rule against individual names. A
+GitHub owner handle is allowed only in `CODEOWNERS` and in decision or plan text
+that explains `CODEOWNERS`. The repository is personal and has no team handle, so
+the required owner must be a real account. No other exception is created.
+
+This follows the [contribution readiness plan](appendix/contribution-readiness.md).
+
+Rejected alternatives:
+
+- **Require one owner for every file.** Rejected because it needlessly blocks normal
+  maintenance outside the public contracts and release controls.
+- **Use no protected owners.** Rejected because format, migration, schema, release,
+  and community policy changes need explicit review.
+
+## D124. Database migrations always preview, back up, and ask
+
+Agents and scripts use explicit `ath migrate`: first preview, then confirm. An
+interactive database open may show the same preview and ask the person to confirm.
+A noninteractive open never migrates. Every route creates and verifies a SQLite-safe
+backup before changing the database. A package update alone never rewrites a file.
+
+This follows the [contribution readiness plan](appendix/contribution-readiness.md).
+
+Rejected alternatives:
+
+- **Migrate silently on open.** Rejected because opening an athlete record should
+  not make an unannounced irreversible storage change.
+- **Require only manual file copying.** Rejected because copying an open WAL database
+  is unsafe and does not prove the backup is usable.
+- **Support only a separate migration command.** Rejected because an interactive
+  person may reasonably confirm the same safe flow while opening the file.
+
+## D125. Stable views are public reads and a small table set is public for writes
+
+Versioned SQL views are the stable direct-read contract. A small documented set of
+tables is the stable direct-write contract. The SQL specification names their
+columns, required pragmas, transaction order, constraints, triggers, and version
+policy. Every other table is an internal encoding detail and may change through an
+ordered migration.
+
+D104 still governs the named JavaScript domain API. This decision adds a separate
+public SQL contract for non-JavaScript and direct SQLite builders.
+
+This follows the [contribution readiness plan](appendix/contribution-readiness.md).
+
+Rejected alternatives:
+
+- **Make every table stable.** Rejected because internal indexes, ledgers, and
+  normalized encodings need room to change through migrations.
+- **Publish example queries only.** Rejected because copied queries do not provide a
+  versioned read contract.
+- **Allow reads but no direct writes.** Rejected by D116; direct builders are a
+  supported use.
+
+## D126. Deprecated stable APIs remain until the next major release
+
+A stable public TypeScript API may be deprecated with a warning and documented
+replacement. It remains available for the rest of the current major version. The
+next major npm release may remove it.
+
+This follows the [contribution readiness plan](appendix/contribution-readiness.md).
+
+Rejected alternatives:
+
+- **Remove stable APIs in a minor release.** Rejected because builders need a
+  predictable migration boundary.
+- **Keep every stable API forever.** Rejected because major releases exist to remove
+  obsolete contracts after warning.
+
+## D127. Approved community items ship in the main package first
+
+A community Skill, importer, or calculation approved for official use ships in the
+main `athleticstandard` package. The hosted product can adopt it by updating its
+exact package pin after a separate hosted review. Separate public packages are
+deferred until size, release, or dependency needs justify them.
+
+This follows the [contribution readiness plan](appendix/contribution-readiness.md).
+
+Rejected alternatives:
+
+- **Publish each approved item as a separate package now.** Rejected because it adds
+  release and compatibility work before a concrete need.
+- **Copy approved code into the hosted repository.** Rejected because the public
+  exact-pinned package should remain the shared reviewed implementation.
+- **Treat catalog inclusion as package approval.** Rejected because D119 separates
+  passing public tests from official and hosted approval.
+
+## D128. The core extension API uses semantic version 1.0.0
+
+`CORE_API_VERSION` starts at `1.0.0` and follows semantic versioning. Community
+manifests use `coreRange` to state compatibility with importer, calculation, Skill,
+and extension interfaces. This version is independent of
+`athleticstandard_version`, `sql_schema_version`, and unrelated CLI patch releases.
+
+This follows the [contribution readiness plan](appendix/contribution-readiness.md).
+
+Rejected alternatives:
+
+- **Use the npm package version as the core interface version.** Rejected because CLI
+  and packaging changes do not necessarily change extension compatibility.
+- **Use an unversioned interface.** Rejected because community compatibility would
+  become guesswork after the first interface change.

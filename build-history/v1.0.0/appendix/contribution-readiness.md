@@ -1,8 +1,8 @@
 # Contribution readiness plan
 
-Status: direction approved. Section 7 records the approved choices. Each
-format choice still gets a D-number in `build-history/v1.0.0/decisions.md`
-when its implementation pull request starts.
+Status: approved. D115–D128 in `../decisions.md` record the choices. The v1
+format changes are appended to `../spec.md`, and their work is tracked in
+`../progress.md`.
 
 ## Plain-English summary
 
@@ -48,21 +48,21 @@ This plan preserves the current product boundary:
 - The open-source base stays thin: the file, specification, conformance
   vectors, CLI, and Skills.
 
-## 2. Why this plan is outside a version folder
+## 2. Why this plan is in the v1 appendix
 
 `build-history/README.md` names version folders after the format version they
 produce. This plan covers repository work as well as the remaining v1 format
 work. The approved extension envelope and database-enforced rules belong to
-v1.0.0 because npm still publishes 0.4.3.
+v1.0.0 because npm still publishes 0.4.3. The full plan is supporting material
+for D115–D128, so the repository process places it in the v1 appendix.
 
-As implementation begins:
+The approved work follows the repository process:
 
-1. Append the approved format decisions after D114 in
-   `build-history/v1.0.0/decisions.md`.
-2. Update `build-history/v1.0.0/spec.md` and `progress.md` before the matching
-   schema implementation lands.
-3. Put later format changes in the folder named for the version they produce.
-4. Keep this proposal as the record of the work considered before approval.
+1. D115–D128 are appended after D114 in `../decisions.md`.
+2. The v1 format amendment is appended to `../spec.md`.
+3. Pending pre-publish work is appended to `../progress.md`.
+4. Put later format changes in the folder named for the version they produce.
+5. Keep this appendix as the long-form plan linked from each decision.
 
 ## 3. Verified starting point
 
@@ -318,10 +318,14 @@ Scope:
   - `/src/db/migrations/ @mwhitham`
   - `/src/v1/schema.ts @mwhitham`
   - `/schema/ @mwhitham`
-  - `/.github/workflows/ @mwhitham`
+  - `/.github/workflows/release-*.yml @mwhitham`
   - `/community/policy.json @mwhitham`
 - Do not add a catch-all owner. Normal repository permissions let any
   maintainer review every other path.
+- D123 records a narrow exception to the impersonal-repository rule. GitHub
+  owner handles are allowed only in `CODEOWNERS` and in text that explains
+  that file. A real account is required because this repository has no team
+  handle.
 - Add DCO sign-off instructions and a required sign-off check.
 - Keep MIT and do not add a contributor license agreement.
 
@@ -1066,7 +1070,8 @@ D-numbers before their implementation pull requests.
 
 10. **Set protected owners.** `@mwhitham` owns `spec/`, migrations, schemas,
     release workflows, and community policy. Any maintainer may review other
-    areas.
+    areas. D123 records the narrow process exception that permits this GitHub
+    handle only for `CODEOWNERS` and text that explains it.
 
 11. **Never migrate silently.** Agents and scripts use `ath migrate` with
     preview and confirmation. Interactive open may prompt a person. Every

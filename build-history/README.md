@@ -29,3 +29,10 @@ build-history/
 ## Why
 
 Specs written in chat threads and planning sessions evaporate. Six months from now, "why is there no MCP server?" or "why TypeScript?" should be answerable by reading this folder, not by archaeology. Each version's `decisions.md` records the alternatives that were considered and rejected, because the rejected options are the part everyone forgets. Each version's `appendix/` holds the long-form research those decisions rest on.
+
+## Current v1.0.0 record
+
+- [Build specification](v1.0.0/spec.md)
+- [Decisions](v1.0.0/decisions.md)
+- [Progress](v1.0.0/progress.md)
+- [Contribution readiness plan](v1.0.0/appendix/contribution-readiness.md)
