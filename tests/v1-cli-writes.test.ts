@@ -351,6 +351,7 @@ describe("v1 corrections, links, deletion, and explicit grading", () => {
     expect(shown.history).toHaveLength(2);
   });
 
+  // Multi-command CLI cases use the same CI budget as their neighbors.
   it("adds an attachment and report correction in one database revision", () => {
     const directory = newDatabase();
     expect(ath(["log", "Meal note", "--yes"], directory).code).toBe(0);
@@ -390,7 +391,7 @@ describe("v1 corrections, links, deletion, and explicit grading", () => {
         },
       },
     ]);
-  });
+  }, 15_000);
 
   it("links stable result and session IDs by creating a result revision", () => {
     const directory = fixtureCopy();
@@ -509,6 +510,7 @@ describe("v1 corrections, links, deletion, and explicit grading", () => {
     }
   }, 15_000);
 
+  // This also launches several CLI processes in sequence.
   it("explicit grade reuses an exact result link and writes no result", () => {
     const directory = fixtureCopy();
     const predictionId = "01890f3e-e7d3-7cc0-88c8-000000000010";
@@ -574,7 +576,7 @@ describe("v1 corrections, links, deletion, and explicit grading", () => {
       ]),
     );
     expect(records(directory, "benchmark_result")).toHaveLength(1);
-  });
+  }, 15_000);
 
   it("revises the existing result link when grading a corrected result", () => {
     const directory = fixtureCopy();
