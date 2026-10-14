@@ -3,6 +3,7 @@ import { dirname, join } from "node:path";
 import type { CompleteRequest, CompleteResponse } from "../gateway.js";
 import { CurrentRecord, type CurrentRecordT } from "../v1/schema.js";
 import { databaseClient, type AthleticDatabase } from "./client.js";
+import { currentRecordPayloadFromRow } from "./revision-encoding.js";
 import { buildEvidence } from "./evidence.js";
 import { readRecordRevisions } from "./records.js";
 
@@ -92,7 +93,8 @@ async function backtestRecords(
       records.current_revision,
       records.created_at,
       records.is_deleted,
-      record_revisions.record_json
+      record_revisions.record_json,
+      record_revisions.extensions_json
     FROM records
     JOIN record_revisions
       ON record_revisions.record_id = records.record_id
@@ -100,16 +102,7 @@ async function backtestRecords(
     WHERE records.record_type IN ('benchmark_definition', 'benchmark_result')
     ORDER BY records.created_at, records.record_id
   `);
-  return result.rows.map((row) =>
-    CurrentRecord.parse({
-      record_id: row.record_id,
-      record_type: row.record_type,
-      current_revision: Number(row.current_revision),
-      created_at: row.created_at,
-      is_deleted: Number(row.is_deleted) === 1,
-      data: JSON.parse(String(row.record_json)) as unknown,
-    }),
-  );
+  return result.rows.map((row) => CurrentRecord.parse(currentRecordPayloadFromRow(row)));
 }
 
 export async function runV1Backtest(

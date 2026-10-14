@@ -1,3 +1,5 @@
+import { ENFORCEMENT_TRIGGERS_SQL } from "./enforcement-triggers.js";
+
 /**
  * Initial Athletic Standard v1 SQLite schema.
  *
@@ -61,6 +63,13 @@ CREATE TABLE record_revisions (
   revision INTEGER NOT NULL CHECK (revision >= 1),
   record_type TEXT NOT NULL,
   record_json TEXT NOT NULL CHECK (json_valid(record_json)),
+  extensions_json TEXT CHECK (
+    extensions_json IS NULL OR (
+      json_valid(extensions_json) AND
+      json_type(extensions_json) = 'object' AND
+      length(extensions_json) <= 65536
+    )
+  ),
   became_known_at TEXT NOT NULL,
   became_known_at_basis TEXT NOT NULL CHECK (became_known_at_basis IN (
     'local_write',
@@ -695,4 +704,6 @@ CREATE TABLE authored_record_evidence (
   FOREIGN KEY (evidence_record_id, evidence_revision)
     REFERENCES record_revisions (record_id, revision)
 ) STRICT;
+
+${ENFORCEMENT_TRIGGERS_SQL}
 `;
