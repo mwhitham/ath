@@ -15,6 +15,7 @@ import {
   type AthleticDatabase,
 } from "./client.js";
 import { incrementDatabaseRevision } from "./records.js";
+import { currentRecordPayloadFromRow } from "./revision-encoding.js";
 import { withWriteTransaction } from "./transaction.js";
 
 export interface ErasureRecord {
@@ -95,7 +96,8 @@ function dependencySql(): string {
       records.current_revision,
       records.created_at,
       records.is_deleted,
-      record_revisions.record_json
+      record_revisions.record_json,
+      record_revisions.extensions_json
     FROM dependencies
     JOIN records ON records.record_id = dependencies.record_id
     JOIN record_revisions
@@ -124,16 +126,7 @@ async function dependentRecords(
     sql: dependencySql(),
     args: [RecordId.parse(rootRecordId)],
   });
-  return result.rows.map((row) =>
-    CurrentRecord.parse({
-      record_id: row.record_id,
-      record_type: row.record_type,
-      current_revision: Number(row.current_revision),
-      created_at: row.created_at,
-      is_deleted: Number(row.is_deleted) === 1,
-      data: JSON.parse(String(row.record_json)) as unknown,
-    }),
-  );
+  return result.rows.map((row) => CurrentRecord.parse(currentRecordPayloadFromRow(row)));
 }
 
 export async function previewRecordErasure(

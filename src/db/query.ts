@@ -10,6 +10,7 @@ import {
   type SeriesQuantity,
 } from "../v1/schema.js";
 import { databaseClient, type AthleticDatabase } from "./client.js";
+import { currentRecordPayloadFromRow } from "./revision-encoding.js";
 
 type SqlValue = string | number | bigint | boolean | Uint8Array | ArrayBuffer | null;
 
@@ -72,14 +73,7 @@ function timeRangeConditions(
 }
 
 function parseCurrentRow(row: Record<string, unknown>): CurrentRecordT {
-  return CurrentRecord.parse({
-    record_id: row.record_id,
-    record_type: row.record_type,
-    current_revision: Number(row.current_revision),
-    created_at: row.created_at,
-    is_deleted: Number(row.is_deleted) === 1,
-    data: JSON.parse(String(row.record_json)) as unknown,
-  });
+  return CurrentRecord.parse(currentRecordPayloadFromRow(row));
 }
 
 export async function queryMeasurements(
@@ -110,7 +104,8 @@ export async function queryMeasurements(
         records.current_revision,
         records.created_at,
         records.is_deleted,
-        record_revisions.record_json
+        record_revisions.record_json,
+        record_revisions.extensions_json
       FROM point_measurements
       JOIN records ON records.record_id = point_measurements.record_id
       JOIN record_revisions
@@ -150,7 +145,8 @@ export async function querySeries(
         records.current_revision,
         records.created_at,
         records.is_deleted,
-        record_revisions.record_json
+        record_revisions.record_json,
+        record_revisions.extensions_json
       FROM measurement_samples
       JOIN records ON records.record_id = measurement_samples.record_id
       JOIN record_revisions
@@ -201,7 +197,8 @@ export async function querySessions(
           records.current_revision,
           records.created_at,
           records.is_deleted,
-          record_revisions.record_json
+          record_revisions.record_json,
+        record_revisions.extensions_json
         FROM ${table}
         JOIN records ON records.record_id = ${table}.record_id
         JOIN record_revisions
@@ -285,7 +282,8 @@ export async function queryRecordsAsOf(
         record_revisions.revision AS current_revision,
         records.created_at,
         0 AS is_deleted,
-        record_revisions.record_json
+        record_revisions.record_json,
+        record_revisions.extensions_json
       FROM visible_revisions
       JOIN record_revisions
         ON record_revisions.record_id = visible_revisions.record_id

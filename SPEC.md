@@ -89,6 +89,12 @@ Every current record has these fields:
 | `current_revision` | positive integer | Latest retained revision |
 | `is_deleted` | boolean | Whether normal deletion hides the record from current views |
 | `data` | typed object | Complete current logical state |
+| `extensions` | optional object | Namespaced extension values that inherit the parent record class |
+
+`extensions` keys use reverse-DNS names (`owner.example/name`). Values are bounded
+JSON. They cannot add a `source_id` to athlete-reported records. Unknown keys
+inside a valid envelope are preserved through SQLite and package round trips.
+Unknown fields outside `extensions` are still refused.
 
 A normally deleted record remains a current envelope with `is_deleted: true`. Its
 data and revisions remain until a retention rule or privacy erasure removes them.
@@ -107,6 +113,7 @@ Every retained revision has:
 | `became_known_at_basis` | enum | `local_write`, `provider_import`, `package_restore`, or `package_merge` |
 | `changed_by` | record actor | Actor that made the change |
 | `data` | typed object | Complete state at this revision |
+| `extensions` | optional object | Same envelope as the current record at this revision |
 
 A correction cannot use a `became_known_at` earlier than the prior revision.
 Historical prediction and backtest queries use revision knowledge time, not only the

@@ -1,5 +1,6 @@
 import type { Transaction } from "@libsql/client";
 import {
+  CurrentRecord,
   PointMeasurementTypeSchema,
   RecordActor,
   RecordType,
@@ -19,6 +20,7 @@ import { atOffsetOf } from "../series.js";
 import { parseProviderExport, type ParsedProviderExport } from "../import/index.js";
 import type { ProviderSummaryImport } from "../import/merge.js";
 import { databaseClient, type AthleticDatabase } from "./client.js";
+import { currentRecordPayloadFromRow } from "./revision-encoding.js";
 import {
   incrementDatabaseRevision,
   insertRevision,
@@ -909,7 +911,8 @@ async function recordsByImportKey(
           records.current_revision,
           records.created_at,
           records.is_deleted,
-          record_revisions.record_json
+          record_revisions.record_json,
+          record_revisions.extensions_json
         FROM record_import_keys
         JOIN records ON records.record_id = record_import_keys.record_id
         JOIN record_revisions
@@ -922,14 +925,7 @@ async function recordsByImportKey(
     for (const row of result.rows) {
       records.set(
         `${String(row.match_key_method)}\u0000${String(row.match_key)}`,
-        {
-          record_id: String(row.record_id),
-          record_type: RecordType.parse(row.record_type),
-          current_revision: Number(row.current_revision),
-          created_at: UtcTimestamp.parse(row.created_at),
-          is_deleted: Number(row.is_deleted) === 1,
-          data: JSON.parse(String(row.record_json)) as never,
-        } as CurrentRecordT,
+        CurrentRecord.parse(currentRecordPayloadFromRow(row)),
       );
     }
   }
