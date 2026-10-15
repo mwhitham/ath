@@ -23,6 +23,10 @@ import {
   storedAttachmentName,
 } from "./attachments.js";
 import { validateTypedRelationships } from "./records.js";
+import {
+  currentRecordPayloadFromRow,
+  recordRevisionPayloadFromRow,
+} from "./revision-encoding.js";
 
 export interface DatabaseCheckIssue {
   severity: "error" | "warning";
@@ -246,7 +250,8 @@ export async function checkDatabase(
           records.current_revision,
           records.created_at,
           records.is_deleted,
-          record_revisions.record_json
+          record_revisions.record_json,
+          record_revisions.extensions_json
         FROM records
         LEFT JOIN record_revisions
           ON record_revisions.record_id = records.record_id
@@ -271,14 +276,7 @@ export async function checkDatabase(
         });
         continue;
       }
-      const parsed = CurrentRecord.safeParse({
-        record_id: row.record_id,
-        record_type: row.record_type,
-        current_revision: Number(row.current_revision),
-        created_at: row.created_at,
-        is_deleted: Number(row.is_deleted) === 1,
-        data: JSON.parse(String(row.record_json)) as unknown,
-      });
+      const parsed = CurrentRecord.safeParse(currentRecordPayloadFromRow(row));
       if (!parsed.success) {
         issues.push({
           severity: "error",
@@ -343,7 +341,8 @@ export async function checkDatabase(
           became_known_at,
           became_known_at_basis,
           changed_by_json,
-          record_json
+          record_json,
+          extensions_json
         FROM record_revisions
         WHERE record_id > ? OR (record_id = ? AND revision > ?)
         ORDER BY record_id, revision
@@ -362,17 +361,7 @@ export async function checkDatabase(
     for (const row of revisionRows.rows) {
       revisionAfterId = String(row.record_id);
       revisionAfterNumber = Number(row.revision);
-      const parsed = RecordRevision.safeParse({
-        record_id: row.record_id,
-        record_type: row.record_type,
-        revision: revisionAfterNumber,
-        previous_revision:
-          row.previous_revision === null ? null : Number(row.previous_revision),
-        became_known_at: row.became_known_at,
-        became_known_at_basis: row.became_known_at_basis,
-        changed_by: JSON.parse(String(row.changed_by_json)) as unknown,
-        data: JSON.parse(String(row.record_json)) as unknown,
-      });
+      const parsed = RecordRevision.safeParse(recordRevisionPayloadFromRow(row));
       if (!parsed.success) {
         issues.push({
           severity: "error",

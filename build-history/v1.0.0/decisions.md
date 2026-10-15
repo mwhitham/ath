@@ -1270,3 +1270,19 @@ Rejected alternatives:
   and packaging changes do not necessarily change extension compatibility.
 - **Use an unversioned interface.** Rejected because community compatibility would
   become guesswork after the first interface change.
+
+## D129. Build CR1 before the contribution-readiness plan pull request merges
+
+The repository owner approved implementing contribution-foundation step CR1 and CR2
+from the contribution readiness plan before
+[pull request #15](https://github.com/mwhitham/ath/pull/15) merges. The
+implementation pull request carries the same decision, specification, progress, and
+appendix updates that #15 would land, so build-history stays consistent with the
+approved plan.
+
+Rejected alternatives:
+
+- **Wait for #15 to merge.** Rejected because the unreleased v1 schema work is
+  required before the first v1 npm publish and does not depend on #15 landing first.
+- **Implement without recording the plan text.** Rejected because build-history must
+  contain the approved decisions and specification before or as the build happens.

@@ -16,8 +16,15 @@ import {
   type RecordTypeT,
 } from "../v1/schema.js";
 import { databaseClient, type AthleticDatabase } from "./client.js";
+import {
+  currentRecordPayloadFromRow,
+  parseExtensionsJson,
+  recordRevisionPayloadFromRow,
+  serializeExtensionsJson,
+} from "./revision-encoding.js";
 import { withWriteTransaction } from "./transaction.js";
 import { createUuidV7 } from "./uuid.js";
+import type { RecordExtensionsT } from "../v1/extensions.js";
 
 type SqlValue = string | number | bigint | boolean | Uint8Array | ArrayBuffer | null;
 
@@ -25,6 +32,7 @@ export interface WriteRecordInput {
   record_type: RecordTypeT;
   data: unknown;
   changed_by: RecordActorT;
+  extensions?: RecordExtensionsT;
   record_id?: string;
   created_at?: string;
   became_known_at?: string;
@@ -35,6 +43,7 @@ export interface CorrectRecordInput {
   record_id: string;
   expected_revision: number;
   data: unknown;
+  extensions?: RecordExtensionsT;
   changed_by: RecordActorT;
   became_known_at?: string;
   became_known_at_basis?: "local_write" | "provider_import" | "package_merge";
@@ -728,6 +737,7 @@ export async function insertRevision(
     became_known_at_basis: becameKnownAtBasis,
     changed_by: changedBy,
     data: record.data,
+    extensions: record.extensions,
   });
   await transaction.execute({
     sql: `
@@ -736,17 +746,19 @@ export async function insertRevision(
         revision,
         record_type,
         record_json,
+        extensions_json,
         became_known_at,
         became_known_at_basis,
         changed_by_json,
         previous_revision
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
     args: [
       revision.record_id,
       revision.revision,
       revision.record_type,
       requiredJson(revision.data),
+      serializeExtensionsJson(revision.extensions),
       revision.became_known_at,
       revision.became_known_at_basis,
       requiredJson(revision.changed_by),
@@ -812,6 +824,7 @@ export async function writeRecords(
         current_revision: 1,
         is_deleted: false,
         data: input.data,
+        extensions: input.extensions,
       });
 
       await transaction.execute({
@@ -1029,7 +1042,8 @@ export async function correctRecord(
           records.current_revision,
           records.created_at,
           records.is_deleted,
-          record_revisions.became_known_at
+          record_revisions.became_known_at,
+          record_revisions.extensions_json
         FROM records
         JOIN record_revisions
           ON record_revisions.record_id = records.record_id
@@ -1064,6 +1078,7 @@ export async function correctRecord(
       current_revision: currentRevision + 1,
       is_deleted: false,
       data: input.data,
+      extensions: input.extensions ?? parseExtensionsJson(row.extensions_json ?? null),
     });
 
     await insertRevision(
@@ -1161,7 +1176,8 @@ export async function readRecord(
         records.current_revision,
         records.created_at,
         records.is_deleted,
-        record_revisions.record_json
+        record_revisions.record_json,
+        record_revisions.extensions_json
       FROM records
       JOIN record_revisions
         ON record_revisions.record_id = records.record_id
@@ -1174,14 +1190,7 @@ export async function readRecord(
   if (row === undefined) {
     return null;
   }
-  return CurrentRecord.parse({
-    record_id: row.record_id,
-    record_type: row.record_type,
-    current_revision: Number(row.current_revision),
-    created_at: row.created_at,
-    is_deleted: Number(row.is_deleted) === 1,
-    data: JSON.parse(String(row.record_json)) as unknown,
-  });
+  return CurrentRecord.parse(currentRecordPayloadFromRow(row));
 }
 
 export async function listRecords(
@@ -1211,7 +1220,8 @@ export async function listRecords(
         records.current_revision,
         records.created_at,
         records.is_deleted,
-        record_revisions.record_json
+        record_revisions.record_json,
+        record_revisions.extensions_json
       FROM records
       JOIN record_revisions
         ON record_revisions.record_id = records.record_id
@@ -1223,16 +1233,7 @@ export async function listRecords(
     args,
   });
 
-  return result.rows.map((row) =>
-    CurrentRecord.parse({
-      record_id: row.record_id,
-      record_type: row.record_type,
-      current_revision: Number(row.current_revision),
-      created_at: row.created_at,
-      is_deleted: Number(row.is_deleted) === 1,
-      data: JSON.parse(String(row.record_json)) as unknown,
-    }),
-  );
+  return result.rows.map((row) => CurrentRecord.parse(currentRecordPayloadFromRow(row)));
 }
 
 export async function readRecordRevisions(
@@ -1250,24 +1251,13 @@ export async function readRecordRevisions(
         became_known_at,
         became_known_at_basis,
         changed_by_json,
-        record_json
+        record_json,
+        extensions_json
       FROM record_revisions
       WHERE record_id = ?
       ORDER BY revision
     `,
     args: [parsedRecordId],
   });
-  return result.rows.map((row) =>
-    RecordRevision.parse({
-      record_id: row.record_id,
-      record_type: row.record_type,
-      revision: Number(row.revision),
-      previous_revision:
-        row.previous_revision === null ? null : Number(row.previous_revision),
-      became_known_at: row.became_known_at,
-      became_known_at_basis: row.became_known_at_basis,
-      changed_by: JSON.parse(String(row.changed_by_json)) as unknown,
-      data: JSON.parse(String(row.record_json)) as unknown,
-    }),
-  );
+  return result.rows.map((row) => RecordRevision.parse(recordRevisionPayloadFromRow(row)));
 }

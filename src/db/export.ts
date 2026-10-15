@@ -37,6 +37,10 @@ import {
   refuseSymbolicLinkComponents,
   type AthleticDatabase,
 } from "./client.js";
+import {
+  currentRecordPayloadFromRow,
+  recordRevisionPayloadFromRow,
+} from "./revision-encoding.js";
 
 export interface ExportDatabaseOptions {
   exported_at?: string;
@@ -81,28 +85,11 @@ async function writeOwnerOnly(path: string, bytes: Uint8Array): Promise<void> {
 }
 
 function parseCurrentRow(row: Record<string, unknown>): CurrentRecordT {
-  return CurrentRecord.parse({
-    record_id: row.record_id,
-    record_type: row.record_type,
-    current_revision: Number(row.current_revision),
-    created_at: row.created_at,
-    is_deleted: Number(row.is_deleted) === 1,
-    data: JSON.parse(String(row.record_json)) as unknown,
-  });
+  return CurrentRecord.parse(currentRecordPayloadFromRow(row));
 }
 
 function parseRevisionRow(row: Record<string, unknown>): RecordRevisionT {
-  return RecordRevision.parse({
-    record_id: row.record_id,
-    record_type: row.record_type,
-    revision: Number(row.revision),
-    previous_revision:
-      row.previous_revision === null ? null : Number(row.previous_revision),
-    became_known_at: row.became_known_at,
-    became_known_at_basis: row.became_known_at_basis,
-    changed_by: JSON.parse(String(row.changed_by_json)) as unknown,
-    data: JSON.parse(String(row.record_json)) as unknown,
-  });
+  return RecordRevision.parse(recordRevisionPayloadFromRow(row));
 }
 
 function parseDeletionRow(row: Record<string, unknown>): RecordDeletionT {
@@ -135,7 +122,8 @@ async function readCurrentRecords(
       records.current_revision,
       records.created_at,
       records.is_deleted,
-      record_revisions.record_json
+      record_revisions.record_json,
+      record_revisions.extensions_json
     FROM records
     JOIN record_revisions
       ON record_revisions.record_id = records.record_id
@@ -162,7 +150,8 @@ async function readRevisions(
       became_known_at,
       became_known_at_basis,
       changed_by_json,
-      record_json
+      record_json,
+      extensions_json
     FROM record_revisions
     WHERE (? = 1 OR record_type <> 'measurement_sample')
     ORDER BY record_id, revision
@@ -293,7 +282,8 @@ async function readSampleChunk(
         records.current_revision,
         records.created_at,
         records.is_deleted,
-        record_revisions.record_json
+        record_revisions.record_json,
+        record_revisions.extensions_json
       FROM measurement_samples
       JOIN records ON records.record_id = measurement_samples.record_id
       JOIN record_revisions
@@ -320,16 +310,7 @@ async function readSampleChunk(
       SERIES_CHUNK_RECORDS,
     ],
   });
-  return result.rows.map((row) =>
-    CurrentRecord.parse({
-      record_id: row.record_id,
-      record_type: row.record_type,
-      current_revision: Number(row.current_revision),
-      created_at: row.created_at,
-      is_deleted: Number(row.is_deleted) === 1,
-      data: JSON.parse(String(row.record_json)) as unknown,
-    }),
-  ) as Array<
+  return result.rows.map((row) => parseCurrentRow(row)) as Array<
     Extract<CurrentRecordT, { record_type: "measurement_sample" }>
   >;
 }
@@ -395,7 +376,8 @@ async function readSampleChunkHistory(
         record_revisions.became_known_at,
         record_revisions.became_known_at_basis,
         record_revisions.changed_by_json,
-        record_revisions.record_json
+        record_revisions.record_json,
+        record_revisions.extensions_json
       FROM measurement_samples
       JOIN record_revisions
         ON record_revisions.record_id = measurement_samples.record_id

@@ -54,8 +54,8 @@ The long-form sequence is in
 | Step | Deliverable | Status |
 |---|---|---|
 | CR0 | Record the approved contribution-foundation decisions | ✅ D115–D128 recorded |
-| CR1 | Add the v1 extension envelope and its generated schemas and fixture | pending — required before the first v1 npm publish |
-| CR2 | Enforce the two-tier wall, revisions, deletion, erasure, JSON shape, and protected links with SQLite constraints and triggers | pending — required before the first v1 npm publish |
+| CR1 | Add the v1 extension envelope and its generated schemas and fixture | ✅ done — D129; implementation started before #15 merged with owner approval |
+| CR2 | Enforce the two-tier wall, revisions, deletion, erasure, JSON shape, and protected links with SQLite constraints and triggers | ✅ done — D116; direct-SQL tests in `tests/v1-direct-sql.test.ts` |
 | CR3 | Publish plain SQL migrations, stable read views, and the stable writable-table contract | pending |
 | CR4 | Add `ath migrate` preview, verified backup, explicit confirmation, and interactive prompt-on-open | pending |
 | CR5 | Add direct-SQL and language-neutral conformance vectors | pending |
