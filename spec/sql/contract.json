@@ -24,11 +24,26 @@
     }
   ],
   "metadata_insert": {
-    "description": "After 001-initial.sql runs, the migration runner inserts one database_metadata row and one database_state row. database_id and created_at are supplied by the runner. They are not fixed in the SQL file.",
+    "description": "After 001-initial.sql runs, the migration runner inserts one database_metadata row and one database_state row, then sets file header pragmas on local files. database_id and created_at are supplied by the runner. They are not fixed in the SQL file.",
     "tables": [
       "database_metadata",
       "database_state"
+    ],
+    "header_pragmas": [
+      "PRAGMA application_id = 1096042545;",
+      "PRAGMA user_version = 1;"
     ]
+  },
+  "file_header_pragmas": {
+    "application_id": {
+      "value": 1096042545,
+      "literal": "0x41544831",
+      "description": "Athletic Standard file marker (ATH1). Set on local database creation."
+    },
+    "user_version": {
+      "matches": "database_metadata.sql_schema_version",
+      "description": "Local mirror of sql_schema_version on file-backed databases."
+    }
   },
   "stable_views": [
     {
@@ -152,28 +167,96 @@
     "record_erasure_markers",
     "record_import_keys"
   ],
+  "collection_replacement": {
+    "description": "On every create or correction, ordered child collections and link tables are replaced from the full payload. Delete existing child rows for the parent record_id, then insert the payload order. Omitted children are removed. An empty collection deletes all prior child rows.",
+    "tables": [
+      {
+        "table": "provider_reporting_periods",
+        "parent_column": "owner_record_id",
+        "applies_when": "record_json includes provider_reporting_periods"
+      },
+      {
+        "table": "authored_record_evidence",
+        "parent_column": "authored_record_id",
+        "applies_when": "record_json includes authorship.evidence"
+      },
+      {
+        "table": "record_attachment_links",
+        "parent_column": "owner_record_id",
+        "applies_when": "athlete_report or nutrition_entry record_json"
+      },
+      {
+        "table": "reported_nutrition_items",
+        "parent_column": "nutrition_entry_id",
+        "applies_when": "nutrition_entry corrections"
+      },
+      {
+        "table": "point_measurement_calculations",
+        "parent_column": "point_measurement_id",
+        "applies_when": "point_measurement corrections"
+      },
+      {
+        "table": "point_measurement_calculation_inputs",
+        "parent_column": "point_measurement_id",
+        "applies_when": "point_measurement corrections"
+      },
+      {
+        "table": "workout_session_segments",
+        "parent_column": "workout_session_id",
+        "applies_when": "workout_session corrections"
+      },
+      {
+        "table": "benchmark_result_segments",
+        "parent_column": "benchmark_result_id",
+        "applies_when": "benchmark_result corrections"
+      },
+      {
+        "table": "prediction_error_causes",
+        "parent_column": "prediction_error_analysis_id",
+        "applies_when": "prediction_error_analysis corrections"
+      },
+      {
+        "table": "planned_session_blocks",
+        "parent_column": "planned_session_id",
+        "applies_when": "planned_session corrections"
+      }
+    ]
+  },
   "transaction_recipes": {
     "connection": [
       "PRAGMA foreign_keys = ON;",
-      "PRAGMA busy_timeout = 5000;",
+      "PRAGMA busy_timeout = 5000;"
+    ],
+    "write_transaction_start": [
+      "BEGIN IMMEDIATE;",
+      "PRAGMA foreign_keys = ON;",
       "PRAGMA defer_foreign_keys = ON;"
     ],
+    "write_transaction_note": "SQLite resets defer_foreign_keys after each COMMIT or ROLLBACK. Run write_transaction_start at the beginning of every write transaction. Do not rely on a connection-level defer_foreign_keys setting.",
     "create_record": [
+      "write_transaction_start",
       "INSERT INTO records (record_id, record_type, current_revision, created_at, is_deleted)",
       "INSERT INTO record_revisions (...)",
-      "INSERT or UPSERT into the typed table for record_type and any ordered child rows",
-      "UPDATE database_state SET current_revision = current_revision + 1 WHERE singleton_id = 1"
+      "INSERT or UPSERT into the typed table for record_type",
+      "Replace child collections from the full payload (see collection_replacement)",
+      "UPDATE database_state SET current_revision = current_revision + 1 WHERE singleton_id = 1",
+      "COMMIT;"
     ],
     "correct_record": [
+      "write_transaction_start",
       "INSERT INTO record_revisions (...) with revision = current_revision + 1",
       "UPDATE records SET current_revision = ? WHERE record_id = ?",
-      "UPSERT typed table and child rows for the new revision payload",
-      "UPDATE database_state SET current_revision = current_revision + 1 WHERE singleton_id = 1"
+      "UPSERT typed table for the new revision payload",
+      "DELETE and reinsert each child collection for the parent record_id (see collection_replacement)",
+      "UPDATE database_state SET current_revision = current_revision + 1 WHERE singleton_id = 1",
+      "COMMIT;"
     ],
     "soft_delete": [
+      "write_transaction_start",
       "INSERT INTO record_deletions (...)",
       "UPDATE records SET is_deleted = 1 WHERE record_id = ?",
-      "UPDATE database_state SET current_revision = current_revision + 1 WHERE singleton_id = 1"
+      "UPDATE database_state SET current_revision = current_revision + 1 WHERE singleton_id = 1",
+      "COMMIT;"
     ]
   },
   "enforcement_triggers": [

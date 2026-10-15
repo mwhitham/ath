@@ -12,7 +12,9 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   buildSqlContractDocument,
   publishedMigrationSql,
+  readDatabaseFileHeader,
 } from "../src/db/sql-contract.js";
+import { SQLITE_APPLICATION_ID } from "../src/db/client.js";
 import {
   createDatabase,
   SQLITE_APPLICATION_MARKER,
@@ -58,7 +60,12 @@ function fingerprint(objects: SchemaObject[]): string {
   );
 }
 
-async function schemaFromCreateDatabase(): Promise<SchemaObject[]> {
+interface SchemaSnapshot {
+  objects: SchemaObject[];
+  header: Awaited<ReturnType<typeof readDatabaseFileHeader>>;
+}
+
+async function schemaFromCreateDatabase(): Promise<SchemaSnapshot> {
   const directory = await mkdtemp(join(tmpdir(), "ath-schema-drift-"));
   const path = join(directory, "athlete.ath.sqlite");
   const databaseId = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1f01";
@@ -69,15 +76,16 @@ async function schemaFromCreateDatabase(): Promise<SchemaObject[]> {
     const client = createClient({ url: pathToFileURL(path).href });
     await client.execute("PRAGMA foreign_keys = ON");
     const objects = await listSchemaObjects((sql) => client.execute(sql));
+    const header = await readDatabaseFileHeader((sql) => client.execute(sql));
     await client.close();
-    return objects;
+    return { objects, header };
   } finally {
     database?.close();
     await rm(directory, { recursive: true, force: true });
   }
 }
 
-async function schemaFromPublishedSqlFile(): Promise<SchemaObject[]> {
+async function schemaFromPublishedSqlFile(): Promise<SchemaSnapshot> {
   const directory = await mkdtemp(join(tmpdir(), "ath-schema-drift-sql-"));
   const path = join(directory, "athlete.ath.sqlite");
   const migrationFile = join(root, "spec", "sql", "migrations", "001-initial.sql");
@@ -117,6 +125,7 @@ async function schemaFromPublishedSqlFile(): Promise<SchemaObject[]> {
           '${createdAt}'
         );
         INSERT INTO database_state (singleton_id, current_revision) VALUES (1, 0);
+        PRAGMA application_id = ${SQLITE_APPLICATION_ID};
         PRAGMA user_version = ${SQL_SCHEMA_VERSION};
       `,
       encoding: "utf8",
@@ -129,9 +138,10 @@ async function schemaFromPublishedSqlFile(): Promise<SchemaObject[]> {
   const client = createClient({ url: pathToFileURL(path).href });
   await client.execute("PRAGMA foreign_keys = ON");
   const objects = await listSchemaObjects((sql) => client.execute(sql));
+  const header = await readDatabaseFileHeader((sql) => client.execute(sql));
   await client.close();
   await rm(directory, { recursive: true, force: true });
-  return objects;
+  return { objects, header };
 }
 
 function expectedMigrationFileContents(): string {
@@ -169,9 +179,26 @@ export async function checkSchemaDrift(): Promise<void> {
   const fromNode = await schemaFromCreateDatabase();
   const fromSqlFile = await schemaFromPublishedSqlFile();
 
-  if (fingerprint(fromNode) !== fingerprint(fromSqlFile)) {
+  if (fingerprint(fromNode.objects) !== fingerprint(fromSqlFile.objects)) {
     throw new Error(
       "Published SQL migration does not match createDatabase() schema; regenerate and review drift",
+    );
+  }
+
+  if (JSON.stringify(fromNode.header) !== JSON.stringify(fromSqlFile.header)) {
+    throw new Error(
+      "Published SQL seed does not match createDatabase() file header pragmas (application_id, user_version)",
+    );
+  }
+
+  if (fromNode.header.application_id !== SQLITE_APPLICATION_ID) {
+    throw new Error(
+      `createDatabase() application_id is ${fromNode.header.application_id}, expected ${SQLITE_APPLICATION_ID}`,
+    );
+  }
+  if (fromNode.header.user_version !== SQL_SCHEMA_VERSION) {
+    throw new Error(
+      `createDatabase() user_version is ${fromNode.header.user_version}, expected ${SQL_SCHEMA_VERSION}`,
     );
   }
 }
