@@ -14,7 +14,7 @@ const approvedSyntheticFixtures = new Map<string, string>([
   ],
   [
     "examples/demo-athlete/athlete.ath.sqlite",
-    "b41026440643f556e034ed4061d69fa6f442eb87505b7f5961c3da253f591f8c",
+    "5245f0e073e981a4fdd655a8dbc159e3ab674986774a6900c7b7592481196cdc",
   ],
   [
     "examples/demo-athlete/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png",
