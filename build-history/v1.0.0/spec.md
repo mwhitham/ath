@@ -1030,3 +1030,125 @@ D114 supersedes the 30-million-record requirement in section 13. Required measur
 runs use 100,000 records in normal release CI and 3 million records in the separate
 large release job. Larger generated databases are optional investigation tools and
 are not a release gate.
+
+## 19. Pre-publish contribution foundation amendment
+
+D115–D128 and the
+[contribution readiness plan](appendix/contribution-readiness.md) amend the work
+required before v1.0.0 is published to npm. They do not change the released 0.4.3
+format.
+
+### 19.1 Record extensions
+
+Every record schema has an optional `extensions` object. Its keys are namespaced
+extension IDs. Its values are bounded JSON values. The generated schema defines the
+key grammar, value grammar, maximum depth, maximum collection sizes, and maximum
+encoded size before release.
+
+An extension inherits the class of its parent record:
+
+- An extension on a measured record still requires the parent record's source.
+- An extension on an athlete-reported record cannot add or claim a source.
+- An extension on an authored record remains governed by the parent record's author,
+  evidence, content version, and status.
+
+SQLite revisions, current records, complete JSON export, package import, merge,
+correction, and every public reader preserve unknown valid extension values. The
+deterministic JSON writer may normalize their JSON encoding but cannot change their
+values. Unknown fields outside the extension envelope still follow section 9.2 and
+are refused.
+
+The extension envelope is part of v1.0.0. It and its limits must land before the
+first v1 npm publish. The current unreleased v1 fixture and generated schemas are
+regenerated. Separate linked extension record types are later additive work and are
+not required for v1.0.0.
+
+### 19.2 Database-enforced writes
+
+Direct third-party SQLite writes are supported. The JavaScript handle remains opaque
+as specified by D104, but it is not the only supported writer.
+
+Every direct client must enable and verify:
+
+```sql
+PRAGMA foreign_keys = ON;
+PRAGMA busy_timeout = 5000;
+```
+
+The database enforces critical validity without relying on the Node operations.
+Use `STRICT` tables, `NOT NULL`, `CHECK`, `UNIQUE`, foreign keys, SQLite JSON
+functions, and triggers. Constraints and triggers cover at least:
+
+- The measured and athlete-reported sides of the two-tier wall.
+- Record type agreement between current rows, retained revisions, and typed rows.
+- Complete `record_json` shape needed to identify its record and class.
+- Sequential revisions and valid previous-revision links.
+- Current-revision pointers.
+- Deletion and erasure state.
+- Source, evidence, result, grade, attachment, and other protected link types.
+
+Foreign keys remain required. Critical cross-table rules also have trigger coverage
+where a connection with foreign keys disabled could otherwise create a database that
+official readers accept. Direct-SQL tests bypass the Node library and prove each
+invalid state is refused.
+
+Before the first v1 publish, the ordinary SQL migration is finalized from these
+rules and the deterministic repository fixture is regenerated. There is no
+published earlier v1 database that needs a compatibility migration.
+
+### 19.3 Stable SQL contract
+
+Versioned SQL views are the stable direct-read contract. A small documented set of
+tables is the stable direct-write contract. The machine-readable SQL specification
+lists:
+
+- Stable views and their columns.
+- Stable writable tables and their columns.
+- Internal tables.
+- Required pragmas.
+- Transaction order.
+- Constraints and triggers.
+- SQL schema compatibility.
+
+Tables not listed as stable writable tables are internal. They may change through an
+ordered migration. Example queries do not make an internal table public.
+
+### 19.4 Migration behavior
+
+`ath migrate` first previews the source and target SQL schema versions, planned
+steps, backup location, and compatibility effect. Agents and scripts then provide
+explicit confirmation. An interactive database open may show the same preview and
+ask the person to confirm. A noninteractive open refuses migration and points to
+`ath migrate`.
+
+Every migration route creates and verifies a SQLite-safe backup before the first
+database write. It accounts for WAL state and does not copy an open WAL database as
+if that were a complete backup. A package update alone never migrates a database.
+
+### 19.5 Machine-readable contract and agent guidance
+
+The repository publishes language-neutral conformance vectors for direct reads,
+direct writes, extension preservation, invalid constraints, migrations, and
+deterministic calculations. `AGENTS.md` and the build-on-ATH Skill point builders to
+the machine-readable SQL and record contracts. No maintained Swift, Rust, or other
+language library is required for v1.
+
+`CORE_API_VERSION` is `1.0.0`. It versions the community importer, calculation,
+Skill, and extension interfaces independently of `athleticstandard_version`,
+`sql_schema_version`, and the npm package version.
+
+### 19.6 Additional pre-publish build order
+
+Complete these steps after the existing implemented v1 work and before steps 11 and
+12 release a prerelease or v1.0.0:
+
+1. Add the extension envelope and SQLite-enforced critical rules.
+2. Finalize plain SQL migrations, stable read views, and stable writable tables.
+3. Add direct-SQL and language-neutral conformance vectors.
+4. Add machine-readable contract metadata and the build-on-ATH Skill.
+5. Pack the npm artifact and prove it contains every v1 schema, SQL, conformance,
+   and Skill file.
+6. Run the functional, cross-platform, and D114 measured release checks.
+
+Local HTTP, local MCP, maintained language ports, and runtime loading of third-party
+code are not v1 release work.

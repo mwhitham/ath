@@ -44,6 +44,15 @@
               "is_deleted": {
                 "type": "boolean"
               },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
               "record_type": {
                 "type": "string",
                 "const": "athlete_profile"
@@ -114,6 +123,15 @@
               },
               "is_deleted": {
                 "type": "boolean"
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               },
               "record_type": {
                 "type": "string",
@@ -191,6 +209,15 @@
               },
               "is_deleted": {
                 "type": "boolean"
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               },
               "record_type": {
                 "type": "string",
@@ -279,6 +306,15 @@
               },
               "is_deleted": {
                 "type": "boolean"
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               },
               "record_type": {
                 "type": "string",
@@ -733,6 +769,15 @@
               "is_deleted": {
                 "type": "boolean"
               },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
               "record_type": {
                 "type": "string",
                 "const": "sleep_session"
@@ -1168,6 +1213,15 @@
               },
               "is_deleted": {
                 "type": "boolean"
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               },
               "record_type": {
                 "type": "string",
@@ -1684,6 +1738,15 @@
               "is_deleted": {
                 "type": "boolean"
               },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
               "record_type": {
                 "type": "string",
                 "const": "benchmark_result"
@@ -2082,6 +2145,15 @@
               "is_deleted": {
                 "type": "boolean"
               },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
               "record_type": {
                 "type": "string",
                 "const": "provider_summary"
@@ -2447,6 +2519,15 @@
               },
               "is_deleted": {
                 "type": "boolean"
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               },
               "record_type": {
                 "type": "string",
@@ -2819,6 +2900,15 @@
               "is_deleted": {
                 "type": "boolean"
               },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
               "record_type": {
                 "type": "string",
                 "const": "athlete_report"
@@ -2973,6 +3063,15 @@
               },
               "is_deleted": {
                 "type": "boolean"
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               },
               "record_type": {
                 "type": "string",
@@ -3156,6 +3255,15 @@
               "is_deleted": {
                 "type": "boolean"
               },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
               "record_type": {
                 "type": "string",
                 "const": "attachment"
@@ -3225,6 +3333,15 @@
               },
               "is_deleted": {
                 "type": "boolean"
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               },
               "record_type": {
                 "type": "string",
@@ -3441,6 +3558,15 @@
               },
               "is_deleted": {
                 "type": "boolean"
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               },
               "record_type": {
                 "type": "string",
@@ -3709,6 +3835,15 @@
               "is_deleted": {
                 "type": "boolean"
               },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
               "record_type": {
                 "type": "string",
                 "const": "prediction_result_link"
@@ -3882,6 +4017,15 @@
               },
               "is_deleted": {
                 "type": "boolean"
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               },
               "record_type": {
                 "type": "string",
@@ -4135,6 +4279,15 @@
               },
               "is_deleted": {
                 "type": "boolean"
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               },
               "record_type": {
                 "type": "string",
@@ -4401,6 +4554,15 @@
               "is_deleted": {
                 "type": "boolean"
               },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
               "record_type": {
                 "type": "string",
                 "const": "training_plan"
@@ -4600,6 +4762,15 @@
               },
               "is_deleted": {
                 "type": "boolean"
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               },
               "record_type": {
                 "type": "string",
@@ -4864,6 +5035,15 @@
               "is_deleted": {
                 "type": "boolean"
               },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
+              },
               "record_type": {
                 "type": "string",
                 "const": "coaching_note"
@@ -5063,6 +5243,15 @@
               },
               "is_deleted": {
                 "type": "boolean"
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               },
               "record_type": {
                 "type": "string",
@@ -5268,6 +5457,15 @@
               },
               "is_deleted": {
                 "type": "boolean"
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               },
               "record_type": {
                 "type": "string",
@@ -5486,6 +5684,15 @@
               },
               "is_deleted": {
                 "type": "boolean"
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               },
               "record_type": {
                 "type": "string",
@@ -5855,6 +6062,15 @@
                   }
                 },
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -6014,6 +6230,15 @@
                   "data_route"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -6184,6 +6409,15 @@
                   "source_id"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -6719,6 +6953,15 @@
                   "value"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -7237,6 +7480,15 @@
                   "source_reported_summaries"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -7834,6 +8086,15 @@
                   "source_reported_summaries"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -8314,6 +8575,15 @@
                   "score"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -8762,6 +9032,15 @@
                   "input_timestamp"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -9215,6 +9494,15 @@
                   "input_timestamp"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -9452,6 +9740,15 @@
                   "reported_via"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -9716,6 +10013,15 @@
                   "reported_items"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -9868,6 +10174,15 @@
                   "sha256"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -10166,6 +10481,15 @@
                   "definition"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -10515,6 +10839,15 @@
                   "reasoning"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -10771,6 +11104,15 @@
                   "status"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -11106,6 +11448,15 @@
                   "actual_score"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -11453,6 +11804,15 @@
                   "unexplained"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -11735,6 +12095,15 @@
                   "title"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -12080,6 +12449,15 @@
                   "completion_status"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -12362,6 +12740,15 @@
                   "note"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -12649,6 +13036,15 @@
                   "summary"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -12949,6 +13345,15 @@
                   "title"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -13275,6 +13680,15 @@
                   "interpreted_items"
                 ],
                 "additionalProperties": false
+              },
+              "extensions": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "$ref": "#/$defs/__schema0"
+                }
               }
             },
             "required": [
@@ -13561,5 +13975,40 @@
     "record_import_keys",
     "measurement_series_files"
   ],
-  "additionalProperties": false
+  "additionalProperties": false,
+  "$defs": {
+    "__schema0": {
+      "anyOf": [
+        {
+          "type": "string",
+          "maxLength": 4096
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "maxItems": 256,
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/__schema0"
+          }
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/__schema0"
+          }
+        }
+      ]
+    }
+  }
 }

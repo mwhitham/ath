@@ -44,3 +44,26 @@ D114 replaced the required 30-million-record release run with focused query-boun
 tests. The required measured runs now use 100,000 and 3 million records. Both pass
 all nine operations on the reference runner. Their measurements and review limits
 are recorded in `performance/limits.json`.
+
+## Pre-publish contribution foundation
+
+D115–D128 and section 19 of `spec.md` add work before release steps 11 and 12.
+The long-form sequence is in
+[`appendix/contribution-readiness.md`](appendix/contribution-readiness.md).
+
+| Step | Deliverable | Status |
+|---|---|---|
+| CR0 | Record the approved contribution-foundation decisions | ✅ D115–D128 recorded |
+| CR1 | Add the v1 extension envelope and its generated schemas and fixture | ✅ done — D129; implementation started before #15 merged with owner approval |
+| CR2 | Enforce the two-tier wall, revisions, deletion, erasure, JSON shape, and protected links with SQLite constraints and triggers | ✅ done — D116; direct-SQL tests in `tests/v1-direct-sql.test.ts` |
+| CR3 | Publish plain SQL migrations, stable read views, and the stable writable-table contract | pending |
+| CR4 | Add `ath migrate` preview, verified backup, explicit confirmation, and interactive prompt-on-open | pending |
+| CR5 | Add direct-SQL and language-neutral conformance vectors | pending |
+| CR6 | Publish machine-readable contract metadata, update `AGENTS.md`, and add the build-on-ATH Skill | pending |
+| CR7 | Add contribution governance, community manifests, isolated checks, catalog generation, and explicit named Skill installation | pending |
+| CR8 | Add internal workspace boundaries, `CORE_API_VERSION` 1.0.0, explicit public exports, and API deprecation checks | pending |
+| CR9 | Verify the packed v1 tarball contains every promised schema, SQL, conformance, community, and Skill file | pending |
+
+CR1 and CR2 change the unreleased v1 schema. They must finish before v1.0.0 is
+published to npm. Release steps 11 and 12 remain blocked until CR1–CR9 and the
+cross-platform part of step 10 pass.

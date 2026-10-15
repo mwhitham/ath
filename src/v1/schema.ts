@@ -6,6 +6,7 @@
  * belong here.
  */
 import { z } from "zod";
+import { RecordExtensions, validateExtensionsForRecordType } from "./extensions.js";
 
 export const ATHLETIC_STANDARD_VERSION = "1.0.0";
 
@@ -832,17 +833,30 @@ const currentRecordFields = {
   created_at: UtcTimestamp,
   current_revision: RecordRevisionNumber,
   is_deleted: z.boolean(),
+  extensions: RecordExtensions.optional(),
 } as const;
 
 function currentRecordVariant<const T extends RecordTypeT, S extends z.ZodType>(
   recordType: T,
   data: S,
 ) {
-  return z.strictObject({
-    ...currentRecordFields,
-    record_type: z.literal(recordType),
-    data,
-  });
+  return z
+    .strictObject({
+      ...currentRecordFields,
+      record_type: z.literal(recordType),
+      data,
+    })
+    .superRefine((value, context) => {
+      try {
+        validateExtensionsForRecordType(recordType, value.extensions);
+      } catch (error) {
+        context.addIssue({
+          code: "custom",
+          path: ["extensions"],
+          message: (error as Error).message,
+        });
+      }
+    });
 }
 
 export const AthleteProfileRecord = currentRecordVariant("athlete_profile", AthleteProfileData);
@@ -958,6 +972,7 @@ function recordRevisionVariant<const T extends RecordTypeT, S extends z.ZodType>
       ...recordRevisionFields,
       record_type: z.literal(recordType),
       data,
+      extensions: RecordExtensions.optional(),
     })
     .refine(
       (value) =>
@@ -968,7 +983,18 @@ function recordRevisionVariant<const T extends RecordTypeT, S extends z.ZodType>
         path: ["previous_revision"],
         message: "previous_revision must be null for revision 1 or the prior revision number",
       },
-    );
+    )
+    .superRefine((value, context) => {
+      try {
+        validateExtensionsForRecordType(recordType, value.extensions);
+      } catch (error) {
+        context.addIssue({
+          code: "custom",
+          path: ["extensions"],
+          message: (error as Error).message,
+        });
+      }
+    });
 }
 
 export const AthleteProfileRevision = recordRevisionVariant(

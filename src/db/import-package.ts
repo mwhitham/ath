@@ -35,6 +35,11 @@ import {
 } from "./client.js";
 import { readDatabaseMetadata } from "./migrate.js";
 import {
+  currentRecordPayloadFromRow,
+  recordRevisionPayloadFromRow,
+  serializeExtensionsJson,
+} from "./revision-encoding.js";
+import {
   incrementDatabaseRevision,
   upsertTypedRecord,
   validateTypedRelationships,
@@ -608,7 +613,8 @@ async function localRecordsById(
           records.current_revision,
           records.created_at,
           records.is_deleted,
-          record_revisions.record_json
+          record_revisions.record_json,
+          record_revisions.extensions_json
         FROM records
         JOIN record_revisions
           ON record_revisions.record_id = records.record_id
@@ -618,14 +624,7 @@ async function localRecordsById(
       args: chunk,
     });
     for (const row of result.rows) {
-      const record = CurrentRecord.parse({
-        record_id: row.record_id,
-        record_type: row.record_type,
-        current_revision: Number(row.current_revision),
-        created_at: row.created_at,
-        is_deleted: Number(row.is_deleted) === 1,
-        data: JSON.parse(String(row.record_json)) as unknown,
-      });
+      const record = CurrentRecord.parse(currentRecordPayloadFromRow(row));
       records.set(record.record_id, record);
     }
   }
@@ -650,7 +649,8 @@ async function localRevisionsById(
           became_known_at,
           became_known_at_basis,
           changed_by_json,
-          record_json
+          record_json,
+          extensions_json
         FROM record_revisions
         WHERE record_id IN (${chunk.map(() => "?").join(", ")})
         ORDER BY record_id, revision
@@ -658,17 +658,7 @@ async function localRevisionsById(
       args: chunk,
     });
     for (const row of result.rows) {
-      const revision = RecordRevision.parse({
-        record_id: row.record_id,
-        record_type: row.record_type,
-        revision: Number(row.revision),
-        previous_revision:
-          row.previous_revision === null ? null : Number(row.previous_revision),
-        became_known_at: row.became_known_at,
-        became_known_at_basis: row.became_known_at_basis,
-        changed_by: JSON.parse(String(row.changed_by_json)) as unknown,
-        data: JSON.parse(String(row.record_json)) as unknown,
-      });
+      const revision = RecordRevision.parse(recordRevisionPayloadFromRow(row));
       const group = revisions.get(revision.record_id) ?? [];
       group.push(revision);
       revisions.set(revision.record_id, group);
@@ -879,17 +869,19 @@ function revisionStatement(revision: RecordRevisionT): InStatement {
         revision,
         record_type,
         record_json,
+        extensions_json,
         became_known_at,
         became_known_at_basis,
         changed_by_json,
         previous_revision
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
     args: [
       revision.record_id,
       revision.revision,
       revision.record_type,
       JSON.stringify(revision.data),
+      revision.extensions === undefined ? null : JSON.stringify(revision.extensions),
       revision.became_known_at,
       revision.became_known_at_basis,
       JSON.stringify(revision.changed_by),
@@ -1066,17 +1058,19 @@ async function insertRevision(
         revision,
         record_type,
         record_json,
+        extensions_json,
         became_known_at,
         became_known_at_basis,
         changed_by_json,
         previous_revision
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `,
     args: [
       revision.record_id,
       revision.revision,
       revision.record_type,
       JSON.stringify(revision.data),
+      serializeExtensionsJson(revision.extensions),
       revision.became_known_at,
       revision.became_known_at_basis,
       JSON.stringify(revision.changed_by),
