@@ -22,10 +22,10 @@ Review the diff against **only** the sources below. Cite a path (and D-number wh
 | Decision logging layout | `build-history/README.md` |
 | v1 SQLite, migrations, SQL contract | `build-history/v1.0.0/spec.md` (especially §19.3–19.4) |
 | Recorded choices | `build-history/*/decisions.md` |
-| Field-level JSON reference | `SPEC.md` (normative Zod in `src/schema.ts`) |
+| Field-level JSON / v1 records | `SPEC.md` (normative Zod in `src/v1/schema.ts`; legacy 0.x in `src/schema.ts`) |
 | Public fixture allowlist | `scripts/check-public-data.ts` |
 
-If two sources disagree, say so in the review and do not pick a winner.
+When sources appear to disagree, apply recorded precedence first (`AGENTS.md`: for v1 storage and schema names, D82–D105 supersede the listed older decisions; explicit supersession notes in `build-history/*/decisions.md`, e.g. D116 supersedes any reading of D104 that forbids direct SQL writers). Report only disagreements that remain after that. Do not invent policy.
 
 ## High-severity checks
 
@@ -45,9 +45,13 @@ Never commit real health exports or identifying sample values. Public tests and 
 
 Versioned SQL views are the stable **read** contract. A small documented table set is the stable **write** contract. Other tables are internal and may change via ordered migration. Flag breaking stable view or writable-table columns without a recorded compatibility plan, or treating internal tables as public API.
 
-### Schema and generated artifacts (`AGENTS.md`, D80)
+### Schema and generated artifacts (`SPEC.md`, D80)
 
-`src/schema.ts` is normative. Changes require regenerated JSON Schema, fixture (`pnpm generate:json-schema`, `pnpm generate:fixture`), and when CLI/help changes, `pnpm generate:skill-cli` plus `skill/references/cli.md`. Flag drift between source and generated files.
+**v1 (current):** `src/v1/schema.ts` is normative (`SPEC.md`). After changes, run `pnpm generate:json-schema` and `pnpm generate:v1-fixture`, and commit regenerated JSON Schema and the SQLite fixture under `examples/demo-athlete/`.
+
+**Legacy 0.x:** `src/schema.ts` defines released 0.x JSON. After changes there, run `pnpm generate:json-schema` and `pnpm generate:fixture` for `examples/demo-athlete/athlete.ath.json`.
+
+When CLI or help changes (`src/program.ts`, `src/help.ts`), run `pnpm generate:skill-cli` and commit `skill/references/cli.md` (D80). Flag drift between sources and generated outputs.
 
 ### SQL safety (D93; v1 spec)
 
