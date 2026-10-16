@@ -1,4 +1,5 @@
 import { ENFORCEMENT_TRIGGERS_SQL } from "./enforcement-triggers.js";
+import { READ_VIEWS_SQL } from "./read-views.js";
 
 /**
  * Initial Athletic Standard v1 SQLite schema.
@@ -706,4 +707,5 @@ CREATE TABLE authored_record_evidence (
 ) STRICT;
 
 ${ENFORCEMENT_TRIGGERS_SQL}
+${READ_VIEWS_SQL}
 `;
