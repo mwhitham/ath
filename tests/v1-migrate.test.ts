@@ -1,6 +1,8 @@
-import { mkdtemp, readdir, rm } from "node:fs/promises";
+import { copyFile, lstat, mkdtemp, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { createClient } from "@libsql/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   buildMigrationPreview,
@@ -9,14 +11,18 @@ import {
   databaseNeedsMigration,
   defaultMigrationBackupPath,
   executeConfirmedDatabaseMigration,
+  inspectDatabase,
   migrateDatabase,
   MigrationRequiredError,
   openDatabase,
   readDatabaseMetadata,
+  sqlite3BackupDotCommand,
   writeRecord,
 } from "../src/db/index.js";
+import { databaseClient } from "../src/db/client.js";
 import * as clientModule from "../src/db/client.js";
 import type { AthleticDatabase } from "../src/db/index.js";
+const FIXTURE = join(dirname(fileURLToPath(import.meta.url)), "../examples/demo-athlete/athlete.ath.sqlite");
 
 const databaseId = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1f30";
 const createdAt = "2026-08-09T12:00:00.000Z";
@@ -103,6 +109,95 @@ describe("v1 database migration", () => {
     const after = await readDatabaseMetadata(database);
     expect(after.sql_schema_version).toBe(metadata.sql_schema_version);
     expect(after.database_id).toBe(databaseId);
+  });
+
+  it("quotes apostrophes in sqlite3 backup dot commands", () => {
+    expect(sqlite3BackupDotCommand("/tmp/athlete's-backup.sqlite")).toBe(
+      `.backup "/tmp/athlete's-backup.sqlite"\n`,
+    );
+    expect(sqlite3BackupDotCommand(`/tmp/a"b.sqlite`)).toBe(
+      `.backup "/tmp/a""b.sqlite"\n`,
+    );
+  });
+
+  it("backs up to a path that contains an apostrophe", async () => {
+    const path = await tempDatabasePath();
+    const database = await createDatabase(path, { databaseId, createdAt });
+    openDatabases.push(database);
+    const metadata = await readDatabaseMetadata(database);
+    const backupPath = join(dirname(path), "athlete's-migration-backup.sqlite");
+    await createVerifiedSqliteBackup(database, path, backupPath, metadata);
+    const stat = await lstat(backupPath);
+    expect(stat.isFile()).toBe(true);
+    if (process.platform !== "win32") {
+      expect(stat.mode & 0o777).toBe(0o600);
+    }
+  });
+
+  it("refuses to overwrite an existing migration backup path", async () => {
+    const path = await tempDatabasePath();
+    const database = await createDatabase(path, { databaseId, createdAt });
+    openDatabases.push(database);
+    const metadata = await readDatabaseMetadata(database);
+    const backupPath = defaultMigrationBackupPath(path);
+    await writeFile(backupPath, "stale", { mode: 0o600 });
+    await expect(
+      createVerifiedSqliteBackup(database, path, backupPath, metadata),
+    ).rejects.toThrow(/overwrite existing migration backup/);
+    expect(await lstat(backupPath).then((s) => s.size)).toBe("stale".length);
+  });
+
+  it("removes a partial backup file when verification fails", async () => {
+    const path = await tempDatabasePath();
+    const database = await createDatabase(path, { databaseId, createdAt });
+    openDatabases.push(database);
+    const metadata = await readDatabaseMetadata(database);
+    const backupPath = defaultMigrationBackupPath(path);
+
+    await expect(
+      createVerifiedSqliteBackup(database, path, backupPath, {
+        ...metadata,
+        database_id: "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1f99",
+      }),
+    ).rejects.toThrow(/database_id does not match/);
+    await expect(lstat(backupPath)).rejects.toMatchObject({ code: "ENOENT" });
+  });
+
+  it("refuses a migration backup path through a symbolic link", async () => {
+    if (process.platform === "win32") {
+      return;
+    }
+    const path = await tempDatabasePath();
+    const database = await createDatabase(path, { databaseId, createdAt });
+    openDatabases.push(database);
+    const metadata = await readDatabaseMetadata(database);
+    const directory = dirname(path);
+    const linkPath = join(directory, "backup-link.sqlite");
+    await symlink(join(directory, "target.sqlite"), linkPath);
+    await expect(
+      createVerifiedSqliteBackup(database, path, linkPath, metadata),
+    ).rejects.toThrow(/symbolic link/);
+  });
+
+  it("does not enable WAL during migration inspection", async () => {
+    const path = await tempDatabasePath();
+    await copyFile(FIXTURE, path);
+    const client = createClient({ url: pathToFileURL(path).href, intMode: "number" });
+    await client.execute("PRAGMA journal_mode = DELETE");
+    await client.close();
+
+    const inspector = await inspectDatabase(path);
+    try {
+      const mode = await databaseClient(inspector).execute("PRAGMA journal_mode");
+      expect(String(mode.rows[0]?.journal_mode).toLowerCase()).toBe("delete");
+    } finally {
+      inspector.close();
+    }
+
+    const afterClient = createClient({ url: pathToFileURL(path).href, intMode: "number" });
+    const after = await afterClient.execute("PRAGMA journal_mode");
+    expect(String(after.rows[0]?.journal_mode).toLowerCase()).toBe("delete");
+    await afterClient.close();
   });
 
   it("plans a future migration step when the supported schema is newer", async () => {

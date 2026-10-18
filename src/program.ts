@@ -67,6 +67,7 @@ import {
   eraseRecord,
   executeConfirmedDatabaseMigration,
   exportRecords,
+  inspectDatabase,
   MigrationRequiredError,
   gradePrediction,
   importProviderRecords,
@@ -110,7 +111,7 @@ import {
   type PackageImportResolution,
 } from "./db/index.js";
 import { createVerifiedSqliteBackup } from "./db/backup.js";
-import { setOwnerOnlyDatabasePermissions } from "./db/client.js";
+import { enableLocalWal, setOwnerOnlyDatabasePermissions } from "./db/client.js";
 
 /** The whole command tree. `cli.ts` parses it; the skill generator reads its help. */
 export function buildProgram(): Command {
@@ -365,26 +366,29 @@ export function buildProgram(): Command {
       },
     ) => {
       const path = findOrFail(opts.file ?? fileArg);
-      const database = await openDatabase(path, {
-        allowOutdatedSchema: true,
-        onSecurityWarning: (warning) => {
-          if (!opts.json) console.warn(`ath: warning: ${warning}`);
-        },
-      });
+      const warn = (warning: string) => {
+        if (!opts.json) console.warn(`ath: warning: ${warning}`);
+      };
+      const inspector = await inspectDatabase(path, { onSecurityWarning: warn });
+      let preview;
       try {
-        const metadata = await readDatabaseMetadata(database);
-        const preview = buildMigrationPreview(metadata, database.localPath);
-        const output = {
-          file: path,
-          migration_needed: preview.migration_needed,
-          source_sql_schema_version: preview.source_sql_schema_version,
-          target_sql_schema_version: preview.target_sql_schema_version,
-          database_id: preview.database_id,
-          planned_steps: preview.planned_steps,
-          planned_backup_path: preview.planned_backup_path,
-          compatibility_effect: preview.compatibility_effect,
-          write_confirmed: false,
-        };
+        const metadata = await readDatabaseMetadata(inspector);
+        preview = buildMigrationPreview(metadata, inspector.localPath);
+      } finally {
+        inspector.close();
+      }
+      const output = {
+        file: path,
+        migration_needed: preview.migration_needed,
+        source_sql_schema_version: preview.source_sql_schema_version,
+        target_sql_schema_version: preview.target_sql_schema_version,
+        database_id: preview.database_id,
+        planned_steps: preview.planned_steps,
+        planned_backup_path: preview.planned_backup_path,
+        compatibility_effect: preview.compatibility_effect,
+        write_confirmed: false,
+      };
+      try {
         if (opts.json) {
           console.log(JSON.stringify(output, null, 2));
           return;
@@ -426,15 +430,22 @@ export function buildProgram(): Command {
             "second confirmation did not exactly match the database ID; nothing was migrated",
           );
         }
-        const result = await executeConfirmedDatabaseMigration(database);
-        console.log(
-          `migrated SQL schema ${preview.source_sql_schema_version} to ${preview.target_sql_schema_version} ` +
-            `with verified backup at ${result.backup_path}`,
-        );
+        const database = await openDatabase(path, {
+          allowOutdatedSchema: true,
+          deferWal: true,
+          onSecurityWarning: warn,
+        });
+        try {
+          const result = await executeConfirmedDatabaseMigration(database);
+          console.log(
+            `migrated SQL schema ${preview.source_sql_schema_version} to ${preview.target_sql_schema_version} ` +
+              `with verified backup at ${result.backup_path}`,
+          );
+        } finally {
+          database.close();
+        }
       } catch (error) {
         return fail((error as Error).message);
-      } finally {
-        database.close();
       }
     });
 
@@ -2298,33 +2309,48 @@ async function interactiveMigrationOnOpen(
   path: string,
   preview: MigrationPreview,
 ): Promise<AthleticDatabase> {
+  console.log(JSON.stringify({ file: path, ...preview, write_confirmed: false }, null, 2));
+  if (!preview.migration_needed) {
+    return await openDatabase(path, {
+      onSecurityWarning: (warning) => {
+        console.warn(`ath: warning: ${warning}`);
+      },
+    });
+  }
+  if (preview.planned_steps.length === 0) {
+    return fail(preview.compatibility_effect);
+  }
+  const backupPath = preview.planned_backup_path;
+  if (backupPath === null) {
+    return fail("SQL schema migration requires a local database file");
+  }
+
+  const inspector = await inspectDatabase(path, {
+    onSecurityWarning: (warning) => {
+      console.warn(`ath: warning: ${warning}`);
+    },
+  });
+  let metadata;
+  try {
+    metadata = await readDatabaseMetadata(inspector);
+    await createVerifiedSqliteBackup(inspector, path, backupPath, metadata);
+  } finally {
+    inspector.close();
+  }
+  console.log(`verified migration backup: ${backupPath}`);
+  if (!(await confirmWrite({}, "Apply this SQL schema migration?"))) {
+    return fail("migration was not confirmed; run ath migrate or answer yes when prompted on open");
+  }
+
   const database = await openDatabase(path, {
     allowOutdatedSchema: true,
+    deferWal: true,
     onSecurityWarning: (warning) => {
       console.warn(`ath: warning: ${warning}`);
     },
   });
   try {
-    console.log(JSON.stringify({ file: path, ...preview, write_confirmed: false }, null, 2));
-    if (!preview.migration_needed) {
-      return database;
-    }
-    if (preview.planned_steps.length === 0) {
-      database.close();
-      return fail(preview.compatibility_effect);
-    }
-    const metadata = await readDatabaseMetadata(database);
-    const backupPath = preview.planned_backup_path;
-    if (backupPath === null || database.localPath === undefined) {
-      database.close();
-      return fail("SQL schema migration requires a local database file");
-    }
-    await createVerifiedSqliteBackup(database, database.localPath, backupPath, metadata);
-    console.log(`verified migration backup: ${backupPath}`);
-    if (!(await confirmWrite({}, "Apply this SQL schema migration?"))) {
-      database.close();
-      return fail("migration was not confirmed; run ath migrate or answer yes when prompted on open");
-    }
+    await enableLocalWal(database);
     await applyPendingDatabaseMigrations(database);
     await setOwnerOnlyDatabasePermissions(database);
     console.log(

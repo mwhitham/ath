@@ -7,6 +7,7 @@ export {
 export {
   createVerifiedSqliteBackup,
   defaultMigrationBackupPath,
+  sqlite3BackupDotCommand,
 } from "./backup.js";
 export {
   applyPendingDatabaseMigrations,
@@ -16,6 +17,7 @@ export {
   executeConfirmedDatabaseMigration,
   migrateDatabase,
   MigrationRequiredError,
+  inspectDatabase,
   openDatabase,
   readDatabaseMetadata,
   type ConfirmedMigrationResult,
