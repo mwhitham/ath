@@ -84,7 +84,7 @@ Every current record has these fields:
 | Field | Type | Meaning |
 |---|---|---|
 | `record_id` | lowercase UUIDv7 | Stable logical record ID |
-| `record_type` | one of 23 values | Selects the typed `data` object |
+| `record_type` | one of 24 values | Selects the typed `data` object |
 | `created_at` | UTC timestamp | Time the Athletic Standard record was created |
 | `current_revision` | positive integer | Latest retained revision |
 | `is_deleted` | boolean | Whether normal deletion hides the record from current views |
@@ -813,13 +813,15 @@ An export directory may contain:
 ```text
 athlete.ath.json
 series/
-  <source-id>-<quantity>.ath-series.json
+  <source-id>-<quantity>-000001.ath-series.json
 attachments/
   <stored attachment files>
 export-manifest.json
 ```
 
-The `series/` and `attachments/` directories are present only when needed.
+The `series/` and `attachments/` directories are present only when needed. One
+source and quantity can occupy several numbered files. Import finds them through
+`measurement_series_files`.
 
 ### 8.1 `athlete.ath.json`
 
@@ -853,7 +855,10 @@ A generated series file reference has:
 
 ### 8.2 Generated measurement-series files
 
-Each series file covers one current source and quantity. It has:
+Each series file holds samples for one current source and quantity. A large group
+is split across numbered files named
+`<source-id>-<quantity>-000001.ath-series.json` and so on. Readers find the files
+through `measurement_series_files`. Each file has:
 
 | Field | Type |
 |---|---|

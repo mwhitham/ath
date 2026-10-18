@@ -17,7 +17,7 @@ A current logical record is:
 ```json
 {
   "record_id": "<lowercase UUIDv7>",
-  "record_type": "<one of 23 types>",
+  "record_type": "<one of 24 types>",
   "created_at": "2026-10-13T04:00:00.000Z",
   "current_revision": 1,
   "is_deleted": false,
@@ -78,7 +78,7 @@ revisions, link time, content version, and status.
 The remaining records are `athlete_profile`, `source`, `source_device`, and
 `attachment`.
 
-## The 23 record types
+## The 24 record types
 
 | Type | Main `data` fields |
 |---|---|
@@ -188,7 +188,7 @@ text, source detail, revisions, or attachment hashes.
 
 ```text
 athlete.ath.json
-series/<source-id>-<quantity>.ath-series.json
+series/<source-id>-<quantity>-000001.ath-series.json
 attachments/<stored files>
 export-manifest.json
 ```
@@ -205,8 +205,10 @@ export-manifest.json
 - non-sample `record_import_keys`
 - `measurement_series_files` with paths, hashes, bounds, and counts
 
-Each generated series file contains one source and quantity, current sample records,
-their complete revisions, normal deletions, and import keys.
+Each generated series file contains samples for one source and quantity, plus
+those samples' complete revisions, normal deletions, and import keys. A large
+source-and-quantity group is split across numbered files. Readers find the files
+through `measurement_series_files`.
 
 The manifest names the source database and revision. It lists each other package
 file's hash and byte count, counts by record type, and the erasure-marker count.
