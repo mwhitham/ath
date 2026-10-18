@@ -5,11 +5,23 @@ export {
   type AthleticDatabase,
 } from "./client.js";
 export {
+  createVerifiedSqliteBackup,
+  defaultMigrationBackupPath,
+} from "./backup.js";
+export {
+  applyPendingDatabaseMigrations,
+  buildMigrationPreview,
   createDatabase,
+  databaseNeedsMigration,
+  executeConfirmedDatabaseMigration,
   migrateDatabase,
+  MigrationRequiredError,
   openDatabase,
   readDatabaseMetadata,
+  type ConfirmedMigrationResult,
   type DatabaseMetadata,
+  type MigrationPreview,
+  type MigrationStepPreview,
   type OpenDatabaseOptions,
 } from "./migrate.js";
 export {

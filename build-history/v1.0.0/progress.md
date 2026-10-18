@@ -57,7 +57,7 @@ The long-form sequence is in
 | CR1 | Add the v1 extension envelope and its generated schemas and fixture | ✅ done — D129; implementation started before #15 merged with owner approval |
 | CR2 | Enforce the two-tier wall, revisions, deletion, erasure, JSON shape, and protected links with SQLite constraints and triggers | ✅ done — D116; direct-SQL tests in `tests/v1-direct-sql.test.ts` |
 | CR3 | Publish plain SQL migrations, stable read views, and the stable writable-table contract | ✅ done |
-| CR4 | Add `ath migrate` preview, verified backup, explicit confirmation, and interactive prompt-on-open | pending |
+| CR4 | Add `ath migrate` preview, verified backup, explicit confirmation, and interactive prompt-on-open | ✅ done |
 | CR5 | Add direct-SQL and language-neutral conformance vectors | pending |
 | CR6 | Publish machine-readable contract metadata, update `AGENTS.md`, and add the build-on-ATH Skill | pending |
 | CR7 | Add contribution governance, community manifests, isolated checks, catalog generation, and explicit named Skill installation | pending |

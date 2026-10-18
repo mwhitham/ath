@@ -72,6 +72,19 @@ describe("ath init", () => {
   });
 });
 
+describe("ath migrate", () => {
+  it("previews that no migration is required for a current database", () => {
+    const dir = mkdtempSync(join(tmpdir(), "ath-migrate-"));
+    copyFileSync(FIXTURE, join(dir, "athlete.ath.sqlite"));
+    const res = ath(["migrate", "--json"], dir);
+    expect(res.code).toBe(0);
+    const json = JSON.parse(res.stdout);
+    expect(json.migration_needed).toBe(false);
+    expect(json.source_sql_schema_version).toBe(1);
+    expect(json.target_sql_schema_version).toBe(1);
+  });
+});
+
 describe("ath check", () => {
   it("passes the SQLite fixture", () => {
     const res = ath(["check", FIXTURE], process.cwd());

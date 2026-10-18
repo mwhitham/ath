@@ -14,6 +14,7 @@ is offered, it shows the write and writes nothing.
 - [ath init](#ath-init) — create a new athlete.ath.sqlite here, with the well-known benchmarks defined
 - [ath skill](#ath-skill) — where the agent skill is installed, and whether each copy is current
 - [ath skill install](#ath-skill-install) — copy the skill into .agents/skills and every harness folder here
+- [ath migrate](#ath-migrate) — preview and apply a SQL schema migration after a verified backup
 - [ath import](#ath-import) — preview and import a v1 package or Apple Health, WHOOP, or Oura export
 - [ath conflicts](#ath-conflicts) — review and resolve the temporary conflicts from a package import
 - [ath conflicts show](#ath-conflicts-show) — show complete local and imported values from the current conflict preview
@@ -56,6 +57,7 @@ Options:
 Set up:
   init [options]                              create a new athlete.ath.sqlite here, with the well-known benchmarks defined
   skill [options]                             where the agent skill is installed, and whether each copy is current
+  migrate [options] [file]                    preview and apply a SQL schema migration after a verified backup
   key [options]                               save or show a gateway key — never stored in the athlete file
   models [options]                            list live text models that can reason, or save your usual one
 
@@ -134,6 +136,29 @@ copy the skill into .agents/skills and every harness folder here
 Options:
   --json      structured output, for an agent rather than a person
   -h, --help  display help for command
+```
+
+## ath migrate
+
+```
+Usage: ath migrate [options] [file]
+
+preview and apply a SQL schema migration after a verified backup
+
+Arguments:
+  file                               the database to migrate (default: the one
+                                     in this folder)
+
+Options:
+  --file <path>                      migrate a database other than the one in
+                                     this folder
+  --confirm-migration <database-id>  repeat the database ID exactly for
+                                     non-interactive use
+  -y, --yes                          apply the preview after reviewing it
+  --dry-run                          show the preview and write nothing
+  --json                             structured preview; never confirms the
+                                     migration
+  -h, --help                         display help for command
 ```
 
 ## ath import
