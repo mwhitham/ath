@@ -90,6 +90,7 @@ Set up:
 | `ath --update` | Update `ath` and refresh a skill already present |
 | `ath key` | Manage an optional terminal model-gateway key outside athlete data |
 | `ath models` | List gateway models or save a terminal default |
+| `ath migrate` | Preview and apply a SQL schema migration after a verified backup |
 
 Import, export, and create:
 

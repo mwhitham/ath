@@ -22,6 +22,11 @@ import {
 } from "./client.js";
 import { INITIAL_SCHEMA_SQL } from "./migrations/001-initial.js";
 import { createUuidV7 } from "./uuid.js";
+import {
+  createVerifiedSqliteBackup,
+  defaultMigrationBackupPath,
+} from "./backup.js";
+import { MIGRATION_CHAIN } from "./sql-contract.js";
 
 export interface DatabaseMetadata {
   application_marker: typeof SQLITE_APPLICATION_MARKER;
@@ -274,8 +279,92 @@ export async function createDatabase(
   }
 }
 
+export interface MigrationStepPreview {
+  target_sql_schema_version: number;
+  migration_file: string;
+  description: string;
+}
+
+export interface MigrationPreview {
+  migration_needed: boolean;
+  source_sql_schema_version: number;
+  target_sql_schema_version: number;
+  database_id: string;
+  planned_steps: MigrationStepPreview[];
+  planned_backup_path: string | null;
+  compatibility_effect: string;
+}
+
+export class MigrationRequiredError extends Error {
+  readonly preview: MigrationPreview;
+
+  constructor(preview: MigrationPreview) {
+    super(
+      `Database SQL schema ${preview.source_sql_schema_version} must be upgraded to ${preview.target_sql_schema_version} before other commands can run. Run ath migrate.`,
+    );
+    this.name = "MigrationRequiredError";
+    this.preview = preview;
+  }
+}
+
+export function databaseNeedsMigration(metadata: DatabaseMetadata): boolean {
+  return metadata.sql_schema_version < SQL_SCHEMA_VERSION;
+}
+
+function plannedMigrationSteps(sourceVersion: number): MigrationStepPreview[] {
+  return MIGRATION_CHAIN.filter(
+    (step) => step.version > sourceVersion && step.version <= SQL_SCHEMA_VERSION,
+  ).map((step) => ({
+    target_sql_schema_version: step.version,
+    migration_file: step.file,
+    description: step.description,
+  }));
+}
+
+function migrationCompatibilityEffect(
+  metadata: DatabaseMetadata,
+  steps: MigrationStepPreview[],
+): string {
+  if (!databaseNeedsMigration(metadata)) {
+    return "No migration is required. Direct-read views and writable tables match this ath version.";
+  }
+  if (steps.length === 0) {
+    return (
+      `No ordered migration exists from SQL schema ${metadata.sql_schema_version} to ${SQL_SCHEMA_VERSION}. ` +
+      "Update ath to a version that supports this database, or restore from a portable JSON package."
+    );
+  }
+  return (
+    "The database will be upgraded in place after a verified SQLite backup. " +
+    "Older direct-SQL clients may need the sql_vN_* views documented for the new schema version."
+  );
+}
+
+export function buildMigrationPreview(
+  metadata: DatabaseMetadata,
+  localPath?: string,
+  now = new Date(),
+): MigrationPreview {
+  const steps = plannedMigrationSteps(metadata.sql_schema_version);
+  const migrationNeeded = databaseNeedsMigration(metadata);
+  return {
+    migration_needed: migrationNeeded,
+    source_sql_schema_version: metadata.sql_schema_version,
+    target_sql_schema_version: SQL_SCHEMA_VERSION,
+    database_id: metadata.database_id,
+    planned_steps: steps,
+    planned_backup_path:
+      migrationNeeded && steps.length > 0 && localPath !== undefined
+        ? defaultMigrationBackupPath(localPath, now)
+        : null,
+    compatibility_effect: migrationCompatibilityEffect(metadata, steps),
+  };
+}
+
 export interface OpenDatabaseOptions {
   onSecurityWarning?: (message: string) => void;
+  /** When false, refuse to open a database that still needs a SQL schema migration. */
+  allowOutdatedSchema?: boolean;
 }
 
 async function warnAboutReadablePaths(
@@ -345,6 +434,12 @@ export async function openDatabase(
         `SQLite user_version ${userVersion} does not match database metadata ${metadata.sql_schema_version}`,
       );
     }
+
+    if (databaseNeedsMigration(metadata) && options.allowOutdatedSchema !== true) {
+      const preview = buildMigrationPreview(metadata, parsedTarget.localPath);
+      throw new MigrationRequiredError(preview);
+    }
+
     await enableLocalWal(database);
     return database;
   } catch (error) {
@@ -353,12 +448,106 @@ export async function openDatabase(
   }
 }
 
-export async function migrateDatabase(database: AthleticDatabase): Promise<void> {
-  const metadata = await readDatabaseMetadata(database);
-  if (metadata.sql_schema_version === SQL_SCHEMA_VERSION) {
-    return;
+async function applyMigrationStep(
+  database: AthleticDatabase,
+  targetVersion: number,
+): Promise<void> {
+  if (targetVersion === 1) {
+    throw new Error(
+      "The initial SQL schema cannot be applied to an existing Athletic Standard database",
+    );
+  }
+  const step = MIGRATION_CHAIN.find((candidate) => candidate.version === targetVersion);
+  if (step === undefined) {
+    throw new Error(`No migration is registered for SQL schema version ${targetVersion}`);
   }
   throw new Error(
-    `No migration is available from SQL schema ${metadata.sql_schema_version} to ${SQL_SCHEMA_VERSION}`,
+    `Migration ${step.file} is not implemented in this ath build (target SQL schema ${targetVersion})`,
   );
+}
+
+export async function applyPendingDatabaseMigrations(
+  database: AthleticDatabase,
+): Promise<void> {
+  const metadata = await readDatabaseMetadata(database);
+  if (!databaseNeedsMigration(metadata)) {
+    return;
+  }
+
+  const steps = plannedMigrationSteps(metadata.sql_schema_version);
+  if (steps.length === 0) {
+    throw new Error(
+      `No migration is available from SQL schema ${metadata.sql_schema_version} to ${SQL_SCHEMA_VERSION}`,
+    );
+  }
+
+  for (const step of steps) {
+    await applyMigrationStep(database, step.target_sql_schema_version);
+    const current = await readDatabaseMetadata(database);
+    if (current.sql_schema_version !== step.target_sql_schema_version) {
+      throw new Error(
+        `Migration to SQL schema ${step.target_sql_schema_version} did not update database metadata`,
+      );
+    }
+    if (database.isLocal) {
+      const userVersion = await readUserVersion(database);
+      if (userVersion !== step.target_sql_schema_version) {
+        throw new Error(
+          `SQLite user_version ${userVersion ?? "null"} does not match SQL schema ${step.target_sql_schema_version} after migration`,
+        );
+      }
+    }
+  }
+
+  const finalMetadata = await readDatabaseMetadata(database);
+  if (finalMetadata.sql_schema_version !== SQL_SCHEMA_VERSION) {
+    throw new Error(
+      `Migration finished at SQL schema ${finalMetadata.sql_schema_version}, expected ${SQL_SCHEMA_VERSION}`,
+    );
+  }
+}
+
+export interface ConfirmedMigrationResult {
+  backup_path: string | null;
+  migrated: boolean;
+  preview: MigrationPreview;
+}
+
+export async function executeConfirmedDatabaseMigration(
+  database: AthleticDatabase,
+  options: { backupPath?: string; now?: Date } = {},
+): Promise<ConfirmedMigrationResult> {
+  const metadata = await readDatabaseMetadata(database);
+  const preview = buildMigrationPreview(metadata, database.localPath, options.now);
+  if (!preview.migration_needed) {
+    return { backup_path: null, migrated: false, preview };
+  }
+  if (preview.planned_steps.length === 0) {
+    throw new Error(preview.compatibility_effect);
+  }
+  if (database.localPath === undefined) {
+    throw new Error("SQL schema migration requires a local database file");
+  }
+
+  const backupPath = options.backupPath ?? preview.planned_backup_path;
+  if (backupPath === null) {
+    throw new Error("Migration backup path is missing");
+  }
+
+  await createVerifiedSqliteBackup(database, database.localPath, backupPath, metadata);
+  try {
+    await applyPendingDatabaseMigrations(database);
+  } catch (error) {
+    throw new Error(
+      `Migration failed after creating verified backup at ${backupPath}. The original database was not modified.`,
+      { cause: error },
+    );
+  }
+  await setOwnerOnlyDatabasePermissions(database);
+  return { backup_path: backupPath, migrated: true, preview };
+}
+
+/** Applies pending SQL schema migrations. Use only through confirmed migration flows. */
+export async function migrateDatabase(database: AthleticDatabase): Promise<void> {
+  await applyPendingDatabaseMigrations(database);
 }
