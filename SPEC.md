@@ -1023,8 +1023,11 @@ backup operation. A closed, checkpointed database may be copied.
 
 ## 13. Version behavior
 
-The format and package version are `1.0.0`. The portable document, generated series
+The record format version is `1.0.0`. The portable document, generated series
 files, export manifest, and live database metadata all carry that version.
+
+The npm package versions shipped CLI and TypeScript behavior separately. A package
+release may change without changing this format version.
 
 Normative package and record data objects are strict. Unknown fields are rejected.
 The v1 importer refuses Athletic Standard `0.x` documents without modifying them.

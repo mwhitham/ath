@@ -15,6 +15,7 @@ import {
   type WriteRecordInput,
 } from "./records.js";
 import { createUuidV7 } from "./uuid.js";
+import { ATH_PACKAGE_VERSION } from "../version.js";
 
 export interface LogPlan {
   inputs: WriteRecordInput[];
@@ -241,14 +242,14 @@ async function addAutomaticGrades(
         changed_by: {
           author_type: "tool",
           tool: "ath",
-          tool_version: "1.0.0",
+          tool_version: ATH_PACKAGE_VERSION,
         },
         data: {
           authorship: {
             author: {
               author_type: "tool",
               tool: "ath",
-              tool_version: "1.0.0",
+              tool_version: ATH_PACKAGE_VERSION,
               calculation_version: "prediction-grade-v1",
             },
             authored_at: createdAt,

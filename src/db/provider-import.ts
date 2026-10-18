@@ -30,11 +30,12 @@ import {
 } from "./records.js";
 import { withWriteTransaction } from "./transaction.js";
 import { createUuidV7 } from "./uuid.js";
+import { ATH_PACKAGE_VERSION } from "../version.js";
 
 const TOOL_ACTOR = RecordActor.parse({
   author_type: "tool",
   tool: "ath",
-  tool_version: "1.0.0",
+  tool_version: ATH_PACKAGE_VERSION,
 });
 
 interface ProviderRecordDraft {

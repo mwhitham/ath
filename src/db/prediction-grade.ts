@@ -10,6 +10,7 @@ import {
   type CorrectRecordInput,
   type WriteRecordInput,
 } from "./records.js";
+import { ATH_PACKAGE_VERSION } from "../version.js";
 
 export interface PredictionGradePlan {
   prediction: Extract<CurrentRecordT, { record_type: "prediction" }>;
@@ -194,7 +195,7 @@ export async function planPredictionGrade(
         author: {
           author_type: "tool",
           tool: "ath",
-          tool_version: "1.0.0",
+          tool_version: ATH_PACKAGE_VERSION,
           calculation_version: calculationVersion,
         },
         authored_at: createdAt,

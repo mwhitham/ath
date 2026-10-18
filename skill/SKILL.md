@@ -4,7 +4,7 @@ description: Reads and writes an athlete's Athletic Standard SQLite database (.a
 license: MIT
 compatibility: Requires the ath CLI (npm package athleticstandard) on PATH. Local database use needs no network. Optional terminal model calls need a configured gateway.
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Athletic Standard

@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { createClient } from "@libsql/client";
 import { describe, expect, it } from "vitest";
 import { pathToFileURL } from "node:url";
+import { ATH_PACKAGE_VERSION } from "../src/version.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../src/cli.ts");
@@ -21,6 +22,14 @@ function ath(args: string[], cwd: string): { stdout: string; code: number } {
     return { stdout: (err.stdout ?? "") + (err.stderr ?? ""), code: err.status };
   }
 }
+
+describe("ath --version", () => {
+  it("prints the npm package version, not the record format version", () => {
+    const res = ath(["--version"], process.cwd());
+    expect(res.code).toBe(0);
+    expect(res.stdout.trim()).toBe(ATH_PACKAGE_VERSION);
+  });
+});
 
 describe("ath init", () => {
   it("creates a valid SQLite database with a profile, manual source, and seeded benchmarks", () => {

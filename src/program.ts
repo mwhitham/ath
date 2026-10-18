@@ -22,6 +22,7 @@ import {
   SERIES_QUANTITY_UNITS as V1_SERIES_QUANTITY_UNITS,
   SeriesQuantitySchema,
 } from "./v1/schema.js";
+import { ATH_PACKAGE_VERSION } from "./version.js";
 import { findFile, DEFAULT_FILENAME, FILE_SUFFIX } from "./file.js";
 import { SEED_BENCHMARKS } from "./benchmarks.js";
 import { PredictRefusal } from "./predict-errors.js";
@@ -126,7 +127,7 @@ export function buildProgram(): Command {
       "Athletic Standard — an open, local-first format for training and recovery data " +
         "that keeps measured signals apart from self-reported ones.",
     )
-    .version(ATHLETIC_STANDARD_VERSION)
+    .version(ATH_PACKAGE_VERSION)
     .option(
       "--update",
       "install the latest ath with the tool that installed it, and replace the agent skill if one is already in this folder",
@@ -136,7 +137,7 @@ export function buildProgram(): Command {
       if (opts.update) {
         const code = await runUpdate({
           packagePaths: candidatePaths(process.argv[1] ?? ""),
-          currentVersion: ATHLETIC_STANDARD_VERSION,
+          currentVersion: ATH_PACKAGE_VERSION,
           cwd: process.cwd(),
         });
         if (code !== 0) process.exit(code);
@@ -207,7 +208,7 @@ export function buildProgram(): Command {
       const toolActor = {
         author_type: "tool" as const,
         tool: "ath",
-        tool_version: ATHLETIC_STANDARD_VERSION,
+        tool_version: ATH_PACKAGE_VERSION,
       };
       let database: AthleticDatabase | undefined;
       let seeded;
@@ -1488,7 +1489,7 @@ export function buildProgram(): Command {
             author: {
               author_type: "agent",
               agent: "ath-terminal",
-              agent_version: ATHLETIC_STANDARD_VERSION,
+              agent_version: ATH_PACKAGE_VERSION,
               model: response.model,
             },
             authored_at: authoredAt,
@@ -1520,7 +1521,7 @@ export function buildProgram(): Command {
           changed_by: {
             author_type: "agent",
             agent: "ath-terminal",
-            agent_version: ATHLETIC_STANDARD_VERSION,
+            agent_version: ATH_PACKAGE_VERSION,
           },
           data,
         });
@@ -1672,7 +1673,7 @@ export function buildProgram(): Command {
           actor: {
             author_type: "tool",
             tool: "ath",
-            tool_version: ATHLETIC_STANDARD_VERSION,
+            tool_version: ATH_PACKAGE_VERSION,
           },
         });
         const preview = {

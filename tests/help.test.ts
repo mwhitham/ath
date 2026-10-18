@@ -39,6 +39,7 @@ describe("ath --help — written for someone who has never run this (D50)", () =
     () => {
       for (const command of [
         "init",
+        "migrate",
         "check",
         "import",
         "conflicts",
