@@ -722,6 +722,9 @@ export function buildProgram(): Command {
             record_type: input.record_type,
             created_at: input.created_at,
             data: input.data,
+            ...(input.extensions === undefined
+              ? {}
+              : { extensions: input.extensions }),
           })),
           write_confirmed: false,
         };
@@ -2107,6 +2110,14 @@ function renderLogPlan(plan: LogPlan): string {
         .split("\n")
         .map((line) => `    ${line}`),
     );
+    if (input.extensions !== undefined) {
+      lines.push("    extensions");
+      lines.push(
+        ...JSON.stringify(input.extensions, null, 2)
+          .split("\n")
+          .map((line) => `    ${line}`),
+      );
+    }
   }
   return lines.join("\n");
 }

@@ -141,6 +141,124 @@ describe("v1 ath log", () => {
     expect(records(directory, "athlete_report")).toHaveLength(0);
   });
 
+  it("refuses unknown top-level fields on a structured log", () => {
+    const directory = newDatabase();
+    const result = ath(
+      [
+        "log",
+        JSON.stringify({
+          record_type: "athlete_report",
+          mood_emoji: "ok",
+          data: {
+            report_type: "note",
+            reported_at: "2026-10-13T04:00:00.000Z",
+            input_reported_at: {
+              timestamp_text: "2026-10-13T04:00:00.000Z",
+              utc_offset_text: "Z",
+              utc_offset_meaning: "documented_recording_offset",
+              timestamp_basis: "source_instant",
+            },
+            reported_via: "text",
+            note: "x",
+          },
+        }),
+        "--yes",
+      ],
+      directory,
+    );
+    expect(result.code).toBe(1);
+    expect(result.stdout).toContain("unknown field");
+    expect(result.stdout).toContain("mood_emoji");
+    expect(records(directory, "athlete_report")).toHaveLength(0);
+  });
+
+  it("preserves valid extensions on a structured log", () => {
+    const directory = newDatabase();
+    const extensions = {
+      "example.com/mood-app": { app_mood: "great" },
+    };
+    const result = ath(
+      [
+        "log",
+        JSON.stringify({
+          record_type: "athlete_report",
+          extensions,
+          data: {
+            report_type: "note",
+            reported_at: "2026-10-13T04:00:00.000Z",
+            input_reported_at: {
+              timestamp_text: "2026-10-13T04:00:00.000Z",
+              utc_offset_text: "Z",
+              utc_offset_meaning: "documented_recording_offset",
+              timestamp_basis: "source_instant",
+            },
+            reported_via: "text",
+            note: "x",
+          },
+        }),
+        "--yes",
+      ],
+      directory,
+    );
+    expect(result.code).toBe(0);
+    expect(records(directory, "athlete_report")).toMatchObject([
+      { extensions },
+    ]);
+  });
+
+  it("refuses invalid extensions on a structured log", () => {
+    const directory = newDatabase();
+    const note = {
+      report_type: "note",
+      reported_at: "2026-10-13T04:00:00.000Z",
+      input_reported_at: {
+        timestamp_text: "2026-10-13T04:00:00.000Z",
+        utc_offset_text: "Z",
+        utc_offset_meaning: "documented_recording_offset",
+        timestamp_basis: "source_instant",
+      },
+      reported_via: "text",
+      note: "x",
+    };
+    const invalidId = ath(
+      [
+        "log",
+        JSON.stringify({
+          record_type: "athlete_report",
+          extensions: {
+            "example.com/x": { app_mood: "great" },
+          },
+          data: note,
+        }),
+        "--yes",
+      ],
+      directory,
+    );
+    expect(invalidId.code).toBe(1);
+    expect(invalidId.stdout).toContain("namespaced extension");
+    expect(records(directory, "athlete_report")).toHaveLength(0);
+
+    const forbiddenKey = ath(
+      [
+        "log",
+        JSON.stringify({
+          record_type: "athlete_report",
+          extensions: {
+            "example.com/mood-app": {
+              source_id: "01890f3e-e7d3-7cc0-88c8-0000000000aa",
+            },
+          },
+          data: note,
+        }),
+        "--yes",
+      ],
+      directory,
+    );
+    expect(forbiddenKey.code).toBe(1);
+    expect(forbiddenKey.stdout).toContain("source_id");
+    expect(records(directory, "athlete_report")).toHaveLength(0);
+  });
+
   it.each(["prediction_result_link", "prediction_grade"])(
     "refuses caller-created %s records",
     (recordType) => {
