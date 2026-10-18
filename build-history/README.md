@@ -10,16 +10,10 @@ Folders are named for the format version they describe — the same version that
 
 D-numbers run continuously across version folders. D25 follows D24 even though it lives in a different folder, so a decision can be cited by number alone.
 
-Proposed plans that do not yet have approved D-numbers live in `build-history/plans/`
-until the owner accepts them. After acceptance, record the decisions in the
-version folder the work produces and link the long-form plan from those
-D-numbers (often in that version's `appendix/`).
-
 ## Structure
 
 ```
 build-history/
-  plans/         # proposed plans awaiting owner approval (not yet versioned)
   v0.1.0/
     spec.md        # the full build specification for the first version
     decisions.md   # the decision log: what was chosen, what was rejected, and why (D1–D24)
