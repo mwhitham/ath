@@ -17,7 +17,7 @@ Read these before making decisions — they are the project's memory and outrank
 5. **`build-history/*/appendix/`** — the long-form studies that informed decisions. Link each study from its D-number. Do not move the decision into the appendix, and do not trim the study down to the decision line.
 6. **`build-history/*/progress.md`** — what's done and what's next.
 7. **`docs/connections.md`** — per-provider data research (what WHOOP/Oura/Garmin/Apple Health each provide via which path).
-8. **`SPEC.md`** — the public field-level format reference. The Zod schemas in `src/schema.ts` are normative; the JSON Schema is generated from them.
+8. **`SPEC.md`** — the public field-level format reference. Normative Zod for v1 is in `src/v1/schema.ts` (`SPEC.md`); `src/schema.ts` is legacy 0.x. JSON Schema is generated from these sources.
 
 For v1 storage, IDs, revisions, import behavior, and final schema names, D82–D105 supersede the relevant
 parts of D4, D25, D36, D40, D43, D48, D62, D64, and D65. The old decisions still
@@ -27,7 +27,7 @@ describe released 0.x behavior.
 
 - **The two-tier wall:** measured records and athlete reports never mix. Measured records require a `source` reference; athlete reports structurally cannot claim one. Never weaken this.
 - **`build-history/` is append-only.** New plans get a new version folder, named for the format version it produces (`v0.2.0/`, `v1.0.0/`). D-numbers continue across folders — D25 follows D24. Within a version, append new decisions to `decisions.md`. Supporting research goes in `appendix/` and is linked from the D-number. Don't rewrite earlier D-numbers or earlier version folders.
-- **Schemas are the source of truth.** After changing `src/schema.ts`, run `pnpm generate:json-schema` and `pnpm generate:fixture` and commit the regenerated outputs. After changing a command or its help in `src/program.ts` or `src/help.ts`, run `pnpm generate:skill-cli` and commit `skill/references/cli.md` (D80).
+- **Schemas are the source of truth.** After changing `src/v1/schema.ts`, run `pnpm generate:json-schema` and `pnpm generate:v1-fixture` and commit the regenerated outputs. After changing legacy `src/schema.ts`, run `pnpm generate:json-schema` and `pnpm generate:fixture` and commit the regenerated outputs. After changing a command or its help in `src/program.ts` or `src/help.ts`, run `pnpm generate:skill-cli` and commit `skill/references/cli.md` (D80).
 - **Naming:** "Athletic Standard" in prose; `athleticstandard` for the npm package, file extension, and version field; `ath` is the CLI command; `AthleticStandard` in code identifiers.
 - **Keep the repo impersonal:** no personal objectives, audience/positioning framing, or individual names in committed content.
 - **Never commit real health data.** Real exports stay outside Git, including private repositories. Public tests use only the synthetic files listed in `scripts/check-public-data.ts`.
