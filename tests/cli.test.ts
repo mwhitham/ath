@@ -72,6 +72,36 @@ describe("ath init", () => {
   });
 });
 
+describe("ath migrate", () => {
+  it("previews that no migration is required for a current database", () => {
+    const dir = mkdtempSync(join(tmpdir(), "ath-migrate-"));
+    copyFileSync(FIXTURE, join(dir, "athlete.ath.sqlite"));
+    const res = ath(["migrate", "--json"], dir);
+    expect(res.code).toBe(0);
+    const json = JSON.parse(res.stdout);
+    expect(json.migration_needed).toBe(false);
+    expect(json.source_sql_schema_version).toBe(1);
+    expect(json.target_sql_schema_version).toBe(1);
+  });
+
+  it("does not switch journal mode during a dry-run preview", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "ath-migrate-journal-"));
+    const databasePath = join(dir, "athlete.ath.sqlite");
+    copyFileSync(FIXTURE, databasePath);
+    const reset = createClient({ url: pathToFileURL(databasePath).href });
+    await reset.execute("PRAGMA journal_mode = DELETE");
+    reset.close();
+
+    const res = ath(["migrate", "--dry-run"], dir);
+    expect(res.code).toBe(0);
+
+    const after = createClient({ url: pathToFileURL(databasePath).href });
+    const mode = await after.execute("PRAGMA journal_mode");
+    expect(String(mode.rows[0]?.journal_mode).toLowerCase()).toBe("delete");
+    after.close();
+  });
+});
+
 describe("ath check", () => {
   it("passes the SQLite fixture", () => {
     const res = ath(["check", FIXTURE], process.cwd());

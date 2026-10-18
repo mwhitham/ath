@@ -174,6 +174,22 @@ These commands change only a temporary conflict file. They do not change athlete
 data. After every conflict has a choice, rerun the exact package import with
 --yes. A changed package or database makes every saved choice stale.`,
 
+  migrate: `
+Examples:
+
+  Preview the SQL schema migration plan:
+    $ ath migrate
+
+  Apply after reviewing the preview:
+    $ ath migrate -y --confirm-migration <database-id>
+
+  Return the preview as JSON for an agent:
+    $ ath migrate --json
+
+Migration never runs silently. A verified SQLite backup is created before the
+first schema write. Non-interactive commands refuse an outdated database and
+point here.`,
+
   export: `
 Examples:
 
