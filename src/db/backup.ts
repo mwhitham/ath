@@ -1,8 +1,14 @@
-import { chmod, unlink } from "node:fs/promises";
+import { chmod, lstat, open as openFile, unlink } from "node:fs/promises";
+import { dirname } from "node:path";
 import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
-import { connectDatabase, databaseClient, type AthleticDatabase } from "./client.js";
+import {
+  connectDatabase,
+  databaseClient,
+  refuseSymbolicLinkComponents,
+  type AthleticDatabase,
+} from "./client.js";
 import type { DatabaseMetadata } from "./migrate.js";
 
 export function formatMigrationBackupTimestamp(date: Date): string {
@@ -19,6 +25,50 @@ function requireSqlite3Cli(): void {
     throw new Error(
       "SQLite backup requires the sqlite3 command-line tool. Install SQLite 3.45 or newer.",
     );
+  }
+}
+
+/** Dot-command argument for sqlite3 `.backup`, using double quotes so paths may contain apostrophes. */
+export function sqlite3BackupDotCommand(backupPath: string): string {
+  const escaped = backupPath.replace(/"/g, "\"\"");
+  return `.backup "${escaped}"\n`;
+}
+
+async function prepareExclusiveBackupFile(backupPath: string): Promise<void> {
+  await refuseSymbolicLinkComponents(backupPath, { allowMissingTail: true });
+  await refuseSymbolicLinkComponents(dirname(backupPath));
+  try {
+    const stat = await lstat(backupPath);
+    if (stat.isSymbolicLink()) {
+      throw new Error(`Refusing to write a migration backup through a symbolic link: ${backupPath}`);
+    }
+    throw new Error(`Refusing to overwrite existing migration backup: ${backupPath}`);
+  } catch (error) {
+    if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) {
+      throw error;
+    }
+  }
+
+  let file;
+  try {
+    file = await openFile(backupPath, "wx", 0o600);
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "EEXIST") {
+      throw new Error(`Refusing to overwrite existing migration backup: ${backupPath}`);
+    }
+    throw error;
+  } finally {
+    await file?.close();
+  }
+}
+
+async function removeBackupFileIfPresent(backupPath: string): Promise<void> {
+  try {
+    await unlink(backupPath);
+  } catch (error) {
+    if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) {
+      throw error;
+    }
   }
 }
 
@@ -116,23 +166,24 @@ export async function createVerifiedSqliteBackup(
     throw new Error("SQL schema migration backup requires a local database file");
   }
   requireSqlite3Cli();
-  const escapedPath = backupPath.replace(/'/g, "''");
-  const backup = spawnSync("sqlite3", [sourcePath, `.backup '${escapedPath}'`], {
-    encoding: "utf8",
-  });
-  if (backup.status !== 0) {
-    throw new Error(`SQLite backup failed: ${backup.stderr || backup.stdout}`);
-  }
+  await prepareExclusiveBackupFile(backupPath);
+  let backupCreated = true;
   try {
+    const backup = spawnSync("sqlite3", [sourcePath], {
+      input: sqlite3BackupDotCommand(backupPath),
+      encoding: "utf8",
+    });
+    if (backup.status !== 0) {
+      throw new Error(`SQLite backup failed: ${backup.stderr || backup.stdout}`);
+    }
     if (process.platform !== "win32") {
       await chmod(backupPath, 0o600);
     }
     await verifySqliteBackup(sourceDatabase, backupPath, sourceMetadata);
+    backupCreated = false;
   } catch (error) {
-    try {
-      await unlink(backupPath);
-    } catch {
-      // ignore cleanup errors
+    if (backupCreated) {
+      await removeBackupFileIfPresent(backupPath);
     }
     throw error;
   }

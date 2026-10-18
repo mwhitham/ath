@@ -365,6 +365,8 @@ export interface OpenDatabaseOptions {
   onSecurityWarning?: (message: string) => void;
   /** When false, refuse to open a database that still needs a SQL schema migration. */
   allowOutdatedSchema?: boolean;
+  /** Do not switch the local database to WAL. Use for migration preview and pre-backup opens. */
+  deferWal?: boolean;
 }
 
 async function warnAboutReadablePaths(
@@ -385,6 +387,56 @@ async function warnAboutReadablePaths(
         throw error;
       }
     }
+  }
+}
+
+/**
+ * Read-only inspection open for migration preview. Never enables WAL or upgrades journal mode.
+ */
+export async function inspectDatabase(
+  target: string,
+  options: Pick<OpenDatabaseOptions, "onSecurityWarning"> = {},
+): Promise<AthleticDatabase> {
+  const parsedTarget = parseDatabaseTarget(target);
+  if (parsedTarget.localPath !== undefined) {
+    await refuseSymbolicLinkComponents(parsedTarget.localPath);
+    await assertParentNotWritableByOtherUsers(parsedTarget.localPath);
+    await warnAboutReadablePaths(
+      parsedTarget.localPath,
+      options.onSecurityWarning ?? console.warn,
+    );
+  }
+
+  const database = await connectDatabase(target);
+  try {
+    const applicationId = await readApplicationId(database);
+    if (
+      applicationId !== null &&
+      applicationId !== 0 &&
+      applicationId !== SQLITE_APPLICATION_ID
+    ) {
+      throw new Error(
+        `SQLite application ID ${applicationId} does not belong to Athletic Standard`,
+      );
+    }
+
+    const metadata = await readDatabaseMetadata(database);
+    if (metadata.sql_schema_version > SQL_SCHEMA_VERSION) {
+      throw new Error(
+        `Database SQL schema ${metadata.sql_schema_version} is newer than supported schema ${SQL_SCHEMA_VERSION}`,
+      );
+    }
+
+    const userVersion = await readUserVersion(database);
+    if (userVersion !== null && userVersion !== metadata.sql_schema_version) {
+      throw new Error(
+        `SQLite user_version ${userVersion} does not match database metadata ${metadata.sql_schema_version}`,
+      );
+    }
+    return database;
+  } catch (error) {
+    database.close();
+    throw error;
   }
 }
 
@@ -440,7 +492,9 @@ export async function openDatabase(
       throw new MigrationRequiredError(preview);
     }
 
-    await enableLocalWal(database);
+    if (options.deferWal !== true) {
+      await enableLocalWal(database);
+    }
     return database;
   } catch (error) {
     database.close();
@@ -536,6 +590,7 @@ export async function executeConfirmedDatabaseMigration(
 
   await createVerifiedSqliteBackup(database, database.localPath, backupPath, metadata);
   try {
+    await enableLocalWal(database);
     await applyPendingDatabaseMigrations(database);
   } catch (error) {
     throw new Error(
