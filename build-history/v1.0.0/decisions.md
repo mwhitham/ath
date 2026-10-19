@@ -1293,61 +1293,97 @@ The executable definition of athlete records, validation, storage operations,
 provider normalization, calculations, and portable packages lives in a Rust
 workspace crate (`ath-core`). The npm package `athleticstandard` and the `ath`
 command remain the Node distribution via thin napi-rs bindings (`ath-node`).
-Swift and other mobile hosts use UniFFI (`ath-uniffi`) without a separate local
-service.
+Swift hosts use UniFFI (`ath-uniffi`) for a maintained library and verification
+app; D121 no longer defers that Swift surface.
 
-This supersedes D121 only where D121 deferred a Rust core. D121 still rejects
-building every client surface before need; this decision names Rust as the core
-because one builder needs a single cross-language engine now. D7 remains: CLI plus
-Skill, not MCP or a conversational server.
+**Supersedes (for the Rust build only):**
 
-Rejected alternatives:
+- **D121** — the parts that reject a maintained Swift library or example and that
+  allow a future Rust core only behind unchanged existing APIs. Rust becomes the
+  implementation; bindings are thin and may change where D131 allows.
+- **D8** — TypeScript with Zod as the single source of truth for the record model.
+- **D115** — splitting into published `@ath/*` workspace packages before need. The
+  Rust plan defers that split; one build focuses on `ath-core` and bindings first.
 
-- **Maintain a long-term TypeScript engine beside Rust.** Rejected because two
-  implementations diverge on triggers, migrations, and conformance vectors.
-- **Engine-selection flag or automatic TypeScript fallback at cutover.** Rejected
-  because it preserves duplicate rules indefinitely.
-- **Local HTTP service for mobile.** Rejected for the same reasons as D7 and D121.
-
-This follows the [Rust adoption plan](../../plans/rust-adoption.md).
-
-## D131. Generated contracts and conformance vectors outrank binding APIs (proposed)
-
-The public contracts are `spec/sql/`, generated JSON Schema, and
-`spec/conformance/` behavior fixtures. Rust types and validators in `ath-core`
-are the source for generated JSON Schema and TypeScript data types. Binding APIs
-may change between releases when the format version does not. Breaking record or
-SQL schema versions follow existing format versioning rules.
-
-`CORE_API_VERSION` (D128) still governs community extension manifests. It is
-independent of binding refactors that do not change importer or calculation
-interfaces.
+D121 still rejects a local HTTP service. D7 still rejects MCP. D121 already allowed
+a Rust core inside npm; this decision requires that core and ends the “optional later”
+reading.
 
 Rejected alternatives:
 
-- **Keep Zod in `src/v1/schema.ts` as the long-term normative validator.** Rejected
-  because host-language validators duplicate Rust and drift from embeddings.
-- **Treat napi or UniFFI shapes as the spec.** Rejected because bindings are not
-  portable across languages.
+- **A long-term TypeScript engine beside Rust.** Rejected because two rule sets diverge.
+- **Any engine switch or TypeScript fallback at cutover.** Rejected.
+- **A local HTTP service for mobile.** Rejected for the same reasons as D121.
 
-This follows the [Rust adoption plan](../../plans/rust-adoption.md).
+This follows the [Rust adoption plan](appendix/rust-adoption.md).
 
-## D132. Supported writes go through the core; direct SQL is not a full protocol (proposed)
+## D131. Rust owns the record model; generated contracts and conformance outrank bindings (proposed)
 
-Builders may still open the SQLite file with ordinary tools and respect required
-pragmas (D116). Triggers and constraints continue to enforce the two-tier wall and
-other critical rules. Official Athletic Standard products and documented integration
-paths perform record lifecycle work through typed domain operations in `ath-core`,
-not by recreating the complete revision protocol through ad hoc direct SQL alone.
+Rust types and validators in `ath-core` become the source for generated JSON Schema
+and TypeScript data types. The public contracts are `spec/sql/`, generated JSON
+Schema, and language-neutral behavior fixtures under `spec/conformance/` (CR5).
 
-Stable read views and any narrow documented writable tables (D125) remain for simple
-direct access. They do not replace core operations for corrections, history,
-conflicts, package import, attachments, or erasure.
+**Supersedes:**
+
+- **D8** — Zod as the single source of truth for schema and implementation alignment.
+- **D83** — Zod as the public definition of athlete-owned records (logical record
+  definition moves to Rust; SQLite and JSON still encode the same records).
+- **D126** — for normative Zod exports and hand-maintained `./schema` types: those
+  stable TypeScript surfaces may be removed only in npm major version **2.0.0**, not
+  in a minor release. Until 2.0.0, D126 still applies to what the package exports.
+  [Pull request #25](https://github.com/mwhitham/ath/pull/25) ships **1.1.0** on the
+  Zod-based model.
+- **D116** — the sentence that Zod remains the logical record definition.
+
+**Does not change:**
+
+- **athleticstandard_version** (record format) stays **1.0.0** unless a separate
+  format decision adds a new version.
+- **sql_schema_version** stays **1** unless a new SQL migration is recorded.
+- **D128** — `CORE_API_VERSION` for community extension manifests. CR8 has not
+  implemented it yet; this decision does not narrow D128’s scope.
+
+The [contribution readiness plan](appendix/contribution-readiness.md) keeps four
+independent version numbers (`athleticstandard_version`, `sql_schema_version`,
+`CORE_API_VERSION`, npm). Binding and generated-type refactors that do not change
+the record format or SQL schema still require npm **2.0.0** to drop the old Zod-based
+exports. Compatibility facades that keep two validators are rejected.
 
 Rejected alternatives:
 
-- **Require every writer to use Node.** Rejected; D116 stands for direct SQLite access.
-- **Promise full lifecycle parity through direct SQL recipes.** Rejected because it
-  duplicates the core and breaks when internal encodings change.
+- **Keep Zod normative after cutover.** Rejected.
+- **Treat napi or UniFFI shapes as the spec.** Rejected.
+- **Remove stable TypeScript exports in a minor npm release.** Rejected by D126.
 
-This follows the [Rust adoption plan](../../plans/rust-adoption.md).
+This follows the [Rust adoption plan](appendix/rust-adoption.md).
+
+## D132. Supported writes go through the core; narrow direct SQL (proposed)
+
+Builders may still open the SQLite file with ordinary tools, enable required pragmas,
+and rely on triggers and constraints (portions of **D116** remain). Official Athletic
+Standard products and the documented integration path perform record lifecycle work
+through typed operations in `ath-core`, not by following the full direct-write recipes
+that **D125** published for writable tables and transaction steps in `spec/sql/README.md`.
+
+**Supersedes:**
+
+- **D125** — treating the documented writable-table set and direct-SQL write steps as
+  a supported way to recreate the full revision protocol, history, conflicts, package
+  import, attachments, and erasure.
+- **D116** — Zod as the logical record definition (see D131) and any reading that
+  official products must implement lifecycle only through ad hoc direct SQL.
+- **D93** — implementing domain storage by issuing raw parameterized SQL from the
+  Node package as the long-term official writer. Node becomes a thin binding; SQL
+  execution for official writes moves into `ath-core` (rusqlite). Third-party direct
+  SQLite access for simple cases is unchanged where triggers enforce rules.
+
+Stable read views remain for direct reads. Simple direct writes that triggers allow
+may remain documented; they do not replace core operations for full lifecycle work.
+
+Rejected alternatives:
+
+- **Require every writer to use Node.** Rejected; direct SQLite access remains for
+  inspection and narrow cases.
+- **Promise full lifecycle parity through direct SQL alone.** Rejected.
+
+This follows the [Rust adoption plan](appendix/rust-adoption.md).

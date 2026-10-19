@@ -68,17 +68,16 @@ CR1 and CR2 change the unreleased v1 schema. They must finish before v1.0.0 is
 published to npm. Release steps 11 and 12 remain blocked until CR1–CR9 and the
 cross-platform part of step 10 pass.
 
-## Rust adoption prerequisites (proposed)
+## Rust adoption (proposed)
 
-Tracked in [`plans/rust-adoption.md`](../plans/rust-adoption.md). Draft decisions
-D130–D132. Does not block v1 npm publish by itself; foundation proof blocks broad
-Rust port.
+Tracked in [`appendix/rust-adoption.md`](appendix/rust-adoption.md). Draft decisions
+D130–D132. `athleticstandard@1.0.0` is already on npm; this work targets a later npm
+major (**2.0.0**) for dropping Zod-based exports while the record format can stay
+1.0.0. Land [#25](https://github.com/mwhitham/ath/pull/25) (npm 1.1.0) before the
+Rust build PR.
 
 | Step | Deliverable | Status |
 |---|---|---|
-| R0 | Revised plan, inventory, coverage table, decisions, `AGENTS.md` | in review — PR #20 |
-| R1 | Runtime loads canonical `spec/sql/migrations/*.sql` | pending — follow-up PR on `main` |
-| R2 | `spec/conformance/` language-neutral fixtures | pending — follow-up PR on `main` |
-| R3 | Rust workspace (`ath-core`, `ath-node`, `ath-uniffi`) and CI `cargo check` | pending — follow-up PR on `main` |
-| R4 | Remove unused `importExport`; document temporary dual paths | pending — follow-up PR on `main` |
-| R5 | iPhone simulator CLI ↔ app round trip | **BLOCKED** — requires Xcode and iOS Simulator on macOS |
+| R0 | Plan, inventory, coverage, decisions, `AGENTS.md` | in review — PR #20 |
+| R1 | Approved plan → one build PR on `main` (SQL packaging, conformance, Rust workspace, dead-code milestones) | pending approval |
+| R2 | iPhone simulator CLI ↔ app round trip | **BLOCKED** — requires Xcode and iOS Simulator on macOS |
