@@ -64,9 +64,8 @@ The long-form sequence is in
 | CR8 | Add internal workspace boundaries, `CORE_API_VERSION` 1.0.0, explicit public exports, and API deprecation checks | pending |
 | CR9 | Verify the packed v1 tarball contains every promised schema, SQL, conformance, community, and Skill file | pending |
 
-CR1 and CR2 change the unreleased v1 schema. They must finish before v1.0.0 is
-published to npm. Release steps 11 and 12 remain blocked until CR1–CR9 and the
-cross-platform part of step 10 pass.
+CR1 and CR2 landed before athleticstandard@1.0.0 shipped. Remaining CR3–CR9 work and
+the cross-platform part of step 10 still block updated release steps 11 and 12.
 
 ## Rust adoption (proposed)
 

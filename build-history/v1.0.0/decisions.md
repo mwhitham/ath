@@ -1294,7 +1294,8 @@ provider normalization, calculations, and portable packages lives in a Rust
 workspace crate (`ath-core`). The npm package `athleticstandard` and the `ath`
 command remain the Node distribution via thin napi-rs bindings (`ath-node`).
 Swift hosts use UniFFI (`ath-uniffi`) for a maintained library and verification
-app; D121 no longer defers that Swift surface.
+app. D121 rejected a maintained Swift library or example; this decision adds that
+surface for the Rust foundation proof.
 
 **Supersedes (for the Rust build only):**
 
@@ -1302,8 +1303,13 @@ app; D121 no longer defers that Swift surface.
   allow a future Rust core only behind unchanged existing APIs. Rust becomes the
   implementation; bindings are thin and may change where D131 allows.
 - **D8** — TypeScript with Zod as the single source of truth for the record model.
-- **D115** — splitting into published `@ath/*` workspace packages before need. The
-  Rust plan defers that split; one build focuses on `ath-core` and bindings first.
+
+**Defers (does not cancel):**
+
+- **D115** — the first step in D115: splitting pure logic, storage, and importers
+  into private workspace packages behind `athleticstandard`. The Rust build lands
+  `ath-core` and bindings first; the internal split waits until after that work.
+  Publishing scoped `@ath/*` packages remains “only after concrete need,” as D115 says.
 
 D121 still rejects a local HTTP service. D7 still rejects MCP. D121 already allowed
 a Rust core inside npm; this decision requires that core and ends the “optional later”
@@ -1328,12 +1334,15 @@ Schema, and language-neutral behavior fixtures under `spec/conformance/` (CR5).
 - **D8** — Zod as the single source of truth for schema and implementation alignment.
 - **D83** — Zod as the public definition of athlete-owned records (logical record
   definition moves to Rust; SQLite and JSON still encode the same records).
-- **D126** — for normative Zod exports and hand-maintained `./schema` types: those
-  stable TypeScript surfaces may be removed only in npm major version **2.0.0**, not
-  in a minor release. Until 2.0.0, D126 still applies to what the package exports.
-  [Pull request #25](https://github.com/mwhitham/ath/pull/25) ships **1.1.0** on the
-  Zod-based model.
 - **D116** — the sentence that Zod remains the logical record definition.
+
+**Follows D126:**
+
+Normative Zod exports and hand-maintained `./schema` types stay until npm major
+**2.0.0**. [Pull request #25](https://github.com/mwhitham/ath/pull/25) ships **1.1.0**
+still on Zod. After 1.1.0, a later **1.x** release must deprecate those exports with a
+runtime warning and a documented replacement (generated types from Rust). **2.0.0**
+removes them. No compatibility facade that keeps two validators.
 
 **Does not change:**
 
@@ -1346,36 +1355,36 @@ Schema, and language-neutral behavior fixtures under `spec/conformance/` (CR5).
 The [contribution readiness plan](appendix/contribution-readiness.md) keeps four
 independent version numbers (`athleticstandard_version`, `sql_schema_version`,
 `CORE_API_VERSION`, npm). Binding and generated-type refactors that do not change
-the record format or SQL schema still require npm **2.0.0** to drop the old Zod-based
-exports. Compatibility facades that keep two validators are rejected.
+the record format or SQL schema still use the D126 deprecation path above.
 
 Rejected alternatives:
 
 - **Keep Zod normative after cutover.** Rejected.
 - **Treat napi or UniFFI shapes as the spec.** Rejected.
-- **Remove stable TypeScript exports in a minor npm release.** Rejected by D126.
+- **Remove stable TypeScript exports in a minor npm release without prior deprecation.**
+  Rejected by D126.
 
 This follows the [Rust adoption plan](appendix/rust-adoption.md).
 
 ## D132. Supported writes go through the core; narrow direct SQL (proposed)
 
-Builders may still open the SQLite file with ordinary tools, enable required pragmas,
-and rely on triggers and constraints (portions of **D116** remain). Official Athletic
-Standard products and the documented integration path perform record lifecycle work
-through typed operations in `ath-core`, not by following the full direct-write recipes
-that **D125** published for writable tables and transaction steps in `spec/sql/README.md`.
+**D116** still allows third parties to write SQLite directly with required pragmas;
+triggers and constraints still enforce critical rules when application code is bypassed.
+Official Athletic Standard products and the documented integration path perform record
+lifecycle work through typed operations in `ath-core`, not by following the full
+direct-write recipes that **D125** published for writable tables and transaction steps
+in `spec/sql/README.md`.
 
 **Supersedes:**
 
 - **D125** — treating the documented writable-table set and direct-SQL write steps as
   a supported way to recreate the full revision protocol, history, conflicts, package
   import, attachments, and erasure.
-- **D116** — Zod as the logical record definition (see D131) and any reading that
-  official products must implement lifecycle only through ad hoc direct SQL.
-- **D93** — implementing domain storage by issuing raw parameterized SQL from the
-  Node package as the long-term official writer. Node becomes a thin binding; SQL
-  execution for official writes moves into `ath-core` (rusqlite). Third-party direct
-  SQLite access for simple cases is unchanged where triggers enforce rules.
+- **D93** — using `@libsql/client` raw parameterized SQL from the Node package as the
+  long-term official storage implementation, including D93’s plan that local SQLite and
+  a future hosted libSQL adapter share the same domain operations. Official writes move
+  into `ath-core` with rusqlite; Node becomes a thin binding. The hosted libSQL adapter
+  path in D93 is not pursued for official products under this plan.
 
 Stable read views remain for direct reads. Simple direct writes that triggers allow
 may remain documented; they do not replace core operations for full lifecycle work.

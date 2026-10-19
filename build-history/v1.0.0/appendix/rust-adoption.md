@@ -102,10 +102,12 @@ Rust and in docs. Host languages do not keep a second handwritten validator.
 Test timestamps, units, optional vs null, extensions, and serialization across Rust,
 Node, Swift, and portable packages.
 
-**npm 2.0.0** is when the package drops Zod-based normative exports (D131). **npm 1.1.0**
-(#25) still uses Zod. **athleticstandard_version** stays **1.0.0** for the record format
-unless a separate format change is approved. **sql_schema_version** stays **1** unless a
-new SQL migration is added. Those numbers are independent of the npm major version.
+**npm 1.1.0** ([#25](https://github.com/mwhitham/ath/pull/25)) still uses Zod. A later
+**1.x** release deprecates the Zod-based normative exports with a warning and names the
+generated replacement (D126). **npm 2.0.0** removes them (D131). **athleticstandard_version**
+stays **1.0.0** for the record format unless a separate format change is approved.
+**sql_schema_version** stays **1** unless a new SQL migration is added. Those numbers are
+independent of the npm major version.
 
 ---
 
@@ -130,7 +132,7 @@ correctness.
 **Writes (D132):** official products use core operations. SQLite stays readable. Triggers
 still enforce the two-tier wall. Third parties may still open the file with SQLite (D116),
 but the project no longer promises that someone can recreate the **full revision protocol**
-using only the old direct-write recipes in `spec/sql/README.md` (D125 narrows).
+using only the old direct-write recipes in `spec/sql/README.md` (**D132** narrows **D125**).
 
 No opaque `execute(JSON)` API.
 
@@ -150,7 +152,7 @@ Fix bugs when found. Do not treat old bugs as compatibility.
 
 ---
 
-## 7–9. Calculations
+## 7. Calculations
 
 See [`rust-calculation-coverage.md`](rust-calculation-coverage.md). The wide calculation
 library comes **after** the foundation proof.
@@ -160,9 +162,12 @@ sell Rust on speed.
 
 RMSSD and SDNN stay separate. Vendor scores stay labeled as vendor results.
 
+Each result should identify its method, inputs, and missing-data behavior (coverage
+appendix).
+
 ---
 
-## 10. Import completeness
+## 8. Import completeness
 
 Parsers should land in the canonical Rust model without routing through `src/schema.ts`.
 
@@ -175,7 +180,7 @@ for synthetic regressions in the build.
 
 ---
 
-## 11. Work in the approved build PR
+## 9. Work in the approved build PR
 
 | Item | Notes |
 |---|---|
@@ -187,7 +192,7 @@ for synthetic regressions in the build.
 | Calculation contract | Coverage appendix |
 | Dead code | e.g. unused `importExport`; milestones in inventory |
 
-Defer: catalog infrastructure, extra database backends, D115 workspace split, generic
+Defer: catalog infrastructure, extra database backends, D115 internal workspace split, generic
 extension frameworks beyond the v1 envelope.
 
 **CORE_API_VERSION** is decided (D128) but not implemented (CR8 pending). The Rust plan
@@ -195,7 +200,7 @@ does not change what D128 covers.
 
 ---
 
-## 12. Foundation proof (CLI + iPhone)
+## 10. Foundation proof (CLI + iPhone)
 
 1. Installed CLI creates a database and a measurement.
 2. iPhone app opens it and corrects the measurement.
@@ -212,7 +217,7 @@ Do not start the wide port until this proof passes.
 
 ---
 
-## 13. Migration steps
+## 11. Migration steps
 
 | Step | Done when |
 |---|---|
@@ -228,14 +233,14 @@ Record-format version and SQL schema version stay separate from npm versioning (
 
 ---
 
-## 14. Data
+## 12. Data
 
 No broad legacy system for external users. Use explicit, tested conversion on copies when
 needed. Do not silently upgrade a database on open.
 
 ---
 
-## 15. Packaging and checks
+## 13. Packaging and checks
 
 Prebuilt natives for declared Node platforms. Swift builds on declared iOS targets.
 
@@ -245,7 +250,7 @@ Report PASS, FAIL, BLOCKED, or NOT IMPLEMENTED.
 
 ---
 
-## 16. Deletion checklist
+## 14. Deletion checklist
 
 Remove only after the step above passes:
 
@@ -267,7 +272,7 @@ Remove only after the step above passes:
 
 Get this plan and D130–D132 approved. Land **#25**. Then open **one build PR** that
 starts `ath-core` (open database, embed SQL, first binding surface) and the prerequisite
-items in §11. Public cutover waits on the iPhone simulator proof on macOS.
+items in §9. Public cutover waits on the iPhone simulator proof on macOS.
 
 ---
 
