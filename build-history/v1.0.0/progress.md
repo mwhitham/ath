@@ -16,7 +16,7 @@ Tracks the build order from `spec.md`. Update when a step lands.
 | 9 | Update checks, help, the Skill, SPEC, README, and package exports | ✅ done |
 | 10 | Run functional, cross-platform, and measured performance suites | partial — local functional and measured 100,000- and 3-million-record runs pass; **cross-platform workflow not run yet** |
 | 11 | Release a prerelease for v1 package and database testing | pending — no npm prerelease; 1.0.0 shipped from `main` at 7cd6a09 |
-| 12 | Release v1.0.0 after round-trip and cross-platform tests pass | ✅ done — `athleticstandard@1.0.0` on npm (2026-10-18, `main` 7cd6a09) |
+| 12 | Release v1.0.0 after round-trip and cross-platform tests pass | ✅ shipped — before the cross-platform tests ran (step 10); `athleticstandard@1.0.0` on npm (2026-10-18, `main` 7cd6a09) |
 
 D101 removed the prerelease-file migration gate. Runtime implementation begins at
 step 2 with the v1 domain schemas. Step 2 added the typed record, revision, portable
@@ -45,11 +45,11 @@ tests. The required measured runs now use 100,000 and 3 million records. Both pa
 all nine operations on the reference runner. Their measurements and review limits
 are recorded in `performance/limits.json`.
 
-## Pre-publish contribution foundation
+## Contribution foundation (CR4–CR9 after 1.0.0)
 
-D115–D128 and section 19 of `spec.md` add follow-on work after the 1.0.0 npm release.
-The long-form sequence is in
-[`appendix/contribution-readiness.md`](appendix/contribution-readiness.md).
+D115–D128 and `spec.md` §19 listed CR4–CR9 as pre-publish work. **CR4–CR9 slipped past
+the 1.0.0 npm release**; they were not deferred on purpose. The long-form sequence is
+in [`appendix/contribution-readiness.md`](appendix/contribution-readiness.md).
 
 | Step | Deliverable | Status |
 |---|---|---|

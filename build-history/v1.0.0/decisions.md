@@ -1361,8 +1361,7 @@ Rejected alternatives:
 
 - **Keep Zod normative after cutover.** Rejected.
 - **Treat napi or UniFFI shapes as the spec.** Rejected.
-- **Remove stable TypeScript exports in a minor npm release without prior deprecation.**
-  Rejected by D126.
+- **Remove stable TypeScript exports in a minor npm release.** Rejected by D126.
 
 This follows the [Rust adoption plan](appendix/rust-adoption.md).
 
