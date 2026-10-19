@@ -14,9 +14,9 @@ Tracks the build order from `spec.md`. Update when a step lands.
 | 7 | Add v1 JSON package import and deterministic JSON export | ✅ done |
 | 8 | Migrate provider importers and dense samples using `appendix/time-and-provider-periods.md` | ✅ done |
 | 9 | Update checks, help, the Skill, SPEC, README, and package exports | ✅ done |
-| 10 | Run functional, cross-platform, and measured performance suites | in progress — local functional and measured 100,000- and 3-million-record runs pass; cross-platform workflow pending |
-| 11 | Release a prerelease for v1 package and database testing | pending |
-| 12 | Release v1.0.0 after round-trip and cross-platform tests pass | pending |
+| 10 | Run functional, cross-platform, and measured performance suites | partial — local functional and measured 100,000- and 3-million-record runs pass; **cross-platform workflow not run yet** |
+| 11 | Release a prerelease for v1 package and database testing | pending — no npm prerelease; 1.0.0 shipped from `main` at 7cd6a09 |
+| 12 | Release v1.0.0 after round-trip and cross-platform tests pass | ✅ done — `athleticstandard@1.0.0` on npm (2026-10-18, `main` 7cd6a09) |
 
 D101 removed the prerelease-file migration gate. Runtime implementation begins at
 step 2 with the v1 domain schemas. Step 2 added the typed record, revision, portable
@@ -47,7 +47,7 @@ are recorded in `performance/limits.json`.
 
 ## Pre-publish contribution foundation
 
-D115–D128 and section 19 of `spec.md` add work before release steps 11 and 12.
+D115–D128 and section 19 of `spec.md` add follow-on work after the 1.0.0 npm release.
 The long-form sequence is in
 [`appendix/contribution-readiness.md`](appendix/contribution-readiness.md).
 
@@ -64,8 +64,8 @@ The long-form sequence is in
 | CR8 | Add internal workspace boundaries, `CORE_API_VERSION` 1.0.0, explicit public exports, and API deprecation checks | pending |
 | CR9 | Verify the packed v1 tarball contains every promised schema, SQL, conformance, community, and Skill file | pending |
 
-CR1 and CR2 landed before athleticstandard@1.0.0 shipped. Remaining CR3–CR9 work and
-the cross-platform part of step 10 still block updated release steps 11 and 12.
+CR1–CR3 landed before athleticstandard@1.0.0 shipped. CR4–CR9 remain open. Step 10’s
+cross-platform workflow is still pending.
 
 ## Rust adoption (proposed)
 
