@@ -1286,3 +1286,68 @@ Rejected alternatives:
   required before the first v1 npm publish and does not depend on #15 landing first.
 - **Implement without recording the plan text.** Rejected because build-history must
   contain the approved decisions and specification before or as the build happens.
+
+## D130. Athletic Standard domain logic moves to one Rust core (proposed)
+
+The executable definition of athlete records, validation, storage operations,
+provider normalization, calculations, and portable packages lives in a Rust
+workspace crate (`ath-core`). The npm package `athleticstandard` and the `ath`
+command remain the Node distribution via thin napi-rs bindings (`ath-node`).
+Swift and other mobile hosts use UniFFI (`ath-uniffi`) without a separate local
+service.
+
+This supersedes D121 only where D121 deferred a Rust core. D121 still rejects
+building every client surface before need; this decision names Rust as the core
+because one builder needs a single cross-language engine now. D7 remains: CLI plus
+Skill, not MCP or a conversational server.
+
+Rejected alternatives:
+
+- **Maintain a long-term TypeScript engine beside Rust.** Rejected because two
+  implementations diverge on triggers, migrations, and conformance vectors.
+- **Engine-selection flag or automatic TypeScript fallback at cutover.** Rejected
+  because it preserves duplicate rules indefinitely.
+- **Local HTTP service for mobile.** Rejected for the same reasons as D7 and D121.
+
+This follows the [Rust adoption plan](../../plans/rust-adoption.md).
+
+## D131. Generated contracts and conformance vectors outrank binding APIs (proposed)
+
+The public contracts are `spec/sql/`, generated JSON Schema, and
+`spec/conformance/` behavior fixtures. Rust types and validators in `ath-core`
+are the source for generated JSON Schema and TypeScript data types. Binding APIs
+may change between releases when the format version does not. Breaking record or
+SQL schema versions follow existing format versioning rules.
+
+`CORE_API_VERSION` (D128) still governs community extension manifests. It is
+independent of binding refactors that do not change importer or calculation
+interfaces.
+
+Rejected alternatives:
+
+- **Keep Zod in `src/v1/schema.ts` as the long-term normative validator.** Rejected
+  because host-language validators duplicate Rust and drift from embeddings.
+- **Treat napi or UniFFI shapes as the spec.** Rejected because bindings are not
+  portable across languages.
+
+This follows the [Rust adoption plan](../../plans/rust-adoption.md).
+
+## D132. Supported writes go through the core; direct SQL is not a full protocol (proposed)
+
+Builders may still open the SQLite file with ordinary tools and respect required
+pragmas (D116). Triggers and constraints continue to enforce the two-tier wall and
+other critical rules. Official Athletic Standard products and documented integration
+paths perform record lifecycle work through typed domain operations in `ath-core`,
+not by recreating the complete revision protocol through ad hoc direct SQL alone.
+
+Stable read views and any narrow documented writable tables (D125) remain for simple
+direct access. They do not replace core operations for corrections, history,
+conflicts, package import, attachments, or erasure.
+
+Rejected alternatives:
+
+- **Require every writer to use Node.** Rejected; D116 stands for direct SQLite access.
+- **Promise full lifecycle parity through direct SQL recipes.** Rejected because it
+  duplicates the core and breaks when internal encodings change.
+
+This follows the [Rust adoption plan](../../plans/rust-adoption.md).
