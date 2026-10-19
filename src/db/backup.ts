@@ -28,9 +28,13 @@ function requireSqlite3Cli(): void {
   }
 }
 
-/** Dot-command argument for sqlite3 `.backup`, using double quotes so paths may contain apostrophes. */
+/** Dot-command argument for sqlite3 `.backup`, using double-quoted paths with sqlite3 backslash escapes. */
 export function sqlite3BackupDotCommand(backupPath: string): string {
-  const escaped = backupPath.replace(/"/g, "\"\"");
+  const escaped = backupPath
+    .replace(/\\/g, "\\\\")
+    .replace(/"/g, '\\"')
+    .replace(/\r/g, "\\r")
+    .replace(/\n/g, "\\n");
   return `.backup "${escaped}"\n`;
 }
 

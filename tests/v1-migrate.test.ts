@@ -111,12 +111,18 @@ describe("v1 database migration", () => {
     expect(after.database_id).toBe(databaseId);
   });
 
-  it("quotes apostrophes in sqlite3 backup dot commands", () => {
+  it("escapes sqlite3 backup dot-command paths with backslashes", () => {
     expect(sqlite3BackupDotCommand("/tmp/athlete's-backup.sqlite")).toBe(
       `.backup "/tmp/athlete's-backup.sqlite"\n`,
     );
     expect(sqlite3BackupDotCommand(`/tmp/a"b.sqlite`)).toBe(
-      `.backup "/tmp/a""b.sqlite"\n`,
+      `.backup "/tmp/a\\"b.sqlite"\n`,
+    );
+    expect(sqlite3BackupDotCommand("/tmp/a\\b.sqlite")).toBe(
+      `.backup "/tmp/a\\\\b.sqlite"\n`,
+    );
+    expect(sqlite3BackupDotCommand("/tmp/a\\t.sqlite")).toBe(
+      `.backup "/tmp/a\\\\t.sqlite"\n`,
     );
   });
 
@@ -132,6 +138,59 @@ describe("v1 database migration", () => {
     if (process.platform !== "win32") {
       expect(stat.mode & 0o777).toBe(0o600);
     }
+  });
+
+  it("backs up to paths containing a double quote, backslash, or backslash-letter sequences", async () => {
+    const path = await tempDatabasePath();
+    const database = await createDatabase(path, { databaseId, createdAt });
+    openDatabases.push(database);
+    const metadata = await readDatabaseMetadata(database);
+    const directory = dirname(path);
+    const paths = [
+      join(directory, `athlete"quote.sqlite`),
+      join(directory, "athlete\\slash.sqlite"),
+      join(directory, "athlete\\t.sqlite"),
+    ];
+    for (const backupPath of paths) {
+      await createVerifiedSqliteBackup(database, path, backupPath, metadata);
+      const stat = await lstat(backupPath);
+      expect(stat.isFile()).toBe(true);
+    }
+  });
+
+  it("writes the verified backup at the reviewed path when execution passes it explicitly", async () => {
+    const path = await tempDatabasePath();
+    const database = await createDatabase(path, { databaseId, createdAt });
+    openDatabases.push(database);
+    await writeRecord(database, {
+      record_type: "source",
+      record_id: sourceId,
+      created_at: createdAt,
+      changed_by: toolActor,
+      data: {
+        source_type: "wearable",
+        data_writer: "WHOOP",
+        data_route: "whoop_csv",
+        vendor: "whoop",
+      },
+    });
+    const metadata = await readDatabaseMetadata(database);
+    const reviewedAt = new Date("2026-01-15T12:00:00.000Z");
+    const executedAt = new Date("2026-01-16T12:00:00.000Z");
+    const reviewedBackupPath = defaultMigrationBackupPath(path, reviewedAt);
+    const regeneratedBackupPath = defaultMigrationBackupPath(path, executedAt);
+    expect(reviewedBackupPath).not.toBe(regeneratedBackupPath);
+
+    const migrationOptions =
+      reviewedBackupPath === null ? {} : { backupPath: reviewedBackupPath };
+    const backupPath =
+      migrationOptions.backupPath ??
+      defaultMigrationBackupPath(path, executedAt);
+    expect(backupPath).toBe(reviewedBackupPath);
+
+    await createVerifiedSqliteBackup(database, path, backupPath, metadata);
+    expect((await lstat(reviewedBackupPath)).isFile()).toBe(true);
+    await expect(lstat(regeneratedBackupPath)).rejects.toMatchObject({ code: "ENOENT" });
   });
 
   it("refuses to overwrite an existing migration backup path", async () => {

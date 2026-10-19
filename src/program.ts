@@ -437,7 +437,11 @@ export function buildProgram(): Command {
           onSecurityWarning: warn,
         });
         try {
-          const result = await executeConfirmedDatabaseMigration(database);
+          const migrationOptions =
+            preview.planned_backup_path === null
+              ? {}
+              : { backupPath: preview.planned_backup_path };
+          const result = await executeConfirmedDatabaseMigration(database, migrationOptions);
           console.log(
             `migrated SQL schema ${preview.source_sql_schema_version} to ${preview.target_sql_schema_version} ` +
               `with verified backup at ${result.backup_path}`,
