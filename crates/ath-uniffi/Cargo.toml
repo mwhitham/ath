@@ -1,0 +1,9 @@
+[package]
+name = "ath-uniffi"
+version = "0.1.0"
+edition = "2021"
+description = "UniFFI bindings to ath-core (scaffold; Swift package generation follows)"
+publish = false
+
+[dependencies]
+ath-core = { path = "../ath-core" }

@@ -10,6 +10,16 @@ permissions:
   contents: read
 
 jobs:
+  rust:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: 1.88.0
+      - run: cargo check --workspace
+      - run: cargo test --workspace
+
   verify:
     runs-on: ubuntu-latest
     steps:

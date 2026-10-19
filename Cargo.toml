@@ -1,0 +1,12 @@
+[workspace]
+resolver = "2"
+members = [
+  "crates/ath-core",
+  "crates/ath-node",
+  "crates/ath-uniffi",
+]
+
+[workspace.package]
+edition = "2021"
+license = "MIT"
+repository = "https://github.com/mwhitham/ath"
