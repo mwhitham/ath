@@ -10,8 +10,8 @@ import { spawnSync } from "node:child_process";
 import { createClient } from "@libsql/client";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
+  authoringMigrationSql,
   buildSqlContractDocument,
-  publishedMigrationSql,
   readDatabaseFileHeader,
 } from "../src/db/sql-contract.js";
 import { SQLITE_APPLICATION_ID } from "../src/db/client.js";
@@ -152,7 +152,7 @@ function expectedMigrationFileContents(): string {
 -- database_state rows. See spec/sql/README.md and spec/sql/contract.json.
 
 `;
-  return `${header}${publishedMigrationSql()}\n`;
+  return `${header}${authoringMigrationSql()}\n`;
 }
 
 function checkGeneratedFilesFresh(): void {

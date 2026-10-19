@@ -20,7 +20,7 @@ import {
   SQLITE_APPLICATION_MARKER,
   type AthleticDatabase,
 } from "./client.js";
-import { INITIAL_SCHEMA_SQL } from "./migrations/001-initial.js";
+import { readCanonicalMigrationSqlFromDisk } from "./sql-contract.js";
 import { createUuidV7 } from "./uuid.js";
 
 export interface DatabaseMetadata {
@@ -110,7 +110,7 @@ async function installInitialSchema(
     if (Number(foreignKeys.rows[0]?.foreign_keys) !== 1) {
       throw new Error("SQLite foreign-key enforcement is disabled in migration transaction");
     }
-    await transaction.executeMultiple(INITIAL_SCHEMA_SQL);
+    await transaction.executeMultiple(readCanonicalMigrationSqlFromDisk());
     await transaction.execute({
       sql: `
         INSERT INTO database_metadata (

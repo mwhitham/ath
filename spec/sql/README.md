@@ -1,8 +1,10 @@
 # Athletic Standard SQL contract
 
-Language-neutral SQLite schema for Athletic Standard v1. The TypeScript migration in
-`src/db/migrations/` is the source of truth. `pnpm generate:sql-contract` writes the
-files in this directory.
+Language-neutral SQLite schema for Athletic Standard v1. **Runtime and Rust embed the
+plain SQL files in this directory** (`migrations/*.sql`). The TypeScript modules in
+`src/db/migrations/` remain the authoring source until the Rust Records stage; run
+`pnpm generate:sql-contract` after editing those modules so published SQL stays in sync.
+`pnpm check:schema-drift` fails when the files here diverge from a freshly created database.
 
 ## Versions
 

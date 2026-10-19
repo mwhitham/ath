@@ -1,6 +1,34 @@
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { ENFORCEMENT_TRIGGERS_SQL } from "./migrations/enforcement-triggers.js";
 import { INITIAL_SCHEMA_SQL } from "./migrations/001-initial.js";
 import { SQL_SCHEMA_VERSION, SQLITE_APPLICATION_ID } from "./client.js";
+
+const packageRoot = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
+
+/** Published migration file embedded by Rust and executed by the Node runner. */
+export const CANONICAL_MIGRATION_RELATIVE_PATH = "spec/sql/migrations/001-initial.sql";
+
+function stripGeneratedSqlHeader(sql: string): string {
+  const lines = sql.split("\n");
+  const start = lines.findIndex((line) => /^CREATE\s/i.test(line.trim()));
+  if (start === -1) {
+    throw new Error("Canonical migration SQL contains no CREATE statement");
+  }
+  return lines.slice(start).join("\n").trim();
+}
+
+/** SQL applied at runtime; must match `pnpm generate:sql-contract` output. */
+export function readCanonicalMigrationSqlFromDisk(): string {
+  const path = join(packageRoot, CANONICAL_MIGRATION_RELATIVE_PATH);
+  return stripGeneratedSqlHeader(readFileSync(path, "utf8"));
+}
+
+/** Authoring source until the Records stage moves edits into plain SQL files only. */
+export function authoringMigrationSql(): string {
+  return INITIAL_SCHEMA_SQL.trim();
+}
 
 export const MINIMUM_SQLITE_VERSION = "3.45.0";
 
@@ -250,7 +278,7 @@ export const MIGRATION_CHAIN = [
 ] as const;
 
 export function publishedMigrationSql(): string {
-  return INITIAL_SCHEMA_SQL.trim();
+  return readCanonicalMigrationSqlFromDisk();
 }
 
 export function enforcementTriggerNames(): string[] {
