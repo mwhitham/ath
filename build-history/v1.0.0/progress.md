@@ -47,7 +47,7 @@ are recorded in `performance/limits.json`.
 
 ## Contribution foundation (CR4–CR9 after 1.0.0)
 
-D115–D128 and `spec.md` §19 listed CR4–CR9 as pre-publish work. **CR4–CR9 slipped past
+`spec.md` §19 (implementing D115–D128) listed CR4–CR9 as pre-publish work. **CR4–CR9 slipped past
 the 1.0.0 npm release**; they were not deferred on purpose. The long-form sequence is
 in [`appendix/contribution-readiness.md`](appendix/contribution-readiness.md).
 
