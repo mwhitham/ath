@@ -1,0 +1,13 @@
+{
+  "conformance": "athleticstandard-behavior",
+  "case_id": "rmssd-toy-intervals",
+  "description": "RMSSD over twenty equal 1000 ms intervals is zero (independent closed-form reference).",
+  "expect": {
+    "rmssd_ms": 0,
+    "n_beats": 20
+  },
+  "intervals_ms": [
+    1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000,
+    1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000, 1000
+  ]
+}
