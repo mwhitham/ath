@@ -1286,3 +1286,112 @@ Rejected alternatives:
   required before the first v1 npm publish and does not depend on #15 landing first.
 - **Implement without recording the plan text.** Rejected because build-history must
   contain the approved decisions and specification before or as the build happens.
+
+## D130. Athletic Standard domain logic moves to one Rust core (proposed)
+
+The executable definition of athlete records, validation, storage operations,
+provider normalization, calculations, and portable packages lives in a Rust
+workspace crate (`ath-core`). The npm package `athleticstandard` and the `ath`
+command remain the Node distribution via thin napi-rs bindings (`ath-node`).
+Swift hosts use UniFFI (`ath-uniffi`) for a maintained library and verification
+app. D121 rejected a maintained Swift library or example; this decision adds that
+surface for the Rust foundation proof.
+
+**Supersedes (for the Rust build only):**
+
+- **D121** — the parts that reject a maintained Swift library or example and that
+  allow a future Rust core only behind unchanged existing APIs. Rust becomes the
+  implementation; bindings are thin and may change where D131 allows.
+- **D8** — TypeScript with Zod as the single source of truth for the record model.
+
+**Defers (does not cancel):**
+
+- **D115** — the first step in D115: splitting pure logic, storage, and importers
+  into private workspace packages behind `athleticstandard`. The Rust build lands
+  `ath-core` and bindings first; the internal split waits until after that work.
+  Publishing scoped `@ath/*` packages remains “only after concrete need,” as D115 says.
+
+D121 still rejects a local HTTP service. D7 still rejects MCP. D121 already allowed
+a Rust core inside npm; this decision requires that core and ends the “optional later”
+reading.
+
+Rejected alternatives:
+
+- **A long-term TypeScript engine beside Rust.** Rejected because two rule sets diverge.
+- **Any engine switch or TypeScript fallback at cutover.** Rejected.
+- **A local HTTP service for mobile.** Rejected for the same reasons as D121.
+
+This follows the [Rust adoption plan](appendix/rust-adoption.md).
+
+## D131. Rust owns the record model; generated contracts and conformance outrank bindings (proposed)
+
+Rust types and validators in `ath-core` become the source for generated JSON Schema
+and TypeScript data types. The public contracts are `spec/sql/`, generated JSON
+Schema, and language-neutral behavior fixtures under `spec/conformance/` (CR5).
+
+**Supersedes:**
+
+- **D8** — Zod as the single source of truth for schema and implementation alignment.
+- **D83** — Zod as the public definition of athlete-owned records (logical record
+  definition moves to Rust; SQLite and JSON still encode the same records).
+- **D116** — the sentence that Zod remains the logical record definition.
+
+**Follows D126:**
+
+Normative Zod exports and hand-maintained `./schema` types stay until npm major
+**2.0.0**. [Pull request #25](https://github.com/mwhitham/ath/pull/25) ships **1.1.0**
+still on Zod. After 1.1.0, a later **1.x** release must deprecate those exports with a
+runtime warning and a documented replacement (generated types from Rust). **2.0.0**
+removes them. No compatibility facade that keeps two validators.
+
+**Does not change:**
+
+- **athleticstandard_version** (record format) stays **1.0.0** unless a separate
+  format decision adds a new version.
+- **sql_schema_version** stays **1** unless a new SQL migration is recorded.
+- **D128** — `CORE_API_VERSION` for community extension manifests. CR8 has not
+  implemented it yet; this decision does not narrow D128’s scope.
+
+The [contribution readiness plan](appendix/contribution-readiness.md) keeps four
+independent version numbers (`athleticstandard_version`, `sql_schema_version`,
+`CORE_API_VERSION`, npm). Binding and generated-type refactors that do not change
+the record format or SQL schema still use the D126 deprecation path above.
+
+Rejected alternatives:
+
+- **Keep Zod normative after cutover.** Rejected.
+- **Treat napi or UniFFI shapes as the spec.** Rejected.
+- **Remove stable TypeScript exports in a minor npm release.** Rejected by D126.
+
+This follows the [Rust adoption plan](appendix/rust-adoption.md).
+
+## D132. Supported writes go through the core; narrow direct SQL (proposed)
+
+**D116** still allows third parties to write SQLite directly with required pragmas;
+triggers and constraints still enforce critical rules when application code is bypassed.
+Official Athletic Standard products and the documented integration path perform record
+lifecycle work through typed operations in `ath-core`, not by following the full
+direct-write recipes that **D125** published for writable tables and transaction steps
+in `spec/sql/README.md`.
+
+**Supersedes:**
+
+- **D125** — treating the documented writable-table set and direct-SQL write steps as
+  a supported way to recreate the full revision protocol, history, conflicts, package
+  import, attachments, and erasure.
+- **D93** — using `@libsql/client` raw parameterized SQL from the Node package as the
+  long-term official storage implementation, including D93’s plan that local SQLite and
+  a future hosted libSQL adapter share the same domain operations. Official writes move
+  into `ath-core` with rusqlite; Node becomes a thin binding. The hosted libSQL adapter
+  path in D93 is not pursued for official products under this plan.
+
+Stable read views remain for direct reads. Simple direct writes that triggers allow
+may remain documented; they do not replace core operations for full lifecycle work.
+
+Rejected alternatives:
+
+- **Require every writer to use Node.** Rejected; direct SQLite access remains for
+  inspection and narrow cases.
+- **Promise full lifecycle parity through direct SQL alone.** Rejected.
+
+This follows the [Rust adoption plan](appendix/rust-adoption.md).

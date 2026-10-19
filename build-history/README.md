@@ -4,9 +4,12 @@ This folder is the permanent record of what we decided to build and why.
 
 ## The rule
 
-Every plan we execute gets its spec written into a versioned subfolder here **before or as** the build happens. Within a version, all decisions go in that version's `decisions.md` — append new D-numbers, don't rewrite earlier ones. Supporting research goes in `appendix/` in the same version folder and is linked from the D-number. If a later build is a new plan, it gets a new version folder; the old one stays as-is.
+Every plan we execute gets its spec written into a versioned subfolder here **before or as** the build happens when that plan **changes the record format** (`athleticstandard_version`). Plans that do not change the record format go in the current format folder's `appendix/` (and link decisions from that folder's `decisions.md`). Within a version, all decisions go in that version's `decisions.md` — append new D-numbers, don't rewrite earlier ones. Supporting research goes in `appendix/` in the same version folder and is linked from the D-number. A new version folder is created only when a plan changes the record format; the old folder stays as-is.
 
-Folders are named for the format version they describe — the same version that appears in `athleticstandard_version` and in the npm package. A plan that revises the format gets a folder matching the version it produces.
+Folders are named for the **record format version** they describe — the same version
+that appears in `athleticstandard_version`. The npm package version and
+`sql_schema_version` are versioned separately (see contribution readiness §4.1). A
+plan that revises the record format gets a folder matching the version it produces.
 
 D-numbers run continuously across version folders. D25 follows D24 even though it lives in a different folder, so a decision can be cited by number alone.
 

@@ -14,9 +14,9 @@ Tracks the build order from `spec.md`. Update when a step lands.
 | 7 | Add v1 JSON package import and deterministic JSON export | ✅ done |
 | 8 | Migrate provider importers and dense samples using `appendix/time-and-provider-periods.md` | ✅ done |
 | 9 | Update checks, help, the Skill, SPEC, README, and package exports | ✅ done |
-| 10 | Run functional, cross-platform, and measured performance suites | in progress — local functional and measured 100,000- and 3-million-record runs pass; cross-platform workflow pending |
-| 11 | Release a prerelease for v1 package and database testing | pending |
-| 12 | Release v1.0.0 after round-trip and cross-platform tests pass | pending |
+| 10 | Run functional, cross-platform, and measured performance suites | partial — local functional and measured 100,000- and 3-million-record runs pass; **cross-platform workflow not run yet** |
+| 11 | Release a prerelease for v1 package and database testing | pending — no npm prerelease; 1.0.0 shipped from `main` at 7cd6a09 |
+| 12 | Release v1.0.0 after round-trip and cross-platform tests pass | ✅ shipped — before the cross-platform tests ran (step 10); `athleticstandard@1.0.0` on npm (2026-10-18, `main` 7cd6a09) |
 
 D101 removed the prerelease-file migration gate. Runtime implementation begins at
 step 2 with the v1 domain schemas. Step 2 added the typed record, revision, portable
@@ -45,11 +45,11 @@ tests. The required measured runs now use 100,000 and 3 million records. Both pa
 all nine operations on the reference runner. Their measurements and review limits
 are recorded in `performance/limits.json`.
 
-## Pre-publish contribution foundation
+## Contribution foundation (CR4–CR9 after 1.0.0)
 
-D115–D128 and section 19 of `spec.md` add work before release steps 11 and 12.
-The long-form sequence is in
-[`appendix/contribution-readiness.md`](appendix/contribution-readiness.md).
+`spec.md` §19 (implementing D115–D128) listed CR4–CR9 as pre-publish work. **CR4–CR9 slipped past
+the 1.0.0 npm release**; they were not deferred on purpose. The long-form sequence is
+in [`appendix/contribution-readiness.md`](appendix/contribution-readiness.md).
 
 | Step | Deliverable | Status |
 |---|---|---|
@@ -64,6 +64,19 @@ The long-form sequence is in
 | CR8 | Add internal workspace boundaries, `CORE_API_VERSION` 1.0.0, explicit public exports, and API deprecation checks | pending |
 | CR9 | Verify the packed v1 tarball contains every promised schema, SQL, conformance, community, and Skill file | pending |
 
-CR1 and CR2 change the unreleased v1 schema. They must finish before v1.0.0 is
-published to npm. Release steps 11 and 12 remain blocked until CR1–CR9 and the
-cross-platform part of step 10 pass.
+CR1–CR3 landed before athleticstandard@1.0.0 shipped. CR4–CR9 remain open. Step 10’s
+cross-platform workflow is still pending.
+
+## Rust adoption (proposed)
+
+Tracked in [`appendix/rust-adoption.md`](appendix/rust-adoption.md). Draft decisions
+D130–D132. `athleticstandard@1.0.0` is already on npm; this work targets a later npm
+major (**2.0.0**) for dropping Zod-based exports while the record format can stay
+1.0.0. Land [#25](https://github.com/mwhitham/ath/pull/25) (npm 1.1.0) before the
+Rust build PR.
+
+| Step | Deliverable | Status |
+|---|---|---|
+| R0 | Plan, inventory, coverage, decisions, `AGENTS.md` | in review — PR #20 |
+| R1 | Approved plan → one build PR on `main` (SQL packaging, conformance, Rust workspace, dead-code milestones) | pending approval |
+| R2 | iPhone simulator CLI ↔ app round trip | **BLOCKED** — requires Xcode and iOS Simulator on macOS |
