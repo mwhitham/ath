@@ -432,8 +432,8 @@ Usage: ath models [options]
 list live text models that can reason, or save your usual one
 
 Options:
-  --default <name>  save this model next to the athlete file, for the next
-                    predict
+  --default <name>  save this model in athlete.ath.model next to the database,
+                    for the next predict
   --gateway <name>  vercel or openrouter, when both keys are available
   --file <path>     the athlete file whose default to save
   --json            structured output, for an agent rather than a person

@@ -70,5 +70,7 @@ cross-platform part of step 10 pass.
 
 npm `athleticstandard@1.0.0` is published. 1.1.0 is a package release of this
 format version: `ath migrate`, provider-import check, structured log envelope,
-and docs. The record format stays `1.0.0`. Remaining contribution-readiness
-steps continue on later package versions of the same format.
+default model path (`athlete.ath.model` beside `athlete.ath.sqlite`, not
+overwriting the database), and docs. The record format stays `1.0.0`.
+Remaining contribution-readiness steps continue on later package versions of
+the same format.

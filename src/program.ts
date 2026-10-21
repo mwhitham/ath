@@ -1394,7 +1394,10 @@ export function buildProgram(): Command {
     .helpGroup(GROUPS.setUp)
     .description("list live text models that can reason, or save your usual one")
     .addHelpText("after", EXAMPLES.models!)
-    .option("--default <name>", "save this model next to the athlete file, for the next predict")
+    .option(
+      "--default <name>",
+      "save this model in athlete.ath.model next to the database, for the next predict",
+    )
     .option("--gateway <name>", "vercel or openrouter, when both keys are available")
     .option("--file <path>", "the athlete file whose default to save")
     .option("--json", "structured output, for an agent rather than a person")

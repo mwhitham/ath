@@ -5,13 +5,32 @@
  * The default is a model name, not a key. The key lives in the password store.
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { FILE_SUFFIX, PORTABLE_FILE_SUFFIX } from "./file.js";
 import { closestModelIds, listReasoningModels, requireGateway, type CatalogModel } from "./gateway.js";
 import { PredictRefusal } from "./predict-errors.js";
 import type { GatewayName } from "./keyring.js";
 
-/** `athlete.ath.model` sits next to `athlete.ath.json`. */
+const MODEL_SUFFIX = ".ath.model";
+
+/** `athlete.ath.model` sits next to `athlete.ath.sqlite`. */
 export function defaultModelPath(athletePath: string): string {
-  return athletePath.replace(/\.json$/i, ".model");
+  if (athletePath.endsWith(FILE_SUFFIX)) {
+    return athletePath.slice(0, -FILE_SUFFIX.length) + MODEL_SUFFIX;
+  }
+  return athletePath;
+}
+
+function refuseUnsafeModelPath(athletePath: string, modelPath: string): void {
+  if (
+    modelPath === athletePath ||
+    modelPath.endsWith(FILE_SUFFIX) ||
+    modelPath.endsWith(PORTABLE_FILE_SUFFIX)
+  ) {
+    throw new Error(
+      `refusing to write the default model to ${modelPath}; ` +
+        `expected ${MODEL_SUFFIX} next to a live ${FILE_SUFFIX} database`,
+    );
+  }
 }
 
 export function readDefaultModel(athletePath: string): string | undefined {
@@ -22,7 +41,9 @@ export function readDefaultModel(athletePath: string): string | undefined {
 }
 
 export function writeDefaultModel(athletePath: string, model: string): void {
-  writeFileSync(defaultModelPath(athletePath), `${model}\n`, "utf8");
+  const path = defaultModelPath(athletePath);
+  refuseUnsafeModelPath(athletePath, path);
+  writeFileSync(path, `${model}\n`, "utf8");
 }
 
 export async function loadCatalog(gateway?: GatewayName): Promise<{

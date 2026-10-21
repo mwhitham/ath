@@ -307,7 +307,7 @@ Examples:
   Every live text model that can reason, including open weights:
     $ ath models
 
-  Save your usual model next to the athlete file:
+  Save your usual model in athlete.ath.model next to athlete.ath.sqlite:
     $ ath models --default openai/gpt-oss-120b
 
 Needs a gateway key. The list is fetched each time, so a new open-weight
