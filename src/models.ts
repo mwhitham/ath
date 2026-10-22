@@ -4,7 +4,19 @@
  *
  * The default is a model name, not a key. The key lives in the password store.
  */
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { randomBytes } from "node:crypto";
+import {
+  closeSync,
+  existsSync,
+  lstatSync,
+  openSync,
+  readFileSync,
+  realpathSync,
+  renameSync,
+  unlinkSync,
+  writeSync,
+} from "node:fs";
+import { dirname, join } from "node:path";
 import { FILE_SUFFIX, PORTABLE_FILE_SUFFIX } from "./file.js";
 import { closestModelIds, listReasoningModels, requireGateway, type CatalogModel } from "./gateway.js";
 import { PredictRefusal } from "./predict-errors.js";
@@ -33,6 +45,87 @@ function refuseUnsafeModelPath(athletePath: string, modelPath: string): void {
   }
 }
 
+function isMissingFile(error: unknown): boolean {
+  return error instanceof Error && "code" in error && error.code === "ENOENT";
+}
+
+/** Refuse a model path that is a symlink or the database file itself. */
+function refuseModelLink(athletePath: string, modelPath: string): void {
+  let stat;
+  try {
+    stat = lstatSync(modelPath);
+  } catch (error) {
+    if (isMissingFile(error)) return;
+    throw error;
+  }
+  if (stat.isSymbolicLink()) {
+    throw new Error(
+      `refusing to write the default model to ${modelPath}; it is a symbolic link`,
+    );
+  }
+  let athleteReal: string;
+  let modelReal: string;
+  try {
+    athleteReal = realpathSync(athletePath);
+    modelReal = realpathSync(modelPath);
+  } catch (error) {
+    if (isMissingFile(error)) return;
+    throw error;
+  }
+  if (athleteReal === modelReal) {
+    throw new Error(
+      `refusing to write the default model to ${modelPath}; it is the athlete database`,
+    );
+  }
+}
+
+/** Write beside the database. `rename` replaces the name and does not follow a symlink. */
+function writeModelFile(athletePath: string, modelPath: string, contents: string): void {
+  const temporary = join(
+    dirname(modelPath),
+    `.model-${process.pid}-${randomBytes(6).toString("hex")}.tmp`,
+  );
+  const fd = openSync(temporary, "wx", 0o644);
+  try {
+    writeSync(fd, contents);
+  } catch (error) {
+    closeSync(fd);
+    unlinkSync(temporary);
+    throw error;
+  }
+  closeSync(fd);
+  try {
+    replaceModelFile(temporary, athletePath, modelPath);
+  } catch (error) {
+    try {
+      unlinkSync(temporary);
+    } catch {
+      // The temp file is already gone.
+    }
+    throw error;
+  }
+}
+
+function replaceModelFile(temporary: string, athletePath: string, modelPath: string): void {
+  refuseModelLink(athletePath, modelPath);
+  try {
+    renameSync(temporary, modelPath);
+  } catch (error) {
+    if (!isExistingFile(error)) throw error;
+    refuseModelLink(athletePath, modelPath);
+    unlinkSync(modelPath);
+    renameSync(temporary, modelPath);
+  }
+}
+
+function isExistingFile(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    "code" in error &&
+    (error.code === "EEXIST" || error.code === "EPERM")
+  );
+}
+
 export function readDefaultModel(athletePath: string): string | undefined {
   const path = defaultModelPath(athletePath);
   if (!existsSync(path)) return undefined;
@@ -43,7 +136,8 @@ export function readDefaultModel(athletePath: string): string | undefined {
 export function writeDefaultModel(athletePath: string, model: string): void {
   const path = defaultModelPath(athletePath);
   refuseUnsafeModelPath(athletePath, path);
-  writeFileSync(path, `${model}\n`, "utf8");
+  refuseModelLink(athletePath, path);
+  writeModelFile(athletePath, path, `${model}\n`);
 }
 
 export async function loadCatalog(gateway?: GatewayName): Promise<{

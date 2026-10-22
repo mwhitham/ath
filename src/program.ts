@@ -2244,6 +2244,15 @@ function renderLogPlan(plan: LogPlan): string {
   return lines.join("\n");
 }
 
+let terminalAnswerForTests: ((question: string) => Promise<string | null>) | undefined;
+
+/** Test hook. Production asks on the real terminal. */
+export function useTerminalAnswer(
+  answer: ((question: string) => Promise<string | null>) | undefined,
+): void {
+  terminalAnswerForTests = answer;
+}
+
 async function confirmWrite(
   opts: { yes?: boolean; dryRun?: boolean; json?: boolean },
   question: string,
@@ -2254,7 +2263,7 @@ async function confirmWrite(
   if (opts.yes) {
     return true;
   }
-  if (!process.stdout.isTTY) {
+  if (terminalAnswerForTests === undefined && !process.stdout.isTTY) {
     fail(
       `there is no terminal to ask on, so nothing was written. Pass --yes after reviewing the preview.`,
     );
@@ -2281,6 +2290,7 @@ async function readStdin(): Promise<string> {
  * it directly. Returns null where there is no terminal at all.
  */
 async function askOnTerminal(question: string): Promise<string | null> {
+  if (terminalAnswerForTests) return terminalAnswerForTests(question);
   const { createReadStream } = await import("node:fs");
   let input: NodeJS.ReadableStream;
   try {
@@ -2324,7 +2334,7 @@ async function openOrFail(path: string, json = false): Promise<AthleticDatabase>
   }
 }
 
-async function interactiveMigrationOnOpen(
+export async function interactiveMigrationOnOpen(
   path: string,
   preview: MigrationPreview,
 ): Promise<AthleticDatabase> {
@@ -2343,6 +2353,9 @@ async function interactiveMigrationOnOpen(
   if (backupPath === null) {
     return fail("SQL schema migration requires a local database file");
   }
+  if (!(await confirmWrite({}, "Apply this SQL schema migration?"))) {
+    return fail("migration was not confirmed; run ath migrate or answer yes when prompted on open");
+  }
 
   const inspector = await inspectDatabase(path, {
     onSecurityWarning: (warning) => {
@@ -2357,9 +2370,6 @@ async function interactiveMigrationOnOpen(
     inspector.close();
   }
   console.log(`verified migration backup: ${backupPath}`);
-  if (!(await confirmWrite({}, "Apply this SQL schema migration?"))) {
-    return fail("migration was not confirmed; run ath migrate or answer yes when prompted on open");
-  }
 
   const database = await openDatabase(path, {
     allowOutdatedSchema: true,

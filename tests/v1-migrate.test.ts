@@ -1,4 +1,4 @@
-import { copyFile, lstat, mkdtemp, readdir, rm, symlink, writeFile } from "node:fs/promises";
+import { copyFile, lstat, mkdtemp, readFile, readdir, rm, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -21,7 +21,8 @@ import {
 } from "../src/db/index.js";
 import { databaseClient } from "../src/db/client.js";
 import * as clientModule from "../src/db/client.js";
-import type { AthleticDatabase } from "../src/db/index.js";
+import type { AthleticDatabase, MigrationPreview } from "../src/db/index.js";
+import { interactiveMigrationOnOpen, useTerminalAnswer } from "../src/program.js";
 const FIXTURE = join(dirname(fileURLToPath(import.meta.url)), "../examples/demo-athlete/athlete.ath.sqlite");
 
 const databaseId = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1f30";
@@ -44,6 +45,7 @@ async function tempDatabasePath(): Promise<string> {
 }
 
 afterEach(async () => {
+  useTerminalAnswer(undefined);
   vi.restoreAllMocks();
   for (const database of openDatabases.splice(0)) {
     database.close();
@@ -270,5 +272,43 @@ describe("v1 database migration", () => {
     expect(preview.target_sql_schema_version).toBe(2);
     expect(preview.planned_steps).toEqual([]);
     expect(preview.planned_backup_path).toBeNull();
+  });
+
+  it("writes nothing when an interactive migration is declined", async () => {
+    const path = await tempDatabasePath();
+    const database = await createDatabase(path, { databaseId, createdAt });
+    database.close();
+    const directory = dirname(path);
+    const beforeNames = (await readdir(directory)).sort();
+    const beforeBytes = await readFile(path);
+    const backupPath = `${path}.migration-backup.declined.sqlite`;
+    const preview: MigrationPreview = {
+      migration_needed: true,
+      source_sql_schema_version: 1,
+      target_sql_schema_version: 2,
+      database_id: databaseId,
+      planned_steps: [{
+        target_sql_schema_version: 2,
+        migration_file: "migrations/002-test.sql",
+        description: "test step",
+      }],
+      planned_backup_path: backupPath,
+      compatibility_effect: "upgrade",
+    };
+    const errors: string[] = [];
+    vi.spyOn(console, "error").mockImplementation((line?: unknown) => {
+      errors.push(String(line));
+    });
+    useTerminalAnswer(async () => "n");
+    vi.spyOn(process, "exit").mockImplementation((() => {
+      throw new Error("exit 1");
+    }) as typeof process.exit);
+
+    await expect(interactiveMigrationOnOpen(path, preview)).rejects.toThrow("exit 1");
+
+    expect(errors.join("\n")).toContain("migration was not confirmed");
+    expect((await readdir(directory)).sort()).toEqual(beforeNames);
+    expect(await readFile(path)).toEqual(beforeBytes);
+    await expect(lstat(backupPath)).rejects.toMatchObject({ code: "ENOENT" });
   });
 });

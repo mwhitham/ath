@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, readFileSync } from "node:fs";
+import { lstatSync, mkdtempSync, readFileSync, symlinkSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -53,7 +53,12 @@ describe("default model path beside the live database", () => {
     expect(readFileSync(join(directory, "athlete.ath.model"), "utf8")).toBe(
       "openai/gpt-oss-120b\n",
     );
-    expect(readDefaultModel(databasePath)).toBe("openai/gpt-oss-120b");
+    writeDefaultModel(databasePath, "qwen/qwen3-235b-a22b");
+    expect(readFileSync(databasePath)).toEqual(before);
+    expect(readFileSync(join(directory, "athlete.ath.model"), "utf8")).toBe(
+      "qwen/qwen3-235b-a22b\n",
+    );
+    expect(readDefaultModel(databasePath)).toBe("qwen/qwen3-235b-a22b");
     const check = ath(["check"], directory);
     expect(check.code).toBe(0);
     expect(check.stdout).toContain("valid Athletic Standard");
@@ -68,6 +73,21 @@ describe("default model path beside the live database", () => {
 
     const resolved = await resolveModel(databasePath, undefined, "vercel");
     expect(resolved.model).toBe("openai/gpt-oss-120b");
+  });
+
+  it("refuses a symlink at the model path and leaves the database unchanged", () => {
+    const directory = mkdtempSync(join(tmpdir(), "ath-models-"));
+    const databasePath = join(directory, "athlete.ath.sqlite");
+    writeFileSync(databasePath, "database-bytes");
+    const before = readFileSync(databasePath);
+    symlinkSync(databasePath, join(directory, "athlete.ath.model"));
+
+    expect(() => writeDefaultModel(databasePath, "openai/gpt-oss-120b")).toThrow(
+      /symbolic link/,
+    );
+
+    expect(readFileSync(databasePath)).toEqual(before);
+    expect(lstatSync(join(directory, "athlete.ath.model")).isSymbolicLink()).toBe(true);
   });
 
   it("refuses to write when the path would hit the database or a portable package", () => {
