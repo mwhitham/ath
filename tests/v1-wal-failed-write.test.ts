@@ -68,9 +68,14 @@ describe.runIf(process.platform !== "win32")("WAL retention after failed writes"
     );
     expect(staleDelete.code).not.toBe(0);
 
-    const shownBeforeReaderEnds = JSON.parse(
-      ath(["records", "show", report!.record_id, "--json"], directory).stdout,
-    ) as { record: { data: { note?: string } } };
+    const showBeforeReaderEnds = ath(
+      ["records", "show", report!.record_id, "--json"],
+      directory,
+    );
+    expect(showBeforeReaderEnds.code, showBeforeReaderEnds.stdout).toBe(0);
+    const shownBeforeReaderEnds = JSON.parse(showBeforeReaderEnds.stdout) as {
+      record: { data: { note?: string } };
+    };
     expect(shownBeforeReaderEnds.record.data.note).toBe("note two");
 
     reader.kill("SIGKILL");
@@ -80,9 +85,11 @@ describe.runIf(process.platform !== "win32")("WAL retention after failed writes"
       setTimeout(resolveExit, 2_000);
     });
 
-    const shown = JSON.parse(
-      ath(["records", "show", report!.record_id, "--json"], directory).stdout,
-    ) as { record: { data: { note?: string } } };
+    const showAfterReaderEnds = ath(["records", "show", report!.record_id, "--json"], directory);
+    expect(showAfterReaderEnds.code, showAfterReaderEnds.stdout).toBe(0);
+    const shown = JSON.parse(showAfterReaderEnds.stdout) as {
+      record: { data: { note?: string } };
+    };
     expect(shown.record.data.note).toBe("note two");
 
     const check = ath(["check"], directory);

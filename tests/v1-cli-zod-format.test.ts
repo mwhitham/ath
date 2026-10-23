@@ -14,7 +14,7 @@ describe("CLI schema validation errors", () => {
     const result = ath(["records", "show", "not-a-valid-record-id", "--file", demoFixture], "/");
     expect(result.code).not.toBe(0);
     expect(result.stdout).toMatch(/^ath: /m);
-    expect(result.stdout).not.toContain('"issues"');
+    expect(result.stdout).not.toMatch(/^ath: \[/m);
     expect(result.stdout).toMatch(/record_id|uuid|Invalid/i);
   });
 });

@@ -5,11 +5,15 @@ import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import * as clientModule from "../src/db/client.js";
-import { createDatabase, openDatabase, type AthleticDatabase } from "../src/db/index.js";
+import {
+  createDatabase,
+  executeConfirmedDatabaseMigration,
+  openDatabase,
+  type AthleticDatabase,
+} from "../src/db/index.js";
 import { databaseClient } from "../src/db/client.js";
 import { withWriteTransaction } from "../src/db/transaction.js";
 import { materializeNpm100ProviderDatabase } from "./helpers/npm100-database.js";
-import { ath } from "./helpers/cli-exec.js";
 
 const openDatabases: AthleticDatabase[] = [];
 const directories: string[] = [];
@@ -67,19 +71,25 @@ describe("journal revert after failed writes", () => {
       sql: "UPDATE point_measurements SET data_json = ?, standard_value = 999 WHERE record_id = ?",
       args: [divergent, recordId],
     });
-    const idRow = await client.execute(
-      "SELECT database_id FROM database_metadata WHERE singleton_id = 1",
-    );
-    const databaseId = String(idRow.rows[0]?.database_id);
     await client.close();
+
+    const database = await import("../src/db/index.js").then(({ openDatabase }) =>
+      openDatabase(databasePath, { allowOutdatedSchema: true, deferWal: true }),
+    );
+    openDatabases.push(database);
 
     vi.spyOn(clientModule, "tryRevertDeleteJournalModeAfterFailedWal").mockRejectedValueOnce(
       new Error("revert exploded"),
     );
 
-    const migrate = ath(["migrate", "-y", "--confirm-migration", databaseId], directory);
-    expect(migrate.code).not.toBe(0);
-    expect(migrate.stdout).toMatch(/migration-backup/i);
-    expect(migrate.stdout).toMatch(/not key-order only/i);
+    let message = "";
+    try {
+      await executeConfirmedDatabaseMigration(database);
+      expect.fail("expected migration to fail");
+    } catch (error) {
+      message = error instanceof Error ? error.message : String(error);
+    }
+    expect(message).toMatch(/migration-backup/i);
+    expect(message).toMatch(/not key-order only/i);
   }, 180_000);
 });

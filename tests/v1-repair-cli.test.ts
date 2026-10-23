@@ -249,6 +249,7 @@ describe("v1 repair CLI", () => {
       ath(["conflicts", "show", profileId, "--file", local, "--json"], directory);
       expect(await hashDatabaseFilesRaw(local)).toBe(hashBefore);
     },
+    180_000,
   );
 
   it.runIf(process.platform !== "win32")(

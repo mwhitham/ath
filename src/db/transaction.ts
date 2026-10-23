@@ -2,7 +2,6 @@ import type { Transaction } from "@libsql/client";
 import {
   databaseClient,
   enableLocalWal,
-  isSqliteBusy,
   tryRevertDeleteJournalModeAfterFailedWal,
   type AthleticDatabase,
 } from "./client.js";
@@ -31,10 +30,8 @@ export async function withWriteTransaction<T>(
     }
     try {
       await tryRevertDeleteJournalModeAfterFailedWal(database, journalBefore);
-    } catch (revertError) {
-      if (!isSqliteBusy(revertError)) {
-        // Keep the original write failure; journal revert is best-effort.
-      }
+    } catch {
+      // Best-effort journal revert; the original write failure is thrown below.
     }
     throw error;
   } finally {

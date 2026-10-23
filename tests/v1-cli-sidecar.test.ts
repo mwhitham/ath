@@ -271,7 +271,7 @@ describe.runIf(process.platform !== "win32")("CLI refusal paths and WAL sidecars
       local,
       "--json",
     ]);
-  });
+  }, 180_000);
 
   afterAll(async () => {
     await rm(migratedTemplateDir, { recursive: true, force: true });

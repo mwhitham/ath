@@ -9,6 +9,7 @@ import {
   type AthleticDatabase,
   type MigrationPreview,
 } from "../db/index.js";
+import { formatSchemaValidationError } from "../db/validation-message.js";
 
 let terminalAnswerForTests: ((question: string) => Promise<string | null>) | undefined;
 
@@ -29,7 +30,8 @@ export class CliExitError extends Error {
   }
 }
 
-export function fail(message: string): never {
+export function fail(cause: unknown): never {
+  const message = formatSchemaValidationError(cause);
   console.error(`ath: ${message}`);
   throw new CliExitError(message);
 }
