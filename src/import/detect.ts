@@ -55,6 +55,8 @@ const OURA_MARKERS = [
   "total_sleep_duration",
   "lowest_heart_rate",
   "readiness_score",
+  "score",
+  "contributors",
 ];
 
 function isOuraHeader(header: string): boolean {

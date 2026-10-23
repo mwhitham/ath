@@ -14,7 +14,7 @@ const approvedSyntheticFixtures = new Map<string, string>([
   ],
   [
     "examples/demo-athlete/athlete.ath.sqlite",
-    "5245f0e073e981a4fdd655a8dbc159e3ab674986774a6900c7b7592481196cdc",
+    "4cd79efecd8e4dd901fc7a6af43cc287e008cbe175002490a34e2addf07067ed",
   ],
   [
     "examples/demo-athlete/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png",
@@ -43,6 +43,14 @@ const approvedSyntheticFixtures = new Map<string, string>([
   [
     "tests/fixtures/exports/oura/oura_sleep.csv",
     "ed59f11d1bb995278882238e26eea72830a114be67d74b2d223f96c8bfe6fb1b",
+  ],
+  [
+    "tests/fixtures/exports/oura-member-portal/member-portal-dailyreadiness.csv",
+    "1bf215c48dd4b8fc433d6e63dd067c1d905e373a4ce5f1a02c5ed990daaed0e8",
+  ],
+  [
+    "tests/fixtures/exports/oura-member-portal/member-portal-dailysleep.csv",
+    "d7cb830bfd08717aaf7038ce7b6b4e0586d24ad58748a998a131b357554361aa",
   ],
   [
     "tests/fixtures/exports/whoop/journal_entries.csv",

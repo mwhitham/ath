@@ -828,4 +828,37 @@ describe("v1 provider import", () => {
       ],
     });
   });
+
+  it("imports Oura member-portal CSV scores and readiness contributors", async () => {
+    const database = await emptyDatabase();
+    const preview = await previewProviderImport(database, join(fixtures, "oura-member-portal"), {
+      received_at: receivedAt,
+    });
+    expect(preview.provider).toBe("oura");
+    await importProviderRecords(database, preview);
+    const scores = await listRecords(database, {
+      record_type: "provider_score",
+      limit: 10_000,
+    });
+    const readiness = scores.filter(
+      (record) =>
+        record.record_type === "provider_score" &&
+        record.data.metric === "readiness",
+    );
+    const sleepScores = scores.filter(
+      (record) =>
+        record.record_type === "provider_score" &&
+        record.data.metric === "sleep_score",
+    );
+    const contributors = scores.filter(
+      (record) =>
+        record.record_type === "provider_score" &&
+        record.data.metric.startsWith("readiness_contributor_"),
+    );
+    expect(readiness.length).toBeGreaterThanOrEqual(2);
+    expect(sleepScores.length).toBeGreaterThanOrEqual(2);
+    expect(contributors.length).toBeGreaterThanOrEqual(8);
+    const check = await checkDatabase(database);
+    expect(check.valid, JSON.stringify(check.issues, null, 2)).toBe(true);
+  });
 });

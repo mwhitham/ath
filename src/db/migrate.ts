@@ -1,4 +1,7 @@
 import { lstat, mkdir, open as openFile, unlink } from "node:fs/promises";
+import { repairProviderEncodingRows } from "./repair.js";
+import { withWriteTransaction } from "./transaction.js";
+import { incrementDatabaseRevision } from "./records.js";
 import { dirname } from "node:path";
 import type { Transaction } from "@libsql/client";
 import {
@@ -515,6 +518,26 @@ async function applyMigrationStep(
   if (step === undefined) {
     throw new Error(`No migration is registered for SQL schema version ${targetVersion}`);
   }
+  if (targetVersion === 2) {
+    await withWriteTransaction(database, async (transaction) => {
+      const repaired = await repairProviderEncodingRows(transaction);
+      if (repaired > 0) {
+        await incrementDatabaseRevision(transaction);
+      }
+      await transaction.execute({
+        sql: `
+          UPDATE database_metadata
+          SET sql_schema_version = ?
+          WHERE singleton_id = 1
+        `,
+        args: [targetVersion],
+      });
+      if (database.isLocal) {
+        await transaction.execute(`PRAGMA user_version = ${targetVersion}`);
+      }
+    });
+    return;
+  }
   throw new Error(
     `Migration ${step.file} is not implemented in this ath build (target SQL schema ${targetVersion})`,
   );
@@ -588,13 +611,31 @@ export async function executeConfirmedDatabaseMigration(
     throw new Error("Migration backup path is missing");
   }
 
+  const fileIdentity =
+    database.localPath === undefined
+      ? undefined
+      : await lstat(database.localPath, { bigint: true }).then((stat) => ({
+          device: stat.dev,
+          inode: stat.ino,
+        }));
   await createVerifiedSqliteBackup(database, database.localPath, backupPath, metadata);
+  if (fileIdentity !== undefined && database.localPath !== undefined) {
+    await assertSameFile(database.localPath, fileIdentity);
+  }
+  let walEnabled = false;
   try {
     await enableLocalWal(database);
+    walEnabled = true;
+    if (fileIdentity !== undefined && database.localPath !== undefined) {
+      await assertSameFile(database.localPath, fileIdentity);
+    }
     await applyPendingDatabaseMigrations(database);
   } catch (error) {
+    const detail = walEnabled
+      ? "WAL mode may already be enabled on the original database; restore from the backup if the file no longer opens cleanly."
+      : "The original database was not modified.";
     throw new Error(
-      `Migration failed after creating verified backup at ${backupPath}. The original database was not modified.`,
+      `Migration failed after creating verified backup at ${backupPath}. ${detail}`,
       { cause: error },
     );
   }

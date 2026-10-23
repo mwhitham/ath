@@ -72,7 +72,7 @@ describe("v1 database migration", () => {
     const path = await tempDatabasePath();
     const database = await createDatabase(path, { databaseId, createdAt });
     database.close();
-    vi.spyOn(clientModule, "SQL_SCHEMA_VERSION", "get").mockReturnValue(2 as 1);
+    vi.spyOn(clientModule, "SQL_SCHEMA_VERSION", "get").mockReturnValue(3 as 2);
     await expect(openDatabase(path)).rejects.toBeInstanceOf(MigrationRequiredError);
   });
 
@@ -103,7 +103,7 @@ describe("v1 database migration", () => {
     const path = await tempDatabasePath();
     const database = await createDatabase(path, { databaseId, createdAt });
     openDatabases.push(database);
-    vi.spyOn(clientModule, "SQL_SCHEMA_VERSION", "get").mockReturnValue(2 as 1);
+    vi.spyOn(clientModule, "SQL_SCHEMA_VERSION", "get").mockReturnValue(3 as 2);
     const metadata = await readDatabaseMetadata(database);
     await expect(executeConfirmedDatabaseMigration(database)).rejects.toThrow(
       /No ordered migration/,
@@ -265,11 +265,11 @@ describe("v1 database migration", () => {
     const path = await tempDatabasePath();
     const database = await createDatabase(path, { databaseId, createdAt });
     openDatabases.push(database);
-    vi.spyOn(clientModule, "SQL_SCHEMA_VERSION", "get").mockReturnValue(2 as 1);
+    vi.spyOn(clientModule, "SQL_SCHEMA_VERSION", "get").mockReturnValue(3 as 2);
     const preview = buildMigrationPreview(await readDatabaseMetadata(database), path);
     expect(preview.migration_needed).toBe(true);
-    expect(preview.source_sql_schema_version).toBe(1);
-    expect(preview.target_sql_schema_version).toBe(2);
+    expect(preview.source_sql_schema_version).toBe(2);
+    expect(preview.target_sql_schema_version).toBe(3);
     expect(preview.planned_steps).toEqual([]);
     expect(preview.planned_backup_path).toBeNull();
   });
@@ -284,12 +284,12 @@ describe("v1 database migration", () => {
     const backupPath = `${path}.migration-backup.declined.sqlite`;
     const preview: MigrationPreview = {
       migration_needed: true,
-      source_sql_schema_version: 1,
-      target_sql_schema_version: 2,
+      source_sql_schema_version: 2,
+      target_sql_schema_version: 3,
       database_id: databaseId,
       planned_steps: [{
-        target_sql_schema_version: 2,
-        migration_file: "migrations/002-test.sql",
+        target_sql_schema_version: 3,
+        migration_file: "migrations/003-test.sql",
         description: "test step",
       }],
       planned_backup_path: backupPath,

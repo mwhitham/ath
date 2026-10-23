@@ -25,7 +25,10 @@ Anyone who can read the database file can read the athlete record.
 
 ## Install
 
-Athletic Standard needs Node.js 20 or newer.
+Athletic Standard needs Node.js 22 or newer.
+
+SQL schema migration (`ath migrate`) uses the `sqlite3` command-line tool for verified
+backups. Install it and ensure it is on `PATH` before running a migration.
 
 ```sh
 npm install -g athleticstandard

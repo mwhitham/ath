@@ -68,9 +68,14 @@ CR1 and CR2 change the unreleased v1 schema. They must finish before v1.0.0 is
 published to npm. Release steps 11 and 12 remain blocked until CR1–CR9 and the
 cross-platform part of step 10 pass.
 
-npm `athleticstandard@1.0.0` is published. 1.1.0 is a package release of this
-format version: `ath migrate`, provider-import check, structured log envelope,
-default model path (`athlete.ath.model` beside `athlete.ath.sqlite`, not
-overwriting the database), and docs. The record format stays `1.0.0`.
-Remaining contribution-readiness steps continue on later package versions of
-the same format.
+npm `athleticstandard@1.0.0` is the latest published package on the registry.
+`main` carries npm `1.1.0` code (D130) preparing the next publish: migrate and
+repair for SQL schema 2, provider-encoding repair, durable export, Oura member-portal
+CSV, `ath repair`, default model path beside the database, structured log envelope,
+and docs. The record format stays `1.0.0`.
+
+Release step 10 cross-platform CI is wired to `v*` tags and `workflow_dispatch`
+(D141). Step 12 remains open until Mike publishes `1.1.0` to npm after review.
+
+Remaining contribution-readiness steps continue on later package versions of the same
+format.

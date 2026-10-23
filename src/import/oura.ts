@@ -10,7 +10,7 @@
 import type { HardSignalT } from "../schema.js";
 import type { ProviderReportingPeriodT } from "../v1/schema.js";
 import { countSkip, emptyPayload, type ImportPayload, type SourceBook } from "./merge.js";
-import { cell, num, parseCsv, positive, withOffset, type Row } from "./csv.js";
+import { cell, normalizeHeader, num, parseCsv, positive, withOffset, type Row } from "./csv.js";
 
 /** Measurements taken from a sleep row. Oura already reports durations in seconds. */
 const SLEEP_POINTS: { columns: string[]; type: string; unit: string }[] = [
@@ -67,6 +67,40 @@ function ouraTimestampReceipt(timestamp: string) {
           utc_offset_meaning: "meaning_not_documented" as const,
         }),
   };
+}
+
+function parseJsonNumber(value: string | undefined): number | undefined {
+  if (value === undefined) {
+    return undefined;
+  }
+  const trimmed = value.trim();
+  if (!trimmed.startsWith("{")) {
+    const direct = Number(trimmed.replace(/,/g, ""));
+    return Number.isFinite(direct) ? direct : undefined;
+  }
+  try {
+    const parsed = JSON.parse(trimmed) as Record<string, unknown>;
+    if (typeof parsed.average === "number" && Number.isFinite(parsed.average)) {
+      return parsed.average;
+    }
+    if (typeof parsed.score === "number" && Number.isFinite(parsed.score)) {
+      return parsed.score;
+    }
+  } catch {
+    return undefined;
+  }
+  return undefined;
+}
+
+function ouraScoreMetricFromFile(fileName: string): "readiness" | "sleep_score" | undefined {
+  const base = normalizeHeader(fileName.replace(/\.[^.]+$/, ""));
+  if (base.includes("readiness")) {
+    return "readiness";
+  }
+  if (base.includes("sleep") && !base.includes("sleepmodel") && !base.includes("heartrate")) {
+    return "sleep_score";
+  }
+  return undefined;
 }
 
 function ouraPeriod(
@@ -127,6 +161,25 @@ function importRows(rows: Row[], sourceId: string, payload: ImportPayload, name:
       continue;
     }
     used++;
+
+    const spo2FromJson = parseJsonNumber(cell(row, "spo2_percentage", "Average SpO2", "spo2"));
+    if (spo2FromJson !== undefined && spo2FromJson > 0) {
+      const signal = {
+        type: "oxygen_saturation",
+        value: Math.round(spo2FromJson * 100) / 100,
+        unit: "%",
+        recorded_at: anchor,
+        source: sourceId,
+      } as unknown as HardSignalT;
+      payload.inputReceipts.set(signal, {
+        input_value: spo2FromJson,
+        input_unit: "%",
+        ...(unspecifiedPeriods === undefined
+          ? {}
+          : { provider_reporting_periods: unspecifiedPeriods }),
+      });
+      payload.hardSignals.push(signal);
+    }
 
     for (const mapping of SLEEP_POINTS) {
       const value = positive(row, ...mapping.columns);
@@ -221,6 +274,34 @@ function importRows(rows: Row[], sourceId: string, payload: ImportPayload, name:
       payload.hardSignals.push(session);
     }
 
+    const fileScoreMetric = ouraScoreMetricFromFile(name);
+    if (fileScoreMetric !== undefined) {
+      const value = num(row, "score", "Score");
+      if (value !== undefined) {
+        const signal: HardSignalT = {
+          type: "vendor_score",
+          metric: fileScoreMetric,
+          value,
+          scale: "0-100",
+          recorded_at: anchor,
+          source: sourceId,
+        };
+        const periodType =
+          fileScoreMetric === "sleep_score" ? "oura_sleep_day" : "oura_day_unspecified";
+        const periods =
+          periodType === "oura_sleep_day" ? sleepPeriods : unspecifiedPeriods;
+        payload.inputReceipts.set(signal, {
+          ...(bedtimeEndText === undefined
+            ? {}
+            : { input_timestamp: ouraTimestampReceipt(bedtimeEndText) }),
+          input_value: value,
+          input_unit_missing_reason: "not_provided_by_source",
+          ...(periods === undefined ? {} : { provider_reporting_periods: periods }),
+        });
+        payload.hardSignals.push(signal);
+      }
+    }
+
     for (const score of VENDOR_SCORES) {
       const value = num(row, ...score.columns);
       if (value === undefined) continue;
@@ -257,8 +338,26 @@ function importRows(rows: Row[], sourceId: string, payload: ImportPayload, name:
       payload.hardSignals.push(signal);
     }
 
+    const contributorsJson = cell(row, "contributors");
+    const contributorValues = new Map<string, number>();
+    if (contributorsJson !== undefined && contributorsJson.startsWith("{")) {
+      try {
+        const parsed = JSON.parse(contributorsJson) as Record<string, unknown>;
+        for (const contributor of CONTRIBUTORS) {
+          const value = parsed[contributor];
+          if (typeof value === "number" && Number.isFinite(value)) {
+            contributorValues.set(contributor, value);
+          }
+        }
+      } catch {
+        countSkip(payload, `${name}: contributors cell is not valid JSON`);
+      }
+    }
+
     for (const contributor of CONTRIBUTORS) {
-      const value = num(row, `contributor_${contributor}`, `contributors_${contributor}`);
+      const value =
+        contributorValues.get(contributor) ??
+        num(row, `contributor_${contributor}`, `contributors_${contributor}`);
       if (value === undefined) continue;
       const signal: HardSignalT = {
         type: "vendor_score",

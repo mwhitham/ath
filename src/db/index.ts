@@ -62,6 +62,11 @@ export {
   type DatabaseCheckResult,
 } from "./check.js";
 export {
+  countProviderEncodingRepairCandidates,
+  repairProviderEncoding,
+  type ProviderEncodingRepairResult,
+} from "./repair.js";
+export {
   databaseStats,
   renderDatabaseStats,
   type BaselineStats,

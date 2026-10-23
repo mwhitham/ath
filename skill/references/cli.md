@@ -15,6 +15,7 @@ is offered, it shows the write and writes nothing.
 - [ath skill](#ath-skill) — where the agent skill is installed, and whether each copy is current
 - [ath skill install](#ath-skill-install) — copy the skill into .agents/skills and every harness folder here
 - [ath migrate](#ath-migrate) — preview and apply a SQL schema migration after a verified backup
+- [ath repair](#ath-repair) — repair typed-table JSON bytes left by npm 1.0.0 provider imports
 - [ath import](#ath-import) — preview and import a v1 package or Apple Health, WHOOP, or Oura export
 - [ath conflicts](#ath-conflicts) — review and resolve the temporary conflicts from a package import
 - [ath conflicts show](#ath-conflicts-show) — show complete local and imported values from the current conflict preview
@@ -58,6 +59,7 @@ Set up:
   init [options]                              create a new athlete.ath.sqlite here, with the well-known benchmarks defined
   skill [options]                             where the agent skill is installed, and whether each copy is current
   migrate [options] [file]                    preview and apply a SQL schema migration after a verified backup
+  repair [options] [file]                     repair typed-table JSON bytes left by npm 1.0.0 provider imports
   key [options]                               save or show a gateway key — never stored in the athlete file
   models [options]                            list live text models that can reason, or save your usual one
 
@@ -159,6 +161,24 @@ Options:
   --json                             structured preview; never confirms the
                                      migration
   -h, --help                         display help for command
+```
+
+## ath repair
+
+```
+Usage: ath repair [options] [file]
+
+repair typed-table JSON bytes left by npm 1.0.0 provider imports
+
+Arguments:
+  file           the database to repair (default: the one in this folder)
+
+Options:
+  --file <path>  repair a database other than the one in this folder
+  -y, --yes      apply the repair after reviewing the preview
+  --dry-run      show how many records would change and write nothing
+  --json         structured preview only
+  -h, --help     display help for command
 ```
 
 ## ath import

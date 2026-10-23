@@ -23,7 +23,7 @@ function requireSqlite3Cli(): void {
   const probe = spawnSync("sqlite3", [":memory:", "SELECT 1;"], { encoding: "utf8" });
   if (probe.status !== 0) {
     throw new Error(
-      "SQLite backup requires the sqlite3 command-line tool. Install SQLite 3.45 or newer.",
+      "SQLite backup requires the sqlite3 command-line tool on PATH.",
     );
   }
 }

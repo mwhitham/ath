@@ -6,7 +6,7 @@ import { createClient, type Client, type ResultSet } from "@libsql/client";
 export const SQLITE_APPLICATION_ID = 0x41544831;
 export const SQLITE_APPLICATION_MARKER = "ATH1";
 export const SQLITE_BUSY_TIMEOUT_MS = 5_000;
-export const SQL_SCHEMA_VERSION = 1;
+export const SQL_SCHEMA_VERSION = 2;
 
 export interface AthleticDatabase {
   readonly url: string;

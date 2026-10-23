@@ -1286,3 +1286,103 @@ Rejected alternatives:
   required before the first v1 npm publish and does not depend on #15 landing first.
 - **Implement without recording the plan text.** Rejected because build-history must
   contain the approved decisions and specification before or as the build happens.
+
+## D130. npm package 1.1.0 ships while `athleticstandard_version` stays 1.0.0
+
+The npm package version tracks CLI and packaging behavior. `athleticstandard_version`
+in the database and JSON package tracks athlete-owned record content. Release 1.1.0
+changes migrate, repair, import, and export behavior without changing the public v1
+record schema, so the format version remains `1.0.0`.
+
+Rejected alternatives:
+
+- **Bump the format version to 1.1.0.** Rejected because no normative field or record
+  type changed in `src/v1/schema.ts`.
+- **Keep npm at 1.0.0 while changing migrate behavior.** Rejected because published
+  1.0.0 already contains the default-model path bug and cannot be overwritten in place.
+
+## D131. SQL schema version 2 repairs npm 1.0.0 provider-import typed-table bytes
+
+npm 1.0.0 could write `data_json` with a different key order than
+`record_revisions.record_json` for the same logical record. `ath check` compares those
+columns byte for byte. SQL schema version 2 runs a one-time repair that copies
+`record_json` into `data_json` when the parsed JSON matches, then bumps
+`sql_schema_version` and `PRAGMA user_version` to 2.
+
+Rejected alternatives:
+
+- **Require export, empty init, and import.** Rejected as the only path because it is
+  slow, easy to skip, and was untested in CI.
+- **Stop byte comparison in `ath check`.** Rejected because direct-SQL writers rely on
+  the typed tables matching the current revision bytes.
+
+## D132. `ath repair` for encoding repair without a schema bump
+
+`ath repair` previews and applies the same typed-table repair as migration step 2 when
+the SQL schema is already current. It opens with `allowOutdatedSchema` so a database
+that still needs SQL schema 2 can be repaired after an explicit migrate.
+
+## D133. Migration backup uses inode checks and honest WAL failure text
+
+After a verified `sqlite3` backup, `executeConfirmedDatabaseMigration` re-checks the
+database file inode before enabling WAL and before applying migrations. If migration
+fails after WAL was enabled, the error message says WAL may already be on and points
+to the backup instead of claiming the file was untouched.
+
+## D134. Interactive open uses the same confirmed migration path as `ath migrate`
+
+Interactive open now asks for the database ID, then calls
+`executeConfirmedDatabaseMigration` instead of duplicating backup and migration steps
+in the CLI layer.
+
+## D135. Package export uses locale-independent key order and durable writes
+
+Export JSON sorts object keys with UTF-8 byte order, not `localeCompare`. Package
+files are written through a temporary file, `fsync`, and `rename` so a crash cannot
+leave a half-written package in the destination directory.
+
+## D136. Oura member-portal CSV columns (`score`, JSON `contributors`, JSON SpO2)
+
+The Oura importer accepts `score` in daily readiness and sleep exports, parses JSON
+`contributors` cells, and reads `spo2_percentage.average` from JSON object cells.
+
+## D137. Document the `sqlite3` CLI dependency for migration backup
+
+README and `skill/references/cli.md` state that `ath migrate` needs the `sqlite3`
+command on `PATH`. The backup error no longer claims a minimum SQLite version that
+the tool does not enforce.
+
+## D138. Remove unreachable prerelease JSON runtime modules
+
+Modules only referenced by excluded 0.x JSON tests and unused import paths were
+removed from `src/`. The live CLI path still uses `src/import/*` for provider parsing
+and `src/v1/schema.ts` for records.
+
+## D139. Split CLI runtime and preview rendering out of `src/program.ts`
+
+Shared terminal prompts, database open helpers, and import preview rendering moved to
+`src/cli/runtime.ts` and `src/cli/preview-render.ts`. `buildProgram()` remains the
+command registry.
+
+## D140. CI runs on Node.js 22 and 24
+
+Pull-request CI uses Node 22 and 24. The package `engines` field requires Node 22 or
+newer.
+
+## D141. Cross-platform release workflow accepts any `v*` tag
+
+`release-cross-platform.yml` triggers on `workflow_dispatch` and on tags matching `v*`
+so releases are not blocked on a single historical tag pattern.
+
+## D142. Record prior build-history folder violations without rewriting old folders
+
+Earlier pull requests #3, #4, #6, #10, #12, #14, and #25 diverged from
+`build-history/README.md` in ways this entry does not undo. #25 published npm 1.1.0
+code without a matching build-history folder at merge time. v1.0.0 `progress.md` still
+lists release gates that 1.0.0 passed without cross-platform CI; that waiver is noted
+here rather than rewriting the step table in place.
+
+## D143. Draft pull requests #20 and #31 may renumber D-numbers later
+
+This release continues D-numbers from D129 on `main`. Open drafts already claim
+overlapping ranges and should renumber when they merge; merged history is not rewritten.

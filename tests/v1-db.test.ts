@@ -129,7 +129,7 @@ describe("v1 database creation and opening", () => {
     expect(await readUserVersion(database)).toBe(SQL_SCHEMA_VERSION);
     expect(await readDatabaseMetadata(database)).toEqual({
       application_marker: "ATH1",
-      sql_schema_version: 1,
+      sql_schema_version: 2,
       athleticstandard_version: "1.0.0",
       database_id: databaseId,
       created_at: createdAt,
@@ -273,7 +273,7 @@ describe("v1 database creation and opening", () => {
 
   it("refuses a local user_version that disagrees with metadata", async () => {
     const { database, path } = await newDatabase();
-    await databaseClient(database).execute("PRAGMA user_version = 2");
+    await databaseClient(database).execute("PRAGMA user_version = 1");
     database.close();
     openDatabases.pop();
     await expect(openDatabase(path)).rejects.toThrow("does not match");

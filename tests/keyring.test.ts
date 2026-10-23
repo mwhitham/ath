@@ -13,13 +13,30 @@ import {
 } from "../src/keyring.js";
 
 const store = new MemorySecretStore();
+const savedEnv = {
+  AI_GATEWAY_API_KEY: process.env.AI_GATEWAY_API_KEY,
+  VERCEL_AI_GATEWAY_API_KEY: process.env.VERCEL_AI_GATEWAY_API_KEY,
+  OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
+};
 
 afterEach(() => {
   useSecretStore(undefined);
   usePromptSecret(undefined);
-  delete process.env.AI_GATEWAY_API_KEY;
-  delete process.env.VERCEL_AI_GATEWAY_API_KEY;
-  delete process.env.OPENROUTER_API_KEY;
+  if (savedEnv.AI_GATEWAY_API_KEY === undefined) {
+    delete process.env.AI_GATEWAY_API_KEY;
+  } else {
+    process.env.AI_GATEWAY_API_KEY = savedEnv.AI_GATEWAY_API_KEY;
+  }
+  if (savedEnv.VERCEL_AI_GATEWAY_API_KEY === undefined) {
+    delete process.env.VERCEL_AI_GATEWAY_API_KEY;
+  } else {
+    process.env.VERCEL_AI_GATEWAY_API_KEY = savedEnv.VERCEL_AI_GATEWAY_API_KEY;
+  }
+  if (savedEnv.OPENROUTER_API_KEY === undefined) {
+    delete process.env.OPENROUTER_API_KEY;
+  } else {
+    process.env.OPENROUTER_API_KEY = savedEnv.OPENROUTER_API_KEY;
+  }
 });
 
 describe("the password store, never the athlete file (D75)", () => {

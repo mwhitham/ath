@@ -247,6 +247,12 @@ export const MIGRATION_CHAIN = [
     file: "migrations/001-initial.sql",
     description: "Initial Athletic Standard v1 schema, enforcement triggers, and stable read views.",
   },
+  {
+    version: 2,
+    file: "migrations/002-provider-encoding-repair.sql",
+    description:
+      "Repair typed-table JSON bytes after npm 1.0.0 provider imports without changing record content.",
+  },
 ] as const;
 
 export function publishedMigrationSql(): string {
