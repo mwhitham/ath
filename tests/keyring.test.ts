@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
   MemorySecretStore,
   clearKey,
@@ -18,6 +18,12 @@ const savedEnv = {
   VERCEL_AI_GATEWAY_API_KEY: process.env.VERCEL_AI_GATEWAY_API_KEY,
   OPENROUTER_API_KEY: process.env.OPENROUTER_API_KEY,
 };
+
+beforeEach(() => {
+  delete process.env.AI_GATEWAY_API_KEY;
+  delete process.env.VERCEL_AI_GATEWAY_API_KEY;
+  delete process.env.OPENROUTER_API_KEY;
+});
 
 afterEach(() => {
   useSecretStore(undefined);

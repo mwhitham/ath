@@ -92,17 +92,6 @@ function parseJsonNumber(value: string | undefined): number | undefined {
   return undefined;
 }
 
-function ouraScoreMetricFromFile(fileName: string): "readiness" | "sleep_score" | undefined {
-  const base = normalizeHeader(fileName.replace(/\.[^.]+$/, ""));
-  if (base.includes("readiness")) {
-    return "readiness";
-  }
-  if (base.includes("sleep") && !base.includes("sleepmodel") && !base.includes("heartrate")) {
-    return "sleep_score";
-  }
-  return undefined;
-}
-
 function ouraPeriod(
   day: string | undefined,
   periodType:
@@ -162,35 +151,44 @@ function importRows(rows: Row[], sourceId: string, payload: ImportPayload, name:
     }
     used++;
 
-    const spo2FromJson = parseJsonNumber(cell(row, "spo2_percentage", "Average SpO2", "spo2"));
-    if (spo2FromJson !== undefined && spo2FromJson > 0) {
-      const signal = {
-        type: "oxygen_saturation",
-        value: Math.round(spo2FromJson * 100) / 100,
-        unit: "%",
-        recorded_at: anchor,
-        source: sourceId,
-      } as unknown as HardSignalT;
-      payload.inputReceipts.set(signal, {
-        input_value: spo2FromJson,
-        input_unit: "%",
-        ...(unspecifiedPeriods === undefined
-          ? {}
-          : { provider_reporting_periods: unspecifiedPeriods }),
-      });
-      payload.hardSignals.push(signal);
+    const spo2Cell = cell(row, "spo2_percentage", "Average SpO2", "spo2");
+    if (spo2Cell !== undefined && spo2Cell.startsWith("{")) {
+      const spo2FromJson = parseJsonNumber(spo2Cell);
+      if (spo2FromJson !== undefined && spo2FromJson > 0) {
+        const signal: HardSignalT = {
+          type: "oxygen_saturation",
+          value: Math.round(spo2FromJson * 100) / 100,
+          unit: "%",
+          recorded_at: anchor,
+          source: sourceId,
+        };
+        payload.inputReceipts.set(signal, {
+          input_value: spo2FromJson,
+          input_unit: "%",
+          ...(unspecifiedPeriods === undefined
+            ? {}
+            : { provider_reporting_periods: unspecifiedPeriods }),
+        });
+        payload.hardSignals.push(signal);
+      }
     }
 
     for (const mapping of SLEEP_POINTS) {
+      if (mapping.type === "oxygen_saturation") {
+        const raw = cell(row, ...mapping.columns);
+        if (raw !== undefined && raw.trim().startsWith("{")) {
+          continue;
+        }
+      }
       const value = positive(row, ...mapping.columns);
       if (value === undefined) continue;
-      const signal = {
-        type: mapping.type,
+      const signal: HardSignalT = {
+        type: mapping.type as HardSignalT["type"],
         value: Math.round(value * 100) / 100,
         unit: mapping.unit,
         recorded_at: anchor,
         source: sourceId,
-      } as unknown as HardSignalT;
+      } as HardSignalT;
       payload.inputReceipts.set(signal, {
         ...(bedtimeEndText === undefined
           ? {}
@@ -274,32 +272,51 @@ function importRows(rows: Row[], sourceId: string, payload: ImportPayload, name:
       payload.hardSignals.push(session);
     }
 
-    const fileScoreMetric = ouraScoreMetricFromFile(name);
-    if (fileScoreMetric !== undefined) {
-      const value = num(row, "score", "Score");
-      if (value !== undefined) {
-        const signal: HardSignalT = {
-          type: "vendor_score",
-          metric: fileScoreMetric,
-          value,
-          scale: "0-100",
-          recorded_at: anchor,
-          source: sourceId,
-        };
-        const periodType =
-          fileScoreMetric === "sleep_score" ? "oura_sleep_day" : "oura_day_unspecified";
-        const periods =
-          periodType === "oura_sleep_day" ? sleepPeriods : unspecifiedPeriods;
-        payload.inputReceipts.set(signal, {
-          ...(bedtimeEndText === undefined
-            ? {}
-            : { input_timestamp: ouraTimestampReceipt(bedtimeEndText) }),
-          input_value: value,
-          input_unit_missing_reason: "not_provided_by_source",
-          ...(periods === undefined ? {} : { provider_reporting_periods: periods }),
-        });
-        payload.hardSignals.push(signal);
-      }
+    const memberPortalScore = num(row, "score", "Score");
+    const hasContributorsColumn = cell(row, "contributors") !== undefined;
+    const hasSleepShape =
+      bedtimeStartText !== undefined ||
+      bedtimeEndText !== undefined ||
+      cell(row, "total_sleep_duration", "Total Sleep Duration") !== undefined;
+    if (memberPortalScore !== undefined && hasContributorsColumn) {
+      const signal: HardSignalT = {
+        type: "vendor_score",
+        metric: "readiness",
+        value: memberPortalScore,
+        scale: "0-100",
+        recorded_at: anchor,
+        source: sourceId,
+      };
+      payload.inputReceipts.set(signal, {
+        input_value: memberPortalScore,
+        input_unit_missing_reason: "not_provided_by_source",
+        ...(unspecifiedPeriods === undefined
+          ? {}
+          : { provider_reporting_periods: unspecifiedPeriods }),
+      });
+      payload.hardSignals.push(signal);
+    } else if (
+      memberPortalScore !== undefined &&
+      !hasContributorsColumn &&
+      !hasSleepShape &&
+      cell(row, "day", "date", "summary_date") !== undefined
+    ) {
+      const signal: HardSignalT = {
+        type: "vendor_score",
+        metric: "sleep_score",
+        value: memberPortalScore,
+        scale: "0-100",
+        recorded_at: anchor,
+        source: sourceId,
+      };
+      payload.inputReceipts.set(signal, {
+        input_value: memberPortalScore,
+        input_unit_missing_reason: "not_provided_by_source",
+        ...(sleepPeriods === undefined
+          ? {}
+          : { provider_reporting_periods: sleepPeriods }),
+      });
+      payload.hardSignals.push(signal);
     }
 
     for (const score of VENDOR_SCORES) {
@@ -343,15 +360,27 @@ function importRows(rows: Row[], sourceId: string, payload: ImportPayload, name:
     if (contributorsJson !== undefined && contributorsJson.startsWith("{")) {
       try {
         const parsed = JSON.parse(contributorsJson) as Record<string, unknown>;
-        for (const contributor of CONTRIBUTORS) {
-          const value = parsed[contributor];
-          if (typeof value === "number" && Number.isFinite(value)) {
-            contributorValues.set(contributor, value);
+        for (const [key, value] of Object.entries(parsed)) {
+          if (CONTRIBUTORS.includes(key)) {
+            if (typeof value === "number" && Number.isFinite(value)) {
+              contributorValues.set(key, value);
+            }
+          } else if (typeof value === "number" && Number.isFinite(value)) {
+            countSkip(payload, `${name}: contributor column ${key}`);
           }
         }
       } catch {
         countSkip(payload, `${name}: contributors cell is not valid JSON`);
       }
+    }
+
+    const resilienceScore = num(row, "resilience_score", "Resilience Score", "resilience");
+    if (resilienceScore !== undefined) {
+      countSkip(payload, `${name}: resilience score column`);
+    }
+    const sleepContributorsJson = cell(row, "sleep_contributors", "Sleep Contributors");
+    if (sleepContributorsJson !== undefined && sleepContributorsJson.trim() !== "") {
+      countSkip(payload, `${name}: sleep contributors column`);
     }
 
     for (const contributor of CONTRIBUTORS) {

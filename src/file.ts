@@ -1,13 +1,10 @@
 /**
  * Find the live SQLite athlete database.
  *
- * The JSON helpers remain private compatibility code while commands are moved to
- * the v1 database. New commands must not treat a JSON export as the live record.
+ * New commands must not treat a JSON export as the live record.
  */
-import { readdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readdirSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
-import { AthleticStandardFile, type AthleticStandardFileT } from "./schema.js";
-import { validateAthleticStandardFile } from "./validate.js";
 
 export const FILE_SUFFIX = ".ath.sqlite";
 export const DEFAULT_FILENAME = `athlete${FILE_SUFFIX}`;
@@ -57,38 +54,3 @@ export function findFile(explicitPath?: string, cwd = process.cwd()): string {
   );
 }
 
-/** Load without validating (callers that validate should use `check`-style flows). */
-export function loadFileRaw(path: string): unknown {
-  if (path.endsWith(FILE_SUFFIX)) {
-    throw new Error(
-      `this command has not been moved to the v1 SQLite database yet. Nothing was written.`,
-    );
-  }
-  return JSON.parse(readFileSync(path, "utf8"));
-}
-
-/**
- * Load and parse through the schema; throws with a readable message on failure.
- *
- * The message comes from the same explanation `ath check` gives, because a bare Zod
- * union failure says only "Invalid input" — which tells the reader nothing about a
- * file they are expected to be able to edit by hand.
- */
-export function loadFile(path: string): AthleticStandardFileT {
-  const raw = loadFileRaw(path);
-  const parsed = AthleticStandardFile.safeParse(raw);
-  if (!parsed.success) {
-    const first = validateAthleticStandardFile(raw).issues.find((i) => i.severity === "error");
-    throw new Error(
-      `${path} is not a valid Athletic Standard file.\n` +
-        `  ${first?.path ?? "root"}: ${first?.message ?? "unreadable"}\n` +
-        `Run \`ath check\` for the full list.`,
-    );
-  }
-  return parsed.data;
-}
-
-/** Stable field order + trailing newline, so files diff cleanly under git. */
-export function saveFile(path: string, file: AthleticStandardFileT): void {
-  writeFileSync(path, JSON.stringify(file, null, 2) + "\n");
-}

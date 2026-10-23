@@ -81,7 +81,7 @@ import {
   deleteRecord,
   eraseRecord,
   executeConfirmedDatabaseMigration,
-  repairProviderEncoding,
+  executeConfirmedProviderEncodingRepair,
   countProviderEncodingRepairCandidates,
   exportRecords,
   inspectDatabase,
@@ -469,6 +469,10 @@ export function buildProgram(): Command {
     .command("repair")
     .helpGroup(GROUPS.setUp)
     .description("repair typed-table JSON bytes left by npm 1.0.0 provider imports")
+    .addHelpText(
+      "after",
+      "Requires the `sqlite3` command-line tool on PATH when repair candidates exist (verified backup before write).",
+    )
     .argument("[file]", "the database to repair (default: the one in this folder)")
     .option("--file <path>", "repair a database other than the one in this folder")
     .option("-y, --yes", "apply the repair after reviewing the preview")
@@ -510,14 +514,18 @@ export function buildProgram(): Command {
           console.log("nothing repaired; pass --yes after reviewing this preview");
           return;
         }
-        if (!(await confirmWrite(opts, "Repair typed-table JSON bytes in this database?"))) {
-          console.log("nothing repaired");
-          return;
+        try {
+          const result = await executeConfirmedProviderEncodingRepair(database);
+          const backupNote =
+            result.backup_path === ""
+              ? ""
+              : ` with verified backup at ${result.backup_path}`;
+          console.log(
+            `repaired ${result.repaired_record_count} record(s); database revision ${result.database_revision}${backupNote}`,
+          );
+        } catch (error) {
+          return fail((error as Error).message);
         }
-        const result = await repairProviderEncoding(database);
-        console.log(
-          `repaired ${result.repaired_record_count} record(s); database revision ${result.database_revision}`,
-        );
       } finally {
         database.close();
       }

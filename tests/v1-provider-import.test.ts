@@ -829,6 +829,25 @@ describe("v1 provider import", () => {
     });
   });
 
+  it("imports one SpO2 point per row for flat and JSON Oura cells", async () => {
+    const database = await emptyDatabase();
+    const preview = await previewProviderImport(database, join(fixtures, "oura-spo2"), {
+      received_at: receivedAt,
+    });
+    expect(preview.provider).toBe("oura");
+    await importProviderRecords(database, preview);
+    const spo2 = await listRecords(database, {
+      record_type: "point_measurement",
+      limit: 10_000,
+    });
+    const oxygen = spo2.filter(
+      (record) =>
+        record.record_type === "point_measurement" &&
+        record.data.quantity === "oxygen_saturation",
+    );
+    expect(oxygen).toHaveLength(4);
+  });
+
   it("imports Oura member-portal CSV scores and readiness contributors", async () => {
     const database = await emptyDatabase();
     const preview = await previewProviderImport(database, join(fixtures, "oura-member-portal"), {

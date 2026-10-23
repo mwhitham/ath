@@ -55,13 +55,19 @@ const OURA_MARKERS = [
   "total_sleep_duration",
   "lowest_heart_rate",
   "readiness_score",
-  "score",
   "contributors",
 ];
 
 function isOuraHeader(header: string): boolean {
   const normalized = header.toLowerCase().replace(/\s+/g, "_");
-  return OURA_MARKERS.some((m) => normalized.includes(m));
+  if (OURA_MARKERS.some((marker) => normalized.includes(marker))) {
+    return true;
+  }
+  const columns = normalized
+    .split(/[;,]/)
+    .map((part) => part.trim())
+    .filter((part) => part.length > 0);
+  return columns.includes("day") && columns.includes("score") && columns.length === 2;
 }
 
 function firstLine(path: string): string {

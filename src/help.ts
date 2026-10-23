@@ -188,7 +188,10 @@ Examples:
 
 Migration never runs silently. A verified SQLite backup is created before the
 first schema write. Non-interactive commands refuse an outdated database and
-point here.`,
+point here.
+
+Requires the \`sqlite3\` command-line tool on PATH for verified backups (same as
+\`ath repair\` when repair candidates exist).`,
 
   export: `
 Examples:

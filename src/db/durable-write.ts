@@ -13,6 +13,17 @@ export async function writeOwnerOnlyDurable(path: string, bytes: Uint8Array): Pr
     await file.close();
   }
   await rename(temporary, path);
+  await syncParentDirectory(directory);
+}
+
+/**
+ * Directory fsync keeps renames durable on Unix. Node throws EINVAL on Windows,
+ * where the file fsync above is enough for a single-file write.
+ */
+export async function syncParentDirectory(directory: string): Promise<void> {
+  if (process.platform === "win32") {
+    return;
+  }
   const directoryHandle = await open(directory, "r");
   try {
     await directoryHandle.sync();

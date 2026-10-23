@@ -53,6 +53,14 @@ const approvedSyntheticFixtures = new Map<string, string>([
     "d7cb830bfd08717aaf7038ce7b6b4e0586d24ad58748a998a131b357554361aa",
   ],
   [
+    "tests/fixtures/exports/oura-spo2/oura_sleep_spo2_flat.csv",
+    "3e7aaefc6b60bca8f9120bb60020aa61f15c3b989c80848935d6bac0e4429ce7",
+  ],
+  [
+    "tests/fixtures/exports/oura-spo2/oura_sleep_spo2_json.csv",
+    "949053c0c1503dbabd6773acd2813888c9d9ff360588fca2e253443476632902",
+  ],
+  [
     "tests/fixtures/exports/whoop/journal_entries.csv",
     "db60258f8c69f115afe427fdc442e6c97c85b9cc96b3d086e5aabc52157701d9",
   ],

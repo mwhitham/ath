@@ -34,7 +34,7 @@ set:
 
 ```sql
 PRAGMA application_id = 0x41544831;
-PRAGMA user_version = 1;
+PRAGMA user_version = <sql_schema_version>;
 ```
 
 `application_id` marks the file as Athletic Standard (`ATH1`). `user_version` must
@@ -61,6 +61,7 @@ Then run the record steps below and `COMMIT`. On failure, `ROLLBACK`.
 | Order | File | `sql_schema_version` after apply |
 |---|---|---|
 | 1 | `migrations/001-initial.sql` | 1 |
+| 2 | `migrations/002-provider-encoding-repair.sql` | 2 |
 
 Rules:
 
@@ -69,11 +70,15 @@ Rules:
 - After `001-initial.sql`, the runner inserts one `database_metadata` row and one
   `database_state` row, then sets the file header pragmas above. The runner supplies
   `database_id` and `created_at`. They are not embedded in the SQL file.
+- Migration `002-provider-encoding-repair.sql` copies `record_revisions.record_json`
+  into typed-table `data_json` rows where the stored text differs (npm 1.0.0
+  provider imports left key-order-only mismatches, including nested objects). The
+  runner bumps `database_state.current_revision` when at least one row changes.
 - Roll back the transaction on failure. A failed migration must leave the prior file
   usable.
 
-Forward upgrades from earlier published SQL versions will be added here when they
-exist. v1.0.0 ships only schema version 1.
+npm `athleticstandard@1.0.0` ships SQL schema version 1. npm `1.1.0` adds migration
+002 for existing databases created by `1.0.0`.
 
 ## Stable read views
 

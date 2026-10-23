@@ -1,5 +1,6 @@
 import { lstat, mkdir, open as openFile, unlink } from "node:fs/promises";
-import { repairProviderEncodingRows } from "./repair.js";
+import { PROVIDER_ENCODING_REPAIR_SQL } from "./migrations/002-provider-encoding-repair.js";
+import { countProviderEncodingRepairCandidates } from "./repair.js";
 import { withWriteTransaction } from "./transaction.js";
 import { incrementDatabaseRevision } from "./records.js";
 import { dirname } from "node:path";
@@ -519,23 +520,16 @@ async function applyMigrationStep(
     throw new Error(`No migration is registered for SQL schema version ${targetVersion}`);
   }
   if (targetVersion === 2) {
+    const repairCandidates = await countProviderEncodingRepairCandidates(database);
     await withWriteTransaction(database, async (transaction) => {
-      const repaired = await repairProviderEncodingRows(transaction);
-      if (repaired > 0) {
+      await transaction.executeMultiple(PROVIDER_ENCODING_REPAIR_SQL);
+      if (repairCandidates > 0) {
         await incrementDatabaseRevision(transaction);
       }
-      await transaction.execute({
-        sql: `
-          UPDATE database_metadata
-          SET sql_schema_version = ?
-          WHERE singleton_id = 1
-        `,
-        args: [targetVersion],
-      });
-      if (database.isLocal) {
-        await transaction.execute(`PRAGMA user_version = ${targetVersion}`);
-      }
     });
+    if (database.isLocal) {
+      await databaseClient(database).execute(`PRAGMA user_version = ${targetVersion}`);
+    }
     return;
   }
   throw new Error(
@@ -618,9 +612,28 @@ export async function executeConfirmedDatabaseMigration(
           device: stat.dev,
           inode: stat.ino,
         }));
+  const revisionBefore = Number(
+    (
+      await databaseClient(database).execute(
+        "SELECT current_revision FROM database_state WHERE singleton_id = 1",
+      )
+    ).rows[0]?.current_revision,
+  );
   await createVerifiedSqliteBackup(database, database.localPath, backupPath, metadata);
   if (fileIdentity !== undefined && database.localPath !== undefined) {
     await assertSameFile(database.localPath, fileIdentity);
+  }
+  const revisionAfterBackup = Number(
+    (
+      await databaseClient(database).execute(
+        "SELECT current_revision FROM database_state WHERE singleton_id = 1",
+      )
+    ).rows[0]?.current_revision,
+  );
+  if (revisionAfterBackup !== revisionBefore) {
+    throw new Error(
+      "Database revision changed during migration backup; stop other writers and retry",
+    );
   }
   let walEnabled = false;
   try {
@@ -629,11 +642,39 @@ export async function executeConfirmedDatabaseMigration(
     if (fileIdentity !== undefined && database.localPath !== undefined) {
       await assertSameFile(database.localPath, fileIdentity);
     }
+    const revisionBeforeMigrate = Number(
+      (
+        await databaseClient(database).execute(
+          "SELECT current_revision FROM database_state WHERE singleton_id = 1",
+        )
+      ).rows[0]?.current_revision,
+    );
+    if (revisionBeforeMigrate !== revisionBefore) {
+      throw new Error("Database revision changed before migration could start");
+    }
     await applyPendingDatabaseMigrations(database);
   } catch (error) {
-    const detail = walEnabled
-      ? "WAL mode may already be enabled on the original database; restore from the backup if the file no longer opens cleanly."
-      : "The original database was not modified.";
+    const revisionAfterFailure = Number(
+      (
+        await databaseClient(database).execute(
+          "SELECT current_revision FROM database_state WHERE singleton_id = 1",
+        )
+      ).rows[0]?.current_revision,
+    );
+    const cause =
+      error instanceof Error
+        ? error.message
+        : "migration step failed";
+    const changed = revisionAfterFailure !== revisionBefore;
+    let detail = `Cause: ${cause}.`;
+    if (changed) {
+      detail += " The database revision changed; restore from the verified backup.";
+    } else if (walEnabled) {
+      detail +=
+        " The database revision did not change; WAL mode may be enabled on the file.";
+    } else {
+      detail += " The database revision did not change.";
+    }
     throw new Error(
       `Migration failed after creating verified backup at ${backupPath}. ${detail}`,
       { cause: error },

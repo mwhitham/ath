@@ -19,6 +19,10 @@ export function defaultMigrationBackupPath(databasePath: string, now = new Date(
   return `${databasePath}.migration-backup.${formatMigrationBackupTimestamp(now)}.sqlite`;
 }
 
+export function defaultRepairBackupPath(databasePath: string, now = new Date()): string {
+  return `${databasePath}.repair-backup.${formatMigrationBackupTimestamp(now)}.sqlite`;
+}
+
 function requireSqlite3Cli(): void {
   const probe = spawnSync("sqlite3", [":memory:", "SELECT 1;"], { encoding: "utf8" });
   if (probe.status !== 0) {

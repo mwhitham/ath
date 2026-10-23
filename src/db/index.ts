@@ -63,7 +63,9 @@ export {
 } from "./check.js";
 export {
   countProviderEncodingRepairCandidates,
+  executeConfirmedProviderEncodingRepair,
   repairProviderEncoding,
+  type ConfirmedProviderRepairResult,
   type ProviderEncodingRepairResult,
 } from "./repair.js";
 export {

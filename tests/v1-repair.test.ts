@@ -1,37 +1,42 @@
 import { copyFile, cp, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { execFileSync } from "node:child_process";
 import { createClient } from "@libsql/client";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   checkDatabase,
-  createDatabase,
   executeConfirmedDatabaseMigration,
-  importProviderRecords,
+  executeConfirmedProviderEncodingRepair,
   openDatabase,
-  previewProviderImport,
   repairProviderEncoding,
   type AthleticDatabase,
 } from "../src/db/index.js";
 import { databaseClient } from "../src/db/client.js";
+import { semanticJsonEqual } from "../src/db/stable-json.js";
+import {
+  countEncodingMismatches,
+  createNpm100ProviderDatabase,
+  snapshotRecordPayloadBytes,
+} from "./helpers/npm100-database.js";
 
-const FIXTURE = join(dirname(fileURLToPath(import.meta.url)), "../examples/demo-athlete/athlete.ath.sqlite");
-const providerFixtures = join(dirname(fileURLToPath(import.meta.url)), "fixtures/exports");
+const here = dirname(fileURLToPath(import.meta.url));
+const CLI = resolve(here, "../src/cli.ts");
+const TSX = resolve(here, "../node_modules/.bin/tsx");
+const providerFixtures = join(here, "fixtures/exports");
 
 const openDatabases: AthleticDatabase[] = [];
 const directories: string[] = [];
 
-function jsonDeepEqual(left: string, right: string): boolean {
-  return JSON.stringify(JSON.parse(left)) === JSON.stringify(JSON.parse(right));
-}
-
-function whitespaceMismatch(canonical: string): string {
-  const spaced = canonical.replace(",", ", ");
-  if (spaced === canonical) {
-    return `${canonical.slice(0, -1)} `;
+function ath(args: string[], cwd: string): { stdout: string; code: number } {
+  try {
+    const stdout = execFileSync(TSX, [CLI, ...args], { cwd, encoding: "utf8", stdio: "pipe" });
+    return { stdout, code: 0 };
+  } catch (error) {
+    const err = error as { status: number; stdout?: string; stderr?: string };
+    return { stdout: (err.stdout ?? "") + (err.stderr ?? ""), code: err.status };
   }
-  return spaced;
 }
 
 afterEach(async () => {
@@ -49,20 +54,97 @@ async function tempDatabasePath(): Promise<string> {
   return join(directory, "athlete.ath.sqlite");
 }
 
-describe("v1 provider-encoding repair", () => {
-  it("repairs typed-table JSON bytes after a simulated npm 1.0.0 provider import", async () => {
-    const path = await tempDatabasePath();
-    const database = await createDatabase(path, {
-      createdAt: "2026-10-13T11:00:00.000Z",
-    });
-    openDatabases.push(database);
-    const preview = await previewProviderImport(database, join(providerFixtures, "whoop"), {
-      received_at: "2026-10-13T12:00:00.000Z",
-    });
-    await importProviderRecords(database, preview);
+function reorderTopLevelKeys(json: string): string {
+  const parsed = JSON.parse(json) as Record<string, unknown>;
+  const reversed = Object.fromEntries(Object.entries(parsed).reverse());
+  return JSON.stringify(reversed);
+}
 
+describe("v1 provider-encoding repair", () => {
+  it("treats key-order-only typed-table differences as repairable", () => {
+    const canonical = '{"type":"hrv_rmssd","value":68.4,"unit":"ms","recorded_at":"2026-08-09T13:05:00.000Z","source":"01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e02"}';
+    const shuffled = reorderTopLevelKeys(canonical);
+    expect(shuffled).not.toBe(canonical);
+    expect(semanticJsonEqual(shuffled, canonical)).toBe(true);
+  });
+
+  it("repairs typed-table JSON bytes after npm 1.0.0 provider imports", async () => {
+    const { directory, databasePath } = createNpm100ProviderDatabase();
+    directories.push(directory);
+    const mismatchesBefore = await countEncodingMismatches(databasePath);
+    expect(mismatchesBefore).toBeGreaterThan(0);
+
+    const database = await openDatabase(databasePath, { allowOutdatedSchema: true });
+    openDatabases.push(database);
+    const beforeBytes = await snapshotRecordPayloadBytes(databasePath);
+
+    const result = await executeConfirmedProviderEncodingRepair(database);
+    expect(result.repaired_record_count).toBe(mismatchesBefore);
+
+    expect(await countEncodingMismatches(databasePath)).toBe(0);
+    const metadata = await databaseClient(database).execute(
+      "SELECT sql_schema_version FROM database_metadata WHERE singleton_id = 1",
+    );
+    expect(Number(metadata.rows[0]?.sql_schema_version)).toBe(1);
+
+    const afterBytes = await snapshotRecordPayloadBytes(databasePath);
+    expect(afterBytes).toEqual(beforeBytes);
+  }, 180_000);
+
+  it("migrates SQL schema 1 to 2 on an npm 1.0.0 provider database", async () => {
+    const { directory, databasePath } = createNpm100ProviderDatabase();
+    directories.push(directory);
+    const beforeBytes = await snapshotRecordPayloadBytes(databasePath);
+    expect(await countEncodingMismatches(databasePath)).toBeGreaterThan(0);
+
+    const database = await openDatabase(databasePath, { allowOutdatedSchema: true, deferWal: true });
+    openDatabases.push(database);
+    const migration = await executeConfirmedDatabaseMigration(database);
+    expect(migration.migrated).toBe(true);
+    expect(migration.preview.target_sql_schema_version).toBe(2);
+
+    const check = await checkDatabase(database);
+    expect(check.valid, JSON.stringify(check.issues.slice(0, 5), null, 2)).toBe(true);
+    expect(await countEncodingMismatches(databasePath)).toBe(0);
+
+    const afterBytes = await snapshotRecordPayloadBytes(databasePath);
+    expect(afterBytes).toEqual(beforeBytes);
+  }, 180_000);
+
+  it("runs ath migrate then ath check without changing record bytes", async () => {
+    const { directory, databasePath } = createNpm100ProviderDatabase();
+    directories.push(directory);
+    const beforeBytes = await snapshotRecordPayloadBytes(databasePath);
+    const client = createClient({ url: pathToFileURL(databasePath).href });
+    const idRow = await client.execute(
+      "SELECT database_id FROM database_metadata WHERE singleton_id = 1",
+    );
+    const databaseId = String(idRow.rows[0]?.database_id);
+    await client.close();
+
+    const migrate = ath(["migrate", "-y", "--confirm-migration", databaseId], directory);
+    expect(migrate.code, migrate.stdout).toBe(0);
+
+    const check = ath(["check"], directory);
+    expect(check.code).toBe(0);
+    expect(check.stdout).toContain("valid Athletic Standard 1.0.0 database");
+
+    const afterBytes = await snapshotRecordPayloadBytes(databasePath);
+    expect(afterBytes).toEqual(beforeBytes);
+  }, 180_000);
+});
+
+describe("v1 provider-encoding repair (local regression)", () => {
+  it("repairs a single injected key-order mismatch", async () => {
+    const path = await tempDatabasePath();
+    const { directory, databasePath } = createNpm100ProviderDatabase();
+    directories.push(directory);
+    await copyFile(databasePath, path);
+
+    const database = await openDatabase(path, { allowOutdatedSchema: true });
+    openDatabases.push(database);
     const mismatch = await databaseClient(database).execute(`
-      SELECT records.record_id, point_measurements.data_json, record_revisions.record_json
+      SELECT records.record_id, record_revisions.record_json
       FROM records
       JOIN record_revisions
         ON record_revisions.record_id = records.record_id
@@ -74,13 +156,10 @@ describe("v1 provider-encoding repair", () => {
     const row = mismatch.rows[0];
     expect(row).toBeDefined();
     const recordJson = String(row!.record_json);
-    const shuffled = whitespaceMismatch(recordJson);
-    expect(jsonDeepEqual(shuffled, recordJson)).toBe(true);
-    expect(shuffled).not.toBe(recordJson);
-    const recordId = String(row!.record_id);
+    const shuffled = reorderTopLevelKeys(recordJson);
     await databaseClient(database).execute({
       sql: "UPDATE point_measurements SET data_json = ? WHERE record_id = ?",
-      args: [shuffled, recordId],
+      args: [shuffled, String(row!.record_id)],
     });
 
     const broken = await checkDatabase(database);
@@ -88,28 +167,6 @@ describe("v1 provider-encoding repair", () => {
 
     const result = await repairProviderEncoding(database);
     expect(result.repaired_record_count).toBeGreaterThan(0);
-
-    const fixed = await checkDatabase(database);
-    expect(fixed.valid, JSON.stringify(fixed.issues, null, 2)).toBe(true);
-  });
-
-  it("migrates SQL schema 1 to 2 on a database copy after a verified backup", async () => {
-    const path = await tempDatabasePath();
-    await copyFile(FIXTURE, path);
-    await cp(join(dirname(FIXTURE), "attachments"), join(dirname(path), "attachments"), {
-      recursive: true,
-    });
-    const client = createClient({ url: pathToFileURL(path).href, intMode: "number" });
-    await client.execute("UPDATE database_metadata SET sql_schema_version = 1");
-    await client.execute("PRAGMA user_version = 1");
-    await client.close();
-
-    const database = await openDatabase(path, { allowOutdatedSchema: true, deferWal: true });
-    openDatabases.push(database);
-    const migration = await executeConfirmedDatabaseMigration(database);
-    expect(migration.migrated).toBe(true);
-    expect(migration.preview.target_sql_schema_version).toBe(2);
-    const check = await checkDatabase(database);
-    expect(check.valid, JSON.stringify(check.issues.slice(0, 5), null, 2)).toBe(true);
-  });
+    expect(await countEncodingMismatches(path)).toBe(0);
+  }, 180_000);
 });

@@ -20,7 +20,6 @@ import {
   writeRecord,
 } from "../src/db/index.js";
 import { databaseClient } from "../src/db/client.js";
-import * as clientModule from "../src/db/client.js";
 import type { AthleticDatabase, MigrationPreview } from "../src/db/index.js";
 import { interactiveMigrationOnOpen, useTerminalAnswer } from "../src/program.js";
 const FIXTURE = join(dirname(fileURLToPath(import.meta.url)), "../examples/demo-athlete/athlete.ath.sqlite");
@@ -68,11 +67,14 @@ describe("v1 database migration", () => {
     await expect(migrateDatabase(database)).resolves.toBeUndefined();
   });
 
-  it("refuses a noninteractive open when a newer SQL schema is required", async () => {
+  it("refuses a noninteractive open when SQL schema migration is required", async () => {
     const path = await tempDatabasePath();
     const database = await createDatabase(path, { databaseId, createdAt });
     database.close();
-    vi.spyOn(clientModule, "SQL_SCHEMA_VERSION", "get").mockReturnValue(3 as 2);
+    const client = createClient({ url: pathToFileURL(path).href, intMode: "number" });
+    await client.execute("UPDATE database_metadata SET sql_schema_version = 1");
+    await client.execute("PRAGMA user_version = 1");
+    await client.close();
     await expect(openDatabase(path)).rejects.toBeInstanceOf(MigrationRequiredError);
   });
 
@@ -99,18 +101,15 @@ describe("v1 database migration", () => {
     expect(files.some((name) => name.includes("migration-backup"))).toBe(true);
   });
 
-  it("leaves the source database unchanged when no migration path exists", async () => {
+  it("refuses open when user_version disagrees with metadata", async () => {
     const path = await tempDatabasePath();
     const database = await createDatabase(path, { databaseId, createdAt });
-    openDatabases.push(database);
-    vi.spyOn(clientModule, "SQL_SCHEMA_VERSION", "get").mockReturnValue(3 as 2);
-    const metadata = await readDatabaseMetadata(database);
-    await expect(executeConfirmedDatabaseMigration(database)).rejects.toThrow(
-      /No ordered migration/,
-    );
-    const after = await readDatabaseMetadata(database);
-    expect(after.sql_schema_version).toBe(metadata.sql_schema_version);
-    expect(after.database_id).toBe(databaseId);
+    database.close();
+    const client = createClient({ url: pathToFileURL(path).href, intMode: "number" });
+    await client.execute("UPDATE database_metadata SET sql_schema_version = 1");
+    await client.execute("PRAGMA user_version = 2");
+    await client.close();
+    await expect(openDatabase(path)).rejects.toThrow(/user_version/);
   });
 
   it("escapes sqlite3 backup dot-command paths with backslashes", () => {
@@ -261,17 +260,15 @@ describe("v1 database migration", () => {
     await afterClient.close();
   });
 
-  it("plans a future migration step when the supported schema is newer", async () => {
+  it("refuses open when the database SQL schema is newer than this build supports", async () => {
     const path = await tempDatabasePath();
     const database = await createDatabase(path, { databaseId, createdAt });
-    openDatabases.push(database);
-    vi.spyOn(clientModule, "SQL_SCHEMA_VERSION", "get").mockReturnValue(3 as 2);
-    const preview = buildMigrationPreview(await readDatabaseMetadata(database), path);
-    expect(preview.migration_needed).toBe(true);
-    expect(preview.source_sql_schema_version).toBe(2);
-    expect(preview.target_sql_schema_version).toBe(3);
-    expect(preview.planned_steps).toEqual([]);
-    expect(preview.planned_backup_path).toBeNull();
+    database.close();
+    const client = createClient({ url: pathToFileURL(path).href, intMode: "number" });
+    await client.execute("UPDATE database_metadata SET sql_schema_version = 99");
+    await client.execute("PRAGMA user_version = 99");
+    await client.close();
+    await expect(openDatabase(path)).rejects.toThrow(/newer than supported schema/);
   });
 
   it("writes nothing when an interactive migration is declined", async () => {

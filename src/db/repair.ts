@@ -1,20 +1,19 @@
+import { lstat } from "node:fs/promises";
 import type { Transaction } from "@libsql/client";
 import { databaseClient, type AthleticDatabase } from "./client.js";
 import { typedTables } from "./check-tables.js";
+import {
+  createVerifiedSqliteBackup,
+  defaultRepairBackupPath,
+} from "./backup.js";
+import { readDatabaseMetadata } from "./migrate.js";
 import { incrementDatabaseRevision } from "./records.js";
+import { semanticJsonEqual } from "./stable-json.js";
 import { withWriteTransaction } from "./transaction.js";
 
 export interface ProviderEncodingRepairResult {
   repaired_record_count: number;
   database_revision: number;
-}
-
-function jsonDeepEqual(left: string, right: string): boolean {
-  try {
-    return JSON.stringify(JSON.parse(left)) === JSON.stringify(JSON.parse(right));
-  } catch {
-    return false;
-  }
 }
 
 export async function countProviderEncodingRepairCandidates(
@@ -67,7 +66,7 @@ export async function repairProviderEncodingRows(
       const recordId = String(row.record_id);
       const recordJson = String(row.record_json);
       const typedJson = String(row.typed_json);
-      if (!jsonDeepEqual(recordJson, typedJson)) {
+      if (!semanticJsonEqual(recordJson, typedJson)) {
         throw new Error(
           `record ${recordId} has a typed-table mismatch that is not key-order only`,
         );
@@ -80,6 +79,90 @@ export async function repairProviderEncodingRows(
     }
   }
   return repaired;
+}
+
+export interface ConfirmedProviderRepairResult {
+  backup_path: string;
+  repaired_record_count: number;
+  database_revision: number;
+}
+
+export async function executeConfirmedProviderEncodingRepair(
+  database: AthleticDatabase,
+  options: { backupPath?: string; now?: Date } = {},
+): Promise<ConfirmedProviderRepairResult> {
+  if (database.localPath === undefined) {
+    throw new Error("Provider-encoding repair requires a local database file");
+  }
+  const metadata = await readDatabaseMetadata(database);
+  const candidates = await countProviderEncodingRepairCandidates(database);
+  if (candidates === 0) {
+    const revision = Number(
+      (
+        await databaseClient(database).execute(
+          "SELECT current_revision FROM database_state WHERE singleton_id = 1",
+        )
+      ).rows[0]?.current_revision,
+    );
+    return { backup_path: "", repaired_record_count: 0, database_revision: revision };
+  }
+
+  const backupPath =
+    options.backupPath ?? defaultRepairBackupPath(database.localPath, options.now);
+  const fileIdentity = await lstat(database.localPath, { bigint: true }).then((stat) => ({
+    device: stat.dev,
+    inode: stat.ino,
+  }));
+  const revisionBefore = Number(
+    (
+      await databaseClient(database).execute(
+        "SELECT current_revision FROM database_state WHERE singleton_id = 1",
+      )
+    ).rows[0]?.current_revision,
+  );
+
+  await createVerifiedSqliteBackup(database, database.localPath, backupPath, metadata);
+
+  const revisionAfterBackup = Number(
+    (
+      await databaseClient(database).execute(
+        "SELECT current_revision FROM database_state WHERE singleton_id = 1",
+      )
+    ).rows[0]?.current_revision,
+  );
+  if (revisionAfterBackup !== revisionBefore) {
+    throw new Error(
+      "Database revision changed during repair backup; stop other writers and retry",
+    );
+  }
+  const statAfterBackup = await lstat(database.localPath, { bigint: true });
+  if (
+    statAfterBackup.dev !== fileIdentity.device ||
+    statAfterBackup.ino !== fileIdentity.inode
+  ) {
+    throw new Error("Database file changed during repair backup");
+  }
+
+  try {
+    const result = await repairProviderEncoding(database);
+    return { backup_path: backupPath, ...result };
+  } catch (error) {
+    const revisionAfterFailure = Number(
+      (
+        await databaseClient(database).execute(
+          "SELECT current_revision FROM database_state WHERE singleton_id = 1",
+        )
+      ).rows[0]?.current_revision,
+    );
+    const changed = revisionAfterFailure !== revisionBefore;
+    throw new Error(
+      `Repair failed after creating verified backup at ${backupPath}.` +
+        (changed
+          ? " The database revision changed; restore from the backup."
+          : " The database revision did not change."),
+      { cause: error },
+    );
+  }
 }
 
 export async function repairProviderEncoding(

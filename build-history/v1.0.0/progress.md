@@ -64,18 +64,15 @@ The long-form sequence is in
 | CR8 | Add internal workspace boundaries, `CORE_API_VERSION` 1.0.0, explicit public exports, and API deprecation checks | pending |
 | CR9 | Verify the packed v1 tarball contains every promised schema, SQL, conformance, community, and Skill file | pending |
 
-CR1 and CR2 change the unreleased v1 schema. They must finish before v1.0.0 is
-published to npm. Release steps 11 and 12 remain blocked until CR1–CR9 and the
-cross-platform part of step 10 pass.
-
-npm `athleticstandard@1.0.0` is the latest published package on the registry.
-`main` carries npm `1.1.0` code (D130) preparing the next publish: migrate and
-repair for SQL schema 2, provider-encoding repair, durable export, Oura member-portal
-CSV, `ath repair`, default model path beside the database, structured log envelope,
-and docs. The record format stays `1.0.0`.
+npm `athleticstandard@1.0.0` is published on the registry. `main` carries npm
+`1.1.0` code (D130) for the next publish while `athleticstandard_version` stays
+`1.0.0`. That work includes SQL schema 2 migrate and repair, provider-encoding
+repair, durable export, Oura member-portal CSV, `ath repair`, default model path
+beside the database, structured log envelope, and docs.
 
 Release step 10 cross-platform CI is wired to `v*` tags and `workflow_dispatch`
-(D141). Step 12 remains open until Mike publishes `1.1.0` to npm after review.
+(D141). Step 12 (npm publish of `1.1.0`) stays open until review finishes. v1.0.0
+shipped before step 10 existed; D146 records that waiver.
 
 Remaining contribution-readiness steps continue on later package versions of the same
 format.
