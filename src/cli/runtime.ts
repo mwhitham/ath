@@ -165,6 +165,7 @@ export async function openReadOnlyOrFail(path: string, json = false): Promise<At
 export async function openOrFail(path: string, json = false): Promise<AthleticDatabase> {
   try {
     return await openDatabase(path, {
+      deferWal: true,
       onSecurityWarning: (warning) => {
         if (!json) console.warn(`ath: warning: ${warning}`);
       },

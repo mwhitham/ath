@@ -180,6 +180,58 @@ describe("v1 repair CLI", () => {
   }, 180_000);
 
   it.runIf(process.platform !== "win32")(
+    "ath conflicts show does not enable WAL on a delete-mode database",
+    async () => {
+      const directory = await mkdtemp(join(tmpdir(), "ath-conflicts-hash-"));
+      directories.push(directory);
+      const demoFixture = resolve(here, "../examples/demo-athlete/athlete.ath.sqlite");
+      const profileId = "01890f3e-e7d3-7cc0-88c8-000000000002";
+      const basePackage = join(directory, "base-package");
+      expect(ath(["export", basePackage, "--file", demoFixture], directory).code).toBe(0);
+      const local = join(directory, "local.ath.sqlite");
+      const imported = join(directory, "imported.ath.sqlite");
+      const { copyFile } = await import("node:fs/promises");
+      await copyFile(demoFixture, local);
+      await copyFile(demoFixture, imported);
+      expect(ath(["import", basePackage, "--file", local, "--yes"], directory).code).toBe(0);
+      expect(ath(["import", basePackage, "--file", imported, "--yes"], directory).code).toBe(0);
+      const profile = JSON.parse(
+        ath(["records", "show", profileId, "--file", local, "--json"], directory).stdout,
+      ).record as { data: Record<string, unknown> };
+      for (const [db, name] of [
+        [local, "Local name"],
+        [imported, "Imported name"],
+      ] as const) {
+        expect(
+          ath(
+            [
+              "correct",
+              profileId,
+              "--revision",
+              "1",
+              "--data",
+              JSON.stringify({ ...profile.data, name }),
+              "--file",
+              db,
+              "--yes",
+            ],
+            directory,
+          ).code,
+        ).toBe(0);
+      }
+      const incomingPackage = join(directory, "incoming-package");
+      expect(ath(["export", incomingPackage, "--file", imported], directory).code).toBe(0);
+      expect(ath(["import", incomingPackage, "--file", local, "--json"], directory).code).toBe(0);
+      const client = createClient({ url: pathToFileURL(local).href });
+      await client.execute("PRAGMA journal_mode = DELETE");
+      await client.close();
+      const hashBefore = await hashDatabaseFilesRaw(local);
+      ath(["conflicts", "show", profileId, "--file", local, "--json"], directory);
+      expect(await hashDatabaseFilesRaw(local)).toBe(hashBefore);
+    },
+  );
+
+  it.runIf(process.platform !== "win32")(
     "ath repair and repair --dry-run do not enable WAL on a delete-mode database",
     async () => {
       const { directory, databasePath } = materializeNpm100ProviderDatabase();
