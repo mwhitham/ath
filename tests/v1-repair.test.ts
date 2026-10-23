@@ -10,6 +10,8 @@ import {
   executeConfirmedDatabaseMigration,
   executeConfirmedProviderEncodingRepair,
   openDatabase,
+  reconcileSqliteUserVersion,
+  readDatabaseMetadata,
   repairProviderEncoding,
   type AthleticDatabase,
 } from "../src/db/index.js";
@@ -17,7 +19,7 @@ import { databaseClient } from "../src/db/client.js";
 import { semanticJsonEqual } from "../src/db/stable-json.js";
 import {
   countEncodingMismatches,
-  createNpm100ProviderDatabase,
+  materializeNpm100ProviderDatabase,
   snapshotRecordPayloadBytes,
 } from "./helpers/npm100-database.js";
 
@@ -69,7 +71,7 @@ describe("v1 provider-encoding repair", () => {
   });
 
   it("repairs typed-table JSON bytes after npm 1.0.0 provider imports", async () => {
-    const { directory, databasePath } = createNpm100ProviderDatabase();
+    const { directory, databasePath } = materializeNpm100ProviderDatabase();
     directories.push(directory);
     const mismatchesBefore = await countEncodingMismatches(databasePath);
     expect(mismatchesBefore).toBeGreaterThan(0);
@@ -92,7 +94,7 @@ describe("v1 provider-encoding repair", () => {
   }, 180_000);
 
   it("migrates SQL schema 1 to 2 on an npm 1.0.0 provider database", async () => {
-    const { directory, databasePath } = createNpm100ProviderDatabase();
+    const { directory, databasePath } = materializeNpm100ProviderDatabase();
     directories.push(directory);
     const beforeBytes = await snapshotRecordPayloadBytes(databasePath);
     expect(await countEncodingMismatches(databasePath)).toBeGreaterThan(0);
@@ -112,7 +114,7 @@ describe("v1 provider-encoding repair", () => {
   }, 180_000);
 
   it("runs ath migrate then ath check without changing record bytes", async () => {
-    const { directory, databasePath } = createNpm100ProviderDatabase();
+    const { directory, databasePath } = materializeNpm100ProviderDatabase();
     directories.push(directory);
     const beforeBytes = await snapshotRecordPayloadBytes(databasePath);
     const client = createClient({ url: pathToFileURL(databasePath).href });
@@ -135,9 +137,52 @@ describe("v1 provider-encoding repair", () => {
 });
 
 describe("v1 provider-encoding repair (local regression)", () => {
+  it("refuses migration when typed-table bytes diverge in meaning", async () => {
+    const { directory, databasePath } = materializeNpm100ProviderDatabase();
+    directories.push(directory);
+    const database = await openDatabase(databasePath, { allowOutdatedSchema: true });
+    openDatabases.push(database);
+    const row = await databaseClient(database).execute(`
+      SELECT records.record_id, record_revisions.record_json
+      FROM records
+      JOIN record_revisions
+        ON record_revisions.record_id = records.record_id
+       AND record_revisions.revision = records.current_revision
+      JOIN point_measurements ON point_measurements.record_id = records.record_id
+      WHERE records.record_type = 'point_measurement'
+      LIMIT 1
+    `);
+    const recordId = String(row.rows[0]!.record_id);
+    const divergent = String(row.rows[0]!.record_json).replace("68.4", "999");
+    await databaseClient(database).execute({
+      sql: "UPDATE point_measurements SET data_json = ? WHERE record_id = ?",
+      args: [divergent, recordId],
+    });
+    database.close();
+    const reopened = await openDatabase(databasePath, { allowOutdatedSchema: true, deferWal: true });
+    openDatabases.push(reopened);
+    await expect(executeConfirmedDatabaseMigration(reopened)).rejects.toThrow(
+      /not key-order only/,
+    );
+  });
+
+  it("reconciles user_version when metadata advanced one step ahead", async () => {
+    const { directory, databasePath } = materializeNpm100ProviderDatabase();
+    directories.push(directory);
+    const client = createClient({ url: pathToFileURL(databasePath).href, intMode: "number" });
+    await client.execute("UPDATE database_metadata SET sql_schema_version = 2");
+    await client.close();
+    const database = await openDatabase(databasePath, { allowOutdatedSchema: true });
+    openDatabases.push(database);
+    const metadata = await readDatabaseMetadata(database);
+    await reconcileSqliteUserVersion(database, metadata);
+    const userVersion = await databaseClient(database).execute("PRAGMA user_version");
+    expect(Number(userVersion.rows[0]?.user_version)).toBe(2);
+  });
+
   it("repairs a single injected key-order mismatch", async () => {
     const path = await tempDatabasePath();
-    const { directory, databasePath } = createNpm100ProviderDatabase();
+    const { directory, databasePath } = materializeNpm100ProviderDatabase();
     directories.push(directory);
     await copyFile(databasePath, path);
 

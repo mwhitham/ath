@@ -188,6 +188,8 @@ export async function createVerifiedSqliteBackup(
       await chmod(backupPath, 0o600);
     }
     await verifySqliteBackup(sourceDatabase, backupPath, sourceMetadata);
+    await removeBackupFileIfPresent(`${backupPath}-wal`);
+    await removeBackupFileIfPresent(`${backupPath}-shm`);
     backupCreated = false;
   } catch (error) {
     if (backupCreated) {

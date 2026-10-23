@@ -68,7 +68,8 @@ export async function repairProviderEncodingRows(
       const typedJson = String(row.typed_json);
       if (!semanticJsonEqual(recordJson, typedJson)) {
         throw new Error(
-          `record ${recordId} has a typed-table mismatch that is not key-order only`,
+          `record ${recordId} has a typed-table mismatch that is not key-order only; ` +
+            `run ath repair after fixing the revision payload, or restore from backup`,
         );
       }
       await transaction.execute({
@@ -155,8 +156,10 @@ export async function executeConfirmedProviderEncodingRepair(
       ).rows[0]?.current_revision,
     );
     const changed = revisionAfterFailure !== revisionBefore;
+    const causeMessage =
+      error instanceof Error ? error.message : "repair step failed";
     throw new Error(
-      `Repair failed after creating verified backup at ${backupPath}.` +
+      `Repair failed after creating verified backup at ${backupPath}. Cause: ${causeMessage}.` +
         (changed
           ? " The database revision changed; restore from the backup."
           : " The database revision did not change."),

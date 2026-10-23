@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { lstat, mkdir, readFile, rename, rm } from "node:fs/promises";
+import { lstat, mkdir, readdir, readFile, rename, rm } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
 import type { Transaction } from "@libsql/client";
 import {
@@ -412,6 +412,20 @@ export async function exportRecords(
   const parentDirectory = dirname(outputDirectory);
   const finalName = basename(outputDirectory);
   await refuseSymbolicLinkComponents(parentDirectory);
+  for (const entry of await readdir(parentDirectory)) {
+    if (!entry.startsWith(".ath-export-")) {
+      continue;
+    }
+    const stalePath = join(parentDirectory, entry);
+    try {
+      const stat = await lstat(stalePath);
+      if (stat.isDirectory()) {
+        await rm(stalePath, { recursive: true, force: true });
+      }
+    } catch {
+      // Best-effort cleanup of abandoned staging directories.
+    }
+  }
   try {
     const existing = await lstat(outputDirectory);
     if (existing.isSymbolicLink()) {

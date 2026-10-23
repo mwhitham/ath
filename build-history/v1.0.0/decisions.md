@@ -1305,9 +1305,13 @@ Rejected alternatives:
 
 npm 1.0.0 could write `data_json` with a different key order than
 `record_revisions.record_json` for the same logical record. `ath check` compares those
-columns byte for byte. SQL schema version 2 runs a one-time repair that copies
-`record_json` into `data_json` when the parsed JSON matches, then bumps
-`sql_schema_version` and `PRAGMA user_version` to 2.
+columns byte for byte. SQL schema version 2 runs a one-time repair in the migration
+runner that copies `record_json` into `data_json` only when
+`semanticJsonEqual` says the values match (including nested key order). A true
+semantic mismatch aborts migration and points to `ath repair` after fixing the
+revision payload. The published `002` SQL file bumps `database_metadata`; row
+alignment runs in TypeScript inside the same write transaction as
+`PRAGMA user_version = 2`.
 
 Rejected alternatives:
 
@@ -1318,17 +1322,17 @@ Rejected alternatives:
 
 ## D132. `ath repair` for encoding repair without a schema bump
 
-`ath repair` previews and applies the same typed-table repair as migration step 2 when
-the SQL schema is already current. It opens with `allowOutdatedSchema` so a database
-that still needs SQL schema 2 can be repaired after an explicit migrate. Confirmed
-repair uses the same verified `sqlite3` backup path as migrate.
+`ath repair` previews and applies the same typed-table repair as migration step 2, but
+only after SQL schema 2 is already recorded. Databases still on schema 1 must run
+`ath migrate` first, which runs the same semantic repair while moving to schema 2.
+Confirmed repair uses the same verified `sqlite3` backup path as migrate.
 
 Rejected alternatives:
 
 - **Repair without backup.** Rejected because a failed repair must be recoverable from
   a verified copy, matching migrate.
-- **Require migrate instead of repair when SQL schema is already 2.** Rejected because
-  some databases may already show schema 2 metadata while typed tables still mismatch.
+- **Let repair bump `sql_schema_version`.** Rejected because schema version and repair
+  are separate operator steps; migrate owns the one-way schema upgrade.
 
 ## D133. Migration backup uses inode checks and honest WAL failure text
 
@@ -1373,9 +1377,10 @@ Rejected alternatives:
 
 ## D136. Oura member-portal CSV columns (`score`, JSON `contributors`, JSON SpO2)
 
-The Oura importer maps member-portal `score` from row shape (with `contributors` or
-sleep-only day rows), parses JSON `contributors` cells, and reads JSON `spo2_percentage`
-only when the cell starts with `{` so flat SpO2 columns are not duplicated.
+The Oura importer maps member-portal `score` from the contributor keys inside the JSON
+`contributors` cell (readiness vs sleep vs activity sub-scores use different key sets),
+parses contributor JSON cells, and reads JSON `spo2_percentage` only when the cell
+starts with `{` so flat SpO2 columns are not duplicated.
 
 Rejected alternatives:
 
@@ -1458,11 +1463,12 @@ Rejected alternatives:
   append-only.
 - **Ignore the violation.** Rejected because agents rely on the README rule.
 
-## D143. Prior pull requests #4, #6, #10, #12, and #14 broke the same folder rule
+## D143. Prior pull requests #4, #6, and #14 broke the build-history folder rule
 
-Those pull requests also committed plan or decision text outside the version-folder
-pattern now required by `build-history/README.md`. They are recorded here without
-retroactive folder moves.
+Those pull requests committed plan or decision text outside the version-folder pattern
+now required by `build-history/README.md`. Pull request #14's migration study lives in
+`build-history/v1.0.0/appendix/v0.4.3-migration.md` and is cited here rather than
+relitigated. They are recorded here without retroactive folder moves.
 
 Rejected alternatives:
 
@@ -1487,7 +1493,7 @@ Rejected alternatives:
 
 Pull request #25 carried npm `1.1.0` preparation while the format remained `1.0.0`.
 That matches D144 and does not require a new build-history version folder. npm registry
-`latest` remained `1.0.0` until a later publish.
+`latest` was still `1.0.0` when that pull request merged.
 
 Rejected alternatives:
 
@@ -1495,18 +1501,31 @@ Rejected alternatives:
   `1.0.0` after merge.
 - **Rewrite #25's build-history paths.** Rejected because merged folders stay as-is.
 
-## D146. v1.0.0 release gate waiver for cross-platform CI
+## D146. v1.0.0 progress table vs later cross-platform workflow edits
 
-v1.0.0 `progress.md` still lists release step 10 (cross-platform CI) as pending while
-npm `athleticstandard@1.0.0` is already published. That publish proceeded without the
-`v*` cross-platform workflow later added in D141; the waiver is recorded here instead
-of rewriting the historical step table.
+v1.0.0 `progress.md` still lists release step 10 with checkboxes that predate D141's
+`v*` tag trigger change. A cross-platform workflow already existed before the 1.0.0 npm
+publish; D141 widened tag matching, it did not create the first cross-platform job.
+This entry records that distinction instead of rewriting the historical step table.
 
 Rejected alternatives:
 
-- **Mark step 10 complete retroactively for 1.0.0.** Rejected because the workflow did
-  not exist at publish time.
-- **Unpublish 1.0.0.** Rejected because consumers already depend on it.
+- **Rewrite the step-10 table to match today's workflow.** Rejected because
+  build-history is append-only.
+- **Claim 1.0.0 shipped without cross-platform CI.** Rejected because that claim is
+  false.
+
+## D148. License moves in pull requests #10 and #12
+
+Pull request #10 switched the repository license to Apache-2.0. Pull request #12
+switched it back to MIT. Neither change altered the Athletic Standard file format, so
+neither received a build-history version folder; this D-number records the sequence.
+
+Rejected alternatives:
+
+- **Fold license history into D143 folder-rule entries.** Rejected because #10 and #12
+  were not folder-rule violations.
+- **Omit license history.** Rejected because agents grep decisions for licensing.
 
 ## D147. Draft pull requests #20 and #31 may renumber D-numbers later
 

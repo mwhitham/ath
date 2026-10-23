@@ -71,8 +71,8 @@ repair, durable export, Oura member-portal CSV, `ath repair`, default model path
 beside the database, structured log envelope, and docs.
 
 Release step 10 cross-platform CI is wired to `v*` tags and `workflow_dispatch`
-(D141). Step 12 (npm publish of `1.1.0`) stays open until review finishes. v1.0.0
-shipped before step 10 existed; D146 records that waiver.
+(D141). Step 12 (npm publish of `1.1.0`) stays open until review finishes. D146
+records how the step-10 table relates to workflow changes after the 1.0.0 publish.
 
 Remaining contribution-readiness steps continue on later package versions of the same
 format.

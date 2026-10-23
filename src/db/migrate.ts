@@ -1,6 +1,6 @@
 import { lstat, mkdir, open as openFile, unlink } from "node:fs/promises";
 import { PROVIDER_ENCODING_REPAIR_SQL } from "./migrations/002-provider-encoding-repair.js";
-import { countProviderEncodingRepairCandidates } from "./repair.js";
+import { repairProviderEncodingRows } from "./repair.js";
 import { withWriteTransaction } from "./transaction.js";
 import { incrementDatabaseRevision } from "./records.js";
 import { dirname } from "node:path";
@@ -315,6 +315,28 @@ export function databaseNeedsMigration(metadata: DatabaseMetadata): boolean {
   return metadata.sql_schema_version < SQL_SCHEMA_VERSION;
 }
 
+/** Recover when metadata committed but PRAGMA user_version did not finish (crash mid-migration). */
+export async function reconcileSqliteUserVersion(
+  database: AthleticDatabase,
+  metadata: DatabaseMetadata,
+): Promise<void> {
+  if (!database.isLocal) {
+    return;
+  }
+  const userVersion = await readUserVersion(database);
+  if (userVersion === null || userVersion === metadata.sql_schema_version) {
+    return;
+  }
+  if (
+    userVersion < metadata.sql_schema_version &&
+    metadata.sql_schema_version - userVersion === 1
+  ) {
+    await databaseClient(database).execute(
+      `PRAGMA user_version = ${metadata.sql_schema_version}`,
+    );
+  }
+}
+
 function plannedMigrationSteps(sourceVersion: number): MigrationStepPreview[] {
   return MIGRATION_CHAIN.filter(
     (step) => step.version > sourceVersion && step.version <= SQL_SCHEMA_VERSION,
@@ -431,6 +453,7 @@ export async function inspectDatabase(
       );
     }
 
+    await reconcileSqliteUserVersion(database, metadata);
     const userVersion = await readUserVersion(database);
     if (userVersion !== null && userVersion !== metadata.sql_schema_version) {
       throw new Error(
@@ -484,6 +507,7 @@ export async function openDatabase(
       );
     }
 
+    await reconcileSqliteUserVersion(database, metadata);
     const userVersion = await readUserVersion(database);
     if (userVersion !== null && userVersion !== metadata.sql_schema_version) {
       throw new Error(
@@ -520,16 +544,16 @@ async function applyMigrationStep(
     throw new Error(`No migration is registered for SQL schema version ${targetVersion}`);
   }
   if (targetVersion === 2) {
-    const repairCandidates = await countProviderEncodingRepairCandidates(database);
     await withWriteTransaction(database, async (transaction) => {
+      const repaired = await repairProviderEncodingRows(transaction);
       await transaction.executeMultiple(PROVIDER_ENCODING_REPAIR_SQL);
-      if (repairCandidates > 0) {
+      if (database.isLocal) {
+        await transaction.execute(`PRAGMA user_version = ${targetVersion}`);
+      }
+      if (repaired > 0) {
         await incrementDatabaseRevision(transaction);
       }
     });
-    if (database.isLocal) {
-      await databaseClient(database).execute(`PRAGMA user_version = ${targetVersion}`);
-    }
     return;
   }
   throw new Error(

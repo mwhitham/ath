@@ -55,6 +55,72 @@ const CONTRIBUTORS = [
   "sleep_regularity",
 ];
 
+const OURA_SLEEP_SCORE_CONTRIBUTOR_KEYS = new Set([
+  "timing",
+  "latency",
+  "deep_sleep",
+  "rem_sleep",
+  "total_sleep",
+  "efficiency",
+  "restfulness",
+]);
+
+const OURA_ACTIVITY_SCORE_CONTRIBUTOR_KEYS = new Set([
+  "stay_active",
+  "move_every_hour",
+  "meet_daily_targets",
+  "training_frequency",
+  "training_volume",
+  "recovery_time",
+]);
+
+const OURA_READINESS_CONTRIBUTOR_KEYS = new Set(CONTRIBUTORS);
+
+type OuraPortalScoreMetric = "readiness" | "sleep_score" | "activity_score";
+
+function ouraPortalScoreMetricFromContributorKeys(
+  keys: string[],
+): OuraPortalScoreMetric | undefined {
+  let readiness = 0;
+  let sleep = 0;
+  let activity = 0;
+  for (const key of keys) {
+    if (OURA_READINESS_CONTRIBUTOR_KEYS.has(key)) readiness++;
+    if (OURA_SLEEP_SCORE_CONTRIBUTOR_KEYS.has(key)) sleep++;
+    if (OURA_ACTIVITY_SCORE_CONTRIBUTOR_KEYS.has(key)) activity++;
+  }
+  const best = Math.max(readiness, sleep, activity);
+  if (best === 0) {
+    return undefined;
+  }
+  if (sleep === best && sleep > readiness && sleep >= activity) {
+    return "sleep_score";
+  }
+  if (activity === best && activity > readiness && activity >= sleep) {
+    return "activity_score";
+  }
+  return "readiness";
+}
+
+function detectFilePortalScoreMetric(rows: Row[]): OuraPortalScoreMetric | undefined {
+  for (const row of rows) {
+    const contributorsJson = cell(row, "contributors");
+    if (contributorsJson === undefined || !contributorsJson.startsWith("{")) {
+      continue;
+    }
+    try {
+      const parsed = JSON.parse(contributorsJson) as Record<string, unknown>;
+      const metric = ouraPortalScoreMetricFromContributorKeys(Object.keys(parsed));
+      if (metric !== undefined) {
+        return metric;
+      }
+    } catch {
+      continue;
+    }
+  }
+  return undefined;
+}
+
 function ouraTimestampReceipt(timestamp: string) {
   const offset = /(Z|[+-]\d{2}:\d{2})$/i.exec(timestamp.trim())?.[1];
   return {
@@ -131,6 +197,7 @@ export function importOura(files: Map<string, string>, sources: SourceBook): Imp
  */
 function importRows(rows: Row[], sourceId: string, payload: ImportPayload, name: string): void {
   let used = 0;
+  const filePortalScoreMetric = detectFilePortalScoreMetric(rows);
 
   for (const row of rows) {
     const bedtimeStartText = cell(row, "bedtime_start", "Bedtime Start");
@@ -274,14 +341,22 @@ function importRows(rows: Row[], sourceId: string, payload: ImportPayload, name:
 
     const memberPortalScore = num(row, "score", "Score");
     const hasContributorsColumn = cell(row, "contributors") !== undefined;
-    const hasSleepShape =
-      bedtimeStartText !== undefined ||
-      bedtimeEndText !== undefined ||
-      cell(row, "total_sleep_duration", "Total Sleep Duration") !== undefined;
-    if (memberPortalScore !== undefined && hasContributorsColumn) {
+    if (memberPortalScore !== undefined && hasContributorsColumn && filePortalScoreMetric !== undefined) {
+      const periodType =
+        filePortalScoreMetric === "sleep_score"
+          ? "oura_sleep_day"
+          : filePortalScoreMetric === "activity_score"
+            ? "oura_activity_day"
+            : "oura_day_unspecified";
+      const periods =
+        periodType === "oura_sleep_day"
+          ? sleepPeriods
+          : periodType === "oura_activity_day"
+            ? activityPeriods
+            : unspecifiedPeriods;
       const signal: HardSignalT = {
         type: "vendor_score",
-        metric: "readiness",
+        metric: filePortalScoreMetric,
         value: memberPortalScore,
         scale: "0-100",
         recorded_at: anchor,
@@ -290,33 +365,16 @@ function importRows(rows: Row[], sourceId: string, payload: ImportPayload, name:
       payload.inputReceipts.set(signal, {
         input_value: memberPortalScore,
         input_unit_missing_reason: "not_provided_by_source",
-        ...(unspecifiedPeriods === undefined
-          ? {}
-          : { provider_reporting_periods: unspecifiedPeriods }),
+        ...(periods === undefined ? {} : { provider_reporting_periods: periods }),
       });
       payload.hardSignals.push(signal);
-    } else if (
-      memberPortalScore !== undefined &&
-      !hasContributorsColumn &&
-      !hasSleepShape &&
-      cell(row, "day", "date", "summary_date") !== undefined
-    ) {
-      const signal: HardSignalT = {
-        type: "vendor_score",
-        metric: "sleep_score",
-        value: memberPortalScore,
-        scale: "0-100",
-        recorded_at: anchor,
-        source: sourceId,
-      };
-      payload.inputReceipts.set(signal, {
-        input_value: memberPortalScore,
-        input_unit_missing_reason: "not_provided_by_source",
-        ...(sleepPeriods === undefined
-          ? {}
-          : { provider_reporting_periods: sleepPeriods }),
-      });
-      payload.hardSignals.push(signal);
+    }
+
+    if (num(row, "breathing_disturbance_index", "breathing_disturbance") !== undefined) {
+      countSkip(payload, `${name}: breathing disturbance column`);
+    }
+    if (num(row, "cardiovascular_age") !== undefined) {
+      countSkip(payload, `${name}: cardiovascular age column`);
     }
 
     for (const score of VENDOR_SCORES) {
@@ -372,15 +430,6 @@ function importRows(rows: Row[], sourceId: string, payload: ImportPayload, name:
       } catch {
         countSkip(payload, `${name}: contributors cell is not valid JSON`);
       }
-    }
-
-    const resilienceScore = num(row, "resilience_score", "Resilience Score", "resilience");
-    if (resilienceScore !== undefined) {
-      countSkip(payload, `${name}: resilience score column`);
-    }
-    const sleepContributorsJson = cell(row, "sleep_contributors", "Sleep Contributors");
-    if (sleepContributorsJson !== undefined && sleepContributorsJson.trim() !== "") {
-      countSkip(payload, `${name}: sleep contributors column`);
     }
 
     for (const contributor of CONTRIBUTORS) {

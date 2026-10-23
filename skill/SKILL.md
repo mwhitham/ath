@@ -90,8 +90,8 @@ Set up:
 | `ath --update` | Update `ath` and refresh a skill already present |
 | `ath key` | Manage an optional terminal model-gateway key outside athlete data |
 | `ath models` | List gateway models or save a terminal default |
-| `ath migrate` | Preview and apply a SQL schema migration after a verified backup |
-| `ath repair` | Repair typed-table JSON bytes left by npm 1.0.0 provider imports |
+| `ath migrate` | Preview and apply a SQL schema migration after a verified backup (needs `sqlite3` on PATH) |
+| `ath repair` | Repair typed-table JSON bytes left by npm 1.0.0 provider imports (needs `sqlite3` on PATH when candidates exist) |
 
 Import, export, and create:
 

@@ -22,11 +22,27 @@ function fixWidth(cmd: Command): void {
   for (const sub of cmd.commands) fixWidth(sub);
 }
 
+function helpTextIncludingAfter(cmd: Command): string {
+  const chunks: string[] = [cmd.helpInformation().trimEnd()];
+  const context = {
+    error: false,
+    write: (text: string) => {
+      const trimmed = text.trimEnd();
+      if (trimmed.length > 0) {
+        chunks.push(trimmed);
+      }
+    },
+    command: cmd,
+  };
+  cmd.emit("afterHelp", context);
+  return chunks.join("\n\n");
+}
+
 function walk(cmd: Command, prefix: string, out: HelpEntry[]): void {
   for (const sub of cmd.commands) {
     if (sub.name() === "help") continue;
     const path = `${prefix} ${sub.name()}`;
-    out.push({ path, summary: sub.description(), help: sub.helpInformation().trimEnd() });
+    out.push({ path, summary: sub.description(), help: helpTextIncludingAfter(sub) });
     walk(sub, path, out);
   }
 }

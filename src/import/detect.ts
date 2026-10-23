@@ -60,14 +60,7 @@ const OURA_MARKERS = [
 
 function isOuraHeader(header: string): boolean {
   const normalized = header.toLowerCase().replace(/\s+/g, "_");
-  if (OURA_MARKERS.some((marker) => normalized.includes(marker))) {
-    return true;
-  }
-  const columns = normalized
-    .split(/[;,]/)
-    .map((part) => part.trim())
-    .filter((part) => part.length > 0);
-  return columns.includes("day") && columns.includes("score") && columns.length === 2;
+  return OURA_MARKERS.some((marker) => normalized.includes(marker));
 }
 
 function firstLine(path: string): string {

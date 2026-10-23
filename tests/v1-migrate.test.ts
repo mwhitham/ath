@@ -275,6 +275,9 @@ describe("v1 database migration", () => {
     const path = await tempDatabasePath();
     const database = await createDatabase(path, { databaseId, createdAt });
     database.close();
+    const flushClient = createClient({ url: pathToFileURL(path).href, intMode: "number" });
+    await flushClient.execute("PRAGMA wal_checkpoint(FULL)");
+    await flushClient.close();
     const directory = dirname(path);
     const beforeNames = (await readdir(directory)).sort();
     const beforeBytes = await readFile(path);

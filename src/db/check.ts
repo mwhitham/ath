@@ -17,7 +17,11 @@ import {
   SQLITE_APPLICATION_ID,
   type AthleticDatabase,
 } from "./client.js";
-import { readDatabaseMetadata, type DatabaseMetadata } from "./migrate.js";
+import {
+  readDatabaseMetadata,
+  reconcileSqliteUserVersion,
+  type DatabaseMetadata,
+} from "./migrate.js";
 import {
   assertAttachmentFileType,
   storedAttachmentName,
@@ -149,6 +153,7 @@ export async function checkDatabase(
     });
   }
   if (metadata !== null) {
+    await reconcileSqliteUserVersion(database, metadata);
     if (metadata.sql_schema_version !== SQL_SCHEMA_VERSION) {
       issues.push({
         severity: "error",

@@ -20,6 +20,7 @@ export {
   inspectDatabase,
   openDatabase,
   readDatabaseMetadata,
+  reconcileSqliteUserVersion,
   type ConfirmedMigrationResult,
   type DatabaseMetadata,
   type MigrationPreview,

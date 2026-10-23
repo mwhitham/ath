@@ -377,6 +377,7 @@ export function buildProgram(): Command {
         json?: boolean;
       },
     ) => {
+      try {
       const path = findOrFail(opts.file ?? fileArg);
       const warn = (warning: string) => {
         if (!opts.json) console.warn(`ath: warning: ${warning}`);
@@ -400,7 +401,6 @@ export function buildProgram(): Command {
         compatibility_effect: preview.compatibility_effect,
         write_confirmed: false,
       };
-      try {
         if (opts.json) {
           console.log(JSON.stringify(output, null, 2));
           return;

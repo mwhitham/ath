@@ -28,6 +28,10 @@ validation-data/
 !tests/fixtures/exports/oura/oura_sleep.csv
 !tests/fixtures/exports/oura-member-portal/member-portal-dailyreadiness.csv
 !tests/fixtures/exports/oura-member-portal/member-portal-dailysleep.csv
+!tests/fixtures/exports/oura-portal/dailyreadiness.csv
+!tests/fixtures/exports/oura-portal/dailysleep.csv
+!tests/fixtures/exports/oura-portal/dailyactivity.csv
+!tests/fixtures/npm-100-encoding/athlete.ath.sqlite
 !tests/fixtures/exports/oura-spo2/oura_sleep_spo2_flat.csv
 !tests/fixtures/exports/oura-spo2/oura_sleep_spo2_json.csv
 !tests/fixtures/exports/whoop/journal_entries.csv

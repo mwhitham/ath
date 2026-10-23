@@ -50,7 +50,7 @@ const approvedSyntheticFixtures = new Map<string, string>([
   ],
   [
     "tests/fixtures/exports/oura-member-portal/member-portal-dailysleep.csv",
-    "d7cb830bfd08717aaf7038ce7b6b4e0586d24ad58748a998a131b357554361aa",
+    "b9ba34447d2aeb8fb9bd66a3dd90fdf9346aab4c516182578e4ebbad8ae105d0",
   ],
   [
     "tests/fixtures/exports/oura-spo2/oura_sleep_spo2_flat.csv",
@@ -59,6 +59,22 @@ const approvedSyntheticFixtures = new Map<string, string>([
   [
     "tests/fixtures/exports/oura-spo2/oura_sleep_spo2_json.csv",
     "949053c0c1503dbabd6773acd2813888c9d9ff360588fca2e253443476632902",
+  ],
+  [
+    "tests/fixtures/exports/oura-portal/dailyreadiness.csv",
+    "1bf215c48dd4b8fc433d6e63dd067c1d905e373a4ce5f1a02c5ed990daaed0e8",
+  ],
+  [
+    "tests/fixtures/exports/oura-portal/dailysleep.csv",
+    "b9ba34447d2aeb8fb9bd66a3dd90fdf9346aab4c516182578e4ebbad8ae105d0",
+  ],
+  [
+    "tests/fixtures/exports/oura-portal/dailyactivity.csv",
+    "d6ba261d94ccc36bce98d959ea17339b39f2642e241f584d0fdb8be18a6abc62",
+  ],
+  [
+    "tests/fixtures/npm-100-encoding/athlete.ath.sqlite",
+    "8469f3dfe29768f78b86c4d23e641b5070fd78683b77a7d342925ddc1b81a075",
   ],
   [
     "tests/fixtures/exports/whoop/journal_entries.csv",

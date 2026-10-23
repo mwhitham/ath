@@ -70,9 +70,10 @@ Rules:
 - After `001-initial.sql`, the runner inserts one `database_metadata` row and one
   `database_state` row, then sets the file header pragmas above. The runner supplies
   `database_id` and `created_at`. They are not embedded in the SQL file.
-- Migration `002-provider-encoding-repair.sql` copies `record_revisions.record_json`
-  into typed-table `data_json` rows where the stored text differs (npm 1.0.0
-  provider imports left key-order-only mismatches, including nested objects). The
+- Migration `002-provider-encoding-repair.sql` bumps `database_metadata` to schema 2.
+  The runner aligns typed-table `data_json` to `record_revisions.record_json` inside
+  the same write transaction using semantic equality (key-order-only mismatches from
+  npm 1.0.0 provider imports). It sets `PRAGMA user_version = 2` before `COMMIT`. The
   runner bumps `database_state.current_revision` when at least one row changes.
 - Roll back the transaction on failure. A failed migration must leave the prior file
   usable.

@@ -1,4 +1,3 @@
-import { execFileSync } from "node:child_process";
 import { copyFileSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
@@ -6,27 +5,19 @@ import { createClient } from "@libsql/client";
 import { pathToFileURL } from "node:url";
 import { countProviderEncodingRepairCandidates, openDatabase } from "../../src/db/index.js";
 
-const fixtures = resolve(import.meta.dirname, "../fixtures/exports");
-const NPM_CLI = ["--yes", "athleticstandard@1.0.0"];
+const fixtureDatabase = resolve(
+  import.meta.dirname,
+  "../fixtures/npm-100-encoding/athlete.ath.sqlite",
+);
 
-function runAth100(args: string[], cwd: string): void {
-  execFileSync("npx", [...NPM_CLI, ...args], {
-    cwd,
-    encoding: "utf8",
-    stdio: "pipe",
-  });
-}
-
-export function createNpm100ProviderDatabase(): {
+export function materializeNpm100ProviderDatabase(): {
   directory: string;
   databasePath: string;
 } {
   const directory = mkdtempSync(join(tmpdir(), "ath-npm-100-"));
-  runAth100(["init", "-y", "--no-skill"], directory);
-  for (const provider of ["whoop", "oura", "apple"] as const) {
-    runAth100(["import", "-y", resolve(fixtures, provider)], directory);
-  }
-  return { directory, databasePath: join(directory, "athlete.ath.sqlite") };
+  const databasePath = join(directory, "athlete.ath.sqlite");
+  copyFileSync(fixtureDatabase, databasePath);
+  return { directory, databasePath };
 }
 
 export async function snapshotRecordPayloadBytes(
@@ -59,13 +50,6 @@ export async function countEncodingMismatches(databasePath: string): Promise<num
   } finally {
     database.close();
   }
-}
-
-export function copyDatabaseTree(sourceDirectory: string, targetDirectory: string): string {
-  const sourcePath = join(sourceDirectory, "athlete.ath.sqlite");
-  const targetPath = join(targetDirectory, "athlete.ath.sqlite");
-  copyFileSync(sourcePath, targetPath);
-  return targetPath;
 }
 
 export function readDatabaseBytes(path: string): Buffer {

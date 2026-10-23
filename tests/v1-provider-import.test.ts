@@ -848,6 +848,37 @@ describe("v1 provider import", () => {
     expect(oxygen).toHaveLength(4);
   });
 
+  it("labels Oura portal score rows from contributor key shape", async () => {
+    const database = await emptyDatabase();
+    const preview = await previewProviderImport(database, join(fixtures, "oura-portal"), {
+      received_at: receivedAt,
+    });
+    expect(preview.provider).toBe("oura");
+    await importProviderRecords(database, preview);
+    const scores = await listRecords(database, {
+      record_type: "provider_score",
+      limit: 10_000,
+    });
+    const byMetric = (metric: string) =>
+      scores.filter(
+        (record) =>
+          record.record_type === "provider_score" && record.data.metric === metric,
+      );
+    expect(byMetric("readiness")).toHaveLength(2);
+    expect(byMetric("sleep_score")).toHaveLength(2);
+    expect(byMetric("activity_score")).toHaveLength(2);
+    const topLevelScores = scores
+      .filter(
+        (record) =>
+          record.record_type === "provider_score" &&
+          ["readiness", "sleep_score", "activity_score"].includes(record.data.metric),
+      )
+      .map((record) => [record.data.metric, record.data.value.standard_value]);
+    expect(topLevelScores).toContainEqual(["readiness", 74]);
+    expect(topLevelScores).toContainEqual(["sleep_score", 82]);
+    expect(topLevelScores).toContainEqual(["activity_score", 66]);
+  });
+
   it("imports Oura member-portal CSV scores and readiness contributors", async () => {
     const database = await emptyDatabase();
     const preview = await previewProviderImport(database, join(fixtures, "oura-member-portal"), {

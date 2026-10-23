@@ -273,10 +273,21 @@ describe("v1 database creation and opening", () => {
 
   it("refuses a local user_version that disagrees with metadata", async () => {
     const { database, path } = await newDatabase();
-    await databaseClient(database).execute("PRAGMA user_version = 1");
+    await databaseClient(database).execute("PRAGMA user_version = 0");
     database.close();
     openDatabases.pop();
     await expect(openDatabase(path)).rejects.toThrow("does not match");
+  });
+
+  it("reconciles user_version when it is one step behind metadata after a partial migration", async () => {
+    const { database, path } = await newDatabase();
+    await databaseClient(database).execute("PRAGMA user_version = 1");
+    database.close();
+    openDatabases.pop();
+    const reopened = await openDatabase(path);
+    openDatabases.push(reopened);
+    const userVersion = await databaseClient(reopened).execute("PRAGMA user_version");
+    expect(Number(userVersion.rows[0]?.user_version)).toBe(2);
   });
 
   it.runIf(process.platform !== "win32")(
