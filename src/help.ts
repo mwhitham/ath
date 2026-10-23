@@ -188,7 +188,25 @@ Examples:
 
 Migration never runs silently. A verified SQLite backup is created before the
 first schema write. Non-interactive commands refuse an outdated database and
-point here.`,
+point here.
+
+Requires the \`sqlite3\` command-line tool on PATH for verified backups (same as
+\`ath repair\` when repair candidates exist).`,
+
+  repair: `
+Examples:
+
+  Preview provider-encoding repair candidates:
+    $ ath repair
+
+  Apply key-order-only repair after npm 1.0.0 provider imports:
+    $ ath repair -y
+
+  Rebuild typed tables from the current revision when direct SQL changed values:
+    $ ath repair -y --from-revision --confirm-revision-align <database-id>
+
+Each confirmed repair creates a new verified SQLite backup. Failed attempts leave
+that backup on disk for restore; retry creates another backup.`,
 
   export: `
 Examples:

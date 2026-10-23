@@ -2,11 +2,14 @@ export {
   SQL_SCHEMA_VERSION,
   SQLITE_APPLICATION_ID,
   SQLITE_APPLICATION_MARKER,
+  releaseLocalDatabase,
+  markSkipWalCheckpointOnRelease,
   type AthleticDatabase,
 } from "./client.js";
 export {
   createVerifiedSqliteBackup,
   defaultMigrationBackupPath,
+  formatMigrationBackupTimestamp,
   sqlite3BackupDotCommand,
 } from "./backup.js";
 export {
@@ -61,6 +64,15 @@ export {
   type DatabaseCheckIssue,
   type DatabaseCheckResult,
 } from "./check.js";
+export {
+  countProviderEncodingRepairCandidates,
+  countRevisionAlignRepairCandidates,
+  executeConfirmedProviderEncodingRepair,
+  listRevisionAlignRepairRecordIds,
+  repairProviderEncoding,
+  type ConfirmedProviderRepairResult,
+  type ProviderEncodingRepairResult,
+} from "./repair.js";
 export {
   databaseStats,
   renderDatabaseStats,

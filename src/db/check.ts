@@ -27,6 +27,10 @@ import {
   currentRecordPayloadFromRow,
   recordRevisionPayloadFromRow,
 } from "./revision-encoding.js";
+import type { Client } from "@libsql/client";
+import { typedTables } from "./check-tables.js";
+import { listTypedDenormalizedFindings } from "./typed-denormalized.js";
+import { formatSchemaValidationError } from "./validation-message.js";
 
 export interface DatabaseCheckIssue {
   severity: "error" | "warning";
@@ -61,42 +65,6 @@ class CheckIssues extends Array<DatabaseCheckIssue> {
     }
     return this.length;
   }
-}
-
-const typedTables: Readonly<Record<string, string>> = {
-  athlete_profile: "athlete_profile",
-  source: "sources",
-  source_device: "source_devices",
-  point_measurement: "point_measurements",
-  measurement_sample: "measurement_samples",
-  sleep_session: "sleep_sessions",
-  workout_session: "workout_sessions",
-  benchmark_result: "benchmark_results",
-  provider_summary: "provider_summaries",
-  provider_score: "provider_scores",
-  athlete_report: "athlete_reports",
-  nutrition_entry: "nutrition_entries",
-  attachment: "attachments",
-  benchmark_definition: "benchmark_definitions",
-  prediction: "predictions",
-  prediction_result_link: "prediction_result_links",
-  prediction_grade: "prediction_grades",
-  prediction_error_analysis: "prediction_error_analyses",
-  training_plan: "training_plans",
-  planned_session: "planned_sessions",
-  coaching_note: "coaching_notes",
-  saved_training_review: "saved_training_reviews",
-  goal: "goals",
-  nutrition_model_interpretation: "nutrition_model_interpretations",
-};
-
-function validationMessage(error: { issues: readonly { path: PropertyKey[]; message: string }[] }): string {
-  const first = error.issues[0];
-  if (first === undefined) {
-    return "record does not match its domain schema";
-  }
-  const path = first.path.length === 0 ? "record" : first.path.join(".");
-  return `${path}: ${first.message}`;
 }
 
 async function checkAttachment(
@@ -282,7 +250,7 @@ export async function checkDatabase(
           severity: "error",
           check: "domain",
           record_id: currentAfter,
-          message: validationMessage(parsed.error),
+          message: formatSchemaValidationError(parsed.error),
         });
         continue;
       }
@@ -367,7 +335,7 @@ export async function checkDatabase(
           severity: "error",
           check: "revision",
           record_id: revisionAfterId,
-          message: validationMessage(parsed.error),
+          message: formatSchemaValidationError(parsed.error),
         });
       }
     }
@@ -430,7 +398,7 @@ export async function checkDatabase(
         severity: "error",
         check: "deletion",
         record_id: String(row.record_id),
-        message: validationMessage(parsed.error),
+        message: formatSchemaValidationError(parsed.error),
       });
     }
   }
@@ -467,7 +435,7 @@ export async function checkDatabase(
         severity: "error",
         check: "erasure_marker",
         record_id: String(row.record_id),
-        message: validationMessage(parsed.error),
+        message: formatSchemaValidationError(parsed.error),
       });
       continue;
     }
@@ -484,6 +452,25 @@ export async function checkDatabase(
       check: "erasure_marker",
       record_id: String(row.record_id),
       message: "erased record still has a current record row",
+    });
+  }
+
+  const denormalizedFindings = await listTypedDenormalizedFindings(client);
+  for (const finding of denormalizedFindings) {
+    if (finding.kind === "mismatch") {
+      issues.push({
+        severity: "error",
+        check: "typed_denormalized",
+        record_id: finding.record_id,
+        message: "typed-table denormalized columns do not match the current revision",
+      });
+      continue;
+    }
+    issues.push({
+      severity: "error",
+      check: "typed_denormalized",
+      record_id: finding.record_id,
+      message: finding.message,
     });
   }
 

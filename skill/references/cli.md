@@ -15,6 +15,7 @@ is offered, it shows the write and writes nothing.
 - [ath skill](#ath-skill) — where the agent skill is installed, and whether each copy is current
 - [ath skill install](#ath-skill-install) — copy the skill into .agents/skills and every harness folder here
 - [ath migrate](#ath-migrate) — preview and apply a SQL schema migration after a verified backup
+- [ath repair](#ath-repair) — repair typed-table JSON bytes left by npm 1.0.0 provider imports
 - [ath import](#ath-import) — preview and import a v1 package or Apple Health, WHOOP, or Oura export
 - [ath conflicts](#ath-conflicts) — review and resolve the temporary conflicts from a package import
 - [ath conflicts show](#ath-conflicts-show) — show complete local and imported values from the current conflict preview
@@ -58,6 +59,7 @@ Set up:
   init [options]                              create a new athlete.ath.sqlite here, with the well-known benchmarks defined
   skill [options]                             where the agent skill is installed, and whether each copy is current
   migrate [options] [file]                    preview and apply a SQL schema migration after a verified backup
+  repair [options] [file]                     repair typed-table JSON bytes left by npm 1.0.0 provider imports
   key [options]                               save or show a gateway key — never stored in the athlete file
   models [options]                            list live text models that can reason, or save your usual one
 
@@ -108,6 +110,28 @@ Options:
                        is here
   --json               structured output, for an agent rather than a person
   -h, --help           display help for command
+
+
+Examples:
+
+  Answer three questions, then write the file:
+    $ ath init
+
+  Skip the questions:
+    $ ath init -y --name "Sam Reyes" --birth-year 1991 --sex female
+
+The file is created here, called athlete.ath.sqlite, with the well-known
+benchmarks already defined. Nothing leaves your machine.
+
+For a complete v1 package restore, create an empty destination:
+    $ ath init -y --empty
+    $ ath import ./saved-package
+    $ ath import ./saved-package --yes
+
+The agent skill is written to .agents/skills, which Claude Code, Cursor,
+Codex, and Gemini CLI read, and into any of .claude, .cursor, .codex,
+.gemini, or .github already here. An agent in this folder then knows how
+to read and write the file. Pass --no-skill to skip that.
 ```
 
 ## ath skill
@@ -124,6 +148,25 @@ Options:
 Commands:
   install [options]  copy the skill into .agents/skills and every harness folder
                      here
+
+
+Examples:
+
+  Where the skill is installed, and whether each copy is current:
+    $ ath skill
+
+  Upgrade ath, and replace the skill here if one is already installed:
+    $ ath --update
+
+  Replace the skill without upgrading ath:
+    $ ath skill install
+
+The skill is a folder an agent reads to learn the file and the commands.
+ath init writes it to .agents/skills and into any harness folder already
+here. Each copy carries its version. When a copy is older than the one
+this ath ships, other commands say so once on stderr. `ath --update`
+replaces an installed copy after upgrading ath. This command replaces
+it without upgrading.
 ```
 
 ## ath skill install
@@ -159,6 +202,60 @@ Options:
   --json                             structured preview; never confirms the
                                      migration
   -h, --help                         display help for command
+
+
+Examples:
+
+  Preview the SQL schema migration plan:
+    $ ath migrate
+
+  Apply after reviewing the preview:
+    $ ath migrate -y --confirm-migration <database-id>
+
+  Return the preview as JSON for an agent:
+    $ ath migrate --json
+
+Migration never runs silently. A verified SQLite backup is created before the
+first schema write. Non-interactive commands refuse an outdated database and
+point here.
+
+Requires the `sqlite3` command-line tool on PATH for verified backups (same as
+`ath repair` when repair candidates exist).
+```
+
+## ath repair
+
+```
+Usage: ath repair [options] [file]
+
+repair typed-table JSON bytes left by npm 1.0.0 provider imports
+
+Arguments:
+  file                                    the database to repair (default: the one in this folder)
+
+Options:
+  --file <path>                           repair a database other than the one in this folder
+  -y, --yes                               apply the repair after reviewing the preview
+  --from-revision                         copy typed-table JSON from the current revision when bytes disagree in meaning
+  --confirm-revision-align <database-id>  repeat the database ID exactly when using --from-revision
+  --dry-run                               show how many records would change and write nothing
+  --json                                  structured preview only
+  -h, --help                              display help for command
+
+
+Examples:
+
+  Preview provider-encoding repair candidates:
+    $ ath repair
+
+  Apply key-order-only repair after npm 1.0.0 provider imports:
+    $ ath repair -y
+
+  Rebuild typed tables from the current revision when direct SQL changed values:
+    $ ath repair -y --from-revision --confirm-revision-align <database-id>
+
+Each confirmed repair creates a new verified SQLite backup. Failed attempts leave
+that backup on disk for restore; retry creates another backup.
 ```
 
 ## ath import
@@ -176,6 +273,34 @@ Options:
   -y, --yes      apply a conflict-free preview
   --json         structured preview; never confirms the write
   -h, --help     display help for command
+
+
+Examples:
+
+  Preview a complete v1 package:
+    $ ath import ~/Backups/athletic-standard-export
+
+  Apply it only after the preview has no conflicts:
+    $ ath import ~/Backups/athletic-standard-export --yes
+
+  Preview a provider export:
+    $ ath import ~/Downloads/apple_health_export.zip
+    $ ath import ~/Downloads/whoop-export
+    $ ath import ~/Downloads/oura-export
+
+The default is always a preview. `--json` is also only a preview and
+never confirms a write. Provider rows keep separate Apple Health, WHOOP,
+and Oura source routes. Repeating an unchanged export reports matching
+records. A corrected provider row creates a retained revision.
+
+For a v1 package, an empty database adopts the package database ID and
+exact revision history. A database with the same ID can accept new
+records and later revisions. Import never deletes a local record merely
+because a package omits it. A different database ID is refused because
+it may belong to another athlete. Unknown fields and records that v1 cannot
+represent are listed in the preview and block the write. No flag discards them.
+Athletic Standard 0.x JSON files are
+prerelease formats and are not imported by v1.
 ```
 
 ## ath conflicts
@@ -194,6 +319,26 @@ Commands:
   resolve [options] <record-id>  choose the local, imported, or a corrected
                                  value for one conflict
   help [command]                 display help for command
+
+
+Examples:
+
+  Show complete local and imported values for every current conflict:
+    $ ath conflicts show
+
+  Keep the local record:
+    $ ath conflicts resolve <record-id> --choice local
+
+  Accept the imported record as a new local revision:
+    $ ath conflicts resolve <record-id> --choice imported
+
+  Supply a complete corrected data object as a new local revision:
+    $ ath conflicts resolve <record-id> --choice corrected \
+        --data '{"...":"..."}'
+
+These commands change only a temporary conflict file. They do not change athlete
+data. After every conflict has a choice, rerun the exact package import with
+--yes. A changed package or database makes every saved choice stale.
 ```
 
 ## ath conflicts show
@@ -246,6 +391,24 @@ Options:
   --file <path>              export a database other than the one in this folder
   --json                     structured command result
   -h, --help                 display help for command
+
+
+Examples:
+
+  Write a complete portable package:
+    $ ath export ./athlete-backup
+
+  Return the command result as JSON:
+    $ ath export ./athlete-backup --json
+
+SQLite remains the live record. The exported JSON package is a snapshot
+and does not stay synchronized. The package includes complete current
+records, retained revisions, deletions, dense samples, and permitted
+attachments. The manifest is written last.
+
+The export has no time by default, so two exports of the same database
+revision are byte-identical. Supply a fixed --exported-at only when a
+manifest time is needed.
 ```
 
 ## ath log
@@ -272,6 +435,39 @@ Options:
   --dry-run            show what would be written, and write nothing
   --json               structured preview for an agent; never confirms the write
   -h, --help           display help for command
+
+
+Examples:
+
+  A note, taken exactly as typed. No quotes needed:
+    $ ath log slept badly, about 5 hours
+
+  A manual measurement. Name RMSSD or SDNN rather than saying only HRV:
+    $ ath log RMSSD 61 ms
+
+  How something felt, with a rating:
+    $ ath log sore quads 4/5
+
+  A benchmark result:
+    $ ath log Fran in 4:41 rx
+
+  A photo attached to one athlete report:
+    $ ath log Meal photo --attachment ./receipt.png
+
+  A structured record from an agent. Run `ath log`, paste one record
+  object or an array, and press Ctrl-D:
+    $ ath log
+    {"record_type":"goal","data":{"authorship":{...},"title":"Fran under 4:30"}}
+    ^D
+
+Plain text creates one record. A structured JSON array creates one
+validated batch. The preview shows every stable ID and complete record
+before one transaction writes anything. `--json` returns that preview
+and never confirms a write. Pass `--yes` only after approval.
+
+--attachment accepts PNG, JPEG, WebP, or PDF files up to 25 MiB. Pass it
+more than once for several files. Exactly one athlete report or nutrition
+entry in the batch owns them. No file is copied during a JSON preview.
 ```
 
 ## ath link
@@ -292,6 +488,23 @@ Options:
   --dry-run            show what would change and write nothing
   --json               structured preview; never confirms the write
   -h, --help           display help for command
+
+
+Examples:
+
+  Find the stable IDs and current result revision:
+    $ ath records list --type benchmark_result
+    $ ath records list --type workout_session
+
+  Preview the link:
+    $ ath link <result-id> <session-id> --revision 1 --json
+
+  Write it after review:
+    $ ath link <result-id> <session-id> --revision 1 --yes
+
+The benchmark result owns this link. Linking creates a new revision of
+that result. A stale --revision is refused rather than overwriting a
+correction made after the preview.
 ```
 
 ## ath correct
@@ -315,6 +528,23 @@ Options:
   --dry-run            show what would change and write nothing
   --json               structured preview; never confirms the write
   -h, --help           display help for command
+
+
+Examples:
+
+  Read the current revision and complete data:
+    $ ath records show <record-id> --history --json
+
+  Preview a complete replacement:
+    $ ath correct <record-id> --revision 2 --data '{"...":"..."}' --json
+
+  Write after review:
+    $ ath correct <record-id> --revision 2 --data '{"...":"..."}' --yes
+
+Correction keeps the stable ID and complete earlier revisions. The
+expected revision prevents a stale preview from overwriting newer data.
+Use --attachment while correcting an athlete report or nutrition entry to
+create and link a supported file in the same database revision.
 ```
 
 ## ath delete
@@ -334,6 +564,19 @@ Options:
   --dry-run            show what would change and write nothing
   --json               structured preview; never confirms the write
   -h, --help           display help for command
+
+
+Examples:
+
+  Preview a normal deletion:
+    $ ath delete <record-id> --revision 2 --json
+
+  Hide it from current views after review:
+    $ ath delete <record-id> --revision 2 --yes
+
+Normal deletion retains the complete record and revision history. Privacy
+erasure is a different command because it removes values and cannot be
+undone from the database.
 ```
 
 ## ath erase
@@ -361,6 +604,24 @@ Options:
                                  nothing
   --json                         structured preview; never confirms the erasure
   -h, --help                     display help for command
+
+
+Examples:
+
+  Preview the record, every dependent record, and each attachment:
+    $ ath erase <record-id> --revision 2 --json
+
+  Permanently erase after reviewing that preview:
+    $ ath erase <record-id> --revision 2 --yes \
+        --confirm-erasure <record-id>
+
+Erasure removes the current record, its revision history, records that
+depend on it, and their attachment files. It leaves only value-free
+markers saying which stable IDs were erased.
+
+This cannot be undone from the database. Scripts need both --yes and an
+exact --confirm-erasure value. Interactive use asks the same two
+questions. `--json` and `--dry-run` never erase anything.
 ```
 
 ## ath check
@@ -378,6 +639,23 @@ Options:
   --validate-export  also build and validate a temporary complete JSON package
   --json             structured output, for an agent rather than a person
   -h, --help         display help for command
+
+
+Examples:
+
+  Check the file in this folder:
+    $ ath check
+
+  Check one somewhere else:
+    $ ath check ~/training/athlete.ath.sqlite
+
+An error means the database breaks a rule of the format and says which rule.
+A warning means something is worth knowing but the database is still valid.
+The check covers SQLite integrity, schema versions, foreign keys, domain rules,
+record relationships, revision chains, session ordering, and attachments.
+
+Also build and validate a temporary complete JSON package:
+    $ ath check --validate-export
 ```
 
 ## ath key
@@ -394,6 +672,27 @@ Options:
 Commands:
   set <gateway>    save a Vercel or OpenRouter key in the OS password store
   clear [gateway]  delete the saved gateway key from the password store
+
+
+Examples:
+
+  Save a Vercel or OpenRouter key in the computer's password store:
+    $ ath key set vercel
+    $ ath key set openrouter
+
+  See which gateway is saved, not the key itself:
+    $ ath key
+
+  Delete it:
+    $ ath key clear
+
+There is no Athletic Standard subscription. A key is only for calling a
+model from a bare terminal. Inside a harness you do not need one.
+
+The key never goes in the athlete file. Agents read that file. If the
+password store is missing, the command refuses. It will not write a
+plaintext file. A key already in AI_GATEWAY_API_KEY or OPENROUTER_API_KEY
+still works, for scripts.
 ```
 
 ## ath key set
@@ -438,6 +737,19 @@ Options:
   --file <path>     the athlete file whose default to save
   --json            structured output, for an agent rather than a person
   -h, --help        display help for command
+
+
+Examples:
+
+  Every live text model that can reason, including open weights:
+    $ ath models
+
+  Save your usual model in athlete.ath.model next to athlete.ath.sqlite:
+    $ ath models --default openai/gpt-oss-120b
+
+Needs a gateway key. The list is fetched each time, so a new open-weight
+model appears without a new ath. Image, audio, and embedding models are
+out. We do not pick a favourite lab for you.
 ```
 
 ## ath predict
@@ -461,6 +773,28 @@ Options:
   --dry-run          show the prediction, and write nothing
   --json             evidence for a harness, not a prediction
   -h, --help         display help for command
+
+
+Examples:
+
+  Predict Fran. Needs a gateway key in a bare terminal:
+    $ ath models
+    $ ath predict fran --model qwen/qwen3-235b-a22b
+
+  Save a usual model, then predict without naming it:
+    $ ath models --default openai/gpt-oss-120b
+    $ ath predict fran
+
+  Evidence for a harness, not a prediction. No key needed:
+    $ ath predict fran --json
+
+A prediction needs a model. In Claude Code, Cursor, or Codex the model
+is already there: pull evidence with --json, reason, write with
+`ath log`. In a bare terminal this command calls the model you chose,
+prints the number, and asks once before writing.
+
+--as-of hides everything after that day and does not write. Replaying
+the past is `ath backtest`.
 ```
 
 ## ath backtest
@@ -480,6 +814,23 @@ Options:
   -y, --yes           do not ask before a long --all run
   --json              structured output, for an agent rather than a person
   -h, --help          display help for command
+
+
+Examples:
+
+  Replay history with the models you name:
+    $ ath backtest --model qwen/qwen3-235b-a22b --model openai/gpt-oss-120b
+
+  Every live text model that can reason, after showing the count:
+    $ ath backtest --all
+
+A prediction needs a model, so a key is required. No key → refuse. In a
+harness, daily predictions use the harness model; this command is for
+comparing models on a history you already have.
+
+A result is replayed only when an earlier result on the same benchmark
+exists. Evidence is as of the day before. The athlete file is not
+written. The report's summary is the later share payload.
 ```
 
 ## ath share
@@ -493,6 +844,15 @@ Options:
   --file <path>  look next to a file other than the one in this folder
   --json         structured output, for an agent rather than a person
   -h, --help     display help for command
+
+
+Examples:
+
+  Name the latest backtest report:
+    $ ath share
+
+Not built yet. The shareable part of a backtest is the summary in the
+report file this names.
 ```
 
 ## ath grade
@@ -516,6 +876,27 @@ Options:
   --dry-run                        show what would be written, and write nothing
   --json                           structured preview; never confirms the write
   -h, --help                       display help for command
+
+
+Examples:
+
+  Find the prediction and result IDs:
+    $ ath records list --type prediction
+    $ ath records list --type benchmark_result
+
+  Preview the exact link and grade:
+    $ ath grade <prediction-id> --result <result-id> --json
+
+  Write after review:
+    $ ath grade <prediction-id> --result <result-id> --yes
+
+`ath grade` never logs a result. It grades two records that already
+exist. It creates a stable prediction-result link when needed and saves
+the deterministic arithmetic against exact revisions.
+
+A result inside the prediction's stated range is a hit. Anything else is
+a miss. A prediction error analysis is a separate authored record written
+through structured `ath log`, not through a grade flag.
 ```
 
 ## ath calculate
@@ -549,6 +930,45 @@ Options:
   --file <path>                read a database other than the one in this folder
   --json                       structured calculation receipt
   -h, --help                   display help for command
+
+
+Examples:
+
+  A 90-day baseline, kept separate for each source:
+    $ ath calculate baseline hrv_rmssd --from 2026-07-01 --to 2026-09-28
+
+  Daily totals in an explicit calendar timezone:
+    $ ath calculate summary steps --group day --from 2026-09-01 \
+        --to 2026-09-30 --timezone America/Chicago
+
+  Compare two sources without pooling them:
+    $ ath calculate compare-sources resting_heart_rate \
+        --source <source-id> --compare-source <other-source-id>
+
+  Correlate same-day means:
+    $ ath calculate correlation hrv_rmssd --other-quantity resting_heart_rate \
+        --source <source-id> --timezone America/Chicago
+
+  Baseline WHOOP recovery scores that have an absolute source time:
+    $ ath calculate baseline recovery --record-kind provider-score
+
+  Summarize Oura readiness by Oura's own assigned day:
+    $ ath calculate provider-period-summary readiness \
+        --record-kind provider-score --period-type oura_day_unspecified
+
+Named operations are summary, baseline, trend, coverage, compare-sources,
+correlation, workout-drift, and provider-period-summary. The provider-period
+operation requires --period-type and never turns that period into a calendar day.
+
+Record kinds are measurement, provider-score, provider-summary, and
+session-summary. Measurement is the default. Naming the kind keeps measurements,
+scores, and source-reported totals separate even when their names are similar.
+
+The result names its method, exact record revisions, exclusions, sources, date
+range, and timezone or provider period when one was used.
+
+Manual sources never enter these device calculations. Different sources,
+RMSSD and SDNN, temperature types, and distance types are never pooled.
 ```
 
 ## ath series
@@ -581,6 +1001,26 @@ Options:
   --json             structured output, for an agent rather than a person
   --file <path>      read a file other than the one in this folder
   -h, --help         display help for command
+
+
+Examples:
+
+  One row per day:
+    $ ath series heart_rate
+
+  A window, and one device:
+    $ ath series hrv_beats --from 2026-08-01 --to 2026-08-31 --source whoop-1
+
+  Every sample, not a daily summary:
+    $ ath series heart_rate --raw --from 2026-08-14 --to 2026-08-14
+
+Calendar days use the timezone saved in the athlete profile. Pass a different
+one explicitly when needed:
+    $ ath series heart_rate --from 2026-08-14 --to 2026-08-14 --timezone America/Denver
+
+Dense samples live in SQLite. This command reads them without replacing the
+provider summaries that may describe the same workout or night. `ath stats`
+lists which series exist.
 ```
 
 ## ath stats
@@ -597,6 +1037,25 @@ Options:
   --file <path>  summarize a database other than the one in this folder
   --json         structured output, for an agent rather than a person
   -h, --help     display help for command
+
+
+Examples:
+
+  What is in the file, and where it came from:
+    $ ath stats
+
+  As data, for an agent:
+    $ ath stats --json
+
+Baselines are listed per source and never averaged across them, because
+two devices measuring one thing give two answers. Each carries how many
+observations it rests on, over what days, and the rule used.
+
+Each source also lists the devices seen writing under it, with the days
+each one covered — which is where a replaced watch becomes visible.
+
+Predictions are counted by who made them, so you can see which agent and
+model has actually been right about you.
 ```
 
 ## ath records
@@ -614,6 +1073,25 @@ Commands:
   show [options] <record-id>  show one record, one revision, its history, or its
                               links
   help [command]              display help for command
+
+
+Examples:
+
+  Find stable IDs for all current records:
+    $ ath records list
+
+  List only predictions:
+    $ ath records list --type prediction
+
+  Show one record and its complete revision timeline:
+    $ ath records show 01890f3e-e7d3-7cc0-88c8-000000000010 --history
+
+  Show the records it links to and the records that link to it:
+    $ ath records show 01890f3e-e7d3-7cc0-88c8-000000000010 --links
+
+`ath records list` is for finding stable IDs. `ath records show` reads one
+logical record, a named revision, its history, and its links. Use `ath stats`
+for the fixed overview and `ath series` for dense samples.
 ```
 
 ## ath records list

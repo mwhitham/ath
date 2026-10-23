@@ -55,11 +55,12 @@ const OURA_MARKERS = [
   "total_sleep_duration",
   "lowest_heart_rate",
   "readiness_score",
+  "contributors",
 ];
 
 function isOuraHeader(header: string): boolean {
   const normalized = header.toLowerCase().replace(/\s+/g, "_");
-  return OURA_MARKERS.some((m) => normalized.includes(m));
+  return OURA_MARKERS.some((marker) => normalized.includes(marker));
 }
 
 function firstLine(path: string): string {
