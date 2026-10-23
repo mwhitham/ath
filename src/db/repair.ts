@@ -11,6 +11,7 @@ import {
 import { semanticJsonEqual } from "./stable-json.js";
 import { listTypedDenormalizedMismatchRecordIds } from "./typed-denormalized.js";
 import { withWriteTransaction } from "./transaction.js";
+import { formatSchemaValidationError } from "./validation-message.js";
 
 export interface TypedTableMismatch {
   record_id: string;
@@ -278,8 +279,7 @@ export async function executeConfirmedProviderEncodingRepair(
   } catch (error) {
     const revisionAfterFailure = await readDatabaseRevision(database);
     const changed = revisionAfterFailure !== revisionBefore;
-    const causeMessage =
-      error instanceof Error ? error.message : "repair step failed";
+    const causeMessage = formatSchemaValidationError(error);
     throw new Error(
       `Repair failed after creating verified backup at ${backupPath}. Cause: ${causeMessage}.` +
         (changed

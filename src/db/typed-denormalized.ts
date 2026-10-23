@@ -1,6 +1,7 @@
 import type { Client } from "@libsql/client";
 import { ZodError } from "zod";
 import { CurrentRecord, type CurrentRecordT } from "../v1/schema.js";
+import { formatSchemaValidationError } from "./validation-message.js";
 import { typedTables } from "./check-tables.js";
 import { typedMainRowFields } from "./records.js";
 
@@ -439,10 +440,11 @@ export async function listTypedDenormalizedFindings(
         }
       } catch (error) {
         if (error instanceof ZodError) {
-          const first = error.issues[0];
-          const path = first === undefined ? "record" : first.path.join(".");
-          const detail = first === undefined ? "record does not match its domain schema" : `${path}: ${first.message}`;
-          findings.push({ kind: "parse_error", record_id: recordId, message: detail });
+          findings.push({
+            kind: "parse_error",
+            record_id: recordId,
+            message: formatSchemaValidationError(error),
+          });
           continue;
         }
         if (error instanceof SyntaxError) {

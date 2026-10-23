@@ -16,6 +16,7 @@ import {
   trackOpenLocalDatabase,
   markSkipWalCheckpointOnRelease,
   enableLocalWal,
+  isSqliteBusy,
   tryRevertDeleteJournalModeAfterFailedWal,
   parseDatabaseTarget,
   readApplicationId,
@@ -661,7 +662,13 @@ export async function executeConfirmedDatabaseMigration(
     }
     await applyPendingDatabaseMigrations(database);
   } catch (error) {
-    await tryRevertDeleteJournalModeAfterFailedWal(database, journalBefore);
+    try {
+      await tryRevertDeleteJournalModeAfterFailedWal(database, journalBefore);
+    } catch (revertError) {
+      if (!isSqliteBusy(revertError)) {
+        // Keep the original migration failure for the message below.
+      }
+    }
     const revisionAfterFailure = Number(
       (
         await databaseClient(database).execute(

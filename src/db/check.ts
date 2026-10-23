@@ -30,6 +30,7 @@ import {
 import type { Client } from "@libsql/client";
 import { typedTables } from "./check-tables.js";
 import { listTypedDenormalizedFindings } from "./typed-denormalized.js";
+import { formatSchemaValidationError } from "./validation-message.js";
 
 export interface DatabaseCheckIssue {
   severity: "error" | "warning";
@@ -64,15 +65,6 @@ class CheckIssues extends Array<DatabaseCheckIssue> {
     }
     return this.length;
   }
-}
-
-function validationMessage(error: { issues: readonly { path: PropertyKey[]; message: string }[] }): string {
-  const first = error.issues[0];
-  if (first === undefined) {
-    return "record does not match its domain schema";
-  }
-  const path = first.path.length === 0 ? "record" : first.path.join(".");
-  return `${path}: ${first.message}`;
 }
 
 async function checkAttachment(
@@ -258,7 +250,7 @@ export async function checkDatabase(
           severity: "error",
           check: "domain",
           record_id: currentAfter,
-          message: validationMessage(parsed.error),
+          message: formatSchemaValidationError(parsed.error),
         });
         continue;
       }
@@ -343,7 +335,7 @@ export async function checkDatabase(
           severity: "error",
           check: "revision",
           record_id: revisionAfterId,
-          message: validationMessage(parsed.error),
+          message: formatSchemaValidationError(parsed.error),
         });
       }
     }
@@ -406,7 +398,7 @@ export async function checkDatabase(
         severity: "error",
         check: "deletion",
         record_id: String(row.record_id),
-        message: validationMessage(parsed.error),
+        message: formatSchemaValidationError(parsed.error),
       });
     }
   }
@@ -443,7 +435,7 @@ export async function checkDatabase(
         severity: "error",
         check: "erasure_marker",
         record_id: String(row.record_id),
-        message: validationMessage(parsed.error),
+        message: formatSchemaValidationError(parsed.error),
       });
       continue;
     }
@@ -470,7 +462,7 @@ export async function checkDatabase(
         severity: "error",
         check: "typed_denormalized",
         record_id: finding.record_id,
-        message: "typed-table denormalized columns do not match data_json",
+        message: "typed-table denormalized columns do not match the current revision",
       });
       continue;
     }

@@ -35,7 +35,7 @@ describe.runIf(process.platform !== "win32")("WAL retention after failed writes"
       stdio: ["pipe", "ignore", "pipe"],
     });
     children.push(reader);
-    reader.stdin?.write("BEGIN DEFERRED;\nSELECT 1;\n");
+    reader.stdin?.write("BEGIN DEFERRED;\nSELECT count(*) FROM records;\n");
     await new Promise<void>((resolveReady, reject) => {
       const timeout = setTimeout(() => reject(new Error("reader did not start")), 10_000);
       reader.stderr?.on("data", () => {
@@ -73,16 +73,12 @@ describe.runIf(process.platform !== "win32")("WAL retention after failed writes"
     ) as { record: { data: { note?: string } } };
     expect(shownBeforeReaderEnds.record.data.note).toBe("note two");
 
-    reader.stdin?.write("ROLLBACK;\n");
-    reader.stdin?.end();
+    reader.kill("SIGKILL");
+    children.pop();
     await new Promise<void>((resolveExit) => {
       reader.on("exit", () => resolveExit());
-      setTimeout(() => {
-        reader.kill("SIGTERM");
-        resolveExit();
-      }, 2_000);
+      setTimeout(resolveExit, 2_000);
     });
-    children.pop();
 
     const shown = JSON.parse(
       ath(["records", "show", report!.record_id, "--json"], directory).stdout,

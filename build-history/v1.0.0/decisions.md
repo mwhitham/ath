@@ -1553,6 +1553,11 @@ switch an existing delete-mode file to WAL. `releaseLocalDatabase` runs
 `PRAGMA wal_checkpoint(TRUNCATE)` when a connection had enabled WAL, so confirmed
 writes do not leave `-wal` and `-shm` files behind after close.
 
+A write attempt against a read-only main database file (mode `444`) on a database
+that is already in WAL mode may still create or extend `-wal` and `-shm` files
+because SQLite opens the WAL journal for the connection. The tool does not delete
+those sidecars after a failed write (D151).
+
 Rejected alternatives:
 
 - **Enable WAL on every open for performance.** Rejected because read-only commands

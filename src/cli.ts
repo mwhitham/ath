@@ -2,6 +2,7 @@
 import { buildProgram } from "./program.js";
 import { CliExitError } from "./cli/runtime.js";
 import { releaseAllOpenLocalDatabases } from "./db/client.js";
+import { formatSchemaValidationError } from "./db/validation-message.js";
 
 async function main(): Promise<void> {
   try {
@@ -10,8 +11,7 @@ async function main(): Promise<void> {
     if (error instanceof CliExitError) {
       process.exitCode = error.exitCode;
     } else {
-      const message = error instanceof Error ? error.message : String(error);
-      console.error(`ath: ${message}`);
+      console.error(`ath: ${formatSchemaValidationError(error)}`);
       process.exitCode = 1;
     }
   } finally {

@@ -166,6 +166,27 @@ describe("v1 provider-encoding repair", () => {
     expect(afterBytes).toEqual(beforeBytes);
   }, 180_000);
 
+  it("migrates npm 1.0.0 to schema 2 with ath migrate only (no repair first)", async () => {
+    const { directory, databasePath } = materializeNpm100ProviderDatabase();
+    directories.push(directory);
+    const beforeBytes = await snapshotRecordPayloadBytes(databasePath);
+    const client = createClient({ url: pathToFileURL(databasePath).href });
+    const idRow = await client.execute(
+      "SELECT database_id FROM database_metadata WHERE singleton_id = 1",
+    );
+    const databaseId = String(idRow.rows[0]?.database_id);
+    await client.close();
+
+    const migrate = ath(["migrate", "-y", "--confirm-migration", databaseId], directory);
+    expect(migrate.code, migrate.stdout).toBe(0);
+
+    const check = ath(["check"], directory);
+    expect(check.code, check.stdout).toBe(0);
+
+    const afterBytes = await snapshotRecordPayloadBytes(databasePath);
+    expect(afterBytes).toEqual(beforeBytes);
+  }, 180_000);
+
   it("materializes the npm 1.0.0 fixture in WAL mode", async () => {
     const { directory, databasePath } = materializeNpm100ProviderDatabase();
     directories.push(directory);

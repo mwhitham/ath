@@ -78,10 +78,9 @@ describe("typed denormalized parse failures", () => {
       LIMIT 1
     `);
     const recordId = String(row.rows[0]!.record_id);
-    const divergent = String(row.rows[0]!.record_json).replace("68.4", "999");
     await databaseClient(database).execute({
       sql: "UPDATE point_measurements SET data_json = ?, standard_value = 999 WHERE record_id = ?",
-      args: [divergent, recordId],
+      args: ['{"x":1}', recordId],
     });
     const idRow = await databaseClient(database).execute(
       "SELECT database_id FROM database_metadata WHERE singleton_id = 1",
