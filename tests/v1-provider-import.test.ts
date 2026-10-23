@@ -4,6 +4,7 @@ import { join, resolve } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   calculate,
+  checkDatabase,
   createDatabase,
   exportRecords,
   importProviderRecords,
@@ -78,6 +79,23 @@ function duplicateCsvFirstRow(text: string): string {
 }
 
 describe("v1 provider import", () => {
+  it.each(["apple", "whoop", "oura"] as const)(
+    "passes checkDatabase after importing the %s fixture",
+    async (provider) => {
+      const database = await emptyDatabase();
+      const preview = await previewProviderImport(
+        database,
+        resolve(fixtures, provider),
+        { received_at: receivedAt },
+      );
+      expect(preview.conflicts).toEqual([]);
+      await importProviderRecords(database, preview);
+      const check = await checkDatabase(database);
+      expect(check.valid, JSON.stringify(check.issues, null, 2)).toBe(true);
+      expect(check.issues).toEqual([]);
+    },
+  );
+
   it("imports WHOOP records, matches a repeat, and revisions a correction", async () => {
     const database = await emptyDatabase();
     const source = resolve(fixtures, "whoop");

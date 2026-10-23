@@ -6,6 +6,7 @@ import {
   UtcTimestamp,
   type RecordActorT,
 } from "../v1/schema.js";
+import type { RecordExtensionsT } from "../v1/extensions.js";
 import { databaseClient, type AthleticDatabase } from "./client.js";
 import {
   readRecord,
@@ -14,6 +15,7 @@ import {
   type WriteRecordInput,
 } from "./records.js";
 import { createUuidV7 } from "./uuid.js";
+import { ATH_PACKAGE_VERSION } from "../version.js";
 
 export interface LogPlan {
   inputs: WriteRecordInput[];
@@ -26,7 +28,20 @@ export interface StructuredLogInput {
   data: unknown;
   record_id?: string;
   created_at?: string;
+  current_revision?: number;
+  is_deleted?: boolean;
+  extensions?: RecordExtensionsT;
 }
+
+const STRUCTURED_LOG_FIELDS = new Set([
+  "record_type",
+  "record_id",
+  "created_at",
+  "current_revision",
+  "is_deleted",
+  "data",
+  "extensions",
+]);
 
 const quantityAliases: Readonly<Record<string, string>> = {
   "hrv rmssd": "hrv_rmssd",
@@ -227,14 +242,14 @@ async function addAutomaticGrades(
         changed_by: {
           author_type: "tool",
           tool: "ath",
-          tool_version: "1.0.0",
+          tool_version: ATH_PACKAGE_VERSION,
         },
         data: {
           authorship: {
             author: {
               author_type: "tool",
               tool: "ath",
-              tool_version: "1.0.0",
+              tool_version: ATH_PACKAGE_VERSION,
               calculation_version: "prediction-grade-v1",
             },
             authored_at: createdAt,
@@ -450,6 +465,10 @@ async function planPlainText(
   };
 }
 
+function structuredLogIssue(index: number, message: string): Error {
+  return new Error(`structured log item ${index + 1} ${message}`);
+}
+
 function planStructured(
   value: unknown,
   actor: RecordActorT,
@@ -464,6 +483,15 @@ function planStructured(
       throw new Error(`structured log item ${index + 1} must be an object`);
     }
     const raw = item as Record<string, unknown>;
+    const unknownFields = Object.keys(raw).filter(
+      (key) => !STRUCTURED_LOG_FIELDS.has(key),
+    );
+    if (unknownFields.length > 0) {
+      throw structuredLogIssue(
+        index,
+        `has unknown field${unknownFields.length === 1 ? "" : "s"}: ${unknownFields.join(", ")}`,
+      );
+    }
     const recordType = RecordType.parse(raw.record_type);
     if (
       recordType === "prediction_result_link" ||
@@ -473,26 +501,45 @@ function planStructured(
         `structured log cannot create ${recordType}; use ath grade so the tool validates and writes it`,
       );
     }
+    if (raw.current_revision !== undefined && raw.current_revision !== 1) {
+      throw structuredLogIssue(index, "can only create revision 1");
+    }
+    if (raw.is_deleted !== undefined && raw.is_deleted !== false) {
+      throw structuredLogIssue(index, "cannot create a deleted record");
+    }
     const recordId =
       typeof raw.record_id === "string" ? raw.record_id : createUuidV7();
     const itemCreatedAt =
       typeof raw.created_at === "string"
         ? UtcTimestamp.parse(raw.created_at)
         : createdAt;
-    CurrentRecord.parse({
+    const parsed = CurrentRecord.safeParse({
       record_id: recordId,
       record_type: recordType,
       created_at: itemCreatedAt,
       current_revision: 1,
       is_deleted: false,
       data: raw.data,
+      ...(raw.extensions === undefined ? {} : { extensions: raw.extensions }),
     });
+    if (!parsed.success) {
+      const details = parsed.error.issues
+        .map((issue) => {
+          const path = issue.path.length > 0 ? `${issue.path.join(".")}: ` : "";
+          return `${path}${issue.message}`;
+        })
+        .join("; ");
+      throw structuredLogIssue(index, `is invalid: ${details}`);
+    }
     return {
-      record_type: recordType,
-      record_id: recordId,
-      created_at: itemCreatedAt,
+      record_type: parsed.data.record_type,
+      record_id: parsed.data.record_id,
+      created_at: parsed.data.created_at,
       changed_by: actor,
-      data: raw.data,
+      data: parsed.data.data,
+      ...(parsed.data.extensions === undefined
+        ? {}
+        : { extensions: parsed.data.extensions }),
     };
   });
   return {

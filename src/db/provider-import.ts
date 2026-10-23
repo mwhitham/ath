@@ -30,11 +30,12 @@ import {
 } from "./records.js";
 import { withWriteTransaction } from "./transaction.js";
 import { createUuidV7 } from "./uuid.js";
+import { ATH_PACKAGE_VERSION } from "../version.js";
 
 const TOOL_ACTOR = RecordActor.parse({
   author_type: "tool",
   tool: "ath",
-  tool_version: "1.0.0",
+  tool_version: ATH_PACKAGE_VERSION,
 });
 
 interface ProviderRecordDraft {
@@ -1058,14 +1059,14 @@ async function insertNewRecord(
   draft: ProviderRecordDraft,
   becameKnownAt: string,
 ): Promise<CurrentRecordT> {
-  const record = {
+  const record = CurrentRecord.parse({
     record_id: draft.record_id,
     record_type: draft.record_type,
     current_revision: 1,
     created_at: becameKnownAt,
     is_deleted: false,
     data: draft.data,
-  } as CurrentRecordT;
+  });
   await transaction.execute({
     sql: `
       INSERT INTO records (record_id, record_type, current_revision, created_at, is_deleted)
@@ -1090,11 +1091,11 @@ async function insertChangedRecord(
   change: ProviderImportChange & { current: CurrentRecordT },
   becameKnownAt: string,
 ): Promise<CurrentRecordT> {
-  const record = {
+  const record = CurrentRecord.parse({
     ...change.current,
     current_revision: change.current.current_revision + 1,
     data: change.draft.data,
-  } as CurrentRecordT;
+  });
   await insertRevision(
     transaction,
     record,

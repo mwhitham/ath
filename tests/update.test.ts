@@ -5,6 +5,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { ATHLETIC_STANDARD_VERSION } from "../src/v1/schema.js";
+import { ATH_PACKAGE_VERSION } from "../src/version.js";
 import { ALWAYS_DIR, installSkill, skillVersion, SKILL_NAME } from "../src/skill.js";
 import {
   candidatePaths,
@@ -278,8 +279,8 @@ describe("runUpdate", () => {
       ...out,
     });
     expect(code).toBe(0);
-    expect(skillVersion(join(dir, ALWAYS_DIR, "skills", SKILL_NAME))).toBe(ATHLETIC_STANDARD_VERSION);
-    expect(skillVersion(join(dir, ".cursor", "skills", SKILL_NAME))).toBe(ATHLETIC_STANDARD_VERSION);
+    expect(skillVersion(join(dir, ALWAYS_DIR, "skills", SKILL_NAME))).toBe(ATH_PACKAGE_VERSION);
+    expect(skillVersion(join(dir, ".cursor", "skills", SKILL_NAME))).toBe(ATH_PACKAGE_VERSION);
     expect(out.lines.join("\n")).toContain(skillUpdateLine(dir, [
       join(dir, ALWAYS_DIR, "skills", SKILL_NAME),
       join(dir, ".cursor", "skills", SKILL_NAME),
@@ -324,7 +325,7 @@ describe("runUpdate", () => {
       ...out,
     });
     expect(code).toBe(0);
-    expect(skillVersion(join(dir, ALWAYS_DIR, "skills", SKILL_NAME))).toBe(ATHLETIC_STANDARD_VERSION);
+    expect(skillVersion(join(dir, ALWAYS_DIR, "skills", SKILL_NAME))).toBe(ATH_PACKAGE_VERSION);
     expect(out.lines.join("\n")).toContain("updated the skill in");
   });
 });
