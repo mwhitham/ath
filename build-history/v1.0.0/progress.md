@@ -68,9 +68,5 @@ CR1 and CR2 change the unreleased v1 schema. They must finish before v1.0.0 is
 published to npm. Release steps 11 and 12 remain blocked until CR1–CR9 and the
 cross-platform part of step 10 pass.
 
-npm `athleticstandard@1.0.0` is published. 1.1.0 is a package release of this
-format version: `ath migrate`, provider-import check, structured log envelope,
-default model path (`athlete.ath.model` beside `athlete.ath.sqlite`, not
-overwriting the database), and docs. The record format stays `1.0.0`.
-Remaining contribution-readiness steps continue on later package versions of
-the same format.
+npm `athleticstandard@1.0.0` is published. The 1.1.0 package release on the same
+format is tracked in [v1.1.0/progress.md](../v1.1.0/progress.md).
