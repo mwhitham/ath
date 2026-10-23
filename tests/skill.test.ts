@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import { buildProgram } from "../src/program.js";
 import { ATHLETIC_STANDARD_VERSION } from "../src/v1/schema.js";
+import { ATH_PACKAGE_VERSION } from "../src/version.js";
 import {
   AGENT_DIRS,
   ALWAYS_DIR,
@@ -100,7 +101,7 @@ describe("the frontmatter follows the Agent Skills shape", () => {
   it("carries a license, compatibility, and the shipped version", () => {
     expect(meta.license).toBe("MIT");
     expect(meta.compatibility).toContain("ath");
-    expect((meta.metadata as Record<string, string>).version).toBe(ATHLETIC_STANDARD_VERSION);
+    expect((meta.metadata as Record<string, string>).version).toBe(ATH_PACKAGE_VERSION);
   });
 });
 
@@ -194,7 +195,7 @@ describe("ath skill (D79)", () => {
     expect(res.stdout).toContain("ath skill install");
 
     const json = JSON.parse(ath(["skill", "--json"], dir).stdout);
-    expect(json.shipped).toBe(ATHLETIC_STANDARD_VERSION);
+    expect(json.shipped).toBe(ATH_PACKAGE_VERSION);
     expect(json.copies.map((c: { state: string }) => c.state).sort()).toEqual([
       "current",
       "missing",

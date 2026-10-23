@@ -4,7 +4,7 @@ description: Reads and writes an athlete's Athletic Standard SQLite database (.a
 license: MIT
 compatibility: Requires the ath CLI (npm package athleticstandard) on PATH. Local database use needs no network. Optional terminal model calls need a configured gateway.
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
 ---
 
 # Athletic Standard
@@ -90,6 +90,7 @@ Set up:
 | `ath --update` | Update `ath` and refresh a skill already present |
 | `ath key` | Manage an optional terminal model-gateway key outside athlete data |
 | `ath models` | List gateway models or save a terminal default |
+| `ath migrate` | Preview and apply a SQL schema migration after a verified backup |
 
 Import, export, and create:
 

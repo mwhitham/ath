@@ -282,7 +282,7 @@ An exported directory contains:
 athlete-backup/
   athlete.ath.json
   series/
-    <source-id>-<quantity>.ath-series.json
+    <source-id>-<quantity>-000001.ath-series.json
   attachments/
     <stored attachment files>
   export-manifest.json
@@ -291,8 +291,10 @@ athlete-backup/
 `athlete.ath.json` contains every current non-sample record, every retained
 non-sample revision, normal deletions, erasure markers, provider import keys, and
 references to generated sample files. Each generated sample file contains current
-sample records and their history. The manifest lists file hashes, byte counts,
-record counts, the source database ID, and the database revision.
+sample records and their history. A large source-and-quantity group is split
+across numbered files. The main document lists them in `measurement_series_files`.
+The manifest lists file hashes, byte counts, record counts, the source database
+ID, and the database revision.
 
 The export time is absent by default. Two exports from the same database revision
 with the same options are byte-identical. Pass a fixed `--exported-at` value only
@@ -343,7 +345,7 @@ It does not change athlete data.
 Every logical record has a stable UUIDv7 ID and numbered revisions. A correction
 keeps the ID. Evidence names both the record ID and revision.
 
-The format defines 23 record types for profile data, sources, measurements,
+The format defines 24 record types for profile data, sources, measurements,
 sessions, athlete reports, nutrition, attachments, benchmarks, predictions, plans,
 goals, and saved authored work. [`SPEC.md`](SPEC.md) is the public field reference.
 The generated v1 JSON Schemas are in [`schema/1.0.0/`](schema/1.0.0/).

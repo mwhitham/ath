@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { createClient } from "@libsql/client";
 import { describe, expect, it } from "vitest";
 import { pathToFileURL } from "node:url";
+import { ATH_PACKAGE_VERSION } from "../src/version.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../src/cli.ts");
@@ -21,6 +22,14 @@ function ath(args: string[], cwd: string): { stdout: string; code: number } {
     return { stdout: (err.stdout ?? "") + (err.stderr ?? ""), code: err.status };
   }
 }
+
+describe("ath --version", () => {
+  it("prints the npm package version, not the record format version", () => {
+    const res = ath(["--version"], process.cwd());
+    expect(res.code).toBe(0);
+    expect(res.stdout.trim()).toBe(ATH_PACKAGE_VERSION);
+  });
+});
 
 describe("ath init", () => {
   it("creates a valid SQLite database with a profile, manual source, and seeded benchmarks", () => {
@@ -69,6 +78,36 @@ describe("ath init", () => {
     expect(second.code).toBe(1);
     expect(second.stdout).toContain("already exists");
     expect(second.stdout).toContain("--file");
+  });
+});
+
+describe("ath migrate", () => {
+  it("previews that no migration is required for a current database", () => {
+    const dir = mkdtempSync(join(tmpdir(), "ath-migrate-"));
+    copyFileSync(FIXTURE, join(dir, "athlete.ath.sqlite"));
+    const res = ath(["migrate", "--json"], dir);
+    expect(res.code).toBe(0);
+    const json = JSON.parse(res.stdout);
+    expect(json.migration_needed).toBe(false);
+    expect(json.source_sql_schema_version).toBe(1);
+    expect(json.target_sql_schema_version).toBe(1);
+  });
+
+  it("does not switch journal mode during a dry-run preview", async () => {
+    const dir = mkdtempSync(join(tmpdir(), "ath-migrate-journal-"));
+    const databasePath = join(dir, "athlete.ath.sqlite");
+    copyFileSync(FIXTURE, databasePath);
+    const reset = createClient({ url: pathToFileURL(databasePath).href });
+    await reset.execute("PRAGMA journal_mode = DELETE");
+    reset.close();
+
+    const res = ath(["migrate", "--dry-run"], dir);
+    expect(res.code).toBe(0);
+
+    const after = createClient({ url: pathToFileURL(databasePath).href });
+    const mode = await after.execute("PRAGMA journal_mode");
+    expect(String(mode.rows[0]?.journal_mode).toLowerCase()).toBe("delete");
+    after.close();
   });
 });
 

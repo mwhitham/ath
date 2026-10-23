@@ -70,6 +70,9 @@ describe("v1 deterministic package export", () => {
     expect(packageDocument.measurement_series_files).toHaveLength(1);
 
     const seriesReference = packageDocument.measurement_series_files[0]!;
+    expect(seriesReference.file).toMatch(
+      /^series\/.+-.+-000001\.ath-series\.json$/,
+    );
     const series = MeasurementSeriesFile.parse(
       JSON.parse(readFileSync(join(output, seriesReference.file), "utf8")),
     );

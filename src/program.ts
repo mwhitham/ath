@@ -22,6 +22,7 @@ import {
   SERIES_QUANTITY_UNITS as V1_SERIES_QUANTITY_UNITS,
   SeriesQuantitySchema,
 } from "./v1/schema.js";
+import { ATH_PACKAGE_VERSION } from "./version.js";
 import { findFile, DEFAULT_FILENAME, FILE_SUFFIX } from "./file.js";
 import { SEED_BENCHMARKS } from "./benchmarks.js";
 import { PredictRefusal } from "./predict-errors.js";
@@ -59,17 +60,23 @@ import {
   clearPackageConflictSet,
   conflictResolutions,
   correctRecord,
+  applyPendingDatabaseMigrations,
+  buildMigrationPreview,
   createDatabase,
   databaseStats,
   deleteRecord,
   eraseRecord,
+  executeConfirmedDatabaseMigration,
   exportRecords,
+  inspectDatabase,
+  MigrationRequiredError,
   gradePrediction,
   importProviderRecords,
   importRecords,
   listRecords,
   loadAthleticStandardPackage,
   openDatabase,
+  readDatabaseMetadata,
   PackageRepresentationError,
   planLogEntry,
   planPredictionGrade,
@@ -101,8 +108,11 @@ import {
   withPreparedAttachmentFiles,
   type AthleticDatabase,
   type LogPlan,
+  type MigrationPreview,
   type PackageImportResolution,
 } from "./db/index.js";
+import { createVerifiedSqliteBackup } from "./db/backup.js";
+import { enableLocalWal, setOwnerOnlyDatabasePermissions } from "./db/client.js";
 
 /** The whole command tree. `cli.ts` parses it; the skill generator reads its help. */
 export function buildProgram(): Command {
@@ -117,7 +127,7 @@ export function buildProgram(): Command {
       "Athletic Standard — an open, local-first format for training and recovery data " +
         "that keeps measured signals apart from self-reported ones.",
     )
-    .version(ATHLETIC_STANDARD_VERSION)
+    .version(ATH_PACKAGE_VERSION)
     .option(
       "--update",
       "install the latest ath with the tool that installed it, and replace the agent skill if one is already in this folder",
@@ -127,7 +137,7 @@ export function buildProgram(): Command {
       if (opts.update) {
         const code = await runUpdate({
           packagePaths: candidatePaths(process.argv[1] ?? ""),
-          currentVersion: ATHLETIC_STANDARD_VERSION,
+          currentVersion: ATH_PACKAGE_VERSION,
           cwd: process.cwd(),
         });
         if (code !== 0) process.exit(code);
@@ -198,7 +208,7 @@ export function buildProgram(): Command {
       const toolActor = {
         author_type: "tool" as const,
         tool: "ath",
-        tool_version: ATHLETIC_STANDARD_VERSION,
+        tool_version: ATH_PACKAGE_VERSION,
       };
       let database: AthleticDatabase | undefined;
       let seeded;
@@ -333,6 +343,115 @@ export function buildProgram(): Command {
       if (written.length === 0) return fail(`the skill is not here to copy: expected it at ${skillSource()}`);
       for (const path of written) console.log(`installed the agent skill into ${path}`);
       console.log(`version ${shippedSkillVersion()}`);
+    });
+
+  program
+    .command("migrate")
+    .helpGroup(GROUPS.setUp)
+    .description("preview and apply a SQL schema migration after a verified backup")
+    .addHelpText("after", EXAMPLES.migrate!)
+    .argument("[file]", "the database to migrate (default: the one in this folder)")
+    .option("--file <path>", "migrate a database other than the one in this folder")
+    .option("--confirm-migration <database-id>", "repeat the database ID exactly for non-interactive use")
+    .option("-y, --yes", "apply the preview after reviewing it")
+    .option("--dry-run", "show the preview and write nothing")
+    .option("--json", "structured preview; never confirms the migration")
+    .action(async (
+      fileArg,
+      opts: {
+        file?: string;
+        confirmMigration?: string;
+        yes?: boolean;
+        dryRun?: boolean;
+        json?: boolean;
+      },
+    ) => {
+      const path = findOrFail(opts.file ?? fileArg);
+      const warn = (warning: string) => {
+        if (!opts.json) console.warn(`ath: warning: ${warning}`);
+      };
+      const inspector = await inspectDatabase(path, { onSecurityWarning: warn });
+      let preview;
+      try {
+        const metadata = await readDatabaseMetadata(inspector);
+        preview = buildMigrationPreview(metadata, inspector.localPath);
+      } finally {
+        inspector.close();
+      }
+      const output = {
+        file: path,
+        migration_needed: preview.migration_needed,
+        source_sql_schema_version: preview.source_sql_schema_version,
+        target_sql_schema_version: preview.target_sql_schema_version,
+        database_id: preview.database_id,
+        planned_steps: preview.planned_steps,
+        planned_backup_path: preview.planned_backup_path,
+        compatibility_effect: preview.compatibility_effect,
+        write_confirmed: false,
+      };
+      try {
+        if (opts.json) {
+          console.log(JSON.stringify(output, null, 2));
+          return;
+        }
+        console.log(JSON.stringify(output, null, 2));
+        if (!preview.migration_needed) {
+          console.log("no migration is required");
+          return;
+        }
+        if (preview.planned_steps.length === 0) {
+          return fail(preview.compatibility_effect);
+        }
+        if (opts.dryRun) {
+          console.log("nothing migrated (--dry-run)");
+          return;
+        }
+        if (!opts.yes) {
+          console.log("nothing migrated; pass --yes after reviewing this preview");
+          return;
+        }
+        if (!(await confirmWrite(opts, "Create a verified backup and apply this migration?"))) {
+          console.log("nothing migrated");
+          return;
+        }
+        let secondConfirmation = opts.confirmMigration;
+        if (secondConfirmation === undefined) {
+          if (!process.stdin.isTTY || !process.stdout.isTTY) {
+            return fail(
+              "second confirmation is required in non-interactive use; pass " +
+                `--confirm-migration ${preview.database_id}`,
+            );
+          }
+          secondConfirmation = await askOnTerminal(
+            `Type the database ID ${preview.database_id} to confirm migration: `,
+          ) ?? undefined;
+        }
+        if (secondConfirmation !== preview.database_id) {
+          return fail(
+            "second confirmation did not exactly match the database ID; nothing was migrated",
+          );
+        }
+        const database = await openDatabase(path, {
+          allowOutdatedSchema: true,
+          deferWal: true,
+          onSecurityWarning: warn,
+        });
+        try {
+          const migrationOptions =
+            preview.planned_backup_path === null
+              ? {}
+              : { backupPath: preview.planned_backup_path };
+          const result = await executeConfirmedDatabaseMigration(database, migrationOptions);
+          console.log(
+            `migrated SQL schema ${preview.source_sql_schema_version} to ${preview.target_sql_schema_version} ` +
+              `with verified backup at ${result.backup_path}`,
+          );
+        } finally {
+          database.close();
+        }
+      } catch (error) {
+        return fail((error as Error).message);
+      }
     });
 
   program
@@ -722,6 +841,9 @@ export function buildProgram(): Command {
             record_type: input.record_type,
             created_at: input.created_at,
             data: input.data,
+            ...(input.extensions === undefined
+              ? {}
+              : { extensions: input.extensions }),
           })),
           write_confirmed: false,
         };
@@ -1272,7 +1394,10 @@ export function buildProgram(): Command {
     .helpGroup(GROUPS.setUp)
     .description("list live text models that can reason, or save your usual one")
     .addHelpText("after", EXAMPLES.models!)
-    .option("--default <name>", "save this model next to the athlete file, for the next predict")
+    .option(
+      "--default <name>",
+      "save this model in athlete.ath.model next to the database, for the next predict",
+    )
     .option("--gateway <name>", "vercel or openrouter, when both keys are available")
     .option("--file <path>", "the athlete file whose default to save")
     .option("--json", "structured output, for an agent rather than a person")
@@ -1371,7 +1496,7 @@ export function buildProgram(): Command {
             author: {
               author_type: "agent",
               agent: "ath-terminal",
-              agent_version: ATHLETIC_STANDARD_VERSION,
+              agent_version: ATH_PACKAGE_VERSION,
               model: response.model,
             },
             authored_at: authoredAt,
@@ -1403,7 +1528,7 @@ export function buildProgram(): Command {
           changed_by: {
             author_type: "agent",
             agent: "ath-terminal",
-            agent_version: ATHLETIC_STANDARD_VERSION,
+            agent_version: ATH_PACKAGE_VERSION,
           },
           data,
         });
@@ -1555,7 +1680,7 @@ export function buildProgram(): Command {
           actor: {
             author_type: "tool",
             tool: "ath",
-            tool_version: ATHLETIC_STANDARD_VERSION,
+            tool_version: ATH_PACKAGE_VERSION,
           },
         });
         const preview = {
@@ -2107,8 +2232,25 @@ function renderLogPlan(plan: LogPlan): string {
         .split("\n")
         .map((line) => `    ${line}`),
     );
+    if (input.extensions !== undefined) {
+      lines.push("    extensions");
+      lines.push(
+        ...JSON.stringify(input.extensions, null, 2)
+          .split("\n")
+          .map((line) => `    ${line}`),
+      );
+    }
   }
   return lines.join("\n");
+}
+
+let terminalAnswerForTests: ((question: string) => Promise<string | null>) | undefined;
+
+/** Test hook. Production asks on the real terminal. */
+export function useTerminalAnswer(
+  answer: ((question: string) => Promise<string | null>) | undefined,
+): void {
+  terminalAnswerForTests = answer;
 }
 
 async function confirmWrite(
@@ -2121,7 +2263,7 @@ async function confirmWrite(
   if (opts.yes) {
     return true;
   }
-  if (!process.stdout.isTTY) {
+  if (terminalAnswerForTests === undefined && !process.stdout.isTTY) {
     fail(
       `there is no terminal to ask on, so nothing was written. Pass --yes after reviewing the preview.`,
     );
@@ -2148,6 +2290,7 @@ async function readStdin(): Promise<string> {
  * it directly. Returns null where there is no terminal at all.
  */
 async function askOnTerminal(question: string): Promise<string | null> {
+  if (terminalAnswerForTests) return terminalAnswerForTests(question);
   const { createReadStream } = await import("node:fs");
   let input: NodeJS.ReadableStream;
   try {
@@ -2181,6 +2324,70 @@ async function openOrFail(path: string, json = false): Promise<AthleticDatabase>
       },
     });
   } catch (error) {
+    if (error instanceof MigrationRequiredError) {
+      if (json || !process.stdin.isTTY || !process.stdout.isTTY) {
+        return fail(error.message);
+      }
+      return await interactiveMigrationOnOpen(path, error.preview);
+    }
+    return fail((error as Error).message);
+  }
+}
+
+export async function interactiveMigrationOnOpen(
+  path: string,
+  preview: MigrationPreview,
+): Promise<AthleticDatabase> {
+  console.log(JSON.stringify({ file: path, ...preview, write_confirmed: false }, null, 2));
+  if (!preview.migration_needed) {
+    return await openDatabase(path, {
+      onSecurityWarning: (warning) => {
+        console.warn(`ath: warning: ${warning}`);
+      },
+    });
+  }
+  if (preview.planned_steps.length === 0) {
+    return fail(preview.compatibility_effect);
+  }
+  const backupPath = preview.planned_backup_path;
+  if (backupPath === null) {
+    return fail("SQL schema migration requires a local database file");
+  }
+  if (!(await confirmWrite({}, "Apply this SQL schema migration?"))) {
+    return fail("migration was not confirmed; run ath migrate or answer yes when prompted on open");
+  }
+
+  const inspector = await inspectDatabase(path, {
+    onSecurityWarning: (warning) => {
+      console.warn(`ath: warning: ${warning}`);
+    },
+  });
+  let metadata;
+  try {
+    metadata = await readDatabaseMetadata(inspector);
+    await createVerifiedSqliteBackup(inspector, path, backupPath, metadata);
+  } finally {
+    inspector.close();
+  }
+  console.log(`verified migration backup: ${backupPath}`);
+
+  const database = await openDatabase(path, {
+    allowOutdatedSchema: true,
+    deferWal: true,
+    onSecurityWarning: (warning) => {
+      console.warn(`ath: warning: ${warning}`);
+    },
+  });
+  try {
+    await enableLocalWal(database);
+    await applyPendingDatabaseMigrations(database);
+    await setOwnerOnlyDatabasePermissions(database);
+    console.log(
+      `migrated SQL schema ${preview.source_sql_schema_version} to ${preview.target_sql_schema_version}`,
+    );
+    return database;
+  } catch (error) {
+    database.close();
     return fail((error as Error).message);
   }
 }
