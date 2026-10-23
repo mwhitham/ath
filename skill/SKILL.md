@@ -91,7 +91,7 @@ Set up:
 | `ath key` | Manage an optional terminal model-gateway key outside athlete data |
 | `ath models` | List gateway models or save a terminal default |
 | `ath migrate` | Preview and apply a SQL schema migration after a verified backup (needs `sqlite3` on PATH) |
-| `ath repair` | Repair typed-table JSON bytes left by npm 1.0.0 provider imports (needs `sqlite3` on PATH when candidates exist) |
+| `ath repair` | Repair typed-table bytes after npm 1.0.0 imports; use `--from-revision` when typed columns disagree with the revision (needs `sqlite3` on PATH when candidates exist) |
 
 Import, export, and create:
 

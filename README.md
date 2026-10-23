@@ -27,8 +27,15 @@ Anyone who can read the database file can read the athlete record.
 
 Athletic Standard needs Node.js 22 or newer.
 
-SQL schema migration (`ath migrate`) uses the `sqlite3` command-line tool for verified
-backups. Install it and ensure it is on `PATH` before running a migration.
+SQL schema migration (`ath migrate`) and confirmed `ath repair` use the `sqlite3`
+command-line tool for verified backups. Install it and ensure it is on `PATH` before
+running either command.
+
+When typed-table columns disagree with the current revision in meaning (for example
+after direct SQL edits), run `ath repair -y --from-revision
+--confirm-revision-align <database-id>` after reviewing the preview. Each attempt
+writes a new `.repair-backup.*.sqlite` file beside the database; failed attempts
+leave that file in place for restore.
 
 ```sh
 npm install -g athleticstandard

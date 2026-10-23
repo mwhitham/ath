@@ -2,6 +2,7 @@ export {
   SQL_SCHEMA_VERSION,
   SQLITE_APPLICATION_ID,
   SQLITE_APPLICATION_MARKER,
+  releaseLocalDatabase,
   type AthleticDatabase,
 } from "./client.js";
 export {
@@ -20,10 +21,6 @@ export {
   inspectDatabase,
   openDatabase,
   readDatabaseMetadata,
-  reconcileSqliteUserVersion,
-  executeConfirmedSqliteHeaderRecovery,
-  sqliteUserVersionOneStepBehindMetadata,
-  type ConfirmedHeaderRecoveryResult,
   type ConfirmedMigrationResult,
   type DatabaseMetadata,
   type MigrationPreview,

@@ -32,6 +32,7 @@ import {
   readApplicationId,
   readUserVersion,
 } from "../src/db/client.js";
+import { materializeNpm100ProviderDatabase } from "./helpers/npm100-database.js";
 
 const databaseId = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e01";
 const sourceId = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e02";
@@ -308,11 +309,69 @@ describe("v1 database creation and opening", () => {
 
   it("refuses a local user_version that disagrees with metadata", async () => {
     const { database, path } = await newDatabase();
-    await databaseClient(database).execute("PRAGMA user_version = 0");
+    await databaseClient(database).execute("PRAGMA user_version = 1");
     database.close();
     openDatabases.pop();
     await expect(openDatabase(path)).rejects.toThrow("does not match");
   });
+
+  it.runIf(process.platform !== "win32")(
+    "does not write unhealthy databases during read-only CLI commands",
+    async () => {
+      const { directory, databasePath } = materializeNpm100ProviderDatabase();
+      temporaryDirectories.push(directory);
+      const hashOf = async () => {
+        const checkpoint = createClient({ url: pathToFileURL(databasePath).href });
+        await checkpoint.execute("PRAGMA wal_checkpoint(FULL)");
+        await checkpoint.close();
+        return createHash("sha256").update(await readFile(databasePath)).digest("hex");
+      };
+      const hashHealthy = await hashOf();
+      const { execFileSync } = await import("node:child_process");
+      const { resolve } = await import("node:path");
+      const { fileURLToPath } = await import("node:url");
+      const here = dirname(fileURLToPath(import.meta.url));
+      const cli = resolve(here, "../src/cli.ts");
+      const tsx = resolve(here, "../node_modules/.bin/tsx");
+      for (const args of [
+        ["check"],
+        ["stats", "--json"],
+        ["migrate", "--dry-run"],
+      ]) {
+        try {
+          execFileSync(tsx, [cli, ...args], { cwd: directory, encoding: "utf8", stdio: "pipe" });
+        } catch {
+          // read-only commands may exit non-zero on schema 1 or invalid data; they must not write.
+        }
+      }
+      expect(await hashOf()).toBe(hashHealthy);
+
+      const client = createClient({ url: pathToFileURL(databasePath).href });
+      await client.execute("UPDATE database_metadata SET sql_schema_version = 2");
+      await client.close();
+      const hashMismatch = await hashOf();
+      try {
+        execFileSync(tsx, [cli, "migrate", "--dry-run"], {
+          cwd: directory,
+          encoding: "utf8",
+          stdio: "pipe",
+        });
+      } catch {
+        // migrate preview refuses when user_version lags metadata.
+      }
+      expect(await hashOf()).toBe(hashMismatch);
+
+      await chmod(databasePath, 0o444);
+      const readonlyHash = await hashOf();
+      try {
+        execFileSync(tsx, [cli, "check"], { cwd: directory, encoding: "utf8", stdio: "pipe" });
+      } catch {
+        // check is expected to fail on a read-only database.
+      }
+      expect(await hashOf()).toBe(readonlyHash);
+      await chmod(databasePath, 0o600);
+    },
+  );
 
   it.runIf(process.platform !== "win32")(
     "warns before opening a database readable by other local users",

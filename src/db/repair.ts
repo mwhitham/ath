@@ -1,11 +1,13 @@
-import { lstat, readdir } from "node:fs/promises";
-import { basename, dirname, join } from "node:path";
+import { lstat } from "node:fs/promises";
 import type { Transaction } from "@libsql/client";
-import { connectDatabase, databaseClient, type AthleticDatabase } from "./client.js";
+import { databaseClient, type AthleticDatabase } from "./client.js";
 import { typedTables } from "./check-tables.js";
 import { createVerifiedSqliteBackup, defaultRepairBackupPath } from "./backup.js";
-import { readDatabaseMetadata, type DatabaseMetadata } from "./migrate.js";
-import { incrementDatabaseRevision } from "./records.js";
+import { readDatabaseMetadata } from "./migrate.js";
+import {
+  incrementDatabaseRevision,
+  rebuildTypedRowFromCurrentRevision,
+} from "./records.js";
 import { semanticJsonEqual } from "./stable-json.js";
 import { withWriteTransaction } from "./transaction.js";
 
@@ -73,9 +75,15 @@ export async function listRevisionAlignRepairRecordIds(
   return mismatches.filter((row) => !row.encoding_only).map((row) => row.record_id);
 }
 
-export async function repairProviderEncodingRows(
+async function rebuildTypedRows(
   transaction: Transaction,
+  recordIds: readonly string[],
+  options: { allowSemanticMismatch: boolean },
 ): Promise<number> {
+  if (recordIds.length === 0) {
+    return 0;
+  }
+  const idSet = new Set(recordIds);
   let repaired = 0;
   for (const [recordType, table] of Object.entries(typedTables)) {
     const mismatches = await transaction.execute({
@@ -97,39 +105,32 @@ export async function repairProviderEncodingRows(
     });
     for (const row of mismatches.rows) {
       const recordId = String(row.record_id);
+      if (!idSet.has(recordId)) {
+        continue;
+      }
       const recordJson = String(row.record_json);
       const typedJson = String(row.typed_json);
-      if (!semanticJsonEqual(recordJson, typedJson)) {
+      if (!options.allowSemanticMismatch && !semanticJsonEqual(recordJson, typedJson)) {
         throw new Error(
           `record ${recordId} has a typed-table mismatch that is not key-order only; ` +
             `run ath repair --from-revision after reviewing affected records, or restore from backup`,
         );
       }
-      await transaction.execute({
-        sql: `UPDATE ${table} SET data_json = ? WHERE record_id = ?`,
-        args: [recordJson, recordId],
-      });
+      await rebuildTypedRowFromCurrentRevision(transaction, recordId);
       repaired++;
     }
   }
   return repaired;
 }
 
-export async function repairTypedTablesFromRevisionRows(
+export async function repairProviderEncodingRows(
   transaction: Transaction,
-  recordIds: readonly string[],
 ): Promise<number> {
-  if (recordIds.length === 0) {
-    return 0;
-  }
-  const idSet = new Set(recordIds);
-  let repaired = 0;
+  const allIds: string[] = [];
   for (const [recordType, table] of Object.entries(typedTables)) {
-    const mismatches = await transaction.execute({
+    const rows = await transaction.execute({
       sql: `
-        SELECT
-          records.record_id,
-          record_revisions.record_json
+        SELECT records.record_id
         FROM records
         JOIN record_revisions
           ON record_revisions.record_id = records.record_id
@@ -137,24 +138,21 @@ export async function repairTypedTablesFromRevisionRows(
         JOIN ${table} ON ${table}.record_id = records.record_id
         WHERE records.record_type = ?
           AND ${table}.data_json <> record_revisions.record_json
-        ORDER BY records.record_id
       `,
       args: [recordType],
     });
-    for (const row of mismatches.rows) {
-      const recordId = String(row.record_id);
-      if (!idSet.has(recordId)) {
-        continue;
-      }
-      const recordJson = String(row.record_json);
-      await transaction.execute({
-        sql: `UPDATE ${table} SET data_json = ? WHERE record_id = ?`,
-        args: [recordJson, recordId],
-      });
-      repaired++;
+    for (const row of rows.rows) {
+      allIds.push(String(row.record_id));
     }
   }
-  return repaired;
+  return rebuildTypedRows(transaction, allIds, { allowSemanticMismatch: false });
+}
+
+export async function repairTypedTablesFromRevisionRows(
+  transaction: Transaction,
+  recordIds: readonly string[],
+): Promise<number> {
+  return rebuildTypedRows(transaction, recordIds, { allowSemanticMismatch: true });
 }
 
 export interface ProviderEncodingRepairResult {
@@ -183,50 +181,6 @@ async function readDatabaseRevision(database: AthleticDatabase): Promise<number>
       )
     ).rows[0]?.current_revision,
   );
-}
-
-async function findReusableRepairBackupPath(
-  database: AthleticDatabase,
-  metadata: DatabaseMetadata,
-  revisionBefore: number,
-): Promise<string | undefined> {
-  if (database.localPath === undefined) {
-    return undefined;
-  }
-  const directory = dirname(database.localPath);
-  const prefix = `${basename(database.localPath)}.repair-backup.`;
-  let entries: string[];
-  try {
-    entries = await readdir(directory);
-  } catch {
-    return undefined;
-  }
-  const candidates = entries
-    .filter((name) => name.startsWith(prefix) && name.endsWith(".sqlite"))
-    .map((name) => join(directory, name))
-    .sort()
-    .reverse();
-  for (const candidate of candidates) {
-    const backupDatabase = await connectDatabase(candidate);
-    try {
-      const backupMetadata = await readDatabaseMetadata(backupDatabase);
-      if (
-        backupMetadata.database_id !== metadata.database_id ||
-        backupMetadata.sql_schema_version !== metadata.sql_schema_version
-      ) {
-        continue;
-      }
-      const backupRevision = await readDatabaseRevision(backupDatabase);
-      if (backupRevision === revisionBefore) {
-        return candidate;
-      }
-    } catch {
-      // Try the next backup candidate.
-    } finally {
-      backupDatabase.close();
-    }
-  }
-  return undefined;
 }
 
 export async function executeConfirmedProviderEncodingRepair(
@@ -258,39 +212,27 @@ export async function executeConfirmedProviderEncodingRepair(
   }
 
   const revisionBefore = await readDatabaseRevision(database);
-
-  let backupPath = options.backupPath;
-  let reuseBackup = false;
-  if (backupPath === undefined) {
-    const reusable = await findReusableRepairBackupPath(database, metadata, revisionBefore);
-    if (reusable !== undefined) {
-      backupPath = reusable;
-      reuseBackup = true;
-    } else {
-      backupPath = defaultRepairBackupPath(database.localPath, options.now);
-    }
-  }
+  const backupPath =
+    options.backupPath ?? defaultRepairBackupPath(database.localPath, options.now);
 
   const fileIdentity = await lstat(database.localPath, { bigint: true }).then((stat) => ({
     device: stat.dev,
     inode: stat.ino,
   }));
 
-  if (!reuseBackup) {
-    await createVerifiedSqliteBackup(database, database.localPath, backupPath, metadata);
-    const revisionAfterBackup = await readDatabaseRevision(database);
-    if (revisionAfterBackup !== revisionBefore) {
-      throw new Error(
-        "Database revision changed during repair backup; stop other writers and retry",
-      );
-    }
-    const statAfterBackup = await lstat(database.localPath, { bigint: true });
-    if (
-      statAfterBackup.dev !== fileIdentity.device ||
-      statAfterBackup.ino !== fileIdentity.inode
-    ) {
-      throw new Error("Database file changed during repair backup");
-    }
+  await createVerifiedSqliteBackup(database, database.localPath, backupPath, metadata);
+  const revisionAfterBackup = await readDatabaseRevision(database);
+  if (revisionAfterBackup !== revisionBefore) {
+    throw new Error(
+      "Database revision changed during repair backup; stop other writers and retry",
+    );
+  }
+  const statAfterBackup = await lstat(database.localPath, { bigint: true });
+  if (
+    statAfterBackup.dev !== fileIdentity.device ||
+    statAfterBackup.ino !== fileIdentity.inode
+  ) {
+    throw new Error("Database file changed during repair backup");
   }
 
   try {
@@ -305,62 +247,13 @@ export async function executeConfirmedProviderEncodingRepair(
     const causeMessage =
       error instanceof Error ? error.message : "repair step failed";
     throw new Error(
-      `Repair failed${reuseBackup ? "" : ` after creating verified backup at ${backupPath}`}. Cause: ${causeMessage}.` +
+      `Repair failed after creating verified backup at ${backupPath}. Cause: ${causeMessage}.` +
         (changed
           ? " The database revision changed; restore from the backup."
-          : ` Retry with the same backup at ${backupPath}.`),
+          : ` Retry with a new backup; previous attempt left ${backupPath} on disk.`),
       { cause: error },
     );
   }
-}
-
-async function repairEncodingOnlyRows(
-  transaction: Transaction,
-  recordIds: readonly string[],
-): Promise<number> {
-  if (recordIds.length === 0) {
-    return 0;
-  }
-  const idSet = new Set(recordIds);
-  let repaired = 0;
-  for (const [recordType, table] of Object.entries(typedTables)) {
-    const mismatches = await transaction.execute({
-      sql: `
-        SELECT
-          records.record_id,
-          record_revisions.record_json,
-          ${table}.data_json AS typed_json
-        FROM records
-        JOIN record_revisions
-          ON record_revisions.record_id = records.record_id
-         AND record_revisions.revision = records.current_revision
-        JOIN ${table} ON ${table}.record_id = records.record_id
-        WHERE records.record_type = ?
-          AND ${table}.data_json <> record_revisions.record_json
-        ORDER BY records.record_id
-      `,
-      args: [recordType],
-    });
-    for (const row of mismatches.rows) {
-      const recordId = String(row.record_id);
-      if (!idSet.has(recordId)) {
-        continue;
-      }
-      const recordJson = String(row.record_json);
-      const typedJson = String(row.typed_json);
-      if (!semanticJsonEqual(recordJson, typedJson)) {
-        throw new Error(
-          `record ${recordId} has a typed-table mismatch that is not key-order only`,
-        );
-      }
-      await transaction.execute({
-        sql: `UPDATE ${table} SET data_json = ? WHERE record_id = ?`,
-        args: [recordJson, recordId],
-      });
-      repaired++;
-    }
-  }
-  return repaired;
 }
 
 async function repairProviderEncodingAndRevisionAlign(
@@ -379,10 +272,9 @@ async function repairProviderEncodingAndRevisionAlign(
       transaction,
       options.revisionRecordIds,
     );
-    const encodingRepaired = await repairEncodingOnlyRows(
-      transaction,
-      options.encodingRecordIds,
-    );
+    const encodingRepaired = await rebuildTypedRows(transaction, options.encodingRecordIds, {
+      allowSemanticMismatch: false,
+    });
     const total = encodingRepaired + revisionAligned;
     const databaseRevision =
       total === 0

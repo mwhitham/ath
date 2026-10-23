@@ -15,6 +15,7 @@ import {
   type RecordRevisionT,
   type RecordTypeT,
 } from "../v1/schema.js";
+import { typedTables } from "./check-tables.js";
 import { databaseClient, type AthleticDatabase } from "./client.js";
 import {
   currentRecordPayloadFromRow,
@@ -585,6 +586,46 @@ export async function upsertTypedRecord(
 
   await replaceProviderReportingPeriods(transaction, record);
   await replaceAuthoredEvidence(transaction, record);
+}
+
+/** Rebuild the typed table row and children from the current revision bytes. */
+export async function rebuildTypedRowFromCurrentRevision(
+  transaction: Transaction,
+  recordId: string,
+): Promise<void> {
+  const result = await transaction.execute({
+    sql: `
+      SELECT
+        records.record_id,
+        records.record_type,
+        records.current_revision,
+        records.created_at,
+        records.is_deleted,
+        record_revisions.record_json,
+        record_revisions.extensions_json
+      FROM records
+      JOIN record_revisions
+        ON record_revisions.record_id = records.record_id
+       AND record_revisions.revision = records.current_revision
+      WHERE records.record_id = ?
+    `,
+    args: [recordId],
+  });
+  const row = result.rows[0];
+  if (row === undefined) {
+    throw new Error(`record ${recordId} is missing its current revision`);
+  }
+  const recordJson = String(row.record_json);
+  const record = CurrentRecord.parse(currentRecordPayloadFromRow(row));
+  await upsertTypedRecord(transaction, record);
+  const table = typedTables[record.record_type];
+  if (table === undefined) {
+    throw new Error(`record type ${record.record_type} has no typed table`);
+  }
+  await transaction.execute({
+    sql: `UPDATE ${table} SET data_json = ? WHERE record_id = ?`,
+    args: [recordJson, recordId],
+  });
 }
 
 async function readTypedRevisionData(

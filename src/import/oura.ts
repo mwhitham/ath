@@ -92,6 +92,14 @@ const OURA_ACTIVITY_COLUMNS = [
   "inactivity_alerts",
   "resting_time",
   "sedentary_met_minutes",
+  "low_activity_time",
+  "medium_activity_time",
+  "high_activity_time",
+  "sedentary_time",
+  "non_wear_time",
+  "average_met_minutes",
+  "met",
+  "class_5_min",
 ];
 
 type OuraPortalScoreMetric = "readiness" | "sleep_score" | "activity_score";

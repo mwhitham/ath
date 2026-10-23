@@ -41,12 +41,12 @@ PRAGMA user_version = <sql_schema_version>;
 match `database_metadata.sql_schema_version`. See `contract.json` for the current
 version number.
 
-Read-only commands (`check`, `inspect`, `stats`, `migrate --dry-run`, and similar)
-must not write `PRAGMA user_version` or otherwise change the database file. When
-`user_version` is one step behind `database_metadata.sql_schema_version` after a
-crash mid-migration, confirmed `ath migrate --yes` may set `user_version` after a
-verified backup and only when the stored data already matches the metadata schema
-version.
+Read-only commands (`check`, `stats`, `migrate --dry-run`, and similar) must not
+write `PRAGMA user_version` or otherwise change the database file. If
+`PRAGMA user_version` does not match `database_metadata.sql_schema_version`, every
+command refuses until the file is fixed. Restore from a verified migration or repair
+backup, or build a new database with `ath init --empty` and `ath import` from a
+complete JSON package export.
 
 ## Write transactions
 

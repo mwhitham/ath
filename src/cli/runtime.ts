@@ -4,6 +4,7 @@ import {
   executeConfirmedDatabaseMigration,
   MigrationRequiredError,
   openDatabase,
+  releaseLocalDatabase,
   type AthleticDatabase,
   type MigrationPreview,
 } from "../db/index.js";
@@ -126,7 +127,7 @@ export async function interactiveMigrationOnOpen(
     );
     return database;
   } catch (error) {
-    database.close();
+    await releaseLocalDatabase(database);
     return fail((error as Error).message);
   }
 }
@@ -135,6 +136,7 @@ export async function openReadOnlyOrFail(path: string, json = false): Promise<At
   try {
     return await openDatabase(path, {
       deferWal: true,
+      allowOutdatedSchema: true,
       onSecurityWarning: (warning) => {
         if (!json) console.warn(`ath: warning: ${warning}`);
       },

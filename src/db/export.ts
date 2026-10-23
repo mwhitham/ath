@@ -623,8 +623,8 @@ export async function exportRecords(
     );
     await transaction.commit();
     await syncParentDirectory(parentDirectory);
-    await unlink(join(stagingDirectory, EXPORT_STAGING_MARKER));
     await rename(stagingDirectory, outputDirectory);
+    await unlink(join(outputDirectory, EXPORT_STAGING_MARKER)).catch(() => undefined);
     await syncParentDirectory(parentDirectory);
     return {
       directory: outputDirectory,

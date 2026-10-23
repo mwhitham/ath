@@ -1533,6 +1533,37 @@ Rejected alternatives:
 - **Block this release until drafts renumber.** Rejected because draft ranges do not
   change shipped behavior.
 
+## D149. Read-only CLI opens do not enable WAL
+
+Read-only commands (`check`, `stats`, `records`, `calculate`, `series`, `export`,
+and `migrate --dry-run`) open the database with `deferWal: true` so they do not
+switch an existing delete-mode file to WAL. Closing uses `PRAGMA
+wal_checkpoint(TRUNCATE)` so read-only use does not leave `-wal` and `-shm` files
+behind.
+
+Rejected alternatives:
+
+- **Enable WAL on every open for performance.** Rejected because read-only commands
+  must not change the database file hash.
+- **Leave WAL sidecars after read-only use.** Rejected because operators treat extra
+  files as unexpected writes.
+
+## D150. No automatic SQLite `user_version` header recovery
+
+If `PRAGMA user_version` disagrees with `database_metadata.sql_schema_version`, every
+command refuses. This build sets `user_version` inside the migration write
+transaction, so a metadata-only advance without row repair should not occur in normal
+use. Recovery is restore from backup, or `ath init --empty` plus `ath import` from a
+complete JSON package.
+
+Rejected alternatives:
+
+- **Reconcile `user_version` on read.** Rejected because it hides broken metadata and
+  breaks read-only guarantees.
+- **Silent header repair without checking row data.** Rejected because applying
+  `002-provider-encoding-repair.sql` alone already showed false "no migration required"
+  states while `ath check` failed.
+
 ## D148. License moves in pull requests #10 and #12
 
 Pull request #10 switched the repository license to Apache-2.0. Pull request #12

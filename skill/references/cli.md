@@ -242,7 +242,20 @@ Options:
   --json                                  structured preview only
   -h, --help                              display help for command
 
-Requires the `sqlite3` command-line tool on PATH when repair candidates exist (verified backup before write).
+
+Examples:
+
+  Preview provider-encoding repair candidates:
+    $ ath repair
+
+  Apply key-order-only repair after npm 1.0.0 provider imports:
+    $ ath repair -y
+
+  Rebuild typed tables from the current revision when direct SQL changed values:
+    $ ath repair -y --from-revision --confirm-revision-align <database-id>
+
+Each confirmed repair creates a new verified SQLite backup. Failed attempts leave
+that backup on disk for restore; retry creates another backup.
 ```
 
 ## ath import

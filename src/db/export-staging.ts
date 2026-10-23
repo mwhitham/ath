@@ -72,11 +72,17 @@ export async function cleanupStaleExportStagingDirectories(
         continue;
       }
       const marker = await readExportStagingMarker(stalePath);
-      if (marker === undefined) {
-        continue;
+      let staleByPid = false;
+      let staleByAge = false;
+      if (marker !== undefined) {
+        staleByAge = now - marker.created_at_ms > EXPORT_STAGING_STALE_MS;
+        staleByPid = !isProcessAlive(marker.pid);
+      } else {
+        const pidMatch = /^\.ath-export-(\d+)-/.exec(entry);
+        if (pidMatch !== null) {
+          staleByPid = !isProcessAlive(Number(pidMatch[1]));
+        }
       }
-      const staleByAge = now - marker.created_at_ms > EXPORT_STAGING_STALE_MS;
-      const staleByPid = !isProcessAlive(marker.pid);
       if (!staleByAge && !staleByPid) {
         continue;
       }

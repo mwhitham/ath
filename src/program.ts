@@ -82,12 +82,11 @@ import {
   deleteRecord,
   eraseRecord,
   executeConfirmedDatabaseMigration,
-  executeConfirmedSqliteHeaderRecovery,
   executeConfirmedProviderEncodingRepair,
   countProviderEncodingRepairCandidates,
   countRevisionAlignRepairCandidates,
   listRevisionAlignRepairRecordIds,
-  sqliteUserVersionOneStepBehindMetadata,
+  releaseLocalDatabase,
   exportRecords,
   inspectDatabase,
   gradePrediction,
@@ -288,7 +287,7 @@ export function buildProgram(): Command {
           `could not create a valid v1 database: ${(error as Error).message}. Nothing was kept.`,
         );
       }
-      database.close();
+      await releaseLocalDatabase(database);
 
       // The skill always goes to .agents/skills, which every major harness reads,
       // and into any harness folder already here (D79).
@@ -389,17 +388,11 @@ export function buildProgram(): Command {
       };
       const inspector = await inspectDatabase(path, { onSecurityWarning: warn });
       let preview;
-      let headerRecoveryNeeded = false;
       try {
         const metadata = await readDatabaseMetadata(inspector);
         preview = buildMigrationPreview(metadata, inspector.localPath);
-        const { readUserVersion } = await import("./db/client.js");
-        const userVersion = await readUserVersion(inspector);
-        headerRecoveryNeeded =
-          !preview.migration_needed &&
-          sqliteUserVersionOneStepBehindMetadata(userVersion, metadata);
       } finally {
-        inspector.close();
+        await releaseLocalDatabase(inspector);
       }
       const output = {
         file: path,
@@ -417,38 +410,8 @@ export function buildProgram(): Command {
           return;
         }
         console.log(JSON.stringify(output, null, 2));
-        if (!preview.migration_needed && !headerRecoveryNeeded) {
+        if (!preview.migration_needed) {
           console.log("no migration is required");
-          return;
-        }
-        if (!preview.migration_needed && headerRecoveryNeeded) {
-          if (opts.dryRun) {
-            console.log("nothing migrated (--dry-run); header recovery would run with --yes");
-            return;
-          }
-          if (!opts.yes) {
-            console.log(
-              "nothing migrated; pass --yes to recover SQLite user_version after a verified backup",
-            );
-            return;
-          }
-          if (!(await confirmWrite(opts, "Create a verified backup and recover SQLite user_version?"))) {
-            console.log("nothing migrated");
-            return;
-          }
-          const database = await openDatabase(path, {
-            allowOutdatedSchema: true,
-            deferWal: true,
-            onSecurityWarning: warn,
-          });
-          try {
-            const result = await executeConfirmedSqliteHeaderRecovery(database);
-            console.log(
-              `recovered SQLite user_version with verified backup at ${result.backup_path}`,
-            );
-          } finally {
-            database.close();
-          }
           return;
         }
         if (preview.planned_steps.length === 0) {
@@ -499,7 +462,7 @@ export function buildProgram(): Command {
               `with verified backup at ${result.backup_path}`,
           );
         } finally {
-          database.close();
+          await releaseLocalDatabase(database);
         }
       } catch (error) {
         return fail((error as Error).message);
@@ -510,10 +473,7 @@ export function buildProgram(): Command {
     .command("repair")
     .helpGroup(GROUPS.setUp)
     .description("repair typed-table JSON bytes left by npm 1.0.0 provider imports")
-    .addHelpText(
-      "after",
-      "Requires the `sqlite3` command-line tool on PATH when repair candidates exist (verified backup before write).",
-    )
+    .addHelpText("after", EXAMPLES.repair!)
     .argument("[file]", "the database to repair (default: the one in this folder)")
     .option("--file <path>", "repair a database other than the one in this folder")
     .option("-y, --yes", "apply the repair after reviewing the preview")
@@ -620,7 +580,7 @@ export function buildProgram(): Command {
           return fail((error as Error).message);
         }
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -780,7 +740,7 @@ export function buildProgram(): Command {
         }
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -838,7 +798,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -919,7 +879,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -958,7 +918,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -1045,7 +1005,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -1114,7 +1074,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -1272,7 +1232,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -1337,7 +1297,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -1439,7 +1399,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -1503,7 +1463,7 @@ export function buildProgram(): Command {
           process.exitCode = 1;
         }
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -1711,7 +1671,7 @@ export function buildProgram(): Command {
         }
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -1789,7 +1749,7 @@ export function buildProgram(): Command {
         }
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -1917,7 +1877,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -2023,7 +1983,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -2084,7 +2044,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -2107,7 +2067,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -2154,7 +2114,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -2226,7 +2186,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
