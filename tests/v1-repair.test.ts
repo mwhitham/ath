@@ -93,6 +93,59 @@ describe("v1 provider-encoding repair", () => {
     expect(afterBytes).toEqual(beforeBytes);
   }, 180_000);
 
+  it("parses every npm 1.0.0 revision through CurrentRecord before and after migration", async () => {
+    const { directory, databasePath } = materializeNpm100ProviderDatabase();
+    directories.push(directory);
+    const client = createClient({ url: pathToFileURL(databasePath).href });
+    const rows = await client.execute(`
+      SELECT records.record_type, record_revisions.record_json
+      FROM records
+      JOIN record_revisions
+        ON record_revisions.record_id = records.record_id
+       AND record_revisions.revision = records.current_revision
+    `);
+    const { CurrentRecord } = await import("../src/v1/schema.js");
+    const { currentRecordPayloadFromRow } = await import("../src/db/revision-encoding.js");
+    for (const row of rows.rows) {
+      CurrentRecord.parse(
+        currentRecordPayloadFromRow({
+          record_id: "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1f01",
+          record_type: row.record_type,
+          current_revision: 1,
+          created_at: "2026-01-01T00:00:00.000Z",
+          is_deleted: 0,
+          record_json: row.record_json,
+        }),
+      );
+    }
+    await client.close();
+
+    const database = await openDatabase(databasePath, { allowOutdatedSchema: true, deferWal: true });
+    openDatabases.push(database);
+    await executeConfirmedDatabaseMigration(database);
+    const afterClient = createClient({ url: pathToFileURL(databasePath).href });
+    const after = await afterClient.execute(`
+      SELECT records.record_type, record_revisions.record_json
+      FROM records
+      JOIN record_revisions
+        ON record_revisions.record_id = records.record_id
+       AND record_revisions.revision = records.current_revision
+    `);
+    for (const row of after.rows) {
+      CurrentRecord.parse(
+        currentRecordPayloadFromRow({
+          record_id: "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1f01",
+          record_type: row.record_type,
+          current_revision: 1,
+          created_at: "2026-01-01T00:00:00.000Z",
+          is_deleted: 0,
+          record_json: row.record_json,
+        }),
+      );
+    }
+    await afterClient.close();
+  }, 180_000);
+
   it("migrates SQL schema 1 to 2 on an npm 1.0.0 provider database", async () => {
     const { directory, databasePath } = materializeNpm100ProviderDatabase();
     directories.push(directory);

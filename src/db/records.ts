@@ -206,6 +206,237 @@ async function replaceAuthoredEvidence(
   }
 }
 
+/** Denormalized typed-table columns derived the same way as upsertTypedRow. */
+export function typedMainRowFields(
+  record: CurrentRecordT,
+): ReadonlyArray<readonly [string, SqlValue]> {
+  switch (record.record_type) {
+    case "athlete_profile":
+      return [["default_time_zone", nullable(record.data.default_time_zone)]];
+    case "source":
+      return [
+        ["source_type", record.data.source_type],
+        ["data_writer", record.data.data_writer],
+        ["data_route", record.data.data_route],
+        ["vendor", nullable(record.data.vendor)],
+        ["sensor_type", nullable(record.data.sensor_type)],
+      ];
+    case "source_device":
+      return [
+        ["source_id", record.data.source_id],
+        ["name", nullable(record.data.name)],
+        ["manufacturer", nullable(record.data.manufacturer)],
+        ["model", nullable(record.data.model)],
+        ["hardware", nullable(record.data.hardware)],
+        ["serial_number", nullable(record.data.serial_number)],
+        ["coverage_start_date", nullable(record.data.coverage_start_date)],
+        ["coverage_end_date", nullable(record.data.coverage_end_date)],
+        ["accepted_record_count", nullable(record.data.accepted_record_count)],
+      ];
+    case "point_measurement":
+      return [
+        ["source_id", record.data.source_id],
+        ["quantity", record.data.quantity],
+        ["recorded_at", nullable(record.data.recorded_at)],
+        ["standard_value", record.data.value.standard_value],
+        ["standard_unit", record.data.value.standard_unit],
+        ["provider_record_id", nullable(record.data.provider_record_id)],
+        ["received_at", record.data.received_at],
+      ];
+    case "measurement_sample":
+      return [
+        ["source_id", record.data.source_id],
+        ["quantity", record.data.quantity],
+        ["recorded_at", record.data.recorded_at],
+        ["standard_value", record.data.value.standard_value],
+        ["standard_unit", record.data.value.standard_unit],
+        ["duration_ms", nullable(record.data.duration_ms)],
+        ["provider_record_id", nullable(record.data.provider_record_id)],
+        ["received_at", record.data.received_at],
+      ];
+    case "sleep_session":
+      return [
+        ["source_id", record.data.source_id],
+        ["start_at", record.data.start_at],
+        ["end_at", record.data.end_at],
+        ["provider_record_id", nullable(record.data.provider_record_id)],
+        ["received_at", record.data.received_at],
+      ];
+    case "workout_session":
+      return [
+        ["source_id", record.data.source_id],
+        ["start_at", record.data.start_at],
+        ["end_at", record.data.end_at],
+        ["activity_type", nullable(record.data.activity_type)],
+        ["provider_record_id", nullable(record.data.provider_record_id)],
+        ["received_at", record.data.received_at],
+      ];
+    case "benchmark_result":
+      return [
+        ["source_id", record.data.source_id],
+        ["benchmark_definition_id", record.data.benchmark_definition_id],
+        ["recorded_at", record.data.recorded_at],
+        ["workout_session_id", nullable(record.data.workout_session_id)],
+        ["provider_record_id", nullable(record.data.provider_record_id)],
+        ["received_at", record.data.received_at],
+      ];
+    case "provider_score":
+      return [
+        ["source_id", record.data.source_id],
+        ["metric", record.data.metric],
+        ["recorded_at", nullable(record.data.recorded_at)],
+        ["standard_value", record.data.value.standard_value],
+        ["standard_unit", record.data.value.standard_unit],
+        ["scale", record.data.scale],
+        ["provider_record_id", nullable(record.data.provider_record_id)],
+        ["received_at", record.data.received_at],
+      ];
+    case "provider_summary":
+      return [
+        ["source_id", record.data.source_id],
+        ["summary_type", record.data.summary_type],
+        ["recorded_at", nullable(record.data.recorded_at)],
+        ["standard_value", record.data.value.standard_value],
+        ["standard_unit", record.data.value.standard_unit],
+        ["provider_record_id", nullable(record.data.provider_record_id)],
+        ["received_at", record.data.received_at],
+      ];
+    case "athlete_report":
+      return [
+        ["report_type", record.data.report_type],
+        ["reported_at", record.data.reported_at],
+      ];
+    case "nutrition_entry":
+      return [
+        ["reported_at", record.data.reported_at],
+        ["athlete_description", record.data.athlete_description],
+      ];
+    case "attachment":
+      return [
+        ["file_name", record.data.file_name],
+        ["media_type", record.data.media_type],
+        ["byte_count", record.data.byte_count],
+        ["sha256", record.data.sha256],
+      ];
+    case "benchmark_definition":
+      return [
+        ["benchmark_key", record.data.benchmark_key],
+        ["benchmark_type", record.data.benchmark_type],
+        ["score_type", record.data.score_type],
+        ["definition", record.data.definition],
+      ];
+    case "prediction":
+      return [
+        ["benchmark_definition_id", record.data.benchmark_definition_id],
+        ["authored_at", record.data.authorship.authored_at],
+        ["author_type", record.data.authorship.author.author_type],
+        ["content_version", record.data.authorship.content_version],
+        ["status", record.data.authorship.status],
+      ];
+    case "prediction_result_link":
+      return [
+        ["prediction_id", record.data.prediction.record_id],
+        ["prediction_revision", record.data.prediction.revision],
+        ["benchmark_result_id", record.data.benchmark_result.record_id],
+        ["benchmark_result_revision", record.data.benchmark_result.revision],
+        ["linked_at", record.data.linked_at],
+        ["created_by_type", record.data.created_by.author_type],
+        ["content_version", record.data.content_version],
+        ["status", record.data.status],
+      ];
+    case "prediction_grade":
+      return [
+        ["prediction_result_link_id", record.data.prediction_result_link.record_id],
+        ["prediction_result_link_revision", record.data.prediction_result_link.revision],
+        ["authored_at", record.data.authorship.authored_at],
+        ["author_type", record.data.authorship.author.author_type],
+        ["content_version", record.data.authorship.content_version],
+        ["status", record.data.authorship.status],
+        ["signed_error", record.data.signed_error],
+        ["absolute_error_percentage", record.data.absolute_error_percentage],
+        ["result_in_predicted_range", record.data.result_in_predicted_range ? 1 : 0],
+      ];
+    case "prediction_error_analysis":
+      return [
+        ["prediction_grade_id", record.data.prediction_grade.record_id],
+        ["prediction_grade_revision", record.data.prediction_grade.revision],
+        ["authored_at", record.data.authorship.authored_at],
+        ["author_type", record.data.authorship.author.author_type],
+        ["content_version", record.data.authorship.content_version],
+        ["status", record.data.authorship.status],
+      ];
+    case "training_plan":
+      return [
+        ["title", record.data.title],
+        ["start_date", nullable(record.data.start_date)],
+        ["end_date", nullable(record.data.end_date)],
+        ["authored_at", record.data.authorship.authored_at],
+        ["author_type", record.data.authorship.author.author_type],
+        ["content_version", record.data.authorship.content_version],
+        ["status", record.data.authorship.status],
+      ];
+    case "planned_session":
+      return [
+        ["training_plan_id", nullable(record.data.training_plan_id)],
+        ["title", record.data.title],
+        ["scheduled_date", nullable(record.data.scheduled_date)],
+        ["scheduled_start_at", nullable(record.data.scheduled_start_at)],
+        ["completion_status", record.data.completion_status],
+        ["completed_workout_session_id", nullable(record.data.completed_workout_session_id)],
+        ["authored_at", record.data.authorship.authored_at],
+        ["author_type", record.data.authorship.author.author_type],
+        ["content_version", record.data.authorship.content_version],
+        ["status", record.data.authorship.status],
+      ];
+    case "coaching_note":
+      return [
+        ["authored_at", record.data.authorship.authored_at],
+        ["author_type", record.data.authorship.author.author_type],
+        ["content_version", record.data.authorship.content_version],
+        ["status", record.data.authorship.status],
+      ];
+    case "saved_training_review":
+      return [
+        ["period_start", record.data.period_start],
+        ["period_end", record.data.period_end],
+        ["authored_at", record.data.authorship.authored_at],
+        ["author_type", record.data.authorship.author.author_type],
+        ["content_version", record.data.authorship.content_version],
+        ["status", record.data.authorship.status],
+      ];
+    case "goal":
+      return [
+        ["title", record.data.title],
+        ["target_date", nullable(record.data.target_date)],
+        [
+          "target_benchmark_definition_id",
+          nullable(record.data.target_benchmark_definition_id),
+        ],
+        ["authored_at", record.data.authorship.authored_at],
+        ["author_type", record.data.authorship.author.author_type],
+        ["content_version", record.data.authorship.content_version],
+        ["status", record.data.authorship.status],
+      ];
+    case "nutrition_model_interpretation":
+      return [
+        ["nutrition_entry_id", record.data.nutrition_entry_id],
+        ["confidence", record.data.confidence],
+        ["authored_at", record.data.authorship.authored_at],
+        ["author_type", record.data.authorship.author.author_type],
+        ["content_version", record.data.authorship.content_version],
+        ["status", record.data.authorship.status],
+      ];
+  }
+}
+
+async function upsertTypedRowForRecord(
+  transaction: Transaction,
+  table: string,
+  record: CurrentRecordT,
+): Promise<void> {
+  await upsertTypedRow(transaction, table, record, typedMainRowFields(record));
+}
+
 async function replaceAttachmentLinks(
   transaction: Transaction,
   recordId: string,
@@ -235,42 +466,16 @@ export async function upsertTypedRecord(
 ): Promise<void> {
   switch (record.record_type) {
     case "athlete_profile":
-      await upsertTypedRow(transaction, "athlete_profile", record, [
-        ["default_time_zone", nullable(record.data.default_time_zone)],
-      ]);
+      await upsertTypedRowForRecord(transaction, "athlete_profile", record);
       break;
     case "source":
-      await upsertTypedRow(transaction, "sources", record, [
-        ["source_type", record.data.source_type],
-        ["data_writer", record.data.data_writer],
-        ["data_route", record.data.data_route],
-        ["vendor", nullable(record.data.vendor)],
-        ["sensor_type", nullable(record.data.sensor_type)],
-      ]);
+      await upsertTypedRowForRecord(transaction, "sources", record);
       break;
     case "source_device":
-      await upsertTypedRow(transaction, "source_devices", record, [
-        ["source_id", record.data.source_id],
-        ["name", nullable(record.data.name)],
-        ["manufacturer", nullable(record.data.manufacturer)],
-        ["model", nullable(record.data.model)],
-        ["hardware", nullable(record.data.hardware)],
-        ["serial_number", nullable(record.data.serial_number)],
-        ["coverage_start_date", nullable(record.data.coverage_start_date)],
-        ["coverage_end_date", nullable(record.data.coverage_end_date)],
-        ["accepted_record_count", nullable(record.data.accepted_record_count)],
-      ]);
+      await upsertTypedRowForRecord(transaction, "source_devices", record);
       break;
     case "point_measurement":
-      await upsertTypedRow(transaction, "point_measurements", record, [
-        ["source_id", record.data.source_id],
-        ["quantity", record.data.quantity],
-        ["recorded_at", nullable(record.data.recorded_at)],
-        ["standard_value", record.data.value.standard_value],
-        ["standard_unit", record.data.value.standard_unit],
-        ["provider_record_id", nullable(record.data.provider_record_id)],
-        ["received_at", record.data.received_at],
-      ]);
+      await upsertTypedRowForRecord(transaction, "point_measurements", record);
       await replaceOrderedJsonChildren(
         transaction,
         "point_measurement_calculations",
@@ -310,35 +515,13 @@ export async function upsertTypedRecord(
       }
       break;
     case "measurement_sample":
-      await upsertTypedRow(transaction, "measurement_samples", record, [
-        ["source_id", record.data.source_id],
-        ["quantity", record.data.quantity],
-        ["recorded_at", record.data.recorded_at],
-        ["standard_value", record.data.value.standard_value],
-        ["standard_unit", record.data.value.standard_unit],
-        ["duration_ms", nullable(record.data.duration_ms)],
-        ["provider_record_id", nullable(record.data.provider_record_id)],
-        ["received_at", record.data.received_at],
-      ]);
+      await upsertTypedRowForRecord(transaction, "measurement_samples", record);
       break;
     case "sleep_session":
-      await upsertTypedRow(transaction, "sleep_sessions", record, [
-        ["source_id", record.data.source_id],
-        ["start_at", record.data.start_at],
-        ["end_at", record.data.end_at],
-        ["provider_record_id", nullable(record.data.provider_record_id)],
-        ["received_at", record.data.received_at],
-      ]);
+      await upsertTypedRowForRecord(transaction, "sleep_sessions", record);
       break;
     case "workout_session":
-      await upsertTypedRow(transaction, "workout_sessions", record, [
-        ["source_id", record.data.source_id],
-        ["start_at", record.data.start_at],
-        ["end_at", record.data.end_at],
-        ["activity_type", nullable(record.data.activity_type)],
-        ["provider_record_id", nullable(record.data.provider_record_id)],
-        ["received_at", record.data.received_at],
-      ]);
+      await upsertTypedRowForRecord(transaction, "workout_sessions", record);
       await replaceOrderedJsonChildren(
         transaction,
         "workout_session_segments",
@@ -350,14 +533,7 @@ export async function upsertTypedRecord(
       );
       break;
     case "benchmark_result":
-      await upsertTypedRow(transaction, "benchmark_results", record, [
-        ["source_id", record.data.source_id],
-        ["benchmark_definition_id", record.data.benchmark_definition_id],
-        ["recorded_at", record.data.recorded_at],
-        ["workout_session_id", nullable(record.data.workout_session_id)],
-        ["provider_record_id", nullable(record.data.provider_record_id)],
-        ["received_at", record.data.received_at],
-      ]);
+      await upsertTypedRowForRecord(transaction, "benchmark_results", record);
       await replaceOrderedJsonChildren(
         transaction,
         "benchmark_result_segments",
@@ -369,33 +545,13 @@ export async function upsertTypedRecord(
       );
       break;
     case "provider_score":
-      await upsertTypedRow(transaction, "provider_scores", record, [
-        ["source_id", record.data.source_id],
-        ["metric", record.data.metric],
-        ["recorded_at", nullable(record.data.recorded_at)],
-        ["standard_value", record.data.value.standard_value],
-        ["standard_unit", record.data.value.standard_unit],
-        ["scale", record.data.scale],
-        ["provider_record_id", nullable(record.data.provider_record_id)],
-        ["received_at", record.data.received_at],
-      ]);
+      await upsertTypedRowForRecord(transaction, "provider_scores", record);
       break;
     case "provider_summary":
-      await upsertTypedRow(transaction, "provider_summaries", record, [
-        ["source_id", record.data.source_id],
-        ["summary_type", record.data.summary_type],
-        ["recorded_at", nullable(record.data.recorded_at)],
-        ["standard_value", record.data.value.standard_value],
-        ["standard_unit", record.data.value.standard_unit],
-        ["provider_record_id", nullable(record.data.provider_record_id)],
-        ["received_at", record.data.received_at],
-      ]);
+      await upsertTypedRowForRecord(transaction, "provider_summaries", record);
       break;
     case "athlete_report":
-      await upsertTypedRow(transaction, "athlete_reports", record, [
-        ["report_type", record.data.report_type],
-        ["reported_at", record.data.reported_at],
-      ]);
+      await upsertTypedRowForRecord(transaction, "athlete_reports", record);
       await replaceAttachmentLinks(
         transaction,
         record.record_id,
@@ -403,10 +559,7 @@ export async function upsertTypedRecord(
       );
       break;
     case "nutrition_entry":
-      await upsertTypedRow(transaction, "nutrition_entries", record, [
-        ["reported_at", record.data.reported_at],
-        ["athlete_description", record.data.athlete_description],
-      ]);
+      await upsertTypedRowForRecord(transaction, "nutrition_entries", record);
       await replaceOrderedJsonChildren(
         transaction,
         "reported_nutrition_items",
@@ -423,64 +576,22 @@ export async function upsertTypedRecord(
       );
       break;
     case "attachment":
-      await upsertTypedRow(transaction, "attachments", record, [
-        ["file_name", record.data.file_name],
-        ["media_type", record.data.media_type],
-        ["byte_count", record.data.byte_count],
-        ["sha256", record.data.sha256],
-      ]);
+      await upsertTypedRowForRecord(transaction, "attachments", record);
       break;
     case "benchmark_definition":
-      await upsertTypedRow(transaction, "benchmark_definitions", record, [
-        ["benchmark_key", record.data.benchmark_key],
-        ["benchmark_type", record.data.benchmark_type],
-        ["score_type", record.data.score_type],
-        ["definition", record.data.definition],
-      ]);
+      await upsertTypedRowForRecord(transaction, "benchmark_definitions", record);
       break;
     case "prediction":
-      await upsertTypedRow(transaction, "predictions", record, [
-        ["benchmark_definition_id", record.data.benchmark_definition_id],
-        ["authored_at", record.data.authorship.authored_at],
-        ["author_type", record.data.authorship.author.author_type],
-        ["content_version", record.data.authorship.content_version],
-        ["status", record.data.authorship.status],
-      ]);
+      await upsertTypedRowForRecord(transaction, "predictions", record);
       break;
     case "prediction_result_link":
-      await upsertTypedRow(transaction, "prediction_result_links", record, [
-        ["prediction_id", record.data.prediction.record_id],
-        ["prediction_revision", record.data.prediction.revision],
-        ["benchmark_result_id", record.data.benchmark_result.record_id],
-        ["benchmark_result_revision", record.data.benchmark_result.revision],
-        ["linked_at", record.data.linked_at],
-        ["created_by_type", record.data.created_by.author_type],
-        ["content_version", record.data.content_version],
-        ["status", record.data.status],
-      ]);
+      await upsertTypedRowForRecord(transaction, "prediction_result_links", record);
       break;
     case "prediction_grade":
-      await upsertTypedRow(transaction, "prediction_grades", record, [
-        ["prediction_result_link_id", record.data.prediction_result_link.record_id],
-        ["prediction_result_link_revision", record.data.prediction_result_link.revision],
-        ["authored_at", record.data.authorship.authored_at],
-        ["author_type", record.data.authorship.author.author_type],
-        ["content_version", record.data.authorship.content_version],
-        ["status", record.data.authorship.status],
-        ["signed_error", record.data.signed_error],
-        ["absolute_error_percentage", record.data.absolute_error_percentage],
-        ["result_in_predicted_range", record.data.result_in_predicted_range ? 1 : 0],
-      ]);
+      await upsertTypedRowForRecord(transaction, "prediction_grades", record);
       break;
     case "prediction_error_analysis":
-      await upsertTypedRow(transaction, "prediction_error_analyses", record, [
-        ["prediction_grade_id", record.data.prediction_grade.record_id],
-        ["prediction_grade_revision", record.data.prediction_grade.revision],
-        ["authored_at", record.data.authorship.authored_at],
-        ["author_type", record.data.authorship.author.author_type],
-        ["content_version", record.data.authorship.content_version],
-        ["status", record.data.authorship.status],
-      ]);
+      await upsertTypedRowForRecord(transaction, "prediction_error_analyses", record);
       await transaction.execute({
         sql: "DELETE FROM prediction_error_causes WHERE prediction_error_analysis_id = ?",
         args: [record.record_id],
@@ -507,29 +618,10 @@ export async function upsertTypedRecord(
       }
       break;
     case "training_plan":
-      await upsertTypedRow(transaction, "training_plans", record, [
-        ["title", record.data.title],
-        ["start_date", nullable(record.data.start_date)],
-        ["end_date", nullable(record.data.end_date)],
-        ["authored_at", record.data.authorship.authored_at],
-        ["author_type", record.data.authorship.author.author_type],
-        ["content_version", record.data.authorship.content_version],
-        ["status", record.data.authorship.status],
-      ]);
+      await upsertTypedRowForRecord(transaction, "training_plans", record);
       break;
     case "planned_session":
-      await upsertTypedRow(transaction, "planned_sessions", record, [
-        ["training_plan_id", nullable(record.data.training_plan_id)],
-        ["title", record.data.title],
-        ["scheduled_date", nullable(record.data.scheduled_date)],
-        ["scheduled_start_at", nullable(record.data.scheduled_start_at)],
-        ["completion_status", record.data.completion_status],
-        ["completed_workout_session_id", nullable(record.data.completed_workout_session_id)],
-        ["authored_at", record.data.authorship.authored_at],
-        ["author_type", record.data.authorship.author.author_type],
-        ["content_version", record.data.authorship.content_version],
-        ["status", record.data.authorship.status],
-      ]);
+      await upsertTypedRowForRecord(transaction, "planned_sessions", record);
       await replaceOrderedJsonChildren(
         transaction,
         "planned_session_blocks",
@@ -541,46 +633,16 @@ export async function upsertTypedRecord(
       );
       break;
     case "coaching_note":
-      await upsertTypedRow(transaction, "coaching_notes", record, [
-        ["authored_at", record.data.authorship.authored_at],
-        ["author_type", record.data.authorship.author.author_type],
-        ["content_version", record.data.authorship.content_version],
-        ["status", record.data.authorship.status],
-      ]);
+      await upsertTypedRowForRecord(transaction, "coaching_notes", record);
       break;
     case "saved_training_review":
-      await upsertTypedRow(transaction, "saved_training_reviews", record, [
-        ["period_start", record.data.period_start],
-        ["period_end", record.data.period_end],
-        ["authored_at", record.data.authorship.authored_at],
-        ["author_type", record.data.authorship.author.author_type],
-        ["content_version", record.data.authorship.content_version],
-        ["status", record.data.authorship.status],
-      ]);
+      await upsertTypedRowForRecord(transaction, "saved_training_reviews", record);
       break;
     case "goal":
-      await upsertTypedRow(transaction, "goals", record, [
-        ["title", record.data.title],
-        ["target_date", nullable(record.data.target_date)],
-        [
-          "target_benchmark_definition_id",
-          nullable(record.data.target_benchmark_definition_id),
-        ],
-        ["authored_at", record.data.authorship.authored_at],
-        ["author_type", record.data.authorship.author.author_type],
-        ["content_version", record.data.authorship.content_version],
-        ["status", record.data.authorship.status],
-      ]);
+      await upsertTypedRowForRecord(transaction, "goals", record);
       break;
     case "nutrition_model_interpretation":
-      await upsertTypedRow(transaction, "nutrition_model_interpretations", record, [
-        ["nutrition_entry_id", record.data.nutrition_entry_id],
-        ["confidence", record.data.confidence],
-        ["authored_at", record.data.authorship.authored_at],
-        ["author_type", record.data.authorship.author.author_type],
-        ["content_version", record.data.authorship.content_version],
-        ["status", record.data.authorship.status],
-      ]);
+      await upsertTypedRowForRecord(transaction, "nutrition_model_interpretations", record);
       break;
   }
 

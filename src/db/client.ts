@@ -16,6 +16,28 @@ export interface AthleticDatabase {
 }
 
 const clients = new WeakMap<AthleticDatabase, Client>();
+const openLocalDatabases = new Set<AthleticDatabase>();
+const skipWalCheckpointOnRelease = new WeakMap<AthleticDatabase, boolean>();
+
+export function markSkipWalCheckpointOnRelease(database: AthleticDatabase): void {
+  skipWalCheckpointOnRelease.set(database, true);
+}
+
+export function trackOpenLocalDatabase(database: AthleticDatabase): void {
+  if (database.isLocal) {
+    openLocalDatabases.add(database);
+  }
+}
+
+export function untrackOpenLocalDatabase(database: AthleticDatabase): void {
+  openLocalDatabases.delete(database);
+}
+
+export async function releaseAllOpenLocalDatabases(): Promise<void> {
+  for (const database of [...openLocalDatabases]) {
+    await releaseLocalDatabase(database);
+  }
+}
 
 export function databaseClient(database: AthleticDatabase): Client {
   const client = clients.get(database);
@@ -160,10 +182,17 @@ export async function releaseLocalDatabase(database: AthleticDatabase): Promise<
     return;
   }
   try {
-    await databaseClient(database).execute("PRAGMA wal_checkpoint(TRUNCATE)");
+    const journalMode = String(
+      (await databaseClient(database).execute("PRAGMA journal_mode")).rows[0]?.journal_mode,
+    ).toLowerCase();
+    if (journalMode === "wal" && skipWalCheckpointOnRelease.get(database) !== true) {
+      await databaseClient(database).execute("PRAGMA wal_checkpoint(TRUNCATE)");
+    }
   } catch {
     // The file may already be closed or read-only.
   }
+  skipWalCheckpointOnRelease.delete(database);
+  untrackOpenLocalDatabase(database);
   database.close();
 }
 

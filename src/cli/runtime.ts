@@ -3,6 +3,7 @@ import { findFile } from "../file.js";
 import {
   executeConfirmedDatabaseMigration,
   MigrationRequiredError,
+  markSkipWalCheckpointOnRelease,
   openDatabase,
   releaseLocalDatabase,
   type AthleticDatabase,
@@ -18,9 +19,19 @@ export function useTerminalAnswer(
   terminalAnswerForTests = answer;
 }
 
+export class CliExitError extends Error {
+  readonly exitCode: number;
+
+  constructor(message: string, exitCode = 1) {
+    super(message);
+    this.name = "CliExitError";
+    this.exitCode = exitCode;
+  }
+}
+
 export function fail(message: string): never {
   console.error(`ath: ${message}`);
-  process.exit(1);
+  throw new CliExitError(message);
 }
 
 export function findOrFail(fileArg?: string): string {
@@ -134,13 +145,15 @@ export async function interactiveMigrationOnOpen(
 
 export async function openReadOnlyOrFail(path: string, json = false): Promise<AthleticDatabase> {
   try {
-    return await openDatabase(path, {
+    const database = await openDatabase(path, {
       deferWal: true,
       allowOutdatedSchema: true,
       onSecurityWarning: (warning) => {
         if (!json) console.warn(`ath: warning: ${warning}`);
       },
     });
+    markSkipWalCheckpointOnRelease(database);
+    return database;
   } catch (error) {
     if (error instanceof MigrationRequiredError) {
       return fail(error.message);

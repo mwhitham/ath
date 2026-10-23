@@ -1533,13 +1533,25 @@ Rejected alternatives:
 - **Block this release until drafts renumber.** Rejected because draft ranges do not
   change shipped behavior.
 
+## D148. License moves in pull requests #10 and #12
+
+Pull request #10 switched the repository license to Apache-2.0. Pull request #12
+switched it back to MIT. Neither change altered the Athletic Standard file format, so
+neither received a build-history version folder; this D-number records the sequence.
+
+Rejected alternatives:
+
+- **Fold license history into D143 folder-rule entries.** Rejected because #10 and #12
+  were not folder-rule violations.
+- **Omit license history.** Rejected because agents grep decisions for licensing.
+
 ## D149. Read-only CLI opens do not enable WAL
 
 Read-only commands (`check`, `stats`, `records`, `calculate`, `series`, `export`,
 and `migrate --dry-run`) open the database with `deferWal: true` so they do not
-switch an existing delete-mode file to WAL. Closing uses `PRAGMA
-wal_checkpoint(TRUNCATE)` so read-only use does not leave `-wal` and `-shm` files
-behind.
+switch an existing delete-mode file to WAL. `releaseLocalDatabase` runs
+`PRAGMA wal_checkpoint(TRUNCATE)` when a connection had enabled WAL, so confirmed
+writes do not leave `-wal` and `-shm` files behind after close.
 
 Rejected alternatives:
 
@@ -1563,15 +1575,3 @@ Rejected alternatives:
 - **Silent header repair without checking row data.** Rejected because applying
   `002-provider-encoding-repair.sql` alone already showed false "no migration required"
   states while `ath check` failed.
-
-## D148. License moves in pull requests #10 and #12
-
-Pull request #10 switched the repository license to Apache-2.0. Pull request #12
-switched it back to MIT. Neither change altered the Athletic Standard file format, so
-neither received a build-history version folder; this D-number records the sequence.
-
-Rejected alternatives:
-
-- **Fold license history into D143 folder-rule entries.** Rejected because #10 and #12
-  were not folder-rule violations.
-- **Omit license history.** Rejected because agents grep decisions for licensing.

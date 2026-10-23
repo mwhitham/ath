@@ -3,11 +3,13 @@ export {
   SQLITE_APPLICATION_ID,
   SQLITE_APPLICATION_MARKER,
   releaseLocalDatabase,
+  markSkipWalCheckpointOnRelease,
   type AthleticDatabase,
 } from "./client.js";
 export {
   createVerifiedSqliteBackup,
   defaultMigrationBackupPath,
+  formatMigrationBackupTimestamp,
   sqlite3BackupDotCommand,
 } from "./backup.js";
 export {

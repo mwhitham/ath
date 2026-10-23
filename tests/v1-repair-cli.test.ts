@@ -5,6 +5,7 @@ import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
 import { afterEach, describe, expect, it } from "vitest";
+import { hashDatabaseFilesRaw } from "./helpers/raw-database-hash.js";
 import { openDatabase, type AthleticDatabase } from "../src/db/index.js";
 import { databaseClient } from "../src/db/client.js";
 import { materializeNpm100ProviderDatabase } from "./helpers/npm100-database.js";
@@ -106,6 +107,51 @@ describe("v1 repair CLI", () => {
     expect(check.stdout).toMatch(/denormalized/i);
   });
 
+  it("ath repair fixes column-only typed_denormalized corruption without --from-revision", async () => {
+    const { directory, databasePath } = materializeNpm100ProviderDatabase();
+    directories.push(directory);
+    const database = await openDatabase(databasePath, { allowOutdatedSchema: true });
+    openDatabases.push(database);
+    const row = await databaseClient(database).execute(`
+      SELECT records.record_id
+      FROM records
+      JOIN point_measurements ON point_measurements.record_id = records.record_id
+      WHERE records.record_type = 'point_measurement'
+        AND point_measurements.quantity = 'hrv_rmssd'
+      LIMIT 1
+    `);
+    const recordId = String(row.rows[0]!.record_id);
+    await databaseClient(database).execute({
+      sql: "UPDATE point_measurements SET standard_value = 999 WHERE record_id = ?",
+      args: [recordId],
+    });
+    database.close();
+    openDatabases.pop();
+
+    const preview = ath(["repair"], directory);
+    expect(preview.stdout).not.toMatch(/no provider-encoding repair is required/);
+    expect(preview.stdout).toMatch(/"repair_candidates": [1-9]/);
+
+    const repair = ath(["repair", "-y"], directory);
+    expect(repair.code, repair.stdout).toBe(0);
+
+    const idClient = createClient({ url: pathToFileURL(databasePath).href });
+    const idRow = await idClient.execute(
+      "SELECT database_id FROM database_metadata WHERE singleton_id = 1",
+    );
+    const databaseId = String(idRow.rows[0]?.database_id);
+    await idClient.close();
+
+    const migrate = ath(["migrate", "-y", "--confirm-migration", databaseId], directory);
+    expect(migrate.code, migrate.stdout).toBe(0);
+
+    const check = ath(["check"], directory);
+    expect(check.code, check.stdout).toBe(0);
+
+    const baseline = ath(["calculate", "baseline", "hrv_rmssd", "--json"], directory);
+    expect(baseline.stdout).not.toContain('"maximum": 999');
+  }, 120_000);
+
   it("ath repair --from-revision restores calculate baseline values", async () => {
     const { directory, databasePath } = materializeNpm100ProviderDatabase();
     directories.push(directory);
@@ -132,4 +178,20 @@ describe("v1 repair CLI", () => {
     const check = ath(["check"], directory);
     expect(check.code, check.stdout).toBe(0);
   }, 180_000);
+
+  it.runIf(process.platform !== "win32")(
+    "ath repair and repair --dry-run do not enable WAL on a delete-mode database",
+    async () => {
+      const { directory, databasePath } = materializeNpm100ProviderDatabase();
+      directories.push(directory);
+      const client = createClient({ url: pathToFileURL(databasePath).href });
+      await client.execute("PRAGMA journal_mode = DELETE");
+      await client.close();
+      const hashBefore = await hashDatabaseFilesRaw(databasePath);
+      ath(["repair", "--dry-run"], directory);
+      expect(await hashDatabaseFilesRaw(databasePath)).toBe(hashBefore);
+      ath(["repair"], directory);
+      expect(await hashDatabaseFilesRaw(databasePath)).toBe(hashBefore);
+    },
+  );
 });

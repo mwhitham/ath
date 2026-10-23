@@ -1,4 +1,5 @@
-import { copyFileSync, mkdtempSync, readFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { copyFileSync, mkdtempSync, readFileSync, unlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { createClient } from "@libsql/client";
@@ -17,6 +18,19 @@ export function materializeNpm100ProviderDatabase(): {
   const directory = mkdtempSync(join(tmpdir(), "ath-npm-100-"));
   const databasePath = join(directory, "athlete.ath.sqlite");
   copyFileSync(fixtureDatabase, databasePath);
+  const journal = spawnSync("sqlite3", [databasePath, "PRAGMA journal_mode = DELETE;"], {
+    encoding: "utf8",
+  });
+  if (journal.status !== 0) {
+    throw new Error(journal.stderr || "failed to set DELETE journal mode on npm 1.0.0 test copy");
+  }
+  for (const suffix of ["-wal", "-shm"]) {
+    try {
+      unlinkSync(`${databasePath}${suffix}`);
+    } catch {
+      // no sidecar
+    }
+  }
   return { directory, databasePath };
 }
 

@@ -275,14 +275,12 @@ describe("v1 database creation and opening", () => {
 
   it("does not write the database file on read-only CLI commands", async () => {
     const { database, path } = await newDatabase();
-    database.close();
+    await databaseClient(database).execute("PRAGMA journal_mode = DELETE");
+    const { releaseLocalDatabase } = await import("../src/db/index.js");
+    await releaseLocalDatabase(database);
     openDatabases.pop();
-    const checkpoint = createClient({ url: pathToFileURL(path).href });
-    await checkpoint.execute("PRAGMA wal_checkpoint(FULL)");
-    await checkpoint.close();
-    const hashBefore = createHash("sha256")
-      .update(await readFile(path))
-      .digest("hex");
+    const { hashDatabaseFilesRaw } = await import("./helpers/raw-database-hash.js");
+    const hashBefore = await hashDatabaseFilesRaw(path);
     const directory = dirname(path);
     const { execFileSync } = await import("node:child_process");
     const { resolve } = await import("node:path");
@@ -298,12 +296,7 @@ describe("v1 database creation and opening", () => {
     ]) {
       execFileSync(tsx, [cli, ...args], { cwd: directory, encoding: "utf8", stdio: "pipe" });
     }
-    const checkpointAfter = createClient({ url: pathToFileURL(path).href });
-    await checkpointAfter.execute("PRAGMA wal_checkpoint(FULL)");
-    await checkpointAfter.close();
-    const hashAfter = createHash("sha256")
-      .update(await readFile(path))
-      .digest("hex");
+    const hashAfter = await hashDatabaseFilesRaw(path);
     expect(hashAfter).toBe(hashBefore);
   });
 
@@ -320,12 +313,11 @@ describe("v1 database creation and opening", () => {
     async () => {
       const { directory, databasePath } = materializeNpm100ProviderDatabase();
       temporaryDirectories.push(directory);
-      const hashOf = async () => {
-        const checkpoint = createClient({ url: pathToFileURL(databasePath).href });
-        await checkpoint.execute("PRAGMA wal_checkpoint(FULL)");
-        await checkpoint.close();
-        return createHash("sha256").update(await readFile(databasePath)).digest("hex");
-      };
+      const { hashDatabaseFilesRaw, useDeleteJournalMode } = await import(
+        "./helpers/raw-database-hash.js",
+      );
+      await useDeleteJournalMode(databasePath);
+      const hashOf = () => hashDatabaseFilesRaw(databasePath);
       const hashHealthy = await hashOf();
       const { execFileSync } = await import("node:child_process");
       const { resolve } = await import("node:path");

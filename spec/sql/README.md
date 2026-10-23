@@ -46,7 +46,7 @@ write `PRAGMA user_version` or otherwise change the database file. If
 `PRAGMA user_version` does not match `database_metadata.sql_schema_version`, every
 command refuses until the file is fixed. Restore from a verified migration or repair
 backup, or build a new database with `ath init --empty` and `ath import` from a
-complete JSON package export.
+complete JSON package exported earlier.
 
 ## Write transactions
 

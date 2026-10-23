@@ -432,7 +432,9 @@ function importRows(rows: Row[], sourceId: string, payload: ImportPayload, name:
       countSkip(payload, `${name}: cardiovascular age column`);
     }
     for (const column of OURA_ACTIVITY_COLUMNS) {
-      if (num(row, column) !== undefined) {
+      const present =
+        column === "met" ? cell(row, column) !== undefined : num(row, column) !== undefined;
+      if (present) {
         countSkip(payload, `${name}: activity column ${column}`);
       }
     }

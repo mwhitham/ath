@@ -13,6 +13,8 @@ import {
 import {
   connectDatabase,
   databaseClient,
+  trackOpenLocalDatabase,
+  markSkipWalCheckpointOnRelease,
   enableLocalWal,
   parseDatabaseTarget,
   readApplicationId,
@@ -273,6 +275,7 @@ export async function createDatabase(
     await enableLocalWal(database);
     await installInitialSchema(database, databaseId, createdAt);
     await setOwnerOnlyDatabasePermissions(database);
+    trackOpenLocalDatabase(database);
     return database;
   } catch (error) {
     database.close();
@@ -437,6 +440,7 @@ export async function inspectDatabase(
         `SQLite user_version ${userVersion} does not match database metadata ${metadata.sql_schema_version}`,
       );
     }
+    markSkipWalCheckpointOnRelease(database);
     return database;
   } catch (error) {
     database.close();
@@ -499,6 +503,7 @@ export async function openDatabase(
     if (options.deferWal !== true) {
       await enableLocalWal(database);
     }
+    trackOpenLocalDatabase(database);
     return database;
   } catch (error) {
     database.close();

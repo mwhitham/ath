@@ -29,53 +29,7 @@ import {
 } from "./revision-encoding.js";
 import type { Client } from "@libsql/client";
 import { typedTables } from "./check-tables.js";
-
-async function denormalizedTypedColumnMismatches(
-  client: Client,
-  recordType: string,
-  table: string,
-): Promise<string[]> {
-  let mismatchCondition: string | undefined;
-  switch (recordType) {
-    case "point_measurement":
-    case "measurement_sample":
-      mismatchCondition = `
-        ${table}.standard_value != CAST(json_extract(${table}.data_json, '$.value.standard_value') AS REAL)
-        OR ${table}.standard_unit != json_extract(${table}.data_json, '$.value.standard_unit')
-      `;
-      break;
-    case "provider_score":
-      mismatchCondition = `
-        ${table}.standard_value != CAST(json_extract(${table}.data_json, '$.value.standard_value') AS REAL)
-        OR ${table}.standard_unit != json_extract(${table}.data_json, '$.value.standard_unit')
-        OR ${table}.metric != json_extract(${table}.data_json, '$.metric')
-        OR ${table}.scale != json_extract(${table}.data_json, '$.scale')
-      `;
-      break;
-    case "provider_summary":
-      mismatchCondition = `
-        ${table}.standard_value != CAST(json_extract(${table}.data_json, '$.value.standard_value') AS REAL)
-        OR ${table}.standard_unit != json_extract(${table}.data_json, '$.value.standard_unit')
-        OR ${table}.summary_type != json_extract(${table}.data_json, '$.summary_type')
-      `;
-      break;
-    default:
-      return [];
-  }
-  const result = await client.execute({
-    sql: `
-      SELECT records.record_id
-      FROM records
-      JOIN ${table} ON ${table}.record_id = records.record_id
-      WHERE records.record_type = ?
-        AND records.is_deleted = 0
-        AND (${mismatchCondition})
-      ORDER BY records.record_id
-    `,
-    args: [recordType],
-  });
-  return result.rows.map((row) => String(row.record_id));
-}
+import { listTypedDenormalizedMismatchRecordIds } from "./typed-denormalized.js";
 
 export interface DatabaseCheckIssue {
   severity: "error" | "warning";
@@ -509,6 +463,16 @@ export async function checkDatabase(
     });
   }
 
+  const denormalizedMismatchIds = await listTypedDenormalizedMismatchRecordIds(client);
+  for (const recordId of denormalizedMismatchIds) {
+    issues.push({
+      severity: "error",
+      check: "typed_denormalized",
+      record_id: recordId,
+      message: "typed-table denormalized columns do not match data_json",
+    });
+  }
+
   for (const [recordType, table] of Object.entries(typedTables)) {
     const typedMismatches = await client.execute({
       sql: `
@@ -540,19 +504,6 @@ export async function checkDatabase(
           row.typed_record_id === null
             ? `${recordType} is missing its ${table} row`
             : `${table}.data_json does not match the current revision`,
-      });
-    }
-    const denormalizedMismatches = await denormalizedTypedColumnMismatches(
-      client,
-      recordType,
-      table,
-    );
-    for (const recordId of denormalizedMismatches) {
-      issues.push({
-        severity: "error",
-        check: "typed_denormalized",
-        record_id: recordId,
-        message: `${table} denormalized columns do not match data_json`,
       });
     }
   }

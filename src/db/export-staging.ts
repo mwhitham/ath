@@ -57,7 +57,6 @@ export async function cleanupStaleExportStagingDirectories(
   parentDirectory: string,
   exceptDirectory?: string,
 ): Promise<void> {
-  const now = Date.now();
   for (const entry of await readdir(parentDirectory)) {
     if (!entry.startsWith(".ath-export-")) {
       continue;
@@ -72,18 +71,10 @@ export async function cleanupStaleExportStagingDirectories(
         continue;
       }
       const marker = await readExportStagingMarker(stalePath);
-      let staleByPid = false;
-      let staleByAge = false;
-      if (marker !== undefined) {
-        staleByAge = now - marker.created_at_ms > EXPORT_STAGING_STALE_MS;
-        staleByPid = !isProcessAlive(marker.pid);
-      } else {
-        const pidMatch = /^\.ath-export-(\d+)-/.exec(entry);
-        if (pidMatch !== null) {
-          staleByPid = !isProcessAlive(Number(pidMatch[1]));
-        }
+      if (marker === undefined) {
+        continue;
       }
-      if (!staleByAge && !staleByPid) {
+      if (isProcessAlive(marker.pid)) {
         continue;
       }
       await rm(stalePath, { recursive: true, force: true });

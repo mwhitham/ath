@@ -9,6 +9,7 @@ import {
   rebuildTypedRowFromCurrentRevision,
 } from "./records.js";
 import { semanticJsonEqual } from "./stable-json.js";
+import { listTypedDenormalizedMismatchRecordIds } from "./typed-denormalized.js";
 import { withWriteTransaction } from "./transaction.js";
 
 export interface TypedTableMismatch {
@@ -54,11 +55,25 @@ async function listTypedTableMismatches(
   return mismatches;
 }
 
+async function listDenormalizedMismatchRecordIds(
+  database: AthleticDatabase,
+): Promise<string[]> {
+  return listTypedDenormalizedMismatchRecordIds(databaseClient(database));
+}
+
 export async function countProviderEncodingRepairCandidates(
   database: AthleticDatabase,
 ): Promise<number> {
   const mismatches = await listTypedTableMismatches(database);
-  return mismatches.filter((row) => row.encoding_only).length;
+  const encodingJsonIds = new Set(
+    mismatches.filter((row) => row.encoding_only).map((row) => row.record_id),
+  );
+  const denormalizedIds = await listDenormalizedMismatchRecordIds(database);
+  const revisionAlignIds = new Set(
+    mismatches.filter((row) => !row.encoding_only).map((row) => row.record_id),
+  );
+  const denormalizedOnly = denormalizedIds.filter((id) => !revisionAlignIds.has(id));
+  return new Set([...encodingJsonIds, ...denormalizedOnly]).size;
 }
 
 export async function countRevisionAlignRepairCandidates(
@@ -83,13 +98,20 @@ async function rebuildTypedRows(
   if (recordIds.length === 0) {
     return 0;
   }
-  const idSet = new Set(recordIds);
   let repaired = 0;
-  for (const [recordType, table] of Object.entries(typedTables)) {
-    const mismatches = await transaction.execute({
+  for (const recordId of recordIds) {
+    const meta = await transaction.execute({
+      sql: "SELECT record_type FROM records WHERE record_id = ?",
+      args: [recordId],
+    });
+    const recordType = String(meta.rows[0]?.record_type);
+    const table = typedTables[recordType];
+    if (table === undefined) {
+      throw new Error(`record ${recordId} has unsupported record type ${recordType}`);
+    }
+    const row = await transaction.execute({
       sql: `
         SELECT
-          records.record_id,
           record_revisions.record_json,
           ${table}.data_json AS typed_json
         FROM records
@@ -97,28 +119,28 @@ async function rebuildTypedRows(
           ON record_revisions.record_id = records.record_id
          AND record_revisions.revision = records.current_revision
         JOIN ${table} ON ${table}.record_id = records.record_id
-        WHERE records.record_type = ?
-          AND ${table}.data_json <> record_revisions.record_json
-        ORDER BY records.record_id
+        WHERE records.record_id = ?
       `,
-      args: [recordType],
+      args: [recordId],
     });
-    for (const row of mismatches.rows) {
-      const recordId = String(row.record_id);
-      if (!idSet.has(recordId)) {
-        continue;
-      }
-      const recordJson = String(row.record_json);
-      const typedJson = String(row.typed_json);
-      if (!options.allowSemanticMismatch && !semanticJsonEqual(recordJson, typedJson)) {
-        throw new Error(
-          `record ${recordId} has a typed-table mismatch that is not key-order only; ` +
-            `run ath repair --from-revision after reviewing affected records, or restore from backup`,
-        );
-      }
-      await rebuildTypedRowFromCurrentRevision(transaction, recordId);
-      repaired++;
+    const match = row.rows[0];
+    if (match === undefined) {
+      throw new Error(`record ${recordId} is missing typed-table data for repair`);
     }
+    const recordJson = String(match.record_json);
+    const typedJson = String(match.typed_json);
+    if (
+      recordJson !== typedJson &&
+      !options.allowSemanticMismatch &&
+      !semanticJsonEqual(recordJson, typedJson)
+    ) {
+      throw new Error(
+        `record ${recordId} has a typed-table mismatch that is not key-order only; ` +
+          `run ath repair --from-revision after reviewing affected records, or restore from backup`,
+      );
+    }
+    await rebuildTypedRowFromCurrentRevision(transaction, recordId);
+    repaired++;
   }
   return repaired;
 }
@@ -194,7 +216,19 @@ export async function executeConfirmedProviderEncodingRepair(
   const mismatches = await listTypedTableMismatches(database);
   const encodingCandidates = mismatches.filter((row) => row.encoding_only);
   const revisionCandidates = mismatches.filter((row) => !row.encoding_only);
-  if (mismatches.length === 0) {
+  const denormalizedIds = await listDenormalizedMismatchRecordIds(database);
+  const revisionAlignIdSet = new Set(revisionCandidates.map((row) => row.record_id));
+  const denormalizedOnlyIds = denormalizedIds.filter((id) => !revisionAlignIdSet.has(id));
+  const encodingRecordIds = [
+    ...new Set([
+      ...encodingCandidates.map((row) => row.record_id),
+      ...denormalizedOnlyIds,
+    ]),
+  ];
+  if (
+    mismatches.length === 0 &&
+    denormalizedOnlyIds.length === 0
+  ) {
     const revision = await readDatabaseRevision(database);
     return {
       backup_path: "",
@@ -237,7 +271,7 @@ export async function executeConfirmedProviderEncodingRepair(
 
   try {
     const result = await repairProviderEncodingAndRevisionAlign(database, {
-      encodingRecordIds: encodingCandidates.map((row) => row.record_id),
+      encodingRecordIds,
       revisionRecordIds: revisionCandidates.map((row) => row.record_id),
     });
     return { backup_path: backupPath, ...result };

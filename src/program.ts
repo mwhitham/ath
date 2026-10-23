@@ -503,6 +503,7 @@ export function buildProgram(): Command {
       try {
         database = await openDatabase(path, {
           allowOutdatedSchema: true,
+          deferWal: true,
           onSecurityWarning: (warning) => {
             if (!opts.json) console.warn(`ath: warning: ${warning}`);
           },

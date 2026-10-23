@@ -10,6 +10,7 @@ import {
   createVerifiedSqliteBackup,
   databaseNeedsMigration,
   defaultMigrationBackupPath,
+  formatMigrationBackupTimestamp,
   executeConfirmedDatabaseMigration,
   inspectDatabase,
   migrateDatabase,
@@ -194,6 +195,14 @@ describe("v1 database migration", () => {
     await expect(lstat(regeneratedBackupPath)).rejects.toMatchObject({ code: "ENOENT" });
   });
 
+  it("uses millisecond timestamps and a counter so same-second backups differ", () => {
+    const instant = new Date("2026-01-15T12:00:00.123Z");
+    const first = formatMigrationBackupTimestamp(instant);
+    const second = formatMigrationBackupTimestamp(instant);
+    expect(first).not.toBe(second);
+    expect(first).toContain("123");
+  });
+
   it("refuses to overwrite an existing migration backup path", async () => {
     const path = await tempDatabasePath();
     const database = await createDatabase(path, { databaseId, createdAt });
@@ -300,11 +309,9 @@ describe("v1 database migration", () => {
       errors.push(String(line));
     });
     useTerminalAnswer(async () => "n");
-    vi.spyOn(process, "exit").mockImplementation((() => {
-      throw new Error("exit 1");
-    }) as typeof process.exit);
-
-    await expect(interactiveMigrationOnOpen(path, preview)).rejects.toThrow("exit 1");
+    await expect(interactiveMigrationOnOpen(path, preview)).rejects.toThrow(
+      "migration was not confirmed",
+    );
 
     expect(errors.join("\n")).toContain("migration was not confirmed");
     expect((await readdir(directory)).sort()).toEqual(beforeNames);

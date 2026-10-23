@@ -11,8 +11,12 @@ import {
 } from "./client.js";
 import type { DatabaseMetadata } from "./migrate.js";
 
+let backupNameSequence = 0;
+
 export function formatMigrationBackupTimestamp(date: Date): string {
-  return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+  backupNameSequence = (backupNameSequence + 1) % 10_000;
+  const iso = date.toISOString().replace(/[-:]/g, "");
+  return `${iso.replace("Z", "")}Z-${backupNameSequence}`;
 }
 
 export function defaultMigrationBackupPath(databasePath: string, now = new Date()): string {
