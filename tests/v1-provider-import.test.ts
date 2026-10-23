@@ -869,7 +869,12 @@ describe("v1 provider import", () => {
     expect(byMetric("activity_score")).toHaveLength(2);
     const topLevelScores = scores
       .filter(
-        (record) =>
+        (
+          record,
+        ): record is Extract<
+          (typeof scores)[number],
+          { record_type: "provider_score" }
+        > =>
           record.record_type === "provider_score" &&
           ["readiness", "sleep_score", "activity_score"].includes(record.data.metric),
       )

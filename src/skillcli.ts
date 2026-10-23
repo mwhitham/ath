@@ -5,6 +5,7 @@
  * when it is behind the code, the same way the JSON Schema and the fixture are
  * checked. Regenerate, do not hand-edit.
  */
+import type { EventEmitter } from "node:events";
 import type { Command } from "commander";
 
 /** Fixed so the output does not depend on the terminal it was generated in. */
@@ -34,7 +35,7 @@ function helpTextIncludingAfter(cmd: Command): string {
     },
     command: cmd,
   };
-  cmd.emit("afterHelp", context);
+  (cmd as Command & EventEmitter).emit("afterHelp", context);
   return chunks.join("\n\n");
 }
 
