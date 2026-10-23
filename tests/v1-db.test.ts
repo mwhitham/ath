@@ -1,6 +1,7 @@
-import { chmod, lstat, mkdir, mkdtemp, rm, symlink } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { chmod, lstat, mkdir, mkdtemp, readFile, rm, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
@@ -271,23 +272,46 @@ describe("v1 database creation and opening", () => {
     }
   });
 
+  it("does not write the database file on read-only CLI commands", async () => {
+    const { database, path } = await newDatabase();
+    database.close();
+    openDatabases.pop();
+    const checkpoint = createClient({ url: pathToFileURL(path).href });
+    await checkpoint.execute("PRAGMA wal_checkpoint(FULL)");
+    await checkpoint.close();
+    const hashBefore = createHash("sha256")
+      .update(await readFile(path))
+      .digest("hex");
+    const directory = dirname(path);
+    const { execFileSync } = await import("node:child_process");
+    const { resolve } = await import("node:path");
+    const { fileURLToPath } = await import("node:url");
+    const here = dirname(fileURLToPath(import.meta.url));
+    const cli = resolve(here, "../src/cli.ts");
+    const tsx = resolve(here, "../node_modules/.bin/tsx");
+    for (const args of [
+      ["check"],
+      ["records", "list", "--json"],
+      ["stats", "--json"],
+      ["migrate", "--dry-run"],
+    ]) {
+      execFileSync(tsx, [cli, ...args], { cwd: directory, encoding: "utf8", stdio: "pipe" });
+    }
+    const checkpointAfter = createClient({ url: pathToFileURL(path).href });
+    await checkpointAfter.execute("PRAGMA wal_checkpoint(FULL)");
+    await checkpointAfter.close();
+    const hashAfter = createHash("sha256")
+      .update(await readFile(path))
+      .digest("hex");
+    expect(hashAfter).toBe(hashBefore);
+  });
+
   it("refuses a local user_version that disagrees with metadata", async () => {
     const { database, path } = await newDatabase();
     await databaseClient(database).execute("PRAGMA user_version = 0");
     database.close();
     openDatabases.pop();
     await expect(openDatabase(path)).rejects.toThrow("does not match");
-  });
-
-  it("reconciles user_version when it is one step behind metadata after a partial migration", async () => {
-    const { database, path } = await newDatabase();
-    await databaseClient(database).execute("PRAGMA user_version = 1");
-    database.close();
-    openDatabases.pop();
-    const reopened = await openDatabase(path);
-    openDatabases.push(reopened);
-    const userVersion = await databaseClient(reopened).execute("PRAGMA user_version");
-    expect(Number(userVersion.rows[0]?.user_version)).toBe(2);
   });
 
   it.runIf(process.platform !== "win32")(

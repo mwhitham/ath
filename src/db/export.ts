@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { lstat, mkdir, readdir, readFile, rename, rm } from "node:fs/promises";
+import { lstat, mkdir, readFile, rename, rm, unlink } from "node:fs/promises";
 import { basename, dirname, join } from "node:path";
 import type { Transaction } from "@libsql/client";
 import {
@@ -36,6 +36,12 @@ import {
   recordRevisionPayloadFromRow,
 } from "./revision-encoding.js";
 import { syncParentDirectory, writeOwnerOnlyDurable } from "./durable-write.js";
+import {
+  cleanupStaleExportStagingDirectories,
+  EXPORT_STAGING_MARKER,
+  exportStagingDirectoryName,
+  writeExportStagingMarker,
+} from "./export-staging.js";
 import { compareUtf8Keys, deterministicJson } from "./stable-json.js";
 
 export interface ExportDatabaseOptions {
@@ -412,20 +418,7 @@ export async function exportRecords(
   const parentDirectory = dirname(outputDirectory);
   const finalName = basename(outputDirectory);
   await refuseSymbolicLinkComponents(parentDirectory);
-  for (const entry of await readdir(parentDirectory)) {
-    if (!entry.startsWith(".ath-export-")) {
-      continue;
-    }
-    const stalePath = join(parentDirectory, entry);
-    try {
-      const stat = await lstat(stalePath);
-      if (stat.isDirectory()) {
-        await rm(stalePath, { recursive: true, force: true });
-      }
-    } catch {
-      // Best-effort cleanup of abandoned staging directories.
-    }
-  }
+  await cleanupStaleExportStagingDirectories(parentDirectory);
   try {
     const existing = await lstat(outputDirectory);
     if (existing.isSymbolicLink()) {
@@ -439,9 +432,10 @@ export async function exportRecords(
   }
   const stagingDirectory = join(
     parentDirectory,
-    `.ath-export-${process.pid}-${Date.now()}-${finalName}`,
+    exportStagingDirectoryName(process.pid, Date.now(), finalName),
   );
   await mkdir(stagingDirectory, { mode: 0o700 });
+  await writeExportStagingMarker(stagingDirectory);
 
   const transaction = await databaseClient(database).transaction("read");
   try {
@@ -629,6 +623,7 @@ export async function exportRecords(
     );
     await transaction.commit();
     await syncParentDirectory(parentDirectory);
+    await unlink(join(stagingDirectory, EXPORT_STAGING_MARKER));
     await rename(stagingDirectory, outputDirectory);
     await syncParentDirectory(parentDirectory);
     return {

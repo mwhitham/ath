@@ -71,8 +71,10 @@ repair, durable export, Oura member-portal CSV, `ath repair`, default model path
 beside the database, structured log envelope, and docs.
 
 Release step 10 cross-platform CI is wired to `v*` tags and `workflow_dispatch`
-(D141). Step 12 (npm publish of `1.1.0`) stays open until review finishes. D146
-records how the step-10 table relates to workflow changes after the 1.0.0 publish.
+(D141). D146 records that the pre-1.0.0 workflow trigger never ran before npm
+`1.0.0` shipped. Step 12 (npm publish of `1.1.0`) stays open until review
+finishes. PR #33 adds read-only CLI opens without WAL, `ath repair --from-revision`,
+safe export staging cleanup, and migrate-only `user_version` recovery.
 
 Remaining contribution-readiness steps continue on later package versions of the same
 format.

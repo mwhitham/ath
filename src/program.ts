@@ -56,6 +56,7 @@ import {
   fail,
   findOrFail,
   openOrFail,
+  openReadOnlyOrFail,
   readStdin,
 } from "./cli/runtime.js";
 import {
@@ -81,8 +82,12 @@ import {
   deleteRecord,
   eraseRecord,
   executeConfirmedDatabaseMigration,
+  executeConfirmedSqliteHeaderRecovery,
   executeConfirmedProviderEncodingRepair,
   countProviderEncodingRepairCandidates,
+  countRevisionAlignRepairCandidates,
+  listRevisionAlignRepairRecordIds,
+  sqliteUserVersionOneStepBehindMetadata,
   exportRecords,
   inspectDatabase,
   gradePrediction,
@@ -384,9 +389,15 @@ export function buildProgram(): Command {
       };
       const inspector = await inspectDatabase(path, { onSecurityWarning: warn });
       let preview;
+      let headerRecoveryNeeded = false;
       try {
         const metadata = await readDatabaseMetadata(inspector);
         preview = buildMigrationPreview(metadata, inspector.localPath);
+        const { readUserVersion } = await import("./db/client.js");
+        const userVersion = await readUserVersion(inspector);
+        headerRecoveryNeeded =
+          !preview.migration_needed &&
+          sqliteUserVersionOneStepBehindMetadata(userVersion, metadata);
       } finally {
         inspector.close();
       }
@@ -406,8 +417,38 @@ export function buildProgram(): Command {
           return;
         }
         console.log(JSON.stringify(output, null, 2));
-        if (!preview.migration_needed) {
+        if (!preview.migration_needed && !headerRecoveryNeeded) {
           console.log("no migration is required");
+          return;
+        }
+        if (!preview.migration_needed && headerRecoveryNeeded) {
+          if (opts.dryRun) {
+            console.log("nothing migrated (--dry-run); header recovery would run with --yes");
+            return;
+          }
+          if (!opts.yes) {
+            console.log(
+              "nothing migrated; pass --yes to recover SQLite user_version after a verified backup",
+            );
+            return;
+          }
+          if (!(await confirmWrite(opts, "Create a verified backup and recover SQLite user_version?"))) {
+            console.log("nothing migrated");
+            return;
+          }
+          const database = await openDatabase(path, {
+            allowOutdatedSchema: true,
+            deferWal: true,
+            onSecurityWarning: warn,
+          });
+          try {
+            const result = await executeConfirmedSqliteHeaderRecovery(database);
+            console.log(
+              `recovered SQLite user_version with verified backup at ${result.backup_path}`,
+            );
+          } finally {
+            database.close();
+          }
           return;
         }
         if (preview.planned_steps.length === 0) {
@@ -476,11 +517,26 @@ export function buildProgram(): Command {
     .argument("[file]", "the database to repair (default: the one in this folder)")
     .option("--file <path>", "repair a database other than the one in this folder")
     .option("-y, --yes", "apply the repair after reviewing the preview")
+    .option(
+      "--from-revision",
+      "copy typed-table JSON from the current revision when bytes disagree in meaning",
+    )
+    .option(
+      "--confirm-revision-align <database-id>",
+      "repeat the database ID exactly when using --from-revision",
+    )
     .option("--dry-run", "show how many records would change and write nothing")
     .option("--json", "structured preview only")
     .action(async (
       fileArg,
-      opts: { file?: string; yes?: boolean; dryRun?: boolean; json?: boolean },
+      opts: {
+        file?: string;
+        yes?: boolean;
+        fromRevision?: boolean;
+        confirmRevisionAlign?: string;
+        dryRun?: boolean;
+        json?: boolean;
+      },
     ) => {
       const path = findOrFail(opts.file ?? fileArg);
       let database: AthleticDatabase;
@@ -495,14 +551,26 @@ export function buildProgram(): Command {
         return fail((error as Error).message);
       }
       try {
+        const metadata = await readDatabaseMetadata(database);
         const candidates = await countProviderEncodingRepairCandidates(database);
-        const output = { file: path, repair_candidates: candidates, write_confirmed: false };
+        const revisionAlignCandidates = await countRevisionAlignRepairCandidates(database);
+        const revisionAlignRecordIds =
+          revisionAlignCandidates > 0
+            ? await listRevisionAlignRepairRecordIds(database)
+            : [];
+        const output = {
+          file: path,
+          repair_candidates: candidates,
+          revision_align_candidates: revisionAlignCandidates,
+          revision_align_record_ids: revisionAlignRecordIds,
+          write_confirmed: false,
+        };
         if (opts.json) {
           console.log(JSON.stringify(output, null, 2));
           return;
         }
         console.log(JSON.stringify(output, null, 2));
-        if (candidates === 0) {
+        if (candidates === 0 && revisionAlignCandidates === 0) {
           console.log("no provider-encoding repair is required");
           return;
         }
@@ -514,14 +582,39 @@ export function buildProgram(): Command {
           console.log("nothing repaired; pass --yes after reviewing this preview");
           return;
         }
+        if (revisionAlignCandidates > 0 && !opts.fromRevision) {
+          return fail(
+            `${revisionAlignCandidates} record(s) need --from-revision and --confirm-revision-align ${metadata.database_id}`,
+          );
+        }
+        if (opts.fromRevision && revisionAlignCandidates > 0) {
+          const confirmation = opts.confirmRevisionAlign;
+          if (confirmation === undefined) {
+            return fail(
+              `pass --confirm-revision-align ${metadata.database_id} to align typed tables from the current revision`,
+            );
+          }
+          if (confirmation !== metadata.database_id) {
+            return fail(
+              "second confirmation did not exactly match the database ID; nothing was repaired",
+            );
+          }
+        }
         try {
-          const result = await executeConfirmedProviderEncodingRepair(database);
+          const result = await executeConfirmedProviderEncodingRepair(
+            database,
+            opts.fromRevision === true ? { fromRevision: true } : {},
+          );
           const backupNote =
             result.backup_path === ""
               ? ""
               : ` with verified backup at ${result.backup_path}`;
+          const alignNote =
+            result.revision_align_record_count > 0
+              ? `; aligned ${result.revision_align_record_count} record(s) from revision`
+              : "";
           console.log(
-            `repaired ${result.repaired_record_count} record(s); database revision ${result.database_revision}${backupNote}`,
+            `repaired ${result.repaired_record_count} record(s); database revision ${result.database_revision}${alignNote}${backupNote}`,
           );
         } catch (error) {
           return fail((error as Error).message);
@@ -708,7 +801,7 @@ export function buildProgram(): Command {
       opts: { file?: string; json?: boolean },
     ) => {
       const path = findOrFail(opts.file);
-      const database = await openOrFail(path, opts.json);
+      const database = await openReadOnlyOrFail(path, opts.json);
       try {
         const state = await readPackageConflictSet(database);
         const loaded = await loadAthleticStandardPackage(state.source_path);
@@ -844,7 +937,7 @@ export function buildProgram(): Command {
       opts: { exportedAt?: string; file?: string; json?: boolean },
     ) => {
       const path = findOrFail(opts.file);
-      const database = await openOrFail(path, opts.json);
+      const database = await openReadOnlyOrFail(path, opts.json);
       try {
         const result = await exportRecords(
           database,
@@ -1364,7 +1457,7 @@ export function buildProgram(): Command {
       opts: { file?: string; validateExport?: boolean; json?: boolean },
     ) => {
       const path = findOrFail(opts.file ?? fileArg);
-      const database = await openOrFail(path, opts.json);
+      const database = await openReadOnlyOrFail(path, opts.json);
       try {
         const result = await checkDatabase(database);
         let exportValidated = false;
@@ -1897,7 +1990,7 @@ export function buildProgram(): Command {
         );
       }
       const path = findOrFail(opts.file);
-      const database = await openOrFail(path, opts.json);
+      const database = await openReadOnlyOrFail(path, opts.json);
       try {
         const calculation = await calculate(database, {
           operation: operation as (typeof CALCULATION_OPERATIONS)[number],
@@ -1970,7 +2063,7 @@ export function buildProgram(): Command {
         );
       }
       const path = findOrFail(opts.file);
-      const database = await openOrFail(path, opts.json);
+      const database = await openReadOnlyOrFail(path, opts.json);
       try {
         const view = await readSeriesView(database, parsedQuantity.data, {
           ...(opts.from === undefined ? {} : { from: opts.from }),
@@ -2005,7 +2098,7 @@ export function buildProgram(): Command {
     .option("--json", "structured output, for an agent rather than a person")
     .action(async (fileArg, opts: { file?: string; json?: boolean }) => {
       const path = findOrFail(opts.file ?? fileArg);
-      const database = await openOrFail(path, opts.json);
+      const database = await openReadOnlyOrFail(path, opts.json);
       try {
         const stats = await databaseStats(database);
         console.log(
@@ -2046,7 +2139,7 @@ export function buildProgram(): Command {
         );
       }
       const path = findOrFail(opts.file);
-      const database = await openOrFail(path, opts.json);
+      const database = await openReadOnlyOrFail(path, opts.json);
       try {
         const records = await listRecords(database, {
           ...(recordType === undefined ? {} : { record_type: recordType.data }),
@@ -2085,7 +2178,7 @@ export function buildProgram(): Command {
       },
     ) => {
       const path = findOrFail(opts.file);
-      const database = await openOrFail(path, opts.json);
+      const database = await openReadOnlyOrFail(path, opts.json);
       try {
         const record = await readRecord(database, recordId);
         if (record === null) {

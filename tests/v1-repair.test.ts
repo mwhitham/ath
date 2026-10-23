@@ -7,10 +7,10 @@ import { createClient } from "@libsql/client";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   checkDatabase,
+  applyPendingDatabaseMigrations,
   executeConfirmedDatabaseMigration,
   executeConfirmedProviderEncodingRepair,
   openDatabase,
-  reconcileSqliteUserVersion,
   readDatabaseMetadata,
   repairProviderEncoding,
   type AthleticDatabase,
@@ -159,26 +159,75 @@ describe("v1 provider-encoding repair (local regression)", () => {
       args: [divergent, recordId],
     });
     database.close();
+    openDatabases.pop();
     const reopened = await openDatabase(databasePath, { allowOutdatedSchema: true, deferWal: true });
-    openDatabases.push(reopened);
-    await expect(executeConfirmedDatabaseMigration(reopened)).rejects.toThrow(
-      /not key-order only/,
-    );
+    try {
+      await expect(applyPendingDatabaseMigrations(reopened)).rejects.toThrow(
+        /not key-order only/,
+      );
+    } finally {
+      reopened.close();
+    }
   });
 
-  it("reconciles user_version when metadata advanced one step ahead", async () => {
+  it("refuses open when user_version lags metadata without migrate header recovery", async () => {
     const { directory, databasePath } = materializeNpm100ProviderDatabase();
     directories.push(directory);
     const client = createClient({ url: pathToFileURL(databasePath).href, intMode: "number" });
     await client.execute("UPDATE database_metadata SET sql_schema_version = 2");
     await client.close();
+    await expect(openDatabase(databasePath, { allowOutdatedSchema: true })).rejects.toThrow(
+      "does not match",
+    );
+  });
+
+  it("recovers semantic divergence with repair --from-revision then migrates", async () => {
+    const { directory, databasePath } = materializeNpm100ProviderDatabase();
+    directories.push(directory);
     const database = await openDatabase(databasePath, { allowOutdatedSchema: true });
     openDatabases.push(database);
-    const metadata = await readDatabaseMetadata(database);
-    await reconcileSqliteUserVersion(database, metadata);
-    const userVersion = await databaseClient(database).execute("PRAGMA user_version");
-    expect(Number(userVersion.rows[0]?.user_version)).toBe(2);
-  });
+    const row = await databaseClient(database).execute(`
+      SELECT records.record_id, record_revisions.record_json
+      FROM records
+      JOIN record_revisions
+        ON record_revisions.record_id = records.record_id
+       AND record_revisions.revision = records.current_revision
+      JOIN point_measurements ON point_measurements.record_id = records.record_id
+      WHERE records.record_type = 'point_measurement'
+      LIMIT 1
+    `);
+    const recordId = String(row.rows[0]!.record_id);
+    const divergent = String(row.rows[0]!.record_json).replace("68.4", "999");
+    await databaseClient(database).execute({
+      sql: "UPDATE point_measurements SET data_json = ? WHERE record_id = ?",
+      args: [divergent, recordId],
+    });
+    database.close();
+    openDatabases.pop();
+
+    const idClient = createClient({ url: pathToFileURL(databasePath).href });
+    const idRow = await idClient.execute(
+      "SELECT database_id FROM database_metadata WHERE singleton_id = 1",
+    );
+    const databaseId = String(idRow.rows[0]?.database_id);
+    await idClient.close();
+
+    const repairFail = ath(["repair", "-y"], directory);
+    expect(repairFail.code).not.toBe(0);
+    expect(repairFail.stdout).toContain("--from-revision");
+
+    const repair = ath(
+      ["repair", "-y", "--from-revision", "--confirm-revision-align", databaseId],
+      directory,
+    );
+    expect(repair.code, repair.stdout).toBe(0);
+
+    const migrate = ath(["migrate", "-y", "--confirm-migration", databaseId], directory);
+    expect(migrate.code, migrate.stdout).toBe(0);
+
+    const check = ath(["check"], directory);
+    expect(check.code, check.stdout).toBe(0);
+  }, 180_000);
 
   it("repairs a single injected key-order mismatch", async () => {
     const path = await tempDatabasePath();

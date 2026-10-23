@@ -76,7 +76,44 @@ const OURA_ACTIVITY_SCORE_CONTRIBUTOR_KEYS = new Set([
 
 const OURA_READINESS_CONTRIBUTOR_KEYS = new Set(CONTRIBUTORS);
 
+/** Activity CSV columns we do not import yet; count them as skips when present. */
+const OURA_ACTIVITY_COLUMNS = [
+  "steps",
+  "active_calories",
+  "total_calories",
+  "target_calories",
+  "met_minutes",
+  "low_activity_met_minutes",
+  "medium_activity_met_minutes",
+  "high_activity_met_minutes",
+  "equivalent_walking_distance",
+  "target_meters",
+  "meters_to_target",
+  "inactivity_alerts",
+  "resting_time",
+  "sedentary_met_minutes",
+];
+
 type OuraPortalScoreMetric = "readiness" | "sleep_score" | "activity_score";
+
+function contributorKeysFromCell(contributorsJson: string | undefined): string[] | undefined {
+  if (contributorsJson === undefined) {
+    return undefined;
+  }
+  const trimmed = contributorsJson.trim();
+  if (trimmed.length === 0 || trimmed === "{}") {
+    return [];
+  }
+  if (!trimmed.startsWith("{")) {
+    return undefined;
+  }
+  try {
+    const parsed = JSON.parse(trimmed) as Record<string, unknown>;
+    return Object.keys(parsed);
+  } catch {
+    return undefined;
+  }
+}
 
 function ouraPortalScoreMetricFromContributorKeys(
   keys: string[],
@@ -104,18 +141,13 @@ function ouraPortalScoreMetricFromContributorKeys(
 
 function detectFilePortalScoreMetric(rows: Row[]): OuraPortalScoreMetric | undefined {
   for (const row of rows) {
-    const contributorsJson = cell(row, "contributors");
-    if (contributorsJson === undefined || !contributorsJson.startsWith("{")) {
+    const keys = contributorKeysFromCell(cell(row, "contributors"));
+    if (keys === undefined || keys.length === 0) {
       continue;
     }
-    try {
-      const parsed = JSON.parse(contributorsJson) as Record<string, unknown>;
-      const metric = ouraPortalScoreMetricFromContributorKeys(Object.keys(parsed));
-      if (metric !== undefined) {
-        return metric;
-      }
-    } catch {
-      continue;
+    const metric = ouraPortalScoreMetricFromContributorKeys(keys);
+    if (metric !== undefined) {
+      return metric;
     }
   }
   return undefined;
@@ -340,8 +372,23 @@ function importRows(rows: Row[], sourceId: string, payload: ImportPayload, name:
     }
 
     const memberPortalScore = num(row, "score", "Score");
-    const hasContributorsColumn = cell(row, "contributors") !== undefined;
-    if (memberPortalScore !== undefined && hasContributorsColumn && filePortalScoreMetric !== undefined) {
+    const contributorsJson = cell(row, "contributors");
+    const hasContributorsColumn = contributorsJson !== undefined;
+    const contributorKeys = contributorKeysFromCell(contributorsJson);
+    if (
+      memberPortalScore !== undefined &&
+      hasContributorsColumn &&
+      (contributorKeys === undefined || contributorKeys.length === 0)
+    ) {
+      countSkip(payload, `${name}: score row with empty contributors`);
+    }
+    if (
+      memberPortalScore !== undefined &&
+      hasContributorsColumn &&
+      contributorKeys !== undefined &&
+      contributorKeys.length > 0 &&
+      filePortalScoreMetric !== undefined
+    ) {
       const periodType =
         filePortalScoreMetric === "sleep_score"
           ? "oura_sleep_day"
@@ -375,6 +422,11 @@ function importRows(rows: Row[], sourceId: string, payload: ImportPayload, name:
     }
     if (num(row, "cardiovascular_age") !== undefined) {
       countSkip(payload, `${name}: cardiovascular age column`);
+    }
+    for (const column of OURA_ACTIVITY_COLUMNS) {
+      if (num(row, column) !== undefined) {
+        countSkip(payload, `${name}: activity column ${column}`);
+      }
     }
 
     for (const score of VENDOR_SCORES) {
@@ -413,7 +465,6 @@ function importRows(rows: Row[], sourceId: string, payload: ImportPayload, name:
       payload.hardSignals.push(signal);
     }
 
-    const contributorsJson = cell(row, "contributors");
     const contributorValues = new Map<string, number>();
     if (contributorsJson !== undefined && contributorsJson.startsWith("{")) {
       try {

@@ -41,6 +41,13 @@ PRAGMA user_version = <sql_schema_version>;
 match `database_metadata.sql_schema_version`. See `contract.json` for the current
 version number.
 
+Read-only commands (`check`, `inspect`, `stats`, `migrate --dry-run`, and similar)
+must not write `PRAGMA user_version` or otherwise change the database file. When
+`user_version` is one step behind `database_metadata.sql_schema_version` after a
+crash mid-migration, confirmed `ath migrate --yes` may set `user_version` after a
+verified backup and only when the stored data already matches the metadata schema
+version.
+
 ## Write transactions
 
 SQLite resets `defer_foreign_keys` after each `COMMIT` or `ROLLBACK`. Do not set it

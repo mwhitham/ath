@@ -21,6 +21,9 @@ export {
   openDatabase,
   readDatabaseMetadata,
   reconcileSqliteUserVersion,
+  executeConfirmedSqliteHeaderRecovery,
+  sqliteUserVersionOneStepBehindMetadata,
+  type ConfirmedHeaderRecoveryResult,
   type ConfirmedMigrationResult,
   type DatabaseMetadata,
   type MigrationPreview,
@@ -64,7 +67,9 @@ export {
 } from "./check.js";
 export {
   countProviderEncodingRepairCandidates,
+  countRevisionAlignRepairCandidates,
   executeConfirmedProviderEncodingRepair,
+  listRevisionAlignRepairRecordIds,
   repairProviderEncoding,
   type ConfirmedProviderRepairResult,
   type ProviderEncodingRepairResult,

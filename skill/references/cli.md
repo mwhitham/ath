@@ -231,14 +231,16 @@ Usage: ath repair [options] [file]
 repair typed-table JSON bytes left by npm 1.0.0 provider imports
 
 Arguments:
-  file           the database to repair (default: the one in this folder)
+  file                                    the database to repair (default: the one in this folder)
 
 Options:
-  --file <path>  repair a database other than the one in this folder
-  -y, --yes      apply the repair after reviewing the preview
-  --dry-run      show how many records would change and write nothing
-  --json         structured preview only
-  -h, --help     display help for command
+  --file <path>                           repair a database other than the one in this folder
+  -y, --yes                               apply the repair after reviewing the preview
+  --from-revision                         copy typed-table JSON from the current revision when bytes disagree in meaning
+  --confirm-revision-align <database-id>  repeat the database ID exactly when using --from-revision
+  --dry-run                               show how many records would change and write nothing
+  --json                                  structured preview only
+  -h, --help                              display help for command
 
 Requires the `sqlite3` command-line tool on PATH when repair candidates exist (verified backup before write).
 ```

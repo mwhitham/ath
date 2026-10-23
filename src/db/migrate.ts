@@ -14,6 +14,7 @@ import {
   connectDatabase,
   databaseClient,
   enableLocalWal,
+  revertLocalWal,
   parseDatabaseTarget,
   readApplicationId,
   readUserVersion,
@@ -315,6 +316,17 @@ export function databaseNeedsMigration(metadata: DatabaseMetadata): boolean {
   return metadata.sql_schema_version < SQL_SCHEMA_VERSION;
 }
 
+export function sqliteUserVersionOneStepBehindMetadata(
+  userVersion: number | null,
+  metadata: DatabaseMetadata,
+): boolean {
+  return (
+    userVersion !== null &&
+    userVersion < metadata.sql_schema_version &&
+    metadata.sql_schema_version - userVersion === 1
+  );
+}
+
 /** Recover when metadata committed but PRAGMA user_version did not finish (crash mid-migration). */
 export async function reconcileSqliteUserVersion(
   database: AthleticDatabase,
@@ -324,17 +336,12 @@ export async function reconcileSqliteUserVersion(
     return;
   }
   const userVersion = await readUserVersion(database);
-  if (userVersion === null || userVersion === metadata.sql_schema_version) {
+  if (!sqliteUserVersionOneStepBehindMetadata(userVersion, metadata)) {
     return;
   }
-  if (
-    userVersion < metadata.sql_schema_version &&
-    metadata.sql_schema_version - userVersion === 1
-  ) {
-    await databaseClient(database).execute(
-      `PRAGMA user_version = ${metadata.sql_schema_version}`,
-    );
-  }
+  await databaseClient(database).execute(
+    `PRAGMA user_version = ${metadata.sql_schema_version}`,
+  );
 }
 
 function plannedMigrationSteps(sourceVersion: number): MigrationStepPreview[] {
@@ -453,7 +460,6 @@ export async function inspectDatabase(
       );
     }
 
-    await reconcileSqliteUserVersion(database, metadata);
     const userVersion = await readUserVersion(database);
     if (userVersion !== null && userVersion !== metadata.sql_schema_version) {
       throw new Error(
@@ -507,7 +513,6 @@ export async function openDatabase(
       );
     }
 
-    await reconcileSqliteUserVersion(database, metadata);
     const userVersion = await readUserVersion(database);
     if (userVersion !== null && userVersion !== metadata.sql_schema_version) {
       throw new Error(
@@ -647,6 +652,8 @@ export async function executeConfirmedDatabaseMigration(
   if (fileIdentity !== undefined && database.localPath !== undefined) {
     await assertSameFile(database.localPath, fileIdentity);
   }
+  const metadataAfterBackup = await readDatabaseMetadata(database);
+  await reconcileSqliteUserVersion(database, metadataAfterBackup);
   const revisionAfterBackup = Number(
     (
       await databaseClient(database).execute(
@@ -693,11 +700,11 @@ export async function executeConfirmedDatabaseMigration(
     let detail = `Cause: ${cause}.`;
     if (changed) {
       detail += " The database revision changed; restore from the verified backup.";
-    } else if (walEnabled) {
-      detail +=
-        " The database revision did not change; WAL mode may be enabled on the file.";
     } else {
       detail += " The database revision did not change.";
+    }
+    if (walEnabled && !changed) {
+      await revertLocalWal(database);
     }
     throw new Error(
       `Migration failed after creating verified backup at ${backupPath}. ${detail}`,
@@ -711,4 +718,60 @@ export async function executeConfirmedDatabaseMigration(
 /** Applies pending SQL schema migrations. Use only through confirmed migration flows. */
 export async function migrateDatabase(database: AthleticDatabase): Promise<void> {
   await applyPendingDatabaseMigrations(database);
+}
+
+export interface ConfirmedHeaderRecoveryResult {
+  backup_path: string;
+  recovered: boolean;
+}
+
+export async function executeConfirmedSqliteHeaderRecovery(
+  database: AthleticDatabase,
+  options: { backupPath?: string; now?: Date } = {},
+): Promise<ConfirmedHeaderRecoveryResult> {
+  if (database.localPath === undefined) {
+    throw new Error("SQLite header recovery requires a local database file");
+  }
+  const metadata = await readDatabaseMetadata(database);
+  const userVersion = await readUserVersion(database);
+  if (userVersion === metadata.sql_schema_version) {
+    return { backup_path: "", recovered: false };
+  }
+  if (!sqliteUserVersionOneStepBehindMetadata(userVersion, metadata)) {
+    throw new Error(
+      `SQLite user_version ${userVersion ?? "null"} cannot be recovered automatically for metadata schema ${metadata.sql_schema_version}`,
+    );
+  }
+  const backupPath =
+    options.backupPath ??
+    defaultMigrationBackupPath(database.localPath, options.now);
+  const revisionBefore = Number(
+    (
+      await databaseClient(database).execute(
+        "SELECT current_revision FROM database_state WHERE singleton_id = 1",
+      )
+    ).rows[0]?.current_revision,
+  );
+  await createVerifiedSqliteBackup(database, database.localPath, backupPath, metadata);
+  const revisionAfterBackup = Number(
+    (
+      await databaseClient(database).execute(
+        "SELECT current_revision FROM database_state WHERE singleton_id = 1",
+      )
+    ).rows[0]?.current_revision,
+  );
+  if (revisionAfterBackup !== revisionBefore) {
+    throw new Error(
+      "Database revision changed during header-recovery backup; stop other writers and retry",
+    );
+  }
+  await reconcileSqliteUserVersion(database, metadata);
+  const userVersionAfter = await readUserVersion(database);
+  if (userVersionAfter !== metadata.sql_schema_version) {
+    throw new Error(
+      `SQLite user_version ${userVersionAfter ?? "null"} still does not match database metadata ${metadata.sql_schema_version} after header recovery`,
+    );
+  }
+  await setOwnerOnlyDatabasePermissions(database);
+  return { backup_path: backupPath, recovered: true };
 }

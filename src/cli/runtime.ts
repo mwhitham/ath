@@ -131,6 +131,22 @@ export async function interactiveMigrationOnOpen(
   }
 }
 
+export async function openReadOnlyOrFail(path: string, json = false): Promise<AthleticDatabase> {
+  try {
+    return await openDatabase(path, {
+      deferWal: true,
+      onSecurityWarning: (warning) => {
+        if (!json) console.warn(`ath: warning: ${warning}`);
+      },
+    });
+  } catch (error) {
+    if (error instanceof MigrationRequiredError) {
+      return fail(error.message);
+    }
+    return fail((error as Error).message);
+  }
+}
+
 export async function openOrFail(path: string, json = false): Promise<AthleticDatabase> {
   try {
     return await openDatabase(path, {

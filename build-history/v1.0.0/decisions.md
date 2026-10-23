@@ -1322,10 +1322,14 @@ Rejected alternatives:
 
 ## D132. `ath repair` for encoding repair without a schema bump
 
-`ath repair` previews and applies the same typed-table repair as migration step 2, but
-only after SQL schema 2 is already recorded. Databases still on schema 1 must run
-`ath migrate` first, which runs the same semantic repair while moving to schema 2.
-Confirmed repair uses the same verified `sqlite3` backup path as migrate.
+`ath repair` previews and applies the same typed-table byte repair as migration step 2
+on any supported `sql_schema_version`, including schema 1, without bumping
+`sql_schema_version`. Databases that still need schema 2 must run `ath migrate` for
+the one-way upgrade; migrate runs the same encoding repair inside that step. When
+typed-table bytes disagree with the current revision in meaning, `ath repair
+--from-revision` copies `record_json` into `data_json` after backup and explicit
+database-ID confirmation. Confirmed repair uses the same verified `sqlite3` backup
+path as migrate and reuses an existing repair backup when the revision did not change.
 
 Rejected alternatives:
 
@@ -1501,31 +1505,21 @@ Rejected alternatives:
   `1.0.0` after merge.
 - **Rewrite #25's build-history paths.** Rejected because merged folders stay as-is.
 
-## D146. v1.0.0 progress table vs later cross-platform workflow edits
+## D146. v1.0.0 progress table vs cross-platform workflow that never ran
 
-v1.0.0 `progress.md` still lists release step 10 with checkboxes that predate D141's
-`v*` tag trigger change. A cross-platform workflow already existed before the 1.0.0 npm
-publish; D141 widened tag matching, it did not create the first cross-platform job.
-This entry records that distinction instead of rewriting the historical step table.
+v1.0.0 `progress.md` still lists release step 10 with checkboxes that predate later
+workflow edits. A cross-platform workflow file existed before the 1.0.0 npm publish
+with trigger `v1.0.0-*`, but GitHub Actions recorded zero runs on that workflow and
+the repository had no release tags, so npm `1.0.0` shipped without cross-platform CI.
+D141 later widened tag matching to `v*`; it did not retroactively run cross-platform
+checks for 1.0.0.
 
 Rejected alternatives:
 
 - **Rewrite the step-10 table to match today's workflow.** Rejected because
   build-history is append-only.
-- **Claim 1.0.0 shipped without cross-platform CI.** Rejected because that claim is
-  false.
-
-## D148. License moves in pull requests #10 and #12
-
-Pull request #10 switched the repository license to Apache-2.0. Pull request #12
-switched it back to MIT. Neither change altered the Athletic Standard file format, so
-neither received a build-history version folder; this D-number records the sequence.
-
-Rejected alternatives:
-
-- **Fold license history into D143 folder-rule entries.** Rejected because #10 and #12
-  were not folder-rule violations.
-- **Omit license history.** Rejected because agents grep decisions for licensing.
+- **Claim cross-platform CI ran for 1.0.0.** Rejected because the workflow history shows
+  zero runs and no tags existed at publish time.
 
 ## D147. Draft pull requests #20 and #31 may renumber D-numbers later
 
@@ -1538,3 +1532,15 @@ Rejected alternatives:
   must stay stable for citations.
 - **Block this release until drafts renumber.** Rejected because draft ranges do not
   change shipped behavior.
+
+## D148. License moves in pull requests #10 and #12
+
+Pull request #10 switched the repository license to Apache-2.0. Pull request #12
+switched it back to MIT. Neither change altered the Athletic Standard file format, so
+neither received a build-history version folder; this D-number records the sequence.
+
+Rejected alternatives:
+
+- **Fold license history into D143 folder-rule entries.** Rejected because #10 and #12
+  were not folder-rule violations.
+- **Omit license history.** Rejected because agents grep decisions for licensing.

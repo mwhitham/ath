@@ -153,6 +153,14 @@ export async function enableLocalWal(database: AthleticDatabase): Promise<void> 
   }
 }
 
+/** Best-effort return to rollback journal mode after an aborted migration attempt. */
+export async function revertLocalWal(database: AthleticDatabase): Promise<void> {
+  if (!database.isLocal) {
+    return;
+  }
+  await databaseClient(database).execute("PRAGMA journal_mode = DELETE");
+}
+
 async function chmodIfPresent(path: string, mode: number): Promise<void> {
   try {
     await chmod(path, mode);
