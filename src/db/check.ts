@@ -29,7 +29,7 @@ import {
 } from "./revision-encoding.js";
 import type { Client } from "@libsql/client";
 import { typedTables } from "./check-tables.js";
-import { listTypedDenormalizedMismatchRecordIds } from "./typed-denormalized.js";
+import { listTypedDenormalizedFindings } from "./typed-denormalized.js";
 
 export interface DatabaseCheckIssue {
   severity: "error" | "warning";
@@ -463,13 +463,22 @@ export async function checkDatabase(
     });
   }
 
-  const denormalizedMismatchIds = await listTypedDenormalizedMismatchRecordIds(client);
-  for (const recordId of denormalizedMismatchIds) {
+  const denormalizedFindings = await listTypedDenormalizedFindings(client);
+  for (const finding of denormalizedFindings) {
+    if (finding.kind === "mismatch") {
+      issues.push({
+        severity: "error",
+        check: "typed_denormalized",
+        record_id: finding.record_id,
+        message: "typed-table denormalized columns do not match data_json",
+      });
+      continue;
+    }
     issues.push({
       severity: "error",
       check: "typed_denormalized",
-      record_id: recordId,
-      message: "typed-table denormalized columns do not match data_json",
+      record_id: finding.record_id,
+      message: finding.message,
     });
   }
 

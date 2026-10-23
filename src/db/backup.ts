@@ -14,17 +14,18 @@ import type { DatabaseMetadata } from "./migrate.js";
 let backupNameSequence = 0;
 
 export function formatMigrationBackupTimestamp(date: Date): string {
-  backupNameSequence = (backupNameSequence + 1) % 10_000;
   const iso = date.toISOString().replace(/[-:]/g, "");
-  return `${iso.replace("Z", "")}Z-${backupNameSequence}`;
+  return `${iso.replace("Z", "")}Z`;
 }
 
 export function defaultMigrationBackupPath(databasePath: string, now = new Date()): string {
-  return `${databasePath}.migration-backup.${formatMigrationBackupTimestamp(now)}.sqlite`;
+  backupNameSequence = (backupNameSequence + 1) % 10_000;
+  return `${databasePath}.migration-backup.${formatMigrationBackupTimestamp(now)}-${backupNameSequence}.sqlite`;
 }
 
 export function defaultRepairBackupPath(databasePath: string, now = new Date()): string {
-  return `${databasePath}.repair-backup.${formatMigrationBackupTimestamp(now)}.sqlite`;
+  backupNameSequence = (backupNameSequence + 1) % 10_000;
+  return `${databasePath}.repair-backup.${formatMigrationBackupTimestamp(now)}-${backupNameSequence}.sqlite`;
 }
 
 function requireSqlite3Cli(): void {

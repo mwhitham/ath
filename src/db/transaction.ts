@@ -1,30 +1,10 @@
-import { unlink } from "node:fs/promises";
 import type { Transaction } from "@libsql/client";
-import { databaseClient, enableLocalWal, type AthleticDatabase } from "./client.js";
-
-async function removeWalSidecarsIfPresent(localPath: string): Promise<void> {
-  for (const suffix of ["-wal", "-shm"]) {
-    try {
-      await unlink(`${localPath}${suffix}`);
-    } catch (error) {
-      if (!(error instanceof Error && "code" in error && error.code === "ENOENT")) {
-        throw error;
-      }
-    }
-  }
-}
-
-async function revertFailedWriteJournalMode(database: AthleticDatabase): Promise<void> {
-  if (database.localPath === undefined) {
-    return;
-  }
-  try {
-    await databaseClient(database).execute("PRAGMA journal_mode = DELETE");
-  } catch {
-    // The database may already be closed or read-only.
-  }
-  await removeWalSidecarsIfPresent(database.localPath);
-}
+import {
+  databaseClient,
+  enableLocalWal,
+  tryRevertDeleteJournalModeAfterFailedWal,
+  type AthleticDatabase,
+} from "./client.js";
 
 export async function withWriteTransaction<T>(
   database: AthleticDatabase,
@@ -33,13 +13,7 @@ export async function withWriteTransaction<T>(
   const journalBefore = String(
     (await databaseClient(database).execute("PRAGMA journal_mode")).rows[0]?.journal_mode,
   ).toLowerCase();
-  let walEnabledForAttempt = false;
-  try {
-    await enableLocalWal(database);
-    walEnabledForAttempt = true;
-  } catch (error) {
-    throw error;
-  }
+  await enableLocalWal(database);
   const transaction = await databaseClient(database).transaction("write");
   try {
     const foreignKeys = await transaction.execute("PRAGMA foreign_keys");
@@ -54,13 +28,7 @@ export async function withWriteTransaction<T>(
     if (!transaction.closed) {
       await transaction.rollback();
     }
-    if (walEnabledForAttempt) {
-      if (journalBefore !== "wal") {
-        await revertFailedWriteJournalMode(database);
-      } else if (database.localPath !== undefined) {
-        await removeWalSidecarsIfPresent(database.localPath);
-      }
-    }
+    await tryRevertDeleteJournalModeAfterFailedWal(database, journalBefore);
     throw error;
   } finally {
     transaction.close();

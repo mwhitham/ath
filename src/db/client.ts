@@ -175,6 +175,35 @@ export async function enableLocalWal(database: AthleticDatabase): Promise<void> 
   }
 }
 
+export function isSqliteBusy(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+  const message = error.message.toUpperCase();
+  if (message.includes("SQLITE_BUSY") || message.includes("DATABASE IS LOCKED")) {
+    return true;
+  }
+  return "code" in error && String((error as { code: unknown }).code).toUpperCase() === "SQLITE_BUSY";
+}
+
+/** After a rolled-back write, switch a connection back from WAL only when the file started in DELETE mode. */
+export async function tryRevertDeleteJournalModeAfterFailedWal(
+  database: AthleticDatabase,
+  journalBefore: string,
+): Promise<void> {
+  if (journalBefore === "wal") {
+    return;
+  }
+  try {
+    await databaseClient(database).execute("PRAGMA journal_mode = DELETE");
+  } catch (error) {
+    if (isSqliteBusy(error)) {
+      return;
+    }
+    throw error;
+  }
+}
+
 /** Close a local database and truncate WAL sidecars when possible. */
 export async function releaseLocalDatabase(database: AthleticDatabase): Promise<void> {
   if (!database.isLocal) {

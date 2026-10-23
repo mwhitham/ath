@@ -33,7 +33,7 @@ describe("export staging cleanup", () => {
     await mkdir(stalePath, { recursive: true });
     await writeFile(
       join(stalePath, EXPORT_STAGING_MARKER),
-      JSON.stringify({ pid: deadPid, created_at_ms: Date.now() - 2 * 60 * 60 * 1000 }),
+      JSON.stringify({ pid: deadPid }),
       { mode: 0o600 },
     );
     await writeFile(join(stalePath, "athlete.ath.json"), "{}", { mode: 0o600 });
@@ -51,7 +51,7 @@ describe("export staging cleanup", () => {
     await mkdir(livePath, { recursive: true });
     await writeFile(
       join(livePath, EXPORT_STAGING_MARKER),
-      JSON.stringify({ pid: process.pid, created_at_ms: Date.now() - 2 * 60 * 60 * 1000 }),
+      JSON.stringify({ pid: process.pid }),
       { mode: 0o600 },
     );
 
@@ -97,7 +97,7 @@ describe("export staging cleanup", () => {
     await mkdir(staleStaging, { recursive: true });
     await writeFile(
       join(staleStaging, EXPORT_STAGING_MARKER),
-      JSON.stringify({ pid: deadPid, created_at_ms: Date.now() - 3_600_000 }),
+      JSON.stringify({ pid: deadPid }),
       { mode: 0o600 },
     );
     await cleanupStaleExportStagingDirectories(parent);
@@ -105,6 +105,22 @@ describe("export staging cleanup", () => {
     await expect(access(staleStaging)).rejects.toMatchObject({ code: "ENOENT" });
     const finishedFiles = await readdir(finishedExport);
     expect(finishedFiles).not.toContain(EXPORT_STAGING_MARKER);
+    await rm(parent, { recursive: true, force: true });
+  });
+
+  it("removes a marked staging directory left by a crash before rename", async () => {
+    const parent = await mkdtemp(join(tmpdir(), "ath-export-crash-before-"));
+    const deadPid = 99_999_996;
+    const staging = join(parent, exportStagingDirectoryName(deadPid, Date.now(), "package"));
+    await mkdir(staging, { recursive: true });
+    await writeFile(
+      join(staging, EXPORT_STAGING_MARKER),
+      JSON.stringify({ pid: deadPid }),
+      { mode: 0o600 },
+    );
+    await writeFile(join(staging, "athlete.ath.json"), "{}", { mode: 0o600 });
+    await cleanupStaleExportStagingDirectories(parent);
+    await expect(access(staging)).rejects.toMatchObject({ code: "ENOENT" });
     await rm(parent, { recursive: true, force: true });
   });
 
@@ -126,7 +142,7 @@ describe("export staging cleanup", () => {
     await mkdir(staleStaging, { recursive: true });
     await writeFile(
       join(staleStaging, EXPORT_STAGING_MARKER),
-      JSON.stringify({ pid: deadPid, created_at_ms: Date.now() - 3_600_000 }),
+      JSON.stringify({ pid: deadPid }),
       { mode: 0o600 },
     );
 

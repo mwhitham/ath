@@ -4,12 +4,8 @@ import { join } from "node:path";
 /** Marker file written into every export staging directory this tool creates. */
 export const EXPORT_STAGING_MARKER = ".athletic-standard-export-staging";
 
-/** Abandoned staging directories older than this may be removed. */
-export const EXPORT_STAGING_STALE_MS = 60 * 60 * 1000;
-
 export interface ExportStagingMarker {
   pid: number;
-  created_at_ms: number;
 }
 
 export function exportStagingDirectoryName(pid: number, timestampMs: number, finalName: string): string {
@@ -17,7 +13,7 @@ export function exportStagingDirectoryName(pid: number, timestampMs: number, fin
 }
 
 export async function writeExportStagingMarker(directory: string): Promise<void> {
-  const marker: ExportStagingMarker = { pid: process.pid, created_at_ms: Date.now() };
+  const marker: ExportStagingMarker = { pid: process.pid };
   await writeFile(join(directory, EXPORT_STAGING_MARKER), JSON.stringify(marker), { mode: 0o600 });
 }
 
@@ -39,13 +35,8 @@ async function readExportStagingMarker(
   try {
     const raw = await readFile(join(directory, EXPORT_STAGING_MARKER), "utf8");
     const parsed = JSON.parse(raw) as ExportStagingMarker;
-    if (
-      typeof parsed.pid === "number" &&
-      typeof parsed.created_at_ms === "number" &&
-      Number.isFinite(parsed.pid) &&
-      Number.isFinite(parsed.created_at_ms)
-    ) {
-      return parsed;
+    if (typeof parsed.pid === "number" && Number.isFinite(parsed.pid)) {
+      return { pid: parsed.pid };
     }
   } catch {
     return undefined;

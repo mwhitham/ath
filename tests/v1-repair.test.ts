@@ -166,6 +166,15 @@ describe("v1 provider-encoding repair", () => {
     expect(afterBytes).toEqual(beforeBytes);
   }, 180_000);
 
+  it("materializes the npm 1.0.0 fixture in WAL mode", async () => {
+    const { directory, databasePath } = materializeNpm100ProviderDatabase();
+    directories.push(directory);
+    const client = createClient({ url: pathToFileURL(databasePath).href, intMode: "number" });
+    const mode = await client.execute("PRAGMA journal_mode");
+    await client.close();
+    expect(String(mode.rows[0]?.journal_mode).toLowerCase()).toBe("wal");
+  });
+
   it("runs ath migrate then ath check without changing record bytes", async () => {
     const { directory, databasePath } = materializeNpm100ProviderDatabase();
     directories.push(directory);

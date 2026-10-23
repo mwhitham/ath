@@ -120,6 +120,7 @@ describe.runIf(process.platform !== "win32")("CLI refusal paths and WAL sidecars
   it("schema-1 write command refusal leaves no WAL sidecars", async () => {
     const { directory, databasePath } = materializeNpm100ProviderDatabase();
     directories.push(directory);
+    await useDeleteJournalMode(databasePath);
     await runCliExpectSidecarFree(
       directory,
       databasePath,
@@ -131,6 +132,7 @@ describe.runIf(process.platform !== "win32")("CLI refusal paths and WAL sidecars
   it("header mismatch refusal leaves no WAL sidecars", async () => {
     const { directory, databasePath } = materializeNpm100ProviderDatabase();
     directories.push(directory);
+    await useDeleteJournalMode(databasePath);
     const client = createClient({ url: pathToFileURL(databasePath).href, intMode: "number" });
     await client.execute("UPDATE database_metadata SET sql_schema_version = 2");
     await client.close();
@@ -156,6 +158,7 @@ describe.runIf(process.platform !== "win32")("CLI refusal paths and WAL sidecars
 
   it("read-only database file refusal leaves no WAL sidecars", async () => {
     const { directory, databasePath } = await freshMigratedCopy();
+    await useDeleteJournalMode(databasePath);
     await chmod(databasePath, 0o444);
     await runCliExpectSidecarFree(
       directory,

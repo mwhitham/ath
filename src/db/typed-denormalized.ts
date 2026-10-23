@@ -1,4 +1,5 @@
 import type { Client } from "@libsql/client";
+import { ZodError } from "zod";
 import { CurrentRecord, type CurrentRecordT } from "../v1/schema.js";
 import { typedTables } from "./check-tables.js";
 import { typedMainRowFields } from "./records.js";
@@ -34,16 +35,20 @@ function sqlValuesEqual(left: unknown, right: unknown): boolean {
   return String(a) === String(b);
 }
 
-function parseRecordFromJoinedRow(row: Record<string, unknown>): CurrentRecordT {
+function parseRecordFromRevisionRow(row: Record<string, unknown>): CurrentRecordT {
   return CurrentRecord.parse({
     record_id: String(row.record_id),
     record_type: String(row.record_type),
     created_at: String(row.created_at),
     current_revision: Number(row.current_revision),
     is_deleted: Number(row.is_deleted) === 1,
-    data: JSON.parse(String(row.data_json)),
+    data: JSON.parse(String(row.record_json)),
   });
 }
+
+export type TypedDenormalizedFinding =
+  | { kind: "mismatch"; record_id: string }
+  | { kind: "parse_error"; record_id: string; message: string };
 
 function mainRowMismatch(row: Record<string, unknown>, record: CurrentRecordT): boolean {
   for (const [column, expected] of typedMainRowFields(record)) {
@@ -386,56 +391,38 @@ async function typedChildrenMismatch(client: Client, record: CurrentRecordT): Pr
 
 async function recordHasDenormalizedMismatch(
   client: Client,
-  recordType: string,
   table: string,
-  recordId: string,
+  joinedRow: Record<string, unknown>,
+  record: CurrentRecordT,
 ): Promise<boolean> {
-  const result = await client.execute({
-    sql: `
-      SELECT
-        records.record_id,
-        records.record_type,
-        records.current_revision,
-        records.created_at,
-        records.is_deleted,
-        ${table}.data_json AS data_json
-      FROM records
-      JOIN ${table} ON ${table}.record_id = records.record_id
-      WHERE records.record_id = ?
-    `,
-    args: [recordId],
-  });
-  const row = result.rows[0];
-  if (row === undefined) {
-    return false;
-  }
-  const joined = row as Record<string, unknown>;
-  const record = parseRecordFromJoinedRow(joined);
-  const typedRow = await client.execute({
-    sql: `SELECT * FROM ${table} WHERE record_id = ?`,
-    args: [recordId],
-  });
-  const typed = typedRow.rows[0] as Record<string, unknown> | undefined;
-  if (typed === undefined) {
-    return true;
-  }
+  const typed = joinedRow as Record<string, unknown>;
   if (mainRowMismatch(typed, record)) {
     return true;
   }
   return typedChildrenMismatch(client, record);
 }
 
-/** Record IDs whose typed-table denormalized columns or child rows disagree with data_json. */
-export async function listTypedDenormalizedMismatchRecordIds(
+/** Typed denormalized mismatches and per-record schema parse failures. */
+export async function listTypedDenormalizedFindings(
   client: Client,
-): Promise<string[]> {
-  const mismatches: string[] = [];
+): Promise<TypedDenormalizedFinding[]> {
+  const findings: TypedDenormalizedFinding[] = [];
   for (const [recordType, table] of Object.entries(typedTables)) {
     const rows = await client.execute({
       sql: `
-        SELECT records.record_id
+        SELECT
+          records.record_id,
+          records.record_type,
+          records.current_revision,
+          records.created_at,
+          records.is_deleted,
+          record_revisions.record_json,
+          typed.*
         FROM records
-        JOIN ${table} ON ${table}.record_id = records.record_id
+        JOIN record_revisions
+          ON record_revisions.record_id = records.record_id
+         AND record_revisions.revision = records.current_revision
+        JOIN ${table} AS typed ON typed.record_id = records.record_id
         WHERE records.record_type = ?
           AND records.is_deleted = 0
         ORDER BY records.record_id
@@ -443,11 +430,44 @@ export async function listTypedDenormalizedMismatchRecordIds(
       args: [recordType],
     });
     for (const row of rows.rows) {
-      const recordId = String(row.record_id);
-      if (await recordHasDenormalizedMismatch(client, recordType, table, recordId)) {
-        mismatches.push(recordId);
+      const joinedRow = row as Record<string, unknown>;
+      const recordId = String(joinedRow.record_id);
+      try {
+        const record = parseRecordFromRevisionRow(joinedRow);
+        if (await recordHasDenormalizedMismatch(client, table, joinedRow, record)) {
+          findings.push({ kind: "mismatch", record_id: recordId });
+        }
+      } catch (error) {
+        if (error instanceof ZodError) {
+          const first = error.issues[0];
+          const path = first === undefined ? "record" : first.path.join(".");
+          const detail = first === undefined ? "record does not match its domain schema" : `${path}: ${first.message}`;
+          findings.push({ kind: "parse_error", record_id: recordId, message: detail });
+          continue;
+        }
+        if (error instanceof SyntaxError) {
+          findings.push({
+            kind: "parse_error",
+            record_id: recordId,
+            message: "record_json is not valid JSON",
+          });
+          continue;
+        }
+        throw error;
       }
     }
   }
-  return mismatches;
+  return findings;
+}
+
+/** Record IDs whose typed-table denormalized columns or child rows disagree with data_json. */
+export async function listTypedDenormalizedMismatchRecordIds(
+  client: Client,
+): Promise<string[]> {
+  const findings = await listTypedDenormalizedFindings(client);
+  return findings
+    .filter((finding): finding is Extract<TypedDenormalizedFinding, { kind: "mismatch" }> =>
+      finding.kind === "mismatch",
+    )
+    .map((finding) => finding.record_id);
 }

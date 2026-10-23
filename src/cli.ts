@@ -10,7 +10,8 @@ async function main(): Promise<void> {
     if (error instanceof CliExitError) {
       process.exitCode = error.exitCode;
     } else {
-      console.error(error);
+      const message = error instanceof Error ? error.message : String(error);
+      console.error(`ath: ${message}`);
       process.exitCode = 1;
     }
   } finally {

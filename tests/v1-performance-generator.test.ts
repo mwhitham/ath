@@ -125,7 +125,7 @@ describe("v1 performance database generator", () => {
     } finally {
       database.close();
     }
-  }, 30_000);
+  });
 
   it("runs all nine release measurements and writes a report", async () => {
     const root = await mkdtemp(join(tmpdir(), "ath-v1-performance-run-"));

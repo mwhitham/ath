@@ -16,6 +16,7 @@ import {
   trackOpenLocalDatabase,
   markSkipWalCheckpointOnRelease,
   enableLocalWal,
+  tryRevertDeleteJournalModeAfterFailedWal,
   parseDatabaseTarget,
   readApplicationId,
   readUserVersion,
@@ -640,6 +641,9 @@ export async function executeConfirmedDatabaseMigration(
       "Database revision changed during migration backup; stop other writers and retry",
     );
   }
+  const journalBefore = String(
+    (await databaseClient(database).execute("PRAGMA journal_mode")).rows[0]?.journal_mode,
+  ).toLowerCase();
   try {
     await enableLocalWal(database);
     if (fileIdentity !== undefined && database.localPath !== undefined) {
@@ -657,6 +661,7 @@ export async function executeConfirmedDatabaseMigration(
     }
     await applyPendingDatabaseMigrations(database);
   } catch (error) {
+    await tryRevertDeleteJournalModeAfterFailedWal(database, journalBefore);
     const revisionAfterFailure = Number(
       (
         await databaseClient(database).execute(

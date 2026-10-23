@@ -197,8 +197,8 @@ describe("v1 database migration", () => {
 
   it("uses millisecond timestamps and a counter so same-second backups differ", () => {
     const instant = new Date("2026-01-15T12:00:00.123Z");
-    const first = formatMigrationBackupTimestamp(instant);
-    const second = formatMigrationBackupTimestamp(instant);
+    const first = defaultMigrationBackupPath("/tmp/athlete.ath.sqlite", instant);
+    const second = defaultMigrationBackupPath("/tmp/athlete.ath.sqlite", instant);
     expect(first).not.toBe(second);
     expect(first).toContain("123");
   });

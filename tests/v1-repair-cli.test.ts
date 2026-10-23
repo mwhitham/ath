@@ -37,7 +37,7 @@ afterEach(async () => {
 });
 
 async function injectPointMeasurementDivergence(databasePath: string): Promise<string> {
-  const database = await openDatabase(databasePath, { allowOutdatedSchema: true });
+  const database = await openDatabase(databasePath, { allowOutdatedSchema: true, deferWal: true });
   openDatabases.push(database);
   const row = await databaseClient(database).execute(`
     SELECT records.record_id, record_revisions.record_json
@@ -178,6 +178,26 @@ describe("v1 repair CLI", () => {
     const check = ath(["check"], directory);
     expect(check.code, check.stdout).toBe(0);
   }, 180_000);
+
+  it.runIf(process.platform !== "win32")(
+    "failed divergent ath migrate leaves a DELETE-mode database in DELETE journal mode",
+    async () => {
+      const { directory, databasePath } = materializeNpm100ProviderDatabase();
+      directories.push(directory);
+      const { spawnSync } = await import("node:child_process");
+      const journal = spawnSync("sqlite3", [databasePath, "PRAGMA journal_mode = DELETE;"], {
+        encoding: "utf8",
+      });
+      expect(journal.status).toBe(0);
+      const databaseId = await injectPointMeasurementDivergence(databasePath);
+      const migrate = ath(["migrate", "-y", "--confirm-migration", databaseId], directory);
+      expect(migrate.code, migrate.stdout).not.toBe(0);
+      const afterClient = createClient({ url: pathToFileURL(databasePath).href, intMode: "number" });
+      const mode = await afterClient.execute("PRAGMA journal_mode");
+      await afterClient.close();
+      expect(String(mode.rows[0]?.journal_mode).toLowerCase()).toBe("delete");
+    },
+  );
 
   it.runIf(process.platform !== "win32")(
     "ath conflicts show does not enable WAL on a delete-mode database",

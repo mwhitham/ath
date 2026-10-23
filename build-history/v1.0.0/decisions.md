@@ -1575,3 +1575,21 @@ Rejected alternatives:
 - **Silent header repair without checking row data.** Rejected because applying
   `002-provider-encoding-repair.sql` alone already showed false "no migration required"
   states while `ath check` failed.
+
+## D151. Failed writes must not delete WAL sidecar files
+
+When a write transaction rolls back, the tool may switch a connection from WAL back to
+DELETE only if the database file was already in DELETE mode before that attempt. If
+`PRAGMA journal_mode = DELETE` returns busy because another connection holds a read
+snapshot, the tool leaves `-wal` and `-shm` in place. If the file was already in WAL
+mode, a failed write does not change journal mode or remove sidecars. Unlinking sidecars
+after a failed write can destroy committed data that has not been checkpointed into the
+main file.
+
+Rejected alternatives:
+
+- **Unlink `-wal` and `-shm` after any failed write.** Rejected because a later failed
+  command can erase committed rows another connection still needs from the WAL file.
+- **Leave every failed write in WAL mode.** Rejected because DELETE-mode npm 1.0.0 files
+  should return to DELETE when the revert succeeds, matching operator expectations for
+  single-file databases.

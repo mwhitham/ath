@@ -623,10 +623,8 @@ export async function exportRecords(
     );
     await transaction.commit();
     await syncParentDirectory(parentDirectory);
-    // Drop the staging marker before rename so finished exports never ship it.
-    // If the process dies before rename, cleanup leaves an unmarked folder (safe).
-    await unlink(join(stagingDirectory, EXPORT_STAGING_MARKER)).catch(() => undefined);
     await rename(stagingDirectory, outputDirectory);
+    await unlink(join(outputDirectory, EXPORT_STAGING_MARKER)).catch(() => undefined);
     await syncParentDirectory(parentDirectory);
     return {
       directory: outputDirectory,
