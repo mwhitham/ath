@@ -1,12 +1,6 @@
 import { createHash } from "node:crypto";
-import {
-  lstat,
-  mkdir,
-  open as openFile,
-  readFile,
-  rm,
-} from "node:fs/promises";
-import { dirname, join } from "node:path";
+import { lstat, mkdir, readFile, rename, rm, unlink } from "node:fs/promises";
+import { basename, dirname, join } from "node:path";
 import type { Transaction } from "@libsql/client";
 import {
   ATHLETIC_STANDARD_VERSION,
@@ -41,6 +35,14 @@ import {
   currentRecordPayloadFromRow,
   recordRevisionPayloadFromRow,
 } from "./revision-encoding.js";
+import { syncParentDirectory, writeOwnerOnlyDurable } from "./durable-write.js";
+import {
+  cleanupStaleExportStagingDirectories,
+  EXPORT_STAGING_MARKER,
+  exportStagingDirectoryName,
+  writeExportStagingMarker,
+} from "./export-staging.js";
+import { compareUtf8Keys, deterministicJson } from "./stable-json.js";
 
 export interface ExportDatabaseOptions {
   exported_at?: string;
@@ -53,35 +55,10 @@ export interface ExportDatabaseResult {
   manifest: ExportManifestT;
 }
 
-function stableValue(value: unknown): unknown {
-  if (Array.isArray(value)) {
-    return value.map(stableValue);
-  }
-  if (value !== null && typeof value === "object") {
-    return Object.fromEntries(
-      Object.entries(value as Record<string, unknown>)
-        .sort(([left], [right]) => left.localeCompare(right))
-        .map(([key, child]) => [key, stableValue(child)]),
-    );
-  }
-  return value;
-}
-
-export function deterministicJson(value: unknown): Buffer {
-  return Buffer.from(`${JSON.stringify(stableValue(value), null, 2)}\n`, "utf8");
-}
+export { deterministicJson } from "./stable-json.js";
 
 function sha256(bytes: Uint8Array): string {
   return createHash("sha256").update(bytes).digest("hex");
-}
-
-async function writeOwnerOnly(path: string, bytes: Uint8Array): Promise<void> {
-  const file = await openFile(path, "wx", 0o600);
-  try {
-    await file.writeFile(bytes);
-  } finally {
-    await file.close();
-  }
 }
 
 function parseCurrentRow(row: Record<string, unknown>): CurrentRecordT {
@@ -438,7 +415,10 @@ export async function exportRecords(
     options.exported_at === undefined
       ? undefined
       : UtcTimestamp.parse(options.exported_at);
-  await refuseSymbolicLinkComponents(dirname(outputDirectory));
+  const parentDirectory = dirname(outputDirectory);
+  const finalName = basename(outputDirectory);
+  await refuseSymbolicLinkComponents(parentDirectory);
+  await cleanupStaleExportStagingDirectories(parentDirectory);
   try {
     const existing = await lstat(outputDirectory);
     if (existing.isSymbolicLink()) {
@@ -450,7 +430,12 @@ export async function exportRecords(
       throw error;
     }
   }
-  await mkdir(outputDirectory, { mode: 0o700 });
+  const stagingDirectory = join(
+    parentDirectory,
+    exportStagingDirectoryName(process.pid, Date.now(), finalName),
+  );
+  await mkdir(stagingDirectory, { mode: 0o700 });
+  await writeExportStagingMarker(stagingDirectory);
 
   const transaction = await databaseClient(database).transaction("read");
   try {
@@ -477,8 +462,8 @@ export async function exportRecords(
     const deletions = await readDeletions(transaction);
     const erasureMarkers = await readErasureMarkers(transaction);
     const importKeys = await readImportKeys(transaction);
-    const seriesDirectory = join(outputDirectory, "series");
-    const attachmentDirectory = join(outputDirectory, "attachments");
+    const seriesDirectory = join(stagingDirectory, "series");
+    const attachmentDirectory = join(stagingDirectory, "attachments");
     const files: Array<{ file: string; sha256: string; byte_count: number }> = [];
     const seriesReferences: Array<{
       file: string;
@@ -543,7 +528,7 @@ export async function exportRecords(
           record_import_keys: history.importKeys,
         });
         const bytes = deterministicJson(series);
-        await writeOwnerOnly(join(outputDirectory, relativePath), bytes);
+        await writeOwnerOnlyDurable(join(stagingDirectory, relativePath), bytes);
         const hash = sha256(bytes);
         files.push({
           file: relativePath,
@@ -577,7 +562,7 @@ export async function exportRecords(
       await mkdir(attachmentDirectory, { mode: 0o700 });
     }
     for (const attachment of attachments.sort((left, right) =>
-      left.record_id.localeCompare(right.record_id),
+      compareUtf8Keys(left.record_id, right.record_id),
     )) {
       const storedName = storedAttachmentName(attachment);
       const sourcePath = join(
@@ -594,7 +579,7 @@ export async function exportRecords(
         throw new Error(`attachment does not match its record: ${attachment.record_id}`);
       }
       const relativePath = `attachments/${storedName}`;
-      await writeOwnerOnly(join(outputDirectory, relativePath), bytes);
+      await writeOwnerOnlyDurable(join(stagingDirectory, relativePath), bytes);
       files.push({
         file: relativePath,
         sha256: attachment.data.sha256,
@@ -614,8 +599,8 @@ export async function exportRecords(
       measurement_series_files: seriesReferences,
     });
     const packageBytes = deterministicJson(packageDocument);
-    const packagePath = join(outputDirectory, "athlete.ath.json");
-    await writeOwnerOnly(packagePath, packageBytes);
+    const packagePath = join(stagingDirectory, "athlete.ath.json");
+    await writeOwnerOnlyDurable(packagePath, packageBytes);
     files.push({
       file: "athlete.ath.json",
       sha256: sha256(packageBytes),
@@ -627,16 +612,20 @@ export async function exportRecords(
       source_database_id: metadata.database_id,
       database_revision: databaseRevision,
       ...(exportedAt === undefined ? {} : { exported_at: exportedAt }),
-      files: files.sort((left, right) => left.file.localeCompare(right.file)),
+      files: files.sort((left, right) => compareUtf8Keys(left.file, right.file)),
       record_counts: await recordCounts(transaction),
       erasure_marker_count: erasureMarkers.length,
     });
     const manifestBytes = deterministicJson(manifest);
-    await writeOwnerOnly(
-      join(outputDirectory, "export-manifest.json"),
+    await writeOwnerOnlyDurable(
+      join(stagingDirectory, "export-manifest.json"),
       manifestBytes,
     );
     await transaction.commit();
+    await syncParentDirectory(parentDirectory);
+    await rename(stagingDirectory, outputDirectory);
+    await unlink(join(outputDirectory, EXPORT_STAGING_MARKER)).catch(() => undefined);
+    await syncParentDirectory(parentDirectory);
     return {
       directory: outputDirectory,
       database_id: metadata.database_id,
@@ -647,7 +636,7 @@ export async function exportRecords(
     if (!transaction.closed) {
       await transaction.rollback();
     }
-    await rm(outputDirectory, { recursive: true, force: true });
+    await rm(stagingDirectory, { recursive: true, force: true });
     throw error;
   } finally {
     transaction.close();

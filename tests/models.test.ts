@@ -4,6 +4,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { afterEach, describe, expect, it } from "vitest";
+import { createDatabase } from "../src/db/index.js";
 import {
   defaultModelPath,
   readDefaultModel,
@@ -41,10 +42,13 @@ describe("default model path beside the live database", () => {
     expect(defaultModelPath("/data/athlete.ath.sqlite")).toBe("/data/athlete.ath.model");
   });
 
-  it("writes the model file without changing the database bytes", () => {
+  it("writes the model file without changing the database bytes", async () => {
     const directory = mkdtempSync(join(tmpdir(), "ath-models-"));
-    expect(ath(["init", "-y", "--no-skill"], directory).code).toBe(0);
     const databasePath = join(directory, "athlete.ath.sqlite");
+    const database = await createDatabase(databasePath, {
+      createdAt: "2026-10-13T12:00:00.000Z",
+    });
+    database.close();
     const before = readFileSync(databasePath);
 
     writeDefaultModel(databasePath, "openai/gpt-oss-120b");

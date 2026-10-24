@@ -1,4 +1,8 @@
 import { lstat, mkdir, open as openFile, unlink } from "node:fs/promises";
+import { PROVIDER_ENCODING_REPAIR_SQL } from "./migrations/002-provider-encoding-repair.js";
+import { repairProviderEncodingRows } from "./repair.js";
+import { withWriteTransaction } from "./transaction.js";
+import { incrementDatabaseRevision } from "./records.js";
 import { dirname } from "node:path";
 import type { Transaction } from "@libsql/client";
 import {
@@ -9,7 +13,10 @@ import {
 import {
   connectDatabase,
   databaseClient,
+  trackOpenLocalDatabase,
+  markSkipWalCheckpointOnRelease,
   enableLocalWal,
+  tryRevertDeleteJournalModeAfterFailedWal,
   parseDatabaseTarget,
   readApplicationId,
   readUserVersion,
@@ -269,6 +276,7 @@ export async function createDatabase(
     await enableLocalWal(database);
     await installInitialSchema(database, databaseId, createdAt);
     await setOwnerOnlyDatabasePermissions(database);
+    trackOpenLocalDatabase(database);
     return database;
   } catch (error) {
     database.close();
@@ -433,6 +441,7 @@ export async function inspectDatabase(
         `SQLite user_version ${userVersion} does not match database metadata ${metadata.sql_schema_version}`,
       );
     }
+    markSkipWalCheckpointOnRelease(database);
     return database;
   } catch (error) {
     database.close();
@@ -495,6 +504,7 @@ export async function openDatabase(
     if (options.deferWal !== true) {
       await enableLocalWal(database);
     }
+    trackOpenLocalDatabase(database);
     return database;
   } catch (error) {
     database.close();
@@ -514,6 +524,19 @@ async function applyMigrationStep(
   const step = MIGRATION_CHAIN.find((candidate) => candidate.version === targetVersion);
   if (step === undefined) {
     throw new Error(`No migration is registered for SQL schema version ${targetVersion}`);
+  }
+  if (targetVersion === 2) {
+    await withWriteTransaction(database, async (transaction) => {
+      const repaired = await repairProviderEncodingRows(transaction);
+      await transaction.executeMultiple(PROVIDER_ENCODING_REPAIR_SQL);
+      if (database.isLocal) {
+        await transaction.execute(`PRAGMA user_version = ${targetVersion}`);
+      }
+      if (repaired > 0) {
+        await incrementDatabaseRevision(transaction);
+      }
+    });
+    return;
   }
   throw new Error(
     `Migration ${step.file} is not implemented in this ath build (target SQL schema ${targetVersion})`,
@@ -588,13 +611,81 @@ export async function executeConfirmedDatabaseMigration(
     throw new Error("Migration backup path is missing");
   }
 
+  const fileIdentity =
+    database.localPath === undefined
+      ? undefined
+      : await lstat(database.localPath, { bigint: true }).then((stat) => ({
+          device: stat.dev,
+          inode: stat.ino,
+        }));
+  const revisionBefore = Number(
+    (
+      await databaseClient(database).execute(
+        "SELECT current_revision FROM database_state WHERE singleton_id = 1",
+      )
+    ).rows[0]?.current_revision,
+  );
   await createVerifiedSqliteBackup(database, database.localPath, backupPath, metadata);
+  if (fileIdentity !== undefined && database.localPath !== undefined) {
+    await assertSameFile(database.localPath, fileIdentity);
+  }
+  const revisionAfterBackup = Number(
+    (
+      await databaseClient(database).execute(
+        "SELECT current_revision FROM database_state WHERE singleton_id = 1",
+      )
+    ).rows[0]?.current_revision,
+  );
+  if (revisionAfterBackup !== revisionBefore) {
+    throw new Error(
+      "Database revision changed during migration backup; stop other writers and retry",
+    );
+  }
+  const journalBefore = String(
+    (await databaseClient(database).execute("PRAGMA journal_mode")).rows[0]?.journal_mode,
+  ).toLowerCase();
   try {
     await enableLocalWal(database);
+    if (fileIdentity !== undefined && database.localPath !== undefined) {
+      await assertSameFile(database.localPath, fileIdentity);
+    }
+    const revisionBeforeMigrate = Number(
+      (
+        await databaseClient(database).execute(
+          "SELECT current_revision FROM database_state WHERE singleton_id = 1",
+        )
+      ).rows[0]?.current_revision,
+    );
+    if (revisionBeforeMigrate !== revisionBefore) {
+      throw new Error("Database revision changed before migration could start");
+    }
     await applyPendingDatabaseMigrations(database);
   } catch (error) {
+    try {
+      await tryRevertDeleteJournalModeAfterFailedWal(database, journalBefore);
+    } catch {
+      // Best-effort journal revert; the original migration failure is reported below.
+    }
+    const revisionAfterFailure = Number(
+      (
+        await databaseClient(database).execute(
+          "SELECT current_revision FROM database_state WHERE singleton_id = 1",
+        )
+      ).rows[0]?.current_revision,
+    );
+    const cause =
+      error instanceof Error
+        ? error.message
+        : "migration step failed";
+    const changed = revisionAfterFailure !== revisionBefore;
+    let detail = `Cause: ${cause}.`;
+    if (changed) {
+      detail += " The database revision changed; restore from the verified backup.";
+    } else {
+      detail += " The database revision did not change.";
+    }
     throw new Error(
-      `Migration failed after creating verified backup at ${backupPath}. The original database was not modified.`,
+      `Migration failed after creating verified backup at ${backupPath}. ${detail}`,
       { cause: error },
     );
   }

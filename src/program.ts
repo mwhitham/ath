@@ -51,6 +51,22 @@ import {
 } from "./skill.js";
 import { candidatePaths, runUpdate } from "./update.js";
 import {
+  askOnTerminal,
+  confirmWrite,
+  fail,
+  findOrFail,
+  openOrFail,
+  openReadOnlyOrFail,
+  readStdin,
+} from "./cli/runtime.js";
+import {
+  renderImportPreview,
+  renderLogPlan,
+  renderProviderImportPreview,
+} from "./cli/preview-render.js";
+
+export { interactiveMigrationOnOpen, useTerminalAnswer } from "./cli/runtime.js";
+import {
   checkDatabase,
   CALCULATION_OPERATIONS,
   CALCULATION_RECORD_KINDS,
@@ -60,16 +76,19 @@ import {
   clearPackageConflictSet,
   conflictResolutions,
   correctRecord,
-  applyPendingDatabaseMigrations,
   buildMigrationPreview,
   createDatabase,
   databaseStats,
   deleteRecord,
   eraseRecord,
   executeConfirmedDatabaseMigration,
+  executeConfirmedProviderEncodingRepair,
+  countProviderEncodingRepairCandidates,
+  countRevisionAlignRepairCandidates,
+  listRevisionAlignRepairRecordIds,
+  releaseLocalDatabase,
   exportRecords,
   inspectDatabase,
-  MigrationRequiredError,
   gradePrediction,
   importProviderRecords,
   importRecords,
@@ -108,12 +127,8 @@ import {
   withPreparedAttachmentFiles,
   type AthleticDatabase,
   type LogPlan,
-  type MigrationPreview,
   type PackageImportResolution,
 } from "./db/index.js";
-import { createVerifiedSqliteBackup } from "./db/backup.js";
-import { enableLocalWal, setOwnerOnlyDatabasePermissions } from "./db/client.js";
-
 /** The whole command tree. `cli.ts` parses it; the skill generator reads its help. */
 export function buildProgram(): Command {
   const program = new Command();
@@ -272,7 +287,7 @@ export function buildProgram(): Command {
           `could not create a valid v1 database: ${(error as Error).message}. Nothing was kept.`,
         );
       }
-      database.close();
+      await releaseLocalDatabase(database);
 
       // The skill always goes to .agents/skills, which every major harness reads,
       // and into any harness folder already here (D79).
@@ -366,6 +381,7 @@ export function buildProgram(): Command {
         json?: boolean;
       },
     ) => {
+      try {
       const path = findOrFail(opts.file ?? fileArg);
       const warn = (warning: string) => {
         if (!opts.json) console.warn(`ath: warning: ${warning}`);
@@ -376,7 +392,7 @@ export function buildProgram(): Command {
         const metadata = await readDatabaseMetadata(inspector);
         preview = buildMigrationPreview(metadata, inspector.localPath);
       } finally {
-        inspector.close();
+        await releaseLocalDatabase(inspector);
       }
       const output = {
         file: path,
@@ -389,7 +405,6 @@ export function buildProgram(): Command {
         compatibility_effect: preview.compatibility_effect,
         write_confirmed: false,
       };
-      try {
         if (opts.json) {
           console.log(JSON.stringify(output, null, 2));
           return;
@@ -447,10 +462,126 @@ export function buildProgram(): Command {
               `with verified backup at ${result.backup_path}`,
           );
         } finally {
-          database.close();
+          await releaseLocalDatabase(database);
         }
       } catch (error) {
         return fail((error as Error).message);
+      }
+    });
+
+  program
+    .command("repair")
+    .helpGroup(GROUPS.setUp)
+    .description("repair typed-table JSON bytes left by npm 1.0.0 provider imports")
+    .addHelpText("after", EXAMPLES.repair!)
+    .argument("[file]", "the database to repair (default: the one in this folder)")
+    .option("--file <path>", "repair a database other than the one in this folder")
+    .option("-y, --yes", "apply the repair after reviewing the preview")
+    .option(
+      "--from-revision",
+      "copy typed-table JSON from the current revision when bytes disagree in meaning",
+    )
+    .option(
+      "--confirm-revision-align <database-id>",
+      "repeat the database ID exactly when using --from-revision",
+    )
+    .option("--dry-run", "show how many records would change and write nothing")
+    .option("--json", "structured preview only")
+    .action(async (
+      fileArg,
+      opts: {
+        file?: string;
+        yes?: boolean;
+        fromRevision?: boolean;
+        confirmRevisionAlign?: string;
+        dryRun?: boolean;
+        json?: boolean;
+      },
+    ) => {
+      const path = findOrFail(opts.file ?? fileArg);
+      let database: AthleticDatabase;
+      try {
+        database = await openDatabase(path, {
+          allowOutdatedSchema: true,
+          deferWal: true,
+          onSecurityWarning: (warning) => {
+            if (!opts.json) console.warn(`ath: warning: ${warning}`);
+          },
+        });
+      } catch (error) {
+        return fail((error as Error).message);
+      }
+      try {
+        const metadata = await readDatabaseMetadata(database);
+        const candidates = await countProviderEncodingRepairCandidates(database);
+        const revisionAlignCandidates = await countRevisionAlignRepairCandidates(database);
+        const revisionAlignRecordIds =
+          revisionAlignCandidates > 0
+            ? await listRevisionAlignRepairRecordIds(database)
+            : [];
+        const output = {
+          file: path,
+          repair_candidates: candidates,
+          revision_align_candidates: revisionAlignCandidates,
+          revision_align_record_ids: revisionAlignRecordIds,
+          write_confirmed: false,
+        };
+        if (opts.json) {
+          console.log(JSON.stringify(output, null, 2));
+          return;
+        }
+        console.log(JSON.stringify(output, null, 2));
+        if (candidates === 0 && revisionAlignCandidates === 0) {
+          console.log("no provider-encoding repair is required");
+          return;
+        }
+        if (opts.dryRun) {
+          console.log("nothing repaired (--dry-run)");
+          return;
+        }
+        if (!opts.yes) {
+          console.log("nothing repaired; pass --yes after reviewing this preview");
+          return;
+        }
+        if (revisionAlignCandidates > 0 && !opts.fromRevision) {
+          return fail(
+            `${revisionAlignCandidates} record(s) need --from-revision and --confirm-revision-align ${metadata.database_id}`,
+          );
+        }
+        if (opts.fromRevision && revisionAlignCandidates > 0) {
+          const confirmation = opts.confirmRevisionAlign;
+          if (confirmation === undefined) {
+            return fail(
+              `pass --confirm-revision-align ${metadata.database_id} to align typed tables from the current revision`,
+            );
+          }
+          if (confirmation !== metadata.database_id) {
+            return fail(
+              "second confirmation did not exactly match the database ID; nothing was repaired",
+            );
+          }
+        }
+        try {
+          const result = await executeConfirmedProviderEncodingRepair(
+            database,
+            opts.fromRevision === true ? { fromRevision: true } : {},
+          );
+          const backupNote =
+            result.backup_path === ""
+              ? ""
+              : ` with verified backup at ${result.backup_path}`;
+          const alignNote =
+            result.revision_align_record_count > 0
+              ? `; aligned ${result.revision_align_record_count} record(s) from revision`
+              : "";
+          console.log(
+            `repaired ${result.repaired_record_count} record(s); database revision ${result.database_revision}${alignNote}${backupNote}`,
+          );
+        } catch (error) {
+          return fail((error as Error).message);
+        }
+      } finally {
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -610,7 +741,7 @@ export function buildProgram(): Command {
         }
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -631,7 +762,7 @@ export function buildProgram(): Command {
       opts: { file?: string; json?: boolean },
     ) => {
       const path = findOrFail(opts.file);
-      const database = await openOrFail(path, opts.json);
+      const database = await openReadOnlyOrFail(path, opts.json);
       try {
         const state = await readPackageConflictSet(database);
         const loaded = await loadAthleticStandardPackage(state.source_path);
@@ -668,7 +799,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -749,7 +880,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -767,7 +898,7 @@ export function buildProgram(): Command {
       opts: { exportedAt?: string; file?: string; json?: boolean },
     ) => {
       const path = findOrFail(opts.file);
-      const database = await openOrFail(path, opts.json);
+      const database = await openReadOnlyOrFail(path, opts.json);
       try {
         const result = await exportRecords(
           database,
@@ -788,7 +919,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -875,7 +1006,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -944,7 +1075,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -1102,7 +1233,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -1167,7 +1298,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -1269,7 +1400,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -1287,7 +1418,7 @@ export function buildProgram(): Command {
       opts: { file?: string; validateExport?: boolean; json?: boolean },
     ) => {
       const path = findOrFail(opts.file ?? fileArg);
-      const database = await openOrFail(path, opts.json);
+      const database = await openReadOnlyOrFail(path, opts.json);
       try {
         const result = await checkDatabase(database);
         let exportValidated = false;
@@ -1333,7 +1464,7 @@ export function buildProgram(): Command {
           process.exitCode = 1;
         }
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -1541,7 +1672,7 @@ export function buildProgram(): Command {
         }
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -1619,7 +1750,7 @@ export function buildProgram(): Command {
         }
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -1747,7 +1878,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -1820,7 +1951,7 @@ export function buildProgram(): Command {
         );
       }
       const path = findOrFail(opts.file);
-      const database = await openOrFail(path, opts.json);
+      const database = await openReadOnlyOrFail(path, opts.json);
       try {
         const calculation = await calculate(database, {
           operation: operation as (typeof CALCULATION_OPERATIONS)[number],
@@ -1853,7 +1984,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -1893,7 +2024,7 @@ export function buildProgram(): Command {
         );
       }
       const path = findOrFail(opts.file);
-      const database = await openOrFail(path, opts.json);
+      const database = await openReadOnlyOrFail(path, opts.json);
       try {
         const view = await readSeriesView(database, parsedQuantity.data, {
           ...(opts.from === undefined ? {} : { from: opts.from }),
@@ -1914,7 +2045,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -1928,7 +2059,7 @@ export function buildProgram(): Command {
     .option("--json", "structured output, for an agent rather than a person")
     .action(async (fileArg, opts: { file?: string; json?: boolean }) => {
       const path = findOrFail(opts.file ?? fileArg);
-      const database = await openOrFail(path, opts.json);
+      const database = await openReadOnlyOrFail(path, opts.json);
       try {
         const stats = await databaseStats(database);
         console.log(
@@ -1937,7 +2068,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -1969,7 +2100,7 @@ export function buildProgram(): Command {
         );
       }
       const path = findOrFail(opts.file);
-      const database = await openOrFail(path, opts.json);
+      const database = await openReadOnlyOrFail(path, opts.json);
       try {
         const records = await listRecords(database, {
           ...(recordType === undefined ? {} : { record_type: recordType.data }),
@@ -1984,7 +2115,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -2008,7 +2139,7 @@ export function buildProgram(): Command {
       },
     ) => {
       const path = findOrFail(opts.file);
-      const database = await openOrFail(path, opts.json);
+      const database = await openReadOnlyOrFail(path, opts.json);
       try {
         const record = await readRecord(database, recordId);
         if (record === null) {
@@ -2056,7 +2187,7 @@ export function buildProgram(): Command {
       } catch (error) {
         return fail((error as Error).message);
       } finally {
-        database.close();
+        await releaseLocalDatabase(database);
       }
     });
 
@@ -2127,87 +2258,6 @@ function parsePredictionResponse(content: string): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
-function renderImportPreview(preview: {
-  source_database_id: string;
-  source_database_revision: number;
-  destination_database_id: string;
-  destination_database_revision: number;
-  restore: boolean;
-  new_records: readonly string[];
-  new_record_count: number;
-  matching_records: readonly string[];
-  matching_record_count: number;
-  changed_records: readonly string[];
-  changed_record_count: number;
-  record_lists_truncated: boolean;
-  conflicts: readonly { record_id?: string; message: string }[];
-  unrepresentable_records: readonly string[];
-  unknown_fields: readonly string[];
-}): string {
-  const lines = [
-    `${preview.restore ? "restore" : "merge"} preview`,
-    `  source database:      ${preview.source_database_id} revision ${preview.source_database_revision}`,
-    `  destination database: ${preview.destination_database_id} revision ${preview.destination_database_revision}`,
-    `  new records:          ${preview.new_record_count}`,
-    `  matching records:     ${preview.matching_record_count}`,
-    `  changed records:      ${preview.changed_record_count}`,
-    `  conflicts:            ${preview.conflicts.length}`,
-    `  unrepresentable:       ${preview.unrepresentable_records.length}`,
-    `  unknown fields:        ${preview.unknown_fields.length}`,
-  ];
-  if (preview.record_lists_truncated) {
-    lines.push("  record ID lists:      first 1,000 per category");
-  }
-  for (const conflict of preview.conflicts) {
-    lines.push(
-      `    ${conflict.record_id === undefined ? "" : `${conflict.record_id}: `}` +
-        conflict.message,
-    );
-  }
-  return lines.join("\n");
-}
-
-function renderProviderImportPreview(preview: {
-  imported: string;
-  destination_database_revision: number;
-  new_records: readonly { record_id: string; record_type: string }[];
-  matching_records: readonly { record_id: string; record_type: string }[];
-  changed_records: readonly {
-    record_id: string;
-    record_type: string;
-    current_revision: number;
-  }[];
-  conflicts: readonly { record_id?: string; message: string }[];
-  skipped: Readonly<Record<string, { count: number; example?: string }>>;
-}): string {
-  const skippedCount = Object.values(preview.skipped).reduce(
-    (total, skipped) => total + skipped.count,
-    0,
-  );
-  const lines = [
-    `${preview.imported} preview`,
-    `  destination revision: ${preview.destination_database_revision}`,
-    `  new records:         ${preview.new_records.length}`,
-    `  matching records:    ${preview.matching_records.length}`,
-    `  changed records:     ${preview.changed_records.length}`,
-    `  conflicts:           ${preview.conflicts.length}`,
-    `  skipped rows:        ${skippedCount}`,
-  ];
-  for (const conflict of preview.conflicts) {
-    lines.push(
-      `    ${conflict.record_id === undefined ? "" : `${conflict.record_id}: `}` +
-        conflict.message,
-    );
-  }
-  for (const [reason, skipped] of Object.entries(preview.skipped)) {
-    lines.push(
-      `    skipped ${skipped.count} — ${reason}` +
-        `${skipped.example === undefined ? "" : ` (example: ${skipped.example})`}`,
-    );
-  }
-  return lines.join("\n");
-}
-
 function isAthleticStandardPackagePath(path: string): boolean {
   return (
     path.toLowerCase().endsWith(".json") ||
@@ -2218,183 +2268,6 @@ function isAthleticStandardPackagePath(path: string): boolean {
 function parseGateway(value: string): "vercel" | "openrouter" {
   if (isGatewayName(value)) return value;
   fail(`unknown gateway '${value}'. Use vercel or openrouter.`);
-}
-
-function renderLogPlan(plan: LogPlan): string {
-  const lines = [
-    `understood: ${plan.interpretation}`,
-    `records to write: ${plan.inputs.length}`,
-  ];
-  for (const input of plan.inputs) {
-    lines.push(`  ${input.record_id}  ${input.record_type}`);
-    lines.push(
-      ...JSON.stringify(input.data, null, 2)
-        .split("\n")
-        .map((line) => `    ${line}`),
-    );
-    if (input.extensions !== undefined) {
-      lines.push("    extensions");
-      lines.push(
-        ...JSON.stringify(input.extensions, null, 2)
-          .split("\n")
-          .map((line) => `    ${line}`),
-      );
-    }
-  }
-  return lines.join("\n");
-}
-
-let terminalAnswerForTests: ((question: string) => Promise<string | null>) | undefined;
-
-/** Test hook. Production asks on the real terminal. */
-export function useTerminalAnswer(
-  answer: ((question: string) => Promise<string | null>) | undefined,
-): void {
-  terminalAnswerForTests = answer;
-}
-
-async function confirmWrite(
-  opts: { yes?: boolean; dryRun?: boolean; json?: boolean },
-  question: string,
-): Promise<boolean> {
-  if (opts.json || opts.dryRun) {
-    return false;
-  }
-  if (opts.yes) {
-    return true;
-  }
-  if (terminalAnswerForTests === undefined && !process.stdout.isTTY) {
-    fail(
-      `there is no terminal to ask on, so nothing was written. Pass --yes after reviewing the preview.`,
-    );
-  }
-  const answer = await askOnTerminal(`${question} [y] yes  [n] no `);
-  return /^y(es)?$/i.test(answer ?? "");
-}
-
-/** Everything piped or pasted, to the end. Empty when nothing is coming. */
-async function readStdin(): Promise<string> {
-  if (process.stdin.isTTY) {
-    process.stderr.write("Paste the entry, then press Ctrl-D:\n");
-  }
-  const chunks: Buffer[] = [];
-  for await (const chunk of process.stdin) chunks.push(Buffer.from(chunk));
-  return Buffer.concat(chunks).toString("utf8");
-}
-
-/**
- * Ask on the terminal itself rather than on stdin.
- *
- * When the entry was pasted, stdin has already ended at Ctrl-D, so there is nothing
- * left to read an answer from. The terminal is still there, so the question goes to
- * it directly. Returns null where there is no terminal at all.
- */
-async function askOnTerminal(question: string): Promise<string | null> {
-  if (terminalAnswerForTests) return terminalAnswerForTests(question);
-  const { createReadStream } = await import("node:fs");
-  let input: NodeJS.ReadableStream;
-  try {
-    input = process.stdin.isTTY && process.stdin.readable ? process.stdin : createReadStream("/dev/tty");
-  } catch {
-    return null;
-  }
-  const rl = createInterface({ input, output: process.stdout });
-  try {
-    return (await rl.question(question)).trim();
-  } catch {
-    return null;
-  } finally {
-    rl.close();
-  }
-}
-
-function findOrFail(fileArg?: string): string {
-  try {
-    return findFile(fileArg);
-  } catch (e) {
-    return fail((e as Error).message);
-  }
-}
-
-async function openOrFail(path: string, json = false): Promise<AthleticDatabase> {
-  try {
-    return await openDatabase(path, {
-      onSecurityWarning: (warning) => {
-        if (!json) console.warn(`ath: warning: ${warning}`);
-      },
-    });
-  } catch (error) {
-    if (error instanceof MigrationRequiredError) {
-      if (json || !process.stdin.isTTY || !process.stdout.isTTY) {
-        return fail(error.message);
-      }
-      return await interactiveMigrationOnOpen(path, error.preview);
-    }
-    return fail((error as Error).message);
-  }
-}
-
-export async function interactiveMigrationOnOpen(
-  path: string,
-  preview: MigrationPreview,
-): Promise<AthleticDatabase> {
-  console.log(JSON.stringify({ file: path, ...preview, write_confirmed: false }, null, 2));
-  if (!preview.migration_needed) {
-    return await openDatabase(path, {
-      onSecurityWarning: (warning) => {
-        console.warn(`ath: warning: ${warning}`);
-      },
-    });
-  }
-  if (preview.planned_steps.length === 0) {
-    return fail(preview.compatibility_effect);
-  }
-  const backupPath = preview.planned_backup_path;
-  if (backupPath === null) {
-    return fail("SQL schema migration requires a local database file");
-  }
-  if (!(await confirmWrite({}, "Apply this SQL schema migration?"))) {
-    return fail("migration was not confirmed; run ath migrate or answer yes when prompted on open");
-  }
-
-  const inspector = await inspectDatabase(path, {
-    onSecurityWarning: (warning) => {
-      console.warn(`ath: warning: ${warning}`);
-    },
-  });
-  let metadata;
-  try {
-    metadata = await readDatabaseMetadata(inspector);
-    await createVerifiedSqliteBackup(inspector, path, backupPath, metadata);
-  } finally {
-    inspector.close();
-  }
-  console.log(`verified migration backup: ${backupPath}`);
-
-  const database = await openDatabase(path, {
-    allowOutdatedSchema: true,
-    deferWal: true,
-    onSecurityWarning: (warning) => {
-      console.warn(`ath: warning: ${warning}`);
-    },
-  });
-  try {
-    await enableLocalWal(database);
-    await applyPendingDatabaseMigrations(database);
-    await setOwnerOnlyDatabasePermissions(database);
-    console.log(
-      `migrated SQL schema ${preview.source_sql_schema_version} to ${preview.target_sql_schema_version}`,
-    );
-    return database;
-  } catch (error) {
-    database.close();
-    return fail((error as Error).message);
-  }
-}
-
-function fail(message: string): never {
-  console.error(`ath: ${message}`);
-  process.exit(1);
 }
 
 function renderSkillStatus(cwd: string, copies: SkillCopy[]): string {

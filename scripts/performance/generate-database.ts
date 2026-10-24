@@ -312,7 +312,7 @@ async function addBulkSamples(
         json_extract(sample.data_json, '$.recorded_at'),
         json_extract(sample.data_json, '$.value.standard_value'),
         json_extract(sample.data_json, '$.value.standard_unit'),
-        30000,
+        NULL,
         NULL,
         '${CREATED_AT}',
         sample.data_json

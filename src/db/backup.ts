@@ -11,19 +11,28 @@ import {
 } from "./client.js";
 import type { DatabaseMetadata } from "./migrate.js";
 
+let backupNameSequence = 0;
+
 export function formatMigrationBackupTimestamp(date: Date): string {
-  return date.toISOString().replace(/[-:]/g, "").replace(/\.\d{3}Z$/, "Z");
+  const iso = date.toISOString().replace(/[-:]/g, "");
+  return `${iso.replace("Z", "")}Z`;
 }
 
 export function defaultMigrationBackupPath(databasePath: string, now = new Date()): string {
-  return `${databasePath}.migration-backup.${formatMigrationBackupTimestamp(now)}.sqlite`;
+  backupNameSequence = (backupNameSequence + 1) % 10_000;
+  return `${databasePath}.migration-backup.${formatMigrationBackupTimestamp(now)}-${backupNameSequence}.sqlite`;
+}
+
+export function defaultRepairBackupPath(databasePath: string, now = new Date()): string {
+  backupNameSequence = (backupNameSequence + 1) % 10_000;
+  return `${databasePath}.repair-backup.${formatMigrationBackupTimestamp(now)}-${backupNameSequence}.sqlite`;
 }
 
 function requireSqlite3Cli(): void {
   const probe = spawnSync("sqlite3", [":memory:", "SELECT 1;"], { encoding: "utf8" });
   if (probe.status !== 0) {
     throw new Error(
-      "SQLite backup requires the sqlite3 command-line tool. Install SQLite 3.45 or newer.",
+      "SQLite backup requires the sqlite3 command-line tool on PATH.",
     );
   }
 }
@@ -184,6 +193,8 @@ export async function createVerifiedSqliteBackup(
       await chmod(backupPath, 0o600);
     }
     await verifySqliteBackup(sourceDatabase, backupPath, sourceMetadata);
+    await removeBackupFileIfPresent(`${backupPath}-wal`);
+    await removeBackupFileIfPresent(`${backupPath}-shm`);
     backupCreated = false;
   } catch (error) {
     if (backupCreated) {

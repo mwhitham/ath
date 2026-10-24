@@ -11,9 +11,11 @@ import { createClient } from "@libsql/client";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   buildSqlContractDocument,
+  MIGRATION_002_FILE_HEADER,
   publishedMigrationSql,
   readDatabaseFileHeader,
 } from "../src/db/sql-contract.js";
+import { PROVIDER_ENCODING_REPAIR_SQL } from "../src/db/migrations/002-provider-encoding-repair.js";
 import { SQLITE_APPLICATION_ID } from "../src/db/client.js";
 import {
   createDatabase,
@@ -155,6 +157,10 @@ function expectedMigrationFileContents(): string {
   return `${header}${publishedMigrationSql()}\n`;
 }
 
+function expectedMigration002FileContents(): string {
+  return `${MIGRATION_002_FILE_HEADER}${PROVIDER_ENCODING_REPAIR_SQL}\n`;
+}
+
 function checkGeneratedFilesFresh(): void {
   const migrationPath = join(root, "spec", "sql", "migrations", "001-initial.sql");
   const onDisk = readFileSync(migrationPath, "utf8");
@@ -170,6 +176,15 @@ function checkGeneratedFilesFresh(): void {
   const contractExpected = JSON.stringify(buildSqlContractDocument(), null, 2) + "\n";
   if (contractOnDisk !== contractExpected) {
     throw new Error("spec/sql/contract.json is stale; run pnpm generate:sql-contract");
+  }
+
+  const migration002Path = join(root, "spec", "sql", "migrations", "002-provider-encoding-repair.sql");
+  const migration002OnDisk = readFileSync(migration002Path, "utf8");
+  const migration002Expected = expectedMigration002FileContents();
+  if (migration002OnDisk !== migration002Expected) {
+    throw new Error(
+      "spec/sql/migrations/002-provider-encoding-repair.sql is stale; run pnpm generate:sql-contract",
+    );
   }
 }
 
