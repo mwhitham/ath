@@ -1,10 +1,19 @@
 import type { Transaction } from "@libsql/client";
-import { databaseClient, type AthleticDatabase } from "./client.js";
+import {
+  databaseClient,
+  enableLocalWal,
+  tryRevertDeleteJournalModeAfterFailedWal,
+  type AthleticDatabase,
+} from "./client.js";
 
 export async function withWriteTransaction<T>(
   database: AthleticDatabase,
   operation: (transaction: Transaction) => Promise<T>,
 ): Promise<T> {
+  const journalBefore = String(
+    (await databaseClient(database).execute("PRAGMA journal_mode")).rows[0]?.journal_mode,
+  ).toLowerCase();
+  await enableLocalWal(database);
   const transaction = await databaseClient(database).transaction("write");
   try {
     const foreignKeys = await transaction.execute("PRAGMA foreign_keys");
@@ -18,6 +27,11 @@ export async function withWriteTransaction<T>(
   } catch (error) {
     if (!transaction.closed) {
       await transaction.rollback();
+    }
+    try {
+      await tryRevertDeleteJournalModeAfterFailedWal(database, journalBefore);
+    } catch {
+      // Best-effort journal revert; the original write failure is thrown below.
     }
     throw error;
   } finally {

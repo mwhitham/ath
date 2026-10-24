@@ -89,8 +89,8 @@ describe("ath migrate", () => {
     expect(res.code).toBe(0);
     const json = JSON.parse(res.stdout);
     expect(json.migration_needed).toBe(false);
-    expect(json.source_sql_schema_version).toBe(1);
-    expect(json.target_sql_schema_version).toBe(1);
+    expect(json.source_sql_schema_version).toBe(2);
+    expect(json.target_sql_schema_version).toBe(2);
   });
 
   it("does not switch journal mode during a dry-run preview", async () => {

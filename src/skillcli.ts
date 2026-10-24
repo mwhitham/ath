@@ -5,6 +5,7 @@
  * when it is behind the code, the same way the JSON Schema and the fixture are
  * checked. Regenerate, do not hand-edit.
  */
+import type { EventEmitter } from "node:events";
 import type { Command } from "commander";
 
 /** Fixed so the output does not depend on the terminal it was generated in. */
@@ -22,11 +23,27 @@ function fixWidth(cmd: Command): void {
   for (const sub of cmd.commands) fixWidth(sub);
 }
 
+function helpTextIncludingAfter(cmd: Command): string {
+  const chunks: string[] = [cmd.helpInformation().trimEnd()];
+  const context = {
+    error: false,
+    write: (text: string) => {
+      const trimmed = text.trimEnd();
+      if (trimmed.length > 0) {
+        chunks.push(trimmed);
+      }
+    },
+    command: cmd,
+  };
+  (cmd as Command & EventEmitter).emit("afterHelp", context);
+  return chunks.join("\n\n");
+}
+
 function walk(cmd: Command, prefix: string, out: HelpEntry[]): void {
   for (const sub of cmd.commands) {
     if (sub.name() === "help") continue;
     const path = `${prefix} ${sub.name()}`;
-    out.push({ path, summary: sub.description(), help: sub.helpInformation().trimEnd() });
+    out.push({ path, summary: sub.description(), help: helpTextIncludingAfter(sub) });
     walk(sub, path, out);
   }
 }

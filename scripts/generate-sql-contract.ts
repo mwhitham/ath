@@ -7,12 +7,15 @@ import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
   buildSqlContractDocument,
+  MIGRATION_002_FILE_HEADER,
   publishedMigrationSql,
 } from "../src/db/sql-contract.js";
+import { PROVIDER_ENCODING_REPAIR_SQL } from "../src/db/migrations/002-provider-encoding-repair.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const sqlDir = join(root, "spec", "sql");
 const migrationPath = join(sqlDir, "migrations", "001-initial.sql");
+const migration002Path = join(sqlDir, "migrations", "002-provider-encoding-repair.sql");
 const contractPath = join(sqlDir, "contract.json");
 
 const header = `-- Athletic Standard SQL schema migration 001 (sql_schema_version 1).
@@ -26,6 +29,9 @@ const header = `-- Athletic Standard SQL schema migration 001 (sql_schema_versio
 mkdirSync(dirname(migrationPath), { recursive: true });
 writeFileSync(migrationPath, `${header}${publishedMigrationSql()}\n`);
 console.log(`wrote spec/sql/migrations/001-initial.sql`);
+
+writeFileSync(migration002Path, `${MIGRATION_002_FILE_HEADER}${PROVIDER_ENCODING_REPAIR_SQL}\n`);
+console.log(`wrote spec/sql/migrations/002-provider-encoding-repair.sql`);
 
 writeFileSync(contractPath, JSON.stringify(buildSqlContractDocument(), null, 2) + "\n");
 console.log(`wrote spec/sql/contract.json`);
