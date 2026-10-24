@@ -8,11 +8,8 @@
 import {
   ATHLETIC_STANDARD_VERSION,
   type AthleticStandardFileT,
-  type SeriesQuantity,
-  type SeriesRefT,
   type SourceT,
 } from "../schema.js";
-import { assembleSeriesRef, writeSeriesFile } from "../series.js";
 import { silentProgress, type Progress } from "../progress.js";
 import { detectExport, readCsvBundle, type DetectedExport } from "./detect.js";
 import { importAppleHealth } from "./apple.js";
@@ -134,55 +131,3 @@ export async function parseProviderExport(
   return parseProviderExportInto(file, exportPath, progress);
 }
 
-/**
- * Import `exportPath` into `file`, writing sidecars beside `athleteFilePath`.
- * Mutates `file`; the caller saves it.
- */
-export async function importExport(
-  file: AthleticStandardFileT,
-  athleteFilePath: string,
-  exportPath: string,
-  progress: Progress = silentProgress,
-): Promise<ImportResult> {
-  const pooled = pooledSources(file);
-  if (pooled.length > 0) throw new PooledFileError(pooled.map((s) => s.id));
-
-  // Captured before parsing, because sources are created as writers are met (D52).
-  const knownSources = new Set(file.sources.map((s) => s.id));
-
-  const parsed = await parseProviderExportInto(file, exportPath, progress);
-  const { payload, label } = parsed;
-
-  // Sidecars are written before the document is touched, because a coverage record
-  // hashes every day on disk for its quantity — including days written by earlier
-  // imports, which only the filesystem knows about (D40).
-  if (payload.series.length > 0) progress.start("writing series files", payload.series.length);
-  for (const built of payload.series) {
-    writeSeriesFile(athleteFilePath, built);
-    progress.advance();
-  }
-  progress.finish();
-
-  const touched = new Map<string, { quantity: SeriesQuantity; source: string }>();
-  for (const built of payload.series) {
-    touched.set(`${built.quantity}|${built.source}`, {
-      quantity: built.quantity,
-      source: built.source,
-    });
-  }
-
-  // Each coverage record re-hashes every sidecar on disk for its quantity, which on a
-  // long history is the slowest step after the XML itself.
-  if (touched.size > 0) progress.start("recording coverage", touched.size);
-  const coverage: SeriesRefT[] = [];
-  for (const { quantity, source } of touched.values()) {
-    const ref = assembleSeriesRef(athleteFilePath, quantity, source);
-    if (ref) coverage.push(ref);
-    progress.advance();
-  }
-  progress.finish();
-
-  const summary = mergePayload(file, payload, coverage, knownSources);
-
-  return { summary, label };
-}

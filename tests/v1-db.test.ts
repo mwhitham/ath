@@ -1,6 +1,7 @@
-import { chmod, lstat, mkdir, mkdtemp, rm, symlink } from "node:fs/promises";
+import { createHash } from "node:crypto";
+import { chmod, lstat, mkdir, mkdtemp, readFile, rm, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import { spawnSync } from "node:child_process";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
@@ -31,6 +32,7 @@ import {
   readApplicationId,
   readUserVersion,
 } from "../src/db/client.js";
+import { materializeNpm100ProviderDatabase } from "./helpers/npm100-database.js";
 
 const databaseId = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e01";
 const sourceId = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e02";
@@ -129,7 +131,7 @@ describe("v1 database creation and opening", () => {
     expect(await readUserVersion(database)).toBe(SQL_SCHEMA_VERSION);
     expect(await readDatabaseMetadata(database)).toEqual({
       application_marker: "ATH1",
-      sql_schema_version: 1,
+      sql_schema_version: 2,
       athleticstandard_version: "1.0.0",
       database_id: databaseId,
       created_at: createdAt,
@@ -271,13 +273,97 @@ describe("v1 database creation and opening", () => {
     }
   });
 
+  it("does not write the database file on read-only CLI commands", async () => {
+    const { database, path } = await newDatabase();
+    await databaseClient(database).execute("PRAGMA journal_mode = DELETE");
+    const { releaseLocalDatabase } = await import("../src/db/index.js");
+    await releaseLocalDatabase(database);
+    openDatabases.pop();
+    const { hashDatabaseFilesRaw } = await import("./helpers/raw-database-hash.js");
+    const hashBefore = await hashDatabaseFilesRaw(path);
+    const directory = dirname(path);
+    const { execFileSync } = await import("node:child_process");
+    const { resolve } = await import("node:path");
+    const { fileURLToPath } = await import("node:url");
+    const here = dirname(fileURLToPath(import.meta.url));
+    const cli = resolve(here, "../src/cli.ts");
+    const tsx = resolve(here, "../node_modules/.bin/tsx");
+    for (const args of [
+      ["check"],
+      ["records", "list", "--json"],
+      ["stats", "--json"],
+      ["migrate", "--dry-run"],
+    ]) {
+      execFileSync(tsx, [cli, ...args], { cwd: directory, encoding: "utf8", stdio: "pipe" });
+    }
+    const hashAfter = await hashDatabaseFilesRaw(path);
+    expect(hashAfter).toBe(hashBefore);
+  });
+
   it("refuses a local user_version that disagrees with metadata", async () => {
     const { database, path } = await newDatabase();
-    await databaseClient(database).execute("PRAGMA user_version = 2");
+    await databaseClient(database).execute("PRAGMA user_version = 1");
     database.close();
     openDatabases.pop();
     await expect(openDatabase(path)).rejects.toThrow("does not match");
   });
+
+  it.runIf(process.platform !== "win32")(
+    "does not write unhealthy databases during read-only CLI commands",
+    async () => {
+      const { directory, databasePath } = materializeNpm100ProviderDatabase();
+      temporaryDirectories.push(directory);
+      const { hashDatabaseFilesRaw, useDeleteJournalMode } = await import(
+        "./helpers/raw-database-hash.js",
+      );
+      await useDeleteJournalMode(databasePath);
+      const hashOf = () => hashDatabaseFilesRaw(databasePath);
+      const hashHealthy = await hashOf();
+      const { execFileSync } = await import("node:child_process");
+      const { resolve } = await import("node:path");
+      const { fileURLToPath } = await import("node:url");
+      const here = dirname(fileURLToPath(import.meta.url));
+      const cli = resolve(here, "../src/cli.ts");
+      const tsx = resolve(here, "../node_modules/.bin/tsx");
+      for (const args of [
+        ["check"],
+        ["stats", "--json"],
+        ["migrate", "--dry-run"],
+      ]) {
+        try {
+          execFileSync(tsx, [cli, ...args], { cwd: directory, encoding: "utf8", stdio: "pipe" });
+        } catch {
+          // read-only commands may exit non-zero on schema 1 or invalid data; they must not write.
+        }
+      }
+      expect(await hashOf()).toBe(hashHealthy);
+
+      const client = createClient({ url: pathToFileURL(databasePath).href });
+      await client.execute("UPDATE database_metadata SET sql_schema_version = 2");
+      await client.close();
+      const hashMismatch = await hashOf();
+      try {
+        execFileSync(tsx, [cli, "migrate", "--dry-run"], {
+          cwd: directory,
+          encoding: "utf8",
+          stdio: "pipe",
+        });
+      } catch {
+        // migrate preview refuses when user_version lags metadata.
+      }
+      expect(await hashOf()).toBe(hashMismatch);
+
+      await chmod(databasePath, 0o444);
+      const readonlyHash = await hashOf();
+      try {
+        execFileSync(tsx, [cli, "check"], { cwd: directory, encoding: "utf8", stdio: "pipe" });
+      } catch {
+        // check is expected to fail on a read-only database.
+      }
+      expect(await hashOf()).toBe(readonlyHash);
+      await chmod(databasePath, 0o600);
+    },
+  );
 
   it.runIf(process.platform !== "win32")(
     "warns before opening a database readable by other local users",

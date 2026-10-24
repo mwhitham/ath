@@ -1,5 +1,7 @@
 import { execFileSync } from "node:child_process";
 import {
+  copyFileSync,
+  mkdirSync,
   mkdtempSync,
   readFileSync,
   readdirSync,
@@ -10,6 +12,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
+import { exportRecords, openDatabase } from "../src/db/index.js";
 import {
   AthleticStandardPackage,
   ExportManifest,
@@ -87,6 +90,31 @@ describe("v1 deterministic package export", () => {
     expect(
       readdirSync(join(output, "attachments")),
     ).toEqual(["01890f3e-e7d3-7cc0-88c8-00000000000e.png"]);
+  });
+
+  it("allows concurrent exports in the same parent directory", async () => {
+    const directory = mkdtempSync(join(tmpdir(), "ath-v1-export-concurrent-"));
+    const databasePath = join(directory, "athlete.ath.sqlite");
+    copyFileSync(FIXTURE, databasePath);
+    mkdirSync(join(directory, "attachments"));
+    copyFileSync(
+      resolve(here, "../examples/demo-athlete/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png"),
+      join(directory, "attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png"),
+    );
+    const database = await openDatabase(databasePath);
+    try {
+      const [first, second] = await Promise.all([
+        exportRecords(database, join(directory, "package-a")),
+        exportRecords(database, join(directory, "package-b")),
+      ]);
+      expect(first.directory).toBe(join(directory, "package-a"));
+      expect(second.directory).toBe(join(directory, "package-b"));
+      expect(
+        readFileSync(join(first.directory, "export-manifest.json"), "utf8"),
+      ).toContain("database_revision");
+    } finally {
+      database.close();
+    }
   });
 
   it("produces byte-identical files from the same database revision", () => {

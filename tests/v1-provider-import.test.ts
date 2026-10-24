@@ -828,4 +828,92 @@ describe("v1 provider import", () => {
       ],
     });
   });
+
+  it("imports one SpO2 point per row for flat and JSON Oura cells", async () => {
+    const database = await emptyDatabase();
+    const preview = await previewProviderImport(database, join(fixtures, "oura-spo2"), {
+      received_at: receivedAt,
+    });
+    expect(preview.provider).toBe("oura");
+    await importProviderRecords(database, preview);
+    const spo2 = await listRecords(database, {
+      record_type: "point_measurement",
+      limit: 10_000,
+    });
+    const oxygen = spo2.filter(
+      (record) =>
+        record.record_type === "point_measurement" &&
+        record.data.quantity === "oxygen_saturation",
+    );
+    expect(oxygen).toHaveLength(4);
+  });
+
+  it("labels Oura portal score rows from contributor key shape", async () => {
+    const database = await emptyDatabase();
+    const preview = await previewProviderImport(database, join(fixtures, "oura-portal"), {
+      received_at: receivedAt,
+    });
+    expect(preview.provider).toBe("oura");
+    await importProviderRecords(database, preview);
+    const scores = await listRecords(database, {
+      record_type: "provider_score",
+      limit: 10_000,
+    });
+    const byMetric = (metric: string) =>
+      scores.filter(
+        (record) =>
+          record.record_type === "provider_score" && record.data.metric === metric,
+      );
+    expect(byMetric("readiness")).toHaveLength(2);
+    expect(byMetric("sleep_score")).toHaveLength(2);
+    expect(byMetric("activity_score")).toHaveLength(2);
+    const topLevelScores = scores
+      .filter(
+        (
+          record,
+        ): record is Extract<
+          (typeof scores)[number],
+          { record_type: "provider_score" }
+        > =>
+          record.record_type === "provider_score" &&
+          ["readiness", "sleep_score", "activity_score"].includes(record.data.metric),
+      )
+      .map((record) => [record.data.metric, record.data.value.standard_value]);
+    expect(topLevelScores).toContainEqual(["readiness", 74]);
+    expect(topLevelScores).toContainEqual(["sleep_score", 82]);
+    expect(topLevelScores).toContainEqual(["activity_score", 66]);
+  });
+
+  it("imports Oura member-portal CSV scores and readiness contributors", async () => {
+    const database = await emptyDatabase();
+    const preview = await previewProviderImport(database, join(fixtures, "oura-member-portal"), {
+      received_at: receivedAt,
+    });
+    expect(preview.provider).toBe("oura");
+    await importProviderRecords(database, preview);
+    const scores = await listRecords(database, {
+      record_type: "provider_score",
+      limit: 10_000,
+    });
+    const readiness = scores.filter(
+      (record) =>
+        record.record_type === "provider_score" &&
+        record.data.metric === "readiness",
+    );
+    const sleepScores = scores.filter(
+      (record) =>
+        record.record_type === "provider_score" &&
+        record.data.metric === "sleep_score",
+    );
+    const contributors = scores.filter(
+      (record) =>
+        record.record_type === "provider_score" &&
+        record.data.metric.startsWith("readiness_contributor_"),
+    );
+    expect(readiness.length).toBeGreaterThanOrEqual(2);
+    expect(sleepScores.length).toBeGreaterThanOrEqual(2);
+    expect(contributors.length).toBeGreaterThanOrEqual(8);
+    const check = await checkDatabase(database);
+    expect(check.valid, JSON.stringify(check.issues, null, 2)).toBe(true);
+  });
 });

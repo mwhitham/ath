@@ -1,6 +1,6 @@
 {
   "contract": "athleticstandard-sql",
-  "sql_schema_version": 1,
+  "sql_schema_version": 2,
   "minimum_sqlite_version": "3.45.0",
   "user_version_mirror": {
     "description": "On local SQLite files, PRAGMA user_version equals database_metadata.sql_schema_version after creation.",
@@ -21,6 +21,11 @@
       "version": 1,
       "file": "migrations/001-initial.sql",
       "description": "Initial Athletic Standard v1 schema, enforcement triggers, and stable read views."
+    },
+    {
+      "version": 2,
+      "file": "migrations/002-provider-encoding-repair.sql",
+      "description": "Repair typed-table JSON bytes after npm 1.0.0 provider imports without changing record content."
     }
   ],
   "metadata_insert": {
@@ -31,7 +36,7 @@
     ],
     "header_pragmas": [
       "PRAGMA application_id = 1096042545;",
-      "PRAGMA user_version = 1;"
+      "PRAGMA user_version = 2;"
     ]
   },
   "file_header_pragmas": {
