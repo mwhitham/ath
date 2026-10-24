@@ -6,7 +6,7 @@ import { createClient, type Client, type ResultSet } from "@libsql/client";
 export const SQLITE_APPLICATION_ID = 0x41544831;
 export const SQLITE_APPLICATION_MARKER = "ATH1";
 export const SQLITE_BUSY_TIMEOUT_MS = 5_000;
-export const SQL_SCHEMA_VERSION = 1;
+export const SQL_SCHEMA_VERSION = 2;
 
 export interface AthleticDatabase {
   readonly url: string;
@@ -16,6 +16,28 @@ export interface AthleticDatabase {
 }
 
 const clients = new WeakMap<AthleticDatabase, Client>();
+const openLocalDatabases = new Set<AthleticDatabase>();
+const skipWalCheckpointOnRelease = new WeakMap<AthleticDatabase, boolean>();
+
+export function markSkipWalCheckpointOnRelease(database: AthleticDatabase): void {
+  skipWalCheckpointOnRelease.set(database, true);
+}
+
+export function trackOpenLocalDatabase(database: AthleticDatabase): void {
+  if (database.isLocal) {
+    openLocalDatabases.add(database);
+  }
+}
+
+export function untrackOpenLocalDatabase(database: AthleticDatabase): void {
+  openLocalDatabases.delete(database);
+}
+
+export async function releaseAllOpenLocalDatabases(): Promise<void> {
+  for (const database of [...openLocalDatabases]) {
+    await releaseLocalDatabase(database);
+  }
+}
 
 export function databaseClient(database: AthleticDatabase): Client {
   const client = clients.get(database);
@@ -151,6 +173,56 @@ export async function enableLocalWal(database: AthleticDatabase): Promise<void> 
   if (mode !== "wal") {
     throw new Error(`SQLite did not enable WAL mode: ${mode}`);
   }
+}
+
+export function isSqliteBusy(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+  const message = error.message.toUpperCase();
+  if (message.includes("SQLITE_BUSY") || message.includes("DATABASE IS LOCKED")) {
+    return true;
+  }
+  return "code" in error && String((error as { code: unknown }).code).toUpperCase() === "SQLITE_BUSY";
+}
+
+/** After a rolled-back write, switch a connection back from WAL only when the file started in DELETE mode. */
+export async function tryRevertDeleteJournalModeAfterFailedWal(
+  database: AthleticDatabase,
+  journalBefore: string,
+): Promise<void> {
+  if (journalBefore === "wal") {
+    return;
+  }
+  try {
+    await databaseClient(database).execute("PRAGMA journal_mode = DELETE");
+  } catch (error) {
+    if (isSqliteBusy(error)) {
+      return;
+    }
+    throw error;
+  }
+}
+
+/** Close a local database and truncate WAL sidecars when possible. */
+export async function releaseLocalDatabase(database: AthleticDatabase): Promise<void> {
+  if (!database.isLocal) {
+    database.close();
+    return;
+  }
+  try {
+    const journalMode = String(
+      (await databaseClient(database).execute("PRAGMA journal_mode")).rows[0]?.journal_mode,
+    ).toLowerCase();
+    if (journalMode === "wal" && skipWalCheckpointOnRelease.get(database) !== true) {
+      await databaseClient(database).execute("PRAGMA wal_checkpoint(TRUNCATE)");
+    }
+  } catch {
+    // The file may already be closed or read-only.
+  }
+  skipWalCheckpointOnRelease.delete(database);
+  untrackOpenLocalDatabase(database);
+  database.close();
 }
 
 async function chmodIfPresent(path: string, mode: number): Promise<void> {

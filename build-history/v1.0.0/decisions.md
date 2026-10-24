@@ -1286,3 +1286,315 @@ Rejected alternatives:
   required before the first v1 npm publish and does not depend on #15 landing first.
 - **Implement without recording the plan text.** Rejected because build-history must
   contain the approved decisions and specification before or as the build happens.
+
+## D130. npm package 1.1.0 ships while `athleticstandard_version` stays 1.0.0
+
+The npm package version tracks CLI and packaging behavior. `athleticstandard_version`
+in the database and JSON package tracks athlete-owned record content. Release 1.1.0
+changes migrate, repair, import, and export behavior without changing the public v1
+record schema, so the format version remains `1.0.0`.
+
+Rejected alternatives:
+
+- **Bump the format version to 1.1.0.** Rejected because no normative field or record
+  type changed in `src/v1/schema.ts`.
+- **Keep npm at 1.0.0 while changing migrate behavior.** Rejected because published
+  1.0.0 already contains the default-model path bug and cannot be overwritten in place.
+
+## D131. SQL schema version 2 repairs npm 1.0.0 provider-import typed-table bytes
+
+npm 1.0.0 could write `data_json` with a different key order than
+`record_revisions.record_json` for the same logical record. `ath check` compares those
+columns byte for byte. SQL schema version 2 runs a one-time repair in the migration
+runner that copies `record_json` into `data_json` only when
+`semanticJsonEqual` says the values match (including nested key order). A true
+semantic mismatch aborts migration and points to `ath repair` after fixing the
+revision payload. The published `002` SQL file bumps `database_metadata`; row
+alignment runs in TypeScript inside the same write transaction as
+`PRAGMA user_version = 2`.
+
+Rejected alternatives:
+
+- **Require export, empty init, and import.** Rejected as the only path because it is
+  slow, easy to skip, and was untested in CI.
+- **Stop byte comparison in `ath check`.** Rejected because direct-SQL writers rely on
+  the typed tables matching the current revision bytes.
+
+## D132. `ath repair` for encoding repair without a schema bump
+
+`ath repair` previews and applies the same typed-table byte repair as migration step 2
+on any supported `sql_schema_version`, including schema 1, without bumping
+`sql_schema_version`. Databases that still need schema 2 must run `ath migrate` for
+the one-way upgrade; migrate runs the same encoding repair inside that step. When
+typed-table bytes disagree with the current revision in meaning, `ath repair
+--from-revision` copies `record_json` into `data_json` after backup and explicit
+database-ID confirmation. Confirmed repair uses the same verified `sqlite3` backup
+path as migrate and reuses an existing repair backup when the revision did not change.
+
+Rejected alternatives:
+
+- **Repair without backup.** Rejected because a failed repair must be recoverable from
+  a verified copy, matching migrate.
+- **Let repair bump `sql_schema_version`.** Rejected because schema version and repair
+  are separate operator steps; migrate owns the one-way schema upgrade.
+
+## D133. Migration backup uses inode checks and honest WAL failure text
+
+After a verified `sqlite3` backup, `executeConfirmedDatabaseMigration` re-checks the
+database file inode and `database_state.current_revision` before enabling WAL and
+before applying migrations. If migration fails after WAL was enabled, the error
+message includes the underlying cause and says whether the revision changed; it points
+to restore from the backup only when the revision changed.
+
+Rejected alternatives:
+
+- **Inode check only.** Rejected because another writer can commit between backup and
+  migration without replacing the file.
+- **Claim the file is unchanged on any failure.** Rejected because WAL mode may already
+  be enabled even when the revision did not change.
+
+## D134. Interactive open uses the same confirmed migration path as `ath migrate`
+
+Interactive open now asks for the database ID, then calls
+`executeConfirmedDatabaseMigration` instead of duplicating backup and migration steps
+in the CLI layer.
+
+Rejected alternatives:
+
+- **Keep a separate interactive migration implementation in the CLI.** Rejected because
+  backup, WAL, and failure text would drift from `ath migrate`.
+- **Auto-migrate without database ID confirmation.** Rejected because migration is
+  one-way and must stay explicit.
+
+## D135. Package export uses stable key order and durable writes
+
+Export JSON sorts object keys by UTF-16 code unit order (JavaScript string order), not
+`localeCompare`. Each package file is written through a temporary file, `fsync`, and
+`rename`. The whole package directory is built in a hidden sibling folder, synced, then
+renamed into place so a crash cannot leave a half-written export tree.
+
+Rejected alternatives:
+
+- **Write directly into the destination directory.** Rejected because partial exports
+  look complete until `export-manifest.json` appears.
+- **Locale-aware key sorting.** Rejected because exports must match across machines.
+
+## D136. Oura member-portal CSV columns (`score`, JSON `contributors`, JSON SpO2)
+
+The Oura importer maps member-portal `score` from the contributor keys inside the JSON
+`contributors` cell (readiness vs sleep vs activity sub-scores use different key sets),
+parses contributor JSON cells, and reads JSON `spo2_percentage` only when the cell
+starts with `{` so flat SpO2 columns are not duplicated.
+
+Rejected alternatives:
+
+- **Infer readiness or sleep score from the filename.** Rejected because Trends bundles
+  mix categories in one table.
+- **Treat a bare `score` header as an Oura marker in detect.** Rejected because it is
+  not specific enough outside member-portal exports.
+
+## D137. Document the `sqlite3` CLI dependency for migration backup
+
+README and `skill/references/cli.md` state that `ath migrate` and confirmed `ath
+repair` need the `sqlite3` command on `PATH`. The backup error no longer claims a
+minimum SQLite version that the tool does not enforce.
+
+Rejected alternatives:
+
+- **Shell out to a bundled sqlite3 binary.** Rejected because it would enlarge the npm
+  package and duplicate the system tool CI already uses.
+- **Use only libSQL backup APIs.** Rejected because verified backup parity with
+  `sqlite3 .backup` is already tested and documented.
+
+## D138. Remove unreachable prerelease JSON runtime modules
+
+Modules only referenced by excluded 0.x JSON tests and unused import paths were
+removed from `src/`. The live CLI path still uses `src/import/*` for provider parsing
+and `src/v1/schema.ts` for records. Legacy `loadFile` / `saveFile` helpers were removed
+from `src/file.ts`; `src/schema.ts` remains for provider import types.
+
+Rejected alternatives:
+
+- **Delete `src/schema.ts` with the JSON runtime.** Rejected because provider import
+  still maps through legacy signal types until a typed v1 import layer exists.
+- **Keep JSON load helpers for undocumented callers.** Rejected because v1 commands use
+  SQLite only.
+
+## D139. Split CLI runtime and preview rendering out of `src/program.ts`
+
+Shared terminal prompts, database open helpers, and import preview rendering moved to
+`src/cli/runtime.ts` and `src/cli/preview-render.ts`. `buildProgram()` remains the
+command registry.
+
+Rejected alternatives:
+
+- **Leave all helpers inline in `program.ts`.** Rejected because the file was too large
+  to review safely.
+- **Move commands into separate binaries.** Rejected because the Skill and docs assume
+  one `ath` entry point.
+
+## D140. CI runs on Node.js 22 and 24
+
+Pull-request CI uses Node 22 and 24. The package `engines` field requires Node 22 or
+newer.
+
+Rejected alternatives:
+
+- **Stay on Node 20.** Rejected because Node 22 is the current maintenance baseline
+  for new LTS work in this repo.
+- **CI on a single Node version only.** Rejected because publish targets both 22 and 24.
+
+## D141. Cross-platform release workflow accepts any `v*` tag
+
+`release-cross-platform.yml` triggers on `workflow_dispatch` and on tags matching `v*`
+so releases are not blocked on a single historical tag pattern.
+
+Rejected alternatives:
+
+- **Keep a single hard-coded release tag.** Rejected because it blocked `v1.1.0`.
+- **Manual-only releases with no tag trigger.** Rejected because cross-platform checks
+  would not run automatically.
+
+## D142. Prior pull request #3 broke the build-history folder rule
+
+Pull request #3 landed build-history content without matching the version-folder rule
+later written in `build-history/README.md`. This entry records the violation; earlier
+folders are not moved or rewritten.
+
+Rejected alternatives:
+
+- **Rewrite `v0.1.0/` to match today's README.** Rejected because build-history is
+  append-only.
+- **Ignore the violation.** Rejected because agents rely on the README rule.
+
+## D143. Prior pull requests #4, #6, and #14 broke the build-history folder rule
+
+Those pull requests committed plan or decision text outside the version-folder pattern
+now required by `build-history/README.md`. Pull request #14's migration study lives in
+`build-history/v1.0.0/appendix/v0.4.3-migration.md` and is cited here rather than
+relitigated. They are recorded here without retroactive folder moves.
+
+Rejected alternatives:
+
+- **Merge their decisions into a single synthetic folder.** Rejected because it would
+  rewrite merged history.
+- **Delete the offending files.** Rejected because decisions must stay citeable.
+
+## D144. npm package version and format version use different folder names
+
+Build-history folders are named for `athleticstandard_version`, not the npm package
+version. npm `1.1.0` work therefore continues under `build-history/v1.0.0/` while the
+record format stays `1.0.0`. `build-history/README.md` now states that rule explicitly.
+
+Rejected alternatives:
+
+- **Create `build-history/v1.1.0/` for npm-only releases.** Rejected because no format
+  version `1.1.0` exists in `src/v1/schema.ts`.
+- **Require npm and format versions to share one folder name.** Rejected because patch
+  npm releases often change CLI behavior without schema changes.
+
+## D145. Prior pull request #25 merged 1.1.0 prep without a new format folder
+
+Pull request #25 carried npm `1.1.0` preparation while the format remained `1.0.0`.
+That matches D144 and does not require a new build-history version folder. npm registry
+`latest` was still `1.0.0` when that pull request merged.
+
+Rejected alternatives:
+
+- **Treat #25 as publishing npm 1.1.0.** Rejected because the registry still showed
+  `1.0.0` after merge.
+- **Rewrite #25's build-history paths.** Rejected because merged folders stay as-is.
+
+## D146. v1.0.0 progress table vs cross-platform workflow that never ran
+
+v1.0.0 `progress.md` still lists release step 10 with checkboxes that predate later
+workflow edits. A cross-platform workflow file existed before the 1.0.0 npm publish
+with trigger `v1.0.0-*`, but GitHub Actions recorded zero runs on that workflow and
+the repository had no release tags, so npm `1.0.0` shipped without cross-platform CI.
+D141 later widened tag matching to `v*`; it did not retroactively run cross-platform
+checks for 1.0.0.
+
+Rejected alternatives:
+
+- **Rewrite the step-10 table to match today's workflow.** Rejected because
+  build-history is append-only.
+- **Claim cross-platform CI ran for 1.0.0.** Rejected because the workflow history shows
+  zero runs and no tags existed at publish time.
+
+## D147. Draft pull requests #20 and #31 may renumber D-numbers later
+
+This release continues D-numbers from D129 on `main`. Open drafts already claim
+overlapping ranges and should renumber when they merge; merged history is not rewritten.
+
+Rejected alternatives:
+
+- **Renumber merged D-numbers when drafts land.** Rejected because merged decisions
+  must stay stable for citations.
+- **Block this release until drafts renumber.** Rejected because draft ranges do not
+  change shipped behavior.
+
+## D148. License moves in pull requests #10 and #12
+
+Pull request #10 switched the repository license to Apache-2.0. Pull request #12
+switched it back to MIT. Neither change altered the Athletic Standard file format, so
+neither received a build-history version folder; this D-number records the sequence.
+
+Rejected alternatives:
+
+- **Fold license history into D143 folder-rule entries.** Rejected because #10 and #12
+  were not folder-rule violations.
+- **Omit license history.** Rejected because agents grep decisions for licensing.
+
+## D149. Read-only CLI opens do not enable WAL
+
+Read-only commands (`check`, `stats`, `records`, `calculate`, `series`, `export`,
+and `migrate --dry-run`) open the database with `deferWal: true` so they do not
+switch an existing delete-mode file to WAL. `releaseLocalDatabase` runs
+`PRAGMA wal_checkpoint(TRUNCATE)` when a connection had enabled WAL, so confirmed
+writes do not leave `-wal` and `-shm` files behind after close.
+
+Opening or writing against a read-only main database file (mode `444`) on a database
+that is already in WAL mode may still create or extend `-wal` and `-shm` files
+because SQLite opens the WAL journal for the connection. The tool does not delete
+those sidecars after a failed write (D151).
+
+Rejected alternatives:
+
+- **Enable WAL on every open for performance.** Rejected because read-only commands
+  must not change the database file hash.
+- **Leave WAL sidecars after read-only use.** Rejected because operators treat extra
+  files as unexpected writes.
+
+## D150. No automatic SQLite `user_version` header recovery
+
+If `PRAGMA user_version` disagrees with `database_metadata.sql_schema_version`, every
+command refuses. This build sets `user_version` inside the migration write
+transaction, so a metadata-only advance without row repair should not occur in normal
+use. Recovery is restore from backup, or `ath init --empty` plus `ath import` from a
+complete JSON package.
+
+Rejected alternatives:
+
+- **Reconcile `user_version` on read.** Rejected because it hides broken metadata and
+  breaks read-only guarantees.
+- **Silent header repair without checking row data.** Rejected because applying
+  `002-provider-encoding-repair.sql` alone already showed false "no migration required"
+  states while `ath check` failed.
+
+## D151. Failed writes must not delete WAL sidecar files
+
+When a write transaction rolls back, the tool may switch a connection from WAL back to
+DELETE only if the database file was already in DELETE mode before that attempt. If
+`PRAGMA journal_mode = DELETE` returns busy because another connection holds a read
+snapshot, the tool leaves `-wal` and `-shm` in place. If the file was already in WAL
+mode, a failed write does not change journal mode or remove sidecars. Unlinking sidecars
+after a failed write can destroy committed data that has not been checkpointed into the
+main file.
+
+Rejected alternatives:
+
+- **Unlink `-wal` and `-shm` after any failed write.** Rejected because a later failed
+  command can erase committed rows another connection still needs from the WAL file.
+- **Leave every failed write in WAL mode.** Rejected because DELETE-mode npm 1.0.0 files
+  should return to DELETE when the revert succeeds, matching operator expectations for
+  single-file databases.
