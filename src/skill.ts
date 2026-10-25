@@ -1,13 +1,11 @@
 /**
  * Installing the skill (D49 and D41 on the mechanism, D79 on where it goes).
  *
- * `skill/` is a directory copied whole, not a path to one file. It always goes to
- * `.agents/skills/`, which Claude Code, Cursor, Codex, and Gemini CLI all read, and
- * also into any harness folder already present. Each copy carries its version in
- * the `SKILL.md` frontmatter, so a copy left behind by an older `ath` can be told
- * from the shipped one and refreshed with `ath skill install`.
+ * `skill/` is a directory copied into `.agents/skills/`, which Claude Code, Cursor,
+ * Codex, and Gemini CLI read, and also into any harness folder already present.
+ * A file that is already installed is left alone. A new file is added.
  */
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -20,7 +18,7 @@ export const ALWAYS_DIR = ".agents";
 /** Written too, when the folder is already here. */
 export const AGENT_DIRS = [".claude", ".cursor", ".codex", ".gemini", ".github"] as const;
 
-export type SkillState = "current" | "stale" | "missing";
+export type SkillState = "installed" | "missing";
 
 export interface SkillCopy {
   /** The installed folder, absolute. */
@@ -100,11 +98,28 @@ export function skillTargets(cwd: string): string[] {
   return targets;
 }
 
+function copyMissingFiles(source: string, destination: string): number {
+  let added = 0;
+  for (const entry of readdirSync(source)) {
+    const from = join(source, entry);
+    const to = join(destination, entry);
+    if (statSync(from).isDirectory()) {
+      mkdirSync(to, { recursive: true });
+      added += copyMissingFiles(from, to);
+      continue;
+    }
+    if (existsSync(to)) continue;
+    cpSync(from, to);
+    added += 1;
+  }
+  return added;
+}
+
 /**
- * Copy the skill into `.agents/skills/` and every harness folder present in `cwd`.
+ * Copy skill files that are not already installed.
  *
- * Returns the paths written. An existing copy is replaced whole, so a file the old
- * version shipped and the new one does not is gone afterwards.
+ * Returns the destination folders where at least one file was added.
+ * An existing file is not replaced.
  */
 export function installSkill(cwd: string): string[] {
   const source = skillSource();
@@ -112,10 +127,8 @@ export function installSkill(cwd: string): string[] {
 
   const written: string[] = [];
   for (const destination of skillTargets(cwd)) {
-    mkdirSync(dirname(destination), { recursive: true });
-    rmSync(destination, { recursive: true, force: true });
-    cpSync(source, destination, { recursive: true });
-    written.push(destination);
+    mkdirSync(destination, { recursive: true });
+    if (copyMissingFiles(source, destination) > 0) written.push(destination);
   }
   return written;
 }
@@ -125,28 +138,12 @@ export function skillStatus(cwd: string): SkillCopy[] {
   const shipped = shippedSkillVersion();
   return skillTargets(cwd).map((path) => {
     const installed = skillVersion(path);
-    const state: SkillState =
-      installed === null ? "missing" : installed === shipped ? "current" : "stale";
+    const state: SkillState = installed === null ? "missing" : "installed";
     return { path, installed, shipped, state };
   });
 }
 
-/**
- * One line for stderr when an installed copy is older than the shipped one, else
- * null. Nothing is said when no copy exists: running without an agent is normal.
- */
-export function staleSkillWarning(cwd: string): string | null {
-  const stale = skillStatus(cwd).filter((c) => c.state === "stale");
-  if (stale.length === 0) return null;
-  const first = stale[0]!;
-  const where = join(relativeAgentDir(cwd, first.path), "skills");
-  const more = stale.length > 1 ? ` and ${stale.length - 1} more` : "";
-  const age =
-    first.installed === UNVERSIONED ? `is older than ${first.shipped}` : `is from ${first.installed}`;
-  return `ath: the agent skill in ${where}${more} ${age}; run ath skill install`;
-}
-
-function relativeAgentDir(cwd: string, skillPath: string): string {
-  const rel = skillPath.slice(cwd.length).replace(/^[\\/]+/, "");
-  return rel.split(/[\\/]/)[0] ?? rel;
+/** Installed skill files are not replaced, so there is no stale-skill warning. */
+export function staleSkillWarning(_cwd: string): string | null {
+  return null;
 }

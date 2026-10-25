@@ -93,21 +93,19 @@ to read and write the file. Pass --no-skill to skip that.`,
   skill: `
 Examples:
 
-  Where the skill is installed, and whether each copy is current:
+  Where the skill is installed:
     $ ath skill
 
-  Upgrade ath, and replace the skill here if one is already installed:
+  Upgrade ath. Installed skill files stay as they are:
     $ ath --update
 
-  Replace the skill without upgrading ath:
+  Add skill files that are not already here:
     $ ath skill install
 
 The skill is a folder an agent reads to learn the file and the commands.
 ath init writes it to .agents/skills and into any harness folder already
-here. Each copy carries its version. When a copy is older than the one
-this ath ships, other commands say so once on stderr. \`ath --update\`
-replaces an installed copy after upgrading ath. This command replaces
-it without upgrading.`,
+here. A file that is already there is not replaced. A new calculation
+file is added the next time you install or update.`,
 
   check: `
 Examples:
@@ -426,6 +424,27 @@ markers saying which stable IDs were erased.
 This cannot be undone from the database. Scripts need both --yes and an
 exact --confirm-erasure value. Interactive use asks the same two
 questions. \`--json\` and \`--dry-run\` never erase anything.`,
+
+  apply: `
+Examples:
+
+  Run the shipped heart-rate zones calculation on one workout:
+    $ ath apply heart-rate-zones --record 018f6b2a-6c3a-7c2e-8f1a-6a0d9e2b7c31
+
+  Run the same calculation on a different device's record:
+    $ ath apply heart-rate-zones --record 018f6b2a-6c3a-7c2e-8f1a-6a0d9e2b7c32
+
+The calculation file lives in the skill folder. Edit that file to change
+the zones. The result names the file, the record, and the fields it read.`,
+
+  pull: `
+Examples:
+
+  Read one day from Garmin after the key is saved:
+    $ ath key set garmin
+    $ ath pull garmin --date 2026-01-02
+
+The key stays in the password store. It is not written into the athlete file.`,
 
   calculate: `
 Examples:

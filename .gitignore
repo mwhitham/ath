@@ -1,5 +1,6 @@
 node_modules/
 dist/
+crates/ath-core/target/
 *.log
 .DS_Store
 
@@ -38,6 +39,9 @@ validation-data/
 !tests/fixtures/exports/whoop/physiological_cycles.csv
 !tests/fixtures/exports/whoop/sleeps.csv
 !tests/fixtures/exports/whoop/workouts.csv
+!tests/fixtures/exports/garmin/park-loop.json
+!tests/fixtures/exports/strava/activities.csv
+!tests/fixtures/exports/strava/activities/river.gpx
 
 # Large deterministic release fixtures are generated locally or in the release job.
 /performance/generated/

@@ -14,7 +14,7 @@ const approvedSyntheticFixtures = new Map<string, string>([
   ],
   [
     "examples/demo-athlete/athlete.ath.sqlite",
-    "4cd79efecd8e4dd901fc7a6af43cc287e008cbe175002490a34e2addf07067ed",
+    "442e9a966711660c2a03d701b5de2c55479a78330702083a3a67a182992a7856",
   ],
   [
     "examples/demo-athlete/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png",
@@ -87,6 +87,18 @@ const approvedSyntheticFixtures = new Map<string, string>([
   [
     "tests/fixtures/exports/whoop/sleeps.csv",
     "eb5825dea3f3c26bffb84281f4bac52daa410dd6dcba08cbd9a92442f531229c",
+  ],
+  [
+    "tests/fixtures/exports/garmin/park-loop.json",
+    "1a9a4204bfa965710d21f9bf96649e7817f0b71c56f1aa781a82d861d4a96c66",
+  ],
+  [
+    "tests/fixtures/exports/strava/activities.csv",
+    "9e23b604846202e075658f771bbef4fe433c694cf660d177f286b05e2acb44a7",
+  ],
+  [
+    "tests/fixtures/exports/strava/activities/river.gpx",
+    "b9708c7f22afda4fa8b18247a27459722e87a0e731f01c171960058c83cc2fdd",
   ],
   [
     "tests/fixtures/exports/whoop/workouts.csv",

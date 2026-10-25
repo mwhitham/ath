@@ -8,7 +8,12 @@
 import { z } from "zod";
 import { RecordExtensions, validateExtensionsForRecordType } from "./extensions.js";
 
-export const ATHLETIC_STANDARD_VERSION = "1.0.0";
+export const ATHLETIC_STANDARD_VERSION = "2.0.0";
+
+/** Record files this software can read. New writes use ATHLETIC_STANDARD_VERSION. */
+export const ACCEPTED_RECORD_VERSIONS = ["1.0.0", "2.0.0"] as const;
+
+export const RecordFormatVersion = z.enum(ACCEPTED_RECORD_VERSIONS);
 
 export const UtcTimestamp = z.iso
   .datetime({ offset: false, local: false, precision: 3 })
@@ -344,13 +349,37 @@ export const SourceReportedSummary = z
     validateSourceValue(value, context);
   });
 
+/** A value kept under the name it arrived with. */
+export const SuppliedFields = z.record(z.string().min(1), z.json());
+
 const measuredRecordFields = {
   source_id: RecordId,
   provider_record_id: z.string().min(1).optional(),
   provider_reporting_periods: z.array(ProviderReportingPeriod).optional(),
   received_at: UtcTimestamp,
   received_at_basis: ReceivedAtBasis,
+  supplied_fields: SuppliedFields.optional(),
 } as const;
+
+export const HeartRateSample = z.strictObject({
+  offset_ms: z.number().int().nonnegative(),
+  bpm: z.number().positive(),
+});
+
+export const StrengthSet = z.strictObject({
+  reps: z.number().positive(),
+  weight: z.number().positive(),
+  weight_unit: z.string().min(1),
+});
+
+export const RoutePoint = z.strictObject({
+  recorded_at: UtcTimestamp,
+  latitude_deg: z.number().gte(-90).lte(90),
+  longitude_deg: z.number().gte(-180).lte(180),
+  supplied_fields: SuppliedFields.optional(),
+});
+
+export const SleepStageMinutes = z.record(z.string().min(1), z.number().nonnegative());
 
 function isIanaTimeZone(value: string): boolean {
   try {
@@ -383,6 +412,7 @@ export const SourceData = z.strictObject({
   vendor: z.string().min(1).optional(),
   sensor_type: z.string().min(1).optional(),
   detail: z.string().min(1).optional(),
+  supplied_fields: SuppliedFields.optional(),
 });
 
 export const SourceDeviceData = z.strictObject({
@@ -539,6 +569,10 @@ export const SleepSessionData = z
     input_start_timestamp: InputTimestampReceipt,
     input_end_timestamp: InputTimestampReceipt,
     source_reported_summaries: z.array(SourceReportedSummary),
+    asleep_seconds: z.number().nonnegative().optional(),
+    in_bed_seconds: z.number().nonnegative().optional(),
+    interruptions: z.number().int().nonnegative().optional(),
+    stage_minutes: SleepStageMinutes.optional(),
   })
   .refine((value) => Date.parse(value.end_at) >= Date.parse(value.start_at), {
     path: ["end_at"],
@@ -560,6 +594,14 @@ export const WorkoutSessionData = z
     input_start_timestamp: InputTimestampReceipt,
     input_end_timestamp: InputTimestampReceipt,
     activity_type: z.string().min(1).optional(),
+    name: z.string().min(1).optional(),
+    description: z.string().min(1).optional(),
+    text_result: z.string().min(1).optional(),
+    maximum_heart_rate_bpm: z.number().positive().optional(),
+    resting_heart_rate_bpm: z.number().positive().optional(),
+    heart_rate_samples: z.array(HeartRateSample).optional(),
+    sets: z.array(StrengthSet).optional(),
+    route: z.array(RoutePoint).optional(),
     source_reported_summaries: z.array(SourceReportedSummary),
     segments: z.array(WorkoutSessionSegment).optional(),
   })
@@ -655,6 +697,7 @@ export const AthleteReportData = z
     rating_scale: z.string().min(1).optional(),
     body_region: z.string().min(1).optional(),
     note: z.string().min(1).optional(),
+    duration_seconds: z.number().positive().optional(),
     attachment_ids: z.array(RecordId).optional(),
   })
   .refine((value) => value.rating === undefined || value.rating_scale !== undefined, {
@@ -1325,7 +1368,7 @@ function validateCompleteRecordHistory(
 
 export const MeasurementSeriesFile = z
   .strictObject({
-    athleticstandard_version: z.literal(ATHLETIC_STANDARD_VERSION),
+    athleticstandard_version: RecordFormatVersion,
     source_id: RecordId,
     quantity: SeriesQuantitySchema,
     start_at: UtcTimestamp,
@@ -1371,7 +1414,7 @@ export const MeasurementSeriesFile = z
 
 export const AthleticStandardPackage = z
   .strictObject({
-    athleticstandard_version: z.literal(ATHLETIC_STANDARD_VERSION),
+    athleticstandard_version: RecordFormatVersion,
     database_id: DatabaseId,
     database_revision: z.number().int().nonnegative(),
     records: z.array(NonSampleRecord),
@@ -1429,7 +1472,7 @@ export const ManifestRecordCount = z.strictObject({
 });
 
 export const ExportManifest = z.strictObject({
-  athleticstandard_version: z.literal(ATHLETIC_STANDARD_VERSION),
+  athleticstandard_version: RecordFormatVersion,
   source_database_id: DatabaseId,
   database_revision: z.number().int().nonnegative(),
   exported_at: UtcTimestamp.optional(),

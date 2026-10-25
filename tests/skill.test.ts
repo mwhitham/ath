@@ -171,70 +171,62 @@ describe("ath init installs it (D79)", () => {
 });
 
 describe("ath skill (D79)", () => {
-  it("reports each copy as current, stale, or missing", () => {
+  it("reports each copy as installed or missing", () => {
     const dir = dirWithAgents(".codex", ".gemini");
     installSkill(dir);
     ageCopy(dir, ".codex", "0.3.0");
     writeFileSync(skillFile(dir, ".gemini", "SKILL.md"), "");
-    // A .github folder that appears after init has no copy yet.
     mkdirSync(join(dir, ".github"));
 
     const byAgent = Object.fromEntries(
       skillStatus(dir).map((c) => [c.path.slice(dir.length + 1).split("/")[0], c]),
     );
-    expect(byAgent[ALWAYS_DIR]!.state).toBe("current");
-    expect(byAgent[".codex"]).toMatchObject({ state: "stale", installed: "0.3.0" });
-    expect(byAgent[".gemini"]).toMatchObject({ state: "stale", installed: "unversioned" });
+    expect(byAgent[ALWAYS_DIR]!.state).toBe("installed");
+    expect(byAgent[".codex"]).toMatchObject({ state: "installed", installed: "0.3.0" });
+    expect(byAgent[".gemini"]).toMatchObject({ state: "installed", installed: "unversioned" });
     expect(byAgent[".github"]).toMatchObject({ state: "missing", installed: null });
 
     const res = ath(["skill"], dir);
     expect(res.code).toBe(0);
-    expect(res.stdout).toContain("current");
-    expect(res.stdout).toContain("stale: 0.3.0 installed");
+    expect(res.stdout).toContain("installed (0.3.0)");
     expect(res.stdout).toContain("missing");
-    expect(res.stdout).toContain("ath skill install");
+    expect(res.stdout).not.toContain("stale");
 
     const json = JSON.parse(ath(["skill", "--json"], dir).stdout);
     expect(json.shipped).toBe(ATH_PACKAGE_VERSION);
     expect(json.copies.map((c: { state: string }) => c.state).sort()).toEqual([
-      "current",
+      "installed",
+      "installed",
+      "installed",
       "missing",
-      "stale",
-      "stale",
     ]);
   });
 
-  it("refreshes every copy with ath skill install", () => {
+  it("adds missing files and leaves an edited skill in place", () => {
     const dir = dirWithAgents(".codex");
     installSkill(dir);
     ageCopy(dir, ".codex", "0.3.0");
-    writeFileSync(skillFile(dir, ".codex", "left-over.md"), "from an older version\n");
+    writeFileSync(skillFile(dir, ".codex", "left-over.md"), "kept\n");
+    writeFileSync(skillFile(dir, ".codex", "SKILL.md"), "---\nmetadata:\n  version: \"0.3.0\"\n---\nedited\n");
 
     const res = ath(["skill", "install"], dir);
     expect(res.code).toBe(0);
-    expect(res.stdout).toContain(join(".codex", "skills", SKILL_NAME));
-    expect(skillStatus(dir).every((c) => c.state === "current")).toBe(true);
-    expect(existsSync(skillFile(dir, ".codex", "left-over.md"))).toBe(false);
-
-    const json = JSON.parse(ath(["skill", "install", "--json"], dir).stdout);
-    expect(json.skill_installed).toHaveLength(2);
+    expect(res.stdout).toContain("left installed skill files unchanged");
+    expect(readFileSync(skillFile(dir, ".codex", "SKILL.md"), "utf8")).toContain("edited");
+    expect(readFileSync(skillFile(dir, ".codex", "left-over.md"), "utf8")).toBe("kept\n");
   });
 });
 
-describe("the stale warning (D79)", () => {
-  it("is one stderr line on an ordinary command when a copy is stale", () => {
+describe("the stale warning", () => {
+  it("does not warn when an installed skill was edited", () => {
     const dir = dirWithAgents(".cursor");
     expect(ath(["init", "-y"], dir).code).toBe(0);
     ageCopy(dir, ".cursor", "0.3.0");
 
-    expect(staleSkillWarning(dir)).toBe(
-      "ath: the agent skill in .cursor/skills is from 0.3.0; run ath skill install",
-    );
+    expect(staleSkillWarning(dir)).toBeNull();
     const res = ath(["stats"], dir);
     expect(res.code).toBe(0);
-    expect(res.stderr.trim().split("\n")).toEqual([
-      "ath: the agent skill in .cursor/skills is from 0.3.0; run ath skill install",
-    ]);
+    expect(res.stderr).toBe("");
   });
 
   it("stays out of --json output, init, and skill itself", () => {

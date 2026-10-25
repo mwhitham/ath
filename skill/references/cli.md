@@ -16,7 +16,7 @@ is offered, it shows the write and writes nothing.
 - [ath skill install](#ath-skill-install) — copy the skill into .agents/skills and every harness folder here
 - [ath migrate](#ath-migrate) — preview and apply a SQL schema migration after a verified backup
 - [ath repair](#ath-repair) — repair typed-table JSON bytes left by npm 1.0.0 provider imports
-- [ath import](#ath-import) — preview and import a v1 package or Apple Health, WHOOP, or Oura export
+- [ath import](#ath-import) — preview and import a package or an Apple Health, WHOOP, Oura, Garmin, or Strava export
 - [ath conflicts](#ath-conflicts) — review and resolve the temporary conflicts from a package import
 - [ath conflicts show](#ath-conflicts-show) — show complete local and imported values from the current conflict preview
 - [ath conflicts resolve](#ath-conflicts-resolve) — choose the local, imported, or a corrected value for one conflict
@@ -35,6 +35,8 @@ is offered, it shows the write and writes nothing.
 - [ath backtest](#ath-backtest) — replay history with one or more models — writes a report, not the athlete file
 - [ath share](#ath-share) — not built yet — names the latest backtest report
 - [ath grade](#ath-grade) — grade an existing prediction against an existing benchmark result
+- [ath apply](#ath-apply) — run one calculation skill file on one record
+- [ath pull](#ath-pull) — read one day from Garmin's personal connection
 - [ath calculate](#ath-calculate) — run a named calculation without writing athlete data
 - [ath series](#ath-series) — read a sample series back: one row per day, or the raw samples
 - [ath stats](#ath-stats) — what is in the file: counts, date ranges, sources, and baselines
@@ -52,7 +54,7 @@ that keeps measured signals apart from self-reported ones.
 
 Options:
   -V, --version                               output the version number
-  --update                                    install the latest ath with the tool that installed it, and replace the agent skill if one is already in this folder
+  --update                                    install the latest ath with the tool that installed it, and add any skill files that are not already here
   -h, --help                                  display help for command
 
 Set up:
@@ -64,7 +66,7 @@ Set up:
   models [options]                            list live text models that can reason, or save your usual one
 
 Get your data in:
-  import [options] <path>                     preview and import a v1 package or Apple Health, WHOOP, or Oura export
+  import [options] <path>                     preview and import a package or an Apple Health, WHOOP, Oura, Garmin, or Strava export
   conflicts                                   review and resolve the temporary conflicts from a package import
   export [options] <directory>                write a complete deterministic Athletic Standard JSON package
   log [options] [entry...]                    write one plain-text record or one validated structured batch
@@ -72,9 +74,11 @@ Get your data in:
   correct [options] <record-id>               replace one record's complete data and retain its prior revision
   delete [options] <record-id>                hide one current record while retaining its complete history
   erase [options] <record-id>                 permanently remove one record and every record that depends on it
+  pull [options] <source>                     read one day from Garmin's personal connection
 
 Read your data:
   check [options] [file]                      make sure the file still obeys every rule of the format
+  apply [options] <calculation>               run one calculation skill file on one record
   calculate [options] <operation> <quantity>  run a named calculation without writing athlete data
   series [options] <quantity>                 read a sample series back: one row per day, or the raw samples
   stats [options] [file]                      what is in the file: counts, date ranges, sources, and baselines
@@ -152,21 +156,19 @@ Commands:
 
 Examples:
 
-  Where the skill is installed, and whether each copy is current:
+  Where the skill is installed:
     $ ath skill
 
-  Upgrade ath, and replace the skill here if one is already installed:
+  Upgrade ath. Installed skill files stay as they are:
     $ ath --update
 
-  Replace the skill without upgrading ath:
+  Add skill files that are not already here:
     $ ath skill install
 
 The skill is a folder an agent reads to learn the file and the commands.
 ath init writes it to .agents/skills and into any harness folder already
-here. Each copy carries its version. When a copy is older than the one
-this ath ships, other commands say so once on stderr. `ath --update`
-replaces an installed copy after upgrading ath. This command replaces
-it without upgrading.
+here. A file that is already there is not replaced. A new calculation
+file is added the next time you install or update.
 ```
 
 ## ath skill install
@@ -263,7 +265,8 @@ that backup on disk for restore; retry creates another backup.
 ```
 Usage: ath import [options] <path>
 
-preview and import a v1 package or Apple Health, WHOOP, or Oura export
+preview and import a package or an Apple Health, WHOOP, Oura, Garmin, or Strava
+export
 
 Arguments:
   path           v1 package or supported provider export
@@ -897,6 +900,62 @@ the deterministic arithmetic against exact revisions.
 A result inside the prediction's stated range is a hit. Anything else is
 a miss. A prediction error analysis is a separate authored record written
 through structured `ath log`, not through a grade flag.
+```
+
+## ath apply
+
+```
+Usage: ath apply [options] <calculation>
+
+run one calculation skill file on one record
+
+Arguments:
+  calculation    calculation file name, such as heart-rate-zones
+
+Options:
+  --record <id>  the one record to use
+  --file <path>  read a database other than the one in this folder
+  --json         structured result
+  -h, --help     display help for command
+
+
+Examples:
+
+  Run the shipped heart-rate zones calculation on one workout:
+    $ ath apply heart-rate-zones --record 018f6b2a-6c3a-7c2e-8f1a-6a0d9e2b7c31
+
+  Run the same calculation on a different device's record:
+    $ ath apply heart-rate-zones --record 018f6b2a-6c3a-7c2e-8f1a-6a0d9e2b7c32
+
+The calculation file lives in the skill folder. Edit that file to change
+the zones. The result names the file, the record, and the fields it read.
+```
+
+## ath pull
+
+```
+Usage: ath pull [options] <source>
+
+read one day from Garmin's personal connection
+
+Arguments:
+  source            garmin
+
+Options:
+  --date <day>      YYYY-MM-DD
+  --base-url <url>  personal API root, for a test server
+  --file <path>     write into a database other than the one in this folder
+  --json            structured result
+  -h, --help        display help for command
+
+
+Examples:
+
+  Read one day from Garmin after the key is saved:
+    $ ath key set garmin
+    $ ath pull garmin --date 2026-01-02
+
+The key stays in the password store. It is not written into the athlete file.
 ```
 
 ## ath calculate

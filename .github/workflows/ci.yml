@@ -26,6 +26,8 @@ jobs:
           node-version: ${{ matrix.node-version }}
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --manifest-path crates/ath-core/Cargo.toml
       - run: pnpm check:public-data
       - run: pnpm typecheck
       - run: pnpm test

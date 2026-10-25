@@ -1,6 +1,6 @@
 {
   "name": "athleticstandard",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "An open, local-first SQLite format for an athlete's training and recovery data, with complete JSON import and export.",
   "license": "MIT",
   "homepage": "https://athleticstandard.ai",
@@ -47,9 +47,9 @@
       "types": "./dist/schema.d.ts",
       "import": "./dist/schema.js"
     },
-    "./json-schema": "./schema/1.0.0/athleticstandard.schema.json",
-    "./json-schema/export-manifest": "./schema/1.0.0/export-manifest.schema.json",
-    "./json-schema/measurement-series": "./schema/1.0.0/measurement-series.schema.json",
+    "./json-schema": "./schema/2.0.0/athleticstandard.schema.json",
+    "./json-schema/export-manifest": "./schema/2.0.0/export-manifest.schema.json",
+    "./json-schema/measurement-series": "./schema/2.0.0/measurement-series.schema.json",
     "./skill": "./skill/SKILL.md"
   },
   "bin": {

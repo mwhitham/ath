@@ -95,11 +95,14 @@ async function upsertTypedRow(
   record: CurrentRecordT,
   fields: ReadonlyArray<readonly [string, SqlValue]>,
 ): Promise<void> {
-  const columns = ["record_id", "record_type", ...fields.map(([name]) => name), "data_json"];
+  const info = await transaction.execute(`PRAGMA table_info(${table})`);
+  const present = new Set(info.rows.map((row) => String(row.name)));
+  const usable = fields.filter(([name]) => present.has(name));
+  const columns = ["record_id", "record_type", ...usable.map(([name]) => name), "data_json"];
   const values: SqlValue[] = [
     record.record_id,
     record.record_type,
-    ...fields.map(([, value]) => value),
+    ...usable.map(([, value]) => value),
     requiredJson(record.data),
   ];
   const updates = columns
@@ -125,6 +128,14 @@ async function replaceOrderedJsonChildren(
   parentId: string,
   children: readonly unknown[],
 ): Promise<void> {
+  const tableInfo = await transaction.execute({
+    sql: "SELECT 1 AS present FROM sqlite_master WHERE type = 'table' AND name = ?",
+    args: [table],
+  });
+  if (tableInfo.rows.length === 0) {
+    if (children.length === 0) return;
+    throw new Error(`${table} is missing. Run ath migrate before writing this record.`);
+  }
   await transaction.execute({
     sql: `DELETE FROM ${table} WHERE ${parentColumn} = ?`,
     args: [parentId],
@@ -268,6 +279,9 @@ export function typedMainRowFields(
         ["start_at", record.data.start_at],
         ["end_at", record.data.end_at],
         ["activity_type", nullable(record.data.activity_type)],
+        ["name", nullable(record.data.name)],
+        ["description", nullable(record.data.description)],
+        ["text_result", nullable(record.data.text_result)],
         ["provider_record_id", nullable(record.data.provider_record_id)],
         ["received_at", record.data.received_at],
       ];
@@ -530,6 +544,15 @@ export async function upsertTypedRecord(
         "segment_json",
         record.record_id,
         record.data.segments ?? [],
+      );
+      await replaceOrderedJsonChildren(
+        transaction,
+        "workout_route_points",
+        "workout_session_id",
+        "point_order",
+        "point_json",
+        record.record_id,
+        record.data.route ?? [],
       );
       break;
     case "benchmark_result":

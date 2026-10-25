@@ -358,7 +358,7 @@ keeps the ID. Evidence names both the record ID and revision.
 The format defines 24 record types for profile data, sources, measurements,
 sessions, athlete reports, nutrition, attachments, benchmarks, predictions, plans,
 goals, and saved authored work. [`SPEC.md`](SPEC.md) is the public field reference.
-The generated v1 JSON Schemas are in [`schema/1.0.0/`](schema/1.0.0/).
+The generated JSON Schemas are in [`schema/2.0.0/`](schema/2.0.0/).
 
 Provider data research is in
 [`docs/connections.md`](docs/connections.md). The installed agent instructions are

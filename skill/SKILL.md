@@ -4,7 +4,7 @@ description: Reads and writes an athlete's Athletic Standard SQLite database (.a
 license: MIT
 compatibility: Requires the ath CLI (npm package athleticstandard) on PATH. Local database use needs no network. Optional terminal model calls need a configured gateway.
 metadata:
-  version: "1.1.0"
+  version: "2.0.0"
 ---
 
 # Athletic Standard
@@ -13,8 +13,8 @@ The live local record is one SQLite database named `athlete.ath.sqlite`. `ath` r
 and writes it. A JSON package is an explicit complete snapshot. It is not a second
 live copy.
 
-This skill expects Athletic Standard **1.0.0**. Prerelease `0.x` JSON documents are
-not imported.
+This skill expects Athletic Standard **2.0.0**. A version 1.0.0 database upgrades
+with `ath migrate`. Prerelease `0.x` JSON documents are not imported.
 
 Local use needs no account, network connection, subscription, or hosted service.
 Optional bare-terminal prediction and backtest commands can call a model gateway.
@@ -85,9 +85,9 @@ Set up:
 |---|---|
 | `ath init` | Create `athlete.ath.sqlite`, a manual source, and standard benchmarks |
 | `ath init --empty` | Create a revision-zero restore destination |
-| `ath skill` | Show installed skill copies and whether they are current |
-| `ath skill install` | Refresh local skill copies |
-| `ath --update` | Update `ath` and refresh a skill already present |
+| `ath skill` | Show installed skill copies |
+| `ath skill install` | Add skill files that are not already installed |
+| `ath --update` | Update `ath` and add missing skill files |
 | `ath key` | Manage an optional terminal model-gateway key outside athlete data |
 | `ath models` | List gateway models or save a terminal default |
 | `ath migrate` | Preview and apply a SQL schema migration after a verified backup (needs `sqlite3` on PATH) |
@@ -122,6 +122,8 @@ Read and calculate:
 | `ath records show <record-id>` | Read a current record, revision, history, and links |
 | `ath series <quantity>` | Read dense samples from SQLite |
 | `ath calculate <operation> <quantity>` | Run named arithmetic without writing athlete data |
+| `ath apply <calculation>` | Run one calculation skill file on one record |
+| `ath pull garmin` | Read one day from Garmin's personal connection |
 
 The calculation operations are `summary`, `baseline`, `trend`, `coverage`,
 `compare-sources`, `correlation`, `workout-drift`, and
@@ -135,6 +137,11 @@ Results remain separate by source. Manual sources are excluded. RMSSD and SDNN a
 different quantities and never share a calculation. A receipt lists at most 1,000
 input revisions and says when the list was shortened. Arithmetic refuses more than
 100,000 inputs until the request is narrowed.
+
+`ath apply` runs a file in `calculations/`. Each file is one calculation. The
+program reads the installed file. Editing that file changes the result. Point
+`--record` at one record, then run it again on another record to see which
+fields were read. A day total uses the record you selected.
 
 Predict and grade:
 

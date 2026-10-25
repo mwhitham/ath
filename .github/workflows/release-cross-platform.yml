@@ -25,6 +25,8 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --manifest-path crates/ath-core/Cargo.toml
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build

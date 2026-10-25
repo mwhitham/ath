@@ -8,7 +8,7 @@ JSON exists only as an explicit complete export or import package. It is not a l
 copy and does not stay synchronized.
 
 The full public field reference is `SPEC.md`. Exhaustive generated schemas are in
-`schema/1.0.0/`.
+`schema/2.0.0/`.
 
 ## Common record fields
 

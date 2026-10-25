@@ -53,7 +53,7 @@ generateSchema(
   AthleticStandardPackage,
   `https://athleticstandard.ai/schema/${V1_ATHLETIC_STANDARD_VERSION}/athleticstandard.schema.json`,
   "Athletic Standard portable package document",
-  "schema/1.0.0/athleticstandard.schema.json",
+  `schema/${V1_ATHLETIC_STANDARD_VERSION}/athleticstandard.schema.json`,
 );
 
 generateSchema(
@@ -67,12 +67,12 @@ generateSchema(
   ExportManifest,
   `https://athleticstandard.ai/schema/${V1_ATHLETIC_STANDARD_VERSION}/export-manifest.schema.json`,
   "Athletic Standard export manifest",
-  "schema/1.0.0/export-manifest.schema.json",
+  `schema/${V1_ATHLETIC_STANDARD_VERSION}/export-manifest.schema.json`,
 );
 
 generateSchema(
   MeasurementSeriesFile,
   `https://athleticstandard.ai/schema/${V1_ATHLETIC_STANDARD_VERSION}/measurement-series.schema.json`,
   "Athletic Standard measurement-series file",
-  "schema/1.0.0/measurement-series.schema.json",
+  `schema/${V1_ATHLETIC_STANDARD_VERSION}/measurement-series.schema.json`,
 );

@@ -8,7 +8,7 @@ import { ATH_PACKAGE_VERSION } from "../src/version.js";
 
 describe("v1 package exports", () => {
   it("exports only the v1 schema and the domain database API", () => {
-    expect(publicApi.ATHLETIC_STANDARD_VERSION).toBe("1.0.0");
+    expect(publicApi.ATHLETIC_STANDARD_VERSION).toBe("2.0.0");
     expect(publicApi.ATH_PACKAGE_VERSION).toBe(ATH_PACKAGE_VERSION);
     expect(publicApi.database.createDatabase).toBe(publicDatabase.createDatabase);
     expect(publicDatabase.getRecord).toBe(publicDatabase.readRecord);
@@ -20,13 +20,13 @@ describe("v1 package exports", () => {
     expect(publicSchema.AthleticStandardPackage).toBeDefined();
   });
 
-  it("keeps the npm package version independent of the record format version", () => {
+  it("uses 2.0.0 for the package and the record", () => {
     const packageJson = JSON.parse(
       readFileSync(resolve("package.json"), "utf8"),
     ) as { version: string };
     expect(packageJson.version).toBe(ATH_PACKAGE_VERSION);
-    expect(ATH_PACKAGE_VERSION).toBe("1.1.0");
-    expect(publicApi.ATHLETIC_STANDARD_VERSION).toBe("1.0.0");
+    expect(ATH_PACKAGE_VERSION).toBe("2.0.0");
+    expect(publicApi.ATHLETIC_STANDARD_VERSION).toBe("2.0.0");
   });
 
   it("publishes stable subpaths for code, JSON schemas, and the Skill", () => {
@@ -44,11 +44,11 @@ describe("v1 package exports", () => {
         types: "./dist/schema.d.ts",
         import: "./dist/schema.js",
       },
-      "./json-schema": "./schema/1.0.0/athleticstandard.schema.json",
+      "./json-schema": "./schema/2.0.0/athleticstandard.schema.json",
       "./json-schema/export-manifest":
-        "./schema/1.0.0/export-manifest.schema.json",
+        "./schema/2.0.0/export-manifest.schema.json",
       "./json-schema/measurement-series":
-        "./schema/1.0.0/measurement-series.schema.json",
+        "./schema/2.0.0/measurement-series.schema.json",
       "./skill": "./skill/SKILL.md",
     });
 

@@ -1,7 +1,4 @@
 /**
- * npm package and CLI version.
- *
- * Independent of `athleticstandard_version` (record format) and
- * `sql_schema_version` (SQLite encoding). See contribution-readiness §4.1.
+ * The software version. The record and the database use this same number.
  */
-export const ATH_PACKAGE_VERSION = "1.1.0";
+export const ATH_PACKAGE_VERSION = "2.0.0";
