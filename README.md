@@ -362,7 +362,7 @@ The generated JSON Schemas are in [`schema/2.0.0/`](schema/2.0.0/).
 
 Provider data research is in
 [`docs/connections.md`](docs/connections.md). The installed agent instructions are
-in [`skill/`](skill/).
+in [`skills/`](skills/).
 
 ## License
 

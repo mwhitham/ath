@@ -44,11 +44,11 @@ fields it read. Do not add the two records together.
 
 ## Calculations
 
-Calculation steps ship as files in `skill/calculations/`. The program reads the
-installed file and runs it. `ath apply <name> --record <id>` runs one file on
-one record. Editing the file changes the result. An installed skill file is not
-replaced. A new calculation is a new file. `ath skill install` and
-`ath --update` add files that are not already there.
+Calculation steps ship as skills under `skills/<name>/SKILL.md`. The program
+reads the installed file and runs it. `ath apply <name> --record <id>` runs one
+skill on one record. Editing that file changes the result. An installed skill
+file is not replaced. A new calculation is a new skill folder. `ath skill
+install` and `ath --update` add files that are not already there.
 
 The shipped files are heart-rate zones, heart-rate recovery, resting heart
 rate, training load from heart rate, training load from reported effort, sleep

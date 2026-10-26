@@ -51,7 +51,7 @@ Versioned SQL views are the stable **read** contract. A small documented table s
 
 **Legacy 0.x:** `src/schema.ts` defines released 0.x JSON. After changes there, run `pnpm generate:json-schema` and `pnpm generate:fixture` for `examples/demo-athlete/athlete.ath.json`.
 
-When CLI or help changes (`src/program.ts`, `src/help.ts`), run `pnpm generate:skill-cli` and commit `skill/references/cli.md` (D80). Flag drift between sources and generated outputs.
+When CLI or help changes (`src/program.ts`, `src/help.ts`), run `pnpm generate:skill-cli` and commit `skills/athletic-standard/references/cli.md` (D80). Flag drift between sources and generated outputs.
 
 ### SQL safety (D93; v1 spec)
 

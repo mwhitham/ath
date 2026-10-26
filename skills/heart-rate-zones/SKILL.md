@@ -1,3 +1,12 @@
+---
+name: heart-rate-zones
+description: Computes five heart-rate zones from samples and a known maximum heart rate. Use when asking how long one workout spent in each zone.
+license: MIT
+compatibility: Requires the ath CLI and an Athletic Standard 2.0.0 database. The calculation runs with ath apply heart-rate-zones --record <record-id>.
+metadata:
+  version: "2.0.0"
+---
+
 # Heart-rate zones
 
 Five zones, split at 60, 70, 80, and 90 percent of a known maximum heart rate.

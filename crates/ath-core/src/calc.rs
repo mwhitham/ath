@@ -508,7 +508,7 @@ mod tests {
 
     #[test]
     fn zones_match_the_worked_example() {
-        let skill = parse_skill(include_str!("../../../skill/calculations/heart-rate-zones.md")).unwrap();
+        let skill = parse_skill(include_str!("../../../skills/heart-rate-zones/SKILL.md")).unwrap();
         let record = StoredRecord {
             record_id: "018f0000-0000-7000-8000-000000000001".into(),
             record_type: "workout_session".into(),

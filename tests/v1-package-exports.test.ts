@@ -49,7 +49,7 @@ describe("v1 package exports", () => {
         "./schema/2.0.0/export-manifest.schema.json",
       "./json-schema/measurement-series":
         "./schema/2.0.0/measurement-series.schema.json",
-      "./skill": "./skill/SKILL.md",
+      "./skill": "./skills/athletic-standard/SKILL.md",
     });
 
     for (const target of Object.values(packageJson.exports)) {

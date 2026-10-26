@@ -114,3 +114,19 @@ Rejected alternatives:
 
 - Add an overall recovery number. Rejected because the three inputs do not
   become one measurement by being added together.
+
+## D160. Each calculation is its own skill
+
+The source folder is `skills/`. `skills/athletic-standard/` is the tool skill.
+Each calculation is `skills/<name>/SKILL.md`, and the folder name matches the
+`name` in that file. `ath apply` reads that file. `ath init` copies every skill
+into `.agents/skills/<name>/`. This is the layout `npx skills add` looks for.
+D49 still describes the earlier single-skill choice. It is not rewritten.
+
+Rejected alternatives:
+
+- Keep the calculation notes inside one `skill/calculations/` folder. Rejected
+  because those files have no skill name or description, so they cannot be
+  installed as skills.
+- Replace an installed skill when the folder layout changes. Rejected because
+  an installed file stays as the person left it.

@@ -11,7 +11,7 @@ import { Command } from "commander";
 import { existsSync } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { basename, join, resolve } from "node:path";
+import { join, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import {
   ATHLETIC_STANDARD_VERSION,
@@ -47,6 +47,7 @@ import {
   ALWAYS_DIR,
   installSkill,
   shippedSkillVersion,
+  resolveCalculationFile,
   skillSource,
   skillStatus,
   staleSkillWarning,
@@ -1945,8 +1946,8 @@ export function buildProgram(): Command {
     .option("--json", "structured result")
     .action((calculation: string, opts: { record: string; file?: string; json?: boolean }) => {
       const athletePath = findOrFail(opts.file);
-      const skillFile = resolveCalculationSkill(calculation);
       try {
+        const skillFile = resolveCalculationFile(calculation, process.cwd());
         const result = runAthCore([
           "calculate",
           "--database",
@@ -2396,19 +2397,6 @@ function isAthleticStandardPackagePath(path: string): boolean {
 function parseGateway(value: string): "vercel" | "openrouter" {
   if (isGatewayName(value)) return value;
   fail(`unknown gateway '${value}'. Use vercel or openrouter.`);
-}
-
-function resolveCalculationSkill(name: string): string {
-  const fileName = name.endsWith(".md") ? basename(name) : `${name}.md`;
-  const installed = resolve(
-    process.cwd(),
-    ".agents/skills/athletic-standard/calculations",
-    fileName,
-  );
-  if (existsSync(installed)) return installed;
-  const shipped = resolve(skillSource(), "calculations", fileName);
-  if (!existsSync(shipped)) fail(`no calculation file named ${fileName}`);
-  return shipped;
 }
 
 function renderApplyResult(result: unknown): string {

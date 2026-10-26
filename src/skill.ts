@@ -1,9 +1,10 @@
 /**
- * Installing the skill (D49 and D41 on the mechanism, D79 on where it goes).
+ * Installing skills.
  *
- * `skill/` is a directory copied into `.agents/skills/`, which Claude Code, Cursor,
- * Codex, and Gemini CLI read, and also into any harness folder already present.
- * A file that is already installed is left alone. A new file is added.
+ * `skills/` holds one folder per skill. Each folder is copied into `.agents/skills/`,
+ * which Claude Code, Cursor, Codex, and Gemini CLI read, and also into any harness
+ * folder already present. A file that is already installed is left alone. A new
+ * file is added.
  */
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
@@ -31,13 +32,25 @@ export interface SkillCopy {
 }
 
 /**
- * Where the skill ships from.
+ * Where the skills ship from.
  *
- * `skill/` sits beside `src/` in the repository and beside `dist/` in the published
+ * `skills/` sits beside `src/` in the repository and beside `dist/` in the published
  * package, so one step up from this module finds it either way.
  */
+export function skillsRoot(): string {
+  return resolve(dirname(fileURLToPath(import.meta.url)), "..", "skills");
+}
+
+/** The athletic-standard skill, which carries the command reference. */
 export function skillSource(): string {
-  return resolve(dirname(fileURLToPath(import.meta.url)), "..", "skill");
+  return join(skillsRoot(), SKILL_NAME);
+}
+
+/** Skill folder names that contain a SKILL.md, in sorted order. */
+export function skillNames(): string[] {
+  return readdirSync(skillsRoot())
+    .filter((name) => existsSync(join(skillsRoot(), name, "SKILL.md")))
+    .sort();
 }
 
 /** The frontmatter of a SKILL.md: top-level `key: value` pairs and one nested level. */
@@ -84,18 +97,30 @@ export function skillVersion(skillDir: string): string | null {
   return typeof version === "string" && version ? version : UNVERSIONED;
 }
 
-/** The version this `ath` ships, read from `skill/SKILL.md`. */
+/** The version this `ath` ships, read from `skills/athletic-standard/SKILL.md`. */
 export function shippedSkillVersion(): string {
   return skillVersion(skillSource()) ?? UNVERSIONED;
 }
 
-/** Every folder the skill would be written to in `cwd`: `.agents` always, the rest when present. */
-export function skillTargets(cwd: string): string[] {
-  const targets = [join(cwd, ALWAYS_DIR, "skills", SKILL_NAME)];
+/** Every folder one skill would be written to in `cwd`. */
+export function skillTargets(cwd: string, name: string = SKILL_NAME): string[] {
+  const targets = [join(cwd, ALWAYS_DIR, "skills", name)];
   for (const agent of AGENT_DIRS) {
-    if (existsSync(join(cwd, agent))) targets.push(join(cwd, agent, "skills", SKILL_NAME));
+    if (existsSync(join(cwd, agent))) targets.push(join(cwd, agent, "skills", name));
   }
   return targets;
+}
+
+/** The installed calculation skill, or the copy shipped with ath. */
+export function resolveCalculationFile(name: string, cwd: string): string {
+  const skillName = name.replace(/\.md$/, "").split(/[\\/]/).pop() ?? name;
+  const installed = join(cwd, ALWAYS_DIR, "skills", skillName, "SKILL.md");
+  if (existsSync(installed)) return installed;
+  const shipped = join(skillsRoot(), skillName, "SKILL.md");
+  if (!existsSync(shipped)) {
+    throw new Error(`no calculation skill named ${skillName}`);
+  }
+  return shipped;
 }
 
 function copyMissingFiles(source: string, destination: string): number {
@@ -122,25 +147,29 @@ function copyMissingFiles(source: string, destination: string): number {
  * An existing file is not replaced.
  */
 export function installSkill(cwd: string): string[] {
-  const source = skillSource();
-  if (!existsSync(source)) return [];
+  if (!existsSync(skillsRoot())) return [];
 
   const written: string[] = [];
-  for (const destination of skillTargets(cwd)) {
-    mkdirSync(destination, { recursive: true });
-    if (copyMissingFiles(source, destination) > 0) written.push(destination);
+  for (const name of skillNames()) {
+    const source = join(skillsRoot(), name);
+    for (const destination of skillTargets(cwd, name)) {
+      mkdirSync(destination, { recursive: true });
+      if (copyMissingFiles(source, destination) > 0) written.push(destination);
+    }
   }
   return written;
 }
 
-/** Each place the skill would be installed in `cwd`, and whether the copy there is current. */
+/** Each installed skill folder in `cwd`, and whether that copy is present. */
 export function skillStatus(cwd: string): SkillCopy[] {
   const shipped = shippedSkillVersion();
-  return skillTargets(cwd).map((path) => {
-    const installed = skillVersion(path);
-    const state: SkillState = installed === null ? "missing" : "installed";
-    return { path, installed, shipped, state };
-  });
+  return skillNames().flatMap((name) =>
+    skillTargets(cwd, name).map((path) => {
+      const installed = skillVersion(path);
+      const state: SkillState = installed === null ? "missing" : "installed";
+      return { path, installed, shipped, state };
+    }),
+  );
 }
 
 /** Installed skill files are not replaced, so there is no stale-skill warning. */

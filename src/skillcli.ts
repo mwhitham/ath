@@ -1,7 +1,7 @@
 /**
  * The skill's command reference, built from the CLI's own help (D80).
  *
- * `skill/references/cli.md` is generated from this and committed. A test fails
+ * `skills/athletic-standard/references/cli.md` is generated from this and committed. A test fails
  * when it is behind the code, the same way the JSON Schema and the fixture are
  * checked. Regenerate, do not hand-edit.
  */

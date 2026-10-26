@@ -11,7 +11,7 @@ const CLI = resolve(here, "../src/cli.ts");
 const TSX = resolve(here, "../node_modules/.bin/tsx");
 const GARMIN = resolve(here, "fixtures/exports/garmin/park-loop.json");
 const STRAVA = resolve(here, "fixtures/exports/strava");
-const ZONES = resolve(here, "../skill/calculations/heart-rate-zones.md");
+const ZONES = resolve(here, "../skills/heart-rate-zones/SKILL.md");
 
 function ath(args: string[], cwd: string): { stdout: string; stderr: string; code: number } {
   try {

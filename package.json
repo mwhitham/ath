@@ -3,7 +3,7 @@
   "version": "2.0.0",
   "description": "An open, local-first SQLite format for an athlete's training and recovery data, with complete JSON import and export.",
   "license": "MIT",
-  "homepage": "https://athleticstandard.ai",
+  "homepage": "https://ath.fit",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mwhitham/ath.git"
@@ -50,7 +50,7 @@
     "./json-schema": "./schema/2.0.0/athleticstandard.schema.json",
     "./json-schema/export-manifest": "./schema/2.0.0/export-manifest.schema.json",
     "./json-schema/measurement-series": "./schema/2.0.0/measurement-series.schema.json",
-    "./skill": "./skill/SKILL.md"
+    "./skill": "./skills/athletic-standard/SKILL.md"
   },
   "bin": {
     "ath": "dist/cli.js"
@@ -58,7 +58,7 @@
   "files": [
     "dist",
     "schema",
-    "skill",
+    "skills",
     "SPEC.md"
   ],
   "scripts": {

@@ -13,6 +13,7 @@ import {
   installSkill,
   readFrontmatter,
   SKILL_NAME,
+  skillNames,
   skillSource,
   skillStatus,
   staleSkillWarning,
@@ -163,10 +164,14 @@ describe("ath init installs it (D79)", () => {
     const dir = dirWithAgents(".claude");
     const res = ath(["init", "-y", "--json"], dir);
     const out = JSON.parse(res.stdout);
-    expect(out.skill_installed).toEqual([
-      join(dir, ALWAYS_DIR, "skills", SKILL_NAME),
-      join(dir, ".claude", "skills", SKILL_NAME),
-    ]);
+    expect(out.skill_installed).toEqual(
+      expect.arrayContaining([
+        join(dir, ALWAYS_DIR, "skills", SKILL_NAME),
+        join(dir, ".claude", "skills", SKILL_NAME),
+        join(dir, ALWAYS_DIR, "skills", "heart-rate-zones"),
+      ]),
+    );
+    expect(out.skill_installed).toHaveLength(skillNames().length * 2);
   });
 });
 
@@ -179,7 +184,9 @@ describe("ath skill (D79)", () => {
     mkdirSync(join(dir, ".github"));
 
     const byAgent = Object.fromEntries(
-      skillStatus(dir).map((c) => [c.path.slice(dir.length + 1).split("/")[0], c]),
+      skillStatus(dir)
+        .filter((copy) => copy.path.includes(`/${SKILL_NAME}`))
+        .map((c) => [c.path.slice(dir.length + 1).split("/")[0], c]),
     );
     expect(byAgent[ALWAYS_DIR]!.state).toBe("installed");
     expect(byAgent[".codex"]).toMatchObject({ state: "installed", installed: "0.3.0" });
@@ -194,12 +201,16 @@ describe("ath skill (D79)", () => {
 
     const json = JSON.parse(ath(["skill", "--json"], dir).stdout);
     expect(json.shipped).toBe(ATH_PACKAGE_VERSION);
-    expect(json.copies.map((c: { state: string }) => c.state).sort()).toEqual([
+    const standard = json.copies.filter((copy: { path: string }) =>
+      copy.path.includes(`/${SKILL_NAME}`),
+    );
+    expect(standard.map((c: { state: string }) => c.state).sort()).toEqual([
       "installed",
       "installed",
       "installed",
       "missing",
     ]);
+    expect(existsSync(join(dir, ALWAYS_DIR, "skills", "heart-rate-zones", "SKILL.md"))).toBe(true);
   });
 
   it("adds missing files and leaves an edited skill in place", () => {

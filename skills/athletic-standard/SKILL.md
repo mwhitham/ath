@@ -1,6 +1,6 @@
 ---
 name: athletic-standard
-description: Reads and writes an athlete's Athletic Standard SQLite database (.ath.sqlite) with the ath CLI. Applies when someone logs a workout, lift, named benchmark such as Fran, HRV as RMSSD or SDNN, resting heart rate, sleep, soreness, nutrition, or another athlete report; asks what training or recovery data shows; asks for a benchmark prediction or backtest; reports a result to grade; imports Apple Health, WHOOP, Oura, or an Athletic Standard v1 package; exports a complete package; or asks about Athletic Standard records, revisions, calculations, deletion, or privacy erasure.
+description: Reads and writes an athlete's Athletic Standard SQLite database (.ath.sqlite) with the ath CLI. Applies when someone logs a workout, lift, named benchmark such as Fran, HRV as RMSSD or SDNN, resting heart rate, sleep, soreness, nutrition, or another athlete report; asks what training or recovery data shows; asks for a benchmark prediction or backtest; reports a result to grade; imports Apple Health, WHOOP, Oura, Garmin, or Strava, or an Athletic Standard 2.0.0 package; exports a complete package; runs ath apply on one record; or asks about Athletic Standard records, revisions, calculations, deletion, or privacy erasure.
 license: MIT
 compatibility: Requires the ath CLI (npm package athleticstandard) on PATH. Local database use needs no network. Optional terminal model calls need a configured gateway.
 metadata:
@@ -138,10 +138,11 @@ different quantities and never share a calculation. A receipt lists at most 1,00
 input revisions and says when the list was shortened. Arithmetic refuses more than
 100,000 inputs until the request is narrowed.
 
-`ath apply` runs a file in `calculations/`. Each file is one calculation. The
-program reads the installed file. Editing that file changes the result. Point
-`--record` at one record, then run it again on another record to see which
-fields were read. A day total uses the record you selected.
+`ath apply <name>` runs the skill with that name, such as `heart-rate-zones`.
+Each calculation is its own skill. The program reads the installed `SKILL.md`.
+Editing that file changes the result. Point `--record` at one record, then run
+it again on another record to see which fields were read. A day total uses the
+record you selected.
 
 Predict and grade:
 
