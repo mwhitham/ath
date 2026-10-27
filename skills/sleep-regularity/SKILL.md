@@ -16,5 +16,6 @@ does not return a number.
 
 ```ath-calculation
 name: sleep-regularity
+use: night_agreement
 minimum_nights: 7
 ```

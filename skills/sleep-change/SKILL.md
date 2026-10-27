@@ -14,5 +14,6 @@ source. This is separate from heart-rate variability and resting heart rate.
 
 ```ath-calculation
 name: sleep-change
+use: subtract_earlier_mean
 field: asleep_seconds
 ```

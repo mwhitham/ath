@@ -15,6 +15,7 @@ If that sample is missing, the result says so.
 
 ```ath-calculation
 name: heart-rate-recovery
+use: value_after_end
 sample_field: heart_rate_samples
 later_offset_ms: 60000
 ```

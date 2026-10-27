@@ -21,5 +21,11 @@ Later, with the reason:
 - Strava's online connection. The bulk download is the path in this version,
   and the permissions question is still open.
 - Android app. This version has the command-line tool.
-- Moving the remaining TypeScript storage and the older imports into Rust.
-  They stay until the same tests pass there.
+- Record writes, corrections, deletions, provider-import writes, the eight
+  range calculations, and WHOOP CSV reading run in `ath-core` (D162). Apple
+  Health, Oura, package import, checks, the upgrade, export, and erasure are
+  still TypeScript until the same tests pass there.
+- A pull from Open Wearables or Junction, and the mapping file a new source
+  uses. D161 records the rule. The study is
+  [appendix/source-formats.md](appendix/source-formats.md). The pull is not
+  built yet.

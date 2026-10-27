@@ -47,19 +47,31 @@ pub fn run_skill(
 ) -> Value {
     let mut fields_read = Vec::new();
     let mut missing = Vec::new();
-    let result = match skill.name.as_str() {
-        "heart-rate-zones" => zones(skill, record, &mut fields_read, &mut missing),
-        "heart-rate-recovery" => recovery(skill, record, &mut fields_read, &mut missing),
-        "resting-heart-rate" => resting(skill, record, &mut fields_read, &mut missing),
-        "training-load-heart-rate" => load_hr(skill, record, &mut fields_read, &mut missing),
-        "training-load-effort" => load_effort(skill, record, &mut fields_read, &mut missing),
-        "sleep-duration" | "sleep-interruptions" => number_field(skill, record, &mut fields_read, &mut missing),
-        "sleep-efficiency" => efficiency(skill, record, &mut fields_read, &mut missing),
-        "sleep-timing" => timing(skill, record, &mut fields_read, &mut missing),
-        "sleep-stages" => stages(skill, record, &mut fields_read, &mut missing),
-        "sleep-regularity" => regularity(skill, record, related, &mut fields_read, &mut missing),
-        "strength-volume" => volume(skill, record, &mut fields_read, &mut missing),
-        "same-quantity-change" => quantity_change(record, related, &mut fields_read, &mut missing),
+    let action = skill
+        .settings
+        .get("use")
+        .and_then(|values| values.first())
+        .map(String::as_str)
+        .unwrap_or(skill.name.as_str());
+    let result = match action {
+        "heart-rate-zones" | "time_between_cuts" => zones(skill, record, &mut fields_read, &mut missing),
+        "heart-rate-recovery" | "value_after_end" => recovery(skill, record, &mut fields_read, &mut missing),
+        "resting-heart-rate" | "lowest_held" => resting(skill, record, &mut fields_read, &mut missing),
+        "training-load-heart-rate" | "heart_rate_reserve_curve" => load_hr(skill, record, &mut fields_read, &mut missing),
+        "training-load-effort" | "multiply" => load_effort(skill, record, &mut fields_read, &mut missing),
+        "sleep-duration" | "sleep-interruptions" | "field" => number_field(skill, record, &mut fields_read, &mut missing),
+        "sleep-efficiency" | "divide" => efficiency(skill, record, &mut fields_read, &mut missing),
+        "sleep-timing" | "midpoint" => timing(skill, record, &mut fields_read, &mut missing),
+        "sleep-stages" | "sum_fields" => stages(skill, record, &mut fields_read, &mut missing),
+        "sleep-regularity" | "night_agreement" => regularity(skill, record, related, &mut fields_read, &mut missing),
+        "strength-volume" | "reps_times_weight" => volume(skill, record, &mut fields_read, &mut missing),
+        "same-quantity-change" | "subtract_earlier_mean" => {
+            if skill.name == "sleep-change" {
+                sleep_change(skill, record, related, &mut fields_read, &mut missing)
+            } else {
+                quantity_change(record, related, &mut fields_read, &mut missing)
+            }
+        }
         "sleep-change" => sleep_change(skill, record, related, &mut fields_read, &mut missing),
         other => {
             missing.push(format!("unknown calculation {other}"));

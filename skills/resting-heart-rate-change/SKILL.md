@@ -14,4 +14,5 @@ rate records from the same source.
 
 ```ath-calculation
 name: same-quantity-change
+use: subtract_earlier_mean
 ```

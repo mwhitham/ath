@@ -15,6 +15,7 @@ stays on the record under its own field. This calculation is separate.
 
 ```ath-calculation
 name: resting-heart-rate
+use: lowest_held
 sample_field: heart_rate_samples
 sustain_ms: 60000
 ```

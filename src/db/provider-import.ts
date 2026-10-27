@@ -1,4 +1,3 @@
-import type { Transaction } from "@libsql/client";
 import {
   CurrentRecord,
   PointMeasurementTypeSchema,
@@ -22,13 +21,9 @@ import type { ProviderSummaryImport } from "../import/merge.js";
 import { databaseClient, type AthleticDatabase } from "./client.js";
 import { currentRecordPayloadFromRow } from "./revision-encoding.js";
 import {
-  incrementDatabaseRevision,
-  insertRevision,
+  persistActions,
   readRecord,
-  upsertTypedRecord,
-  validateTypedRelationships,
 } from "./records.js";
-import { withWriteTransaction } from "./transaction.js";
 import { createUuidV7 } from "./uuid.js";
 import { ATH_PACKAGE_VERSION } from "../version.js";
 
@@ -1054,64 +1049,6 @@ export async function previewProviderImport(
   };
 }
 
-async function insertNewRecord(
-  transaction: Transaction,
-  draft: ProviderRecordDraft,
-  becameKnownAt: string,
-): Promise<CurrentRecordT> {
-  const record = CurrentRecord.parse({
-    record_id: draft.record_id,
-    record_type: draft.record_type,
-    current_revision: 1,
-    created_at: becameKnownAt,
-    is_deleted: false,
-    data: draft.data,
-  });
-  await transaction.execute({
-    sql: `
-      INSERT INTO records (record_id, record_type, current_revision, created_at, is_deleted)
-      VALUES (?, ?, 1, ?, 0)
-    `,
-    args: [record.record_id, record.record_type, record.created_at],
-  });
-  await insertRevision(
-    transaction,
-    record,
-    TOOL_ACTOR,
-    becameKnownAt,
-    "provider_import",
-    null,
-  );
-  await upsertTypedRecord(transaction, record);
-  return record;
-}
-
-async function insertChangedRecord(
-  transaction: Transaction,
-  change: ProviderImportChange & { current: CurrentRecordT },
-  becameKnownAt: string,
-): Promise<CurrentRecordT> {
-  const record = CurrentRecord.parse({
-    ...change.current,
-    current_revision: change.current.current_revision + 1,
-    data: change.draft.data,
-  });
-  await insertRevision(
-    transaction,
-    record,
-    TOOL_ACTOR,
-    becameKnownAt,
-    "provider_import",
-    change.current.current_revision,
-  );
-  await upsertTypedRecord(transaction, record);
-  await transaction.execute({
-    sql: "UPDATE records SET current_revision = ? WHERE record_id = ?",
-    args: [record.current_revision, record.record_id],
-  });
-  return record;
-}
-
 export async function importProviderRecords(
   database: AthleticDatabase,
   preview: ProviderImportPreview,
@@ -1124,76 +1061,86 @@ export async function importProviderRecords(
   if (preview.conflicts.length > 0) {
     throw new Error("Provider import has unresolved conflicts");
   }
-  return withWriteTransaction(database, async (transaction) => {
-    const state = await transaction.execute(
-      "SELECT current_revision FROM database_state WHERE singleton_id = 1",
-    );
-    if (Number(state.rows[0]?.current_revision) !== preview.database_revision) {
-      throw new Error("Database changed after provider import preview; preview it again");
-    }
-
-    const written: CurrentRecordT[] = [];
-    for (const change of preview.changes) {
-      if (change.action === "new") {
-        written.push(
-          await insertNewRecord(transaction, change.draft, preview.plan.received_at),
-        );
-      } else if (change.action === "changed" && change.current !== undefined) {
-        written.push(
-          await insertChangedRecord(
-            transaction,
-            change as ProviderImportChange & { current: CurrentRecordT },
-            preview.plan.received_at,
-          ),
-        );
-      }
-    }
-    for (const record of written) {
-      await validateTypedRelationships(transaction, record);
-    }
-
-    let keyAdded = false;
-    for (const change of preview.changes) {
-      const existing = await transaction.execute({
-        sql: `
-          SELECT record_id
-          FROM record_import_keys
-          WHERE match_key_method = ? AND match_key = ?
-        `,
-        args: [change.draft.match_key_method, change.draft.match_key],
+  const state = await databaseClient(database).execute(
+    "SELECT current_revision FROM database_state WHERE singleton_id = 1",
+  );
+  if (Number(state.rows[0]?.current_revision) !== preview.database_revision) {
+    throw new Error("Database changed after provider import preview; preview it again");
+  }
+  const actions: unknown[] = [
+    { kind: "expect_database_revision", revision: preview.database_revision },
+  ];
+  let wrote = false;
+  for (const change of preview.changes) {
+    if (change.action === "new") {
+      const record = CurrentRecord.parse({
+        record_id: change.draft.record_id,
+        record_type: change.draft.record_type,
+        current_revision: 1,
+        created_at: preview.plan.received_at,
+        is_deleted: false,
+        data: change.draft.data,
       });
-      if (existing.rows.length === 0) {
-        await transaction.execute({
-          sql: `
-            INSERT INTO record_import_keys (
-              record_id,
-              match_key_method,
-              match_key,
-              imported_at
-            ) VALUES (?, ?, ?, ?)
-          `,
-          args: [
-            change.draft.record_id,
-            change.draft.match_key_method,
-            change.draft.match_key,
-            preview.plan.received_at,
-          ],
-        });
-        keyAdded = true;
-      } else if (existing.rows[0]?.record_id !== change.draft.record_id) {
-        throw new Error("Provider import key changed after preview");
-      }
+      actions.push({
+        kind: "insert",
+        record_id: record.record_id,
+        record_type: record.record_type,
+        created_at: record.created_at,
+        data_json: JSON.stringify(record.data),
+        extensions_json: null,
+        changed_by_json: JSON.stringify(TOOL_ACTOR),
+        became_known_at: preview.plan.received_at,
+        became_known_at_basis: "provider_import",
+      });
+      wrote = true;
+    } else if (change.action === "changed" && change.current !== undefined) {
+      const record = CurrentRecord.parse({
+        ...change.current,
+        current_revision: change.current.current_revision + 1,
+        data: change.draft.data,
+      });
+      actions.push({
+        kind: "revise",
+        style: "change",
+        record_id: record.record_id,
+        record_type: record.record_type,
+        expected_revision: change.current.current_revision,
+        data_json: JSON.stringify(record.data),
+        extensions_json: null,
+        keep_extensions: true,
+        changed_by_json: JSON.stringify(TOOL_ACTOR),
+        became_known_at: preview.plan.received_at,
+        became_known_at_basis: "provider_import",
+      });
+      wrote = true;
     }
-
-    const databaseRevision =
-      written.length > 0 || keyAdded
-        ? await incrementDatabaseRevision(transaction)
-        : preview.database_revision;
-    return {
-      database_revision: databaseRevision,
-      new_record_count: preview.new_records.length,
-      changed_record_count: preview.changed_records.length,
-      matching_record_count: preview.matching_records.length,
-    };
-  });
+  }
+  actions.push({ kind: "validate" });
+  let keyAdded = false;
+  for (const change of preview.changes) {
+    const existing = await databaseClient(database).execute({
+      sql: `SELECT record_id FROM record_import_keys WHERE match_key_method = ? AND match_key = ?`,
+      args: [change.draft.match_key_method, change.draft.match_key],
+    });
+    if (existing.rows.length === 0) {
+      actions.push({
+        kind: "import_key",
+        record_id: change.draft.record_id,
+        method: change.draft.match_key_method,
+        key: change.draft.match_key,
+        imported_at: preview.plan.received_at,
+      });
+      keyAdded = true;
+    } else if (existing.rows[0]?.record_id !== change.draft.record_id) {
+      throw new Error("Provider import key changed after preview");
+    }
+  }
+  if (wrote || keyAdded) actions.push({ kind: "bump" });
+  const databaseRevision = await persistActions(database, actions);
+  return {
+    database_revision: databaseRevision,
+    new_record_count: preview.new_records.length,
+    changed_record_count: preview.changed_records.length,
+    matching_record_count: preview.matching_records.length,
+  };
 }

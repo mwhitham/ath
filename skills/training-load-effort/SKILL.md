@@ -15,6 +15,7 @@ number is missing, the result says so.
 
 ```ath-calculation
 name: training-load-effort
+use: multiply
 duration_field: duration_seconds
 effort_field: rating
 ```

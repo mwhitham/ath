@@ -14,5 +14,6 @@ that is not on the record.
 
 ```ath-calculation
 name: sleep-stages
+use: sum_fields
 field: stage_minutes
 ```

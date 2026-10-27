@@ -96,6 +96,12 @@ Sources: openwearables.io provider quirks; sensai.fit Apple Health sync comparis
 
 ## Open Wearables (the aggregator option)
 
+The field comparison with Junction and Athletic Standard, and the mapping-file
+rule, are in
+[build-history/v2.0.0/appendix/source-formats.md](../build-history/v2.0.0/appendix/source-formats.md)
+(D161). Their summary names do not map one-to-one onto our fields. A generic
+HRV name is not stored as RMSSD.
+
 - **What it is:** MIT-licensed self-hosted server (Docker: FastAPI + PostgreSQL + Redis). Solves OAuth flows, webhooks, polling, canonical units, dedup across all providers above plus Polar, Suunto, Fitbit, Strava, Ultrahuman, Health Connect.
 - **What it costs the user:** running Docker on an always-on machine + registering their own developer app per provider (free, but a real step; Garmin additionally needs approval). No subscriptions anywhere.
 - **What it uniquely enables:** multi-provider users (e.g. WHOOP + Garmin watch), continuous background sync, Android/Health Connect, and provider-specific extras (body battery, stress).

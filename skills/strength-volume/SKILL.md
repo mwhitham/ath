@@ -15,5 +15,6 @@ the volume cannot be made.
 
 ```ath-calculation
 name: strength-volume
+use: reps_times_weight
 field: sets
 ```

@@ -130,3 +130,55 @@ Rejected alternatives:
   installed as skills.
 - Replace an installed skill when the folder layout changes. Rejected because
   an installed file stays as the person left it.
+
+## D161. A new source is a field mapping, not a new record format
+
+Open Wearables and Junction rewrite each device into their own objects. The
+usual read is that object, not the original export. Athletic Standard keeps
+its own record. A pull, when it is built, reads one service's summaries and
+applies a mapping file. A mapped field becomes the typed value. Any other
+field stays in `supplied_fields` under the name it arrived with. Their record
+id is the match key. The source names the device and the path. The key stays
+in the password store.
+
+After a reader has turned the bytes into named fields, a new source is a new
+mapping file. The file lists their field and our field. A person can add one.
+XML, FIT, GPX, and CSV still need a reader. The mapping cannot turn a personal
+report into a measured record. It cannot rename a generic HRV field to
+`hrv_rmssd` or `hrv_sdnn`. Shipped mappings for the later pull are Open
+Wearables summaries and Junction summaries. Junction's raw endpoint is not the
+default. The comparison and the field table are in
+[appendix/source-formats.md](appendix/source-formats.md). D153 still says
+unknown fields keep their original names. It is not rewritten.
+
+Rejected alternatives:
+
+- Use the Open Wearables objects as the Athletic Standard record. Rejected
+  because a personal report, a provider period, an original field name, and a
+  second device's copy of the same workout would have nowhere to stay.
+- Treat every HRV number from a summary as RMSSD. Rejected because a field
+  that does not name the statistic is not one. `LastNightAvg` stays
+  `LastNightAvg`.
+- Make the default pull Junction's raw payload. Rejected because that payload
+  is a different format for each provider, which is a provider reader rather
+  than one mapping.
+
+## D162. Record writes and the eight range calculations run in ath-core
+
+`ath-core persist` writes a checked record, a correction, a deletion, and a
+provider import. `ath-core calculate-range` runs summary, baseline, trend,
+coverage, compare-sources, correlation, workout-drift, and
+provider-period-summary. Each of those eight is a skill under `skills/`. The
+command `ath calculate` reads that file and calls the library. WHOOP CSV
+reading also runs in `ath-core`. The field checks stay in `src/v1/schema.ts`.
+
+Apple Health, Oura, package import, checks, the upgrade, export, and erasure
+still run in TypeScript. D155 said those pieces move after the same tests
+pass in Rust. That wait is not finished.
+
+Rejected alternatives:
+
+- Leave the record write in TypeScript because the tests already passed there.
+  Rejected because a second copy of the write will drift from the library.
+- Hide the eight calculations inside the command and skip the skill files.
+  Rejected because a calculation is a skill, and the file names the steps.

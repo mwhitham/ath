@@ -16,7 +16,8 @@ import {
   type RecordTypeT,
 } from "../v1/schema.js";
 import { typedTables } from "./check-tables.js";
-import { databaseClient, type AthleticDatabase } from "./client.js";
+import { runAthCore } from "../ath-core.js";
+import { databaseClient, enableLocalWal, type AthleticDatabase } from "./client.js";
 import {
   currentRecordPayloadFromRow,
   parseExtensionsJson,
@@ -75,6 +76,22 @@ export interface WriteRecordsOptions {
 export interface WriteRecordChangesInput extends WriteRecordsOptions {
   corrections?: readonly CorrectRecordInput[];
   records?: readonly WriteRecordInput[];
+}
+
+export async function persistActions(
+  database: AthleticDatabase,
+  actions: readonly unknown[],
+): Promise<number> {
+  if (database.localPath === undefined) {
+    throw new Error("ath-core writes a local database file");
+  }
+  await enableLocalWal(database);
+  const result = runAthCore(
+    ["persist", "--database", database.localPath],
+    process.env,
+    JSON.stringify({ actions }),
+  ) as { database_revision: number };
+  return result.database_revision;
 }
 
 function requiredJson(value: unknown): string {
@@ -916,72 +933,47 @@ export async function writeRecords(
     throw new Error("writeRecords needs at least one record");
   }
 
-  return withWriteTransaction(database, async (transaction) => {
-    for (const expected of options.expected_current_revisions ?? []) {
-      const result = await transaction.execute({
-        sql: "SELECT current_revision, is_deleted FROM records WHERE record_id = ?",
-        args: [RecordId.parse(expected.record_id)],
-      });
-      const row = result.rows[0];
-      if (row === undefined) {
-        throw new Error(`Expected record does not exist: ${expected.record_id}`);
-      }
-      if (
-        Number(row.current_revision) !== expected.revision ||
-        Number(row.is_deleted) !== 0
-      ) {
-        throw new Error(
-          `Record ${expected.record_id} changed after preview; preview it again`,
-        );
-      }
-    }
-    const records: CurrentRecordT[] = [];
-    for (const input of inputs) {
-      const changedBy = RecordActor.parse(input.changed_by);
-      const createdAt = UtcTimestamp.parse(input.created_at ?? new Date().toISOString());
-      const becameKnownAt = UtcTimestamp.parse(input.became_known_at ?? createdAt);
-      const becameKnownAtBasis = BecameKnownAtBasis.parse(
-        input.became_known_at_basis ?? "local_write",
-      );
-      const record = CurrentRecord.parse({
-        record_id: RecordId.parse(input.record_id ?? createUuidV7()),
-        record_type: RecordType.parse(input.record_type),
-        created_at: createdAt,
-        current_revision: 1,
-        is_deleted: false,
-        data: input.data,
-        extensions: input.extensions,
-      });
-
-      await transaction.execute({
-        sql: `
-          INSERT INTO records (
-            record_id,
-            record_type,
-            current_revision,
-            created_at,
-            is_deleted
-          ) VALUES (?, ?, 1, ?, 0)
-        `,
-        args: [record.record_id, record.record_type, record.created_at],
-      });
-      await insertRevision(
-        transaction,
-        record,
-        changedBy,
-        becameKnownAt,
-        becameKnownAtBasis,
-        null,
-      );
-      await upsertTypedRecord(transaction, record);
-      records.push(record);
-    }
-    for (const record of records) {
-      await validateTypedRelationships(transaction, record);
-    }
-    const databaseRevision = await incrementDatabaseRevision(transaction);
-    return { records, database_revision: databaseRevision };
-  });
+  const actions: unknown[] = [];
+  for (const expected of options.expected_current_revisions ?? []) {
+    actions.push({
+      kind: "expect_preview",
+      record_id: RecordId.parse(expected.record_id),
+      revision: expected.revision,
+    });
+  }
+  const records: CurrentRecordT[] = [];
+  for (const input of inputs) {
+    const changedBy = RecordActor.parse(input.changed_by);
+    const createdAt = UtcTimestamp.parse(input.created_at ?? new Date().toISOString());
+    const becameKnownAt = UtcTimestamp.parse(input.became_known_at ?? createdAt);
+    const becameKnownAtBasis = BecameKnownAtBasis.parse(
+      input.became_known_at_basis ?? "local_write",
+    );
+    const record = CurrentRecord.parse({
+      record_id: RecordId.parse(input.record_id ?? createUuidV7()),
+      record_type: RecordType.parse(input.record_type),
+      created_at: createdAt,
+      current_revision: 1,
+      is_deleted: false,
+      data: input.data,
+      extensions: input.extensions,
+    });
+    actions.push({
+      kind: "insert",
+      record_id: record.record_id,
+      record_type: record.record_type,
+      created_at: record.created_at,
+      data_json: requiredJson(record.data),
+      extensions_json: serializeExtensionsJson(record.extensions),
+      changed_by_json: requiredJson(changedBy),
+      became_known_at: becameKnownAt,
+      became_known_at_basis: becameKnownAtBasis,
+    });
+    records.push(record);
+  }
+  actions.push({ kind: "validate" }, { kind: "bump" });
+  const databaseRevision = await persistActions(database, actions);
+  return { records, database_revision: databaseRevision };
 }
 
 export async function writeRecordChanges(
@@ -994,149 +986,105 @@ export async function writeRecordChanges(
     throw new Error("writeRecordChanges needs at least one change");
   }
 
-  return withWriteTransaction(database, async (transaction) => {
-    for (const expected of input.expected_current_revisions ?? []) {
-      const result = await transaction.execute({
-        sql: "SELECT current_revision, is_deleted FROM records WHERE record_id = ?",
-        args: [RecordId.parse(expected.record_id)],
-      });
-      const row = result.rows[0];
-      if (
-        row === undefined ||
-        Number(row.current_revision) !== expected.revision ||
-        Number(row.is_deleted) !== 0
-      ) {
-        throw new Error(
-          `Record ${expected.record_id} changed after preview; preview it again`,
-        );
-      }
+  const actions: unknown[] = [];
+  for (const expected of input.expected_current_revisions ?? []) {
+    actions.push({
+      kind: "expect_preview",
+      record_id: RecordId.parse(expected.record_id),
+      revision: expected.revision,
+    });
+  }
+  const changedRecords: CurrentRecordT[] = [];
+  const pushCreate = (create: WriteRecordInput): void => {
+    const changedBy = RecordActor.parse(create.changed_by);
+    const createdAt = UtcTimestamp.parse(create.created_at ?? new Date().toISOString());
+    const becameKnownAt = UtcTimestamp.parse(create.became_known_at ?? createdAt);
+    const becameKnownAtBasis = BecameKnownAtBasis.parse(
+      create.became_known_at_basis ?? "local_write",
+    );
+    const record = CurrentRecord.parse({
+      record_id: RecordId.parse(create.record_id ?? createUuidV7()),
+      record_type: RecordType.parse(create.record_type),
+      created_at: createdAt,
+      current_revision: 1,
+      is_deleted: false,
+      data: create.data,
+    });
+    actions.push({
+      kind: "insert",
+      record_id: record.record_id,
+      record_type: record.record_type,
+      created_at: record.created_at,
+      data_json: requiredJson(record.data),
+      extensions_json: null,
+      changed_by_json: requiredJson(changedBy),
+      became_known_at: becameKnownAt,
+      became_known_at_basis: becameKnownAtBasis,
+    });
+    changedRecords.push(record);
+  };
+  for (const create of creates) {
+    if (create.record_type === "attachment") pushCreate(create);
+  }
+  for (const correction of corrections) {
+    const recordId = RecordId.parse(correction.record_id);
+    const changedBy = RecordActor.parse(correction.changed_by);
+    const becameKnownAt = UtcTimestamp.parse(
+      correction.became_known_at ?? new Date().toISOString(),
+    );
+    const becameKnownAtBasis = BecameKnownAtBasis.parse(
+      correction.became_known_at_basis ?? "local_write",
+    );
+    const current = await databaseClient(database).execute({
+      sql: `
+        SELECT records.record_type, records.current_revision, records.created_at, records.is_deleted,
+               record_revisions.became_known_at
+        FROM records
+        JOIN record_revisions
+          ON record_revisions.record_id = records.record_id
+         AND record_revisions.revision = records.current_revision
+        WHERE records.record_id = ?
+      `,
+      args: [recordId],
+    });
+    const row = current.rows[0];
+    if (row === undefined) throw new Error(`Record not found: ${recordId}`);
+    const currentRevision = Number(row.current_revision);
+    if (currentRevision !== correction.expected_revision || Number(row.is_deleted) !== 0) {
+      throw new Error(`Record ${recordId} changed after preview; preview it again`);
     }
-
-    const changedRecords: CurrentRecordT[] = [];
-    for (const create of creates) {
-      if (create.record_type === "attachment") {
-        await insertCreate(create);
-      }
+    if (Date.parse(becameKnownAt) < Date.parse(String(row.became_known_at))) {
+      throw new Error(`Revision knowledge time cannot precede revision ${currentRevision}`);
     }
-    for (const correction of corrections) {
-      const recordId = RecordId.parse(correction.record_id);
-      const changedBy = RecordActor.parse(correction.changed_by);
-      const becameKnownAt = UtcTimestamp.parse(
-        correction.became_known_at ?? new Date().toISOString(),
-      );
-      const becameKnownAtBasis = BecameKnownAtBasis.parse(
-        correction.became_known_at_basis ?? "local_write",
-      );
-      const result = await transaction.execute({
-        sql: `
-          SELECT
-            records.record_type,
-            records.current_revision,
-            records.created_at,
-            records.is_deleted,
-            record_revisions.became_known_at
-          FROM records
-          JOIN record_revisions
-            ON record_revisions.record_id = records.record_id
-           AND record_revisions.revision = records.current_revision
-          WHERE records.record_id = ?
-        `,
-        args: [recordId],
-      });
-      const row = result.rows[0];
-      if (row === undefined) {
-        throw new Error(`Record not found: ${recordId}`);
-      }
-      const currentRevision = Number(row.current_revision);
-      if (
-        currentRevision !== correction.expected_revision ||
-        Number(row.is_deleted) !== 0
-      ) {
-        throw new Error(`Record ${recordId} changed after preview; preview it again`);
-      }
-      if (Date.parse(becameKnownAt) < Date.parse(String(row.became_known_at))) {
-        throw new Error(
-          `Revision knowledge time cannot precede revision ${currentRevision}`,
-        );
-      }
-      const record = CurrentRecord.parse({
-        record_id: recordId,
-        record_type: row.record_type,
-        created_at: row.created_at,
-        current_revision: currentRevision + 1,
-        is_deleted: false,
-        data: correction.data,
-      });
-      await insertRevision(
-        transaction,
-        record,
-        changedBy,
-        becameKnownAt,
-        becameKnownAtBasis,
-        currentRevision,
-      );
-      await upsertTypedRecord(transaction, record);
-      await validateTypedRelationships(transaction, record);
-      await transaction.execute({
-        sql: "UPDATE records SET current_revision = ? WHERE record_id = ?",
-        args: [record.current_revision, record.record_id],
-      });
-      changedRecords.push(record);
-    }
-
-    async function insertCreate(create: WriteRecordInput): Promise<void> {
-      const changedBy = RecordActor.parse(create.changed_by);
-      const createdAt = UtcTimestamp.parse(
-        create.created_at ?? new Date().toISOString(),
-      );
-      const becameKnownAt = UtcTimestamp.parse(
-        create.became_known_at ?? createdAt,
-      );
-      const becameKnownAtBasis = BecameKnownAtBasis.parse(
-        create.became_known_at_basis ?? "local_write",
-      );
-      const record = CurrentRecord.parse({
-        record_id: RecordId.parse(create.record_id ?? createUuidV7()),
-        record_type: RecordType.parse(create.record_type),
-        created_at: createdAt,
-        current_revision: 1,
-        is_deleted: false,
-        data: create.data,
-      });
-      await transaction.execute({
-        sql: `
-          INSERT INTO records (
-            record_id,
-            record_type,
-            current_revision,
-            created_at,
-            is_deleted
-          ) VALUES (?, ?, 1, ?, 0)
-        `,
-        args: [record.record_id, record.record_type, record.created_at],
-      });
-      await insertRevision(
-        transaction,
-        record,
-        changedBy,
-        becameKnownAt,
-        becameKnownAtBasis,
-        null,
-      );
-      await upsertTypedRecord(transaction, record);
-      changedRecords.push(record);
-    }
-    for (const create of creates) {
-      if (create.record_type !== "attachment") {
-        await insertCreate(create);
-      }
-    }
-    for (const record of changedRecords) {
-      await validateTypedRelationships(transaction, record);
-    }
-    const databaseRevision = await incrementDatabaseRevision(transaction);
-    return { records: changedRecords, database_revision: databaseRevision };
-  });
+    const record = CurrentRecord.parse({
+      record_id: recordId,
+      record_type: row.record_type,
+      created_at: row.created_at,
+      current_revision: currentRevision + 1,
+      is_deleted: false,
+      data: correction.data,
+    });
+    actions.push({
+      kind: "revise",
+      style: "change",
+      record_id: recordId,
+      record_type: record.record_type,
+      expected_revision: correction.expected_revision,
+      data_json: requiredJson(record.data),
+      extensions_json: null,
+      keep_extensions: true,
+      changed_by_json: requiredJson(changedBy),
+      became_known_at: becameKnownAt,
+      became_known_at_basis: becameKnownAtBasis,
+    });
+    changedRecords.push(record);
+  }
+  for (const create of creates) {
+    if (create.record_type !== "attachment") pushCreate(create);
+  }
+  actions.push({ kind: "validate" }, { kind: "bump" });
+  const databaseRevision = await persistActions(database, actions);
+  return { records: changedRecords, database_revision: databaseRevision };
 }
 
 export async function writeRecord(
@@ -1160,70 +1108,68 @@ export async function correctRecord(
     input.became_known_at_basis ?? "local_write",
   );
 
-  return withWriteTransaction(database, async (transaction) => {
-    const result = await transaction.execute({
-      sql: `
-        SELECT
-          records.record_type,
-          records.current_revision,
-          records.created_at,
-          records.is_deleted,
-          record_revisions.became_known_at,
-          record_revisions.extensions_json
-        FROM records
-        JOIN record_revisions
-          ON record_revisions.record_id = records.record_id
-         AND record_revisions.revision = records.current_revision
-        WHERE records.record_id = ?
-      `,
-      args: [recordId],
-    });
-    const row = result.rows[0];
-    if (row === undefined) {
-      throw new Error(`Record not found: ${recordId}`);
-    }
-    const currentRevision = Number(row.current_revision);
-    if (currentRevision !== input.expected_revision) {
-      throw new Error(
-        `Record ${recordId} is at revision ${currentRevision}, not expected revision ${input.expected_revision}`,
-      );
-    }
-    if (Number(row.is_deleted) !== 0) {
-      throw new Error(`Deleted record cannot be corrected: ${recordId}`);
-    }
-    if (Date.parse(becameKnownAt) < Date.parse(String(row.became_known_at))) {
-      throw new Error(
-        `Revision knowledge time cannot precede revision ${currentRevision}`,
-      );
-    }
-
-    const record = CurrentRecord.parse({
-      record_id: recordId,
-      record_type: row.record_type,
-      created_at: row.created_at,
-      current_revision: currentRevision + 1,
-      is_deleted: false,
-      data: input.data,
-      extensions: input.extensions ?? parseExtensionsJson(row.extensions_json ?? null),
-    });
-
-    await insertRevision(
-      transaction,
-      record,
-      changedBy,
-      becameKnownAt,
-      becameKnownAtBasis,
-      currentRevision,
-    );
-    await upsertTypedRecord(transaction, record);
-    await validateTypedRelationships(transaction, record);
-    await transaction.execute({
-      sql: "UPDATE records SET current_revision = ? WHERE record_id = ?",
-      args: [record.current_revision, record.record_id],
-    });
-    const databaseRevision = await incrementDatabaseRevision(transaction);
-    return { record, database_revision: databaseRevision };
+  const result = await databaseClient(database).execute({
+    sql: `
+      SELECT
+        records.record_type,
+        records.current_revision,
+        records.created_at,
+        records.is_deleted,
+        record_revisions.became_known_at,
+        record_revisions.extensions_json
+      FROM records
+      JOIN record_revisions
+        ON record_revisions.record_id = records.record_id
+       AND record_revisions.revision = records.current_revision
+      WHERE records.record_id = ?
+    `,
+    args: [recordId],
   });
+  const row = result.rows[0];
+  if (row === undefined) {
+    throw new Error(`Record not found: ${recordId}`);
+  }
+  const currentRevision = Number(row.current_revision);
+  if (currentRevision !== input.expected_revision) {
+    throw new Error(
+      `Record ${recordId} is at revision ${currentRevision}, not expected revision ${input.expected_revision}`,
+    );
+  }
+  if (Number(row.is_deleted) !== 0) {
+    throw new Error(`Deleted record cannot be corrected: ${recordId}`);
+  }
+  if (Date.parse(becameKnownAt) < Date.parse(String(row.became_known_at))) {
+    throw new Error(
+      `Revision knowledge time cannot precede revision ${currentRevision}`,
+    );
+  }
+  const record = CurrentRecord.parse({
+    record_id: recordId,
+    record_type: row.record_type,
+    created_at: row.created_at,
+    current_revision: currentRevision + 1,
+    is_deleted: false,
+    data: input.data,
+    extensions: input.extensions ?? parseExtensionsJson(row.extensions_json ?? null),
+  });
+  const databaseRevision = await persistActions(database, [
+    {
+      kind: "revise",
+      style: "correct",
+      record_id: recordId,
+      record_type: record.record_type,
+      expected_revision: input.expected_revision,
+      data_json: requiredJson(record.data),
+      extensions_json: serializeExtensionsJson(record.extensions),
+      keep_extensions: input.extensions === undefined,
+      changed_by_json: requiredJson(changedBy),
+      became_known_at: becameKnownAt,
+      became_known_at_basis: becameKnownAtBasis,
+    },
+    { kind: "validate" },
+    { kind: "bump" },
+  ]);
+  return { record, database_revision: databaseRevision };
 }
 
 export async function deleteRecord(
@@ -1233,61 +1179,21 @@ export async function deleteRecord(
   const recordId = RecordId.parse(input.record_id);
   const deletedBy = RecordActor.parse(input.deleted_by);
   const deletedAt = UtcTimestamp.parse(input.deleted_at ?? new Date().toISOString());
-
-  return withWriteTransaction(database, async (transaction) => {
-    const result = await transaction.execute({
-      sql: `
-        SELECT
-          records.current_revision,
-          records.is_deleted,
-          record_revisions.became_known_at
-        FROM records
-        JOIN record_revisions
-          ON record_revisions.record_id = records.record_id
-         AND record_revisions.revision = records.current_revision
-        WHERE records.record_id = ?
-      `,
-      args: [recordId],
-    });
-    const row = result.rows[0];
-    if (row === undefined) {
-      throw new Error(`Record not found: ${recordId}`);
-    }
-    const currentRevision = Number(row.current_revision);
-    if (currentRevision !== input.expected_revision) {
-      throw new Error(
-        `Record ${recordId} is at revision ${currentRevision}, not expected revision ${input.expected_revision}`,
-      );
-    }
-    if (Number(row.is_deleted) !== 0) {
-      throw new Error(`Record is already deleted: ${recordId}`);
-    }
-    if (Date.parse(deletedAt) < Date.parse(String(row.became_known_at))) {
-      throw new Error("Deletion time cannot precede the current revision knowledge time");
-    }
-
-    await transaction.execute({
-      sql: `
-        INSERT INTO record_deletions (
-          record_id,
-          record_revision,
-          deleted_at,
-          deleted_by_json
-        ) VALUES (?, ?, ?, ?)
-      `,
-      args: [recordId, currentRevision, deletedAt, requiredJson(deletedBy)],
-    });
-    await transaction.execute({
-      sql: "UPDATE records SET is_deleted = 1 WHERE record_id = ?",
-      args: [recordId],
-    });
-    const databaseRevision = await incrementDatabaseRevision(transaction);
-    return {
+  const databaseRevision = await persistActions(database, [
+    {
+      kind: "delete",
       record_id: recordId,
-      record_revision: currentRevision,
-      database_revision: databaseRevision,
-    };
-  });
+      expected_revision: input.expected_revision,
+      deleted_at: deletedAt,
+      deleted_by_json: requiredJson(deletedBy),
+    },
+    { kind: "bump" },
+  ]);
+  return {
+    record_id: recordId,
+    record_revision: input.expected_revision,
+    database_revision: databaseRevision,
+  };
 }
 
 export async function readRecord(

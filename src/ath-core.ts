@@ -27,8 +27,17 @@ export function athCoreBinary(): string {
   return debugBinary;
 }
 
-export function runAthCore(args: string[], env: NodeJS.ProcessEnv = process.env): unknown {
-  const result = spawnSync(athCoreBinary(), args, { encoding: "utf8", env });
+export function runAthCore(
+  args: string[],
+  env: NodeJS.ProcessEnv = process.env,
+  stdin?: string,
+): unknown {
+  const result = spawnSync(athCoreBinary(), args, {
+    encoding: "utf8",
+    env,
+    input: stdin,
+    maxBuffer: 64 * 1024 * 1024,
+  });
   if (result.error) {
     throw new Error(result.error.message);
   }

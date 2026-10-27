@@ -1,5 +1,6 @@
 use std::env;
 use std::fs;
+use std::io::{self, Read};
 use std::path::PathBuf;
 
 use serde_json::{json, Value};
@@ -7,7 +8,10 @@ use serde_json::{json, Value};
 use ath_core::calc::{parse_skill, run_skill};
 use ath_core::garmin::import_garmin;
 use ath_core::personal::pull_garmin;
+use ath_core::persist;
+use ath_core::range_calc;
 use ath_core::store::Store;
+use ath_core::whoop;
 use ath_core::strava::import_strava;
 
 fn main() {
@@ -20,7 +24,10 @@ fn main() {
         "import-garmin" => import(&collect(args), import_garmin),
         "import-strava" => import(&collect(args), import_strava),
         "pull-garmin" => pull(&collect(args)),
-        _ => Err("commands: show, revise, calculate, import-garmin, import-strava, pull-garmin".into()),
+        "persist" => persist_command(&collect(args)),
+        "calculate-range" => calculate_range(&collect(args)),
+        "import-whoop" => import_whoop_command(),
+        _ => Err("commands: show, revise, calculate, import-garmin, import-strava, pull-garmin, persist".into()),
     };
     match result {
         Ok(value) => println!("{value}"),
@@ -99,6 +106,31 @@ fn import(
     let write = !args.iter().any(|arg| arg == "--preview");
     let mut store = Store::open(&PathBuf::from(flag(args, "database")?))?;
     run(&mut store, PathBuf::from(flag(args, "input")?).as_path(), write)
+}
+
+fn import_whoop_command() -> Result<Value, String> {
+    let mut input = String::new();
+    io::stdin().read_to_string(&mut input).map_err(|error| error.to_string())?;
+    let body: Value = serde_json::from_str(&input).map_err(|error| error.to_string())?;
+    let files = body.get("files").and_then(Value::as_object).ok_or("import-whoop needs files")?;
+    let source_id = body.get("source_id").and_then(Value::as_str).unwrap_or("");
+    Ok(whoop::import_whoop(files, source_id))
+}
+
+fn calculate_range(args: &[String]) -> Result<Value, String> {
+    let conn = rusqlite::Connection::open(flag(args, "database")?).map_err(|error| error.to_string())?;
+    let mut input = String::new();
+    io::stdin().read_to_string(&mut input).map_err(|error| error.to_string())?;
+    let body: Value = serde_json::from_str(&input).map_err(|error| error.to_string())?;
+    range_calc::calculate(&conn, &body)
+}
+
+fn persist_command(args: &[String]) -> Result<Value, String> {
+    let mut conn = rusqlite::Connection::open(flag(args, "database")?).map_err(|error| error.to_string())?;
+    let mut input = String::new();
+    io::stdin().read_to_string(&mut input).map_err(|error| error.to_string())?;
+    let body: Value = serde_json::from_str(&input).map_err(|error| error.to_string())?;
+    persist::apply(&mut conn, &body)
 }
 
 fn pull(args: &[String]) -> Result<Value, String> {

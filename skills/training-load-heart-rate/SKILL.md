@@ -17,6 +17,7 @@ missing one.
 
 ```ath-calculation
 name: training-load-heart-rate
+use: heart_rate_reserve_curve
 sample_field: heart_rate_samples
 rest_field: resting_heart_rate_bpm
 maximum_field: maximum_heart_rate_bpm

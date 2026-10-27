@@ -16,6 +16,7 @@ maximum from age.
 
 ```ath-calculation
 name: heart-rate-zones
+use: time_between_cuts
 sample_field: heart_rate_samples
 maximum_field: maximum_heart_rate_bpm
 zone: 0.60

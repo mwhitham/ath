@@ -11,6 +11,7 @@ path = "src/main.rs"
 
 [dependencies]
 chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+chrono-tz = "0.10"
 quick-xml = "0.37"
 rusqlite = { version = "0.32", features = ["bundled"] }
 serde_json = { version = "1", features = ["preserve_order"] }
