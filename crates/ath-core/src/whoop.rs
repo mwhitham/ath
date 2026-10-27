@@ -307,13 +307,14 @@ fn file_text(files: &Map<String, Value>, name: &str) -> Option<String> {
     files.get(name).and_then(Value::as_str).map(str::to_string)
 }
 
-fn parse_csv(text: &str) -> Vec<BTreeMap<String, String>> {
+pub(crate) fn parse_csv(text: &str) -> Vec<BTreeMap<String, String>> {
     let mut lines = text.trim().lines();
     let Some(header) = lines.next() else { return Vec::new() };
-    let headers = split_csv(header).into_iter().map(|name| normalize(&name)).collect::<Vec<_>>();
+    let delimiter = if header.matches(';').count() > header.matches(',').count() { ';' } else { ',' };
+    let headers = split_csv(header, delimiter).into_iter().map(|name| normalize(&name)).collect::<Vec<_>>();
     lines.filter_map(|line| {
         if line.trim().is_empty() { return None; }
-        let cells = split_csv(line);
+        let cells = split_csv(line, delimiter);
         let mut row = BTreeMap::new();
         for (index, header) in headers.iter().enumerate() {
             if let Some(value) = cells.get(index) {
@@ -324,15 +325,28 @@ fn parse_csv(text: &str) -> Vec<BTreeMap<String, String>> {
     }).collect()
 }
 
-fn split_csv(line: &str) -> Vec<String> {
+fn split_csv(line: &str, delimiter: char) -> Vec<String> {
     let mut out = Vec::new();
     let mut current = String::new();
     let mut quoted = false;
-    for ch in line.chars() {
-        match ch {
-            '"' => quoted = !quoted,
-            ',' if !quoted => { out.push(current.trim().to_string()); current.clear(); }
-            _ => current.push(ch),
+    let mut chars = line.chars().peekable();
+    while let Some(ch) = chars.next() {
+        if ch == '"' {
+            if quoted && chars.peek() == Some(&'"') {
+                current.push('"');
+                chars.next();
+            } else if quoted {
+                quoted = false;
+            } else if current.is_empty() {
+                quoted = true;
+            } else {
+                current.push('"');
+            }
+        } else if ch == delimiter && !quoted {
+            out.push(current.trim().to_string());
+            current.clear();
+        } else {
+            current.push(ch);
         }
     }
     out.push(current.trim().to_string());
@@ -355,7 +369,7 @@ fn normalize(header: &str) -> String {
     out.trim_matches('_').to_string()
 }
 
-fn cell(row: &BTreeMap<String, String>, names: &[&str]) -> Option<String> {
+pub(crate) fn cell(row: &BTreeMap<String, String>, names: &[&str]) -> Option<String> {
     for name in names {
         if let Some(value) = row.get(&normalize(name)) {
             if !value.trim().is_empty() { return Some(value.trim().to_string()); }
@@ -364,12 +378,12 @@ fn cell(row: &BTreeMap<String, String>, names: &[&str]) -> Option<String> {
     None
 }
 
-fn num(row: &BTreeMap<String, String>, names: &[&str]) -> Option<f64> {
+pub(crate) fn num(row: &BTreeMap<String, String>, names: &[&str]) -> Option<f64> {
     let raw = cell(row, names)?;
     raw.replace(',', "").parse::<f64>().ok().filter(|value| value.is_finite())
 }
 
-fn positive(row: &BTreeMap<String, String>, names: &[&str]) -> Option<f64> {
+pub(crate) fn positive(row: &BTreeMap<String, String>, names: &[&str]) -> Option<f64> {
     num(row, names).filter(|value| *value > 0.0)
 }
 
@@ -377,7 +391,7 @@ fn row_offset(row: &BTreeMap<String, String>) -> Option<String> {
     cell(row, &["Cycle timezone", "cycle_timezone", "timezone_offset"])
 }
 
-fn with_offset(local: Option<&str>, offset: Option<&str>) -> Option<String> {
+pub(crate) fn with_offset(local: Option<&str>, offset: Option<&str>) -> Option<String> {
     let trimmed = local?.trim();
     let bytes = trimmed.as_bytes();
     if bytes.len() < 16 { return None; }

@@ -22,8 +22,8 @@ Later, with the reason:
   and the permissions question is still open.
 - Android app. This version has the command-line tool.
 - Record writes, corrections, deletions, provider-import writes, the eight
-  range calculations, and WHOOP CSV reading run in `ath-core` (D162). Apple
-  Health, Oura, package import, checks, the upgrade, export, and erasure are
+  range calculations, and WHOOP and Oura CSV reading run in `ath-core` (D162).
+  Apple Health, package import, checks, the upgrade, export, and erasure are
   still TypeScript until the same tests pass there.
 - A pull from Open Wearables or Junction, and the mapping file a new source
   uses. D161 records the rule. The study is

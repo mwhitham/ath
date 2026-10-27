@@ -3,6 +3,7 @@
 pub mod calc;
 pub mod fit;
 pub mod garmin;
+pub mod oura;
 pub mod persist;
 pub mod range_calc;
 pub mod personal;

@@ -182,3 +182,11 @@ Rejected alternatives:
   Rejected because a second copy of the write will drift from the library.
 - Hide the eight calculations inside the command and skip the skill files.
   Rejected because a calculation is a skill, and the file names the steps.
+
+## D163. Oura CSV reading runs in ath-core
+
+`importOura` asks `ath-core` to read the CSV files. The command-line tool
+still assigns the source id and folds the signals into the record. The Oura
+reader is no longer a second copy in TypeScript. D162 listed Oura with the
+pieces that were still TypeScript. This decision moves that one reader. Apple
+Health remains in TypeScript.

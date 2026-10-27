@@ -8,6 +8,7 @@ use serde_json::{json, Value};
 use ath_core::calc::{parse_skill, run_skill};
 use ath_core::garmin::import_garmin;
 use ath_core::personal::pull_garmin;
+use ath_core::oura;
 use ath_core::persist;
 use ath_core::range_calc;
 use ath_core::store::Store;
@@ -27,6 +28,7 @@ fn main() {
         "persist" => persist_command(&collect(args)),
         "calculate-range" => calculate_range(&collect(args)),
         "import-whoop" => import_whoop_command(),
+        "import-oura" => import_named(oura::import_oura),
         _ => Err("commands: show, revise, calculate, import-garmin, import-strava, pull-garmin, persist".into()),
     };
     match result {
@@ -106,6 +108,15 @@ fn import(
     let write = !args.iter().any(|arg| arg == "--preview");
     let mut store = Store::open(&PathBuf::from(flag(args, "database")?))?;
     run(&mut store, PathBuf::from(flag(args, "input")?).as_path(), write)
+}
+
+fn import_named(run: fn(&serde_json::Map<String, Value>, &str) -> Value) -> Result<Value, String> {
+    let mut input = String::new();
+    io::stdin().read_to_string(&mut input).map_err(|error| error.to_string())?;
+    let body: Value = serde_json::from_str(&input).map_err(|error| error.to_string())?;
+    let files = body.get("files").and_then(Value::as_object).cloned().ok_or("import needs files")?;
+    let source_id = body.get("source_id").and_then(Value::as_str).unwrap_or("");
+    Ok(run(&files, source_id))
 }
 
 fn import_whoop_command() -> Result<Value, String> {
