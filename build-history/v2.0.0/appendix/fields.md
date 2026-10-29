@@ -6,10 +6,11 @@ them: `name`, `description`, `text_result`, `activity_type`, `start_at`,
 `heart_rate_samples`, `sets`, and `route`.
 
 Garmin JSON uses `activityName`, `description`, `activityType`,
-`startTimeGMT`, `duration`, `maxHR`, `samples`, and `route` for those values.
+`startTimeGMT`, `duration`, `samples`, and `route` for those values.
 `maximum_heart_rate_bpm` is the athlete's known maximum, not the highest
-sample. FIT and GPX do not set it. Garmin JSON `maxHR` is that activity's
-peak and is stored in the field when present (D172).
+sample. FIT, GPX, and Garmin JSON do not set it. Garmin JSON `maxHR` is
+that activity's peak. It is stored as a `provider_summary` with
+`summary_type` `max_heart_rate` and unit `bpm` (D172).
 Strava CSV uses `Activity Name`, `Activity Type`, `Activity Date`,
 `Elapsed Time`, `Activity Description` or `Notes`, and a GPX file named in
 `Filename` for the route and heart-rate samples.

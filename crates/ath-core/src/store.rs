@@ -141,6 +141,26 @@ impl Store {
                 replace_route(&tx, record_id, route)?;
             }
         }
+        if current.record_type == "provider_summary" {
+            tx.execute(
+                "UPDATE provider_summaries
+                 SET source_id = ?1, summary_type = ?2, recorded_at = ?3,
+                     standard_value = ?4, standard_unit = ?5,
+                     provider_record_id = ?6, received_at = ?7
+                 WHERE record_id = ?8",
+                params![
+                    required_string(&data, "source_id")?,
+                    required_string(&data, "summary_type")?,
+                    optional_string(data.get("recorded_at")),
+                    number_at(&data, &["value", "standard_value"])?,
+                    string_at(&data, &["value", "standard_unit"])?,
+                    optional_string(data.get("provider_record_id")),
+                    required_string(&data, "received_at")?,
+                    record_id,
+                ],
+            )
+            .map_err(|error| error.to_string())?;
+        }
         tx.execute(
             "UPDATE database_state SET current_revision = current_revision + 1 WHERE singleton_id = 1",
             [],

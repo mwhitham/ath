@@ -49,12 +49,52 @@ describe("version 2.0.0 shared library", () => {
       record_ids: string[];
     };
     expect(body.understood).toContain("name");
+    expect(body.understood).toContain("max_heart_rate");
+    expect(body.understood).not.toContain("maximum_heart_rate_bpm");
     expect(body.preserved).toContain("Feeling");
-    expect(body.record_ids).toHaveLength(1);
+    expect(body.record_ids).toHaveLength(2);
     const recordId = body.record_ids[0]!;
+
+    const workout = JSON.parse(ath(["records", "show", recordId, "--json"], dir).stdout) as {
+      record: { current_revision: number; data: Record<string, unknown> };
+    };
+    expect(workout.record.data.maximum_heart_rate_bpm).toBeUndefined();
+    const summaries = JSON.parse(
+      ath(["records", "list", "--type", "provider_summary", "--json"], dir).stdout,
+    ).records as Array<{ data: { summary_type: string; value: { standard_value: number; standard_unit: string } } }>;
+    expect(summaries).toEqual([
+      expect.objectContaining({
+        data: expect.objectContaining({
+          summary_type: "max_heart_rate",
+          value: expect.objectContaining({ standard_value: 200, standard_unit: "bpm" }),
+        }),
+      }),
+    ]);
 
     const check = ath(["check"], dir);
     expect(check.code, check.stdout + check.stderr).toBe(0);
+
+    const missingMaximum = ath(["apply", "heart-rate-zones", "--record", recordId, "--json"], dir);
+    expect(missingMaximum.code, missingMaximum.stderr + missingMaximum.stdout).toBe(0);
+    expect(JSON.parse(missingMaximum.stdout).missing).toContain("maximum_heart_rate_bpm");
+
+    const withMaximum = {
+      ...workout.record.data,
+      maximum_heart_rate_bpm: 200,
+    };
+    const corrected = ath(
+      [
+        "correct",
+        recordId,
+        "--revision",
+        String(workout.record.current_revision),
+        "--data",
+        JSON.stringify(withMaximum),
+        "--yes",
+      ],
+      dir,
+    );
+    expect(corrected.code, corrected.stdout).toBe(0);
 
     const zones = ath(["apply", "heart-rate-zones", "--record", recordId, "--json"], dir);
     expect(zones.code, zones.stderr + zones.stdout).toBe(0);
@@ -79,14 +119,14 @@ describe("version 2.0.0 shared library", () => {
 
     const fromLibrary = core(["show", "--database", database, "--record", recordId]);
     expect(fromLibrary.code, fromLibrary.stderr).toBe(0);
-    expect(JSON.parse(fromLibrary.stdout).revision).toBe(2);
+    expect(JSON.parse(fromLibrary.stdout).revision).toBe(3);
 
     const again = ath(["import", GARMIN, "--yes"], dir);
     expect(again.code, again.stderr + again.stdout).toBe(0);
     const againBody = JSON.parse(again.stdout.slice(again.stdout.indexOf("{"))) as {
       record_ids: string[];
     };
-    expect(againBody.record_ids).toEqual([recordId]);
+    expect(againBody.record_ids).toEqual(body.record_ids);
 
     const strava = ath(["import", STRAVA, "--yes"], dir);
     expect(strava.code, strava.stderr + strava.stdout).toBe(0);
@@ -119,5 +159,5 @@ describe("version 2.0.0 shared library", () => {
     const changedBody = JSON.parse(changed.stdout) as { result: { seconds: number[] } };
     expect(changedBody.result.seconds).not.toEqual([1, 1, 0, 1, 1]);
     expect(readFileSync(ZONES, "utf8")).toContain("zone: 0.60");
-  });
+  }, 20_000);
 });

@@ -21,10 +21,12 @@ published 1.0.0 migration file is unchanged. A new database applies the
 2.0.0 columns at creation (D165). An older tool skill is replaced (D164).
 The packed binary is marked executable before it runs (D168). A FIT
 position that means "not present" is left out, and a GPX point with no time
-is left out (D169). The release workflow stages the binaries and packs the
-tarball with `npm pack` (D170, D171). A correction keeps a 17-digit number
-the same in the revision and the typed rows. `maximum_heart_rate_bpm` is
-the athlete's known maximum (D172).
+is left out (D169). The release workflow stages the binaries, packs the tarball with
+`npm pack`, checks that file, and publishes it with
+`npm publish athleticstandard-2.0.0.tgz` (D170, D171). A correction keeps a
+17-digit number the same in the revision and the typed rows.
+`maximum_heart_rate_bpm` is the athlete's known maximum. Garmin `maxHR` is
+a `max_heart_rate` provider summary (D172).
 
 Later, with the reason:
 

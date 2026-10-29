@@ -34,9 +34,9 @@ latitude of `0x7FFFFFFF`, is left out. A GPX heart-rate element is read with
 or without a namespace prefix. A GPX point with no time is left out, and
 the import result counts those points. The workout is checked against the
 field rules before it is written (D169). `maximum_heart_rate_bpm` on a
-workout is the athlete's known maximum. FIT and GPX do not set it. The
-athlete sets it with `ath correct`. Garmin JSON `maxHR` is that activity's
-peak and is stored in the field when the file has it (D172).
+workout is the athlete's known maximum. FIT, GPX, and Garmin JSON do not
+set it. The athlete sets it with `ath correct`. Garmin JSON `maxHR` is that
+activity's peak and is stored as a `max_heart_rate` provider summary (D172).
 `ath pull garmin --date YYYY-MM-DD` reads Garmin's personal connection for
 that day. The personal key stays in the password store or
 `GARMIN_PERSONAL_API_KEY`. It is not written into the database.
@@ -103,6 +103,17 @@ pnpm test
 pnpm build
 cargo test --manifest-path crates/ath-core/Cargo.toml
 ```
+
+Publishing is not one of those commands. The release workflow packs with
+`npm pack`, checks that file, and publishes it:
+
+```
+node scripts/assert-packed-binary.mjs athleticstandard-2.0.0.tgz
+npm publish athleticstandard-2.0.0.tgz
+```
+
+The `2.0.0` in the filename is the version in `package.json` (D171).
+`npm publish` and `pnpm publish` with no file argument are refused.
 
 `pnpm test` includes the shared-file example. Rust tests check the zone
 arithmetic, a FIT record point, the Garmin token request against a local

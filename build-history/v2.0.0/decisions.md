@@ -366,21 +366,31 @@ Rejected alternatives:
 
 ## D171. Publish the npm pack tarball
 
-The tarball that is published is the one `npm pack` builds in the release
-workflow. That is the same packer the smoke test checks. `pnpm pack` stores
+The release workflow packs with `npm pack`, the smoke test checks that
+file, and the same file is what gets published. `pnpm pack` stores
 `ath-core` as mode 644. A global install owned by root then cannot mark the
 binary executable, and the first command fails with EPERM.
 
-`postpack` reads the tarball and refuses it when an `ath-core` entry is
-missing or not executable. D170 is not rewritten. It still says the release
-workflow packs the binaries.
+For version 2.0.0 the commands are:
+
+```
+node scripts/assert-packed-binary.mjs athleticstandard-2.0.0.tgz
+npm publish athleticstandard-2.0.0.tgz
+```
+
+The release workflow runs those two commands on the tarball the smoke test
+just wrote. The `2.0.0` in the filename is the version in `package.json`.
+`npm publish` and `pnpm publish` with no file argument are refused. They
+would pack a new tarball instead of publishing the one that was checked.
+D170 is not rewritten. It still says the release workflow packs the binaries.
 
 Rejected alternatives:
 
 - Let either packer publish. Rejected because `pnpm pack` drops the
   executable bit on every file that is not a `bin` entry.
-- Mark the binary executable only on disk before packing. Rejected because
-  `pnpm pack` does not keep that mode in the tarball.
+- Guess which `.tgz` in the folder to check. Rejected because an old file
+  can pass the check while the packer uploads a different one, and a publish
+  of a named tarball never runs that guess.
 
 ## D172. A workout maximum is the athlete's known maximum
 
@@ -393,8 +403,9 @@ FIT and GPX files do not include that number. Those imports leave the field
 empty. The athlete sets it with `ath correct`.
 
 A Garmin account JSON file's `maxHR` is the peak heart rate Garmin recorded
-for that activity. When the file has `maxHR`, the import stores it in
-`maximum_heart_rate_bpm`. That is the only file field that fills the value.
+for that activity. The import stores it as a `provider_summary` with
+`summary_type` `max_heart_rate` and unit `bpm`. It does not store that peak
+in `maximum_heart_rate_bpm`.
 
 Rejected alternatives:
 
@@ -402,3 +413,5 @@ Rejected alternatives:
   not to.
 - Treat the highest sample in the workout as the maximum. Rejected because
   that peak is not the athlete's known maximum.
+- Store Garmin `maxHR` in `maximum_heart_rate_bpm`. Rejected because the
+  zone calculation would then divide by that workout's own peak.

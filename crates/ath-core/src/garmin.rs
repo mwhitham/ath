@@ -77,6 +77,10 @@ pub fn import_garmin(store: &mut Store, path: &Path, write: bool) -> Result<Valu
                     .or_else(|| activity.get("activity_id"))
                     .map(value_key)
                     .unwrap_or_else(|| name.clone());
+                let max_hr = activity.get("maxHR").and_then(Value::as_f64).filter(|value| *value > 0.0);
+                if max_hr.is_some() {
+                    understood.push("max_heart_rate".into());
+                }
                 if write {
                     let id = store.insert_record(
                         "workout_session",
@@ -85,6 +89,22 @@ pub fn import_garmin(store: &mut Store, path: &Path, write: bool) -> Result<Valu
                         "provider_import",
                     )?;
                     record_ids.push(id);
+                    if let Some(bpm) = max_hr {
+                        let recorded_at = data
+                            .get("start_at")
+                            .and_then(Value::as_str)
+                            .unwrap_or("");
+                        let source_id = data.get("source_id").and_then(Value::as_str).unwrap_or("");
+                        let summary = max_heart_rate_summary(source_id, &received_at, recorded_at, bpm, Some(&key));
+                        let summary_key = format!("{key}:max_heart_rate");
+                        let summary_id = store.insert_record(
+                            "provider_summary",
+                            &summary,
+                            Some(("garmin_account/v1", &summary_key)),
+                            "provider_import",
+                        )?;
+                        record_ids.push(summary_id);
+                    }
                 }
             }
             continue;
@@ -102,6 +122,35 @@ pub fn import_garmin(store: &mut Store, path: &Path, write: bool) -> Result<Valu
         "preserved": preserved,
         "left_out": left_out,
     }))
+}
+
+fn max_heart_rate_summary(
+    source_id: &str,
+    received_at: &str,
+    recorded_at: &str,
+    bpm: f64,
+    provider_record_id: Option<&str>,
+) -> Map<String, Value> {
+    let mut data = Map::new();
+    data.insert("source_id".into(), json!(source_id));
+    data.insert("received_at".into(), json!(received_at));
+    data.insert("received_at_basis".into(), json!("import_time"));
+    data.insert("summary_type".into(), json!("max_heart_rate"));
+    data.insert("recorded_at".into(), json!(recorded_at));
+    data.insert("input_timestamp".into(), timestamp_receipt(recorded_at));
+    data.insert(
+        "value".into(),
+        json!({
+            "standard_value": bpm,
+            "standard_unit": "bpm",
+            "input_value": bpm,
+            "input_unit": "bpm"
+        }),
+    );
+    if let Some(id) = provider_record_id {
+        data.insert("provider_record_id".into(), json!(id));
+    }
+    data
 }
 
 fn activities_in(value: &Value) -> Vec<&Map<String, Value>> {
@@ -164,10 +213,6 @@ pub fn workout_from_json(
     if let Some(id) = activity.get("activityId").map(value_key) {
         data.insert("provider_record_id".into(), json!(id));
         understood.push("provider_record_id".into());
-    }
-    if let Some(max_hr) = activity.get("maxHR").and_then(Value::as_f64) {
-        data.insert("maximum_heart_rate_bpm".into(), json!(max_hr));
-        understood.push("maximum_heart_rate_bpm".into());
     }
     if let Some(samples) = activity.get("samples").or_else(|| activity.get("heart_rate_samples")) {
         data.insert("heart_rate_samples".into(), samples.clone());
@@ -428,7 +473,7 @@ pub fn add_seconds(start: &str, seconds: f64) -> Result<String, String> {
 
 #[cfg(test)]
 mod tests {
-    use super::{import_garmin, workout_from_gpx};
+    use super::{import_garmin, workout_from_gpx, workout_from_json};
     use crate::store::{validate_workout, Store};
 
     #[test]
@@ -463,6 +508,25 @@ mod tests {
         let bpm: Vec<f64> = samples.iter().map(|sample| sample.get("bpm").and_then(|value| value.as_f64()).unwrap()).collect();
         assert_eq!(offsets, vec![0, 10000]);
         assert_eq!(bpm, vec![100.0, 160.0]);
+    }
+
+    #[test]
+    fn garmin_json_peak_is_not_the_athlete_maximum() {
+        let activity = serde_json::json!({
+            "activityId": "1001",
+            "activityName": "Park Loop",
+            "startTimeGMT": "2026-01-02T15:00:00.000Z",
+            "duration": 3,
+            "maxHR": 200
+        });
+        let (data, understood, _) = workout_from_json(
+            "preview",
+            activity.as_object().unwrap(),
+            "2026-08-09T16:00:00.000Z",
+        )
+        .unwrap();
+        assert!(data.get("maximum_heart_rate_bpm").is_none());
+        assert!(!understood.iter().any(|field| field == "maximum_heart_rate_bpm"));
     }
 
     #[test]
