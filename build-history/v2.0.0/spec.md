@@ -29,9 +29,13 @@ workout.
 ## Imports
 
 Garmin import reads an account directory or zip, a JSON activity, a GPX file,
-and FIT record points. `ath pull garmin --date YYYY-MM-DD` reads Garmin's
-personal connection for that day. The personal key stays in the password store
-or `GARMIN_PERSONAL_API_KEY`. It is not written into the database.
+and FIT record points. A FIT value that means "not present", including a
+latitude of `0x7FFFFFFF`, is left out. A GPX heart-rate element is read with
+or without a namespace prefix. A GPX point with no time is left out. The
+workout is checked against the field rules before it is written (D169).
+`ath pull garmin --date YYYY-MM-DD` reads Garmin's personal connection for
+that day. The personal key stays in the password store or
+`GARMIN_PERSONAL_API_KEY`. It is not written into the database.
 
 Strava import reads a bulk export that contains `activities.csv` and the
 activity files named there. The question of whether Strava's terms allow that

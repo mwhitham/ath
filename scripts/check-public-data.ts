@@ -97,6 +97,14 @@ const approvedSyntheticFixtures = new Map<string, string>([
     "1a9a4204bfa965710d21f9bf96649e7817f0b71c56f1aa781a82d861d4a96c66",
   ],
   [
+    "tests/fixtures/exports/garmin/namespaced-hr.gpx",
+    "28d5cc560941591c25d7f35ef5324d6f53ced34b5ac8342fbe4a9c935dbd86d2",
+  ],
+  [
+    "tests/fixtures/exports/garmin/synthetic-position.fit",
+    "7f30c8def4390278e9aebe8cf387e5e14b41a8c3d8d50f932b09e742f22c6851",
+  ],
+  [
     "tests/fixtures/exports/strava/activities.csv",
     "9e23b604846202e075658f771bbef4fe433c694cf660d177f286b05e2acb44a7",
   ],

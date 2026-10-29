@@ -323,7 +323,9 @@ fn gpx_points(gpx: &str) -> Vec<(String, f64, f64, Option<f64>)> {
         let (Some(lat), Some(lon)) = (lat, lon) else {
             continue;
         };
-        let time = tag_text(chunk, "time").unwrap_or_else(|| "1970-01-01T00:00:00.000Z".into());
+        let Some(time) = tag_text(chunk, "time").filter(|value| !value.is_empty()) else {
+            continue;
+        };
         let hr = tag_text(chunk, "hr").and_then(|value| value.parse().ok());
         points.push((normalize_timestamp(&time).unwrap_or(time), lat, lon, hr));
     }
@@ -338,11 +340,42 @@ fn attr(header: &str, name: &str) -> Option<f64> {
 }
 
 fn tag_text(chunk: &str, name: &str) -> Option<String> {
-    let start_tag = format!("<{name}>");
-    let end_tag = format!("</{name}>");
-    let start = chunk.find(&start_tag)? + start_tag.len();
-    let end = chunk[start..].find(&end_tag)? + start;
-    Some(chunk[start..end].trim().to_string())
+    let mut search = 0;
+    while search < chunk.len() {
+        let rest = &chunk[search..];
+        let start = search + rest.find('<')?;
+        if chunk.as_bytes().get(start + 1) == Some(&b'/') {
+            search = start + 1;
+            continue;
+        }
+        let end = start + chunk[start..].find('>')?;
+        let tag = &chunk[start + 1..end];
+        let local = tag.split_whitespace().next().unwrap_or(tag);
+        let local = local.rsplit(':').next().unwrap_or(local);
+        if local == name {
+            let content_start = end + 1;
+            let close = find_closing_tag(&chunk[content_start..], name)?;
+            return Some(chunk[content_start..content_start + close].trim().to_string());
+        }
+        search = end + 1;
+    }
+    None
+}
+
+fn find_closing_tag(chunk: &str, name: &str) -> Option<usize> {
+    let mut search = 0;
+    while search < chunk.len() {
+        let rest = &chunk[search..];
+        let start = search + rest.find("</")?;
+        let end = start + chunk[start..].find('>')?;
+        let tag = &chunk[start + 2..end];
+        let local = tag.rsplit(':').next().unwrap_or(tag).trim();
+        if local == name {
+            return Some(start);
+        }
+        search = end + 1;
+    }
+    None
 }
 
 fn activity_type(activity: &Map<String, Value>) -> Option<String> {
@@ -386,7 +419,8 @@ pub fn add_seconds(start: &str, seconds: f64) -> Result<String, String> {
 
 #[cfg(test)]
 mod tests {
-    use super::workout_from_gpx;
+    use super::{import_garmin, workout_from_gpx};
+    use crate::store::{validate_workout, Store};
 
     #[test]
     fn gpx_uses_track_name_and_real_sample_times() {
@@ -402,6 +436,73 @@ mod tests {
         let samples = data.get("heart_rate_samples").and_then(|value| value.as_array()).unwrap();
         let offsets: Vec<i64> = samples.iter().map(|sample| sample.get("offset_ms").and_then(|value| value.as_i64()).unwrap()).collect();
         assert_eq!(offsets, vec![0, 5000, 10000]);
+    }
+
+    #[test]
+    fn namespaced_heart_rate_is_kept_and_an_untimed_point_is_skipped() {
+        let gpx = include_str!("../../../tests/fixtures/exports/garmin/namespaced-hr.gpx");
+        let (data, understood, _) = workout_from_gpx("preview", "file.gpx", gpx, "2026-08-09T16:00:00.000Z").unwrap();
+        assert!(understood.iter().any(|field| field == "heart_rate_samples"));
+        let route = data.get("route").and_then(|value| value.as_array()).unwrap();
+        assert!(route.iter().all(|point| {
+            point.get("recorded_at").and_then(|value| value.as_str()).unwrap_or("").starts_with("2026-08-09")
+        }));
+        let samples = data.get("heart_rate_samples").and_then(|value| value.as_array()).unwrap();
+        let offsets: Vec<i64> = samples.iter().map(|sample| sample.get("offset_ms").and_then(|value| value.as_i64()).unwrap()).collect();
+        let bpm: Vec<f64> = samples.iter().map(|sample| sample.get("bpm").and_then(|value| value.as_f64()).unwrap()).collect();
+        assert_eq!(offsets, vec![0, 10000]);
+        assert_eq!(bpm, vec![100.0, 160.0]);
+    }
+
+    #[test]
+    fn a_latitude_past_90_is_refused() {
+        let data = serde_json::json!({
+            "source_id": "preview",
+            "received_at": "2026-08-09T16:00:00.000Z",
+            "received_at_basis": "import_time",
+            "start_at": "2026-08-09T15:00:00.000Z",
+            "end_at": "2026-08-09T15:10:00.000Z",
+            "source_reported_summaries": [],
+            "route": [{
+                "recorded_at": "2026-08-09T15:00:00.000Z",
+                "latitude_deg": 179.99999991618097,
+                "longitude_deg": 179.99999991618097
+            }]
+        });
+        let error = validate_workout(data.as_object().unwrap()).unwrap_err();
+        assert!(error.contains("latitude"), "{error}");
+    }
+
+    #[test]
+    fn synthetic_fit_import_omits_the_invalid_position() {
+        let dir = std::env::temp_dir().join(format!("ath-fit-{}-{}", std::process::id(), line!()));
+        std::fs::create_dir_all(&dir).unwrap();
+        let database = dir.join("athlete.ath.sqlite");
+        let fit = dir.join("synthetic-position.fit");
+        std::fs::write(&fit, include_bytes!("../../../tests/fixtures/exports/garmin/synthetic-position.fit")).unwrap();
+        let conn = rusqlite::Connection::open(&database).unwrap();
+        conn.execute_batch(include_str!("../../../spec/sql/migrations/001-initial.sql")).unwrap();
+        conn.execute(
+            "INSERT INTO database_metadata (singleton_id, application_marker, sql_schema_version, athleticstandard_version, database_id, created_at) VALUES (1, 'ATH1', 3, '2.0.0', '018f0000-0000-7000-8000-000000000099', '2026-08-09T00:00:00.000Z')",
+            [],
+        ).unwrap();
+        conn.execute("INSERT INTO database_state (singleton_id, current_revision) VALUES (1, 0)", []).unwrap();
+        conn.execute_batch(include_str!("../../../spec/sql/migrations/003-version-2.sql")).unwrap();
+        drop(conn);
+        let mut store = Store::open(&database).unwrap();
+        let result = import_garmin(&mut store, &fit, true).unwrap();
+        assert_eq!(result["record_ids"].as_array().unwrap().len(), 1, "{result}");
+        let id = result["record_ids"][0].as_str().unwrap();
+        let record = store.show(id).unwrap();
+        assert_eq!(record.data["start_at"], "2026-08-09T15:00:00.000Z");
+        let route = record.data["route"].as_array().unwrap();
+        assert_eq!(route.len(), 1);
+        assert_eq!(route[0]["latitude_deg"].as_f64(), Some(0.0));
+        assert_eq!(route[0]["longitude_deg"].as_f64(), Some(0.0));
+        let samples = record.data["heart_rate_samples"].as_array().unwrap();
+        assert_eq!(samples.len(), 1);
+        assert_eq!(samples[0]["bpm"].as_f64(), Some(120.0));
+        std::fs::remove_dir_all(&dir).ok();
     }
 }
 

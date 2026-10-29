@@ -82,6 +82,9 @@ impl Store {
         for (key, value) in patch {
             data.insert(key.clone(), value.clone());
         }
+        if current.record_type == "workout_session" {
+            validate_workout(&data)?;
+        }
         let json = serde_json::to_string(&Value::Object(data.clone())).map_err(|error| error.to_string())?;
         let next = current.revision + 1;
         let now = utc_now();
@@ -175,6 +178,9 @@ impl Store {
         match_key: Option<(&str, &str)>,
         basis: &str,
     ) -> Result<String, String> {
+        if record_type == "workout_session" {
+            validate_workout(data)?;
+        }
         if let Some((method, key)) = match_key {
             if let Some(existing) = self
                 .conn
@@ -429,6 +435,89 @@ pub fn utc_now() -> String {
         now.second(),
         now.timestamp_subsec_millis()
     )
+}
+
+pub fn validate_workout(data: &Map<String, Value>) -> Result<(), String> {
+    let start = utc_millis(required_str(data, "start_at")?)?;
+    let end = utc_millis(required_str(data, "end_at")?)?;
+    if end < start {
+        return Err("workout end is before the start".into());
+    }
+    utc_millis(required_str(data, "received_at")?)?;
+    let basis = required_str(data, "received_at_basis")?;
+    if !matches!(
+        basis,
+        "provider_supplied" | "connector_received_time" | "file_modified_time" | "import_time" | "local_write_time"
+    ) {
+        return Err(format!("received_at_basis {basis} is not a known value"));
+    }
+    if required_str(data, "source_id")?.is_empty() {
+        return Err("missing source_id".into());
+    }
+    if data.get("source_reported_summaries").and_then(Value::as_array).is_none() {
+        return Err("missing source_reported_summaries".into());
+    }
+    if let Some(name) = data.get("name") {
+        if name.as_str().map(str::is_empty).unwrap_or(true) {
+            return Err("workout name is empty".into());
+        }
+    }
+    if let Some(maximum) = data.get("maximum_heart_rate_bpm").and_then(Value::as_f64) {
+        if maximum <= 0.0 {
+            return Err("maximum heart rate is not a positive number".into());
+        }
+    }
+    if let Some(route) = data.get("route").and_then(Value::as_array) {
+        for (index, point) in route.iter().enumerate() {
+            let lat = point.get("latitude_deg").and_then(Value::as_f64).ok_or_else(|| {
+                format!("route point {} is missing latitude_deg", index + 1)
+            })?;
+            let lon = point.get("longitude_deg").and_then(Value::as_f64).ok_or_else(|| {
+                format!("route point {} is missing longitude_deg", index + 1)
+            })?;
+            if !(-90.0..=90.0).contains(&lat) {
+                return Err(format!("route point {} latitude is outside -90 to 90", index + 1));
+            }
+            if !(-180.0..=180.0).contains(&lon) {
+                return Err(format!("route point {} longitude is outside -180 to 180", index + 1));
+            }
+            let recorded = point.get("recorded_at").and_then(Value::as_str).ok_or_else(|| {
+                format!("route point {} is missing recorded_at", index + 1)
+            })?;
+            utc_millis(recorded)?;
+        }
+    }
+    if let Some(samples) = data.get("heart_rate_samples").and_then(Value::as_array) {
+        for (index, sample) in samples.iter().enumerate() {
+            let bpm = sample.get("bpm").and_then(Value::as_f64).ok_or_else(|| {
+                format!("heart rate sample {} is missing bpm", index + 1)
+            })?;
+            if bpm <= 0.0 {
+                return Err(format!("heart rate sample {} is not a positive number", index + 1));
+            }
+            let offset = sample.get("offset_ms").and_then(Value::as_i64).ok_or_else(|| {
+                format!("heart rate sample {} is missing offset_ms", index + 1)
+            })?;
+            if offset < 0 {
+                return Err(format!("heart rate sample {} has a negative offset", index + 1));
+            }
+        }
+    }
+    Ok(())
+}
+
+fn required_str<'a>(data: &'a Map<String, Value>, key: &str) -> Result<&'a str, String> {
+    data.get(key).and_then(Value::as_str).ok_or_else(|| format!("missing {key}"))
+}
+
+fn utc_millis(value: &str) -> Result<i64, String> {
+    let parsed = chrono::DateTime::parse_from_rfc3339(value)
+        .map_err(|_| format!("{value} is not a UTC timestamp"))?;
+    let formatted = crate::time::format_datetime(parsed.with_timezone(&chrono::Utc));
+    if value != formatted {
+        return Err(format!("{value} is not a UTC timestamp with millisecond precision"));
+    }
+    Ok(parsed.timestamp_millis())
 }
 
 pub fn timestamp_receipt(text: &str) -> Value {

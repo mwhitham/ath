@@ -317,3 +317,49 @@ Rejected alternatives:
 - Commit the binaries to Git so the permission is stored there. Rejected
   because the check builds them for each platform, and Git is not where
   those built files belong.
+
+## D169. A missing Garmin value stays missing
+
+A FIT latitude or longitude of `0x7FFFFFFF` means the device had no GPS
+fix. The same rule applies to the reserved invalid value of each integer
+type, including a heart rate of 255. Those values are left out. They are
+not stored as coordinates or beats.
+
+FIT counts seconds from 1989-12-31T00:00:00Z. A file may store those
+seconds big-endian. The reader honors that byte order. A record with no
+timestamp is left out. It is not given the 1989 epoch.
+
+A GPX heart-rate element is read when its name is `hr`, including
+`ns3:hr` and `gpxtpx:hr`. A track point with no `<time>` is left out. It
+is not given 1970-01-01.
+
+Before `ath-core` writes a workout, it checks the same bounds the field
+list uses. A latitude outside -90 to 90 is refused. The record is not
+written, so `ath check` cannot later report that file as invalid.
+
+The synthetic files are `tests/fixtures/exports/garmin/namespaced-hr.gpx`
+and `tests/fixtures/exports/garmin/synthetic-position.fit`. A fractional
+offset used in a test is `2026-08-09T18:00:00.000-04:00`.
+
+Rejected alternatives:
+
+- Store the reserved FIT position and let `ath check` fail afterwards.
+  Rejected because an import must not leave an invalid database.
+- Use 1970 when a GPX point has no time. Rejected because that time was
+  not in the file.
+- Keep a bedtime copied from a real export in a test. Rejected because a
+  test value has to be invented.
+
+## D170. The release packs the built binaries
+
+The release workflow builds `ath-core` on Linux, macOS, and Windows,
+marks each binary executable, and packs the npm tarball. `npm publish`
+from a checkout that has not staged `ath-core` stops, instead of
+publishing a package that cannot run. D167 still says the package
+includes those binaries. D168 still says they are marked executable.
+
+Rejected alternatives:
+
+- Publish from a checkout and hope `vendor/` is already filled. Rejected
+  because that directory is not source, so a clean checkout does not have
+  it.

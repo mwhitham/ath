@@ -17,6 +17,11 @@ const shipped = `vendor/ath-core/${process.platform}-${process.arch}/${binaryNam
 if (!listed.split("\n").some((line) => line.endsWith(shipped))) {
   throw new Error(`packed tarball has no ${shipped}`);
 }
+const verbose = execFileSync("tar", ["-tvzf", tarball], { encoding: "utf8" });
+const modeLine = verbose.split("\n").find((line) => line.includes(shipped));
+if (modeLine === undefined || !/^-.{2}x/.test(modeLine)) {
+  throw new Error(`ath-core is not executable in the packed tarball: ${modeLine}`);
+}
 const directory = mkdtempSync(join(tmpdir(), "ath-installed-"));
 try {
   execFileSync("npm", ["install", "--ignore-scripts", tarball], { cwd: directory, stdio: "inherit" });
@@ -52,8 +57,34 @@ try {
   }
   const id = workout.record_id ?? workout.id;
   console.log(run(["apply", "heart-rate-zones", "--record", id]));
+  console.log(run(["import", join(root, "tests/fixtures/exports/garmin/namespaced-hr.gpx"), "--yes"]));
+  console.log(run(["import", join(root, "tests/fixtures/exports/garmin/synthetic-position.fit"), "--yes"]));
+  const workouts = JSON.parse(run(["records", "list", "--type", "workout_session", "--json"]));
+  const shown = [];
+  for (const record of workouts.records) {
+    const body = JSON.parse(run(["records", "show", record.record_id, "--json"]));
+    const data = body.data ?? body.record?.data;
+    shown.push(data);
+    const text = JSON.stringify(data);
+    if (text.includes("1970-01-01") || text.includes("1989-12-31")) {
+      throw new Error(`invented date in ${text}`);
+    }
+    for (const point of data.route ?? []) {
+      if (point.latitude_deg > 90 || point.latitude_deg < -90 || point.longitude_deg > 180 || point.longitude_deg < -180) {
+        throw new Error(`route coordinate is outside the valid range in ${text}`);
+      }
+    }
+  }
+  const samplePairs = (data) =>
+    (data.heart_rate_samples ?? []).map((sample) => [sample.offset_ms, sample.bpm]);
+  if (!shown.some((data) => JSON.stringify(samplePairs(data)) === JSON.stringify([[0, 100], [10000, 160]]))) {
+    throw new Error("namespaced heart rate was not imported");
+  }
+  if (!shown.some((data) => data.start_at === "2026-08-09T15:00:00.000Z" && (data.route ?? []).length === 1)) {
+    throw new Error("synthetic FIT import did not keep the timed valid point");
+  }
   console.log("installed package smoke test passed");
 } finally {
   rmSync(directory, { recursive: true, force: true });
-  rmSync(tarball, { force: true });
+  if (process.env.ATH_KEEP_TARBALL !== "1") rmSync(tarball, { force: true });
 }

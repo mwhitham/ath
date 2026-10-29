@@ -98,14 +98,23 @@ pub fn read_fit(bytes: &[u8]) -> Result<Vec<FitPoint>, String> {
                 longitude_deg: None,
                 recorded_at_ms: 0,
             };
+            let mut has_time = false;
             for (number, value) in values {
                 match number {
-                    253 => point.recorded_at_ms = fit_timestamp_ms(value),
+                    253 => {
+                        if let Some(seconds) = value {
+                            point.recorded_at_ms = fit_timestamp_ms(seconds);
+                            has_time = true;
+                        }
+                    }
                     0 => point.latitude_deg = semicircles_to_degrees(value),
                     1 => point.longitude_deg = semicircles_to_degrees(value),
                     3 => point.bpm = value,
                     _ => {}
                 }
+            }
+            if !has_time {
+                continue;
             }
             if start_ms.is_none() {
                 start_ms = Some(point.recorded_at_ms);
@@ -119,28 +128,72 @@ pub fn read_fit(bytes: &[u8]) -> Result<Vec<FitPoint>, String> {
 
 fn decode(bytes: &[u8], base_type: u8, little_endian: bool) -> Option<f64> {
     let base = base_type & 0x1f;
-    if !little_endian {
+    let value = match (base, bytes.len()) {
+        (1, 1) => i8::from_le_bytes([bytes[0]]) as f64,
+        (0 | 2 | 10 | 13, 1) => bytes[0] as f64,
+        (3, 2) => read_i16(bytes, little_endian)? as f64,
+        (4 | 11, 2) => read_u16(bytes, little_endian)? as f64,
+        (5, 4) => read_i32(bytes, little_endian)? as f64,
+        (6 | 12 | 8, 4) => read_u32(bytes, little_endian)? as f64,
+        _ => return None,
+    };
+    if is_invalid(value, base) {
         return None;
     }
-    match (base, bytes.len()) {
-        (0 | 1 | 2 | 10, 1) => Some(bytes[0] as f64),
-        (4 | 6 | 13, 4) => Some(u32::from_le_bytes(bytes.try_into().ok()?) as f64),
-        (3 | 5, 2) => Some(u16::from_le_bytes(bytes.try_into().ok()?) as f64),
-        _ if bytes.len() == 4 => Some(u32::from_le_bytes(bytes.try_into().ok()?) as f64),
-        _ if bytes.len() == 2 => Some(u16::from_le_bytes(bytes.try_into().ok()?) as f64),
-        _ if bytes.len() == 1 => Some(bytes[0] as f64),
-        _ => None,
+    Some(value)
+}
+
+fn read_u16(bytes: &[u8], little_endian: bool) -> Option<u16> {
+    let bytes: [u8; 2] = bytes.try_into().ok()?;
+    Some(if little_endian { u16::from_le_bytes(bytes) } else { u16::from_be_bytes(bytes) })
+}
+
+fn read_i16(bytes: &[u8], little_endian: bool) -> Option<i16> {
+    let bytes: [u8; 2] = bytes.try_into().ok()?;
+    Some(if little_endian { i16::from_le_bytes(bytes) } else { i16::from_be_bytes(bytes) })
+}
+
+fn read_u32(bytes: &[u8], little_endian: bool) -> Option<u32> {
+    let bytes: [u8; 4] = bytes.try_into().ok()?;
+    Some(if little_endian { u32::from_le_bytes(bytes) } else { u32::from_be_bytes(bytes) })
+}
+
+fn read_i32(bytes: &[u8], little_endian: bool) -> Option<i32> {
+    let bytes: [u8; 4] = bytes.try_into().ok()?;
+    Some(if little_endian { i32::from_le_bytes(bytes) } else { i32::from_be_bytes(bytes) })
+}
+
+/// FIT uses one reserved value per integer type for "not present".
+/// A latitude of `0x7FFFFFFF` is that reserved value, not a coordinate.
+fn is_invalid(value: f64, base: u8) -> bool {
+    match base {
+        0 | 2 | 13 => value == 255.0,
+        1 => value == 127.0,
+        3 => value == 32767.0,
+        4 => value == 65535.0,
+        5 => value == 2147483647.0,
+        6 | 8 => value == 4294967295.0,
+        10 | 11 | 12 => value == 0.0,
+        _ => false,
     }
 }
 
-fn fit_timestamp_ms(seconds: Option<f64>) -> i64 {
+fn fit_timestamp_ms(seconds: f64) -> i64 {
+    // FIT counts seconds from 1989-12-31T00:00:00Z. A missing timestamp is not zero.
     const FIT_EPOCH_UNIX: i64 = 631_065_600;
-    (FIT_EPOCH_UNIX + seconds.unwrap_or(0.0) as i64) * 1000
+    (FIT_EPOCH_UNIX + seconds as i64) * 1000
 }
 
 fn semicircles_to_degrees(value: Option<f64>) -> Option<f64> {
-    let raw = value? as u32 as i32;
-    Some(raw as f64 * (180.0 / 2_147_483_648.0))
+    let raw = value? as i32;
+    if raw == i32::MAX {
+        return None;
+    }
+    let degrees = raw as f64 * (180.0 / 2_147_483_648.0);
+    if !(-180.0..=180.0).contains(&degrees) {
+        return None;
+    }
+    Some(degrees)
 }
 
 #[cfg(test)]
@@ -166,5 +219,23 @@ mod tests {
         assert_eq!(points.len(), 1);
         assert_eq!(points[0].bpm, Some(120.0));
         assert_eq!(points[0].offset_ms, 0);
+        assert_eq!(points[0].latitude_deg, Some(0.0));
+    }
+
+    #[test]
+    fn invalid_position_is_missing_and_big_endian_time_is_not_the_fit_epoch() {
+        let bytes = include_bytes!("../../../tests/fixtures/exports/garmin/synthetic-position.fit");
+        let points = read_fit(bytes).unwrap();
+        assert_eq!(points.len(), 2);
+        assert!(points[0].latitude_deg.is_none());
+        assert!(points[0].longitude_deg.is_none());
+        assert_eq!(points[0].bpm, Some(120.0));
+        let start = crate::time::format_millis(points[0].recorded_at_ms);
+        assert_eq!(start, "2026-08-09T15:00:00.000Z");
+        assert_ne!(start, "1989-12-31T00:00:00.000Z");
+        assert_eq!(points[1].latitude_deg, Some(0.0));
+        assert_eq!(points[1].longitude_deg, Some(0.0));
+        assert!(points[1].bpm.is_none());
+        assert_eq!(points[1].offset_ms, 10_000);
     }
 }

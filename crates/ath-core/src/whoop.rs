@@ -485,8 +485,8 @@ mod tests {
 
     #[test]
     fn fractional_second_offset_is_kept() {
-        let parsed = with_offset(Some("2025-07-29T19:48:32.000-04:00"), None).unwrap();
-        assert_eq!(parsed, "2025-07-29T19:48:32.000-04:00");
+        let parsed = with_offset(Some("2026-08-09T18:00:00.000-04:00"), None).unwrap();
+        assert_eq!(parsed, "2026-08-09T18:00:00.000-04:00");
     }
 
     #[test]

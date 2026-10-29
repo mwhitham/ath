@@ -30,3 +30,35 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+      - run: cargo build --release --manifest-path crates/ath-core/Cargo.toml
+      - run: node scripts/stage-ath-core.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ath-core-${{ runner.os }}-${{ runner.arch }}
+          path: vendor/ath-core
+          if-no-files-found: error
+
+  package:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ath-core-*
+          path: vendor/ath-core
+          merge-multiple: true
+      - run: find vendor/ath-core -type f -exec chmod 755 {} +
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: ATH_KEEP_TARBALL=1 node scripts/smoke-installed-package.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: athleticstandard-tarball
+          path: athleticstandard-*.tgz
+          if-no-files-found: error
