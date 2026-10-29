@@ -112,6 +112,8 @@ async function upsertTypedRow(
   record: CurrentRecordT,
   fields: ReadonlyArray<readonly [string, SqlValue]>,
 ): Promise<void> {
+  // A published 1.0.0 database has no workout name, description, or text result
+  // until ath migrate adds them. Repair rebuilds typed rows before that step.
   const info = await transaction.execute(`PRAGMA table_info(${table})`);
   const present = new Set(info.rows.map((row) => String(row.name)));
   const usable = fields.filter(([name]) => present.has(name));
@@ -145,6 +147,7 @@ async function replaceOrderedJsonChildren(
   parentId: string,
   children: readonly unknown[],
 ): Promise<void> {
+  // workout_route_points is created by migration 003. A 1.0.0 database does not have it.
   const tableInfo = await transaction.execute({
     sql: "SELECT 1 AS present FROM sqlite_master WHERE type = 'table' AND name = ?",
     args: [table],

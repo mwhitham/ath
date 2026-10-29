@@ -190,3 +190,114 @@ still assigns the source id and folds the signals into the record. The Oura
 reader is no longer a second copy in TypeScript. D162 listed Oura with the
 pieces that were still TypeScript. This decision moves that one reader. Apple
 Health remains in TypeScript.
+
+## D164. An older tool skill is replaced
+
+`ath skill install` and `ath --update` replace `athletic-standard` when the
+installed version is older than the version this program ships. The agent
+then reads the instructions that belong to this program. D81 rejected leaving
+that copy, because the agent would keep reading the old instructions. That
+reason still holds.
+
+A calculation skill that is already installed is not replaced. That file is
+the method, and the person may have edited it. A tool skill whose version is
+already this version is not replaced, because that copy may have been edited.
+
+This supersedes D81, D79, and D130.
+
+D79 warned when the installed skill was older. There is no such warning. The
+older tool skill is replaced instead. A calculation skill is left alone, so
+there is nothing to warn about.
+
+D130 kept the npm package version apart from `athleticstandard_version`.
+D152 made them the same number, `2.0.0`. D130's split does not apply from
+2.0.0 on. D152 is not rewritten.
+
+Rejected alternatives:
+
+- Leave every installed file, including an older tool skill. Rejected because
+  the agent would keep reading the old instructions. That is the reason D81
+  gave, and it is still the reason.
+- Replace a calculation skill when its version is older. Rejected because
+  that file is the calculation the person may have changed.
+- Replace a tool skill that is already this version. Rejected because the
+  person may have edited it, and the version says it matches this program.
+- Keep the npm package version and the record version as two numbers.
+  Rejected because D152 already made them one number, and a change should
+  not have to pick which number moves.
+
+## D165. The published 1.0.0 migration stays as it was published
+
+`spec/sql/migrations/001-initial.sql` and `src/db/migrations/001-initial.ts`
+are the files from version 1.0.0. They are not edited to add the 2.0.0
+columns. A database created by this program runs migration 003 immediately
+after the initial tables, and its schema version is already 3. A database
+from version 1.0.0 does not have the workout name, description, text result,
+or route table. `ath migrate` adds them.
+
+D154 said a database that already has the new columns only updates its
+version. That sentence described an edit to the published migration. That
+edit is not how this version works. A published 1.0.0 database does not
+already have the columns. A database created by this version is already at
+schema 3, so migrate does not run the step again.
+
+Repair and check still run on a version 1.0.0 database before that step.
+The workout name, description, text result, and route table are not there
+yet. A typed-row rebuild writes a column only when the table has it. A
+route is written or compared only when the route table exists. The
+published 1.0.0 fixture reaches both of those states. The upgrade step
+itself always adds the columns. It does not look to see whether they are
+already there.
+
+Rejected alternatives:
+
+- Edit the published 001 migration in place. Rejected because a database
+  created by the published 1.0.0 package used the old file, and changing
+  that file does not change those databases.
+- Skip the column adds when the columns are already there. Rejected because
+  a real 1.0.0 database does not have them, and a new database does not run
+  the step twice.
+
+## D166. WHOOP and Oura CSV reading stay in ath-core
+
+WHOOP and Oura CSV files are read in `ath-core` in version 2.0.0. The
+command-line tool assigns the source id and writes the records. The
+TypeScript readers are not a second copy.
+
+A timestamp may include fractional seconds before the offset, as in
+`2026-08-09T07:00:00.000-04:00`. That string is a time. The offset is at the
+end, after the fraction. Sleep sessions are created when both bedtimes parse
+and the end is later than the start. HRV, respiratory rate, and resting heart
+rate points use that time. A synthetic Oura file with those timestamps is in
+`tests/fixtures/exports/oura-offset/sleep.csv`.
+
+D162 and D163 are not rewritten. This decision records that the port stays
+in this version, and that the time parser accepts a fractional second.
+
+Rejected alternatives:
+
+- Take the WHOOP and Oura readers back out of this version. Rejected because
+  the readers produce the same records those files already produced, once the
+  fractional-second offset is read.
+- Treat a bedtime with fractional seconds as a date only. Rejected because
+  the time is in the file, and dropping it drops the sleep session.
+
+## D167. The npm package includes a built ath-core
+
+The published package includes a built `ath-core` binary for linux-x64,
+darwin-arm64, and win32-x64, under `vendor/ath-core/<platform>-<arch>/`.
+`ath` runs that binary. It does not look for a Rust crate inside the
+installed package. When this repository is present, `ath` rebuilds the
+binary if it is older than the Rust source, and it refuses to run the old
+binary if the rebuild fails. The check packs the package, installs that
+tarball in a clean directory, and runs `ath init`, `ath log`, `ath import`
+of a synthetic GPX file, and `ath apply`.
+
+Rejected alternatives:
+
+- Build the crate from source when someone installs the package. Rejected
+  because the crate is not in the package, and a person who installed `ath`
+  should not need a Rust compiler.
+- Use whatever binary is already in `target/`. Rejected because that file
+  can be left over from an older checkout, and it then writes with the old
+  rules.

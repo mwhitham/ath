@@ -61,6 +61,10 @@ const approvedSyntheticFixtures = new Map<string, string>([
     "949053c0c1503dbabd6773acd2813888c9d9ff360588fca2e253443476632902",
   ],
   [
+    "tests/fixtures/exports/oura-offset/sleep.csv",
+    "da6d0e3e3a6a36759c652fa9bda6e8e93f8673e2a3777cc2f96f70f7f17bdd23",
+  ],
+  [
     "tests/fixtures/exports/oura-portal/dailyreadiness.csv",
     "1bf215c48dd4b8fc433d6e63dd067c1d905e373a4ce5f1a02c5ed990daaed0e8",
   ],

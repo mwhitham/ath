@@ -278,9 +278,6 @@ CREATE TABLE workout_sessions (
   start_at TEXT NOT NULL,
   end_at TEXT NOT NULL,
   activity_type TEXT,
-  name TEXT,
-  description TEXT,
-  text_result TEXT,
   provider_record_id TEXT,
   received_at TEXT NOT NULL,
   data_json TEXT NOT NULL CHECK (json_valid(data_json)),
@@ -299,16 +296,6 @@ CREATE TABLE workout_session_segments (
   segment_order INTEGER NOT NULL CHECK (segment_order >= 0),
   segment_json TEXT NOT NULL CHECK (json_valid(segment_json)),
   PRIMARY KEY (workout_session_id, segment_order),
-  FOREIGN KEY (workout_session_id)
-    REFERENCES workout_sessions (record_id)
-    ON DELETE CASCADE
-) STRICT;
-
-CREATE TABLE workout_route_points (
-  workout_session_id TEXT NOT NULL,
-  point_order INTEGER NOT NULL CHECK (point_order >= 0),
-  point_json TEXT NOT NULL CHECK (json_valid(point_json)),
-  PRIMARY KEY (workout_session_id, point_order),
   FOREIGN KEY (workout_session_id)
     REFERENCES workout_sessions (record_id)
     ON DELETE CASCADE

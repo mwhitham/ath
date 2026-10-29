@@ -148,6 +148,7 @@ async function installInitialSchema(
     await transaction.execute(
       "INSERT INTO database_state (singleton_id, current_revision) VALUES (1, 0)",
     );
+    await transaction.executeMultiple(VERSION_2_UPGRADE_SQL);
     if (database.isLocal) {
       await transaction.execute(`PRAGMA application_id = ${SQLITE_APPLICATION_ID}`);
       await transaction.execute(`PRAGMA user_version = ${SQL_SCHEMA_VERSION}`);
@@ -543,15 +544,7 @@ async function applyMigrationStep(
   }
   if (targetVersion === 3) {
     await withWriteTransaction(database, async (transaction) => {
-      const columns = await transaction.execute("PRAGMA table_info(workout_sessions)");
-      const hasVersion2Columns = columns.rows.some((row) => row.name === "name");
-      if (hasVersion2Columns) {
-        await transaction.execute(
-          "UPDATE database_metadata SET sql_schema_version = 3, athleticstandard_version = '2.0.0' WHERE singleton_id = 1",
-        );
-      } else {
-        await transaction.executeMultiple(VERSION_2_UPGRADE_SQL);
-      }
+      await transaction.executeMultiple(VERSION_2_UPGRADE_SQL);
       if (database.isLocal) {
         await transaction.execute(`PRAGMA user_version = ${targetVersion}`);
       }

@@ -93,11 +93,12 @@ async function schemaFromPublishedSqlFile(): Promise<SchemaSnapshot> {
   const directory = await mkdtemp(join(tmpdir(), "ath-schema-drift-sql-"));
   const path = join(directory, "athlete.ath.sqlite");
   const migrationFile = join(root, "spec", "sql", "migrations", "001-initial.sql");
+  const version2File = join(root, "spec", "sql", "migrations", "003-version-2.sql");
   const apply = spawnSync(
     "sqlite3",
     [path],
     {
-      input: readFileSync(migrationFile, "utf8"),
+      input: `${readFileSync(migrationFile, "utf8")}\n${readFileSync(version2File, "utf8")}`,
       encoding: "utf8",
     },
   );

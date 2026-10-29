@@ -334,3 +334,28 @@ fn parse_ms(value: &str) -> i64 {
 fn round2(value: f64) -> f64 {
     (value * 100.0).round() / 100.0
 }
+
+#[cfg(test)]
+mod tests {
+    use super::import_oura;
+    use serde_json::json;
+
+    #[test]
+    fn fractional_second_bedtimes_become_sleep_and_points() {
+        let text = include_str!("../../../tests/fixtures/exports/oura-offset/sleep.csv");
+        let mut files = serde_json::Map::new();
+        files.insert("sleep.csv".into(), json!(text));
+        let result = import_oura(&files, "oura-1");
+        let hard = result.get("hard").and_then(|value| value.as_array()).unwrap();
+        let kinds: Vec<&str> = hard.iter().filter_map(|item| item["signal"]["type"].as_str()).collect();
+        assert!(kinds.contains(&"sleep_session"), "{kinds:?}");
+        assert!(kinds.contains(&"hrv_rmssd"), "{kinds:?}");
+        assert!(kinds.contains(&"respiratory_rate"), "{kinds:?}");
+        assert!(kinds.contains(&"resting_heart_rate"), "{kinds:?}");
+        assert!(hard.iter().all(|item| {
+            let signal = &item["signal"];
+            let time = signal.get("recorded_at").or_else(|| signal.get("start")).and_then(|value| value.as_str()).unwrap_or("");
+            time.contains("-04:00")
+        }));
+    }
+}

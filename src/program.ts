@@ -149,7 +149,7 @@ export function buildProgram(): Command {
     .version(ATH_PACKAGE_VERSION)
     .option(
       "--update",
-      "install the latest ath with the tool that installed it, and add any skill files that are not already here",
+      "install the latest ath with the tool that installed it, replace an older tool skill, and add skill files that are not already here",
     )
     .addHelpText("after", HELP_FOOTER)
     .action(async (opts: { update?: boolean }) => {
@@ -325,7 +325,7 @@ export function buildProgram(): Command {
       if (installed.length > 0) {
         console.log(
           `  ${ALWAYS_DIR}/skills is read by Claude Code, Cursor, Codex, and Gemini CLI. ` +
-            `\`ath skill install\` refreshes every copy after an upgrade.`,
+            `\`ath skill install\` replaces an older tool skill after an upgrade.`,
         );
       } else if (opts.skill !== false) {
         console.log(`  the skill was not installed. \`ath skill install\` does it later.`);
@@ -2425,9 +2425,13 @@ function renderSkillStatus(cwd: string, copies: SkillCopy[]): string {
   }
   lines.push(``);
   if (copies.some((c) => c.state === "missing")) {
-    lines.push("`ath skill install` adds skill files that are not already here.");
+    lines.push(
+      "`ath skill install` adds skill files that are not already here, and replaces an older tool skill.",
+    );
   } else {
-    lines.push("Installed skill files are left as they are.");
+    lines.push(
+      "An older tool skill is replaced by `ath skill install`. A calculation skill that is already installed is left as it is.",
+    );
   }
   lines.push(`${ALWAYS_DIR}/skills is read by Claude Code, Cursor, Codex, and Gemini CLI.`);
   return lines.join("\n");

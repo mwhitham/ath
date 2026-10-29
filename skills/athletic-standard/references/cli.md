@@ -54,7 +54,7 @@ that keeps measured signals apart from self-reported ones.
 
 Options:
   -V, --version                               output the version number
-  --update                                    install the latest ath with the tool that installed it, and add any skill files that are not already here
+  --update                                    install the latest ath with the tool that installed it, replace an older tool skill, and add skill files that are not already here
   -h, --help                                  display help for command
 
 Set up:
@@ -159,16 +159,17 @@ Examples:
   Where the skill is installed:
     $ ath skill
 
-  Upgrade ath. Installed skill files stay as they are:
+  Upgrade ath. An older tool skill is replaced. A calculation skill stays:
     $ ath --update
 
-  Add skill files that are not already here:
+  Add skill files that are not already here, and replace an older tool skill:
     $ ath skill install
 
 The skill is a folder an agent reads to learn the file and the commands.
 ath init writes it to .agents/skills and into any harness folder already
-here. A file that is already there is not replaced. A new calculation
-file is added the next time you install or update.
+here. An older copy of the tool skill is replaced, so the agent does not
+keep reading the old instructions. A calculation skill that is already
+there is not replaced.
 ```
 
 ## ath skill install

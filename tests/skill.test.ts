@@ -213,17 +213,21 @@ describe("ath skill (D79)", () => {
     expect(existsSync(join(dir, ALWAYS_DIR, "skills", "heart-rate-zones", "SKILL.md"))).toBe(true);
   });
 
-  it("adds missing files and leaves an edited skill in place", () => {
+  it("replaces an older tool skill and leaves an edited current skill", () => {
     const dir = dirWithAgents(".codex");
     installSkill(dir);
-    ageCopy(dir, ".codex", "0.3.0");
     writeFileSync(skillFile(dir, ".codex", "left-over.md"), "kept\n");
-    writeFileSync(skillFile(dir, ".codex", "SKILL.md"), "---\nmetadata:\n  version: \"0.3.0\"\n---\nedited\n");
+    writeFileSync(
+      skillFile(dir, ".codex", "SKILL.md"),
+      `---\nmetadata:\n  version: "${ATH_PACKAGE_VERSION}"\n---\nedited\n`,
+    );
+    ageCopy(dir, ALWAYS_DIR, "0.3.0");
 
     const res = ath(["skill", "install"], dir);
     expect(res.code).toBe(0);
-    expect(res.stdout).toContain("left installed skill files unchanged");
+    expect(res.stdout).toContain("added skill files");
     expect(readFileSync(skillFile(dir, ".codex", "SKILL.md"), "utf8")).toContain("edited");
+    expect(readFileSync(skillFile(dir, ALWAYS_DIR, "SKILL.md"), "utf8")).not.toContain("0.3.0");
     expect(readFileSync(skillFile(dir, ".codex", "left-over.md"), "utf8")).toBe("kept\n");
   });
 });

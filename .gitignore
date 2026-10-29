@@ -1,6 +1,9 @@
 node_modules/
 dist/
 crates/ath-core/target/
+# Built ath-core binaries are packed into the npm package by the check.
+# They are not source.
+/vendor/
 *.log
 .DS_Store
 
@@ -35,6 +38,7 @@ validation-data/
 !tests/fixtures/npm-100-encoding/athlete.ath.sqlite
 !tests/fixtures/exports/oura-spo2/oura_sleep_spo2_flat.csv
 !tests/fixtures/exports/oura-spo2/oura_sleep_spo2_json.csv
+!tests/fixtures/exports/oura-offset/sleep.csv
 !tests/fixtures/exports/whoop/journal_entries.csv
 !tests/fixtures/exports/whoop/physiological_cycles.csv
 !tests/fixtures/exports/whoop/sleeps.csv

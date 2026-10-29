@@ -10,10 +10,15 @@
 | 6 | Strava bulk export | done |
 | 7 | Calculation skill files and the zone worked example | done |
 | 8 | Linux checks: `pnpm` checks and `cargo test` | done |
+| 9 | Record writes, the eight range calculations, and WHOOP and Oura CSV reading in `ath-core` | done |
+| 10 | The npm package includes `ath-core`, and the installed package can init, log, import, and apply | done |
 
 Already done before this version: the safe upgrade command from pull request 21,
-Apple Health, WHOOP, and Oura imports, and the contribution notes that were
-already merged. Pull request 15's index links are in `build-history/README.md`.
+Apple Health, and the contribution notes that were already merged. Pull request
+15's index links are in `build-history/README.md`. WHOOP and Oura already had
+readers. Those readers now run in `ath-core` (D162, D163, D166). The
+published 1.0.0 migration file is unchanged. A new database applies the
+2.0.0 columns at creation (D165). An older tool skill is replaced (D164).
 
 Later, with the reason:
 
@@ -21,10 +26,8 @@ Later, with the reason:
 - Strava's online connection. The bulk download is the path in this version,
   and the permissions question is still open.
 - Android app. This version has the command-line tool.
-- Record writes, corrections, deletions, provider-import writes, the eight
-  range calculations, and WHOOP and Oura CSV reading run in `ath-core` (D162).
-  Apple Health, package import, checks, the upgrade, export, and erasure are
-  still TypeScript until the same tests pass there.
+- Apple Health, package import, checks, the upgrade, export, and erasure.
+  They stay in TypeScript until the same tests pass in `ath-core` (D155, D162).
 - A pull from Open Wearables or Junction, and the mapping file a new source
   uses. D161 records the rule. The study is
   [appendix/source-formats.md](appendix/source-formats.md). The pull is not

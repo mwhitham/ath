@@ -402,20 +402,35 @@ pub(crate) fn with_offset(local: Option<&str>, offset: Option<&str>) -> Option<S
     let mi = &trimmed[14..16];
     if !y.chars().all(|ch| ch.is_ascii_digit()) { return None; }
     let s = if trimmed.len() >= 19 && trimmed.as_bytes().get(16) == Some(&b':') { &trimmed[17..19] } else { "00" };
-    if let Some(existing) = offset_at_end(trimmed) {
-        return Some(format!("{y}-{mo}-{d}T{h}:{mi}:{s}{existing}"));
+    if offset_at_end(trimmed).is_some() {
+        return Some(trimmed.replace(' ', "T"));
     }
     let normalized = normalize_offset(offset)?;
     Some(format!("{y}-{mo}-{d}T{h}:{mi}:{s}{normalized}"))
 }
 
 fn offset_at_end(value: &str) -> Option<String> {
-    if value.ends_with('Z') { return Some("Z".into()); }
-    let rest = value.get(19..)?;
-    let rest = rest.trim();
-    if rest.len() >= 5 && (rest.starts_with('+') || rest.starts_with('-')) {
-        if rest.chars().nth(3) == Some(':') { return Some(rest.to_string()); }
-        if rest.len() >= 5 { return Some(format!("{}{}:{}", &rest[0..1], &rest[1..3], &rest[3..5])); }
+    let trimmed = value.trim();
+    if trimmed.ends_with('Z') || trimmed.ends_with('z') {
+        return Some("Z".into());
+    }
+    let bytes = trimmed.as_bytes();
+    let mut index = trimmed.len();
+    while index > 0 {
+        index -= 1;
+        let ch = bytes[index] as char;
+        if ch == 'T' {
+            break;
+        }
+        if ch == '+' || ch == '-' {
+            let rest = &trimmed[index..];
+            if rest.len() >= 6 && rest.as_bytes().get(3) == Some(&b':') {
+                return Some(rest.to_string());
+            }
+            if rest.len() >= 5 && rest[1..].chars().all(|item| item.is_ascii_digit()) {
+                return Some(format!("{}{}:{}", &rest[0..1], &rest[1..3], &rest[3..5]));
+            }
+        }
     }
     None
 }
@@ -461,4 +476,26 @@ fn bump(skipped: &mut BTreeMap<String, i64>, examples: &mut BTreeMap<String, Str
 
 fn round2(value: f64) -> f64 {
     (value * 100.0).round() / 100.0
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{import_whoop, with_offset};
+    use serde_json::json;
+
+    #[test]
+    fn fractional_second_offset_is_kept() {
+        let parsed = with_offset(Some("2025-07-29T19:48:32.000-04:00"), None).unwrap();
+        assert_eq!(parsed, "2025-07-29T19:48:32.000-04:00");
+    }
+
+    #[test]
+    fn whoop_cycle_keeps_hrv_and_a_timestamp() {
+        let csv = "Cycle start time,Cycle end time,Cycle timezone,Heart rate variability (ms),Resting heart rate (bpm)\n2026-08-09 06:00:00,2026-08-09 14:00:00,UTC-04:00,42,51\n";
+        let mut files = serde_json::Map::new();
+        files.insert("physiological_cycles.csv".into(), json!(csv));
+        let result = import_whoop(&files, "whoop-1");
+        let hard = result.get("hard").and_then(|value| value.as_array()).unwrap();
+        assert!(hard.iter().any(|item| item["signal"]["type"] == "hrv_rmssd" && item["signal"]["recorded_at"].as_str().unwrap().contains("-04:00")));
+    }
 }

@@ -59,6 +59,7 @@
     "dist",
     "schema",
     "skills",
+    "vendor",
     "SPEC.md"
   ],
   "scripts": {

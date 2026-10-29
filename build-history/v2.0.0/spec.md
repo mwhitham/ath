@@ -46,9 +46,10 @@ fields it read. Do not add the two records together.
 
 Calculation steps ship as skills under `skills/<name>/SKILL.md`. The program
 reads the installed file and runs it. `ath apply <name> --record <id>` runs one
-skill on one record. Editing that file changes the result. An installed skill
-file is not replaced. A new calculation is a new skill folder. `ath skill
-install` and `ath --update` add files that are not already there.
+skill on one record. Editing that file changes the result. An older copy of
+the tool skill is replaced, so the agent reads the instructions that ship
+with this program (D164). A calculation skill that is already installed is
+not replaced. A new calculation is a new skill folder.
 
 The shipped files are heart-rate zones, heart-rate recovery, resting heart
 rate, training load from heart rate, training load from reported effort, sleep
@@ -62,14 +63,22 @@ Worked numbers are in [appendix/calculations.md](appendix/calculations.md).
 ## What stays in TypeScript
 
 The command-line tool still reads commands, prints help, installs the skill,
-stores keys, and calls a language model. Storage, checks, and the Apple, WHOOP,
-and Oura imports that already matched their tests stay in TypeScript until the
-Rust library has been shown to do that same work. New Garmin and Strava
-imports, calculation files, and corrections made through `ath-core` run in the
-Rust library. The command-line tool calls that library.
+stores keys, and calls a language model. The published field list stays in
+`src/v1/schema.ts`.
+
+Record writes, corrections, deletions, and provider-import writes run in
+`ath-core` (D162). WHOOP and Oura CSV reading run there too (D162, D163). The
+eight range calculations run there, from skill files. Garmin and Strava imports
+and one-record calculation files run there. Checks, the upgrade command, package
+import and export, and erasure still run in TypeScript. Apple Health still runs
+in TypeScript. D155 said those pieces move after the same tests pass in Rust.
+That wait is not finished for the pieces still in TypeScript.
 
 The iPhone app is not in this version. Nothing in this build can run it. Two
-programs on Linux share one file instead: `ath` and `ath-core`.
+programs share one file: `ath` and `ath-core`. The npm package includes a
+built `ath-core` binary for linux-x64, darwin-arm64, and win32-x64 (D167).
+A checkout of this repository rebuilds that binary when it is older than the
+Rust source, and refuses to run the old binary if the rebuild fails.
 
 Strava's online connection and an Android app wait. They are not needed for
 these imports and calculations.
@@ -87,8 +96,10 @@ cargo test --manifest-path crates/ath-core/Cargo.toml
 ```
 
 `pnpm test` includes the shared-file example. Rust tests check the zone
-arithmetic, a FIT record point, and the Garmin token request against a local
-server. There is no check that only a Mac can run.
+arithmetic, a FIT record point, the Garmin token request against a local
+server, GPX sample times, a WHOOP row, an Oura row with a fractional-second
+offset, a record write, and a baseline. There is no check that only a Mac can
+run.
 
 ## Order that landed
 
@@ -99,4 +110,6 @@ server. There is no check that only a Mac can run.
 5. Garmin import, then Strava import.
 6. Calculation skill files, checked against the worked zone example.
 7. The Linux checks above. Old TypeScript stays where the Rust library has not
-   yet repeated that work.
+   yet repeated that work. WHOOP and Oura reading were already in this
+   repository before this version. They now run in the Rust library, and the
+   tests have to show the same records, including sleep sessions and timestamps.

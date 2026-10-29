@@ -45,8 +45,9 @@ pub fn import_garmin(store: &mut Store, path: &Path, write: bool) -> Result<Valu
             continue;
         }
         if lower.ends_with(".gpx") {
+            let gpx = String::from_utf8_lossy(&bytes);
             let (data, understood_fields, preserved_fields) =
-                workout_from_gpx(&source_id, &name, &String::from_utf8_lossy(&bytes), &received_at)?;
+                workout_from_gpx(&source_id, &name, &gpx, &received_at)?;
             understood.extend(understood_fields);
             preserved.extend(preserved_fields);
             if write {
@@ -227,7 +228,8 @@ pub fn workout_from_gpx(
     data.insert("input_start_timestamp".into(), timestamp_receipt(&start));
     data.insert("input_end_timestamp".into(), timestamp_receipt(&end));
     data.insert("source_reported_summaries".into(), json!([]));
-    data.insert("name".into(), json!(name));
+    let track_name = track_name(gpx).unwrap_or_else(|| name.to_string());
+    data.insert("name".into(), json!(track_name));
     data.insert("provider_record_id".into(), json!(name));
     let route: Vec<Value> = points
         .iter()
@@ -236,21 +238,34 @@ pub fn workout_from_gpx(
         })
         .collect();
     data.insert("route".into(), json!(route));
+    let start_ms = parse_time_ms(&points[0].0).unwrap_or(0);
     let samples: Vec<Value> = points
         .iter()
-        .enumerate()
-        .filter_map(|(index, (_, _, _, hr))| {
-            hr.map(|bpm| json!({"offset_ms": index as i64 * 1000, "bpm": bpm}))
+        .filter_map(|(time, _, _, hr)| {
+            let bpm = (*hr)?;
+            let offset = parse_time_ms(time).unwrap_or(start_ms) - start_ms;
+            Some(json!({"offset_ms": offset, "bpm": bpm}))
         })
         .collect();
+    let mut understood = vec!["name".into(), "route".into(), "start_at".into(), "end_at".into()];
     if !samples.is_empty() {
         data.insert("heart_rate_samples".into(), json!(samples));
+        understood.push("heart_rate_samples".into());
     }
-    Ok((
-        data,
-        vec!["name".into(), "route".into(), "start_at".into(), "end_at".into()],
-        Vec::new(),
-    ))
+    Ok((data, understood, Vec::new()))
+}
+
+fn track_name(gpx: &str) -> Option<String> {
+    let trk = gpx.find("<trk")?;
+    let after = &gpx[trk..];
+    let seg = after.find("<trkseg").unwrap_or(after.len());
+    tag_text(&after[..seg], "name")
+}
+
+fn parse_time_ms(text: &str) -> Option<i64> {
+    chrono::DateTime::parse_from_rfc3339(text)
+        .ok()
+        .map(|time| time.timestamp_millis())
 }
 
 fn workout_from_fit(
@@ -367,6 +382,27 @@ pub fn add_seconds(start: &str, seconds: f64) -> Result<String, String> {
     let parsed = chrono::DateTime::parse_from_rfc3339(start).map_err(|error| error.to_string())?;
     let end = parsed + chrono::Duration::milliseconds((seconds * 1000.0) as i64);
     Ok(crate::time::format_datetime(end.with_timezone(&chrono::Utc)))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::workout_from_gpx;
+
+    #[test]
+    fn gpx_uses_track_name_and_real_sample_times() {
+        let gpx = r#"<?xml version="1.0"?>
+<gpx><trk><name>Park loop</name><trkseg>
+<trkpt lat="40.0" lon="-105.0"><time>2026-08-09T15:00:00Z</time><extensions><hr>100</hr></extensions></trkpt>
+<trkpt lat="40.001" lon="-105.001"><time>2026-08-09T15:00:05Z</time><extensions><hr>130</hr></extensions></trkpt>
+<trkpt lat="40.002" lon="-105.002"><time>2026-08-09T15:00:10Z</time><extensions><hr>160</hr></extensions></trkpt>
+</trkseg></trk></gpx>"#;
+        let (data, understood, _) = workout_from_gpx("preview", "file.gpx", gpx, "2026-08-09T16:00:00.000Z").unwrap();
+        assert_eq!(data.get("name").and_then(|value| value.as_str()), Some("Park loop"));
+        assert!(understood.iter().any(|field| field == "heart_rate_samples"));
+        let samples = data.get("heart_rate_samples").and_then(|value| value.as_array()).unwrap();
+        let offsets: Vec<i64> = samples.iter().map(|sample| sample.get("offset_ms").and_then(|value| value.as_i64()).unwrap()).collect();
+        assert_eq!(offsets, vec![0, 5000, 10000]);
+    }
 }
 
 pub fn read_files(path: &Path) -> Result<Vec<(String, Vec<u8>)>, String> {

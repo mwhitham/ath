@@ -3,10 +3,10 @@
  *
  * `skills/` holds one folder per skill. Each folder is copied into `.agents/skills/`,
  * which Claude Code, Cursor, Codex, and Gemini CLI read, and also into any harness
- * folder already present. A file that is already installed is left alone. A new
- * file is added.
+ * folder already present. A new file is added. A calculation skill that is already
+ * installed is left alone. An older tool skill is replaced.
  */
-import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -123,6 +123,37 @@ export function resolveCalculationFile(name: string, cwd: string): string {
   return shipped;
 }
 
+function versionRank(version: string): number[] {
+  return version.split(".").map((part) => Number(part) || 0);
+}
+
+function versionIsOlder(installed: string, shipped: string): boolean {
+  const left = versionRank(installed);
+  const right = versionRank(shipped);
+  for (let index = 0; index < 3; index += 1) {
+    const diff = (left[index] ?? 0) - (right[index] ?? 0);
+    if (diff !== 0) return diff < 0;
+  }
+  return false;
+}
+
+/** Replace the tool skill when an older copy is installed.
+ *
+ * D81 rejected leaving that copy, because an agent would keep reading the old
+ * instructions. A calculation skill is not replaced.
+ */
+function replaceOlderToolSkill(source: string, destination: string): boolean {
+  const installed = skillVersion(destination);
+  const shipped = skillVersion(source);
+  if (installed === null || shipped === null || !versionIsOlder(installed, shipped)) {
+    return false;
+  }
+  rmSync(destination, { recursive: true, force: true });
+  mkdirSync(destination, { recursive: true });
+  cpSync(source, destination, { recursive: true });
+  return true;
+}
+
 function copyMissingFiles(source: string, destination: string): number {
   let added = 0;
   for (const entry of readdirSync(source)) {
@@ -144,7 +175,8 @@ function copyMissingFiles(source: string, destination: string): number {
  * Copy skill files that are not already installed.
  *
  * Returns the destination folders where at least one file was added.
- * An existing file is not replaced.
+ * A calculation skill that is already there is not replaced.
+ * The tool skill is replaced when the installed copy is an older version.
  */
 export function installSkill(cwd: string): string[] {
   if (!existsSync(skillsRoot())) return [];
@@ -154,7 +186,8 @@ export function installSkill(cwd: string): string[] {
     const source = join(skillsRoot(), name);
     for (const destination of skillTargets(cwd, name)) {
       mkdirSync(destination, { recursive: true });
-      if (copyMissingFiles(source, destination) > 0) written.push(destination);
+      const replaced = name === SKILL_NAME && replaceOlderToolSkill(source, destination);
+      if (replaced || copyMissingFiles(source, destination) > 0) written.push(destination);
     }
   }
   return written;

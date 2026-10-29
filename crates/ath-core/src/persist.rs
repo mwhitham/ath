@@ -289,12 +289,7 @@ fn upsert_typed(tx: &Transaction<'_>, record_id: &str, record_type: &str, data_j
     let data: Value = serde_json::from_str(data_json).map_err(|error| error.to_string())?;
     let map = data.as_object().ok_or("record data is not an object")?;
     let table = typed_table(record_type)?;
-    let fields = typed_fields(record_type, map)?;
-    let present = table_columns(tx, table)?;
-    let usable: Vec<(String, Bind)> = fields
-        .into_iter()
-        .filter(|(name, _)| present.contains(name))
-        .collect();
+    let usable = typed_fields(record_type, map)?;
     let mut columns = vec!["record_id".to_string(), "record_type".to_string()];
     let mut binds = vec![Bind::Text(record_id.into()), Bind::Text(record_type.into())];
     for (name, value) in usable {
@@ -340,8 +335,7 @@ fn replace_children(
                 record_id,
                 calculations.map(Vec::as_slice).unwrap_or(&[]),
             )?;
-            if table_exists(tx, "point_measurement_calculation_inputs")? {
-                tx.execute(
+            tx.execute(
                     "DELETE FROM point_measurement_calculation_inputs WHERE point_measurement_id = ?1",
                     [record_id],
                 )
@@ -370,7 +364,6 @@ fn replace_children(
                         }
                     }
                 }
-            }
         }
         "workout_session" => {
             replace_json_children(
@@ -464,9 +457,6 @@ fn replace_children(
 }
 
 fn replace_periods(tx: &Transaction<'_>, record_id: &str, map: &Map<String, Value>) -> Result<(), String> {
-    if !table_exists(tx, "provider_reporting_periods")? {
-        return Ok(());
-    }
     tx.execute(
         "DELETE FROM provider_reporting_periods WHERE owner_record_id = ?1",
         [record_id],
@@ -498,9 +488,6 @@ fn replace_periods(tx: &Transaction<'_>, record_id: &str, map: &Map<String, Valu
 }
 
 fn replace_evidence(tx: &Transaction<'_>, record_id: &str, map: &Map<String, Value>) -> Result<(), String> {
-    if !table_exists(tx, "authored_record_evidence")? {
-        return Ok(());
-    }
     tx.execute(
         "DELETE FROM authored_record_evidence WHERE authored_record_id = ?1",
         [record_id],
@@ -531,9 +518,6 @@ fn replace_evidence(tx: &Transaction<'_>, record_id: &str, map: &Map<String, Val
 }
 
 fn replace_links(tx: &Transaction<'_>, record_id: &str, ids: Option<&Vec<Value>>) -> Result<(), String> {
-    if !table_exists(tx, "record_attachment_links")? {
-        return Ok(());
-    }
     tx.execute(
         "DELETE FROM record_attachment_links WHERE owner_record_id = ?1",
         [record_id],
@@ -565,12 +549,6 @@ fn replace_json_children(
     parent_id: &str,
     children: &[Value],
 ) -> Result<(), String> {
-    if !table_exists(tx, table)? {
-        if children.is_empty() {
-            return Ok(());
-        }
-        return Err(format!("{table} is missing. Run ath migrate before writing this record."));
-    }
     tx.execute(
         &format!("DELETE FROM {table} WHERE {parent_column} = ?1"),
         [parent_id],
@@ -941,29 +919,6 @@ fn typed_fields(record_type: &str, data: &Map<String, Value>) -> Result<Vec<(Str
     })
 }
 
-fn table_columns(tx: &Transaction<'_>, table: &str) -> Result<Vec<String>, String> {
-    let mut statement = tx
-        .prepare(&format!("PRAGMA table_info({table})"))
-        .map_err(|error| error.to_string())?;
-    let names = statement
-        .query_map([], |row| row.get::<_, String>(1))
-        .map_err(|error| error.to_string())?
-        .collect::<Result<Vec<_>, _>>()
-        .map_err(|error| error.to_string())?;
-    Ok(names)
-}
-
-fn table_exists(tx: &Transaction<'_>, table: &str) -> Result<bool, String> {
-    let count: i64 = tx
-        .query_row(
-            "SELECT COUNT(*) FROM sqlite_master WHERE type = 'table' AND name = ?1",
-            [table],
-            |row| row.get(0),
-        )
-        .map_err(|error| error.to_string())?;
-    Ok(count > 0)
-}
-
 fn required_str(value: &Value, key: &str) -> Result<String, String> {
     value
         .get(key)
@@ -1038,4 +993,48 @@ impl rusqlite::types::ToSql for Bind {
 
 fn binds_to_params(binds: &[Bind]) -> Vec<Bind> {
     binds.to_vec()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::apply;
+    use rusqlite::Connection;
+    use serde_json::json;
+
+    fn database() -> Connection {
+        let conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch(include_str!("../../../spec/sql/migrations/001-initial.sql")).unwrap();
+        conn.execute(
+            "INSERT INTO database_metadata (singleton_id, application_marker, sql_schema_version, athleticstandard_version, database_id, created_at) VALUES (1, 'ATH1', 3, '2.0.0', '018f0000-0000-7000-8000-000000000099', '2026-08-09T00:00:00.000Z')",
+            [],
+        ).unwrap();
+        conn.execute("INSERT INTO database_state (singleton_id, current_revision) VALUES (1, 0)", []).unwrap();
+        conn.execute_batch(include_str!("../../../spec/sql/migrations/003-version-2.sql")).unwrap();
+        conn
+    }
+
+    #[test]
+    fn persist_inserts_a_source_and_bumps_the_revision() {
+        let mut conn = database();
+        let result = apply(&mut conn, &json!({
+            "actions": [
+                {
+                    "kind": "insert",
+                    "record_id": "018f0000-0000-7000-8000-0000000000a1",
+                    "record_type": "source",
+                    "created_at": "2026-08-09T00:00:00.000Z",
+                    "data_json": "{\"source_type\":\"wearable\",\"data_writer\":\"Oura\",\"data_route\":\"oura_csv\",\"vendor\":\"oura\"}",
+                    "extensions_json": null,
+                    "changed_by_json": "{\"author_type\":\"tool\",\"tool\":\"ath-core\",\"tool_version\":\"2.0.0\"}",
+                    "became_known_at": "2026-08-09T00:00:00.000Z",
+                    "became_known_at_basis": "provider_import"
+                },
+                { "kind": "validate" },
+                { "kind": "bump" }
+            ]
+        })).unwrap();
+        assert_eq!(result["database_revision"], 1);
+        let count: i64 = conn.query_row("SELECT COUNT(*) FROM sources", [], |row| row.get(0)).unwrap();
+        assert_eq!(count, 1);
+    }
 }

@@ -714,6 +714,72 @@ fn round4(value: f64) -> f64 {
     (value * 10_000.0).round() / 10_000.0
 }
 
+#[cfg(test)]
+mod tests {
+    use super::calculate;
+    use rusqlite::Connection;
+    use serde_json::json;
+
+    #[test]
+    fn baseline_keeps_two_sources_apart() {
+        let mut conn = Connection::open_in_memory().unwrap();
+        conn.execute_batch("PRAGMA foreign_keys = ON;").unwrap();
+        conn.execute_batch(include_str!("../../../spec/sql/migrations/001-initial.sql")).unwrap();
+        let tx = conn.transaction().unwrap();
+        tx.execute_batch("PRAGMA defer_foreign_keys = ON;").unwrap();
+        tx.execute(
+            "INSERT INTO database_metadata (singleton_id, application_marker, sql_schema_version, athleticstandard_version, database_id, created_at) VALUES (1, 'ATH1', 1, '1.0.0', '018f0000-0000-7000-8000-000000000099', '2026-08-09T00:00:00.000Z')",
+            [],
+        ).unwrap();
+        tx.execute("INSERT INTO database_state (singleton_id, current_revision) VALUES (1, 0)", []).unwrap();
+        for (id, writer) in [("s1", "A"), ("s2", "B")] {
+            let data = format!("{{\"source_type\":\"wearable\",\"data_writer\":\"{writer}\",\"data_route\":\"test\"}}");
+            tx.execute(
+                "INSERT INTO records (record_id, record_type, current_revision, created_at, is_deleted) VALUES (?1, 'source', 1, '2026-08-01T00:00:00.000Z', 0)",
+                [id],
+            ).unwrap();
+            tx.execute(
+                "INSERT INTO record_revisions (record_id, revision, record_type, record_json, became_known_at, became_known_at_basis, changed_by_json) VALUES (?1, 1, 'source', ?2, '2026-08-01T00:00:00.000Z', 'provider_import', '{\"author_type\":\"tool\"}')",
+                [id, data.as_str()],
+            ).unwrap();
+            tx.execute(
+                "INSERT INTO sources (record_id, record_type, source_type, data_writer, data_route, data_json) VALUES (?1, 'source', 'wearable', ?2, 'test', ?3)",
+                [id, writer, data.as_str()],
+            ).unwrap();
+        }
+        for (id, source, at, value) in [
+            ("p1", "s1", "2026-08-09T12:00:00.000Z", 40.0),
+            ("p2", "s1", "2026-08-10T12:00:00.000Z", 60.0),
+            ("p3", "s2", "2026-08-09T12:00:00.000Z", 10.0),
+        ] {
+            let data = format!("{{\"source_id\":\"{source}\",\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"{at}\",\"received_at\":\"{at}\",\"received_at_basis\":\"import_time\",\"value\":{{\"standard_value\":{value},\"standard_unit\":\"ms\"}}}}");
+            tx.execute(
+                "INSERT INTO records (record_id, record_type, current_revision, created_at, is_deleted) VALUES (?1, 'point_measurement', 1, ?2, 0)",
+                [id, at],
+            ).unwrap();
+            tx.execute(
+                "INSERT INTO record_revisions (record_id, revision, record_type, record_json, became_known_at, became_known_at_basis, changed_by_json) VALUES (?1, 1, 'point_measurement', ?2, ?3, 'provider_import', '{\"author_type\":\"tool\"}')",
+                [id, data.as_str(), at],
+            ).unwrap();
+            tx.execute(
+                "INSERT INTO point_measurements (record_id, record_type, source_id, quantity, recorded_at, standard_value, standard_unit, received_at, data_json) VALUES (?1, 'point_measurement', ?2, 'hrv_rmssd', ?3, ?4, 'ms', ?3, ?5)",
+                rusqlite::params![id, source, at, value, data],
+            ).unwrap();
+        }
+        tx.commit().unwrap();
+        let result = calculate(&conn, &json!({
+            "operation": "baseline",
+            "quantity": "hrv_rmssd",
+            "record_kind": "measurement",
+            "group": "none"
+        })).unwrap();
+        let rows = result["result"].as_array().unwrap();
+        assert_eq!(rows.len(), 2);
+        assert_eq!(rows[0]["mean"], 50.0);
+        assert_eq!(rows[1]["mean"], 10.0);
+    }
+}
+
 #[allow(dead_code)]
 fn _params_used() {
     let _ = params![];

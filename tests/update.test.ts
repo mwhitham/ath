@@ -261,7 +261,7 @@ describe("runUpdate", () => {
     expect(out.lines.join("\n")).toContain("ahead of the published 0.4.2");
   });
 
-  it("leaves an installed skill in place", async () => {
+  it("replaces an older tool skill when this copy is current", async () => {
     const dir = mkdtempSync(join(tmpdir(), "ath-update-"));
     mkdirSync(join(dir, ".cursor"));
     installSkill(dir);
@@ -279,9 +279,9 @@ describe("runUpdate", () => {
       ...out,
     });
     expect(code).toBe(0);
-    expect(skillVersion(join(dir, ALWAYS_DIR, "skills", SKILL_NAME))).toBe("0.0.1");
-    expect(skillVersion(join(dir, ".cursor", "skills", SKILL_NAME))).toBe("0.0.1");
-    expect(out.lines.join("\n")).toContain("left installed skill files unchanged");
+    expect(skillVersion(join(dir, ALWAYS_DIR, "skills", SKILL_NAME))).toBe(ATHLETIC_STANDARD_VERSION);
+    expect(skillVersion(join(dir, ".cursor", "skills", SKILL_NAME))).toBe(ATHLETIC_STANDARD_VERSION);
+    expect(out.lines.join("\n")).toContain("updated the skill");
   });
 
   it("leaves the folder alone when no skill is there", async () => {
@@ -307,7 +307,7 @@ describe("runUpdate", () => {
     expect(existsSync(join(dir, ".cursor", "skills"))).toBe(false);
   });
 
-  it("does not replace the skill from an npx launch", async () => {
+  it("replaces an older tool skill from an npx launch", async () => {
     const dir = mkdtempSync(join(tmpdir(), "ath-update-"));
     installSkill(dir);
     ageCopy(dir, ALWAYS_DIR, "0.0.1");
@@ -322,8 +322,8 @@ describe("runUpdate", () => {
       ...out,
     });
     expect(code).toBe(0);
-    expect(skillVersion(join(dir, ALWAYS_DIR, "skills", SKILL_NAME))).toBe("0.0.1");
-    expect(out.lines.join("\n")).toContain("left installed skill files unchanged");
+    expect(skillVersion(join(dir, ALWAYS_DIR, "skills", SKILL_NAME))).toBe(ATHLETIC_STANDARD_VERSION);
+    expect(out.lines.join("\n")).toContain("updated the skill");
   });
 });
 

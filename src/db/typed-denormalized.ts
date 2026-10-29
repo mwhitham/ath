@@ -129,6 +129,7 @@ async function orderedJsonChildrenMismatch(
     children: readonly unknown[];
   },
 ): Promise<boolean> {
+  // workout_route_points is created by migration 003. A 1.0.0 database does not have it.
   const table = await client.execute({
     sql: "SELECT 1 AS present FROM sqlite_master WHERE type = 'table' AND name = ?",
     args: [options.table],

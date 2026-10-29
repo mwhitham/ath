@@ -86,8 +86,8 @@ Set up:
 | `ath init` | Create `athlete.ath.sqlite`, a manual source, and standard benchmarks |
 | `ath init --empty` | Create a revision-zero restore destination |
 | `ath skill` | Show installed skill copies |
-| `ath skill install` | Add skill files that are not already installed |
-| `ath --update` | Update `ath` and add missing skill files |
+| `ath skill install` | Add skill files that are not already installed, and replace an older tool skill |
+| `ath --update` | Update `ath`, replace an older tool skill, and add missing skill files |
 | `ath key` | Manage an optional terminal model-gateway key outside athlete data |
 | `ath models` | List gateway models or save a terminal default |
 | `ath migrate` | Preview and apply a SQL schema migration after a verified backup (needs `sqlite3` on PATH) |
@@ -140,7 +140,10 @@ input revisions and says when the list was shortened. Arithmetic refuses more th
 
 `ath apply <name>` runs the skill with that name, such as `heart-rate-zones`.
 Each calculation is its own skill. The program reads the installed `SKILL.md`.
-Editing that file changes the result. Point `--record` at one record, then run
+Editing that file changes the result. An older copy of this tool skill is
+replaced by `ath skill install`, so an agent does not keep reading old
+instructions. A calculation skill that is already installed is not replaced.
+Point `--record` at one record, then run
 it again on another record to see which fields were read. A day total uses the
 record you selected.
 
