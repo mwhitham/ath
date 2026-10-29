@@ -78,7 +78,8 @@ The iPhone app is not in this version. Nothing in this build can run it. Two
 programs share one file: `ath` and `ath-core`. The npm package includes a
 built `ath-core` binary for linux-x64, darwin-arm64, and win32-x64 (D167).
 A checkout of this repository rebuilds that binary when it is older than the
-Rust source, and refuses to run the old binary if the rebuild fails.
+Rust source, and refuses to run the old binary if the rebuild fails. `ath`
+marks the binary executable before it runs (D168).
 
 Strava's online connection and an Android app wait. They are not needed for
 these imports and calculations.

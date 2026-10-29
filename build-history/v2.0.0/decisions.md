@@ -301,3 +301,19 @@ Rejected alternatives:
 - Use whatever binary is already in `target/`. Rejected because that file
   can be left over from an older checkout, and it then writes with the old
   rules.
+
+## D168. The shipped ath-core binary is marked executable before it runs
+
+The check builds `ath-core` on Linux, macOS, and Windows, then downloads
+those files before it packs the npm package. That download does not keep
+the executable permission. The check marks each binary executable before
+`npm pack`. `ath` does the same before it runs the binary, so an install
+that lost the permission still runs.
+
+Rejected alternatives:
+
+- Leave the permission as the download stored it. Rejected because `ath log`
+  then fails with EACCES on the Linux binary.
+- Commit the binaries to Git so the permission is stored there. Rejected
+  because the check builds them for each platform, and Git is not where
+  those built files belong.

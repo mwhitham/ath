@@ -3,7 +3,7 @@
  * copy of import or calculation rules.
  */
 import { spawnSync } from "node:child_process";
-import { existsSync, readdirSync, statSync } from "node:fs";
+import { chmodSync, existsSync, readdirSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -45,6 +45,19 @@ function isOlderThanSource(binary: string, sourceMtime: number): boolean {
   return statSync(binary).mtimeMs < sourceMtime;
 }
 
+function ensureExecutable(binary: string): string {
+  if (process.platform === "win32") return binary;
+  if ((statSync(binary).mode & 0o111) !== 0) return binary;
+  try {
+    chmodSync(binary, 0o755);
+  } catch (error) {
+    throw new Error(
+      `ath-core at ${binary} is not executable and could not be marked executable. ${(error as Error).message}`,
+    );
+  }
+  return binary;
+}
+
 function rebuildDebugBinary(): string {
   const build = spawnSync(
     "cargo",
@@ -64,11 +77,11 @@ export function athCoreBinary(): string {
   if (sourceMtime !== null) {
     const candidates = [debugBinary, releaseBinary, shippedBinary()].filter((path) => existsSync(path));
     const current = candidates.find((path) => !isOlderThanSource(path, sourceMtime));
-    if (current !== undefined) return current;
-    return rebuildDebugBinary();
+    if (current !== undefined) return ensureExecutable(current);
+    return ensureExecutable(rebuildDebugBinary());
   }
   const shipped = shippedBinary();
-  if (existsSync(shipped)) return shipped;
+  if (existsSync(shipped)) return ensureExecutable(shipped);
   throw new Error(
     `ath-core is not built for ${process.platform}-${process.arch}. The installed package has no binary at ${shipped}.`,
   );

@@ -72,5 +72,6 @@ jobs:
           merge-multiple: true
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+      - run: find vendor/ath-core -type f -exec chmod 755 {} +
       - run: node --input-type=module -e "import { existsSync } from 'node:fs'; for (const path of ['linux-x64/ath-core', 'darwin-arm64/ath-core', 'win32-x64/ath-core.exe']) { if (!existsSync('vendor/ath-core/' + path)) throw new Error('missing vendor/ath-core/' + path); }"
       - run: node scripts/smoke-installed-package.mjs

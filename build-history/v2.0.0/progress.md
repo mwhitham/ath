@@ -19,6 +19,7 @@ Apple Health, and the contribution notes that were already merged. Pull request
 readers. Those readers now run in `ath-core` (D162, D163, D166). The
 published 1.0.0 migration file is unchanged. A new database applies the
 2.0.0 columns at creation (D165). An older tool skill is replaced (D164).
+The packed binary is marked executable before it runs (D168).
 
 Later, with the reason:
 
