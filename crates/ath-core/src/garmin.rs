@@ -46,10 +46,14 @@ pub fn import_garmin(store: &mut Store, path: &Path, write: bool) -> Result<Valu
         }
         if lower.ends_with(".gpx") {
             let gpx = String::from_utf8_lossy(&bytes);
-            let (data, understood_fields, preserved_fields) =
+            let (data, understood_fields, preserved_fields, skipped_untimed) =
                 workout_from_gpx(&source_id, &name, &gpx, &received_at)?;
             understood.extend(understood_fields);
             preserved.extend(preserved_fields);
+            if skipped_untimed > 0 {
+                let label = if skipped_untimed == 1 { "point" } else { "points" };
+                left_out.push(format!("{name}: {skipped_untimed} track {label} had no time"));
+            }
             if write {
                 let id = store.insert_record(
                     "workout_session",
@@ -212,9 +216,12 @@ pub fn workout_from_gpx(
     name: &str,
     gpx: &str,
     received_at: &str,
-) -> Result<(Map<String, Value>, Vec<String>, Vec<String>), String> {
-    let points = gpx_points(gpx);
+) -> Result<(Map<String, Value>, Vec<String>, Vec<String>, usize), String> {
+    let (points, skipped_untimed) = gpx_points(gpx);
     if points.is_empty() {
+        if skipped_untimed > 0 {
+            return Err(format!("{name} has no timed track points; {skipped_untimed} had no time"));
+        }
         return Err(format!("{name} has no track points"));
     }
     let start = points[0].0.clone();
@@ -252,7 +259,7 @@ pub fn workout_from_gpx(
         data.insert("heart_rate_samples".into(), json!(samples));
         understood.push("heart_rate_samples".into());
     }
-    Ok((data, understood, Vec::new()))
+    Ok((data, understood, Vec::new(), skipped_untimed))
 }
 
 fn track_name(gpx: &str) -> Option<String> {
@@ -314,8 +321,9 @@ fn workout_from_fit(
     (data, vec!["name".into(), "route".into(), "heart_rate_samples".into()], Vec::new())
 }
 
-fn gpx_points(gpx: &str) -> Vec<(String, f64, f64, Option<f64>)> {
+fn gpx_points(gpx: &str) -> (Vec<(String, f64, f64, Option<f64>)>, usize) {
     let mut points = Vec::new();
+    let mut skipped_untimed = 0;
     for chunk in gpx.split("<trkpt").skip(1) {
         let header = chunk.split('>').next().unwrap_or("");
         let lat = attr(header, "lat");
@@ -324,12 +332,13 @@ fn gpx_points(gpx: &str) -> Vec<(String, f64, f64, Option<f64>)> {
             continue;
         };
         let Some(time) = tag_text(chunk, "time").filter(|value| !value.is_empty()) else {
+            skipped_untimed += 1;
             continue;
         };
         let hr = tag_text(chunk, "hr").and_then(|value| value.parse().ok());
         points.push((normalize_timestamp(&time).unwrap_or(time), lat, lon, hr));
     }
-    points
+    (points, skipped_untimed)
 }
 
 fn attr(header: &str, name: &str) -> Option<f64> {
@@ -430,7 +439,8 @@ mod tests {
 <trkpt lat="40.001" lon="-105.001"><time>2026-08-09T15:00:05Z</time><extensions><hr>130</hr></extensions></trkpt>
 <trkpt lat="40.002" lon="-105.002"><time>2026-08-09T15:00:10Z</time><extensions><hr>160</hr></extensions></trkpt>
 </trkseg></trk></gpx>"#;
-        let (data, understood, _) = workout_from_gpx("preview", "file.gpx", gpx, "2026-08-09T16:00:00.000Z").unwrap();
+        let (data, understood, _, skipped) = workout_from_gpx("preview", "file.gpx", gpx, "2026-08-09T16:00:00.000Z").unwrap();
+        assert_eq!(skipped, 0);
         assert_eq!(data.get("name").and_then(|value| value.as_str()), Some("Park loop"));
         assert!(understood.iter().any(|field| field == "heart_rate_samples"));
         let samples = data.get("heart_rate_samples").and_then(|value| value.as_array()).unwrap();
@@ -441,7 +451,8 @@ mod tests {
     #[test]
     fn namespaced_heart_rate_is_kept_and_an_untimed_point_is_skipped() {
         let gpx = include_str!("../../../tests/fixtures/exports/garmin/namespaced-hr.gpx");
-        let (data, understood, _) = workout_from_gpx("preview", "file.gpx", gpx, "2026-08-09T16:00:00.000Z").unwrap();
+        let (data, understood, _, skipped) = workout_from_gpx("preview", "file.gpx", gpx, "2026-08-09T16:00:00.000Z").unwrap();
+        assert_eq!(skipped, 1);
         assert!(understood.iter().any(|field| field == "heart_rate_samples"));
         let route = data.get("route").and_then(|value| value.as_array()).unwrap();
         assert!(route.iter().all(|point| {

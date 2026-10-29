@@ -185,15 +185,7 @@ fn fit_timestamp_ms(seconds: f64) -> i64 {
 }
 
 fn semicircles_to_degrees(value: Option<f64>) -> Option<f64> {
-    let raw = value? as i32;
-    if raw == i32::MAX {
-        return None;
-    }
-    let degrees = raw as f64 * (180.0 / 2_147_483_648.0);
-    if !(-180.0..=180.0).contains(&degrees) {
-        return None;
-    }
-    Some(degrees)
+    Some(value? as i32 as f64 * (180.0 / 2_147_483_648.0))
 }
 
 #[cfg(test)]

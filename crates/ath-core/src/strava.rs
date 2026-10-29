@@ -74,12 +74,18 @@ pub fn import_strava(store: &mut Store, path: &Path, write: bool) -> Result<Valu
         if let Some(filename) = record.get("Filename").filter(|value| !value.is_empty()) {
             if let Some((_, bytes)) = files.iter().find(|(name, _)| name.ends_with(filename)) {
                 if filename.to_ascii_lowercase().ends_with(".gpx") {
-                    let (gpx_data, _, _) = workout_from_gpx(
+                    let (gpx_data, _, _, skipped_untimed) = workout_from_gpx(
                         &source_id,
                         filename,
                         &String::from_utf8_lossy(bytes),
                         &received_at,
                     )?;
+                    if skipped_untimed > 0 {
+                        let label = if skipped_untimed == 1 { "point" } else { "points" };
+                        left_out.push(format!(
+                            "{filename}: {skipped_untimed} track {label} had no time"
+                        ));
+                    }
                     if let Some(route) = gpx_data.get("route") {
                         data.insert("route".into(), route.clone());
                         understood.push("route".into());

@@ -22,7 +22,9 @@ published 1.0.0 migration file is unchanged. A new database applies the
 The packed binary is marked executable before it runs (D168). A FIT
 position that means "not present" is left out, and a GPX point with no time
 is left out (D169). The release workflow stages the binaries and packs the
-tarball (D170).
+tarball with `npm pack` (D170, D171). A correction keeps a 17-digit number
+the same in the revision and the typed rows. `maximum_heart_rate_bpm` is
+the athlete's known maximum (D172).
 
 Later, with the reason:
 

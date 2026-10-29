@@ -31,8 +31,12 @@ workout.
 Garmin import reads an account directory or zip, a JSON activity, a GPX file,
 and FIT record points. A FIT value that means "not present", including a
 latitude of `0x7FFFFFFF`, is left out. A GPX heart-rate element is read with
-or without a namespace prefix. A GPX point with no time is left out. The
-workout is checked against the field rules before it is written (D169).
+or without a namespace prefix. A GPX point with no time is left out, and
+the import result counts those points. The workout is checked against the
+field rules before it is written (D169). `maximum_heart_rate_bpm` on a
+workout is the athlete's known maximum. FIT and GPX do not set it. The
+athlete sets it with `ath correct`. Garmin JSON `maxHR` is that activity's
+peak and is stored in the field when the file has it (D172).
 `ath pull garmin --date YYYY-MM-DD` reads Garmin's personal connection for
 that day. The personal key stays in the password store or
 `GARMIN_PERSONAL_API_KEY`. It is not written into the database.

@@ -1001,6 +1001,17 @@ mod tests {
     use rusqlite::Connection;
     use serde_json::json;
 
+    #[test]
+    fn a_seventeen_digit_number_keeps_its_bits() {
+        let text = "14.384010205470487";
+        let parsed: f64 = serde_json::from_str(text).unwrap();
+        let exact: f64 = text.parse().unwrap();
+        assert_eq!(parsed.to_bits(), exact.to_bits());
+        let printed = serde_json::to_string(&parsed).unwrap();
+        let again: f64 = serde_json::from_str(&printed).unwrap();
+        assert_eq!(again.to_bits(), exact.to_bits());
+    }
+
     fn database() -> Connection {
         let conn = Connection::open_in_memory().unwrap();
         conn.execute_batch(include_str!("../../../spec/sql/migrations/001-initial.sql")).unwrap();

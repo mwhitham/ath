@@ -66,6 +66,7 @@
     "build": "tsup",
     "check:public-data": "tsx scripts/check-public-data.ts",
     "prepublishOnly": "node scripts/prepare-publish.mjs && npm run build",
+    "postpack": "node scripts/assert-packed-binary.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",

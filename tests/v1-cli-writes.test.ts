@@ -757,3 +757,74 @@ describe("v1 corrections, links, deletion, and explicit grading", () => {
     ).toEqual([1, 2]);
   });
 });
+
+describe("a 17-digit value survives a correction", () => {
+  it("stays valid after ath correct", () => {
+    const directory = newDatabase();
+    const sourceId = String(records(directory, "source")[0]?.record_id);
+    const precise = 14.384010205470487;
+    const written = ath(
+      [
+        "log",
+        JSON.stringify({
+          record_type: "workout_session",
+          data: {
+            source_id: sourceId,
+            received_at: "2026-08-09T16:00:00.000Z",
+            received_at_basis: "import_time",
+            start_at: "2026-08-09T15:00:00.000Z",
+            end_at: "2026-08-09T15:10:00.000Z",
+            input_start_timestamp: {
+              timestamp_text: "2026-08-09T15:00:00.000Z",
+              utc_offset_text: "Z",
+              utc_offset_meaning: "documented_recording_offset",
+              timestamp_basis: "source_instant",
+            },
+            input_end_timestamp: {
+              timestamp_text: "2026-08-09T15:10:00.000Z",
+              utc_offset_text: "Z",
+              utc_offset_meaning: "documented_recording_offset",
+              timestamp_basis: "source_instant",
+            },
+            source_reported_summaries: [],
+            route: [
+              {
+                recorded_at: "2026-08-09T15:00:00.000Z",
+                latitude_deg: precise,
+                longitude_deg: -105,
+              },
+            ],
+          },
+        }),
+        "--yes",
+      ],
+      directory,
+    );
+    expect(written.code, written.stdout).toBe(0);
+    const workout = records(directory, "workout_session")[0]!;
+    const before = ath(["check"], directory);
+    expect(before.code, before.stdout).toBe(0);
+    expect(before.stdout).not.toContain("INVALID");
+    const data = {
+      ...(workout.data as Record<string, unknown>),
+      maximum_heart_rate_bpm: 190,
+    };
+    const corrected = ath(
+      [
+        "correct",
+        String(workout.record_id),
+        "--revision",
+        String(workout.current_revision),
+        "--data",
+        JSON.stringify(data),
+        "--yes",
+      ],
+      directory,
+    );
+    expect(corrected.code, corrected.stdout).toBe(0);
+    const after = ath(["check"], directory);
+    expect(after.code, after.stdout).toBe(0);
+    expect(after.stdout).not.toContain("INVALID");
+    expect(after.stdout).toContain("valid");
+  });
+});

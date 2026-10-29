@@ -83,6 +83,33 @@ try {
   if (!shown.some((data) => data.start_at === "2026-08-09T15:00:00.000Z" && (data.route ?? []).length === 1)) {
     throw new Error("synthetic FIT import did not keep the timed valid point");
   }
+  const preciseIndex = shown.findIndex((data) => (data.route ?? []).length > 0);
+  if (preciseIndex < 0) {
+    throw new Error("no workout with a route to correct");
+  }
+  const shownPrecise = JSON.parse(run(["records", "show", workouts.records[preciseIndex].record_id, "--json"]));
+  const current = shownPrecise.record;
+  const corrected = {
+    ...current.data,
+    maximum_heart_rate_bpm: 190,
+    route: (current.data.route ?? []).map((point, index) =>
+      index === 0 ? { ...point, latitude_deg: 14.384010205470487 } : point,
+    ),
+  };
+  console.log(run([
+    "correct",
+    current.record_id,
+    "--revision",
+    String(current.current_revision),
+    "--data",
+    JSON.stringify(corrected),
+    "--yes",
+  ]));
+  const check = run(["check"]);
+  if (check.includes("INVALID")) {
+    throw new Error(check);
+  }
+  console.log(check);
   console.log("installed package smoke test passed");
 } finally {
   rmSync(directory, { recursive: true, force: true });

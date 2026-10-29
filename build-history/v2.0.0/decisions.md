@@ -363,3 +363,42 @@ Rejected alternatives:
 - Publish from a checkout and hope `vendor/` is already filled. Rejected
   because that directory is not source, so a clean checkout does not have
   it.
+
+## D171. Publish the npm pack tarball
+
+The tarball that is published is the one `npm pack` builds in the release
+workflow. That is the same packer the smoke test checks. `pnpm pack` stores
+`ath-core` as mode 644. A global install owned by root then cannot mark the
+binary executable, and the first command fails with EPERM.
+
+`postpack` reads the tarball and refuses it when an `ath-core` entry is
+missing or not executable. D170 is not rewritten. It still says the release
+workflow packs the binaries.
+
+Rejected alternatives:
+
+- Let either packer publish. Rejected because `pnpm pack` drops the
+  executable bit on every file that is not a `bin` entry.
+- Mark the binary executable only on disk before packing. Rejected because
+  `pnpm pack` does not keep that mode in the tarball.
+
+## D172. A workout maximum is the athlete's known maximum
+
+`maximum_heart_rate_bpm` on a workout is the athlete's known maximum heart
+rate. Zone and heart-rate training-load calculations divide by it. It is
+not the highest sample in that workout, and it is not guessed from age.
+When it is missing, the calculation says so.
+
+FIT and GPX files do not include that number. Those imports leave the field
+empty. The athlete sets it with `ath correct`.
+
+A Garmin account JSON file's `maxHR` is the peak heart rate Garmin recorded
+for that activity. When the file has `maxHR`, the import stores it in
+`maximum_heart_rate_bpm`. That is the only file field that fills the value.
+
+Rejected alternatives:
+
+- Guess the maximum from age. Rejected because the zone file already says
+  not to.
+- Treat the highest sample in the workout as the maximum. Rejected because
+  that peak is not the athlete's known maximum.
