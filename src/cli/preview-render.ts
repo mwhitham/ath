@@ -52,6 +52,7 @@ export function renderProviderImportPreview(preview: {
   }[];
   conflicts: readonly { record_id?: string; message: string }[];
   skipped: Readonly<Record<string, { count: number; example?: string }>>;
+  route_points_stored?: number;
 }): string {
   const skippedCount = Object.values(preview.skipped).reduce(
     (total, skipped) => total + skipped.count,
@@ -66,6 +67,10 @@ export function renderProviderImportPreview(preview: {
     `  conflicts:           ${preview.conflicts.length}`,
     `  skipped rows:        ${skippedCount}`,
   ];
+  if ((preview.route_points_stored ?? 0) > 0) {
+    const count = preview.route_points_stored ?? 0;
+    lines.push(`  route points stored: ${count}`);
+  }
   for (const conflict of preview.conflicts) {
     lines.push(
       `    ${conflict.record_id === undefined ? "" : `${conflict.record_id}: `}` +

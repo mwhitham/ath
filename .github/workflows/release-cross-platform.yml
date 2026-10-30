@@ -25,6 +25,47 @@ jobs:
           node-version: 22
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - uses: dtolnay/rust-toolchain@stable
+      - run: cargo test --manifest-path crates/ath-core/Cargo.toml
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+      - run: cargo build --release --manifest-path crates/ath-core/Cargo.toml
+      - run: node scripts/stage-ath-core.mjs
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ath-core-${{ runner.os }}-${{ runner.arch }}
+          path: vendor/ath-core
+          if-no-files-found: error
+
+  package:
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          registry-url: https://registry.npmjs.org
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: ath-core-*
+          path: vendor/ath-core
+          merge-multiple: true
+      - run: find vendor/ath-core -type f -exec chmod 755 {} +
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - run: ATH_KEEP_TARBALL=1 node scripts/smoke-installed-package.mjs
+      - run: node scripts/assert-packed-binary.mjs "athleticstandard-$(node -p "require('./package.json').version").tgz"
+      - name: Publish the tarball the smoke test checked
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: npm publish "athleticstandard-$(node -p "require('./package.json').version").tgz"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: athleticstandard-tarball
+          path: athleticstandard-*.tgz
+          if-no-files-found: error

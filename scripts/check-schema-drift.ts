@@ -12,10 +12,12 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 import {
   buildSqlContractDocument,
   MIGRATION_002_FILE_HEADER,
+  MIGRATION_003_FILE_HEADER,
   publishedMigrationSql,
   readDatabaseFileHeader,
 } from "../src/db/sql-contract.js";
 import { PROVIDER_ENCODING_REPAIR_SQL } from "../src/db/migrations/002-provider-encoding-repair.js";
+import { VERSION_2_UPGRADE_SQL } from "../src/db/migrations/003-version-2.js";
 import { SQLITE_APPLICATION_ID } from "../src/db/client.js";
 import {
   createDatabase,
@@ -91,11 +93,12 @@ async function schemaFromPublishedSqlFile(): Promise<SchemaSnapshot> {
   const directory = await mkdtemp(join(tmpdir(), "ath-schema-drift-sql-"));
   const path = join(directory, "athlete.ath.sqlite");
   const migrationFile = join(root, "spec", "sql", "migrations", "001-initial.sql");
+  const version2File = join(root, "spec", "sql", "migrations", "003-version-2.sql");
   const apply = spawnSync(
     "sqlite3",
     [path],
     {
-      input: readFileSync(migrationFile, "utf8"),
+      input: `${readFileSync(migrationFile, "utf8")}\n${readFileSync(version2File, "utf8")}`,
       encoding: "utf8",
     },
   );
@@ -161,6 +164,10 @@ function expectedMigration002FileContents(): string {
   return `${MIGRATION_002_FILE_HEADER}${PROVIDER_ENCODING_REPAIR_SQL}\n`;
 }
 
+function expectedMigration003FileContents(): string {
+  return `${MIGRATION_003_FILE_HEADER}${VERSION_2_UPGRADE_SQL}\n`;
+}
+
 function checkGeneratedFilesFresh(): void {
   const migrationPath = join(root, "spec", "sql", "migrations", "001-initial.sql");
   const onDisk = readFileSync(migrationPath, "utf8");
@@ -184,6 +191,14 @@ function checkGeneratedFilesFresh(): void {
   if (migration002OnDisk !== migration002Expected) {
     throw new Error(
       "spec/sql/migrations/002-provider-encoding-repair.sql is stale; run pnpm generate:sql-contract",
+    );
+  }
+
+  const migration003Path = join(root, "spec", "sql", "migrations", "003-version-2.sql");
+  const migration003OnDisk = readFileSync(migration003Path, "utf8");
+  if (migration003OnDisk !== expectedMigration003FileContents()) {
+    throw new Error(
+      "spec/sql/migrations/003-version-2.sql is stale; run pnpm generate:sql-contract",
     );
   }
 }

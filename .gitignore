@@ -1,5 +1,9 @@
 node_modules/
 dist/
+crates/ath-core/target/
+# Built ath-core binaries are packed into the npm package by the check.
+# They are not source.
+/vendor/
 *.log
 .DS_Store
 
@@ -21,6 +25,12 @@ validation-data/
 !examples/demo-athlete/athlete.ath.json
 !examples/demo-athlete/athlete.ath.sqlite
 !tests/fixtures/exports/apple/export.xml
+!tests/fixtures/exports/apple-inline-route/export.xml
+!tests/fixtures/exports/apple-file-reference/export.xml
+!tests/fixtures/exports/apple-file-reference/workout-routes/route_2026-06-14.gpx
+!tests/fixtures/exports/apple-route-mismatch/export.xml
+!tests/fixtures/exports/apple-route-mismatch/workout-routes/route_2026-07-01.gpx
+!tests/fixtures/exports/apple-route-mismatch/workout-routes/route_2026-08-02.gpx
 !tests/fixtures/exports/apple/electrocardiograms/ecg_2026-08-07.csv
 !tests/fixtures/exports/apple/electrocardiograms/ecg_2026-08-09.csv
 !tests/fixtures/exports/apple/workout-routes/route_2026-08-09_7.00pm.gpx
@@ -34,10 +44,16 @@ validation-data/
 !tests/fixtures/npm-100-encoding/athlete.ath.sqlite
 !tests/fixtures/exports/oura-spo2/oura_sleep_spo2_flat.csv
 !tests/fixtures/exports/oura-spo2/oura_sleep_spo2_json.csv
+!tests/fixtures/exports/oura-offset/sleep.csv
 !tests/fixtures/exports/whoop/journal_entries.csv
 !tests/fixtures/exports/whoop/physiological_cycles.csv
 !tests/fixtures/exports/whoop/sleeps.csv
 !tests/fixtures/exports/whoop/workouts.csv
+!tests/fixtures/exports/garmin/park-loop.json
+!tests/fixtures/exports/garmin/namespaced-hr.gpx
+!tests/fixtures/exports/garmin/synthetic-position.fit
+!tests/fixtures/exports/strava/activities.csv
+!tests/fixtures/exports/strava/activities/river.gpx
 
 # Large deterministic release fixtures are generated locally or in the release job.
 /performance/generated/

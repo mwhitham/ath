@@ -94,6 +94,6 @@ describe.runIf(process.platform !== "win32")("WAL retention after failed writes"
 
     const check = ath(["check"], directory);
     expect(check.code, check.stdout).toBe(0);
-    expect(check.stdout).toContain("valid Athletic Standard 1.0.0 database");
+    expect(check.stdout).toContain("valid Athletic Standard 2.0.0 database");
   }, 60_000);
 });

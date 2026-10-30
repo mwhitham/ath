@@ -33,20 +33,24 @@ import {
   isGatewayName,
   KeyRefusal,
   savedGateways,
+  accountSecret,
+  setAccountSecret,
   setKey,
 } from "./keyring.js";
 import { loadCatalog, renderModelList, requireOnList, resolveModel, writeDefaultModel } from "./models.js";
 import { complete } from "./gateway.js";
 import { latestReport, shareRefusal } from "./share.js";
 import { bareGuide, EXAMPLES, GROUPS, HELP_FOOTER } from "./help.js";
+import { runAthCore } from "./ath-core.js";
+import { detectSharedImport, renderSharedImport } from "./shared-import.js";
 import {
   ALWAYS_DIR,
   installSkill,
   shippedSkillVersion,
+  resolveCalculationFile,
   skillSource,
   skillStatus,
   staleSkillWarning,
-  UNVERSIONED,
   type SkillCopy,
 } from "./skill.js";
 import { candidatePaths, runUpdate } from "./update.js";
@@ -145,7 +149,7 @@ export function buildProgram(): Command {
     .version(ATH_PACKAGE_VERSION)
     .option(
       "--update",
-      "install the latest ath with the tool that installed it, and replace the agent skill if one is already in this folder",
+      "install the latest ath with the tool that installed it, replace an older tool skill, and add skill files that are not already here",
     )
     .addHelpText("after", HELP_FOOTER)
     .action(async (opts: { update?: boolean }) => {
@@ -321,7 +325,7 @@ export function buildProgram(): Command {
       if (installed.length > 0) {
         console.log(
           `  ${ALWAYS_DIR}/skills is read by Claude Code, Cursor, Codex, and Gemini CLI. ` +
-            `\`ath skill install\` refreshes every copy after an upgrade.`,
+            `\`ath skill install\` replaces an older tool skill after an upgrade.`,
         );
       } else if (opts.skill !== false) {
         console.log(`  the skill was not installed. \`ath skill install\` does it later.`);
@@ -355,8 +359,14 @@ export function buildProgram(): Command {
         console.log(JSON.stringify({ shipped: shippedSkillVersion(), skill_installed: written }, null, 2));
         return;
       }
-      if (written.length === 0) return fail(`the skill is not here to copy: expected it at ${skillSource()}`);
-      for (const path of written) console.log(`installed the agent skill into ${path}`);
+      if (!existsSync(skillSource())) {
+        return fail(`the skill is not here to copy: expected it at ${skillSource()}`);
+      }
+      if (written.length === 0) {
+        console.log("left installed skill files unchanged");
+        return;
+      }
+      for (const path of written) console.log(`added skill files into ${path}`);
       console.log(`version ${shippedSkillVersion()}`);
     });
 
@@ -588,7 +598,7 @@ export function buildProgram(): Command {
   program
     .command("import")
     .helpGroup(GROUPS.getIn)
-    .description("preview and import a v1 package or Apple Health, WHOOP, or Oura export")
+    .description("preview and import a package or an Apple Health, WHOOP, Oura, Garmin, or Strava export")
     .addHelpText("after", EXAMPLES.import!)
     .argument("<path>", "v1 package or supported provider export")
     .option("--file <path>", "import into a database other than the one in this folder")
@@ -599,6 +609,39 @@ export function buildProgram(): Command {
       opts: { file?: string; yes?: boolean; json?: boolean },
     ) => {
       const athletePath = findOrFail(opts.file);
+      const resolvedImportPath = resolve(process.cwd(), importPath);
+      const sharedImport = await detectSharedImport(resolvedImportPath);
+      if (sharedImport !== null) {
+        const opened = await openOrFail(athletePath, opts.json);
+        await releaseLocalDatabase(opened);
+        const previewArgs = [
+          `import-${sharedImport}`,
+          "--database",
+          athletePath,
+          "--input",
+          resolvedImportPath,
+          "--preview",
+        ];
+        try {
+          const preview = runAthCore(previewArgs);
+          if (opts.json || opts.yes !== true) {
+            if (opts.json) {
+              console.log(JSON.stringify({ ...(preview as object), write_confirmed: false }, null, 2));
+              return;
+            }
+            console.log(renderSharedImport(sharedImport, preview));
+            console.log("nothing written; pass --yes after reviewing this preview");
+            return;
+          }
+          const written = runAthCore(previewArgs.filter((arg) => arg !== "--preview"));
+          console.log(
+            `imported ${sharedImport}: ${JSON.stringify(written)}`,
+          );
+        } catch (error) {
+          return fail((error as Error).message);
+        }
+        return;
+      }
       const database = await openOrFail(athletePath, opts.json);
       try {
         const resolvedImportPath = resolve(process.cwd(), importPath);
@@ -613,6 +656,7 @@ export function buildProgram(): Command {
             changed_records: preview.changed_records,
             conflicts: preview.conflicts,
             skipped: preview.skipped,
+            route_points_stored: storedRoutePoints(preview),
             write_confirmed: false,
           };
           if (opts.json) {
@@ -1494,6 +1538,16 @@ export function buildProgram(): Command {
     .description("save a Vercel or OpenRouter key in the OS password store")
     .argument("<gateway>", "vercel or openrouter")
     .action(async (gatewayArg: string) => {
+      if (gatewayArg === "garmin") {
+        try {
+          await setAccountSecret("garmin", "Paste your Garmin personal API key: ");
+          console.log("saved a garmin key in the password store. The key is not printed.");
+        } catch (error) {
+          if (error instanceof KeyRefusal) return fail((error as Error).message);
+          throw error;
+        }
+        return;
+      }
       const gateway = parseGateway(gatewayArg);
       try {
         await setKey(gateway);
@@ -1883,6 +1937,82 @@ export function buildProgram(): Command {
     });
 
   program
+    .command("apply")
+    .helpGroup(GROUPS.read)
+    .description("run one calculation skill file on one record")
+    .addHelpText("after", EXAMPLES.apply!)
+    .argument("<calculation>", "calculation file name, such as heart-rate-zones")
+    .requiredOption("--record <id>", "the one record to use")
+    .option("--file <path>", "read a database other than the one in this folder")
+    .option("--json", "structured result")
+    .action((calculation: string, opts: { record: string; file?: string; json?: boolean }) => {
+      const athletePath = findOrFail(opts.file);
+      try {
+        const skillFile = resolveCalculationFile(calculation, process.cwd());
+        const result = runAthCore([
+          "calculate",
+          "--database",
+          athletePath,
+          "--skill",
+          skillFile,
+          "--record",
+          opts.record,
+        ]);
+        console.log(opts.json ? JSON.stringify(result, null, 2) : renderApplyResult(result));
+      } catch (error) {
+        return fail((error as Error).message);
+      }
+    });
+
+  program
+    .command("pull")
+    .helpGroup(GROUPS.getIn)
+    .description("read one day from Garmin's personal connection")
+    .addHelpText("after", EXAMPLES.pull!)
+    .argument("<source>", "garmin")
+    .requiredOption("--date <day>", "YYYY-MM-DD")
+    .option("--base-url <url>", "personal API root, for a test server")
+    .option("--file <path>", "write into a database other than the one in this folder")
+    .option("--json", "structured result")
+    .action(async (
+      source: string,
+      opts: { date: string; baseUrl?: string; file?: string; json?: boolean },
+    ) => {
+      if (source !== "garmin") return fail("pull currently reads garmin");
+      const athletePath = findOrFail(opts.file);
+      const key = await accountSecret("garmin");
+      if (key === undefined) {
+        return fail("no Garmin key is saved. Run ath key set garmin, or set GARMIN_PERSONAL_API_KEY.");
+      }
+      const opened = await openOrFail(athletePath, opts.json);
+      await releaseLocalDatabase(opened);
+      try {
+        const result = runAthCore(
+          [
+            "pull-garmin",
+            "--database",
+            athletePath,
+            "--date",
+            opts.date,
+            ...(opts.baseUrl === undefined ? [] : ["--base-url", opts.baseUrl]),
+          ],
+          { ...process.env, ATH_CORE_GARMIN_KEY: key },
+        );
+        const text = JSON.stringify(result);
+        if (text.includes(key)) {
+          return fail("refusing to print a result that contains the Garmin key");
+        }
+        console.log(opts.json ? JSON.stringify(result, null, 2) : `pulled garmin for ${opts.date}`);
+      } catch (error) {
+        const message = (error as Error).message;
+        if (message.includes(key)) {
+          return fail("Garmin personal connection failed");
+        }
+        return fail(message);
+      }
+    });
+
+  program
     .command("calculate")
     .helpGroup(GROUPS.read)
     .description("run a named calculation without writing athlete data")
@@ -2258,6 +2388,15 @@ function parsePredictionResponse(content: string): Record<string, unknown> {
   return value as Record<string, unknown>;
 }
 
+function storedRoutePoints(preview: {
+  changes: ReadonlyArray<{ draft: { data: unknown } }>;
+}): number {
+  return preview.changes.reduce((sum, change) => {
+    const route = (change.draft.data as { route?: unknown }).route;
+    return sum + (Array.isArray(route) ? route.length : 0);
+  }, 0);
+}
+
 function isAthleticStandardPackagePath(path: string): boolean {
   return (
     path.toLowerCase().endsWith(".json") ||
@@ -2270,23 +2409,39 @@ function parseGateway(value: string): "vercel" | "openrouter" {
   fail(`unknown gateway '${value}'. Use vercel or openrouter.`);
 }
 
+function renderApplyResult(result: unknown): string {
+  const body = result as {
+    calculation?: string;
+    record_id?: string;
+    fields_read?: Array<{ field: string; present: boolean }>;
+    missing?: string[];
+    result?: unknown;
+  };
+  const lines = [`${body.calculation ?? "calculation"} on ${body.record_id ?? "record"}`];
+  for (const field of body.fields_read ?? []) {
+    lines.push(`read ${field.field}: ${field.present ? "present" : "missing"}`);
+  }
+  if ((body.missing ?? []).length > 0) lines.push(`missing: ${body.missing?.join(", ")}`);
+  lines.push(JSON.stringify(body.result));
+  return lines.join("\n");
+}
+
 function renderSkillStatus(cwd: string, copies: SkillCopy[]): string {
   const lines = [`agent skill, version ${shippedSkillVersion()} shipped with this ath`, ``];
   for (const copy of copies) {
     const where = copy.path.slice(cwd.length).replace(/^[\\/]+/, "") || copy.path;
-    const state =
-      copy.state === "current"
-        ? `current (${copy.installed})`
-        : copy.state === "stale"
-          ? `stale: ${copy.installed === UNVERSIONED ? "an older version" : copy.installed} installed`
-          : "missing";
+    const state = copy.state === "installed" ? `installed (${copy.installed})` : "missing";
     lines.push(`  ${where.padEnd(40)} ${state}`);
   }
   lines.push(``);
-  if (copies.some((c) => c.state !== "current")) {
-    lines.push(`\`ath skill install\` writes the shipped version into each of these.`);
+  if (copies.some((c) => c.state === "missing")) {
+    lines.push(
+      "`ath skill install` adds skill files that are not already here, and replaces an older tool skill.",
+    );
   } else {
-    lines.push(`Every copy is current.`);
+    lines.push(
+      "An older tool skill is replaced by `ath skill install`. A calculation skill that is already installed is left as it is.",
+    );
   }
   lines.push(`${ALWAYS_DIR}/skills is read by Claude Code, Cursor, Codex, and Gemini CLI.`);
   return lines.join("\n");

@@ -1,5 +1,5 @@
 /**
- * Writes skill/references/cli.md from the CLI's own help (D80).
+ * Writes skills/athletic-standard/references/cli.md from the CLI's own help (D80).
  *
  * Run after changing a command or its help text. `pnpm test` fails when the
  * committed file is behind the code.
@@ -11,7 +11,7 @@ import { buildProgram } from "../src/program.js";
 import { renderCliReference } from "../src/skillcli.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-const out = join(root, "skill", "references", "cli.md");
+const out = join(root, "skills", "athletic-standard", "references", "cli.md");
 
 mkdirSync(dirname(out), { recursive: true });
 writeFileSync(out, renderCliReference(buildProgram()));

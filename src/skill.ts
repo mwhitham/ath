@@ -1,13 +1,12 @@
 /**
- * Installing the skill (D49 and D41 on the mechanism, D79 on where it goes).
+ * Installing skills.
  *
- * `skill/` is a directory copied whole, not a path to one file. It always goes to
- * `.agents/skills/`, which Claude Code, Cursor, Codex, and Gemini CLI all read, and
- * also into any harness folder already present. Each copy carries its version in
- * the `SKILL.md` frontmatter, so a copy left behind by an older `ath` can be told
- * from the shipped one and refreshed with `ath skill install`.
+ * `skills/` holds one folder per skill. Each folder is copied into `.agents/skills/`,
+ * which Claude Code, Cursor, Codex, and Gemini CLI read, and also into any harness
+ * folder already present. A new file is added. A calculation skill that is already
+ * installed is left alone. An older tool skill is replaced.
  */
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync } from "node:fs";
+import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -20,7 +19,7 @@ export const ALWAYS_DIR = ".agents";
 /** Written too, when the folder is already here. */
 export const AGENT_DIRS = [".claude", ".cursor", ".codex", ".gemini", ".github"] as const;
 
-export type SkillState = "current" | "stale" | "missing";
+export type SkillState = "installed" | "missing";
 
 export interface SkillCopy {
   /** The installed folder, absolute. */
@@ -33,13 +32,25 @@ export interface SkillCopy {
 }
 
 /**
- * Where the skill ships from.
+ * Where the skills ship from.
  *
- * `skill/` sits beside `src/` in the repository and beside `dist/` in the published
+ * `skills/` sits beside `src/` in the repository and beside `dist/` in the published
  * package, so one step up from this module finds it either way.
  */
+export function skillsRoot(): string {
+  return resolve(dirname(fileURLToPath(import.meta.url)), "..", "skills");
+}
+
+/** The athletic-standard skill, which carries the command reference. */
 export function skillSource(): string {
-  return resolve(dirname(fileURLToPath(import.meta.url)), "..", "skill");
+  return join(skillsRoot(), SKILL_NAME);
+}
+
+/** Skill folder names that contain a SKILL.md, in sorted order. */
+export function skillNames(): string[] {
+  return readdirSync(skillsRoot())
+    .filter((name) => existsSync(join(skillsRoot(), name, "SKILL.md")))
+    .sort();
 }
 
 /** The frontmatter of a SKILL.md: top-level `key: value` pairs and one nested level. */
@@ -86,67 +97,115 @@ export function skillVersion(skillDir: string): string | null {
   return typeof version === "string" && version ? version : UNVERSIONED;
 }
 
-/** The version this `ath` ships, read from `skill/SKILL.md`. */
+/** The version this `ath` ships, read from `skills/athletic-standard/SKILL.md`. */
 export function shippedSkillVersion(): string {
   return skillVersion(skillSource()) ?? UNVERSIONED;
 }
 
-/** Every folder the skill would be written to in `cwd`: `.agents` always, the rest when present. */
-export function skillTargets(cwd: string): string[] {
-  const targets = [join(cwd, ALWAYS_DIR, "skills", SKILL_NAME)];
+/** Every folder one skill would be written to in `cwd`. */
+export function skillTargets(cwd: string, name: string = SKILL_NAME): string[] {
+  const targets = [join(cwd, ALWAYS_DIR, "skills", name)];
   for (const agent of AGENT_DIRS) {
-    if (existsSync(join(cwd, agent))) targets.push(join(cwd, agent, "skills", SKILL_NAME));
+    if (existsSync(join(cwd, agent))) targets.push(join(cwd, agent, "skills", name));
   }
   return targets;
 }
 
-/**
- * Copy the skill into `.agents/skills/` and every harness folder present in `cwd`.
+/** The installed calculation skill, or the copy shipped with ath. */
+export function resolveCalculationFile(name: string, cwd: string): string {
+  const skillName = name.replace(/\.md$/, "").split(/[\\/]/).pop() ?? name;
+  const installed = join(cwd, ALWAYS_DIR, "skills", skillName, "SKILL.md");
+  if (existsSync(installed)) return installed;
+  const shipped = join(skillsRoot(), skillName, "SKILL.md");
+  if (!existsSync(shipped)) {
+    throw new Error(`no calculation skill named ${skillName}`);
+  }
+  return shipped;
+}
+
+function versionRank(version: string): number[] {
+  return version.split(".").map((part) => Number(part) || 0);
+}
+
+function versionIsOlder(installed: string, shipped: string): boolean {
+  const left = versionRank(installed);
+  const right = versionRank(shipped);
+  for (let index = 0; index < 3; index += 1) {
+    const diff = (left[index] ?? 0) - (right[index] ?? 0);
+    if (diff !== 0) return diff < 0;
+  }
+  return false;
+}
+
+/** Replace the tool skill when an older copy is installed.
  *
- * Returns the paths written. An existing copy is replaced whole, so a file the old
- * version shipped and the new one does not is gone afterwards.
+ * D81 rejected leaving that copy, because an agent would keep reading the old
+ * instructions. A calculation skill is not replaced.
+ */
+function replaceOlderToolSkill(source: string, destination: string): boolean {
+  const installed = skillVersion(destination);
+  const shipped = skillVersion(source);
+  if (installed === null || shipped === null || !versionIsOlder(installed, shipped)) {
+    return false;
+  }
+  rmSync(destination, { recursive: true, force: true });
+  mkdirSync(destination, { recursive: true });
+  cpSync(source, destination, { recursive: true });
+  return true;
+}
+
+function copyMissingFiles(source: string, destination: string): number {
+  let added = 0;
+  for (const entry of readdirSync(source)) {
+    const from = join(source, entry);
+    const to = join(destination, entry);
+    if (statSync(from).isDirectory()) {
+      mkdirSync(to, { recursive: true });
+      added += copyMissingFiles(from, to);
+      continue;
+    }
+    if (existsSync(to)) continue;
+    cpSync(from, to);
+    added += 1;
+  }
+  return added;
+}
+
+/**
+ * Copy skill files that are not already installed.
+ *
+ * Returns the destination folders where at least one file was added.
+ * A calculation skill that is already there is not replaced.
+ * The tool skill is replaced when the installed copy is an older version.
  */
 export function installSkill(cwd: string): string[] {
-  const source = skillSource();
-  if (!existsSync(source)) return [];
+  if (!existsSync(skillsRoot())) return [];
 
   const written: string[] = [];
-  for (const destination of skillTargets(cwd)) {
-    mkdirSync(dirname(destination), { recursive: true });
-    rmSync(destination, { recursive: true, force: true });
-    cpSync(source, destination, { recursive: true });
-    written.push(destination);
+  for (const name of skillNames()) {
+    const source = join(skillsRoot(), name);
+    for (const destination of skillTargets(cwd, name)) {
+      mkdirSync(destination, { recursive: true });
+      const replaced = name === SKILL_NAME && replaceOlderToolSkill(source, destination);
+      if (replaced || copyMissingFiles(source, destination) > 0) written.push(destination);
+    }
   }
   return written;
 }
 
-/** Each place the skill would be installed in `cwd`, and whether the copy there is current. */
+/** Each installed skill folder in `cwd`, and whether that copy is present. */
 export function skillStatus(cwd: string): SkillCopy[] {
   const shipped = shippedSkillVersion();
-  return skillTargets(cwd).map((path) => {
-    const installed = skillVersion(path);
-    const state: SkillState =
-      installed === null ? "missing" : installed === shipped ? "current" : "stale";
-    return { path, installed, shipped, state };
-  });
+  return skillNames().flatMap((name) =>
+    skillTargets(cwd, name).map((path) => {
+      const installed = skillVersion(path);
+      const state: SkillState = installed === null ? "missing" : "installed";
+      return { path, installed, shipped, state };
+    }),
+  );
 }
 
-/**
- * One line for stderr when an installed copy is older than the shipped one, else
- * null. Nothing is said when no copy exists: running without an agent is normal.
- */
-export function staleSkillWarning(cwd: string): string | null {
-  const stale = skillStatus(cwd).filter((c) => c.state === "stale");
-  if (stale.length === 0) return null;
-  const first = stale[0]!;
-  const where = join(relativeAgentDir(cwd, first.path), "skills");
-  const more = stale.length > 1 ? ` and ${stale.length - 1} more` : "";
-  const age =
-    first.installed === UNVERSIONED ? `is older than ${first.shipped}` : `is from ${first.installed}`;
-  return `ath: the agent skill in ${where}${more} ${age}; run ath skill install`;
-}
-
-function relativeAgentDir(cwd: string, skillPath: string): string {
-  const rel = skillPath.slice(cwd.length).replace(/^[\\/]+/, "");
-  return rel.split(/[\\/]/)[0] ?? rel;
+/** Installed skill files are not replaced, so there is no stale-skill warning. */
+export function staleSkillWarning(_cwd: string): string | null {
+  return null;
 }

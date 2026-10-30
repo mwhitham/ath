@@ -1,9 +1,9 @@
 {
   "name": "athleticstandard",
-  "version": "1.1.0",
+  "version": "2.0.0",
   "description": "An open, local-first SQLite format for an athlete's training and recovery data, with complete JSON import and export.",
   "license": "MIT",
-  "homepage": "https://athleticstandard.ai",
+  "homepage": "https://ath.fit",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mwhitham/ath.git"
@@ -47,10 +47,10 @@
       "types": "./dist/schema.d.ts",
       "import": "./dist/schema.js"
     },
-    "./json-schema": "./schema/1.0.0/athleticstandard.schema.json",
-    "./json-schema/export-manifest": "./schema/1.0.0/export-manifest.schema.json",
-    "./json-schema/measurement-series": "./schema/1.0.0/measurement-series.schema.json",
-    "./skill": "./skill/SKILL.md"
+    "./json-schema": "./schema/2.0.0/athleticstandard.schema.json",
+    "./json-schema/export-manifest": "./schema/2.0.0/export-manifest.schema.json",
+    "./json-schema/measurement-series": "./schema/2.0.0/measurement-series.schema.json",
+    "./skill": "./skills/athletic-standard/SKILL.md"
   },
   "bin": {
     "ath": "dist/cli.js"
@@ -58,13 +58,14 @@
   "files": [
     "dist",
     "schema",
-    "skill",
+    "skills",
+    "vendor",
     "SPEC.md"
   ],
   "scripts": {
     "build": "tsup",
     "check:public-data": "tsx scripts/check-public-data.ts",
-    "prepublishOnly": "npm run build",
+    "prepublishOnly": "node scripts/refuse-checkout-publish.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
     "typecheck": "tsc --noEmit",
@@ -81,14 +82,12 @@
     "@libsql/client": "^0.18.0",
     "commander": "^15.0.0",
     "papaparse": "^5.7.0",
-    "sax": "^1.6.1",
     "yauzl": "^3.4.0",
     "zod": "^4.5.2"
   },
   "devDependencies": {
     "@types/node": "^26.4.0",
     "@types/papaparse": "^5.5.2",
-    "@types/sax": "^1.2.7",
     "@types/yauzl": "^3.4.0",
     "@types/yazl": "^3.3.1",
     "tsup": "^8.5.1",

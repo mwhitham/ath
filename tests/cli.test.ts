@@ -68,7 +68,7 @@ describe("ath init", () => {
 
     const check = ath(["check"], dir);
     expect(check.code).toBe(0);
-    expect(check.stdout).toContain("valid Athletic Standard 1.0.0 database");
+    expect(check.stdout).toContain("valid Athletic Standard 2.0.0 database");
   });
 
   it("refuses to overwrite an existing file", () => {
@@ -89,8 +89,8 @@ describe("ath migrate", () => {
     expect(res.code).toBe(0);
     const json = JSON.parse(res.stdout);
     expect(json.migration_needed).toBe(false);
-    expect(json.source_sql_schema_version).toBe(2);
-    expect(json.target_sql_schema_version).toBe(2);
+    expect(json.source_sql_schema_version).toBe(3);
+    expect(json.target_sql_schema_version).toBe(3);
   });
 
   it("does not switch journal mode during a dry-run preview", async () => {

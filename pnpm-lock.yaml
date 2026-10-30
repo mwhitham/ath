@@ -17,9 +17,6 @@ importers:
       papaparse:
         specifier: ^5.7.0
         version: 5.7.0
-      sax:
-        specifier: ^1.6.1
-        version: 1.6.1
       yauzl:
         specifier: ^3.4.0
         version: 3.4.0
@@ -33,9 +30,6 @@ importers:
       '@types/papaparse':
         specifier: ^5.5.2
         version: 5.5.2
-      '@types/sax':
-        specifier: ^1.2.7
-        version: 1.2.7
       '@types/yauzl':
         specifier: ^3.4.0
         version: 3.4.0
@@ -710,9 +704,6 @@ packages:
   '@types/papaparse@5.5.2':
     resolution: {integrity: sha512-gFnFp/JMzLHCwRf7tQHrNnfhN4eYBVYYI897CGX4MY1tzY9l2aLkVyx2IlKZ/SAqDbB3I1AOZW5gTMGGsqWliA==}
 
-  '@types/sax@1.2.7':
-    resolution: {integrity: sha512-rO73L89PJxeYM3s3pPPjiPgVVcymqU490g0YO5n5By0k2Erzj6tay/4lr1CHAAU4JyOWd1rpQ8bCf6cZfHU96A==}
-
   '@types/ws@8.18.2':
     resolution: {integrity: sha512-67MQl+fpWKVTT1NYdnmo3U4sc/xPo/zQBncVnI74qmQa0z/b+1g6iYqNmGCPbxO+zz2aklb08a0oHfegiVd0/w==}
 
@@ -1044,10 +1035,6 @@ packages:
     resolution: {integrity: sha512-3Df9jsstwhccuEfmAMi9l8XUh/GOkVObmFTU7CCVBysEbcOZLl84jCtaAZMcPiMz2EGKsATzQcU+Xr3n/wU6cg==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
-
-  sax@1.6.1:
-    resolution: {integrity: sha512-42tBVwLWnaQvW5zc4HbZrTuWccECCZfBi92FDuwtqxasH+JbPB3/FOKb1m222K42R4WxuxzzMsTswfzgtSu64Q==}
-    engines: {node: '>=11.0.0'}
 
   siginfo@2.0.0:
     resolution: {integrity: sha512-ybx0WO1/8bSBLEWXZvEd7gMW3Sn3JFlW3TvX1nREbDLRNQNaeNN8WK0meBwPdAaOI7TtRRRJn/Es1zhrrCHu7g==}
@@ -1627,10 +1614,6 @@ snapshots:
     dependencies:
       '@types/node': 26.4.0
 
-  '@types/sax@1.2.7':
-    dependencies:
-      '@types/node': 26.4.0
-
   '@types/ws@8.18.2':
     dependencies:
       '@types/node': 26.4.0
@@ -1990,8 +1973,6 @@ snapshots:
       '@rollup/rollup-win32-x64-gnu': 4.63.1
       '@rollup/rollup-win32-x64-msvc': 4.63.1
       fsevents: 2.3.3
-
-  sax@1.6.1: {}
 
   siginfo@2.0.0: {}
 
