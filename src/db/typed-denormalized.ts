@@ -129,6 +129,14 @@ async function orderedJsonChildrenMismatch(
     children: readonly unknown[];
   },
 ): Promise<boolean> {
+  // workout_route_points is created by migration 003. A 1.0.0 database does not have it.
+  const table = await client.execute({
+    sql: "SELECT 1 AS present FROM sqlite_master WHERE type = 'table' AND name = ?",
+    args: [options.table],
+  });
+  if (table.rows.length === 0) {
+    return options.children.length > 0;
+  }
   const rows = await client.execute({
     sql: `
       SELECT ${options.orderColumn}, ${options.jsonColumn}
@@ -257,6 +265,18 @@ async function typedChildrenMismatch(client: Client, record: CurrentRecordT): Pr
           jsonColumn: "segment_json",
           parentId: record.record_id,
           children: record.data.segments ?? [],
+        })
+      ) {
+        return true;
+      }
+      if (
+        await orderedJsonChildrenMismatch(client, {
+          table: "workout_route_points",
+          parentColumn: "workout_session_id",
+          orderColumn: "point_order",
+          jsonColumn: "point_json",
+          parentId: record.record_id,
+          children: record.data.route ?? [],
         })
       ) {
         return true;

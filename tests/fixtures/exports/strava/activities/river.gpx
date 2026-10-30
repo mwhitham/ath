@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<gpx>
+  <trk>
+    <trkseg>
+      <trkpt lat="40.0" lon="-105.0">
+        <time>2026-01-03T16:00:00.000Z</time>
+        <extensions><hr>110</hr></extensions>
+      </trkpt>
+      <trkpt lat="40.001" lon="-105.001">
+        <time>2026-01-03T16:00:02.000Z</time>
+        <extensions><hr>130</hr></extensions>
+      </trkpt>
+    </trkseg>
+  </trk>
+</gpx>

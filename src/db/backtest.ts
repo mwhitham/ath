@@ -19,7 +19,7 @@ export interface BacktestReplay {
 }
 
 export interface V1BacktestReport {
-  athleticstandard_version: "1.0.0";
+  athleticstandard_version: "2.0.0";
   created_at: string;
   models: string[];
   replayable_result_count: number;
@@ -220,7 +220,7 @@ export async function runV1Backtest(
   }
 
   return {
-    athleticstandard_version: "1.0.0",
+    athleticstandard_version: "2.0.0",
     created_at: input.created_at ?? new Date().toISOString(),
     models: [...input.models],
     replayable_result_count: targets.length,

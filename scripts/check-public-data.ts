@@ -14,7 +14,7 @@ const approvedSyntheticFixtures = new Map<string, string>([
   ],
   [
     "examples/demo-athlete/athlete.ath.sqlite",
-    "4cd79efecd8e4dd901fc7a6af43cc287e008cbe175002490a34e2addf07067ed",
+    "442e9a966711660c2a03d701b5de2c55479a78330702083a3a67a182992a7856",
   ],
   [
     "examples/demo-athlete/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png",
@@ -35,6 +35,30 @@ const approvedSyntheticFixtures = new Map<string, string>([
   [
     "tests/fixtures/exports/apple/workout-routes/route_2026-08-09_7.00pm.gpx",
     "8033b604f2bdb46358a7541ad462c9b9d851f315df6f1d1024698800b53e3f52",
+  ],
+  [
+    "tests/fixtures/exports/apple-inline-route/export.xml",
+    "71cede6f4c1d0cfc6ba6679dd13ecec0836bd0adc8987034081464bf225c8694",
+  ],
+  [
+    "tests/fixtures/exports/apple-file-reference/export.xml",
+    "0c70458d07b4e4488150cc21938dbc78aaef4e8750a39358970d429c8209bc4e",
+  ],
+  [
+    "tests/fixtures/exports/apple-file-reference/workout-routes/route_2026-06-14.gpx",
+    "4949d8e93334168e338c047326c5a92b306b91bfba0c9470ed9abbc112ed1783",
+  ],
+  [
+    "tests/fixtures/exports/apple-route-mismatch/export.xml",
+    "b0ac36381caf3d3800e0df5da83329461a09ae5ff906de0e8d97cf9940371566",
+  ],
+  [
+    "tests/fixtures/exports/apple-route-mismatch/workout-routes/route_2026-07-01.gpx",
+    "43a93e08ab27c5c9af042792222645bad71b51dd2d2c626a2865a46ae0e71e51",
+  ],
+  [
+    "tests/fixtures/exports/apple-route-mismatch/workout-routes/route_2026-08-02.gpx",
+    "ac808246bf3e6535f1aef14fe091b514948a0bfaa642b1b9cfa00b13cb1af2a7",
   ],
   [
     "tests/fixtures/exports/oura/oura_daily_readiness.csv",
@@ -59,6 +83,10 @@ const approvedSyntheticFixtures = new Map<string, string>([
   [
     "tests/fixtures/exports/oura-spo2/oura_sleep_spo2_json.csv",
     "949053c0c1503dbabd6773acd2813888c9d9ff360588fca2e253443476632902",
+  ],
+  [
+    "tests/fixtures/exports/oura-offset/sleep.csv",
+    "da6d0e3e3a6a36759c652fa9bda6e8e93f8673e2a3777cc2f96f70f7f17bdd23",
   ],
   [
     "tests/fixtures/exports/oura-portal/dailyreadiness.csv",
@@ -87,6 +115,26 @@ const approvedSyntheticFixtures = new Map<string, string>([
   [
     "tests/fixtures/exports/whoop/sleeps.csv",
     "eb5825dea3f3c26bffb84281f4bac52daa410dd6dcba08cbd9a92442f531229c",
+  ],
+  [
+    "tests/fixtures/exports/garmin/park-loop.json",
+    "1a9a4204bfa965710d21f9bf96649e7817f0b71c56f1aa781a82d861d4a96c66",
+  ],
+  [
+    "tests/fixtures/exports/garmin/namespaced-hr.gpx",
+    "28d5cc560941591c25d7f35ef5324d6f53ced34b5ac8342fbe4a9c935dbd86d2",
+  ],
+  [
+    "tests/fixtures/exports/garmin/synthetic-position.fit",
+    "7f30c8def4390278e9aebe8cf387e5e14b41a8c3d8d50f932b09e742f22c6851",
+  ],
+  [
+    "tests/fixtures/exports/strava/activities.csv",
+    "9e23b604846202e075658f771bbef4fe433c694cf660d177f286b05e2acb44a7",
+  ],
+  [
+    "tests/fixtures/exports/strava/activities/river.gpx",
+    "b9708c7f22afda4fa8b18247a27459722e87a0e731f01c171960058c83cc2fdd",
   ],
   [
     "tests/fixtures/exports/whoop/workouts.csv",

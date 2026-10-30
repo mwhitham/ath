@@ -1,0 +1,16 @@
+{
+  "activityId": "1001",
+  "activityName": "Park Loop",
+  "activityType": "running",
+  "startTimeGMT": "2026-01-02T15:00:00.000Z",
+  "duration": 3,
+  "description": "easy jog",
+  "maxHR": 200,
+  "Feeling": "smooth",
+  "samples": [
+    {"offset_ms": 0, "bpm": 100},
+    {"offset_ms": 1000, "bpm": 130},
+    {"offset_ms": 2000, "bpm": 160},
+    {"offset_ms": 3000, "bpm": 190}
+  ]
+}

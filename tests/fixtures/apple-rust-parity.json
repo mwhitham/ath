@@ -1,0 +1,1693 @@
+{
+  "vendor": "apple",
+  "hard": [
+    {
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "signal": {
+        "type": "resting_heart_rate",
+        "value": 51,
+        "unit": "bpm",
+        "recorded_at": "2026-08-09T06:14:00-07:00"
+      },
+      "receipt": {
+        "input_timestamp": {
+          "timestamp_text": "2026-08-09 06:14:00 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented",
+          "source_time_zone": "America/Los_Angeles",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone"
+        },
+        "input_value": 51,
+        "input_unit": "count/min"
+      },
+      "device": null
+    },
+    {
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "signal": {
+        "type": "walking_heart_rate",
+        "value": 94,
+        "unit": "bpm",
+        "recorded_at": "2026-08-09T12:00:00-07:00"
+      },
+      "receipt": {
+        "input_timestamp": {
+          "timestamp_text": "2026-08-09 12:00:00 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented"
+        },
+        "input_value": 94,
+        "input_unit": "count/min"
+      },
+      "device": null
+    },
+    {
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "signal": {
+        "type": "hr_recovery",
+        "value": 34,
+        "unit": "bpm",
+        "recorded_at": "2026-08-09T18:45:00-07:00"
+      },
+      "receipt": {
+        "input_timestamp": {
+          "timestamp_text": "2026-08-09 18:45:00 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented"
+        },
+        "input_value": 34,
+        "input_unit": "count/min"
+      },
+      "device": null
+    },
+    {
+      "source": "export_file|Withings|withings||apple_health",
+      "signal": {
+        "type": "body_weight",
+        "value": 82.28,
+        "unit": "kg",
+        "recorded_at": "2026-08-09T07:02:00-07:00"
+      },
+      "receipt": {
+        "input_timestamp": {
+          "timestamp_text": "2026-08-09 07:02:00 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented"
+        },
+        "input_value": 181.4,
+        "input_unit": "lb"
+      },
+      "device": null
+    },
+    {
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "signal": {
+        "type": "vo2_max",
+        "value": 52.1,
+        "unit": "ml/kg/min",
+        "recorded_at": "2026-08-09T18:50:00-07:00"
+      },
+      "receipt": {
+        "input_timestamp": {
+          "timestamp_text": "2026-08-09 18:50:00 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented"
+        },
+        "input_value": 52.1,
+        "input_unit": "mL/min·kg"
+      },
+      "device": null
+    },
+    {
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "signal": {
+        "type": "wrist_temperature_sleeping",
+        "value": 33.4,
+        "unit": "°C",
+        "recorded_at": "2026-08-09T03:00:00-07:00"
+      },
+      "receipt": {
+        "input_timestamp": {
+          "timestamp_text": "2026-08-09 03:00:00 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented"
+        },
+        "input_value": 33.4,
+        "input_unit": "degC"
+      },
+      "device": null
+    },
+    {
+      "source": "manual",
+      "signal": {
+        "type": "body_temperature",
+        "value": 36.7,
+        "unit": "°C",
+        "recorded_at": "2026-08-09T08:00:00-07:00"
+      },
+      "receipt": {
+        "input_timestamp": {
+          "timestamp_text": "2026-08-09 08:00:00 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented"
+        },
+        "input_value": 36.7,
+        "input_unit": "degC"
+      },
+      "device": null
+    },
+    {
+      "source": "export_file|WHOOP|whoop||apple_health",
+      "signal": {
+        "type": "resting_heart_rate",
+        "value": 49,
+        "unit": "bpm",
+        "recorded_at": "2026-08-09T06:20:00-07:00"
+      },
+      "receipt": {
+        "input_timestamp": {
+          "timestamp_text": "2026-08-09 06:20:00 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented"
+        },
+        "input_value": 49,
+        "input_unit": "count/min"
+      },
+      "device": null
+    },
+    {
+      "source": "export_file|Withings|withings||apple_health",
+      "signal": {
+        "type": "lean_body_mass",
+        "value": 67.22,
+        "unit": "kg",
+        "recorded_at": "2026-08-09T07:02:00-07:00"
+      },
+      "receipt": {
+        "input_timestamp": {
+          "timestamp_text": "2026-08-09 07:02:00 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented"
+        },
+        "input_value": 148.2,
+        "input_unit": "lb"
+      },
+      "device": null
+    },
+    {
+      "source": "export_file|Withings|withings||apple_health",
+      "signal": {
+        "type": "body_fat_percentage",
+        "value": 18.2,
+        "unit": "%",
+        "recorded_at": "2026-08-09T07:02:00-07:00"
+      },
+      "receipt": {
+        "input_timestamp": {
+          "timestamp_text": "2026-08-09 07:02:00 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented"
+        },
+        "input_value": 0.182,
+        "input_unit": "%"
+      },
+      "device": null
+    },
+    {
+      "source": "manual",
+      "signal": {
+        "type": "height",
+        "value": 179.83,
+        "unit": "cm",
+        "recorded_at": "2026-08-09T07:00:00-07:00"
+      },
+      "receipt": {
+        "input_timestamp": {
+          "timestamp_text": "2026-08-09 07:00:00 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented"
+        },
+        "input_value": 5.9,
+        "input_unit": "ft"
+      },
+      "device": null
+    },
+    {
+      "source": "export_file|Omron|omron||apple_health",
+      "signal": {
+        "type": "blood_pressure_systolic",
+        "value": 118,
+        "unit": "mmHg",
+        "recorded_at": "2026-08-09T07:10:00-07:00"
+      },
+      "receipt": {
+        "input_timestamp": {
+          "timestamp_text": "2026-08-09 07:10:00 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented"
+        },
+        "input_value": 118,
+        "input_unit": "mmHg"
+      },
+      "device": null
+    },
+    {
+      "source": "export_file|Omron|omron||apple_health",
+      "signal": {
+        "type": "blood_pressure_diastolic",
+        "value": 74,
+        "unit": "mmHg",
+        "recorded_at": "2026-08-09T07:10:00-07:00"
+      },
+      "receipt": {
+        "input_timestamp": {
+          "timestamp_text": "2026-08-09 07:10:00 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented"
+        },
+        "input_value": 74,
+        "input_unit": "mmHg"
+      },
+      "device": null
+    },
+    {
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "signal": {
+        "type": "workout_session",
+        "start": "2026-08-09T18:00:00-07:00",
+        "end": "2026-08-09T18:42:30-07:00",
+        "aggregates": {
+          "activity": "functionalstrengthtraining",
+          "distance_m": 1995.59,
+          "energy_kcal": 412,
+          "avg_hr_bpm": 142,
+          "max_hr_bpm": 178
+        },
+        "segments": [
+          {
+            "label": "lap 1",
+            "duration_s": 600
+          },
+          {
+            "label": "lap 2",
+            "duration_s": 570
+          }
+        ]
+      },
+      "receipt": {
+        "input_start_timestamp": {
+          "timestamp_text": "2026-08-09 18:00:00 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-08-09 18:42:30 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented"
+        },
+        "input_summaries": {
+          "distance_m": {
+            "input_value": 1.24,
+            "input_unit": "mi"
+          },
+          "energy_kcal": {
+            "input_value": 412,
+            "input_unit": "kcal"
+          },
+          "avg_hr_bpm": {
+            "input_value": 142,
+            "input_unit": "bpm"
+          },
+          "max_hr_bpm": {
+            "input_value": 178,
+            "input_unit": "bpm"
+          }
+        }
+      },
+      "device": {
+        "source": "export_file|Apple Watch|apple||apple_health",
+        "device": {
+          "name": "Apple Watch",
+          "manufacturer": "Apple Inc.",
+          "model": "Watch",
+          "hardware": "Watch6,2"
+        }
+      }
+    },
+    {
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "signal": {
+        "type": "workout_session",
+        "start": "2026-08-09T19:00:00-07:00",
+        "end": "2026-08-09T19:18:00-07:00",
+        "aggregates": {
+          "activity": "running",
+          "distance_m": 2400,
+          "energy_kcal": 238,
+          "avg_hr_bpm": 156,
+          "max_hr_bpm": 181,
+          "elevation_gain_m": 57
+        },
+        "segments": [
+          {
+            "label": "km 1",
+            "duration_s": 300.3,
+            "distance_m": 1000
+          },
+          {
+            "label": "km 2",
+            "duration_s": 300.6,
+            "distance_m": 1000
+          },
+          {
+            "label": "km 3 (partial)",
+            "duration_s": 164,
+            "distance_m": 390
+          }
+        ]
+      },
+      "receipt": {
+        "input_start_timestamp": {
+          "timestamp_text": "2026-08-09 19:00:00 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-08-09 19:18:00 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented"
+        },
+        "input_summaries": {
+          "distance_m": {
+            "input_value": 2.4,
+            "input_unit": "km"
+          },
+          "energy_kcal": {
+            "input_value": 238,
+            "input_unit": "kcal"
+          },
+          "avg_hr_bpm": {
+            "input_value": 156,
+            "input_unit": "bpm"
+          },
+          "max_hr_bpm": {
+            "input_value": 181,
+            "input_unit": "bpm"
+          }
+        }
+      },
+      "device": null
+    },
+    {
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "signal": {
+        "type": "sleep_session",
+        "start": "2026-08-08T22:15:00-07:00",
+        "end": "2026-08-09T06:05:00-07:00",
+        "aggregates": {
+          "duration_s": 26100,
+          "time_in_bed_s": 28200,
+          "deep_s": 4500,
+          "rem_s": 5400,
+          "light_s": 16200,
+          "awake_s": 900,
+          "interruptions": 1,
+          "efficiency_pct": 92.6
+        }
+      },
+      "receipt": {
+        "input_start_timestamp": {
+          "timestamp_text": "2026-08-08 22:15:00 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-08-09 06:05:00 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented"
+        }
+      },
+      "device": null
+    },
+    {
+      "source": "export_file|Oura|oura||apple_health",
+      "signal": {
+        "type": "sleep_session",
+        "start": "2026-08-08T22:20:00-07:00",
+        "end": "2026-08-09T06:02:00-07:00",
+        "aggregates": {
+          "duration_s": 26400,
+          "time_in_bed_s": 27720,
+          "efficiency_pct": 95.2
+        }
+      },
+      "receipt": {
+        "input_start_timestamp": {
+          "timestamp_text": "2026-08-08 22:20:00 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-08-09 06:02:00 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented"
+        }
+      },
+      "device": null
+    },
+    {
+      "source": "export_file|Apple Watch|apple|ecg|apple_health",
+      "signal": {
+        "type": "hrv_rmssd",
+        "value": 41.4,
+        "unit": "ms",
+        "recorded_at": "2026-08-09T07:20:11-07:00",
+        "derived": {
+          "from": "ecg_beats",
+          "method": "rmssd",
+          "window_s": 28.8,
+          "n_beats": 32,
+          "signal_quality": 6
+        }
+      },
+      "receipt": {
+        "input_timestamp": {
+          "timestamp_text": "2026-08-09T07:20:11-07:00",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-07:00",
+          "utc_offset_meaning": "meaning_not_documented"
+        },
+        "input_value_missing_reason": "not_applicable",
+        "input_unit_missing_reason": "not_applicable"
+      },
+      "device": null
+    },
+    {
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "signal": {
+        "type": "hrv_rmssd",
+        "value": 50.6,
+        "unit": "ms",
+        "recorded_at": "2026-08-09T06:12:00-07:00",
+        "derived": {
+          "from": "hrv_beats",
+          "method": "rmssd",
+          "window_s": 61.1,
+          "n_beats": 65
+        }
+      },
+      "receipt": {
+        "input_timestamp": {
+          "timestamp_text": "2026-08-09 06:12:00 -0700",
+          "timestamp_basis": "source_offset_timestamp",
+          "utc_offset_text": "-0700",
+          "utc_offset_meaning": "meaning_not_documented"
+        },
+        "input_value_missing_reason": "not_applicable",
+        "input_unit_missing_reason": "not_applicable"
+      },
+      "device": null
+    }
+  ],
+  "summaries": [
+    {
+      "source": "export_file|Apple Health|apple||apple_health",
+      "summary": {
+        "summary_type": "active_energy_burned",
+        "value": 612.4,
+        "standard_unit": "kcal",
+        "input_value": 612.4,
+        "input_unit": "kcal",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "apple_activity_summary_day",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ]
+      }
+    },
+    {
+      "source": "export_file|Apple Health|apple||apple_health",
+      "summary": {
+        "summary_type": "active_energy_goal",
+        "value": 700,
+        "standard_unit": "kcal",
+        "input_value": 700,
+        "input_unit": "kcal",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "apple_activity_summary_day",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ]
+      }
+    },
+    {
+      "source": "export_file|Apple Health|apple||apple_health",
+      "summary": {
+        "summary_type": "exercise_time",
+        "value": 48,
+        "standard_unit": "min",
+        "input_value": 48,
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "apple_activity_summary_day",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ]
+      }
+    },
+    {
+      "source": "export_file|Apple Health|apple||apple_health",
+      "summary": {
+        "summary_type": "exercise_time_goal",
+        "value": 30,
+        "standard_unit": "min",
+        "input_value": 30,
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "apple_activity_summary_day",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ]
+      }
+    },
+    {
+      "source": "export_file|Apple Health|apple||apple_health",
+      "summary": {
+        "summary_type": "stand_hours",
+        "value": 13,
+        "standard_unit": "h",
+        "input_value": 13,
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "apple_activity_summary_day",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ]
+      }
+    },
+    {
+      "source": "export_file|Apple Health|apple||apple_health",
+      "summary": {
+        "summary_type": "stand_hours_goal",
+        "value": 12,
+        "standard_unit": "h",
+        "input_value": 12,
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "apple_activity_summary_day",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ]
+      }
+    }
+  ],
+  "series": [
+    {
+      "quantity": "ecg_beats",
+      "day": "2026-08-09",
+      "source": "export_file|Apple Watch|apple|ecg|apple_health",
+      "n": 32,
+      "samples": [
+        {
+          "at": "2026-08-09T07:20:12.409-07:00",
+          "value": 920
+        },
+        {
+          "at": "2026-08-09T07:20:13.290-07:00",
+          "value": 880.9
+        },
+        {
+          "at": "2026-08-09T07:20:14.220-07:00",
+          "value": 929.8
+        },
+        {
+          "at": "2026-08-09T07:20:15.089-07:00",
+          "value": 869.1
+        },
+        {
+          "at": "2026-08-09T07:20:16.009-07:00",
+          "value": 920
+        },
+        {
+          "at": "2026-08-09T07:20:16.900-07:00",
+          "value": 890.7
+        },
+        {
+          "at": "2026-08-09T07:20:17.810-07:00",
+          "value": 910.3
+        },
+        {
+          "at": "2026-08-09T07:20:18.689-07:00",
+          "value": 878.9
+        },
+        {
+          "at": "2026-08-09T07:20:19.609-07:00",
+          "value": 920
+        },
+        {
+          "at": "2026-08-09T07:20:20.490-07:00",
+          "value": 880.9
+        },
+        {
+          "at": "2026-08-09T07:20:21.410-07:00",
+          "value": 920
+        },
+        {
+          "at": "2026-08-09T07:20:22.291-07:00",
+          "value": 880.9
+        },
+        {
+          "at": "2026-08-09T07:20:23.221-07:00",
+          "value": 929.8
+        },
+        {
+          "at": "2026-08-09T07:20:24.090-07:00",
+          "value": 869.1
+        },
+        {
+          "at": "2026-08-09T07:20:25.010-07:00",
+          "value": 920
+        },
+        {
+          "at": "2026-08-09T07:20:25.901-07:00",
+          "value": 890.7
+        },
+        {
+          "at": "2026-08-09T07:20:26.811-07:00",
+          "value": 910.3
+        },
+        {
+          "at": "2026-08-09T07:20:27.690-07:00",
+          "value": 878.9
+        },
+        {
+          "at": "2026-08-09T07:20:28.610-07:00",
+          "value": 920
+        },
+        {
+          "at": "2026-08-09T07:20:29.491-07:00",
+          "value": 880.9
+        },
+        {
+          "at": "2026-08-09T07:20:30.411-07:00",
+          "value": 920
+        },
+        {
+          "at": "2026-08-09T07:20:31.290-07:00",
+          "value": 878.9
+        },
+        {
+          "at": "2026-08-09T07:20:32.220-07:00",
+          "value": 929.8
+        },
+        {
+          "at": "2026-08-09T07:20:33.091-07:00",
+          "value": 871.1
+        },
+        {
+          "at": "2026-08-09T07:20:34.011-07:00",
+          "value": 920
+        },
+        {
+          "at": "2026-08-09T07:20:34.900-07:00",
+          "value": 888.7
+        },
+        {
+          "at": "2026-08-09T07:20:35.810-07:00",
+          "value": 910.3
+        },
+        {
+          "at": "2026-08-09T07:20:36.691-07:00",
+          "value": 880.9
+        },
+        {
+          "at": "2026-08-09T07:20:37.611-07:00",
+          "value": 920
+        },
+        {
+          "at": "2026-08-09T07:20:38.490-07:00",
+          "value": 878.9
+        },
+        {
+          "at": "2026-08-09T07:20:39.410-07:00",
+          "value": 920
+        },
+        {
+          "at": "2026-08-09T07:20:40.291-07:00",
+          "value": 880.9
+        }
+      ]
+    },
+    {
+      "quantity": "hrv_beats",
+      "day": "2026-08-09",
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "n": 69,
+      "samples": [
+        {
+          "at": "2026-08-09T06:12:00.220-07:00",
+          "value": 869.6
+        },
+        {
+          "at": "2026-08-09T06:12:01.020-07:00",
+          "value": 810.8
+        },
+        {
+          "at": "2026-08-09T06:12:01.870-07:00",
+          "value": 845.1
+        },
+        {
+          "at": "2026-08-09T06:12:02.810-07:00",
+          "value": 937.5
+        },
+        {
+          "at": "2026-08-09T06:12:03.920-07:00",
+          "value": 1034.5
+        },
+        {
+          "at": "2026-08-09T06:12:04.970-07:00",
+          "value": 1052.6
+        },
+        {
+          "at": "2026-08-09T06:12:05.900-07:00",
+          "value": 923.1
+        },
+        {
+          "at": "2026-08-09T06:12:06.860-07:00",
+          "value": 952.4
+        },
+        {
+          "at": "2026-08-09T06:12:07.860-07:00",
+          "value": 1000
+        },
+        {
+          "at": "2026-08-09T06:12:08.920-07:00",
+          "value": 1052.6
+        },
+        {
+          "at": "2026-08-09T06:12:09.980-07:00",
+          "value": 1052.6
+        },
+        {
+          "at": "2026-08-09T06:12:10.970-07:00",
+          "value": 983.6
+        },
+        {
+          "at": "2026-08-09T06:12:11.830-07:00",
+          "value": 857.1
+        },
+        {
+          "at": "2026-08-09T06:12:12.710-07:00",
+          "value": 882.4
+        },
+        {
+          "at": "2026-08-09T06:12:13.620-07:00",
+          "value": 909.1
+        },
+        {
+          "at": "2026-08-09T06:12:14.560-07:00",
+          "value": 937.5
+        },
+        {
+          "at": "2026-08-09T06:12:15.530-07:00",
+          "value": 967.7
+        },
+        {
+          "at": "2026-08-09T06:12:16.550-07:00",
+          "value": 1016.9
+        },
+        {
+          "at": "2026-08-09T06:12:17.580-07:00",
+          "value": 1034.5
+        },
+        {
+          "at": "2026-08-09T06:12:18.580-07:00",
+          "value": 1000
+        },
+        {
+          "at": "2026-08-09T06:12:19.530-07:00",
+          "value": 952.4
+        },
+        {
+          "at": "2026-08-09T06:12:20.430-07:00",
+          "value": 895.5
+        },
+        {
+          "at": "2026-08-09T06:12:21.290-07:00",
+          "value": 857.1
+        },
+        {
+          "at": "2026-08-09T06:12:22.120-07:00",
+          "value": 833.3
+        },
+        {
+          "at": "2026-08-09T06:12:22.990-07:00",
+          "value": 869.6
+        },
+        {
+          "at": "2026-08-09T06:12:23.910-07:00",
+          "value": 923.1
+        },
+        {
+          "at": "2026-08-09T06:12:24.890-07:00",
+          "value": 983.6
+        },
+        {
+          "at": "2026-08-09T06:12:25.920-07:00",
+          "value": 1034.5
+        },
+        {
+          "at": "2026-08-09T06:12:26.990-07:00",
+          "value": 1071.4
+        },
+        {
+          "at": "2026-08-09T06:12:28.010-07:00",
+          "value": 1016.9
+        },
+        {
+          "at": "2026-08-09T06:12:28.980-07:00",
+          "value": 967.7
+        },
+        {
+          "at": "2026-08-09T06:12:29.890-07:00",
+          "value": 909.1
+        },
+        {
+          "at": "2026-08-09T06:12:30.770-07:00",
+          "value": 882.4
+        },
+        {
+          "at": "2026-08-09T06:12:31.680-07:00",
+          "value": 909.1
+        },
+        {
+          "at": "2026-08-09T06:12:32.630-07:00",
+          "value": 952.4
+        },
+        {
+          "at": "2026-08-09T06:12:33.630-07:00",
+          "value": 1000
+        },
+        {
+          "at": "2026-08-09T06:12:34.680-07:00",
+          "value": 1052.6
+        },
+        {
+          "at": "2026-08-09T06:12:35.730-07:00",
+          "value": 1052.6
+        },
+        {
+          "at": "2026-08-09T06:12:36.730-07:00",
+          "value": 1000
+        },
+        {
+          "at": "2026-08-09T06:12:37.670-07:00",
+          "value": 937.5
+        },
+        {
+          "at": "2026-08-09T06:12:38.550-07:00",
+          "value": 882.4
+        },
+        {
+          "at": "2026-08-09T06:12:39.400-07:00",
+          "value": 845.1
+        },
+        {
+          "at": "2026-08-09T06:12:40.270-07:00",
+          "value": 869.6
+        },
+        {
+          "at": "2026-08-09T06:12:41.180-07:00",
+          "value": 909.1
+        },
+        {
+          "at": "2026-08-09T06:12:42.150-07:00",
+          "value": 967.7
+        },
+        {
+          "at": "2026-08-09T06:12:43.170-07:00",
+          "value": 1016.9
+        },
+        {
+          "at": "2026-08-09T06:12:44.220-07:00",
+          "value": 1052.6
+        },
+        {
+          "at": "2026-08-09T06:12:45.250-07:00",
+          "value": 1034.5
+        },
+        {
+          "at": "2026-08-09T06:12:46.240-07:00",
+          "value": 983.6
+        },
+        {
+          "at": "2026-08-09T06:12:47.160-07:00",
+          "value": 923.1
+        },
+        {
+          "at": "2026-08-09T06:12:48.030-07:00",
+          "value": 869.6
+        },
+        {
+          "at": "2026-08-09T06:12:48.890-07:00",
+          "value": 857.1
+        },
+        {
+          "at": "2026-08-09T06:12:49.780-07:00",
+          "value": 895.5
+        },
+        {
+          "at": "2026-08-09T06:12:50.720-07:00",
+          "value": 937.5
+        },
+        {
+          "at": "2026-08-09T06:12:51.700-07:00",
+          "value": 983.6
+        },
+        {
+          "at": "2026-08-09T06:12:52.730-07:00",
+          "value": 1034.5
+        },
+        {
+          "at": "2026-08-09T06:12:53.780-07:00",
+          "value": 1052.6
+        },
+        {
+          "at": "2026-08-09T06:12:54.800-07:00",
+          "value": 1016.9
+        },
+        {
+          "at": "2026-08-09T06:12:55.750-07:00",
+          "value": 952.4
+        },
+        {
+          "at": "2026-08-09T06:12:56.640-07:00",
+          "value": 895.5
+        },
+        {
+          "at": "2026-08-09T06:12:57.500-07:00",
+          "value": 857.1
+        },
+        {
+          "at": "2026-08-09T06:12:58.380-07:00",
+          "value": 882.4
+        },
+        {
+          "at": "2026-08-09T06:12:59.300-07:00",
+          "value": 923.1
+        },
+        {
+          "at": "2026-08-09T06:13:00.270-07:00",
+          "value": 967.7
+        },
+        {
+          "at": "2026-08-09T06:13:01.270-07:00",
+          "value": 1000
+        },
+        {
+          "at": "2026-08-09T22:30:00.100-07:00",
+          "value": 937.5
+        },
+        {
+          "at": "2026-08-09T22:30:01.040-07:00",
+          "value": 909.1
+        },
+        {
+          "at": "2026-08-09T22:30:01.950-07:00",
+          "value": 952.4
+        },
+        {
+          "at": "2026-08-09T22:30:02.900-07:00",
+          "value": 983.6
+        }
+      ]
+    },
+    {
+      "quantity": "hrv_sdnn",
+      "day": "2026-08-09",
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "n": 2,
+      "samples": [
+        {
+          "at": "2026-08-09T06:12:00-07:00",
+          "value": 52.3,
+          "durationMs": 61000,
+          "inputTimestampText": "2026-08-09 06:12:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 52.3,
+          "inputUnit": "ms"
+        },
+        {
+          "at": "2026-08-09T22:30:00-07:00",
+          "value": 41.8,
+          "durationMs": 6000,
+          "inputTimestampText": "2026-08-09 22:30:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 41.8,
+          "inputUnit": "ms"
+        }
+      ]
+    },
+    {
+      "quantity": "respiratory_rate",
+      "day": "2026-08-09",
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "n": 1,
+      "samples": [
+        {
+          "at": "2026-08-09T06:10:00-07:00",
+          "value": 14.5,
+          "inputTimestampText": "2026-08-09 06:10:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 14.5,
+          "inputUnit": "count/min"
+        }
+      ]
+    },
+    {
+      "quantity": "oxygen_saturation",
+      "day": "2026-08-09",
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "n": 1,
+      "samples": [
+        {
+          "at": "2026-08-09T04:00:00-07:00",
+          "value": 97,
+          "inputTimestampText": "2026-08-09 04:00:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 0.97,
+          "inputUnit": "%"
+        }
+      ]
+    },
+    {
+      "quantity": "active_energy",
+      "day": "2026-08-09",
+      "source": "export_file|Oura|oura||apple_health",
+      "n": 2,
+      "samples": [
+        {
+          "at": "2026-08-09T18:30:00-07:00",
+          "value": 9.8,
+          "durationMs": 60000,
+          "inputTimestampText": "2026-08-09 18:30:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 9.8,
+          "inputUnit": "kcal"
+        },
+        {
+          "at": "2026-08-09T18:31:00-07:00",
+          "value": 10.1,
+          "durationMs": 60000,
+          "inputTimestampText": "2026-08-09 18:31:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 10.1,
+          "inputUnit": "kcal"
+        }
+      ]
+    },
+    {
+      "quantity": "heart_rate",
+      "day": "2026-08-09",
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "n": 4,
+      "samples": [
+        {
+          "at": "2026-08-09T08:00:00-07:00",
+          "value": 62,
+          "inputTimestampText": "2026-08-09 08:00:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 62,
+          "inputUnit": "count/min",
+          "inputSourceTimeZone": "America/Los_Angeles",
+          "inputSourceTimeZoneMeaning": "apple_health_object_creation_time_zone"
+        },
+        {
+          "at": "2026-08-09T08:05:00-07:00",
+          "value": 64,
+          "inputTimestampText": "2026-08-09 08:05:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 64,
+          "inputUnit": "count/min"
+        },
+        {
+          "at": "2026-08-09T08:10:00-07:00",
+          "value": 71,
+          "inputTimestampText": "2026-08-09 08:10:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 71,
+          "inputUnit": "count/min"
+        },
+        {
+          "at": "2026-08-09T18:30:00-07:00",
+          "value": 158,
+          "inputTimestampText": "2026-08-09 18:30:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 158,
+          "inputUnit": "count/min"
+        }
+      ]
+    },
+    {
+      "quantity": "steps",
+      "day": "2026-08-09",
+      "source": "export_file|iPhone|apple||apple_health",
+      "n": 2,
+      "samples": [
+        {
+          "at": "2026-08-09T09:00:00-07:00",
+          "value": 420,
+          "durationMs": 300000,
+          "inputTimestampText": "2026-08-09 09:00:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 420,
+          "inputUnit": "count"
+        },
+        {
+          "at": "2026-08-09T09:05:00-07:00",
+          "value": 380,
+          "durationMs": 300000,
+          "inputTimestampText": "2026-08-09 09:05:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 380,
+          "inputUnit": "count"
+        }
+      ]
+    },
+    {
+      "quantity": "active_energy",
+      "day": "2026-08-09",
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "n": 1,
+      "samples": [
+        {
+          "at": "2026-08-09T18:30:00-07:00",
+          "value": 12.4,
+          "durationMs": 60000,
+          "inputTimestampText": "2026-08-09 18:30:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 12.4,
+          "inputUnit": "kcal"
+        }
+      ]
+    },
+    {
+      "quantity": "distance_walking_running",
+      "day": "2026-08-09",
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "n": 1,
+      "samples": [
+        {
+          "at": "2026-08-09T18:30:00-07:00",
+          "value": 1995.587,
+          "durationMs": 600000,
+          "inputTimestampText": "2026-08-09 18:30:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 1.24,
+          "inputUnit": "mi"
+        }
+      ]
+    },
+    {
+      "quantity": "distance_cycling",
+      "day": "2026-08-09",
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "n": 1,
+      "samples": [
+        {
+          "at": "2026-08-09T17:00:00-07:00",
+          "value": 14200,
+          "durationMs": 1800000,
+          "inputTimestampText": "2026-08-09 17:00:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 14.2,
+          "inputUnit": "km"
+        }
+      ]
+    },
+    {
+      "quantity": "distance_swimming",
+      "day": "2026-08-09",
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "n": 1,
+      "samples": [
+        {
+          "at": "2026-08-09T16:00:00-07:00",
+          "value": 1097.28,
+          "durationMs": 1200000,
+          "inputTimestampText": "2026-08-09 16:00:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 1200,
+          "inputUnit": "yd"
+        }
+      ]
+    },
+    {
+      "quantity": "running_speed",
+      "day": "2026-08-09",
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "n": 2,
+      "samples": [
+        {
+          "at": "2026-08-09T18:31:00-07:00",
+          "value": 3.42,
+          "inputTimestampText": "2026-08-09 18:31:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 3.42,
+          "inputUnit": "m/s"
+        },
+        {
+          "at": "2026-08-09T18:32:00-07:00",
+          "value": 3.5,
+          "inputTimestampText": "2026-08-09 18:32:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 12.6,
+          "inputUnit": "km/hr"
+        }
+      ]
+    },
+    {
+      "quantity": "running_power",
+      "day": "2026-08-09",
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "n": 1,
+      "samples": [
+        {
+          "at": "2026-08-09T18:31:00-07:00",
+          "value": 284,
+          "inputTimestampText": "2026-08-09 18:31:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 284,
+          "inputUnit": "W"
+        }
+      ]
+    },
+    {
+      "quantity": "running_stride_length",
+      "day": "2026-08-09",
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "n": 1,
+      "samples": [
+        {
+          "at": "2026-08-09T18:31:00-07:00",
+          "value": 1.18,
+          "inputTimestampText": "2026-08-09 18:31:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 1.18,
+          "inputUnit": "m"
+        }
+      ]
+    },
+    {
+      "quantity": "running_vertical_oscillation",
+      "day": "2026-08-09",
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "n": 1,
+      "samples": [
+        {
+          "at": "2026-08-09T18:31:00-07:00",
+          "value": 8.4,
+          "inputTimestampText": "2026-08-09 18:31:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 8.4,
+          "inputUnit": "cm"
+        }
+      ]
+    },
+    {
+      "quantity": "running_ground_contact_time",
+      "day": "2026-08-09",
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "n": 1,
+      "samples": [
+        {
+          "at": "2026-08-09T18:31:00-07:00",
+          "value": 243,
+          "inputTimestampText": "2026-08-09 18:31:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 243,
+          "inputUnit": "ms"
+        }
+      ]
+    },
+    {
+      "quantity": "physical_effort",
+      "day": "2026-08-09",
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "n": 1,
+      "samples": [
+        {
+          "at": "2026-08-09T18:31:00-07:00",
+          "value": 9.4,
+          "inputTimestampText": "2026-08-09 18:31:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 9.4,
+          "inputUnit": "kcal/hr·kg"
+        }
+      ]
+    },
+    {
+      "quantity": "basal_energy",
+      "day": "2026-08-09",
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "n": 1,
+      "samples": [
+        {
+          "at": "2026-08-09T08:00:00-07:00",
+          "value": 72.4,
+          "durationMs": 3600000,
+          "inputTimestampText": "2026-08-09 08:00:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 72.4,
+          "inputUnit": "Cal"
+        }
+      ]
+    },
+    {
+      "quantity": "exercise_time",
+      "day": "2026-08-09",
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "n": 1,
+      "samples": [
+        {
+          "at": "2026-08-09T18:30:00-07:00",
+          "value": 1,
+          "durationMs": 60000,
+          "inputTimestampText": "2026-08-09 18:30:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 1,
+          "inputUnit": "min"
+        }
+      ]
+    },
+    {
+      "quantity": "flights_climbed",
+      "day": "2026-08-09",
+      "source": "export_file|iPhone|apple||apple_health",
+      "n": 1,
+      "samples": [
+        {
+          "at": "2026-08-09T12:00:00-07:00",
+          "value": 4,
+          "durationMs": 300000,
+          "inputTimestampText": "2026-08-09 12:00:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 4,
+          "inputUnit": "count"
+        }
+      ]
+    },
+    {
+      "quantity": "walking_speed",
+      "day": "2026-08-09",
+      "source": "export_file|iPhone|apple||apple_health",
+      "n": 1,
+      "samples": [
+        {
+          "at": "2026-08-09T12:00:00-07:00",
+          "value": 1.42,
+          "durationMs": 300000,
+          "inputTimestampText": "2026-08-09 12:00:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 1.42,
+          "inputUnit": "m/s"
+        }
+      ]
+    },
+    {
+      "quantity": "walking_step_length",
+      "day": "2026-08-09",
+      "source": "export_file|iPhone|apple||apple_health",
+      "n": 1,
+      "samples": [
+        {
+          "at": "2026-08-09T12:00:00-07:00",
+          "value": 0.78,
+          "durationMs": 300000,
+          "inputTimestampText": "2026-08-09 12:00:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 78,
+          "inputUnit": "cm"
+        }
+      ]
+    },
+    {
+      "quantity": "walking_asymmetry_percentage",
+      "day": "2026-08-09",
+      "source": "export_file|iPhone|apple||apple_health",
+      "n": 1,
+      "samples": [
+        {
+          "at": "2026-08-09T12:00:00-07:00",
+          "value": 1.4,
+          "durationMs": 300000,
+          "inputTimestampText": "2026-08-09 12:00:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 0.014,
+          "inputUnit": "%"
+        }
+      ]
+    },
+    {
+      "quantity": "time_in_daylight",
+      "day": "2026-08-09",
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "n": 1,
+      "samples": [
+        {
+          "at": "2026-08-09T12:00:00-07:00",
+          "value": 46,
+          "durationMs": 3600000,
+          "inputTimestampText": "2026-08-09 12:00:00 -0700",
+          "inputUtcOffsetText": "-0700",
+          "inputUtcOffsetMeaning": "meaning_not_documented",
+          "inputTimestampBasis": "source_offset_timestamp",
+          "inputValue": 46,
+          "inputUnit": "min"
+        }
+      ]
+    }
+  ],
+  "skipped": [
+    [
+      "unmapped HealthKit type: HeadphoneAudioExposure",
+      1
+    ],
+    [
+      "unmapped HealthKit type: DietaryCaffeine",
+      1
+    ],
+    [
+      "unmapped HealthKit type: AtrialFibrillationBurden",
+      1
+    ],
+    [
+      "series samples in a unit we do not recognize",
+      1
+    ],
+    [
+      "clinical records (out of scope)",
+      1
+    ],
+    [
+      "ECG recordings not in sinus rhythm, where variability does not describe recovery",
+      1
+    ],
+    [
+      "HRV beat windows too short or sparse for RMSSD",
+      1
+    ]
+  ],
+  "skip_examples": [
+    [
+      "series samples in a unit we do not recognize",
+      "RunningPower in \"horsepower\""
+    ],
+    [
+      "ECG recordings not in sinus rhythm, where variability does not describe recovery",
+      "ecg_2026-08-07.csv: classified \"Atrial Fibrillation\", where beat-to-beat variation does not describe recovery"
+    ]
+  ],
+  "devices": [
+    {
+      "source": "export_file|Apple Watch|apple||apple_health",
+      "device": {
+        "name": "Apple Watch",
+        "manufacturer": "Apple Inc.",
+        "model": "Watch",
+        "hardware": "Watch6,2"
+      },
+      "from": "2026-08-09",
+      "to": "2026-08-09"
+    }
+  ],
+  "sources": [
+    {
+      "label": "export_file|Apple Watch|apple||apple_health",
+      "kind": "export_file",
+      "writer": "Apple Watch",
+      "vendor": "apple",
+      "sensor": null,
+      "via": "apple_health"
+    },
+    {
+      "label": "export_file|Withings|withings||apple_health",
+      "kind": "export_file",
+      "writer": "Withings",
+      "vendor": "withings",
+      "sensor": null,
+      "via": "apple_health"
+    },
+    {
+      "label": "manual",
+      "kind": "manual",
+      "writer": null,
+      "vendor": null,
+      "sensor": null,
+      "via": null
+    },
+    {
+      "label": "export_file|Oura|oura||apple_health",
+      "kind": "export_file",
+      "writer": "Oura",
+      "vendor": "oura",
+      "sensor": null,
+      "via": "apple_health"
+    },
+    {
+      "label": "export_file|WHOOP|whoop||apple_health",
+      "kind": "export_file",
+      "writer": "WHOOP",
+      "vendor": "whoop",
+      "sensor": null,
+      "via": "apple_health"
+    },
+    {
+      "label": "export_file|iPhone|apple||apple_health",
+      "kind": "export_file",
+      "writer": "iPhone",
+      "vendor": "apple",
+      "sensor": null,
+      "via": "apple_health"
+    },
+    {
+      "label": "export_file|Omron|omron||apple_health",
+      "kind": "export_file",
+      "writer": "Omron",
+      "vendor": "omron",
+      "sensor": null,
+      "via": "apple_health"
+    },
+    {
+      "label": "export_file|Apple Health|apple||apple_health",
+      "kind": "export_file",
+      "writer": "Apple Health",
+      "vendor": "apple",
+      "sensor": null,
+      "via": "apple_health"
+    },
+    {
+      "label": "export_file|Apple Watch|apple|ecg|apple_health",
+      "kind": "export_file",
+      "writer": "Apple Watch",
+      "vendor": "apple",
+      "sensor": "ecg",
+      "via": "apple_health"
+    }
+  ]
+}

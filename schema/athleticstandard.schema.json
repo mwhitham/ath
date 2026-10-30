@@ -1,12 +1,15 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://athleticstandard.ai/schema/1.0.0/athleticstandard.schema.json",
+  "$id": "https://athleticstandard.ai/schema/2.0.0/athleticstandard.schema.json",
   "title": "Athletic Standard portable package document",
   "type": "object",
   "properties": {
     "athleticstandard_version": {
       "type": "string",
-      "const": "1.0.0"
+      "enum": [
+        "1.0.0",
+        "2.0.0"
+      ]
     },
     "database_id": {
       "type": "string",
@@ -168,6 +171,16 @@
                   "detail": {
                     "type": "string",
                     "minLength": 1
+                  },
+                  "supplied_fields": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "additionalProperties": {
+                      "$ref": "#/$defs/__schema1"
+                    }
                   }
                 },
                 "required": [
@@ -529,6 +542,16 @@
                       "import_time",
                       "local_write_time"
                     ]
+                  },
+                  "supplied_fields": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "additionalProperties": {
+                      "$ref": "#/$defs/__schema1"
+                    }
                   },
                   "quantity": {
                     "type": "string",
@@ -992,6 +1015,16 @@
                       "local_write_time"
                     ]
                   },
+                  "supplied_fields": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "additionalProperties": {
+                      "$ref": "#/$defs/__schema1"
+                    }
+                  },
                   "start_at": {
                     "type": "string",
                     "format": "date-time",
@@ -1166,6 +1199,30 @@
                         "summary_type"
                       ],
                       "additionalProperties": false
+                    }
+                  },
+                  "asleep_seconds": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "in_bed_seconds": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "interruptions": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "stage_minutes": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "additionalProperties": {
+                      "type": "number",
+                      "minimum": 0
                     }
                   }
                 },
@@ -1437,6 +1494,16 @@
                       "local_write_time"
                     ]
                   },
+                  "supplied_fields": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "additionalProperties": {
+                      "$ref": "#/$defs/__schema1"
+                    }
+                  },
                   "start_at": {
                     "type": "string",
                     "format": "date-time",
@@ -1568,6 +1635,172 @@
                   "activity_type": {
                     "type": "string",
                     "minLength": 1
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "text_result": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "maximum_heart_rate_bpm": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "resting_heart_rate_bpm": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "heart_rate_samples": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "offset_ms": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "bpm": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        }
+                      },
+                      "required": [
+                        "offset_ms",
+                        "bpm"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "sets": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "reps": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "weight": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "weight_unit": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "required": [
+                        "reps",
+                        "weight",
+                        "weight_unit"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "route": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "recorded_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+                          "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+                        },
+                        "latitude_deg": {
+                          "type": "number",
+                          "minimum": -90,
+                          "maximum": 90
+                        },
+                        "longitude_deg": {
+                          "type": "number",
+                          "minimum": -180,
+                          "maximum": 180
+                        },
+                        "input_timestamp": {
+                          "type": "object",
+                          "properties": {
+                            "timestamp_text": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "utc_offset_text": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "utc_offset_meaning": {
+                              "type": "string",
+                              "enum": [
+                                "documented_recording_offset",
+                                "provider_cycle_offset",
+                                "route_rendering_offset",
+                                "meaning_not_documented"
+                              ]
+                            },
+                            "source_time_zone": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "source_time_zone_meaning": {
+                              "type": "string",
+                              "enum": [
+                                "apple_health_object_creation_time_zone"
+                              ]
+                            },
+                            "timestamp_basis": {
+                              "type": "string",
+                              "enum": [
+                                "source_instant",
+                                "source_offset_timestamp",
+                                "source_local_timestamp_with_documented_offset",
+                                "reconstructed_from_series_start"
+                              ]
+                            },
+                            "timestamp_missing_reason": {
+                              "type": "string",
+                              "enum": [
+                                "not_provided_by_source",
+                                "not_exposed_by_route",
+                                "not_applicable"
+                              ]
+                            },
+                            "utc_offset_missing_reason": {
+                              "type": "string",
+                              "enum": [
+                                "not_provided_by_source",
+                                "not_exposed_by_route",
+                                "not_applicable"
+                              ]
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "supplied_fields": {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "additionalProperties": {
+                            "$ref": "#/$defs/__schema1"
+                          }
+                        }
+                      },
+                      "required": [
+                        "recorded_at",
+                        "latitude_deg",
+                        "longitude_deg"
+                      ],
+                      "additionalProperties": false
+                    }
                   },
                   "source_reported_summaries": {
                     "type": "array",
@@ -1960,6 +2193,16 @@
                       "import_time",
                       "local_write_time"
                     ]
+                  },
+                  "supplied_fields": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "additionalProperties": {
+                      "$ref": "#/$defs/__schema1"
+                    }
                   },
                   "benchmark_definition_id": {
                     "type": "string",
@@ -2368,6 +2611,16 @@
                       "local_write_time"
                     ]
                   },
+                  "supplied_fields": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "additionalProperties": {
+                      "$ref": "#/$defs/__schema1"
+                    }
+                  },
                   "summary_type": {
                     "type": "string",
                     "minLength": 1
@@ -2743,6 +2996,16 @@
                       "local_write_time"
                     ]
                   },
+                  "supplied_fields": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "additionalProperties": {
+                      "$ref": "#/$defs/__schema1"
+                    }
+                  },
                   "metric": {
                     "type": "string",
                     "minLength": 1
@@ -3013,6 +3276,10 @@
                   "note": {
                     "type": "string",
                     "minLength": 1
+                  },
+                  "duration_seconds": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
                   },
                   "attachment_ids": {
                     "type": "array",
@@ -6222,6 +6489,16 @@
                   "detail": {
                     "type": "string",
                     "minLength": 1
+                  },
+                  "supplied_fields": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "additionalProperties": {
+                      "$ref": "#/$defs/__schema1"
+                    }
                   }
                 },
                 "required": [
@@ -6747,6 +7024,16 @@
                       "import_time",
                       "local_write_time"
                     ]
+                  },
+                  "supplied_fields": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "additionalProperties": {
+                      "$ref": "#/$defs/__schema1"
+                    }
                   },
                   "quantity": {
                     "type": "string",
@@ -7292,6 +7579,16 @@
                       "local_write_time"
                     ]
                   },
+                  "supplied_fields": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "additionalProperties": {
+                      "$ref": "#/$defs/__schema1"
+                    }
+                  },
                   "start_at": {
                     "type": "string",
                     "format": "date-time",
@@ -7466,6 +7763,30 @@
                         "summary_type"
                       ],
                       "additionalProperties": false
+                    }
+                  },
+                  "asleep_seconds": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "in_bed_seconds": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "interruptions": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  "stage_minutes": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "additionalProperties": {
+                      "type": "number",
+                      "minimum": 0
                     }
                   }
                 },
@@ -7819,6 +8140,16 @@
                       "local_write_time"
                     ]
                   },
+                  "supplied_fields": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "additionalProperties": {
+                      "$ref": "#/$defs/__schema1"
+                    }
+                  },
                   "start_at": {
                     "type": "string",
                     "format": "date-time",
@@ -7950,6 +8281,172 @@
                   "activity_type": {
                     "type": "string",
                     "minLength": 1
+                  },
+                  "name": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "text_result": {
+                    "type": "string",
+                    "minLength": 1
+                  },
+                  "maximum_heart_rate_bpm": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "resting_heart_rate_bpm": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
+                  },
+                  "heart_rate_samples": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "offset_ms": {
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9007199254740991
+                        },
+                        "bpm": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        }
+                      },
+                      "required": [
+                        "offset_ms",
+                        "bpm"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "sets": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "reps": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "weight": {
+                          "type": "number",
+                          "exclusiveMinimum": 0
+                        },
+                        "weight_unit": {
+                          "type": "string",
+                          "minLength": 1
+                        }
+                      },
+                      "required": [
+                        "reps",
+                        "weight",
+                        "weight_unit"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "route": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "recorded_at": {
+                          "type": "string",
+                          "format": "date-time",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+                          "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+                        },
+                        "latitude_deg": {
+                          "type": "number",
+                          "minimum": -90,
+                          "maximum": 90
+                        },
+                        "longitude_deg": {
+                          "type": "number",
+                          "minimum": -180,
+                          "maximum": 180
+                        },
+                        "input_timestamp": {
+                          "type": "object",
+                          "properties": {
+                            "timestamp_text": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "utc_offset_text": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "utc_offset_meaning": {
+                              "type": "string",
+                              "enum": [
+                                "documented_recording_offset",
+                                "provider_cycle_offset",
+                                "route_rendering_offset",
+                                "meaning_not_documented"
+                              ]
+                            },
+                            "source_time_zone": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "source_time_zone_meaning": {
+                              "type": "string",
+                              "enum": [
+                                "apple_health_object_creation_time_zone"
+                              ]
+                            },
+                            "timestamp_basis": {
+                              "type": "string",
+                              "enum": [
+                                "source_instant",
+                                "source_offset_timestamp",
+                                "source_local_timestamp_with_documented_offset",
+                                "reconstructed_from_series_start"
+                              ]
+                            },
+                            "timestamp_missing_reason": {
+                              "type": "string",
+                              "enum": [
+                                "not_provided_by_source",
+                                "not_exposed_by_route",
+                                "not_applicable"
+                              ]
+                            },
+                            "utc_offset_missing_reason": {
+                              "type": "string",
+                              "enum": [
+                                "not_provided_by_source",
+                                "not_exposed_by_route",
+                                "not_applicable"
+                              ]
+                            }
+                          },
+                          "additionalProperties": false
+                        },
+                        "supplied_fields": {
+                          "type": "object",
+                          "propertyNames": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "additionalProperties": {
+                            "$ref": "#/$defs/__schema1"
+                          }
+                        }
+                      },
+                      "required": [
+                        "recorded_at",
+                        "latitude_deg",
+                        "longitude_deg"
+                      ],
+                      "additionalProperties": false
+                    }
                   },
                   "source_reported_summaries": {
                     "type": "array",
@@ -8424,6 +8921,16 @@
                       "import_time",
                       "local_write_time"
                     ]
+                  },
+                  "supplied_fields": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "additionalProperties": {
+                      "$ref": "#/$defs/__schema1"
+                    }
                   },
                   "benchmark_definition_id": {
                     "type": "string",
@@ -8914,6 +9421,16 @@
                       "local_write_time"
                     ]
                   },
+                  "supplied_fields": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "additionalProperties": {
+                      "$ref": "#/$defs/__schema1"
+                    }
+                  },
                   "summary_type": {
                     "type": "string",
                     "minLength": 1
@@ -9371,6 +9888,16 @@
                       "local_write_time"
                     ]
                   },
+                  "supplied_fields": {
+                    "type": "object",
+                    "propertyNames": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "additionalProperties": {
+                      "$ref": "#/$defs/__schema1"
+                    }
+                  },
                   "metric": {
                     "type": "string",
                     "minLength": 1
@@ -9723,6 +10250,10 @@
                   "note": {
                     "type": "string",
                     "minLength": 1
+                  },
+                  "duration_seconds": {
+                    "type": "number",
+                    "exclusiveMinimum": 0
                   },
                   "attachment_ids": {
                     "type": "array",
@@ -14006,6 +14537,37 @@
           },
           "additionalProperties": {
             "$ref": "#/$defs/__schema0"
+          }
+        }
+      ]
+    },
+    "__schema1": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "number"
+        },
+        {
+          "type": "boolean"
+        },
+        {
+          "type": "null"
+        },
+        {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/__schema1"
+          }
+        },
+        {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "$ref": "#/$defs/__schema1"
           }
         }
       ]

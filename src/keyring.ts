@@ -120,6 +120,30 @@ export async function promptSecret(question: string): Promise<string> {
   return value;
 }
 
+export async function setAccountSecret(account: string, prompt: string, secret?: string): Promise<void> {
+  const value = (secret ?? (await promptSecret(prompt))).trim();
+  if (value === "") {
+    throw new KeyRefusal("no key was entered, so nothing was saved.");
+  }
+  try {
+    await secretStore().set(KEYRING_SERVICE, account, value);
+  } catch (error) {
+    if (error instanceof KeyRefusal) throw error;
+    throw new KeyRefusal(
+      `could not save the key in the password store: ${(error as Error).message}. ` +
+        "We will not write it to a file.",
+    );
+  }
+}
+
+export async function accountSecret(account: string): Promise<string | undefined> {
+  if (account === "garmin") {
+    const fromEnv = process.env.GARMIN_PERSONAL_API_KEY?.trim();
+    if (fromEnv) return fromEnv;
+  }
+  return secretStore().get(KEYRING_SERVICE, account);
+}
+
 export async function setKey(gateway: GatewayName, secret?: string): Promise<void> {
   const value = (secret ?? (await promptSecret(`Paste your ${gateway} key: `))).trim();
   if (value === "") {

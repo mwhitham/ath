@@ -9,7 +9,7 @@ const read = (file: string) => readFileSync(join(root, file), "utf8");
 
 describe("v1 docs match the implemented format", () => {
   const count = RecordType.options.length;
-  const files = ["SPEC.md", "README.md", "skill/references/format.md"] as const;
+  const files = ["SPEC.md", "README.md", "skills/athletic-standard/references/format.md"] as const;
 
   it("states the same record-type count as the schema", () => {
     expect(count).toBe(24);

@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<gpx>
+<trk><name>Park loop</name><trkseg>
+<trkpt lat="40.0" lon="-105.0"><time>2026-08-09T15:00:00Z</time><extensions><ns3:TrackPointExtension><ns3:hr>100</ns3:hr></ns3:TrackPointExtension></extensions></trkpt>
+<trkpt lat="40.001" lon="-105.001"><extensions><ns3:TrackPointExtension><ns3:hr>130</ns3:hr></ns3:TrackPointExtension></extensions></trkpt>
+<trkpt lat="40.002" lon="-105.002"><time>2026-08-09T15:00:10Z</time><extensions><gpxtpx:hr>160</gpxtpx:hr></extensions></trkpt>
+</trkseg></trk>
+</gpx>
