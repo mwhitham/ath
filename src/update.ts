@@ -1,11 +1,11 @@
 /**
- * `ath --update` reinstalls a global ath, then replaces a skill already in the
- * folder you ran it from (D81).
+ * `ath --update` reinstalls a global ath, then adds skill files that are not
+ * already in the folder you ran it from.
  *
  * The program and the skill are different things. The program is installed once,
  * with npm, pnpm, or bun. The skill is written only into the folder where you
  * run `ath init`. This command updates the program with the same tool that
- * installed it, and replaces the skill only when one is already there.
+ * installed it. An installed skill file is left alone. A new skill file is added.
  */
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, readlinkSync, realpathSync } from "node:fs";
@@ -236,8 +236,8 @@ function defaultSkillPresent(cwd: string): boolean {
 }
 
 /**
- * Reinstall this ath when it is a global install, then replace a skill that is
- * already in `cwd`. Returns a process exit code.
+ * Reinstall this ath when it is a global install, then add missing skill files
+ * in `cwd`. Returns a process exit code.
  */
 export async function runUpdate(input: UpdateInput): Promise<number> {
   const log = input.log ?? ((line) => console.log(line));
@@ -286,5 +286,6 @@ export async function runUpdate(input: UpdateInput): Promise<number> {
   const written = (input.installSkill ?? installSkill)(input.cwd);
   const line = skillUpdateLine(input.cwd, written);
   if (line) log(line);
+  else log("left installed skill files unchanged");
   return 0;
 }

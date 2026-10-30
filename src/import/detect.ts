@@ -182,6 +182,35 @@ export async function listEntries(detected: DetectedExport): Promise<string[]> {
   // Both the directory case and the bare-file case walk a real folder: `auxRoot`.
   if (!existsSync(detected.auxRoot)) return [];
   const out: string[] = [];
+  // A bare export.xml sits in a folder that may hold unrelated files. Read only
+  // the two sibling folders Apple writes next to that file.
+  if (detected.container === "file") {
+    for (const folder of ["workout-routes", "electrocardiograms"]) {
+      const dir = join(detected.auxRoot, folder);
+      if (!existsSync(dir)) continue;
+      let stat;
+      try {
+        stat = lstatSync(dir);
+      } catch {
+        continue;
+      }
+      if (stat.isSymbolicLink() || !stat.isDirectory()) continue;
+      for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        const rel = `${folder}/${entry.name}`;
+        if (entry.isSymbolicLink()) {
+          throw new UnknownExportError(`refusing symbolic link in provider export: ${rel}`);
+        }
+        if (!entry.isFile()) continue;
+        out.push(rel);
+        if (out.length > MAX_PROVIDER_FILES) {
+          throw new UnknownExportError(
+            `provider export has more than ${MAX_PROVIDER_FILES} files`,
+          );
+        }
+      }
+    }
+    return out;
+  }
   const walk = (dir: string, prefix: string) => {
     for (const entry of readdirSync(dir, { withFileTypes: true })) {
       const rel = prefix ? `${prefix}/${entry.name}` : entry.name;

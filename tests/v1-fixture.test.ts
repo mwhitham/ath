@@ -24,7 +24,7 @@ describe("deterministic v1 SQLite fixture", () => {
     try {
       const metadata = await readDatabaseMetadata(database);
       expect(metadata).toMatchObject({
-        athleticstandard_version: "1.0.0",
+        athleticstandard_version: "2.0.0",
         database_id: "01890f3e-e7d3-7cc0-88c8-000000000001",
         created_at: "2026-08-09T12:00:00.000Z",
       });

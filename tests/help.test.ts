@@ -49,6 +49,8 @@ describe("ath --help — written for someone who has never run this (D50)", () =
         "correct",
         "delete",
         "erase",
+        "apply",
+        "pull",
         "calculate",
         "predict",
         "grade",

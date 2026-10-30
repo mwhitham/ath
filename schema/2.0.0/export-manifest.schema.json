@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://athleticstandard.ai/schema/2.0.0/export-manifest.schema.json",
+  "title": "Athletic Standard export manifest",
+  "type": "object",
+  "properties": {
+    "athleticstandard_version": {
+      "type": "string",
+      "enum": [
+        "1.0.0",
+        "2.0.0"
+      ]
+    },
+    "source_database_id": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+      "description": "Stable UUIDv7 database ID"
+    },
+    "database_revision": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    },
+    "exported_at": {
+      "type": "string",
+      "format": "date-time",
+      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+      "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+    },
+    "files": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "file": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "^(?!\\/)(?!.*\\\\)(?!.*(?:^|\\/)\\.\\.(?:\\/|$)).+$"
+          },
+          "sha256": {
+            "type": "string",
+            "pattern": "^[a-f0-9]{64}$"
+          },
+          "byte_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "file",
+          "sha256",
+          "byte_count"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "record_counts": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "record_type": {
+            "type": "string",
+            "enum": [
+              "athlete_profile",
+              "source",
+              "source_device",
+              "point_measurement",
+              "measurement_sample",
+              "sleep_session",
+              "workout_session",
+              "benchmark_result",
+              "provider_summary",
+              "provider_score",
+              "athlete_report",
+              "nutrition_entry",
+              "attachment",
+              "benchmark_definition",
+              "prediction",
+              "prediction_result_link",
+              "prediction_grade",
+              "prediction_error_analysis",
+              "training_plan",
+              "planned_session",
+              "coaching_note",
+              "saved_training_review",
+              "goal",
+              "nutrition_model_interpretation"
+            ]
+          },
+          "current_record_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "revision_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "deletion_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "import_key_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "record_type",
+          "current_record_count",
+          "revision_count",
+          "deletion_count",
+          "import_key_count"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "erasure_marker_count": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 9007199254740991
+    }
+  },
+  "required": [
+    "athleticstandard_version",
+    "source_database_id",
+    "database_revision",
+    "files",
+    "record_counts",
+    "erasure_marker_count"
+  ],
+  "additionalProperties": false
+}

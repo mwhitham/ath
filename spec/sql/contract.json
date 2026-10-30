@@ -1,6 +1,6 @@
 {
   "contract": "athleticstandard-sql",
-  "sql_schema_version": 2,
+  "sql_schema_version": 3,
   "minimum_sqlite_version": "3.45.0",
   "user_version_mirror": {
     "description": "On local SQLite files, PRAGMA user_version equals database_metadata.sql_schema_version after creation.",
@@ -26,6 +26,11 @@
       "version": 2,
       "file": "migrations/002-provider-encoding-repair.sql",
       "description": "Repair typed-table JSON bytes after npm 1.0.0 provider imports without changing record content."
+    },
+    {
+      "version": 3,
+      "file": "migrations/003-version-2.sql",
+      "description": "Upgrade the database to software version 2.0.0. Adds workout names, text, and route points. History, links, attachments, and deletion records stay."
     }
   ],
   "metadata_insert": {
@@ -36,7 +41,7 @@
     ],
     "header_pragmas": [
       "PRAGMA application_id = 1096042545;",
-      "PRAGMA user_version = 2;"
+      "PRAGMA user_version = 3;"
     ]
   },
   "file_header_pragmas": {
@@ -142,6 +147,7 @@
     "sleep_sessions",
     "workout_sessions",
     "workout_session_segments",
+    "workout_route_points",
     "benchmark_results",
     "benchmark_result_segments",
     "provider_scores",
@@ -207,6 +213,11 @@
       },
       {
         "table": "workout_session_segments",
+        "parent_column": "workout_session_id",
+        "applies_when": "workout_session corrections"
+      },
+      {
+        "table": "workout_route_points",
         "parent_column": "workout_session_id",
         "applies_when": "workout_session corrections"
       },
