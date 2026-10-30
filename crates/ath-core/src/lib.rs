@@ -1,5 +1,6 @@
 //! Shared record library used by the command-line tool and by tests.
 
+pub mod apple;
 pub mod calc;
 pub mod fit;
 pub mod garmin;

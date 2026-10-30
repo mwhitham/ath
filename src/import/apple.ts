@@ -1,29 +1,18 @@
 /**
  * Apple Health export.xml.
  *
- * Streamed with sax, because these files reach gigabytes and the document is never
- * held in memory. Every record is classified as it arrives: a point measurement, a
- * sleep stage, a workout, a sample belonging to a dense series, or something we
- * will not guess at.
- *
- * The beat lists attached to HRV records are the reason this importer matters. Apple
- * reports HRV only as SDNN, but each SDNN record carries the beats underneath it, so
- * RMSSD can be computed rather than lost (D26).
+ * ath-core reads the XML. This file asks for a source id, keeps a hand-entered
+ * writer on the manual source, and puts the signals back into the maps the rest
+ * of the import uses. SDNN stays a series. RMSSD is the figure computed from the
+ * beats under that series.
  */
-import { createReadStream, existsSync, lstatSync } from "node:fs";
+import { existsSync, lstatSync } from "node:fs";
 import { basename, join } from "node:path";
-import type { Readable } from "node:stream";
-import sax from "sax";
-import {
-  POINT_MEASUREMENT_UNITS,
-  type DeviceT,
-  type HardSignalT,
-  type PointMeasurementType,
-  type SeriesQuantity,
-} from "../schema.js";
+import { runAthCore } from "../ath-core.js";
+import type { DeviceT, HardSignalT } from "../schema.js";
 import { buildSeries, type Sample } from "../series.js";
 import { silentProgress, type Progress } from "../progress.js";
-import { rmssdFromBeats, rmssdFromIntervals, type Beat } from "../hrv.js";
+import { rmssdFromIntervals } from "../hrv.js";
 import {
   countSkip,
   countSkipWithExample,
@@ -34,110 +23,14 @@ import {
   type ImportPayload,
   type SourceBook,
 } from "./merge.js";
-
-/** Note which device wrote a record, so the merge can count it if it is new (D51). */
-function attribute(payload: ImportPayload, signal: HardSignalT, writer: Writer): void {
-  if (writer.deviceKey) payload.deviceOf.set(signal, writer.deviceKey);
-}
 import { beatsFromEcg, parseEcgCsv } from "./ecg.js";
 import { parseGpx, summarizeRoute, type RouteSummary } from "./routes.js";
 import { isEcgEntry, isRouteEntry, readEntries, type DetectedExport } from "./detect.js";
-import {
-  MAX_ZIP_ENTRY_BYTES,
-  openZipEntryStream,
-  zipEntryNames,
-  openZip,
-} from "./zip.js";
-import {
-  passthrough,
-  perMinute,
-  toCelsius,
-  toCentimeters,
-  toCount,
-  toKilocalories,
-  toKilograms,
-  toMets,
-  toMetres,
-  toMetresPerSecond,
-  toMillimetresMercury,
-  toMilliseconds,
-  toMinutes,
-  toPercent,
-  toWatts,
-  type Converter,
-} from "./units.js";
+import { MAX_ZIP_ENTRY_BYTES, openZip, zipEntryNames } from "./zip.js";
 
-/** HealthKit identifier suffix to point type, with the conversion each needs. */
-interface PointMapping {
-  type: PointMeasurementType;
-  convert: Converter;
+function attribute(payload: ImportPayload, signal: HardSignalT, writer: Writer): void {
+  if (writer.deviceKey) payload.deviceOf.set(signal, writer.deviceKey);
 }
-
-const POINT_MAPPINGS: Record<string, PointMapping> = {
-  RestingHeartRate: { type: "resting_heart_rate", convert: perMinute },
-  WalkingHeartRateAverage: { type: "walking_heart_rate", convert: perMinute },
-  HeartRateRecoveryOneMinute: { type: "hr_recovery", convert: perMinute },
-  BodyMass: { type: "body_weight", convert: toKilograms },
-  LeanBodyMass: { type: "lean_body_mass", convert: toKilograms },
-  BodyFatPercentage: { type: "body_fat_percentage", convert: toPercent },
-  Height: { type: "height", convert: toCentimeters },
-  VO2Max: { type: "vo2_max", convert: passthrough },
-  AppleSleepingWristTemperature: { type: "wrist_temperature_sleeping", convert: toCelsius },
-  BodyTemperature: { type: "body_temperature", convert: toCelsius },
-  BloodPressureSystolic: { type: "blood_pressure_systolic", convert: toMillimetresMercury },
-  BloodPressureDiastolic: { type: "blood_pressure_diastolic", convert: toMillimetresMercury },
-};
-
-const SERIES_MAPPINGS: Record<string, SeriesMapping> = {
-  HeartRate: { quantity: "heart_rate", convert: perMinute },
-
-  // Apple samples these three repeatedly rather than reporting one figure per night,
-  // so here they are streams and belong in sidecars (D43). WHOOP and Oura report one
-  // figure per night for the same measurements, and those stay point measurements.
-  HeartRateVariabilitySDNN: { quantity: "hrv_sdnn", convert: toMilliseconds },
-  RespiratoryRate: { quantity: "respiratory_rate", convert: perMinute },
-  OxygenSaturation: { quantity: "oxygen_saturation", convert: toPercent },
-
-  StepCount: { quantity: "steps", convert: toCount },
-  ActiveEnergyBurned: { quantity: "active_energy", convert: toKilocalories },
-  BasalEnergyBurned: { quantity: "basal_energy", convert: toKilocalories },
-  DistanceWalkingRunning: { quantity: "distance_walking_running", convert: toMetres },
-  DistanceCycling: { quantity: "distance_cycling", convert: toMetres },
-  DistanceSwimming: { quantity: "distance_swimming", convert: toMetres },
-
-  RunningSpeed: { quantity: "running_speed", convert: toMetresPerSecond },
-  RunningPower: { quantity: "running_power", convert: toWatts },
-  RunningStrideLength: { quantity: "running_stride_length", convert: toMetres },
-  RunningVerticalOscillation: { quantity: "running_vertical_oscillation", convert: toCentimeters },
-  RunningGroundContactTime: { quantity: "running_ground_contact_time", convert: toMilliseconds },
-
-  PhysicalEffort: { quantity: "physical_effort", convert: toMets },
-  AppleExerciseTime: { quantity: "exercise_time", convert: toMinutes },
-  FlightsClimbed: { quantity: "flights_climbed", convert: toCount },
-
-  WalkingSpeed: { quantity: "walking_speed", convert: toMetresPerSecond },
-  WalkingStepLength: { quantity: "walking_step_length", convert: toMetres },
-  WalkingAsymmetryPercentage: { quantity: "walking_asymmetry_percentage", convert: toPercent },
-
-  TimeInDaylight: { quantity: "time_in_daylight", convert: toMinutes },
-};
-
-interface SeriesMapping {
-  quantity: SeriesQuantity;
-  convert: Converter;
-}
-
-/** Sleep stage identifiers, including the undifferentiated older value. */
-const SLEEP_ASLEEP_VALUES = new Set([
-  "HKCategoryValueSleepAnalysisAsleep",
-  "HKCategoryValueSleepAnalysisAsleepCore",
-  "HKCategoryValueSleepAnalysisAsleepDeep",
-  "HKCategoryValueSleepAnalysisAsleepREM",
-  "HKCategoryValueSleepAnalysisAsleepUnspecified",
-]);
-
-/** A gap this long between sleep records starts a new night. */
-const SLEEP_GAP_MS = 3 * 60 * 60 * 1000;
 
 /**
  * Apple writes `2026-08-09 06:12:00 -0700`. Turn that into ISO 8601 keeping the
@@ -154,75 +47,6 @@ export function parseAppleDate(raw: string): string | null {
   const iso = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d+)?(?:Z|[+-]\d{2}:\d{2})$/;
   if (iso.test(raw.trim())) return raw.trim();
   return null;
-}
-
-function appleTimestampReceipt(raw: string, sourceTimeZone?: string) {
-  const offset = /(Z|[+-]\d{2}:?\d{2})$/i.exec(raw.trim())?.[1];
-  return {
-    timestamp_text: raw,
-    timestamp_basis: "source_offset_timestamp" as const,
-    ...(offset === undefined
-      ? { utc_offset_missing_reason: "not_provided_by_source" as const }
-      : {
-          utc_offset_text: offset,
-          utc_offset_meaning: "meaning_not_documented" as const,
-        }),
-    ...(sourceTimeZone === undefined
-      ? {}
-      : {
-          source_time_zone: sourceTimeZone,
-          source_time_zone_meaning:
-            "apple_health_object_creation_time_zone" as const,
-        }),
-  };
-}
-
-/** Local calendar day of an offset timestamp, used to bucket series by day. */
-function localDay(timestamp: string): string {
-  return timestamp.slice(0, 10);
-}
-
-/**
- * Format an instant using the same UTC offset as a reference timestamp.
- *
- * Beat timestamps have to keep the offset of the record they came from. Writing
- * them as UTC would put a late-evening window on the next calendar day, and the
- * derived RMSSD would then cite a series day that does not exist (D26).
- */
-function atOffsetOf(reference: string, instantMs: number): string {
-  // Milliseconds are kept. Truncating to whole seconds would collapse beats that
-  // fall inside the same second into one instant, which is the spacing that makes
-  // beat data worth storing at all.
-  const rounded = Math.round(instantMs);
-  const offset = /([+-]\d{2}:\d{2})$/.exec(reference)?.[1];
-  if (!offset) return new Date(rounded).toISOString();
-
-  const sign = offset.startsWith("-") ? -1 : 1;
-  const [oh, om] = offset.slice(1).split(":").map(Number);
-  const offsetMs = sign * ((oh! * 60 + om!) * 60_000);
-  const shifted = new Date(rounded + offsetMs).toISOString();
-  return `${shifted.slice(0, 23)}${offset}`;
-}
-
-interface SleepFragment {
-  start: string;
-  end: string;
-  inputStart: string;
-  inputEnd: string;
-  value: string;
-  source: string;
-  sourceTimeZone?: string;
-  /** The device index entry this fragment came from, when the export named one. */
-  deviceKey?: string;
-}
-
-interface BeatWindow {
-  recordedAt: string;
-  inputRecordedAt: string;
-  endsAt: string | null;
-  beats: Beat[];
-  source: string;
-  sourceTimeZone?: string;
 }
 
 /** Fields Apple writes inside a `device` attribute, in the order they appear. */
@@ -287,20 +111,14 @@ export function vendorOf(writer: string, device?: DeviceT): string {
   return slug.split("-")[0] ?? "unknown";
 }
 
-/** Who wrote a record: the source it belongs to, and its entry in the device index. */
 interface Writer {
   source: string;
-  /** Absent when the export named no device, which many Apple records do not. */
   deviceKey?: string;
 }
 
 /**
  * Source ids for the writers met while parsing, resolved once per distinct
- * (name, device) pair. An export holds a million records from a dozen writers, so the
- * lookup has to be a map hit, not a search.
- *
- * It also builds the device index (D51). Every record passes through here, which is
- * the only place that sees a writer, a device, and a date at the same time.
+ * (name, device) pair.
  */
 class WriterCache {
   private readonly writers = new Map<string, Writer>();
@@ -311,20 +129,19 @@ class WriterCache {
     private readonly payload: ImportPayload,
   ) {}
 
-  resolve(attrs: Record<string, string>): Writer {
-    const writer = (attrs.sourceName ?? "").trim() || "Unknown";
-    const rawDevice = attrs.device ?? "";
-    const key = `${writer}\u0000${rawDevice}`;
+  resolve(writerName: string, deviceRaw: string, onDay: string): Writer {
+    const writer = writerName.trim() || "Unknown";
+    const key = `${writer}\u0000${deviceRaw}`;
     let hit = this.writers.get(key);
 
     if (!hit) {
       if (HAND_ENTERED_WRITERS.has(writer.toLowerCase())) {
         hit = { source: this.sources.manual() };
       } else {
-        let device = this.devices.get(rawDevice);
-        if (!this.devices.has(rawDevice)) {
-          device = parseAppleDevice(rawDevice);
-          this.devices.set(rawDevice, device);
+        let device = this.devices.get(deviceRaw);
+        if (!this.devices.has(deviceRaw)) {
+          device = parseAppleDevice(deviceRaw);
+          this.devices.set(deviceRaw, device);
         }
         const source = this.sources.forWriter({
           writer,
@@ -336,12 +153,8 @@ class WriterCache {
       this.writers.set(key, hit);
     }
 
-    // Widened on every record, not only the first: the window is what shows where one
-    // watch stopped and the next began. Apple's dates start `YYYY-MM-DD` in the
-    // wearer's own zone, so the local day is the first ten characters.
     if (hit.deviceKey) {
-      const device = this.devices.get(rawDevice);
-      const onDay = (attrs.startDate ?? "").slice(0, 10);
+      const device = this.devices.get(deviceRaw);
       if (device && /^\d{4}-\d{2}-\d{2}$/.test(onDay)) {
         observeDevice(this.payload, hit.source, device, onDay);
       }
@@ -352,14 +165,9 @@ class WriterCache {
 
 const DAY_MS = 86_400_000;
 const HOUR_MS = 3_600_000;
-
-/** How far outside its stated window a beat may fall and still be believed. */
 const BEAT_WINDOW_TOLERANCE_MS = 5 * 60 * 1000;
-
-/** A window this long cannot be resolved from a minute and a second alone. */
 const LONGEST_PLACEABLE_WINDOW_MS = 55 * 60 * 1000;
 
-/** Time of day of an offset timestamp, in milliseconds since local midnight. */
 function clockMs(timestamp: string): number | null {
   const m = /T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,3}))?/.exec(timestamp);
   if (!m) return null;
@@ -369,22 +177,8 @@ function clockMs(timestamp: string): number | null {
 
 /**
  * Where a beat falls inside its record's window, in milliseconds from the start.
- *
- * Beat entries carry a time of day with no date, and two things about that clock are
- * unreliable. Apple writes it in the settings of the phone the export came from, so
- * one watch produces `13:40:45.22`, `1:40:45.22 PM`, `13:40:45,22`, or
- * `오후 1:40:45.22`. And the hour can disagree with the hour in the record's own
- * start time by a whole number of hours, because the two are rendered against
- * different UTC offsets: a record starting `2020-11-15T23:33:17-05:00` carries a
- * first beat at `10:33:19.09 PM`.
- *
- * So the hour is not read at all. Only the minute and the second are, and the record
- * decides the rest: a window about a minute long has one position per hour that fits,
- * and a whole-hour disagreement cannot move a beat out of the minute it belongs to. A
- * window crossing midnight wraps.
- *
- * A zone difference that is not a whole hour (India, Nepal, Newfoundland) shifts the
- * minute too, and those beats are counted as unplaceable rather than guessed at.
+ * The hour is not read. A whole-hour disagreement between the phone clock and the
+ * record cannot move a beat out of the minute it belongs to.
  */
 export function beatOffsetMs(
   recordedAt: string,
@@ -413,54 +207,81 @@ export function beatOffsetMs(
   return best;
 }
 
-/** One writer's samples for one quantity, bucketed by day. */
+interface AppleCore {
+  events: AppleEvent[];
+  sleep_sessions: SleepSession[];
+  skipped: Record<string, number>;
+  skip_examples: Record<string, string>;
+}
+
+interface AppleEvent {
+  kind: "point" | "series" | "sleep_fragment" | "workout" | "activity";
+  writer: string;
+  device_raw: string;
+  on_day: string;
+  type?: string;
+  value?: number;
+  unit?: string;
+  recorded_at?: string;
+  receipt?: ImportPayload["inputReceipts"] extends Map<unknown, infer Value> ? Value : never;
+  quantity?: string;
+  sample?: Sample;
+  beat_samples?: Sample[];
+  derived?: {
+    signal: Omit<HardSignalT, "source"> & { type: "hrv_rmssd" };
+    receipt: ImportPayload["inputReceipts"] extends Map<unknown, infer Value> ? Value : never;
+  };
+  start?: string;
+  end?: string;
+  aggregates?: Record<string, unknown>;
+  segments?: Array<{ label: string; duration_s?: number; distance_m?: number }>;
+  summaries?: Array<Omit<ImportPayload["providerSummaries"][number], "source">>;
+}
+
+interface SleepSession {
+  writer: string;
+  device_raw: string;
+  start: string;
+  end: string;
+  aggregates: Record<string, unknown>;
+  receipt: ImportPayload["inputReceipts"] extends Map<unknown, infer Value> ? Value : never;
+}
+
 interface SeriesBucket {
-  quantity: SeriesQuantity;
+  quantity: NonNullable<AppleEvent["quantity"]>;
   source: string;
   byDay: Map<string, Sample[]>;
 }
 
-interface AppleAccumulator {
-  points: HardSignalT[];
-  sleepFragments: SleepFragment[];
-  workouts: HardSignalT[];
-  /** `${quantity}|${source}` -> bucket. Two writers of one quantity never share a file. */
-  series: Map<string, SeriesBucket>;
-  beatWindows: BeatWindow[];
-}
-
-/** Locate export.xml inside whatever the user handed us, with its size for the bar. */
-async function openAppleXml(detected: DetectedExport): Promise<{ stream: Readable; size: number }> {
+async function locateAppleXml(
+  detected: DetectedExport,
+): Promise<{ xmlPath: string; zipEntry?: string; size: number }> {
   const openLocal = (path: string) => {
     const stat = lstatSync(path);
     if (stat.isSymbolicLink() || !stat.isFile()) {
       throw new Error(`refusing Apple Health XML that is not a regular file: ${path}`);
     }
     if (stat.size > MAX_ZIP_ENTRY_BYTES) {
-      throw new Error(
-        `Apple Health XML exceeds ${MAX_ZIP_ENTRY_BYTES} bytes: ${path}`,
-      );
+      throw new Error(`Apple Health XML exceeds ${MAX_ZIP_ENTRY_BYTES} bytes: ${path}`);
     }
-    return { stream: createReadStream(path), size: stat.size };
+    return { xmlPath: path, size: stat.size };
   };
-  if (detected.container === "file") {
-    return openLocal(detected.path);
-  }
+  if (detected.container === "file") return openLocal(detected.path);
 
   if (detected.container === "directory") {
     const candidates = [
       join(detected.path, "export.xml"),
       join(detected.path, "apple_health_export", "export.xml"),
     ];
-    const found = candidates.find((c) => existsSync(c));
+    const found = candidates.find((candidate) => existsSync(candidate));
     if (!found) throw new Error(`no export.xml under ${detected.path}`);
     return openLocal(found);
   }
 
   const zip = await openZip(detected.path);
-  const entry = zipEntryNames(zip).find((n) => n.toLowerCase().endsWith("export.xml"));
+  const entry = zipEntryNames(zip).find((name) => name.toLowerCase().endsWith("export.xml"));
   if (!entry) throw new Error(`no export.xml inside ${detected.path}`);
-  return openZipEntryStream(detected.path, entry);
+  return { xmlPath: detected.path, zipEntry: entry, size: lstatSync(detected.path).size };
 }
 
 export async function importAppleHealth(
@@ -469,602 +290,134 @@ export async function importAppleHealth(
   progress: Progress = silentProgress,
 ): Promise<ImportPayload> {
   const payload = emptyPayload("apple", `Apple Health export (${detected.container})`);
-  const acc: AppleAccumulator = {
-    points: [],
-    sleepFragments: [],
-    workouts: [],
-    series: new Map(),
-    beatWindows: [],
-  };
-
-  const { stream, size } = await openAppleXml(detected);
-  progress.start("reading export.xml", size, "bytes");
-  let bytes = 0;
-  stream.on("data", (chunk: Buffer | string) => {
-    bytes += typeof chunk === "string" ? Buffer.byteLength(chunk) : chunk.length;
-    progress.update(bytes);
-  });
-  await parseAppleXml(stream, acc, payload, new WriterCache(sources, payload));
+  const located = await locateAppleXml(detected);
+  progress.start("reading export.xml", located.size, "bytes");
+  const raw = runAthCore(
+    ["import-apple"],
+    process.env,
+    JSON.stringify({ xml_path: located.xmlPath, zip_entry: located.zipEntry ?? "" }),
+  ) as AppleCore;
+  progress.update(located.size);
   progress.finish();
 
-  payload.hardSignals.push(...acc.points);
-  await attachRouteSplits(detected, acc.workouts, payload, progress);
-  payload.hardSignals.push(...acc.workouts);
-  payload.hardSignals.push(...buildSleepSessions(acc.sleepFragments, payload));
+  for (const [reason, count] of Object.entries(raw.skipped)) payload.skipped.set(reason, count);
+  for (const [reason, example] of Object.entries(raw.skip_examples)) {
+    payload.skipExamples.set(reason, example);
+  }
 
-  await importEcgs(detected, sources, payload, progress);
-
-  // Beat windows become a per-day hrv_beats series plus one derived RMSSD each, under
-  // the source of the record that carried them.
+  const writers = new WriterCache(sources, payload);
+  const points: HardSignalT[] = [];
+  const workouts: HardSignalT[] = [];
+  const series = new Map<string, SeriesBucket>();
   const beatsByDay = new Map<string, { source: string; day: string; samples: Sample[] }>();
-  for (const window of acc.beatWindows) {
-    const day = localDay(window.recordedAt);
-    const key = `${window.source}|${day}`;
-    const bucket = beatsByDay.get(key) ?? { source: window.source, day, samples: [] };
-    // Each beat is placed where the export says it fell, not where accumulating
-    // intervals would put it, so a missed beat stays visible as a gap.
-    const windowStartMs = Date.parse(window.recordedAt);
-    for (const beat of window.beats) {
-      bucket.samples.push({
-        at: atOffsetOf(window.recordedAt, windowStartMs + beat.offsetMs),
-        value: Math.round(beat.intervalMs * 10) / 10,
-      });
-    }
-    beatsByDay.set(key, bucket);
+  const derived: HardSignalT[] = [];
+  let shortWindows = 0;
 
-    const rmssd = rmssdFromBeats(window.beats);
-    if (!rmssd) {
-      countSkip(payload, "HRV beat windows too short or sparse for RMSSD");
+  for (const event of raw.events) {
+    if (event.kind === "sleep_fragment") {
+      writers.resolve(event.writer, event.device_raw, event.on_day);
       continue;
     }
-    const derivedReading = {
-      type: "hrv_rmssd",
-      value: rmssd.rmssd_ms,
-      unit: "ms",
-      recorded_at: window.recordedAt,
-      source: window.source,
-      derived: {
-        from: "hrv_beats",
-        method: "rmssd",
-        window_s: rmssd.window_s,
-        n_beats: rmssd.n_beats,
-        ...(rmssd.n_dropped > 0 ? { n_dropped: rmssd.n_dropped } : {}),
-      },
-    } as HardSignalT;
-    payload.inputReceipts.set(derivedReading, {
-      input_timestamp: appleTimestampReceipt(
-        window.inputRecordedAt,
-        window.sourceTimeZone,
-      ),
-      input_value_missing_reason: "not_applicable",
-      input_unit_missing_reason: "not_applicable",
-    });
-    payload.hardSignals.push(derivedReading);
+    if (event.kind === "point") {
+      const writer = writers.resolve(event.writer, event.device_raw, event.on_day);
+      const reading = {
+        type: event.type,
+        value: event.value,
+        unit: event.unit,
+        recorded_at: event.recorded_at,
+        source: writer.source,
+      } as HardSignalT;
+      attribute(payload, reading, writer);
+      if (event.receipt) payload.inputReceipts.set(reading, event.receipt);
+      points.push(reading);
+      continue;
+    }
+    if (event.kind === "series" && event.sample && event.quantity) {
+      const writer = writers.resolve(event.writer, event.device_raw, event.on_day);
+      const key = `${event.quantity}|${writer.source}`;
+      const bucket = series.get(key) ?? {
+        quantity: event.quantity,
+        source: writer.source,
+        byDay: new Map<string, Sample[]>(),
+      };
+      const day = event.sample.at.slice(0, 10);
+      const samples = bucket.byDay.get(day) ?? [];
+      samples.push(event.sample);
+      bucket.byDay.set(day, samples);
+      series.set(key, bucket);
+      if (event.beat_samples && event.beat_samples.length > 0) {
+        const beatKey = `${writer.source}|${day}`;
+        const beatBucket = beatsByDay.get(beatKey) ?? { source: writer.source, day, samples: [] };
+        beatBucket.samples.push(...event.beat_samples);
+        beatsByDay.set(beatKey, beatBucket);
+        if (event.derived) {
+          const derivedReading = { ...event.derived.signal, source: writer.source } as HardSignalT;
+          payload.inputReceipts.set(derivedReading, event.derived.receipt);
+          derived.push(derivedReading);
+        } else {
+          shortWindows += 1;
+        }
+      }
+      continue;
+    }
+    if (event.kind === "workout" && event.start && event.end && event.aggregates && event.receipt) {
+      const writer = writers.resolve(event.writer, event.device_raw, event.on_day);
+      const session = {
+        type: "workout_session",
+        start: event.start,
+        end: event.end,
+        source: writer.source,
+        aggregates: event.aggregates,
+        ...(event.segments && event.segments.length > 0 ? { segments: event.segments } : {}),
+      } as HardSignalT;
+      attribute(payload, session, writer);
+      payload.inputReceipts.set(session, event.receipt);
+      workouts.push(session);
+      continue;
+    }
+    if (event.kind === "activity") {
+      const source = writers.resolve(event.writer, event.device_raw, event.on_day).source;
+      for (const summary of event.summaries ?? []) {
+        payload.providerSummaries.push({ ...summary, source });
+      }
+    }
   }
+
+  payload.hardSignals.push(...points);
+  await attachRouteSplits(detected, workouts, payload, progress);
+  payload.hardSignals.push(...workouts);
+  for (const session of raw.sleep_sessions) {
+    const writer = writers.resolve(session.writer, session.device_raw, "");
+    const night = {
+      type: "sleep_session",
+      start: session.start,
+      end: session.end,
+      source: writer.source,
+      aggregates: session.aggregates,
+    } as HardSignalT;
+    const device = parseAppleDevice(session.device_raw);
+    if (device) payload.deviceOf.set(night, deviceIndexKey(writer.source, device));
+    payload.inputReceipts.set(night, session.receipt);
+    payload.hardSignals.push(night);
+  }
+
+  await importEcgs(detected, sources, payload, progress);
+  for (let index = 0; index < shortWindows; index += 1) {
+    countSkip(payload, "HRV beat windows too short or sparse for RMSSD");
+  }
+  payload.hardSignals.push(...derived);
+
   for (const { source, day, samples } of beatsByDay.values()) {
     const built = buildSeries("hrv_beats", source, day, samples);
     if (built) payload.series.push(built);
   }
-
-  for (const bucket of acc.series.values()) {
+  for (const bucket of series.values()) {
     for (const [day, samples] of bucket.byDay) {
-      const built = buildSeries(bucket.quantity, bucket.source, day, samples);
+      const built = buildSeries(bucket.quantity as Parameters<typeof buildSeries>[0], bucket.source, day, samples);
       if (built) payload.series.push(built);
     }
   }
-
   return payload;
-}
-
-function addActivitySummary(
-  attrs: Record<string, string>,
-  payload: ImportPayload,
-  writers: WriterCache,
-): void {
-  const date = attrs.dateComponents?.trim();
-  if (date === undefined || !/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    countSkipWithExample(
-      payload,
-      "activity summaries with an unusable date",
-      attrs.dateComponents ?? "(none)",
-    );
-    return;
-  }
-  const source = writers.resolve({
-    ...attrs,
-    sourceName: attrs.sourceName?.trim() || "Apple Health",
-  }).source;
-  const providerReportingPeriods = [
-    {
-      period_type: "apple_activity_summary_day" as const,
-      provider_date: date,
-      timezone_offset_missing_reason: "not_provided_by_source" as const,
-    },
-  ];
-  const inputTimestamp = {
-    timestamp_missing_reason: "not_provided_by_source" as const,
-    utc_offset_missing_reason: "not_provided_by_source" as const,
-  };
-  const add = (
-    attribute: string,
-    summaryType: string,
-    standardUnit: string,
-    inputUnit?: string,
-    convert: (value: number) => number | null = (value) => value,
-  ) => {
-    if (attrs[attribute] === undefined) {
-      return;
-    }
-    const inputValue = Number(attrs[attribute]);
-    const value = convert(inputValue);
-    if (
-      !Number.isFinite(inputValue) ||
-      value === null ||
-      !Number.isFinite(value) ||
-      value < 0
-    ) {
-      countSkipWithExample(
-        payload,
-        "activity summary values we could not normalize",
-        `${attribute}="${attrs[attribute]}"`,
-      );
-      return;
-    }
-    payload.providerSummaries.push({
-      source,
-      summary_type: summaryType,
-      value: round(value),
-      standard_unit: standardUnit,
-      input_value: inputValue,
-      ...(inputUnit === undefined
-        ? { input_unit_missing_reason: "not_exposed_by_route" }
-        : { input_unit: inputUnit }),
-      input_timestamp: inputTimestamp,
-      provider_reporting_periods: providerReportingPeriods,
-    });
-  };
-
-  const energyUnit = attrs.activeEnergyBurnedUnit;
-  if (
-    attrs.activeEnergyBurned !== undefined ||
-    attrs.activeEnergyBurnedGoal !== undefined
-  ) {
-    if (energyUnit === undefined) {
-      countSkip(
-        payload,
-        "activity energy summaries without a source unit",
-        Number(attrs.activeEnergyBurned !== undefined) +
-          Number(attrs.activeEnergyBurnedGoal !== undefined),
-      );
-    } else {
-      add(
-        "activeEnergyBurned",
-        "active_energy_burned",
-        "kcal",
-        energyUnit,
-        (value) => toKilocalories(value, energyUnit),
-      );
-      add(
-        "activeEnergyBurnedGoal",
-        "active_energy_goal",
-        "kcal",
-        energyUnit,
-        (value) => toKilocalories(value, energyUnit),
-      );
-    }
-  }
-  add("appleExerciseTime", "exercise_time", "min");
-  add("appleExerciseTimeGoal", "exercise_time_goal", "min");
-  add("appleStandHours", "stand_hours", "h");
-  add("appleStandHoursGoal", "stand_hours_goal", "h");
-}
-
-function parseAppleXml(
-  stream: Readable,
-  acc: AppleAccumulator,
-  payload: ImportPayload,
-  writers: WriterCache,
-): Promise<void> {
-  return new Promise((resolve, reject) => {
-    const parser = sax.createStream(true, { trim: true, lowercase: false });
-
-    // Record-level state: a Record element may carry a nested beat list, and a
-    // Workout may carry laps, so both need somewhere to collect children.
-    let currentBeatWindow: BeatWindow | null = null;
-    let currentPointSignal: HardSignalT | null = null;
-    let currentSeriesSample: Sample | null = null;
-    let currentSleepFragment: SleepFragment | null = null;
-    let currentWorkout: {
-      start: string;
-      end: string;
-      inputStart: string;
-      inputEnd: string;
-      writer: Writer;
-      segments: { label: string; duration_s?: number }[];
-      aggregates: Record<string, unknown>;
-      inputSummaries: Record<
-        string,
-        { input_value: number; input_unit: string }
-      >;
-      sourceTimeZone?: string;
-    } | null = null;
-
-    parser.on("error", (err) => reject(err));
-    parser.on("end", () => resolve());
-
-    parser.on("opentag", (node) => {
-      const attrs = node.attributes as Record<string, string>;
-
-      switch (node.name) {
-        case "Record":
-          currentBeatWindow = null;
-          currentPointSignal = null;
-          currentSeriesSample = null;
-          currentSleepFragment = null;
-          handleRecord(attrs);
-          break;
-
-        case "ActivitySummary":
-          addActivitySummary(attrs, payload, writers);
-          break;
-
-        case "HeartRateVariabilityMetadataList":
-          // Opens inside an SDNN record; beats accumulate into the window below.
-          break;
-
-        case "InstantaneousBeatsPerMinute": {
-          if (!currentBeatWindow) break;
-          const bpm = Number(attrs.bpm);
-          if (!Number.isFinite(bpm) || bpm <= 0) {
-            countSkipWithExample(
-              payload,
-              "heartbeat readings with an unusable rate",
-              `bpm "${attrs.bpm ?? "(none)"}"`,
-            );
-            break;
-          }
-          const offsetMs = beatOffsetMs(
-            currentBeatWindow.recordedAt,
-            currentBeatWindow.endsAt,
-            attrs.time ?? "",
-          );
-          if (offsetMs === null) {
-            // Counted, because a beat dropped in silence is how a locale mismatch
-            // removed every RMSSD an Apple Watch could have contributed while the
-            // import reported nothing at all.
-            countSkipWithExample(
-              payload,
-              "heartbeat readings we could not place in their reading's window",
-              `time "${attrs.time ?? "(none)"}" in a window starting ${currentBeatWindow.recordedAt}`,
-            );
-            break;
-          }
-          // The rate a beat reports is the interval that produced it: 70 bpm is a
-          // gap of 60000/70 ms.
-          currentBeatWindow.beats.push({ offsetMs, intervalMs: 60000 / bpm });
-          break;
-        }
-
-        case "Workout": {
-          const start = parseAppleDate(attrs.startDate ?? "");
-          const end = parseAppleDate(attrs.endDate ?? "");
-          if (!start || !end || Date.parse(end) <= Date.parse(start)) {
-            // Apple writes the occasional zero-length workout. A session that
-            // began and ended at the same instant did not happen.
-            countSkipWithExample(
-              payload,
-              "workouts with an unusable time range",
-              `${(attrs.workoutActivityType ?? "unknown").replace(/^HKWorkoutActivityType/, "")} from "${attrs.startDate ?? "(none)"}" to "${attrs.endDate ?? "(none)"}"`,
-            );
-            break;
-          }
-          const aggregates: Record<string, unknown> = {};
-          const inputSummaries: Record<
-            string,
-            { input_value: number; input_unit: string }
-          > = {};
-          const activity = (attrs.workoutActivityType ?? "").replace(/^HKWorkoutActivityType/, "");
-          if (activity) aggregates.activity = activity.toLowerCase();
-          const distance = Number(attrs.totalDistance);
-          if (Number.isFinite(distance) && distance > 0) {
-            aggregates.distance_m = round(
-              toMetres(distance, attrs.totalDistanceUnit ?? "m") ?? distance,
-            );
-            inputSummaries.distance_m = {
-              input_value: distance,
-              input_unit: attrs.totalDistanceUnit ?? "m",
-            };
-          }
-          const energy = Number(attrs.totalEnergyBurned);
-          if (Number.isFinite(energy) && energy > 0) {
-            aggregates.energy_kcal = round(energy);
-            inputSummaries.energy_kcal = {
-              input_value: energy,
-              input_unit: attrs.totalEnergyBurnedUnit ?? "kcal",
-            };
-          }
-          currentWorkout = {
-            start,
-            end,
-            inputStart: attrs.startDate!,
-            inputEnd: attrs.endDate!,
-            writer: writers.resolve(attrs),
-            segments: [],
-            aggregates,
-            inputSummaries,
-          };
-          break;
-        }
-
-        case "WorkoutEvent": {
-          if (!currentWorkout || attrs.type !== "HKWorkoutEventTypeLap") break;
-          const duration = Number(attrs.duration);
-          currentWorkout.segments.push({
-            label: `lap ${currentWorkout.segments.length + 1}`,
-            ...(Number.isFinite(duration) && duration > 0
-              ? { duration_s: round(duration * 60) }
-              : {}),
-          });
-          break;
-        }
-
-        case "MetadataEntry": {
-          if (attrs.key === "HKTimeZone" && attrs.value?.trim()) {
-            const sourceTimeZone = attrs.value.trim();
-            if (currentPointSignal !== null) {
-              const receipt = payload.inputReceipts.get(currentPointSignal);
-              if (receipt?.input_timestamp !== undefined) {
-                receipt.input_timestamp = {
-                  ...receipt.input_timestamp,
-                  source_time_zone: sourceTimeZone,
-                  source_time_zone_meaning:
-                    "apple_health_object_creation_time_zone",
-                };
-              }
-            }
-            if (currentSeriesSample !== null) {
-              currentSeriesSample.inputSourceTimeZone = sourceTimeZone;
-              currentSeriesSample.inputSourceTimeZoneMeaning =
-                "apple_health_object_creation_time_zone";
-            }
-            if (currentSleepFragment !== null) {
-              currentSleepFragment.sourceTimeZone = sourceTimeZone;
-            }
-            if (currentBeatWindow !== null) {
-              currentBeatWindow.sourceTimeZone = sourceTimeZone;
-            }
-            if (currentWorkout !== null) {
-              currentWorkout.sourceTimeZone = sourceTimeZone;
-            }
-            break;
-          }
-          // Workout HR summaries arrive as metadata on some exports.
-          if (!currentWorkout) break;
-          const value = Number(attrs.value);
-          if (!Number.isFinite(value) || value <= 0) break;
-          if (attrs.key === "HKAverageHeartRate") {
-            currentWorkout.aggregates.avg_hr_bpm = round(value);
-            currentWorkout.inputSummaries.avg_hr_bpm = {
-              input_value: value,
-              input_unit: "bpm",
-            };
-          }
-          if (attrs.key === "HKMaximumHeartRate") {
-            currentWorkout.aggregates.max_hr_bpm = round(value);
-            currentWorkout.inputSummaries.max_hr_bpm = {
-              input_value: value,
-              input_unit: "bpm",
-            };
-          }
-          break;
-        }
-
-        case "ClinicalRecord":
-          countSkip(payload, "clinical records (out of scope)");
-          break;
-      }
-    });
-
-    parser.on("closetag", (name) => {
-      if (name === "Record" && currentBeatWindow) {
-        if (currentBeatWindow.beats.length > 0) acc.beatWindows.push(currentBeatWindow);
-        currentBeatWindow = null;
-      }
-      if (name === "Record") {
-        currentPointSignal = null;
-        currentSeriesSample = null;
-        currentSleepFragment = null;
-      }
-      if (name === "Workout" && currentWorkout) {
-        const session: HardSignalT = {
-          type: "workout_session",
-          start: currentWorkout.start,
-          end: currentWorkout.end,
-          source: currentWorkout.writer.source,
-          aggregates: currentWorkout.aggregates as never,
-          ...(currentWorkout.segments.length > 0 ? { segments: currentWorkout.segments as never } : {}),
-        };
-        attribute(payload, session, currentWorkout.writer);
-        payload.inputReceipts.set(session, {
-          input_start_timestamp: appleTimestampReceipt(
-            currentWorkout.inputStart,
-            currentWorkout.sourceTimeZone,
-          ),
-          input_end_timestamp: appleTimestampReceipt(
-            currentWorkout.inputEnd,
-            currentWorkout.sourceTimeZone,
-          ),
-          input_summaries: currentWorkout.inputSummaries,
-        });
-        acc.workouts.push(session);
-        currentWorkout = null;
-      }
-    });
-
-    function handleRecord(attrs: Record<string, string>): void {
-      const rawType = attrs.type ?? "";
-      const identifier = rawType
-        .replace(/^HKQuantityTypeIdentifier/, "")
-        .replace(/^HKCategoryTypeIdentifier/, "")
-        .replace(/^HKDataType/, "");
-
-      const startDate = parseAppleDate(attrs.startDate ?? "");
-      const endDate = parseAppleDate(attrs.endDate ?? "");
-
-      if (identifier === "SleepAnalysis") {
-        if (!startDate || !endDate) {
-          countSkip(payload, "sleep records with an unreadable date");
-          return;
-        }
-        const writer = writers.resolve(attrs);
-        const fragment: SleepFragment = {
-          start: startDate,
-          end: endDate,
-          inputStart: attrs.startDate!,
-          inputEnd: attrs.endDate!,
-          value: attrs.value ?? "",
-          source: writer.source,
-          ...(writer.deviceKey ? { deviceKey: writer.deviceKey } : {}),
-        };
-        currentSleepFragment = fragment;
-        acc.sleepFragments.push(fragment);
-        return;
-      }
-
-      const point = POINT_MAPPINGS[identifier];
-      if (point) {
-        if (!startDate) {
-          countSkip(payload, "measurements with an unreadable date");
-          return;
-        }
-        const raw = Number(attrs.value);
-        if (!Number.isFinite(raw)) {
-          countSkip(payload, "measurements with a non-numeric value");
-          return;
-        }
-        const converted = point.convert(raw, attrs.unit ?? "");
-        if (converted === null) {
-          countSkipWithExample(
-            payload,
-            `measurements in a unit we do not recognize`,
-            `${identifier} in "${attrs.unit ?? "(none)"}"`,
-          );
-          return;
-        }
-        if (!Number.isFinite(converted) || converted <= 0) {
-          countSkip(payload, "measurements outside a plausible range");
-          return;
-        }
-        const writer = writers.resolve(attrs);
-        const reading = {
-          type: point.type,
-          value: round(converted),
-          unit: POINT_MEASUREMENT_UNITS[point.type],
-          recorded_at: startDate,
-          source: writer.source,
-        } as HardSignalT;
-        attribute(payload, reading, writer);
-        payload.inputReceipts.set(reading, {
-          input_timestamp: appleTimestampReceipt(attrs.startDate!),
-          input_value: raw,
-          ...(attrs.unit === undefined
-            ? { input_unit_missing_reason: "not_provided_by_source" }
-            : { input_unit: attrs.unit }),
-        });
-        currentPointSignal = reading;
-        acc.points.push(reading);
-        return;
-      }
-
-      const series = SERIES_MAPPINGS[identifier];
-      if (series) {
-        if (!startDate) {
-          countSkip(payload, "series samples with an unreadable date");
-          return;
-        }
-        const raw = Number(attrs.value);
-        if (!Number.isFinite(raw)) {
-          countSkip(payload, "series samples with a non-numeric value");
-          return;
-        }
-        const value = series.convert(raw, attrs.unit ?? "");
-        if (value === null) {
-          countSkipWithExample(
-            payload,
-            `series samples in a unit we do not recognize`,
-            `${identifier} in "${attrs.unit ?? "(none)"}"`,
-          );
-          return;
-        }
-        const source = writers.resolve(attrs).source;
-        const key = `${series.quantity}|${source}`;
-        const bucket =
-          acc.series.get(key) ?? { quantity: series.quantity, source, byDay: new Map<string, Sample[]>() };
-        const day = localDay(startDate);
-        const samples = bucket.byDay.get(day) ?? [];
-
-        // A sample that covers a span keeps its length: "420 steps from 9:00 to 9:05"
-        // is a rate only if the five minutes survive. An instant reading has none.
-        const durationMs = endDate ? Date.parse(endDate) - Date.parse(startDate) : 0;
-        const sample: Sample = {
-          at: startDate,
-          value: roundSample(value),
-          ...(durationMs > 0 ? { durationMs } : {}),
-          inputTimestampText: attrs.startDate!,
-          ...(
-            /(Z|[+-]\d{2}:?\d{2})$/i.exec(attrs.startDate!.trim())?.[1] ===
-            undefined
-              ? {}
-              : {
-                  inputUtcOffsetText:
-                    /(Z|[+-]\d{2}:?\d{2})$/i.exec(
-                      attrs.startDate!.trim(),
-                    )![1],
-                }
-          ),
-          inputUtcOffsetMeaning: "meaning_not_documented",
-          inputTimestampBasis: "source_offset_timestamp",
-          inputValue: raw,
-          ...(attrs.unit === undefined ? {} : { inputUnit: attrs.unit }),
-        };
-        currentSeriesSample = sample;
-        samples.push(sample);
-        bucket.byDay.set(day, samples);
-        acc.series.set(key, bucket);
-
-        // An SDNN record may carry the beats it was computed from. Its end time comes
-        // along because the window is what places each beat's clock.
-        if (series.quantity === "hrv_sdnn") {
-          currentBeatWindow = {
-            recordedAt: startDate,
-            inputRecordedAt: attrs.startDate!,
-            endsAt: endDate,
-            beats: [],
-            source,
-          };
-        }
-        return;
-      }
-
-      if (rawType) countSkip(payload, `unmapped HealthKit type: ${identifier || rawType}`);
-    }
-
-    stream.pipe(parser as unknown as NodeJS.WritableStream);
-  });
-}
-
-function round(n: number): number {
-  return Math.round(n * 100) / 100;
-}
-
-/**
- * Series samples keep three decimals, which is what Apple writes. A calorie sample
- * every three seconds is about 0.5 kcal, and rounding each to two places drifted a
- * run's total by half a kilocalorie over 891 samples. Rounding exists only to remove
- * float noise from unit conversion, so it stops one place past the source's precision.
- */
-function roundSample(n: number): number {
-  return Math.round(n * 1000) / 1000;
 }
 
 /**
@@ -1106,9 +459,9 @@ async function attachRouteSplits(
     const workoutStart = Date.parse(workout.start);
     const workoutEnd = Date.parse(workout.end);
 
-    const route = summaries.find((r) => {
-      const routeStart = Date.parse(r.start);
-      const routeEnd = Date.parse(r.end);
+    const route = summaries.find((item) => {
+      const routeStart = Date.parse(item.start);
+      const routeEnd = Date.parse(item.end);
       return routeStart < workoutEnd && routeEnd > workoutStart;
     });
     if (!route) continue;
@@ -1131,11 +484,8 @@ async function attachRouteSplits(
 /**
  * Read the ECG recordings and derive an RMSSD from each.
  *
- * These land under their own source, not the one the rest of the export uses. The
- * watch measures beats optically all day and electrically only during an ECG, and the
- * electrical figure is the reference standard while the optical one carries roughly
- * 29% error. Pooling them would bury exactly the comparison that makes these
- * recordings worth reading (D31, D37).
+ * These land under their own source. The watch measures beats optically all day
+ * and electrically only during an ECG, and those two figures are not pooled.
  */
 async function importEcgs(
   detected: DetectedExport,
@@ -1150,15 +500,13 @@ async function importEcgs(
   progress.finish();
   if (files.size === 0) return;
 
-  // Created only once a recording exists, so a wearer who has never taken an ECG
-  // gets no empty source.
   const ecgSourceId = sources.forWriter({ writer: "Apple Watch", vendor: "apple", sensor: "ecg" });
   const beatsByDay = new Map<string, Sample[]>();
 
   for (const [name, text] of files) {
     const parsed = parseEcgCsv(text);
     if ("kind" in parsed) {
-      countSkipWithExample(payload, `ECG recordings we could not read`, `${basename(name)}: ${parsed.detail}`);
+      countSkipWithExample(payload, "ECG recordings we could not read", `${basename(name)}: ${parsed.detail}`);
       continue;
     }
 
@@ -1172,10 +520,9 @@ async function importEcgs(
       continue;
     }
 
-    const day = localDay(beats.recordedAt);
+    const day = beats.recordedAt.slice(0, 10);
     const samples = beatsByDay.get(day) ?? [];
     const startMs = Date.parse(beats.recordedAt);
-    // The first beat has no preceding interval, so intervals line up from the second.
     for (let i = 1; i < beats.offsetsMs.length; i++) {
       samples.push({
         at: atOffsetOf(beats.recordedAt, startMs + beats.offsetsMs[i]!),
@@ -1210,7 +557,16 @@ async function importEcgs(
       },
     } as HardSignalT;
     payload.inputReceipts.set(derivedReading, {
-      input_timestamp: appleTimestampReceipt(beats.recordedAt),
+      input_timestamp: {
+        timestamp_text: beats.recordedAt,
+        timestamp_basis: "source_offset_timestamp",
+        ...(/(Z|[+-]\d{2}:?\d{2})$/i.exec(beats.recordedAt.trim())?.[1] === undefined
+          ? { utc_offset_missing_reason: "not_provided_by_source" as const }
+          : {
+              utc_offset_text: /(Z|[+-]\d{2}:?\d{2})$/i.exec(beats.recordedAt.trim())![1],
+              utc_offset_meaning: "meaning_not_documented" as const,
+            }),
+      },
       input_value_missing_reason: "not_applicable",
       input_unit_missing_reason: "not_applicable",
     });
@@ -1223,118 +579,14 @@ async function importEcgs(
   }
 }
 
-/**
- * Apple writes sleep as many overlapping stage records. Cluster them into nights,
- * then total the stages inside each.
- *
- * Clustered per writer. A watch and a ring both recording one night are two
- * observations of it, not one, and folding their stages together would produce a
- * night nobody measured (D31, D45).
- */
-export function buildSleepSessions(
-  fragments: SleepFragment[],
-  payload?: ImportPayload,
-): HardSignalT[] {
-  const bySource = new Map<string, SleepFragment[]>();
-  for (const f of fragments) bySource.set(f.source, [...(bySource.get(f.source) ?? []), f]);
-  return [...bySource].flatMap(([sourceId, own]) => clusterNights(own, sourceId, payload));
-}
+function atOffsetOf(reference: string, instantMs: number): string {
+  const rounded = Math.round(instantMs);
+  const offset = /([+-]\d{2}:\d{2})$/.exec(reference)?.[1];
+  if (!offset) return new Date(rounded).toISOString();
 
-function clusterNights(
-  fragments: SleepFragment[],
-  sourceId: string,
-  payload?: ImportPayload,
-): HardSignalT[] {
-  if (fragments.length === 0) return [];
-
-  const sorted = [...fragments].sort((a, b) => Date.parse(a.start) - Date.parse(b.start));
-  const clusters: SleepFragment[][] = [];
-  let current: SleepFragment[] = [sorted[0]!];
-  let clusterEnd = Date.parse(sorted[0]!.end);
-
-  for (const fragment of sorted.slice(1)) {
-    const startMs = Date.parse(fragment.start);
-    if (startMs - clusterEnd > SLEEP_GAP_MS) {
-      clusters.push(current);
-      current = [fragment];
-      clusterEnd = Date.parse(fragment.end);
-      continue;
-    }
-    current.push(fragment);
-    clusterEnd = Math.max(clusterEnd, Date.parse(fragment.end));
-  }
-  clusters.push(current);
-
-  return clusters.flatMap((cluster) => {
-    const startFragment = cluster.reduce((a, f) =>
-      Date.parse(f.start) < Date.parse(a.start) ? f : a,
-    );
-    const endFragment = cluster.reduce((a, f) =>
-      Date.parse(f.end) > Date.parse(a.end) ? f : a,
-    );
-    const start = startFragment.start;
-    const end = endFragment.end;
-    if (Date.parse(end) <= Date.parse(start)) return [];
-
-    const seconds = (f: SleepFragment) => (Date.parse(f.end) - Date.parse(f.start)) / 1000;
-    let inBed = 0;
-    let asleep = 0;
-    let deep = 0;
-    let rem = 0;
-    let light = 0;
-    let awake = 0;
-    let interruptions = 0;
-
-    for (const f of cluster) {
-      const s = seconds(f);
-      if (f.value === "HKCategoryValueSleepAnalysisInBed") inBed += s;
-      else if (f.value === "HKCategoryValueSleepAnalysisAwake") {
-        awake += s;
-        interruptions++;
-      } else if (SLEEP_ASLEEP_VALUES.has(f.value)) {
-        asleep += s;
-        if (f.value === "HKCategoryValueSleepAnalysisAsleepDeep") deep += s;
-        else if (f.value === "HKCategoryValueSleepAnalysisAsleepREM") rem += s;
-        else if (f.value === "HKCategoryValueSleepAnalysisAsleepCore") light += s;
-      }
-    }
-
-    const aggregates: Record<string, number> = {};
-    if (asleep > 0) aggregates.duration_s = Math.round(asleep);
-    if (inBed > 0) aggregates.time_in_bed_s = Math.round(inBed);
-    if (deep > 0) aggregates.deep_s = Math.round(deep);
-    if (rem > 0) aggregates.rem_s = Math.round(rem);
-    if (light > 0) aggregates.light_s = Math.round(light);
-    if (awake > 0) aggregates.awake_s = Math.round(awake);
-    if (interruptions > 0) aggregates.interruptions = interruptions;
-    if (inBed > 0 && asleep > 0) {
-      aggregates.efficiency_pct = Math.min(100, Math.round((asleep / inBed) * 1000) / 10);
-    }
-
-    const night = {
-      type: "sleep_session",
-      start,
-      end,
-      source: sourceId,
-      aggregates: aggregates as never,
-    } as HardSignalT;
-
-    // A night is assembled from many stage records, so it belongs to whichever device
-    // wrote the first of them. A night split across two devices is rare enough, and
-    // shallow enough a miss, that counting it twice would be the worse answer.
-    const deviceKey = cluster.find((f) => f.deviceKey)?.deviceKey;
-    if (payload && deviceKey) payload.deviceOf.set(night, deviceKey);
-    payload?.inputReceipts.set(night, {
-      input_start_timestamp: appleTimestampReceipt(
-        startFragment.inputStart,
-        startFragment.sourceTimeZone,
-      ),
-      input_end_timestamp: appleTimestampReceipt(
-        endFragment.inputEnd,
-        endFragment.sourceTimeZone,
-      ),
-    });
-
-    return [night];
-  });
+  const sign = offset.startsWith("-") ? -1 : 1;
+  const [oh, om] = offset.slice(1).split(":").map(Number);
+  const offsetMs = sign * ((oh! * 60 + om!) * 60_000);
+  const shifted = new Date(rounded + offsetMs).toISOString();
+  return `${shifted.slice(0, 23)}${offset}`;
 }

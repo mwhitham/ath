@@ -46,6 +46,13 @@ activity files named there. The question of whether Strava's terms allow that
 use is not decided. The pages are listed in
 [appendix/garmin-and-strava.md](appendix/garmin-and-strava.md).
 
+Apple Health import reads `export.xml`. That reader runs in `ath-core`
+(D173). A row whose writer is `Health` or `Manual` is hand-entered and uses
+the manual source. Heart-rate variability from Apple is SDNN (`hrv_sdnn`).
+RMSSD (`hrv_rmssd`) is computed from the beats on that record and stored as
+its own reading. Sleep from two writers stays two sessions. Timestamps keep
+the offset written in the export.
+
 When two devices describe the same activity, both records are kept. A
 calculation uses one record. Run it again with the other record to see which
 fields it read. Do not add the two records together.
@@ -75,12 +82,13 @@ stores keys, and calls a language model. The published field list stays in
 `src/v1/schema.ts`.
 
 Record writes, corrections, deletions, and provider-import writes run in
-`ath-core` (D162). WHOOP and Oura CSV reading run there too (D162, D163). The
-eight range calculations run there, from skill files. Garmin and Strava imports
-and one-record calculation files run there. Checks, the upgrade command, package
-import and export, and erasure still run in TypeScript. Apple Health still runs
-in TypeScript. D155 said those pieces move after the same tests pass in Rust.
-That wait is not finished for the pieces still in TypeScript.
+`ath-core` (D162). WHOOP and Oura CSV reading run there too (D162, D163).
+The eight range calculations run there, from skill files. Garmin and Strava
+imports and one-record calculation files run there. Checks, the upgrade
+command, package import and export, and erasure still run in TypeScript.
+The command-line front end stays in TypeScript (D174). D155 said a piece
+moves after the same tests pass in Rust. D173 says that wait is no longer
+required, because the work is built agentically. The tests still have to pass.
 
 The iPhone app is not in this version. Nothing in this build can run it. Two
 programs share one file: `ath` and `ath-core`. The npm package includes a
@@ -115,11 +123,12 @@ npm publish athleticstandard-2.0.0.tgz
 The `2.0.0` in the filename is the version in `package.json` (D171).
 `npm publish` and `pnpm publish` with no file argument are refused.
 
-`pnpm test` includes the shared-file example. Rust tests check the zone
-arithmetic, a FIT record point, the Garmin token request against a local
+`pnpm test` includes the shared-file example and a comparison of the Apple
+Health import with the output of the previous importer. Rust tests check the
+zone arithmetic, a FIT record point, the Garmin token request against a local
 server, GPX sample times, a WHOOP row, an Oura row with a fractional-second
-offset, a record write, and a baseline. There is no check that only a Mac can
-run.
+offset, an Apple Health export, a record write, and a baseline. There is no
+check that only a Mac can run.
 
 ## Order that landed
 
@@ -133,3 +142,6 @@ run.
    yet repeated that work. WHOOP and Oura reading were already in this
    repository before this version. They now run in the Rust library, and the
    tests have to show the same records, including sleep sessions and timestamps.
+8. Apple Health `export.xml` in `ath-core`. The comparison test checks the
+   records, sleep sessions, timestamps, and offsets against the previous
+   importer. The command-line front end stays in TypeScript (D174).

@@ -415,3 +415,36 @@ Rejected alternatives:
   that peak is not the athlete's known maximum.
 - Store Garmin `maxHR` in `maximum_heart_rate_bpm`. Rejected because the
   zone calculation would then divide by that workout's own peak.
+
+## D173. The wait before a Rust move is no longer required
+
+D155 said a piece that TypeScript already tested moves only after the same
+tests pass in Rust. Mike said that wait is no longer required, because this
+work is built agentically. The tests still have to pass. A move that fails
+them does not land. D155 is not rewritten.
+
+Apple Health `export.xml` is read by `ath-core` under that rule. The
+command-line tool still assigns the source id. A writer named `Health` or
+`Manual` stays on the manual source. `hrv_sdnn` and `hrv_rmssd` stay
+separate. Sleep from two writers stays two sessions, and the timestamps keep
+the export's offset. The existing Apple tests, the Rust tests, and a
+comparison with the previous importer's output pass. Route GPX files and ECG
+CSVs are still read by the TypeScript wrapper, which calls the readers those
+files already had.
+
+Rejected alternatives:
+
+- Wait until a person has re-run the Apple tests by hand. Rejected because
+  Mike said the agentic build does not wait for that.
+- Edit D155. Rejected because that decision is not rewritten. This one cites it.
+
+## D174. The command-line front end stays in TypeScript
+
+The `ath` command, its help, skill install, key storage, and language-model
+calls stay in TypeScript for the foreseeable future. They are not moved to
+`ath-core`.
+
+Rejected alternatives:
+
+- Move the command parser into `ath-core` in this version. Rejected because
+  the front end is the part a person reads, and this version does not move it.

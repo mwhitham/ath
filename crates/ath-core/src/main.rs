@@ -5,6 +5,7 @@ use std::path::PathBuf;
 
 use serde_json::{json, Value};
 
+use ath_core::apple;
 use ath_core::calc::{parse_skill, run_skill};
 use ath_core::garmin::import_garmin;
 use ath_core::personal::pull_garmin;
@@ -29,6 +30,7 @@ fn main() {
         "calculate-range" => calculate_range(&collect(args)),
         "import-whoop" => import_whoop_command(),
         "import-oura" => import_named(oura::import_oura),
+        "import-apple" => import_apple_command(),
         _ => Err("commands: show, revise, calculate, import-garmin, import-strava, pull-garmin, persist".into()),
     };
     match result {
@@ -117,6 +119,15 @@ fn import_named(run: fn(&serde_json::Map<String, Value>, &str) -> Value) -> Resu
     let files = body.get("files").and_then(Value::as_object).cloned().ok_or("import needs files")?;
     let source_id = body.get("source_id").and_then(Value::as_str).unwrap_or("");
     Ok(run(&files, source_id))
+}
+
+fn import_apple_command() -> Result<Value, String> {
+    let mut input = String::new();
+    io::stdin().read_to_string(&mut input).map_err(|error| error.to_string())?;
+    let body: Value = serde_json::from_str(&input).map_err(|error| error.to_string())?;
+    let path = body.get("xml_path").and_then(Value::as_str).ok_or("import-apple needs xml_path")?;
+    let entry = body.get("zip_entry").and_then(Value::as_str).filter(|entry| !entry.is_empty());
+    apple::import_apple(path, entry)
 }
 
 fn import_whoop_command() -> Result<Value, String> {

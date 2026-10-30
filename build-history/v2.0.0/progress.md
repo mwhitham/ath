@@ -12,6 +12,7 @@
 | 8 | Linux checks: `pnpm` checks and `cargo test` | done |
 | 9 | Record writes, the eight range calculations, and WHOOP and Oura CSV reading in `ath-core` | done |
 | 10 | The npm package includes `ath-core`, and the installed package can init, log, import, and apply | done |
+| 11 | Apple Health `export.xml` in `ath-core`, matching the previous importer | done |
 
 Already done before this version: the safe upgrade command from pull request 21,
 Apple Health, and the contribution notes that were already merged. Pull request
@@ -26,7 +27,9 @@ is left out (D169). The release workflow stages the binaries, packs the tarball 
 `npm publish athleticstandard-2.0.0.tgz` (D170, D171). A correction keeps a
 17-digit number the same in the revision and the typed rows.
 `maximum_heart_rate_bpm` is the athlete's known maximum. Garmin `maxHR` is
-a `max_heart_rate` provider summary (D172).
+a `max_heart_rate` provider summary (D172). Apple Health `export.xml` is
+read in `ath-core` (D173). The command-line front end stays in TypeScript
+(D174).
 
 Later, with the reason:
 
@@ -34,8 +37,10 @@ Later, with the reason:
 - Strava's online connection. The bulk download is the path in this version,
   and the permissions question is still open.
 - Android app. This version has the command-line tool.
-- Apple Health, package import, checks, the upgrade, export, and erasure.
-  They stay in TypeScript until the same tests pass in `ath-core` (D155, D162).
+- Package import, checks, the upgrade, export, and erasure. D155 said those
+  pieces move after the same tests pass in `ath-core`. D173 says that wait is
+  no longer required. The tests still have to pass. The command-line front
+  end stays in TypeScript (D174).
 - A pull from Open Wearables or Junction, and the mapping file a new source
   uses. D161 records the rule. The study is
   [appendix/source-formats.md](appendix/source-formats.md). The pull is not

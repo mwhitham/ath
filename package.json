@@ -82,14 +82,12 @@
     "@libsql/client": "^0.18.0",
     "commander": "^15.0.0",
     "papaparse": "^5.7.0",
-    "sax": "^1.6.1",
     "yauzl": "^3.4.0",
     "zod": "^4.5.2"
   },
   "devDependencies": {
     "@types/node": "^26.4.0",
     "@types/papaparse": "^5.5.2",
-    "@types/sax": "^1.2.7",
     "@types/yauzl": "^3.4.0",
     "@types/yazl": "^3.3.1",
     "tsup": "^8.5.1",
