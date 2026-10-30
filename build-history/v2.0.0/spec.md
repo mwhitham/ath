@@ -53,6 +53,14 @@ RMSSD (`hrv_rmssd`) is computed from the beats on that record and stored as
 its own reading. Sleep from two writers stays two sessions. Timestamps keep
 the offset written in the export.
 
+A `WorkoutRoute` inside a workout stores each `Location` as a point on that
+workout's `route`: time, latitude, and longitude, the same fields a GPX
+route stores (D175). Any other attribute on that `Location` stays in
+`supplied_fields` under the name it arrived with. A point with no usable
+time, or a position outside the latitude and longitude limits, is left out.
+The preview counts it. A `WorkoutRoute` with no `Location` points is counted
+too.
+
 When two devices describe the same activity, both records are kept. A
 calculation uses one record. Run it again with the other record to see which
 fields it read. Do not add the two records together.

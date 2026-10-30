@@ -235,6 +235,12 @@ interface AppleEvent {
   end?: string;
   aggregates?: Record<string, unknown>;
   segments?: Array<{ label: string; duration_s?: number; distance_m?: number }>;
+  route?: Array<{
+    recorded_at: string;
+    latitude_deg: number;
+    longitude_deg: number;
+    supplied_fields?: Record<string, string>;
+  }>;
   summaries?: Array<Omit<ImportPayload["providerSummaries"][number], "source">>;
 }
 
@@ -369,6 +375,7 @@ export async function importAppleHealth(
         source: writer.source,
         aggregates: event.aggregates,
         ...(event.segments && event.segments.length > 0 ? { segments: event.segments } : {}),
+        ...(event.route && event.route.length > 0 ? { route: event.route } : {}),
       } as HardSignalT;
       attribute(payload, session, writer);
       payload.inputReceipts.set(session, event.receipt);

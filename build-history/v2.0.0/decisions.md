@@ -448,3 +448,27 @@ Rejected alternatives:
 
 - Move the command parser into `ath-core` in this version. Rejected because
   the front end is the part a person reads, and this version does not move it.
+
+## D175. An inline WorkoutRoute is the workout's route
+
+Apple's `export.xml` can put a `WorkoutRoute` inside a `Workout`. Each
+`Location` in it is stored on that workout as `route`. The stored point has
+`recorded_at`, `latitude_deg`, and `longitude_deg`, the same fields a GPX
+route stores. Any other attribute on the `Location` stays in
+`supplied_fields` under the name it arrived with.
+
+A `Location` with no usable time, or a latitude or longitude outside its
+limits, is not stored. The preview counts it, and the count is the skipped
+list. A `WorkoutRoute` with no `Location` points is counted the same way.
+Nothing from that element is dropped without a trace.
+
+A GPX file in `workout-routes/` is still read as splits and elevation. This
+decision is the list of points inside `export.xml`.
+
+Rejected alternatives:
+
+- Count the inline route as skipped and store nothing. Rejected because the
+  record has a place for a route of timed points, and these points are that
+  route.
+- Drop a point that cannot be stored and leave the preview unchanged.
+  Rejected because the import result has to name what it did not keep.

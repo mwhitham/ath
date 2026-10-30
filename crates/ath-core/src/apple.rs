@@ -102,6 +102,8 @@ struct State {
     examples: Map<String, Value>,
     pending: Option<Pending>,
     workout: Option<WorkoutBuild>,
+    /// A WorkoutRoute that is not inside a workout. Its locations are not a route.
+    orphan_route: bool,
 }
 
 impl State {
@@ -113,6 +115,8 @@ impl State {
             }
             "ActivitySummary" => self.add_activity(attrs),
             "Workout" => self.open_workout(attrs),
+            "WorkoutRoute" => self.open_route(),
+            "Location" => self.add_location(&attrs),
             "WorkoutEvent" => self.add_lap(&attrs),
             "MetadataEntry" => self.add_metadata(&attrs),
             "InstantaneousBeatsPerMinute" => self.add_beat(&attrs),
@@ -126,6 +130,9 @@ impl State {
             if let Some(pending) = self.pending.take() {
                 self.commit_record(pending);
             }
+        }
+        if name == "WorkoutRoute" {
+            self.close_route();
         }
         if name == "Workout" {
             if let Some(workout) = self.workout.take() {
@@ -433,8 +440,71 @@ impl State {
             aggregates,
             input_summaries,
             segments: Vec::new(),
+            route: Vec::new(),
+            in_route: false,
+            location_count: 0,
             source_time_zone: None,
         });
+    }
+
+    fn open_route(&mut self) {
+        if self.workout.is_none() {
+            self.orphan_route = true;
+            self.bump(
+                "inline WorkoutRoute outside a workout",
+                Some("WorkoutRoute".into()),
+                1,
+            );
+            return;
+        }
+        if let Some(workout) = self.workout.as_mut() {
+            workout.in_route = true;
+            workout.location_count = 0;
+        }
+    }
+
+    fn close_route(&mut self) {
+        if self.orphan_route {
+            self.orphan_route = false;
+            return;
+        }
+        let (empty, example) = match self.workout.as_mut() {
+            Some(workout) if workout.in_route => {
+                let empty = workout.location_count == 0;
+                let example = format!("workout from \"{}\"", workout.input_start);
+                workout.in_route = false;
+                workout.location_count = 0;
+                (empty, example)
+            }
+            _ => return,
+        };
+        if empty {
+            self.bump(
+                "inline WorkoutRoute had no location points",
+                Some(example),
+                1,
+            );
+        }
+    }
+
+    fn add_location(&mut self, attrs: &HashMap<String, String>) {
+        let in_route = self.workout.as_ref().is_some_and(|workout| workout.in_route);
+        if !in_route {
+            return;
+        }
+        if let Some(workout) = self.workout.as_mut() {
+            workout.location_count += 1;
+        }
+        match location_point(attrs) {
+            Ok(point) => {
+                if let Some(workout) = self.workout.as_mut() {
+                    workout.route.push(point);
+                }
+            }
+            Err(example) => {
+                self.bump("inline WorkoutRoute points we could not store", Some(example), 1);
+            }
+        }
     }
 
     fn add_lap(&mut self, attrs: &HashMap<String, String>) {
@@ -682,6 +752,9 @@ struct WorkoutBuild {
     aggregates: Map<String, Value>,
     input_summaries: Map<String, Value>,
     segments: Vec<Value>,
+    route: Vec<Value>,
+    in_route: bool,
+    location_count: usize,
     source_time_zone: Option<String>,
 }
 
@@ -697,6 +770,9 @@ impl WorkoutBuild {
         event.insert("aggregates".into(), Value::Object(self.aggregates));
         if !self.segments.is_empty() {
             event.insert("segments".into(), Value::Array(self.segments));
+        }
+        if !self.route.is_empty() {
+            event.insert("route".into(), Value::Array(self.route));
         }
         let mut receipt = Map::new();
         receipt.insert(
@@ -1165,6 +1241,57 @@ fn to_percent(value: f64, unit: &str) -> Option<f64> {
     } else {
         None
     }
+}
+
+fn location_point(attrs: &HashMap<String, String>) -> Result<Value, String> {
+    let date_raw = attrs.get("date").map(|value| value.trim()).unwrap_or("");
+    let shown = if date_raw.is_empty() { "(none)" } else { date_raw };
+    let Some(parsed) = parse_apple_date(date_raw) else {
+        return Err(format!("Location date \"{shown}\""));
+    };
+    let Some(millis) = epoch_ms(&parsed) else {
+        return Err(format!("Location date \"{shown}\""));
+    };
+    let latitude = match coordinate(attrs, "latitude", -90.0, 90.0) {
+        Ok(value) => value,
+        Err(error) => return Err(error),
+    };
+    let longitude = match coordinate(attrs, "longitude", -180.0, 180.0) {
+        Ok(value) => value,
+        Err(error) => return Err(error),
+    };
+    let mut point = Map::new();
+    point.insert("recorded_at".into(), json!(crate::time::format_millis(millis)));
+    point.insert("latitude_deg".into(), num(latitude));
+    point.insert("longitude_deg".into(), num(longitude));
+    let mut extra = Map::new();
+    let mut keys: Vec<&String> = attrs
+        .keys()
+        .filter(|key| !matches!(key.as_str(), "date" | "latitude" | "longitude"))
+        .collect();
+    keys.sort();
+    for key in keys {
+        let Some(value) = attrs.get(key) else { continue };
+        if value.is_empty() {
+            continue;
+        }
+        extra.insert(key.clone(), json!(value));
+    }
+    if !extra.is_empty() {
+        point.insert("supplied_fields".into(), Value::Object(extra));
+    }
+    Ok(Value::Object(point))
+}
+
+fn coordinate(attrs: &HashMap<String, String>, name: &str, low: f64, high: f64) -> Result<f64, String> {
+    let raw = attrs.get(name).map(String::as_str).unwrap_or("(none)");
+    let Some(value) = attrs.get(name).and_then(|text| parse_f64(text)) else {
+        return Err(format!("Location {name} \"{raw}\""));
+    };
+    if !(low..=high).contains(&value) {
+        return Err(format!("Location {name} \"{raw}\" is outside {low} to {high}"));
+    }
+    Ok(value)
 }
 
 fn parse_f64(raw: &str) -> Option<f64> {
@@ -1692,5 +1819,33 @@ mod tests {
         assert_eq!(sessions.len(), 2);
         assert_eq!(sessions[0]["writer"], "Health");
         assert_eq!(sessions[1]["writer"], "Apple Watch");
+    }
+
+    #[test]
+    fn an_inline_workout_route_is_stored_and_a_bad_point_is_counted() {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../tests/fixtures/exports/apple-inline-route/export.xml");
+        let xml = fs::read_to_string(path).unwrap();
+        let parsed = import_apple_str(&xml).unwrap();
+        let workouts: Vec<&serde_json::Value> = parsed["events"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter(|event| event["kind"] == "workout")
+            .collect();
+        assert_eq!(workouts.len(), 2);
+        let route = workouts[0]["route"].as_array().unwrap();
+        assert_eq!(route.len(), 2);
+        assert_eq!(route[0]["recorded_at"], "2026-06-14T13:01:00.000Z");
+        assert_eq!(route[0]["latitude_deg"], 40.25);
+        assert_eq!(route[0]["longitude_deg"], -88.5);
+        assert_eq!(route[0]["supplied_fields"]["altitude"], "200");
+        assert!(workouts[1].get("route").is_none());
+        assert_eq!(parsed["skipped"]["inline WorkoutRoute points we could not store"], 2);
+        assert_eq!(parsed["skipped"]["inline WorkoutRoute had no location points"], 1);
+        let example = parsed["skip_examples"]["inline WorkoutRoute points we could not store"]
+            .as_str()
+            .unwrap();
+        assert!(example.contains("latitude"));
     }
 }

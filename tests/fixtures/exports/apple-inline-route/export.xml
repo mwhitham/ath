@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<HealthData locale="en_US">
+ <Workout workoutActivityType="HKWorkoutActivityTypeRunning" duration="30" durationUnit="min" sourceName="Apple Watch" startDate="2026-06-14 08:00:00 -0500" endDate="2026-06-14 08:30:00 -0500">
+  <WorkoutRoute>
+   <Location date="2026-06-14 08:01:00 -0500" latitude="40.25" longitude="-88.50" altitude="200"/>
+   <Location date="2026-06-14 08:02:00 -0500" latitude="40.26" longitude="-88.51" altitude="201"/>
+   <Location date="2026-06-14 08:03:00 -0500" latitude="120" longitude="-88.52" altitude="202"/>
+   <Location latitude="40.27" longitude="-88.53" altitude="203"/>
+  </WorkoutRoute>
+ </Workout>
+ <Workout workoutActivityType="HKWorkoutActivityTypeWalking" duration="10" durationUnit="min" sourceName="Apple Watch" startDate="2026-06-14 09:00:00 -0500" endDate="2026-06-14 09:10:00 -0500">
+  <WorkoutRoute sourceName="Apple Watch"/>
+ </Workout>
+</HealthData>

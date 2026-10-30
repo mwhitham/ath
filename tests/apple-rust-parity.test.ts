@@ -8,7 +8,8 @@ import type { SourceT } from "../src/schema.js";
 /**
  * Captured from the TypeScript Apple importer before that reader moved into
  * ath-core. Source ids are names, not generated ids. The Rust reader has to
- * match this output.
+ * match this output. This export has no inline WorkoutRoute, so the snapshot
+ * does not change when those points are stored. That case is a separate fixture.
  */
 const expected = JSON.parse(
   readFileSync(resolve(import.meta.dirname, "fixtures/apple-rust-parity.json"), "utf8"),

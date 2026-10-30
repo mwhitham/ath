@@ -29,7 +29,8 @@ is left out (D169). The release workflow stages the binaries, packs the tarball 
 `maximum_heart_rate_bpm` is the athlete's known maximum. Garmin `maxHR` is
 a `max_heart_rate` provider summary (D172). Apple Health `export.xml` is
 read in `ath-core` (D173). The command-line front end stays in TypeScript
-(D174).
+(D174). An inline `WorkoutRoute` is stored as the workout's route. A
+location that cannot be stored is named in the preview (D175).
 
 Later, with the reason:
 

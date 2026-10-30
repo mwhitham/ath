@@ -462,6 +462,34 @@ function draftKey(
   };
 }
 
+function workoutRoute(signal: HardSignalT): { route: Array<{
+  recorded_at: string;
+  latitude_deg: number;
+  longitude_deg: number;
+  supplied_fields?: Record<string, unknown>;
+}> } | Record<string, never> {
+  const route = (signal as { route?: unknown }).route;
+  if (!Array.isArray(route) || route.length === 0) return {};
+  return {
+    route: route.map((point) => {
+      const item = point as {
+        recorded_at: string;
+        latitude_deg: number;
+        longitude_deg: number;
+        supplied_fields?: Record<string, unknown>;
+      };
+      return {
+        recorded_at: normalizedUtc(item.recorded_at),
+        latitude_deg: item.latitude_deg,
+        longitude_deg: item.longitude_deg,
+        ...(item.supplied_fields === undefined
+          ? {}
+          : { supplied_fields: item.supplied_fields }),
+      };
+    }),
+  };
+}
+
 function hardSignalDraft(
   parsed: ParsedProviderExport,
   signal: HardSignalT,
@@ -558,6 +586,7 @@ function hardSignalDraft(
                 }),
               })),
             }),
+        ...workoutRoute(signal),
       },
       match_key_method: method,
       ...key,
