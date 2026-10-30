@@ -35,8 +35,9 @@ offset. The route element's own fields stay in `supplied_fields`. A
 location that cannot be stored is named in the preview (D175). An Apple
 `export.zip` whose entry is named `export.xml` is still an Apple import.
 A referenced GPX file has to sit in that export's `workout-routes/` folder
-and overlap the workout, or the preview names it and the points are not
-stored (D176).
+and overlap the workout, or the preview names it once and the points are
+not stored (D176). Two such files on one workout are both stored when
+each one overlaps. A bare `export.xml` does not read sibling folders.
 
 Later, with the reason:
 

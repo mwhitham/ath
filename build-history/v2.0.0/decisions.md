@@ -493,12 +493,20 @@ route.
 The GPX is stored only when its times overlap the workout. If they do not,
 the preview names the file and the points are not stored. A GPX time with
 no UTC offset is not a usable time, because reading it would use the
-machine's time zone. One file is stored on one workout. A second workout
-that names the same file is counted and named, and does not receive the
-points again.
-
-A file stored this way is not also counted as a route with no workout in
+machine's time zone. A file whose points are all unusable is counted once,
+as that file, not once per point and again as a route with no workout in
 the same window.
+
+One file is stored on one workout. A second workout that names the same
+file is counted and named, and does not receive the points again. One
+workout may name two files. Each file is checked on its own. When both
+overlap the workout, their points are both stored, the second file's
+points after the first.
+
+A file this step has already handled is not counted again. That includes a
+file that was stored, a file outside the workout's time, a file already
+stored on another workout, and a file with no usable points. The splits
+pass does not call the same file a route with no workout in the same window.
 
 A zip is an Apple export when an entry's basename is `export.xml`, or the
 path contains `apple_health_export/`. A name that only ends with those

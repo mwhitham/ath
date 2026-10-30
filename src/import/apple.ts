@@ -467,58 +467,66 @@ async function attachReferencedRoutes(
   const files = await appleRouteFiles(detected);
   const root = await exportRoot(detected);
   const storedOn = new Map<string, string>();
-  const attached = new Set<string>();
+  const handled = new Set<string>();
   for (const workout of workouts) {
     if (workout.type !== "workout_session") continue;
     const holder = workout as HardSignalT & {
       route?: RoutePointImport[];
       file_references?: string[];
     };
+    // Inline Location points are already the route. A named file is not added on top.
     if ((holder.route?.length ?? 0) > 0) continue;
     for (const reference of holder.file_references ?? []) {
+      const shown = referenceExample(reference);
       const found = routeFile(files, reference, root);
       if (found === undefined) {
         countSkipWithExample(
           payload,
           "workout route file named by a WorkoutRoute was not in the export",
-          reference,
+          shown,
         );
         continue;
       }
       const [name, text] = found;
-      const previous = storedOn.get(name);
-      if (previous !== undefined) {
+      if (storedOn.has(name)) {
         countSkipWithExample(
           payload,
           "workout route file is already stored on another workout",
-          reference,
+          shown,
         );
+        handled.add(name);
         continue;
       }
       const built = routeFromGpx(text);
+      // A file with no usable point is one skip. The same file is not counted again
+      // for each point, and the splits pass does not count it a second time.
       if (built.points.length === 0) {
-        for (const example of built.skipped) {
-          countSkipWithExample(payload, "GPX route points we could not store", example);
-        }
+        countSkipWithExample(payload, "workout route file had no usable points", shown);
+        handled.add(name);
         continue;
       }
       if (!routeOverlapsWorkout(workout.start, workout.end, built.points)) {
         countSkipWithExample(
           payload,
           "workout route file is outside the workout's time",
-          reference,
+          shown,
         );
+        handled.add(name);
         continue;
       }
       for (const example of built.skipped) {
-        countSkipWithExample(payload, "GPX route points we could not store", example);
+        countSkipWithExample(payload, "GPX route points we could not store", `${shown}: ${example}`);
       }
-      holder.route = built.points;
+      holder.route = [...(holder.route ?? []), ...built.points];
       storedOn.set(name, workout.start);
-      attached.add(name);
+      handled.add(name);
     }
   }
-  return attached;
+  return handled;
+}
+
+function referenceExample(reference: string): string {
+  return reference.replaceAll("\\", "/").replace(/^\/+/, "");
 }
 
 /** Folder that holds export.xml. A bare export.xml uses the folder it sits in. */

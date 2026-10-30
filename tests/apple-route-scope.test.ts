@@ -42,10 +42,14 @@ function workoutXml(reference: string): string {
 }
 
 function gpx(lat: string, lon: string): string {
+  return gpxAt(lat, lon, "2026-06-14T08:01:00-05:00", "2026-06-14T08:02:00-05:00");
+}
+
+function gpxAt(lat: string, lon: string, first: string, second: string): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
 <gpx version="1.1"><trk><trkseg>
- <trkpt lat="${lat}" lon="${lon}"><time>2026-06-14T08:01:00-05:00</time></trkpt>
- <trkpt lat="${lat}" lon="${lon}"><time>2026-06-14T08:02:00-05:00</time></trkpt>
+ <trkpt lat="${lat}" lon="${lon}"><time>${first}</time></trkpt>
+ <trkpt lat="${lat}" lon="${lon}"><time>${second}</time></trkpt>
 </trkseg></trk></gpx>
 `;
 }
@@ -58,15 +62,16 @@ describe("a FileReference route stays inside the export and the workout", () => 
     });
     expect(preview.skipped["workout route file is outside the workout's time"]).toEqual({
       count: 1,
-      example: "/workout-routes/route_2026-07-01.gpx",
+      example: "workout-routes/route_2026-07-01.gpx",
     });
     expect(preview.skipped["workout route file is already stored on another workout"]).toEqual({
       count: 1,
-      example: "/workout-routes/route_2026-08-02.gpx",
+      example: "workout-routes/route_2026-08-02.gpx",
     });
     expect(preview.skipped["GPX route points we could not store"]).toMatchObject({
       count: 1,
     });
+    expect(preview.skipped["workout routes with no workout in the same window"]).toBeUndefined();
     await importProviderRecords(db, preview);
     const workouts = await listRecords(db, { record_type: "workout_session", limit: 10 });
     const june = workouts.find(
@@ -93,10 +98,13 @@ describe("a FileReference route stays inside the export and the workout", () => 
     writeFileSync(join(directory, "workout-routes", "near.gpx"), gpx("16.5", "60.5"));
     mkdirSync(join(directory, "other", "workout-routes"), { recursive: true });
     writeFileSync(join(directory, "other", "workout-routes", "near.gpx"), gpx("17.5", "61.5"));
+    mkdirSync(join(directory, "other", "electrocardiograms"), { recursive: true });
+    writeFileSync(join(directory, "other", "electrocardiograms", "ecg_2026-06-14.csv"), "not an ecg\n");
     const db = await database();
     const preview = await previewProviderImport(db, join(directory, "export.xml"), {
       received_at: "2026-10-13T12:00:00.000Z",
     });
+    expect(preview.skipped["ECG recordings we could not read"]).toBeUndefined();
     await importProviderRecords(db, preview);
     const workouts = await listRecords(db, { record_type: "workout_session", limit: 5 });
     const run = workouts.find((record) => record.record_type === "workout_session");
@@ -115,8 +123,45 @@ describe("a FileReference route stays inside the export and the workout", () => 
     });
     expect(preview.skipped["workout route file named by a WorkoutRoute was not in the export"]).toEqual({
       count: 1,
-      example: "/workout-routes/missing.gpx",
+      example: "workout-routes/missing.gpx",
     });
+  });
+
+  it("stores both FileReference files when each one overlaps the workout", async () => {
+    const directory = mkdtempSync(join(tmpdir(), "ath-two-routes-"));
+    mkdirSync(join(directory, "workout-routes"));
+    writeFileSync(
+      join(directory, "export.xml"),
+      `<?xml version="1.0" encoding="UTF-8"?>
+<HealthData>
+ <Workout workoutActivityType="HKWorkoutActivityTypeRunning" duration="40" durationUnit="min" sourceName="Apple Watch" startDate="2026-09-03 09:00:00 -0500" endDate="2026-09-03 09:40:00 -0500">
+  <WorkoutRoute sourceName="Demo Phone">
+   <FileReference path="/workout-routes/first.gpx"/>
+  </WorkoutRoute>
+  <WorkoutRoute sourceName="Demo Phone">
+   <FileReference path="/workout-routes/second.gpx"/>
+  </WorkoutRoute>
+ </Workout>
+</HealthData>
+`,
+    );
+    writeFileSync(join(directory, "workout-routes", "first.gpx"), gpxAt("18.5", "62.5", "2026-09-03T09:01:00-05:00", "2026-09-03T09:02:00-05:00"));
+    writeFileSync(join(directory, "workout-routes", "second.gpx"), gpxAt("18.75", "62.75", "2026-09-03T09:10:00-05:00", "2026-09-03T09:11:00-05:00"));
+    const db = await database();
+    const preview = await previewProviderImport(db, join(directory, "export.xml"), {
+      received_at: "2026-10-13T12:00:00.000Z",
+    });
+    expect(preview.skipped["workout route file is already stored on another workout"]).toBeUndefined();
+    expect(preview.skipped["workout routes with no workout in the same window"]).toBeUndefined();
+    await importProviderRecords(db, preview);
+    const workouts = await listRecords(db, { record_type: "workout_session", limit: 5 });
+    const run = workouts.find((record) => record.record_type === "workout_session");
+    expect(run?.record_type === "workout_session" && run.data.route).toEqual([
+      expect.objectContaining({ latitude_deg: 18.5, longitude_deg: 62.5 }),
+      expect.objectContaining({ latitude_deg: 18.5, longitude_deg: 62.5 }),
+      expect.objectContaining({ latitude_deg: 18.75, longitude_deg: 62.75 }),
+      expect.objectContaining({ latitude_deg: 18.75, longitude_deg: 62.75 }),
+    ]);
   });
 
   it("does not treat a zip entry named settings_export.xml as Apple Health", async () => {
