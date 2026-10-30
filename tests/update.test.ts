@@ -261,7 +261,7 @@ describe("runUpdate", () => {
     expect(out.lines.join("\n")).toContain("ahead of the published 0.4.2");
   });
 
-  it("replaces a skill that is already in the folder you ran it from", async () => {
+  it("replaces an older tool skill when this copy is current", async () => {
     const dir = mkdtempSync(join(tmpdir(), "ath-update-"));
     mkdirSync(join(dir, ".cursor"));
     installSkill(dir);
@@ -279,12 +279,9 @@ describe("runUpdate", () => {
       ...out,
     });
     expect(code).toBe(0);
-    expect(skillVersion(join(dir, ALWAYS_DIR, "skills", SKILL_NAME))).toBe(ATH_PACKAGE_VERSION);
-    expect(skillVersion(join(dir, ".cursor", "skills", SKILL_NAME))).toBe(ATH_PACKAGE_VERSION);
-    expect(out.lines.join("\n")).toContain(skillUpdateLine(dir, [
-      join(dir, ALWAYS_DIR, "skills", SKILL_NAME),
-      join(dir, ".cursor", "skills", SKILL_NAME),
-    ]));
+    expect(skillVersion(join(dir, ALWAYS_DIR, "skills", SKILL_NAME))).toBe(ATHLETIC_STANDARD_VERSION);
+    expect(skillVersion(join(dir, ".cursor", "skills", SKILL_NAME))).toBe(ATHLETIC_STANDARD_VERSION);
+    expect(out.lines.join("\n")).toContain("updated the skill");
   });
 
   it("leaves the folder alone when no skill is there", async () => {
@@ -310,7 +307,7 @@ describe("runUpdate", () => {
     expect(existsSync(join(dir, ".cursor", "skills"))).toBe(false);
   });
 
-  it("replaces the skill from an npx launch without installing a global copy", async () => {
+  it("replaces an older tool skill from an npx launch", async () => {
     const dir = mkdtempSync(join(tmpdir(), "ath-update-"));
     installSkill(dir);
     ageCopy(dir, ALWAYS_DIR, "0.0.1");
@@ -325,8 +322,8 @@ describe("runUpdate", () => {
       ...out,
     });
     expect(code).toBe(0);
-    expect(skillVersion(join(dir, ALWAYS_DIR, "skills", SKILL_NAME))).toBe(ATH_PACKAGE_VERSION);
-    expect(out.lines.join("\n")).toContain("updated the skill in");
+    expect(skillVersion(join(dir, ALWAYS_DIR, "skills", SKILL_NAME))).toBe(ATHLETIC_STANDARD_VERSION);
+    expect(out.lines.join("\n")).toContain("updated the skill");
   });
 });
 

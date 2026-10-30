@@ -1,0 +1,20 @@
+[package]
+name = "ath-core"
+version = "2.0.0"
+edition = "2021"
+description = "Shared Athletic Standard library for storage, imports, and calculations"
+license = "MIT"
+
+[[bin]]
+name = "ath-core"
+path = "src/main.rs"
+
+[dependencies]
+chrono = { version = "0.4", default-features = false, features = ["clock", "std"] }
+chrono-tz = "0.10"
+quick-xml = "0.37"
+rusqlite = { version = "0.32", features = ["bundled"] }
+serde_json = { version = "1", features = ["preserve_order", "float_roundtrip"] }
+ureq = "2.12"
+uuid = { version = "1", features = ["v7"] }
+zip = "2.2"

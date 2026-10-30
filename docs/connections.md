@@ -74,7 +74,7 @@ Sources: openwearables.io Oura blog + provider quirks; api-evangelist Oura OpenA
 - **The catch:** Garmin's Health API requires **developer program application and approval** — not self-service. This makes bring-your-own-credentials harder for individuals than WHOOP/Oura.
 - **Export reality:** Garmin Connect offers a full account data export (GDPR-style, includes FIT files and wellness data) — clunky but complete. FIT files carry the richest workout telemetry of any source (per-second GPS/HR — where run splits and HYROX station analysis would come from).
 - **Open Wearables status:** the deepest OW integration — webhook-only (16 data types), 24/7 timeseries including HRV, backfill orchestration to 5 years.
-- **Athletic Standard handling:** v1 = none dedicated (Garmin wearers can use the Apple Health export for workouts/sleep, accepting the HRV gap). Roadmap = FIT importer (also serves HYROX/run segment analysis) and the OW connector for those with API approval. Honest advice: Garmin is our weakest automated story today.
+- **Athletic Standard handling:** version 2.0.0 reads Garmin account JSON, GPX, and FIT record points, and can pull one day from the personal connection. An Open Wearables pull is not built. Garmin HRV that the file does not name as RMSSD or SDNN stays under the name it arrived with.
 
 Sources: openwearables.io provider quirks; sensai.fit Apple Health sync comparison; Garmin developer program docs.
 
@@ -96,6 +96,12 @@ Sources: openwearables.io provider quirks; sensai.fit Apple Health sync comparis
 
 ## Open Wearables (the aggregator option)
 
+The field comparison with Junction and Athletic Standard, and the mapping-file
+rule, are in
+[build-history/v2.0.0/appendix/source-formats.md](../build-history/v2.0.0/appendix/source-formats.md)
+(D161). Their summary names do not map one-to-one onto our fields. A generic
+HRV name is not stored as RMSSD.
+
 - **What it is:** MIT-licensed self-hosted server (Docker: FastAPI + PostgreSQL + Redis). Solves OAuth flows, webhooks, polling, canonical units, dedup across all providers above plus Polar, Suunto, Fitbit, Strava, Ultrahuman, Health Connect.
 - **What it costs the user:** running Docker on an always-on machine + registering their own developer app per provider (free, but a real step; Garmin additionally needs approval). No subscriptions anywhere.
 - **What it uniquely enables:** multi-provider users (e.g. WHOOP + Garmin watch), continuous background sync, Android/Health Connect, and provider-specific extras (body battery, stress).
@@ -112,10 +118,10 @@ By device, best-first:
 | **Apple Watch** | Health app → Export All Health Data → `ath import export.zip` (RMSSD included, derived from the beat lists) | the Athletic Standard iOS app (v2) | — (Apple Health is complete for you) |
 | **WHOOP** | WHOOP app → Data Export → `ath import whoop.csv` | OW connector or direct API pull | relying on Apple Health — you'd lose HRV, recovery, strain |
 | **Oura** | web dashboard → export → `ath import oura.csv` | direct pull with a personal access token (no OAuth app needed) or OW | relying on Apple Health — you'd lose HRV, RHR, readiness |
-| **Garmin** | Apple Health export for workouts/sleep (accept the HRV gap) | FIT importer; OW if you have API approval | expecting HRV via Apple Health |
+| **Garmin** | Account export, GPX, and FIT files | One-day personal pull is in 2.0.0. An Open Wearables pull is not built | expecting unnamed HRV to be RMSSD |
 | **Multiple devices** | import each export; dedup handles overlap | Open Wearables (built for exactly this) | mixing SDNN and RMSSD baselines (Athletic Standard prevents this by typing them separately) |
 
-Universal advice, stated in the README: a CSV or zip export has the data you need and costs nothing to set up. Connecting an API later is easier, not richer. (Garmin excepted, where the export path has a real HRV gap until the FIT importer ships.)
+Universal advice, stated in the README: a CSV or zip export has the data you need and costs nothing to set up. Connecting an API later is easier, not richer. Garmin HRV that the file does not name as RMSSD or SDNN stays under that name.
 
 ## How this maps to the build
 
@@ -123,5 +129,5 @@ Universal advice, stated in the README: a CSV or zip export has the data you nee
 |---|---|---|
 | 1 (v0.2.0) | Importers: Apple Health export.zip, WHOOP CSV, Oura CSV | ✅ shipped |
 | 2 (fast-follow) | `ath pull`: Oura personal-token pull (easiest), OW connector (multi-provider), WHOOP direct | designed-for (source kinds + dedup already in the spec) |
-| 2.5 (roadmap) | Garmin FIT importer | roadmap |
+| 2.0.0 | Garmin account JSON, GPX, FIT record points, and a one-day personal pull | shipped |
 | 3 (v2) | iOS companion app for Apple Watch users | v2 flagship |

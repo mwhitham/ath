@@ -1,10 +1,16 @@
-# Athletic Standard Format Specification v1.0.0
+# Athletic Standard Format Specification v2.0.0
 
-**Status:** public v1 format
+**Status:** current format
 **Live local file:** `athlete.ath.sqlite`
 **Portable package:** `athlete.ath.json` plus generated files
 **Normative schemas:** [`src/v1/schema.ts`](src/v1/schema.ts)
-**Generated JSON Schemas:** [`schema/1.0.0/`](schema/1.0.0/)
+**Generated JSON Schemas:** [`schema/2.0.0/`](schema/2.0.0/)
+
+Version 2.0.0 adds workout names, descriptions, text results, heart-rate
+samples, strength sets, route points, and `supplied_fields` for names the
+software does not understand yet. A version 1.0.0 database upgrades with
+`ath migrate`. The behavior is in
+[`build-history/v2.0.0/spec.md`](build-history/v2.0.0/spec.md).
 
 Athletic Standard is an open, local-first record for one athlete's training and
 recovery data. SQLite is the sole live local record. JSON is an explicit, complete
@@ -925,9 +931,9 @@ Validation refuses:
 
 The generated JSON Schemas give exhaustive object validation:
 
-- [`schema/1.0.0/athleticstandard.schema.json`](schema/1.0.0/athleticstandard.schema.json)
-- [`schema/1.0.0/measurement-series.schema.json`](schema/1.0.0/measurement-series.schema.json)
-- [`schema/1.0.0/export-manifest.schema.json`](schema/1.0.0/export-manifest.schema.json)
+- [`schema/2.0.0/athleticstandard.schema.json`](schema/2.0.0/athleticstandard.schema.json)
+- [`schema/2.0.0/measurement-series.schema.json`](schema/2.0.0/measurement-series.schema.json)
+- [`schema/2.0.0/export-manifest.schema.json`](schema/2.0.0/export-manifest.schema.json)
 
 ## 9. Source separation and the two-tier wall
 
