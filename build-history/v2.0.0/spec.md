@@ -62,10 +62,15 @@ element's own attributes, including its source and dates, and its
 `WorkoutRoute`. A point with no usable time, or a position outside the
 latitude and longitude limits, is left out, and the preview counts it. A
 `WorkoutRoute` is counted as empty only when it has neither a `Location`
-nor a `FileReference`. A `FileReference` names a GPX file, and that file's
-points are the workout's route. The preview says how many route points
-were stored. An Apple `export.zip` that contains `export.xml` is an Apple
-export even when it also contains GPX files.
+nor a `FileReference`. A `FileReference` names a GPX file under the
+export's own `workout-routes/` folder (D176). A bare `export.xml` reads
+only that folder next to the file. The file is stored when its times
+overlap the workout. Otherwise the preview names it and the points are
+not stored. A GPX time with no UTC offset is not a usable time. One file
+is stored on one workout. A second workout that names it is counted. The
+preview says how many route points were stored. An Apple `export.zip` is
+one whose entry basename is `export.xml`, or whose path contains
+`apple_health_export/`, even when it also contains GPX files.
 
 When two devices describe the same activity, both records are kept. A
 calculation uses one record. Run it again with the other record to see which
@@ -159,3 +164,5 @@ check that only a Mac can run.
 8. Apple Health `export.xml` in `ath-core`. The comparison test checks the
    records, sleep sessions, timestamps, and offsets against the previous
    importer. The command-line front end stays in TypeScript (D174).
+9. A `FileReference` route is read from that export's `workout-routes/`
+   folder, and only when its times overlap the workout (D176).

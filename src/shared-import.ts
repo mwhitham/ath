@@ -41,7 +41,8 @@ function detectNames(names: string[]): SharedImport | null {
   // Those GPX files are part of the Apple export, not a Garmin activity file.
   if (
     lower.some(
-      (name) => name.endsWith("export.xml") || name.includes("apple_health_export/"),
+      (name) =>
+        name.split("/").pop() === "export.xml" || name.includes("apple_health_export/"),
     )
   ) {
     return null;

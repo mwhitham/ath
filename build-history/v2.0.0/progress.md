@@ -33,7 +33,10 @@ read in `ath-core` (D173). The command-line front end stays in TypeScript
 `FileReference` GPX file is that route too. Each point keeps its UTC
 offset. The route element's own fields stay in `supplied_fields`. A
 location that cannot be stored is named in the preview (D175). An Apple
-`export.zip` that also contains GPX files is still an Apple import.
+`export.zip` whose entry is named `export.xml` is still an Apple import.
+A referenced GPX file has to sit in that export's `workout-routes/` folder
+and overlap the workout, or the preview names it and the points are not
+stored (D176).
 
 Later, with the reason:
 

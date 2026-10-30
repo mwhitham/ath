@@ -467,8 +467,9 @@ A `Location` with no usable time, or a latitude or longitude outside its
 limits, is not stored. The preview counts it. A `WorkoutRoute` is counted
 as having no location points only when it has neither a `Location` nor a
 `FileReference`. A `FileReference` names a GPX file. That file's points are
-this workout's route, matched by the path, and each point keeps the offset
-written in the file. The preview says how many route points were stored.
+this workout's route when D176's path and time rules are met, and each
+point keeps the offset written in the file. The preview says how many
+route points were stored.
 A GPX file in `workout-routes/` is still also read as splits and elevation.
 
 Rejected alternatives:
@@ -481,3 +482,33 @@ Rejected alternatives:
   GPX file.
 - Drop a point that cannot be stored and leave the preview unchanged.
   Rejected because the import result has to name what it did not keep.
+
+## D176. A referenced route file stays inside the export and the workout
+
+A `FileReference` path is resolved against the export's own root. That root
+is the folder that holds `export.xml`. A bare `export.xml` reads only
+`workout-routes/` next to the file. A file in another folder is not this
+route.
+
+The GPX is stored only when its times overlap the workout. If they do not,
+the preview names the file and the points are not stored. A GPX time with
+no UTC offset is not a usable time, because reading it would use the
+machine's time zone. One file is stored on one workout. A second workout
+that names the same file is counted and named, and does not receive the
+points again.
+
+A file stored this way is not also counted as a route with no workout in
+the same window.
+
+A zip is an Apple export when an entry's basename is `export.xml`, or the
+path contains `apple_health_export/`. A name that only ends with those
+letters is not enough.
+
+Rejected alternatives:
+
+- Match the path by suffix anywhere under the parent folder. Rejected
+  because a sibling folder's file would become this export's route.
+- Store the file even when its times are outside the workout. Rejected
+  because the points would describe a different day.
+- Attach the same file to every workout that names it and say nothing.
+  Rejected because the preview would hide that one file was used twice.

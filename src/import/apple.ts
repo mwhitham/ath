@@ -25,7 +25,7 @@ import {
 } from "./merge.js";
 import { beatsFromEcg, parseEcgCsv } from "./ecg.js";
 import { parseGpx, summarizeRoute, type RouteSummary } from "./routes.js";
-import { isEcgEntry, isRouteEntry, readEntries, type DetectedExport } from "./detect.js";
+import { isEcgEntry, listEntries, readEntries, type DetectedExport } from "./detect.js";
 import { MAX_ZIP_ENTRY_BYTES, openZip, zipEntryNames } from "./zip.js";
 
 function attribute(payload: ImportPayload, signal: HardSignalT, writer: Writer): void {
@@ -408,8 +408,8 @@ export async function importAppleHealth(
   }
 
   payload.hardSignals.push(...points);
-  await attachReferencedRoutes(detected, workouts, payload);
-  await attachRouteSplits(detected, workouts, payload, progress);
+  const attachedRoutes = await attachReferencedRoutes(detected, workouts, payload);
+  await attachRouteSplits(detected, workouts, payload, progress, attachedRoutes);
   payload.hardSignals.push(...workouts);
   for (const session of raw.sleep_sessions) {
     const writer = writers.resolve(session.writer, session.device_raw, "");
@@ -463,9 +463,11 @@ async function attachReferencedRoutes(
   detected: DetectedExport,
   workouts: HardSignalT[],
   payload: ImportPayload,
-): Promise<void> {
-  const files = await readEntries(detected, isRouteEntry);
-  if (files.size === 0) return;
+): Promise<Set<string>> {
+  const files = await appleRouteFiles(detected);
+  const root = await exportRoot(detected);
+  const storedOn = new Map<string, string>();
+  const attached = new Set<string>();
   for (const workout of workouts) {
     if (workout.type !== "workout_session") continue;
     const holder = workout as HardSignalT & {
@@ -474,8 +476,8 @@ async function attachReferencedRoutes(
     };
     if ((holder.route?.length ?? 0) > 0) continue;
     for (const reference of holder.file_references ?? []) {
-      const text = gpxText(files, reference);
-      if (text === undefined) {
+      const found = routeFile(files, reference, root);
+      if (found === undefined) {
         countSkipWithExample(
           payload,
           "workout route file named by a WorkoutRoute was not in the export",
@@ -483,24 +485,96 @@ async function attachReferencedRoutes(
         );
         continue;
       }
+      const [name, text] = found;
+      const previous = storedOn.get(name);
+      if (previous !== undefined) {
+        countSkipWithExample(
+          payload,
+          "workout route file is already stored on another workout",
+          reference,
+        );
+        continue;
+      }
       const built = routeFromGpx(text);
+      if (built.points.length === 0) {
+        for (const example of built.skipped) {
+          countSkipWithExample(payload, "GPX route points we could not store", example);
+        }
+        continue;
+      }
+      if (!routeOverlapsWorkout(workout.start, workout.end, built.points)) {
+        countSkipWithExample(
+          payload,
+          "workout route file is outside the workout's time",
+          reference,
+        );
+        continue;
+      }
       for (const example of built.skipped) {
         countSkipWithExample(payload, "GPX route points we could not store", example);
       }
-      if (built.points.length > 0) holder.route = [...(holder.route ?? []), ...built.points];
+      holder.route = built.points;
+      storedOn.set(name, workout.start);
+      attached.add(name);
     }
   }
+  return attached;
 }
 
-function gpxText(files: Map<string, string>, reference: string): string | undefined {
-  const wanted = reference.replaceAll("\\", "/").replace(/^\/+/, "").toLowerCase();
+/** Folder that holds export.xml. A bare export.xml uses the folder it sits in. */
+async function exportRoot(detected: DetectedExport): Promise<string> {
+  if (detected.container === "file") return "";
+  const xml = (await listEntries(detected))
+    .map((name) => name.replaceAll("\\", "/"))
+    .filter((name) => name.split("/").pop()?.toLowerCase() === "export.xml")
+    .sort((left, right) => left.length - right.length)[0];
+  if (xml === undefined || !xml.includes("/")) return "";
+  return xml.slice(0, xml.lastIndexOf("/"));
+}
+
+/**
+ * Route files that belong to this export.
+ *
+ * A bare export.xml reads only `workout-routes/` next to the file. A folder or
+ * zip reads only `workout-routes/` next to its export.xml, not a sibling folder.
+ */
+async function appleRouteFiles(detected: DetectedExport): Promise<Map<string, string>> {
+  const root = await exportRoot(detected);
+  const prefix = `${root ? `${root}/` : ""}workout-routes/`;
+  return readEntries(detected, (name) => {
+    const entry = name.replaceAll("\\", "/");
+    const lower = entry.toLowerCase();
+    return (
+      lower.startsWith(prefix.toLowerCase()) &&
+      !lower.slice(prefix.length).includes("/") &&
+      lower.endsWith(".gpx")
+    );
+  });
+}
+
+function routeFile(
+  files: Map<string, string>,
+  reference: string,
+  root: string,
+): [string, string] | undefined {
+  const relative = reference.replaceAll("\\", "/").replace(/^\/+/, "");
+  const wanted = (root ? `${root}/${relative}` : relative).toLowerCase();
   for (const [name, text] of files) {
-    const entry = name.replaceAll("\\", "/").replace(/^\/+/, "").toLowerCase();
-    if (entry === wanted || entry.endsWith(`/${wanted}`) || wanted.endsWith(`/${entry}`)) {
-      return text;
-    }
+    if (name.replaceAll("\\", "/").toLowerCase() === wanted) return [name, text];
   }
   return undefined;
+}
+
+function routeOverlapsWorkout(start: string, end: string, points: RoutePointImport[]): boolean {
+  const workoutStart = Date.parse(start);
+  const workoutEnd = Date.parse(end);
+  const times = points
+    .map((point) => Date.parse(point.recorded_at))
+    .filter((time) => !Number.isNaN(time));
+  if (times.length === 0 || Number.isNaN(workoutStart) || Number.isNaN(workoutEnd)) return false;
+  const routeStart = Math.min(...times);
+  const routeEnd = Math.max(...times);
+  return routeStart < workoutEnd && routeEnd > workoutStart;
 }
 
 function routeFromGpx(text: string): { points: RoutePointImport[]; skipped: string[] } {
@@ -516,7 +590,8 @@ function routeFromGpx(text: string): { points: RoutePointImport[]; skipped: stri
     const latitude = Number(/\blat\s*=\s*"([^"]+)"/.exec(attrs)?.[1]);
     const longitude = Number(/\blon\s*=\s*"([^"]+)"/.exec(attrs)?.[1]);
     const at = /<time>([^<]+)<\/time>/.exec(body)?.[1]?.trim();
-    if (!at || Number.isNaN(Date.parse(at))) {
+    const instant = at === undefined ? undefined : routeInstant(at);
+    if (instant === undefined) {
       skipped.push(`track point ${index} had no usable time`);
       continue;
     }
@@ -530,7 +605,7 @@ function routeFromGpx(text: string): { points: RoutePointImport[]; skipped: stri
     }
     const elevation = /<ele>([^<]+)<\/ele>/.exec(body)?.[1]?.trim();
     points.push({
-      ...routeInstant(at),
+      ...instant,
       latitude_deg: latitude,
       longitude_deg: longitude,
       ...(elevation === undefined || elevation === "" ? {} : { supplied_fields: { ele: elevation } }),
@@ -539,19 +614,17 @@ function routeFromGpx(text: string): { points: RoutePointImport[]; skipped: stri
   return { points, skipped };
 }
 
-function routeInstant(raw: string): Pick<RoutePointImport, "recorded_at" | "input_timestamp"> {
+function routeInstant(raw: string): Pick<RoutePointImport, "recorded_at" | "input_timestamp"> | undefined {
   const offset = /(Z|[+-]\d{2}:?\d{2})$/i.exec(raw.trim())?.[1];
+  // A time with no offset would be read in the machine's zone. That is not the source time.
+  if (offset === undefined || Number.isNaN(Date.parse(raw))) return undefined;
   return {
     recorded_at: new Date(Date.parse(raw)).toISOString(),
     input_timestamp: {
       timestamp_text: raw,
       timestamp_basis: "source_offset_timestamp",
-      ...(offset === undefined
-        ? { utc_offset_missing_reason: "not_provided_by_source" as const }
-        : {
-            utc_offset_text: offset,
-            utc_offset_meaning: "meaning_not_documented" as const,
-          }),
+      utc_offset_text: offset,
+      utc_offset_meaning: "meaning_not_documented",
     },
   };
 }
@@ -561,25 +634,25 @@ async function attachRouteSplits(
   workouts: HardSignalT[],
   payload: ImportPayload,
   progress: Progress,
+  attached: Set<string>,
 ): Promise<void> {
-  const files = await readEntries(detected, isRouteEntry, (done, total) => {
-    if (done === 1) progress.start("reading workout routes", total);
-    progress.update(done);
-  });
+  const files = await appleRouteFiles(detected);
   progress.finish();
   if (files.size === 0) return;
 
-  const summaries: RouteSummary[] = [];
+  const summaries: Array<RouteSummary & { name: string; attached: boolean }> = [];
   for (const [name, text] of files) {
     const summary = summarizeRoute(parseGpx(text));
     if (!summary) {
-      countSkipWithExample(payload, "workout routes with too few track points", name);
+      if (!attached.has(name)) {
+        countSkipWithExample(payload, "workout routes with too few track points", name);
+      }
       continue;
     }
-    summaries.push(summary);
+    summaries.push({ ...summary, name, attached: attached.has(name) });
   }
 
-  let matched = 0;
+  const matched = new Set<string>();
   for (const workout of workouts) {
     if (workout.type !== "workout_session") continue;
     const workoutStart = Date.parse(workout.start);
@@ -592,7 +665,7 @@ async function attachRouteSplits(
     });
     if (!route) continue;
 
-    matched++;
+    matched.add(route.name);
     if (route.elevationGainM > 0) {
       (workout.aggregates as Record<string, number>).elevation_gain_m = route.elevationGainM;
     }
@@ -601,7 +674,7 @@ async function attachRouteSplits(
     }
   }
 
-  const unmatched = summaries.length - matched;
+  const unmatched = summaries.filter((item) => !matched.has(item.name) && !item.attached).length;
   if (unmatched > 0) {
     countSkip(payload, "workout routes with no workout in the same window", unmatched);
   }
