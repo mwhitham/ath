@@ -36,7 +36,16 @@ export async function detectSharedImport(path: string): Promise<SharedImport | n
 }
 
 function detectNames(names: string[]): SharedImport | null {
-  const lower = names.map((name) => name.toLowerCase());
+  const lower = names.map((name) => name.replaceAll("\\", "/").toLowerCase());
+  // An Apple export.zip carries workout-routes/*.gpx beside export.xml.
+  // Those GPX files are part of the Apple export, not a Garmin activity file.
+  if (
+    lower.some(
+      (name) => name.endsWith("export.xml") || name.includes("apple_health_export/"),
+    )
+  ) {
+    return null;
+  }
   if (lower.some((name) => name.endsWith("activities.csv"))) return "strava";
   if (
     lower.some(

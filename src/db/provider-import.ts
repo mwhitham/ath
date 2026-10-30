@@ -462,31 +462,47 @@ function draftKey(
   };
 }
 
-function workoutRoute(signal: HardSignalT): { route: Array<{
-  recorded_at: string;
-  latitude_deg: number;
-  longitude_deg: number;
+function workoutRoute(signal: HardSignalT): {
+  route?: Array<{
+    recorded_at: string;
+    latitude_deg: number;
+    longitude_deg: number;
+    input_timestamp?: Record<string, unknown>;
+    supplied_fields?: Record<string, unknown>;
+  }>;
   supplied_fields?: Record<string, unknown>;
-}> } | Record<string, never> {
-  const route = (signal as { route?: unknown }).route;
-  if (!Array.isArray(route) || route.length === 0) return {};
+} {
+  const holder = signal as {
+    route?: unknown;
+    supplied_fields?: Record<string, unknown>;
+  };
+  const route = Array.isArray(holder.route)
+    ? holder.route.map((point) => {
+        const item = point as {
+          recorded_at: string;
+          latitude_deg: number;
+          longitude_deg: number;
+          input_timestamp?: Record<string, unknown>;
+          supplied_fields?: Record<string, unknown>;
+        };
+        return {
+          recorded_at: normalizedUtc(item.recorded_at),
+          latitude_deg: item.latitude_deg,
+          longitude_deg: item.longitude_deg,
+          ...(item.input_timestamp === undefined
+            ? {}
+            : { input_timestamp: item.input_timestamp }),
+          ...(item.supplied_fields === undefined
+            ? {}
+            : { supplied_fields: item.supplied_fields }),
+        };
+      })
+    : undefined;
   return {
-    route: route.map((point) => {
-      const item = point as {
-        recorded_at: string;
-        latitude_deg: number;
-        longitude_deg: number;
-        supplied_fields?: Record<string, unknown>;
-      };
-      return {
-        recorded_at: normalizedUtc(item.recorded_at),
-        latitude_deg: item.latitude_deg,
-        longitude_deg: item.longitude_deg,
-        ...(item.supplied_fields === undefined
-          ? {}
-          : { supplied_fields: item.supplied_fields }),
-      };
-    }),
+    ...(route === undefined || route.length === 0 ? {} : { route }),
+    ...(holder.supplied_fields === undefined
+      ? {}
+      : { supplied_fields: holder.supplied_fields }),
   };
 }
 

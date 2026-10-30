@@ -453,22 +453,31 @@ Rejected alternatives:
 
 Apple's `export.xml` can put a `WorkoutRoute` inside a `Workout`. Each
 `Location` in it is stored on that workout as `route`. The stored point has
-`recorded_at`, `latitude_deg`, and `longitude_deg`, the same fields a GPX
-route stores. Any other attribute on the `Location` stays in
-`supplied_fields` under the name it arrived with.
+`recorded_at`, `latitude_deg`, and `longitude_deg`. `recorded_at` is the
+instant in UTC. The point also keeps the source's original time and UTC
+offset, the same way a record keeps `input_timestamp`. Any other attribute
+on the `Location` stays in that point's `supplied_fields` under the name it
+arrived with.
+
+The `WorkoutRoute` element's own attributes, including its source and dates,
+and its `MetadataEntry` children, are stored on the workout in
+`supplied_fields` under `WorkoutRoute`.
 
 A `Location` with no usable time, or a latitude or longitude outside its
-limits, is not stored. The preview counts it, and the count is the skipped
-list. A `WorkoutRoute` with no `Location` points is counted the same way.
-Nothing from that element is dropped without a trace.
-
-A GPX file in `workout-routes/` is still read as splits and elevation. This
-decision is the list of points inside `export.xml`.
+limits, is not stored. The preview counts it. A `WorkoutRoute` is counted
+as having no location points only when it has neither a `Location` nor a
+`FileReference`. A `FileReference` names a GPX file. That file's points are
+this workout's route, matched by the path, and each point keeps the offset
+written in the file. The preview says how many route points were stored.
+A GPX file in `workout-routes/` is still also read as splits and elevation.
 
 Rejected alternatives:
 
 - Count the inline route as skipped and store nothing. Rejected because the
   record has a place for a route of timed points, and these points are that
   route.
+- Count a `FileReference` route as having no location points. Rejected
+  because that is the usual Apple export, and the points are in the named
+  GPX file.
 - Drop a point that cannot be stored and leave the preview unchanged.
   Rejected because the import result has to name what it did not keep.

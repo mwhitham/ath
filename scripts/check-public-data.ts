@@ -38,7 +38,15 @@ const approvedSyntheticFixtures = new Map<string, string>([
   ],
   [
     "tests/fixtures/exports/apple-inline-route/export.xml",
-    "85725c3ff65817927010be8f78de58208e256541179e8d09aad146596d288173",
+    "71cede6f4c1d0cfc6ba6679dd13ecec0836bd0adc8987034081464bf225c8694",
+  ],
+  [
+    "tests/fixtures/exports/apple-file-reference/export.xml",
+    "0c70458d07b4e4488150cc21938dbc78aaef4e8750a39358970d429c8209bc4e",
+  ],
+  [
+    "tests/fixtures/exports/apple-file-reference/workout-routes/route_2026-06-14.gpx",
+    "4949d8e93334168e338c047326c5a92b306b91bfba0c9470ed9abbc112ed1783",
   ],
   [
     "tests/fixtures/exports/oura/oura_daily_readiness.csv",

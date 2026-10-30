@@ -26,6 +26,8 @@ validation-data/
 !examples/demo-athlete/athlete.ath.sqlite
 !tests/fixtures/exports/apple/export.xml
 !tests/fixtures/exports/apple-inline-route/export.xml
+!tests/fixtures/exports/apple-file-reference/export.xml
+!tests/fixtures/exports/apple-file-reference/workout-routes/route_2026-06-14.gpx
 !tests/fixtures/exports/apple/electrocardiograms/ecg_2026-08-07.csv
 !tests/fixtures/exports/apple/electrocardiograms/ecg_2026-08-09.csv
 !tests/fixtures/exports/apple/workout-routes/route_2026-08-09_7.00pm.gpx

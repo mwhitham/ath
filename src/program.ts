@@ -656,6 +656,7 @@ export function buildProgram(): Command {
             changed_records: preview.changed_records,
             conflicts: preview.conflicts,
             skipped: preview.skipped,
+            route_points_stored: storedRoutePoints(preview),
             write_confirmed: false,
           };
           if (opts.json) {
@@ -2385,6 +2386,15 @@ function parsePredictionResponse(content: string): Record<string, unknown> {
     throw new Error("model prediction response must be one JSON object");
   }
   return value as Record<string, unknown>;
+}
+
+function storedRoutePoints(preview: {
+  changes: ReadonlyArray<{ draft: { data: unknown } }>;
+}): number {
+  return preview.changes.reduce((sum, change) => {
+    const route = (change.draft.data as { route?: unknown }).route;
+    return sum + (Array.isArray(route) ? route.length : 0);
+  }, 0);
 }
 
 function isAthleticStandardPackagePath(path: string): boolean {

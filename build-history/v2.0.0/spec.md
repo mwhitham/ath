@@ -54,12 +54,18 @@ its own reading. Sleep from two writers stays two sessions. Timestamps keep
 the offset written in the export.
 
 A `WorkoutRoute` inside a workout stores each `Location` as a point on that
-workout's `route`: time, latitude, and longitude, the same fields a GPX
-route stores (D175). Any other attribute on that `Location` stays in
-`supplied_fields` under the name it arrived with. A point with no usable
-time, or a position outside the latitude and longitude limits, is left out.
-The preview counts it. A `WorkoutRoute` with no `Location` points is counted
-too.
+workout's `route`: UTC time, latitude, and longitude (D175). The point also
+keeps the source time and its UTC offset. Any other attribute on that
+`Location` stays in the point's `supplied_fields`. The `WorkoutRoute`
+element's own attributes, including its source and dates, and its
+`MetadataEntry` children, stay on the workout in `supplied_fields` under
+`WorkoutRoute`. A point with no usable time, or a position outside the
+latitude and longitude limits, is left out, and the preview counts it. A
+`WorkoutRoute` is counted as empty only when it has neither a `Location`
+nor a `FileReference`. A `FileReference` names a GPX file, and that file's
+points are the workout's route. The preview says how many route points
+were stored. An Apple `export.zip` that contains `export.xml` is an Apple
+export even when it also contains GPX files.
 
 When two devices describe the same activity, both records are kept. A
 calculation uses one record. Run it again with the other record to see which

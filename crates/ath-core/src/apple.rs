@@ -115,7 +115,8 @@ impl State {
             }
             "ActivitySummary" => self.add_activity(attrs),
             "Workout" => self.open_workout(attrs),
-            "WorkoutRoute" => self.open_route(),
+            "WorkoutRoute" => self.open_route(attrs),
+            "FileReference" => self.add_file_reference(&attrs),
             "Location" => self.add_location(&attrs),
             "WorkoutEvent" => self.add_lap(&attrs),
             "MetadataEntry" => self.add_metadata(&attrs),
@@ -441,13 +442,14 @@ impl State {
             input_summaries,
             segments: Vec::new(),
             route: Vec::new(),
+            route_notes: Vec::new(),
+            file_references: Vec::new(),
             in_route: false,
-            location_count: 0,
             source_time_zone: None,
         });
     }
 
-    fn open_route(&mut self) {
+    fn open_route(&mut self, attrs: HashMap<String, String>) {
         if self.workout.is_none() {
             self.orphan_route = true;
             self.bump(
@@ -459,7 +461,12 @@ impl State {
         }
         if let Some(workout) = self.workout.as_mut() {
             workout.in_route = true;
-            workout.location_count = 0;
+            workout.route_notes.push(RouteNote {
+                fields: sorted_attrs(&attrs),
+                metadata: Vec::new(),
+                file_reference: None,
+                location_count: 0,
+            });
         }
     }
 
@@ -470,10 +477,10 @@ impl State {
         }
         let (empty, example) = match self.workout.as_mut() {
             Some(workout) if workout.in_route => {
-                let empty = workout.location_count == 0;
+                let note = workout.route_notes.last();
+                let empty = note.is_some_and(|item| item.location_count == 0 && item.file_reference.is_none());
                 let example = format!("workout from \"{}\"", workout.input_start);
                 workout.in_route = false;
-                workout.location_count = 0;
                 (empty, example)
             }
             _ => return,
@@ -487,13 +494,27 @@ impl State {
         }
     }
 
+    fn add_file_reference(&mut self, attrs: &HashMap<String, String>) {
+        let Some(path) = attrs.get("path").map(|value| value.trim()).filter(|value| !value.is_empty()) else {
+            return;
+        };
+        let Some(workout) = self.workout.as_mut() else { return };
+        if !workout.in_route {
+            return;
+        }
+        if let Some(note) = workout.route_notes.last_mut() {
+            note.file_reference = Some(path.to_string());
+        }
+        workout.file_references.push(path.to_string());
+    }
+
     fn add_location(&mut self, attrs: &HashMap<String, String>) {
         let in_route = self.workout.as_ref().is_some_and(|workout| workout.in_route);
         if !in_route {
             return;
         }
-        if let Some(workout) = self.workout.as_mut() {
-            workout.location_count += 1;
+        if let Some(note) = self.workout.as_mut().and_then(|workout| workout.route_notes.last_mut()) {
+            note.location_count += 1;
         }
         match location_point(attrs) {
             Ok(point) => {
@@ -523,6 +544,22 @@ impl State {
     }
 
     fn add_metadata(&mut self, attrs: &HashMap<String, String>) {
+        if self.workout.as_ref().is_some_and(|workout| workout.in_route) {
+            let mut entry = Map::new();
+            if let Some(key) = attrs.get("key").filter(|value| !value.is_empty()) {
+                entry.insert("key".into(), json!(key));
+            }
+            if let Some(value) = attrs.get("value").filter(|value| !value.is_empty()) {
+                entry.insert("value".into(), json!(value));
+            }
+            if entry.is_empty() {
+                return;
+            }
+            if let Some(note) = self.workout.as_mut().and_then(|workout| workout.route_notes.last_mut()) {
+                note.metadata.push(Value::Object(entry));
+            }
+            return;
+        }
         if attrs.get("key").map(String::as_str) == Some("HKTimeZone") {
             if let Some(zone) = attrs.get("value").map(|value| value.trim()).filter(|value| !value.is_empty()) {
                 let zone = zone.to_string();
@@ -753,9 +790,17 @@ struct WorkoutBuild {
     input_summaries: Map<String, Value>,
     segments: Vec<Value>,
     route: Vec<Value>,
+    route_notes: Vec<RouteNote>,
+    file_references: Vec<String>,
     in_route: bool,
-    location_count: usize,
     source_time_zone: Option<String>,
+}
+
+struct RouteNote {
+    fields: Map<String, Value>,
+    metadata: Vec<Value>,
+    file_reference: Option<String>,
+    location_count: usize,
 }
 
 impl WorkoutBuild {
@@ -773,6 +818,26 @@ impl WorkoutBuild {
         }
         if !self.route.is_empty() {
             event.insert("route".into(), Value::Array(self.route));
+        }
+        if !self.file_references.is_empty() {
+            event.insert("file_references".into(), json!(self.file_references));
+        }
+        if !self.route_notes.is_empty() {
+            let notes = self
+                .route_notes
+                .into_iter()
+                .map(|note| {
+                    let mut fields = note.fields;
+                    if let Some(path) = note.file_reference {
+                        fields.insert("FileReference".into(), json!(path));
+                    }
+                    if !note.metadata.is_empty() {
+                        fields.insert("MetadataEntry".into(), Value::Array(note.metadata));
+                    }
+                    Value::Object(fields)
+                })
+                .collect::<Vec<_>>();
+            event.insert("route_fields".into(), Value::Array(notes));
         }
         let mut receipt = Map::new();
         receipt.insert(
@@ -1261,9 +1326,11 @@ fn location_point(attrs: &HashMap<String, String>) -> Result<Value, String> {
         Err(error) => return Err(error),
     };
     let mut point = Map::new();
+    let original_date = attrs.get("date").cloned().unwrap_or_default();
     point.insert("recorded_at".into(), json!(crate::time::format_millis(millis)));
     point.insert("latitude_deg".into(), num(latitude));
     point.insert("longitude_deg".into(), num(longitude));
+    point.insert("input_timestamp".into(), timestamp_receipt(&original_date, None));
     let mut extra = Map::new();
     let mut keys: Vec<&String> = attrs
         .keys()
@@ -1686,6 +1753,20 @@ fn field_at(body: &str, at: usize) -> Option<(&'static str, usize)> {
     None
 }
 
+fn sorted_attrs(attrs: &HashMap<String, String>) -> Map<String, Value> {
+    let mut keys: Vec<&String> = attrs.keys().collect();
+    keys.sort();
+    let mut fields = Map::new();
+    for key in keys {
+        let Some(value) = attrs.get(key) else { continue };
+        if value.is_empty() {
+            continue;
+        }
+        fields.insert(key.clone(), json!(value));
+    }
+    fields
+}
+
 fn local_name(name: &[u8]) -> String {
     String::from_utf8_lossy(name).into_owned()
 }
@@ -1837,9 +1918,11 @@ mod tests {
         let route = workouts[0]["route"].as_array().unwrap();
         assert_eq!(route.len(), 2);
         assert_eq!(route[0]["recorded_at"], "2026-06-14T13:01:00.000Z");
-        assert_eq!(route[0]["latitude_deg"], 40.25);
-        assert_eq!(route[0]["longitude_deg"], -88.5);
+        assert_eq!(route[0]["latitude_deg"], 12.5);
+        assert_eq!(route[0]["longitude_deg"], 56.5);
+        assert_eq!(route[0]["input_timestamp"]["utc_offset_text"], "-0500");
         assert_eq!(route[0]["supplied_fields"]["altitude"], "200");
+        assert_eq!(workouts[0]["route_fields"][0]["sourceName"], "Demo Phone");
         assert!(workouts[1].get("route").is_none());
         assert_eq!(parsed["skipped"]["inline WorkoutRoute points we could not store"], 2);
         assert_eq!(parsed["skipped"]["inline WorkoutRoute had no location points"], 1);
@@ -1847,5 +1930,29 @@ mod tests {
             .as_str()
             .unwrap();
         assert!(example.contains("latitude"));
+    }
+
+    #[test]
+    fn a_file_reference_route_is_not_an_empty_route() {
+        let path = Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../../tests/fixtures/exports/apple-file-reference/export.xml");
+        let xml = fs::read_to_string(path).unwrap();
+        let parsed = import_apple_str(&xml).unwrap();
+        assert!(parsed["skipped"].get("inline WorkoutRoute had no location points").is_none());
+        let workout = parsed["events"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|event| event["kind"] == "workout")
+            .unwrap();
+        assert_eq!(
+            workout["file_references"][0],
+            "/workout-routes/route_2026-06-14.gpx"
+        );
+        assert_eq!(workout["route_fields"][0]["sourceName"], "Demo Phone");
+        assert_eq!(
+            workout["route_fields"][0]["creationDate"],
+            "2026-06-14 08:05:00 -0500"
+        );
     }
 }

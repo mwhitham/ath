@@ -49,17 +49,35 @@ describe("an inline Apple WorkoutRoute", () => {
         route: [
           {
             recorded_at: "2026-06-14T13:01:00.000Z",
-            latitude_deg: 40.25,
-            longitude_deg: -88.5,
+            latitude_deg: 12.5,
+            longitude_deg: 56.5,
+            input_timestamp: {
+              timestamp_text: "2026-06-14 08:01:00 -0500",
+              utc_offset_text: "-0500",
+              utc_offset_meaning: "meaning_not_documented",
+              timestamp_basis: "source_offset_timestamp",
+            },
             supplied_fields: { altitude: "200" },
           },
           {
             recorded_at: "2026-06-14T13:02:00.000Z",
-            latitude_deg: 40.26,
-            longitude_deg: -88.51,
+            latitude_deg: 12.75,
+            longitude_deg: 56.75,
             supplied_fields: { altitude: "201" },
           },
         ],
+        supplied_fields: {
+          WorkoutRoute: [
+            {
+              sourceName: "Demo Phone",
+              sourceVersion: "1",
+              creationDate: "2026-06-14 08:00:30 -0500",
+              startDate: "2026-06-14 08:00:00 -0500",
+              endDate: "2026-06-14 08:30:00 -0500",
+              MetadataEntry: [{ key: "HKMetadataKeySyncVersion", value: "3" }],
+            },
+          ],
+        },
       },
     });
     const walk = workouts.find(

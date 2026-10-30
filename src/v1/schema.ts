@@ -376,6 +376,8 @@ export const RoutePoint = z.strictObject({
   recorded_at: UtcTimestamp,
   latitude_deg: z.number().gte(-90).lte(90),
   longitude_deg: z.number().gte(-180).lte(180),
+  /** The time the source wrote, including its UTC offset. `recorded_at` is that instant in UTC. */
+  input_timestamp: InputTimestampReceipt.optional(),
   supplied_fields: SuppliedFields.optional(),
 });
 

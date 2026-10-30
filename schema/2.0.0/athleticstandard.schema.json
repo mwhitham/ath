@@ -1725,6 +1725,64 @@
                           "minimum": -180,
                           "maximum": 180
                         },
+                        "input_timestamp": {
+                          "type": "object",
+                          "properties": {
+                            "timestamp_text": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "utc_offset_text": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "utc_offset_meaning": {
+                              "type": "string",
+                              "enum": [
+                                "documented_recording_offset",
+                                "provider_cycle_offset",
+                                "route_rendering_offset",
+                                "meaning_not_documented"
+                              ]
+                            },
+                            "source_time_zone": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "source_time_zone_meaning": {
+                              "type": "string",
+                              "enum": [
+                                "apple_health_object_creation_time_zone"
+                              ]
+                            },
+                            "timestamp_basis": {
+                              "type": "string",
+                              "enum": [
+                                "source_instant",
+                                "source_offset_timestamp",
+                                "source_local_timestamp_with_documented_offset",
+                                "reconstructed_from_series_start"
+                              ]
+                            },
+                            "timestamp_missing_reason": {
+                              "type": "string",
+                              "enum": [
+                                "not_provided_by_source",
+                                "not_exposed_by_route",
+                                "not_applicable"
+                              ]
+                            },
+                            "utc_offset_missing_reason": {
+                              "type": "string",
+                              "enum": [
+                                "not_provided_by_source",
+                                "not_exposed_by_route",
+                                "not_applicable"
+                              ]
+                            }
+                          },
+                          "additionalProperties": false
+                        },
                         "supplied_fields": {
                           "type": "object",
                           "propertyNames": {
@@ -8312,6 +8370,64 @@
                           "type": "number",
                           "minimum": -180,
                           "maximum": 180
+                        },
+                        "input_timestamp": {
+                          "type": "object",
+                          "properties": {
+                            "timestamp_text": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "utc_offset_text": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "utc_offset_meaning": {
+                              "type": "string",
+                              "enum": [
+                                "documented_recording_offset",
+                                "provider_cycle_offset",
+                                "route_rendering_offset",
+                                "meaning_not_documented"
+                              ]
+                            },
+                            "source_time_zone": {
+                              "type": "string",
+                              "minLength": 1
+                            },
+                            "source_time_zone_meaning": {
+                              "type": "string",
+                              "enum": [
+                                "apple_health_object_creation_time_zone"
+                              ]
+                            },
+                            "timestamp_basis": {
+                              "type": "string",
+                              "enum": [
+                                "source_instant",
+                                "source_offset_timestamp",
+                                "source_local_timestamp_with_documented_offset",
+                                "reconstructed_from_series_start"
+                              ]
+                            },
+                            "timestamp_missing_reason": {
+                              "type": "string",
+                              "enum": [
+                                "not_provided_by_source",
+                                "not_exposed_by_route",
+                                "not_applicable"
+                              ]
+                            },
+                            "utc_offset_missing_reason": {
+                              "type": "string",
+                              "enum": [
+                                "not_provided_by_source",
+                                "not_exposed_by_route",
+                                "not_applicable"
+                              ]
+                            }
+                          },
+                          "additionalProperties": false
                         },
                         "supplied_fields": {
                           "type": "object",

@@ -235,13 +235,24 @@ interface AppleEvent {
   end?: string;
   aggregates?: Record<string, unknown>;
   segments?: Array<{ label: string; duration_s?: number; distance_m?: number }>;
-  route?: Array<{
-    recorded_at: string;
-    latitude_deg: number;
-    longitude_deg: number;
-    supplied_fields?: Record<string, string>;
-  }>;
+  route?: RoutePointImport[];
+  file_references?: string[];
+  route_fields?: Array<Record<string, unknown>>;
   summaries?: Array<Omit<ImportPayload["providerSummaries"][number], "source">>;
+}
+
+interface RoutePointImport {
+  recorded_at: string;
+  latitude_deg: number;
+  longitude_deg: number;
+  input_timestamp?: {
+    timestamp_text: string;
+    timestamp_basis: "source_offset_timestamp";
+    utc_offset_text?: string;
+    utc_offset_meaning?: "meaning_not_documented";
+    utc_offset_missing_reason?: "not_provided_by_source";
+  };
+  supplied_fields?: Record<string, string>;
 }
 
 interface SleepSession {
@@ -376,6 +387,12 @@ export async function importAppleHealth(
         aggregates: event.aggregates,
         ...(event.segments && event.segments.length > 0 ? { segments: event.segments } : {}),
         ...(event.route && event.route.length > 0 ? { route: event.route } : {}),
+        ...(event.file_references && event.file_references.length > 0
+          ? { file_references: event.file_references }
+          : {}),
+        ...(event.route_fields && event.route_fields.length > 0
+          ? { supplied_fields: { WorkoutRoute: event.route_fields } }
+          : {}),
       } as HardSignalT;
       attribute(payload, session, writer);
       payload.inputReceipts.set(session, event.receipt);
@@ -391,6 +408,7 @@ export async function importAppleHealth(
   }
 
   payload.hardSignals.push(...points);
+  await attachReferencedRoutes(detected, workouts, payload);
   await attachRouteSplits(detected, workouts, payload, progress);
   payload.hardSignals.push(...workouts);
   for (const session of raw.sleep_sessions) {
@@ -437,6 +455,107 @@ export async function importAppleHealth(
  * A workout that already has laps from the watch keeps them: the wearer pressed the
  * button deliberately, and that division means more to them than an even kilometre.
  */
+/**
+ * A WorkoutRoute that names a GPX file has no inline points. The file is the route.
+ * The path on the FileReference is how the workout and the file are matched.
+ */
+async function attachReferencedRoutes(
+  detected: DetectedExport,
+  workouts: HardSignalT[],
+  payload: ImportPayload,
+): Promise<void> {
+  const files = await readEntries(detected, isRouteEntry);
+  if (files.size === 0) return;
+  for (const workout of workouts) {
+    if (workout.type !== "workout_session") continue;
+    const holder = workout as HardSignalT & {
+      route?: RoutePointImport[];
+      file_references?: string[];
+    };
+    if ((holder.route?.length ?? 0) > 0) continue;
+    for (const reference of holder.file_references ?? []) {
+      const text = gpxText(files, reference);
+      if (text === undefined) {
+        countSkipWithExample(
+          payload,
+          "workout route file named by a WorkoutRoute was not in the export",
+          reference,
+        );
+        continue;
+      }
+      const built = routeFromGpx(text);
+      for (const example of built.skipped) {
+        countSkipWithExample(payload, "GPX route points we could not store", example);
+      }
+      if (built.points.length > 0) holder.route = [...(holder.route ?? []), ...built.points];
+    }
+  }
+}
+
+function gpxText(files: Map<string, string>, reference: string): string | undefined {
+  const wanted = reference.replaceAll("\\", "/").replace(/^\/+/, "").toLowerCase();
+  for (const [name, text] of files) {
+    const entry = name.replaceAll("\\", "/").replace(/^\/+/, "").toLowerCase();
+    if (entry === wanted || entry.endsWith(`/${wanted}`) || wanted.endsWith(`/${entry}`)) {
+      return text;
+    }
+  }
+  return undefined;
+}
+
+function routeFromGpx(text: string): { points: RoutePointImport[]; skipped: string[] } {
+  const points: RoutePointImport[] = [];
+  const skipped: string[] = [];
+  const pattern = /<trkpt\b([^>]*)>([\s\S]*?)<\/trkpt>|<trkpt\b([^>]*)\/>/g;
+  let match: RegExpExecArray | null;
+  let index = 0;
+  while ((match = pattern.exec(text)) !== null) {
+    index += 1;
+    const attrs = match[1] ?? match[3] ?? "";
+    const body = match[2] ?? "";
+    const latitude = Number(/\blat\s*=\s*"([^"]+)"/.exec(attrs)?.[1]);
+    const longitude = Number(/\blon\s*=\s*"([^"]+)"/.exec(attrs)?.[1]);
+    const at = /<time>([^<]+)<\/time>/.exec(body)?.[1]?.trim();
+    if (!at || Number.isNaN(Date.parse(at))) {
+      skipped.push(`track point ${index} had no usable time`);
+      continue;
+    }
+    if (!Number.isFinite(latitude) || latitude < -90 || latitude > 90) {
+      skipped.push(`track point ${index} latitude "${/\blat\s*=\s*"([^"]+)"/.exec(attrs)?.[1] ?? "(none)"}"`);
+      continue;
+    }
+    if (!Number.isFinite(longitude) || longitude < -180 || longitude > 180) {
+      skipped.push(`track point ${index} longitude "${/\blon\s*=\s*"([^"]+)"/.exec(attrs)?.[1] ?? "(none)"}"`);
+      continue;
+    }
+    const elevation = /<ele>([^<]+)<\/ele>/.exec(body)?.[1]?.trim();
+    points.push({
+      ...routeInstant(at),
+      latitude_deg: latitude,
+      longitude_deg: longitude,
+      ...(elevation === undefined || elevation === "" ? {} : { supplied_fields: { ele: elevation } }),
+    });
+  }
+  return { points, skipped };
+}
+
+function routeInstant(raw: string): Pick<RoutePointImport, "recorded_at" | "input_timestamp"> {
+  const offset = /(Z|[+-]\d{2}:?\d{2})$/i.exec(raw.trim())?.[1];
+  return {
+    recorded_at: new Date(Date.parse(raw)).toISOString(),
+    input_timestamp: {
+      timestamp_text: raw,
+      timestamp_basis: "source_offset_timestamp",
+      ...(offset === undefined
+        ? { utc_offset_missing_reason: "not_provided_by_source" as const }
+        : {
+            utc_offset_text: offset,
+            utc_offset_meaning: "meaning_not_documented" as const,
+          }),
+    },
+  };
+}
+
 async function attachRouteSplits(
   detected: DetectedExport,
   workouts: HardSignalT[],
