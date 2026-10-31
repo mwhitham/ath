@@ -22,6 +22,10 @@ refuses. The row now restores a complete 2.0.0 package exported from the 2.0.0 d
 copy. Under 2.1.0 that package still imports. The package loader had accepted only the
 current version, so it now accepts `2.0.0` and `2.1.0` (D184).
 
+Baseline row 04 passed only in UTC. One GPX time in its fixture has no UTC offset, and
+the importer reads it in the machine's time zone. The test now runs that one import
+with `TZ=UTC`. The importer and the assertions are unchanged (spec section 6).
+
 Every importer could state a basis from what its source says. None had to be invented.
 Migration step 4 does not backfill `field_basis` on older records (D187).
 

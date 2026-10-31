@@ -121,7 +121,12 @@ const ROWS: Row[] = [
   { file: "01-apple-dir.json", importInto: importPath(join(EXPORTS, "apple")) },
   { file: "02-apple-inline.json", importInto: importPath(join(EXPORTS, "apple-inline-route")) },
   { file: "03-apple-file.json", importInto: importPath(join(EXPORTS, "apple-file-reference")) },
-  { file: "04-apple-mismatch.json", importInto: importPath(join(EXPORTS, "apple-route-mismatch")) },
+  {
+    file: "04-apple-mismatch.json",
+    // One GPX point has no UTC offset, and the importer reads it in the machine's zone.
+    importInto: (directory) =>
+      ath(["import", join(EXPORTS, "apple-route-mismatch"), "--yes"], directory, { TZ: "UTC" }),
+  },
   { file: "05-cycles.json", importInto: importPath(join(EXPORTS, "whoop")) },
   { file: "06-ring.json", importInto: importPath(join(EXPORTS, "oura")) },
   { file: "07-ring-portal.json", importInto: importPath(join(EXPORTS, "oura-member-portal")) },

@@ -653,6 +653,8 @@ The personal-day server follows the local server in `personal.rs`. The HRV body 
 
 Row 16 changed during the build. The plan named `examples/demo-athlete/athlete.ath.json`, but that file is the legacy 0.4.3 document. `ath import` refuses it with `Athletic Standard 0.4.3 is a prerelease JSON format`, so it never reaches the package restore. The row instead imports a complete 2.0.0 package: `athlete.ath.json`, `export-manifest.json`, the attachment, and the series file that `ath export` wrote from a copy of the 2.0.0 database, using code that matches `d418a8f`. Those files are in `tests/fixtures/version-2-0-0/package/` and are registered in `scripts/check-public-data.ts`. Under 2.1.0 the same package still imports (D184).
 
+Row 04 imports with `TZ=UTC`, so the test gives the same result in every time zone. One point in `tests/fixtures/exports/apple-route-mismatch/workout-routes/route_2026-08-02.gpx` has a time with no UTC offset, `2026-08-02T08:03:00`. `src/import/routes.ts` reads it with `Date.parse`, which uses the machine's zone, so the kilometre splits change with the zone. The committed file matches UTC. The test sets `TZ` for that one import and keeps every assertion. The importer is not changed, because the baseline must match `d418a8f`. Section 12 lists the time as a known issue.
+
 ### The field basis files
 
 D187 adds `field_basis` to every measured record an importer writes. The comparison above removes that one key before it compares. A second file for each row, `tests/fixtures/import-baseline/field-basis/<same name>`, lists every record that has `field_basis`, under the same labels, with its exact object. The test asserts that string byte for byte too. It also asserts that every measured record has `field_basis.value`, that no other record has `field_basis`, and that the restored 2.0.0 package (row 16) has none.
@@ -1151,6 +1153,7 @@ These are outside this release. This section does not assign them to a later ver
 - `google_health` is not on the `average_hrv` allow-list. Fitbit's HRV method through that slug is not confirmed.
 - A `field_basis` on records written before 2.1.0. Migration step 4 does not backfill (D187).
 - A basis for each field name. One value per record, plus the activity type and the Apple route summaries, is the whole object.
+- A GPX time with no UTC offset. `src/import/routes.ts` reads it in the machine's time zone when it works out an Apple workout's kilometre splits. The baseline runs row 04 with `TZ=UTC` (section 6).
 
 ## 13. Every stored value's basis
 
