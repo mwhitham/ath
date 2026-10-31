@@ -292,6 +292,8 @@ The seven measured record types are `point_measurement`, `measurement_sample`,
 | `provider_reporting_periods` | no | provider reporting period array |
 | `received_at` | yes | normalized UTC timestamp |
 | `received_at_basis` | yes | `provider_supplied`, `connector_received_time`, `file_modified_time`, `import_time`, or `local_write_time` |
+| `supplied_fields` | no | names the source sent that are not typed fields |
+| `field_basis` | no | the basis the software assigns to the stored values (section 5.7) |
 
 The source foreign key is required. A source of type `manual` marks a hand-entered
 measurement or benchmark result. It does not turn that record into device evidence.
@@ -330,17 +332,25 @@ A score is an object with at least one of:
 
 `field_basis` is an optional object that the software writes. It says on what
 basis a value was stored. It is not a field the source sent, so it is never inside
-`supplied_fields`. `point_measurement`, `workout_session`, `provider_summary`, and
-`provider_score` may carry it.
+`supplied_fields`. Every measured record type may carry it (D185, D187). Every
+measured record an import or `ath log` writes from version 2.1.0 on has
+`field_basis.value`.
 
 | Field | Values |
 |---|---|
-| `activity_type` | `open_wearables_normalized`: Open Wearables normalized the activity word |
-| `value` | `provider_or_open_wearables`: the provider or Open Wearables computed the number, and the object does not say which |
-| | `provider`: the provider computed the number. A provider score stays that provider's score |
+| `value` | `provider`: the writer computed or recorded the value and gives it as its own. A provider score stays that provider's score |
+| | `provider_or_open_wearables`: the provider or Open Wearables computed the number, and the object does not say which |
+| | `provider_or_junction`: the provider or Junction computed the number, and the summary does not say which |
 | | `hrv_mean_rmssd`: Junction documents `average_hrv` as the mean RMSSD |
+| | `provider_documented_rmssd`: the source column says heart-rate variability without the statistic, and WHOOP or Oura documents it as RMSSD |
+| | `calculated_on_import`: the software calculated the value from the source's own samples, such as Apple sleep totals, RMSSD from an Apple beat list or ECG, and ECG beat intervals |
+| | `entered_by_hand`: a person entered the value, or an agent entered it through `ath log`. It was not read from a device file or service |
+| `activity_type` | `provider_label`: the writer named the activity. The software may drop Apple's `HKWorkoutActivityType` prefix and change the letter case |
+| | `open_wearables_normalized`: Open Wearables chose the activity word |
+| `route_summaries` | `calculated_on_import`: the software calculated an Apple workout's elevation gain or kilometre splits from its route file |
 
 A record written before version 2.1.0 has no `field_basis`. It stays valid.
+`ath migrate` does not add one.
 
 ## 6. The 24 record types
 

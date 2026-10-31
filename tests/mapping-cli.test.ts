@@ -132,7 +132,7 @@ function writeMapping(dir: string, name: string, body: string): string {
   return path;
 }
 
-const SLEEP_HEADER = "name: invented\nroute: invented_route\nwriter_field: source.provider\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\n";
+const SLEEP_HEADER = "name: invented\nroute: invented_route\nwriter_field: source.provider\nvalue_basis: provider\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\n";
 const Z_RECEIPT = (text: string) => ({
   timestamp_text: text,
   utc_offset_text: "Z",
@@ -196,7 +196,10 @@ describe("ath import --mapping open-wearables", () => {
       sensor_type: S_WATCH,
     });
     expect(workout.data.activity_type).toBe("running");
-    expect(workout.data.field_basis).toEqual({ activity_type: "open_wearables_normalized" });
+    expect(workout.data.field_basis).toEqual({
+      value: "provider_or_open_wearables",
+      activity_type: "open_wearables_normalized",
+    });
     expect(workout.data.name).toBe("Invented loop");
     expect(workout.data.source_reported_summaries).toEqual([
       { summary_type: "distance", standard_value: 12, standard_unit: "m", input_value: 12, input_unit: "m" },
@@ -286,6 +289,33 @@ describe("ath import --mapping open-wearables", () => {
       expect(result.left_out).toContain(`timeseries ${type} ${at}: unmapped type ${type}`);
       expect([...byKey.keys()].some((matchKey) => matchKey.includes(type))).toBe(false);
     }
+  }, 60_000);
+
+  it("every mapped value states its basis (D187)", async () => {
+    const dir = emptyDatabase();
+    mapped(dir, join(OW, "summaries.json"), "open-wearables");
+    mapped(dir, JUNCTION, "junction");
+    const { byKey } = await stored(dir);
+    const route = async (sourceId: string) => (await stored(dir)).sources.find((source) => source.record_id === sourceId)?.data_route;
+    for (const [matchKey, record] of byKey) {
+      if (record.record_type === "source_device") {
+        expect(record.data.field_basis, matchKey).toBeUndefined();
+        continue;
+      }
+      const expected =
+        record.record_type === "provider_score"
+          ? "provider"
+          : matchKey.endsWith(":point:hrv_rmssd") && matchKey.includes(":sleep:")
+            ? "hrv_mean_rmssd"
+            : (await route(record.data.source_id)) === "junction"
+              ? "provider_or_junction"
+              : "provider_or_open_wearables";
+      expect(record.data.field_basis?.value, matchKey).toBe(expected);
+    }
+    const night = byKey.get(key("oura", S_RING, "sleep", "ow-sleep-1"))!;
+    expect(night.data.field_basis).toEqual({ value: "provider_or_open_wearables" });
+    const junctionNight = byKey.get(key("oura", S_JORA, "sleep", "jn-sleep-1"))!;
+    expect(junctionNight.data.field_basis).toEqual({ value: "provider_or_junction" });
   }, 60_000);
 
   it("missing_computed_by_uses_the_provider", async () => {
@@ -685,6 +715,18 @@ describe("refusals", () => {
       [`${SLEEP_HEADER}x: oxygen_saturation percent percent`, "oxygen_saturation uses %"],
       [`${SLEEP_HEADER}x: provider_summary.y ms s`, "cannot convert ms to s for x"],
       [`${SLEEP_HEADER}[activity]\nsteps: provider_summary.steps count count`, "unknown mapping section activity"],
+      [
+        SLEEP_HEADER.replace("value_basis: provider\n", "") + "x: asleep_seconds s s",
+        "the mapping file needs value_basis",
+      ],
+      [
+        SLEEP_HEADER.replace("value_basis: provider", "value_basis: hrv_mean_rmssd") + "x: asleep_seconds s s",
+        "value_basis hrv_mean_rmssd is not one of provider, provider_or_open_wearables, provider_or_junction",
+      ],
+      [
+        "name: w\nroute: w_route\nwriter_field: source.provider\nvalue_basis: provider\n[workout]\nsport: activity_type",
+        "activity_type needs a basis: one of open_wearables_normalized, provider_label",
+      ],
     ];
     for (const [body, message] of cases) {
       const path = writeMapping(dir, "case", body);
@@ -725,7 +767,7 @@ describe("mapping files a person adds", () => {
     mkdirSync(dirname(file), { recursive: true });
     writeFileSync(
       file,
-      "# My source\n\n```ath-mapping\nname: my-source\nroute: my_source\nwriter_field: maker\n\n[sleep]\nid_field: night\nstart_field: from\nend_field: to\nasleep: asleep_seconds s s\n```\n",
+      "# My source\n\n```ath-mapping\nname: my-source\nroute: my_source\nwriter_field: maker\nvalue_basis: provider\n\n[sleep]\nid_field: night\nstart_field: from\nend_field: to\nasleep: asleep_seconds s s\n```\n",
     );
     const input = join(dir, "nights.json");
     writeFileSync(
@@ -738,6 +780,7 @@ describe("mapping files a person adds", () => {
     const night = byKey.get(key("invented-maker", "-", "sleep", "n-1"))!;
     expect(night.data.asleep_seconds).toBe(20000);
     expect(night.data.supplied_fields).toEqual({ mood_word: "fine" });
+    expect(night.data.field_basis).toEqual({ value: "provider" });
     expect(sourceOf(sources, night.data.source_id).data_route).toBe("my_source");
     const skills = ath(["skill", "--json"], dir);
     expect(skills.stdout).not.toContain("my-source");

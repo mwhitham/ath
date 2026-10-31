@@ -77,6 +77,8 @@ export interface ImportPayload {
    * Keyed by object rather than by content so the two can never drift apart.
    */
   deviceOf: Map<HardSignalT, string>;
+  /** Workouts whose elevation gain or splits were calculated here from a route file. */
+  routeSummariesCalculated: Set<HardSignalT>;
   /** Exact source facts retained for the v1 SQLite importer. */
   inputReceipts: Map<
     HardSignalT | SoftSignalT,
@@ -149,6 +151,7 @@ export function emptyPayload(vendor: string, detail: string): ImportPayload {
     skipExamples: new Map(),
     deviceIndex: new Map(),
     deviceOf: new Map(),
+    routeSummariesCalculated: new Set(),
     inputReceipts: new Map(),
   };
 }

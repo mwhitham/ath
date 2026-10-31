@@ -676,9 +676,13 @@ async function attachRouteSplits(
     matched.add(route.name);
     if (route.elevationGainM > 0) {
       (workout.aggregates as Record<string, number>).elevation_gain_m = route.elevationGainM;
+      payload.routeSummariesCalculated.add(workout);
     }
     if (!workout.segments || workout.segments.length === 0) {
-      if (route.splits.length > 0) workout.segments = route.splits;
+      if (route.splits.length > 0) {
+        workout.segments = route.splits;
+        payload.routeSummariesCalculated.add(workout);
+      }
     }
   }
 

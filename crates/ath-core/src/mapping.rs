@@ -91,6 +91,7 @@ pub struct MappingFile {
     pub name: String,
     pub route: String,
     pub writer_field: String,
+    pub value_basis: String,
     pub sensor: Vec<String>,
     pub device_name: Vec<String>,
     pub device_model: Vec<String>,
@@ -176,6 +177,7 @@ pub fn parse_mapping(text: &str) -> Result<MappingFile, String> {
                     "name" => file.name = rest.to_string(),
                     "route" => file.route = rest.to_string(),
                     "writer_field" => file.writer_field = rest.to_string(),
+                    "value_basis" => file.value_basis = rest.to_string(),
                     "sensor" => file.sensor = list(),
                     "device_name" => file.device_name = list(),
                     "device_model" => file.device_model = list(),
@@ -310,10 +312,22 @@ pub fn check_mapping(file: &MappingFile) -> Result<(), String> {
     for line in file.sections.iter().flat_map(|section| section.lines.iter()) {
         refuse_line(line)?;
     }
-    for (key, value) in [("name", &file.name), ("route", &file.route), ("writer_field", &file.writer_field)] {
+    for (key, value) in [
+        ("name", &file.name),
+        ("route", &file.route),
+        ("writer_field", &file.writer_field),
+        ("value_basis", &file.value_basis),
+    ] {
         if value.is_empty() {
             return Err(format!("the mapping file needs {key}"));
         }
+    }
+    if !FILE_BASES.contains(&file.value_basis.as_str()) {
+        return Err(format!(
+            "value_basis {} is not one of {}",
+            file.value_basis,
+            FILE_BASES.join(", ")
+        ));
     }
     if BUILT_IN_ROUTES.contains(&file.route.as_str()) {
         return Err(format!("route {} is already used by a built-in importer", file.route));
@@ -405,6 +419,9 @@ fn check_line(section: &str, line: &MapLine) -> Result<(), String> {
         if line.units.is_some() {
             return Err(format!("{our} takes no unit"));
         }
+        if our == "activity_type" && line.basis.is_none() {
+            return Err(format!("activity_type needs a basis: one of {}", ACTIVITY_TYPE_BASES.join(", ")));
+        }
         return Ok(());
     }
     let Some((their_unit, our_unit)) = &line.units else {
@@ -421,14 +438,30 @@ fn check_line(section: &str, line: &MapLine) -> Result<(), String> {
     Ok(())
 }
 
-/// `field_basis.value` values a mapping line may name with `basis` (D185).
-pub const VALUE_BASES: &[&str] = &["provider_or_open_wearables", "provider", "hrv_mean_rmssd"];
+/// `field_basis.value` values a mapping line may name with `basis` (D185, D187).
+pub const VALUE_BASES: &[&str] = &[
+    "provider_or_open_wearables",
+    "provider",
+    "hrv_mean_rmssd",
+    "provider_or_junction",
+    "provider_documented_rmssd",
+    "calculated_on_import",
+    "entered_by_hand",
+];
 
-/// `field_basis.activity_type` values an `activity_type` line may name with `basis` (D185).
-pub const ACTIVITY_TYPE_BASES: &[&str] = &["open_wearables_normalized"];
+/// `value_basis` values a mapping file may give every value it writes (D187).
+pub const FILE_BASES: &[&str] = &["provider", "provider_or_open_wearables", "provider_or_junction"];
+
+/// `field_basis.activity_type` values an `activity_type` line may name with `basis` (D185, D187).
+pub const ACTIVITY_TYPE_BASES: &[&str] = &["open_wearables_normalized", "provider_label"];
 
 fn value_basis(value: &str) -> Value {
     json!({ "value": value })
+}
+
+/// A line's own basis, or else the basis the file gives every value it writes.
+fn line_basis<'a>(line: &'a MapLine, file: &'a MappingFile) -> &'a str {
+    line.basis.as_deref().unwrap_or(&file.value_basis)
 }
 
 /// Convert by a fixed pair (D180). A whole result is an integer JSON number.
@@ -837,6 +870,7 @@ fn map_session(store: &mut Store, run: &mut Run, section: &Section, row: &Map<St
     let mut stages = Map::new();
     let mut children = Vec::new();
     let mut field_basis = Map::new();
+    field_basis.insert("value".into(), json!(run.file.value_basis));
     let mut written: HashSet<String> = HashSet::new();
     for line in applied_lines(section, &writer) {
         if line.when_absent && written.contains(&line.our_field) {
@@ -881,18 +915,14 @@ fn map_session(store: &mut Store, run: &mut Run, section: &Section, row: &Map<St
                     let mut child = run.base(&source_id);
                     child.insert("quantity".into(), json!(line.our_field));
                     child.insert("value".into(), source_value(converted, &our_unit, &value, &their_unit));
-                    if let Some(basis) = &line.basis {
-                        child.insert("field_basis".into(), value_basis(basis));
-                    }
+                    child.insert("field_basis".into(), value_basis(line_basis(line, run.file)));
                     children.push(("point_measurement", "point", line.our_field.clone(), child));
                 }
                 Target::Summary(summary_type) => {
                     let mut child = run.base(&source_id);
                     child.insert("summary_type".into(), json!(summary_type));
                     child.insert("value".into(), source_value(converted, &our_unit, &value, &their_unit));
-                    if let Some(basis) = &line.basis {
-                        child.insert("field_basis".into(), value_basis(basis));
-                    }
+                    child.insert("field_basis".into(), value_basis(line_basis(line, run.file)));
                     children.push(("provider_summary", "summary", summary_type, child));
                 }
                 Target::Score(metric) => {
@@ -914,9 +944,7 @@ fn map_session(store: &mut Store, run: &mut Run, section: &Section, row: &Map<St
         data.insert("stage_minutes".into(), Value::Object(stages));
     }
     data.insert("source_reported_summaries".into(), Value::Array(summaries));
-    if !field_basis.is_empty() {
-        data.insert("field_basis".into(), Value::Object(field_basis));
-    }
+    data.insert("field_basis".into(), Value::Object(field_basis));
     if !supplied.is_empty() {
         run.preserved.extend(supplied.keys().cloned());
         data.insert("supplied_fields".into(), Value::Object(supplied));
@@ -1046,8 +1074,8 @@ fn map_sample(
     data.insert("input_timestamp".into(), input_receipt(&time_text));
     if matches!(kind, Target::Score(_)) {
         data.insert("field_basis".into(), value_basis("provider"));
-    } else if let Some(basis) = &line.basis {
-        data.insert("field_basis".into(), value_basis(basis));
+    } else {
+        data.insert("field_basis".into(), value_basis(line_basis(line, run.file)));
     }
     if !supplied.is_empty() {
         run.preserved.extend(supplied.keys().cloned());
@@ -1062,7 +1090,7 @@ fn map_sample(
 mod tests {
     use super::{check_mapping, convert_unit, input_receipt, key_part, parse_mapping};
 
-    const SMALL: &str = "# Small\n\n```ath-mapping\nname: small\nroute: small_route\nwriter_field: source.provider\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\nsleep_duration_seconds: asleep_seconds s s\n```\n";
+    const SMALL: &str = "# Small\n\n```ath-mapping\nname: small\nroute: small_route\nwriter_field: source.provider\nvalue_basis: provider\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\nsleep_duration_seconds: asleep_seconds s s\n```\n";
 
     #[test]
     fn crlf_mapping_file_parses() {

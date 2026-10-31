@@ -73,6 +73,12 @@ Every logical record has a UUIDv7 `record_id` and a positive
 `current_revision`. Corrections keep the ID and add a complete revision. Evidence
 names both the record ID and revision.
 
+A measured record states its basis in `field_basis`, such as `provider`,
+`calculated_on_import`, or `entered_by_hand`. A record from before 2.1.0 has none.
+When a correction replaces a measured value with one a person typed, set
+`field_basis.value` to `entered_by_hand`. The values are in
+[references/format.md](references/format.md).
+
 Use:
 
 ```sh

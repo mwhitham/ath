@@ -315,6 +315,35 @@
                   "$ref": "#/$defs/__schema1"
                 }
               },
+              "field_basis": {
+                "type": "object",
+                "properties": {
+                  "activity_type": {
+                    "type": "string",
+                    "enum": [
+                      "open_wearables_normalized",
+                      "provider_label"
+                    ]
+                  },
+                  "value": {
+                    "type": "string",
+                    "enum": [
+                      "provider_or_open_wearables",
+                      "provider",
+                      "hrv_mean_rmssd",
+                      "provider_or_junction",
+                      "provider_documented_rmssd",
+                      "calculated_on_import",
+                      "entered_by_hand"
+                    ]
+                  },
+                  "route_summaries": {
+                    "type": "string",
+                    "const": "calculated_on_import"
+                  }
+                },
+                "additionalProperties": false
+              },
               "quantity": {
                 "type": "string",
                 "enum": [
@@ -812,6 +841,35 @@
                 "additionalProperties": {
                   "$ref": "#/$defs/__schema1"
                 }
+              },
+              "field_basis": {
+                "type": "object",
+                "properties": {
+                  "activity_type": {
+                    "type": "string",
+                    "enum": [
+                      "open_wearables_normalized",
+                      "provider_label"
+                    ]
+                  },
+                  "value": {
+                    "type": "string",
+                    "enum": [
+                      "provider_or_open_wearables",
+                      "provider",
+                      "hrv_mean_rmssd",
+                      "provider_or_junction",
+                      "provider_documented_rmssd",
+                      "calculated_on_import",
+                      "entered_by_hand"
+                    ]
+                  },
+                  "route_summaries": {
+                    "type": "string",
+                    "const": "calculated_on_import"
+                  }
+                },
+                "additionalProperties": false
               },
               "quantity": {
                 "type": "string",

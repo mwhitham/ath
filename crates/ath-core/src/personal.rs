@@ -80,6 +80,7 @@ pub fn pull_garmin(
                 if !supplied.is_empty() {
                     data.insert("supplied_fields".into(), Value::Object(supplied));
                 }
+                data.insert("field_basis".into(), crate::garmin::provider_basis(false));
                 understood.push("LastNightAvg".into());
                 let id = store.insert_record(
                     "provider_summary",

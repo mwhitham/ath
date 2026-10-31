@@ -12,6 +12,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
   BASELINE_FROM,
   comparisonString,
+  fieldBasisString,
+  MEASURED_RECORD_TYPES,
   readImportSnapshot,
 } from "./helpers/import-baseline.js";
 
@@ -159,9 +161,22 @@ describe(`import baseline from ${BASELINE_FROM.slice(0, 7)}`, () => {
       const imported = await row.importInto(directory);
       expect(imported.code, imported.output).toBe(0);
       const snapshot = await readImportSnapshot(join(directory, "athlete.ath.sqlite"));
-      const text = comparisonString(snapshot);
+      const text = comparisonString(snapshot, { withoutKey: "field_basis" });
       expect(text.includes(directory)).toBe(false);
       expect(text).toBe(readFileSync(join(BASELINE, row.file), "utf8"));
+
+      const basis = fieldBasisString(snapshot);
+      expect(basis).toBe(readFileSync(join(BASELINE, "field-basis", row.file), "utf8"));
+      for (const record of snapshot.records) {
+        const fieldBasis = (record.data as { field_basis?: { value?: string } }).field_basis;
+        if (!MEASURED_RECORD_TYPES.has(record.record_type)) {
+          expect(fieldBasis, record.record_type).toBeUndefined();
+        } else if (row.file === "16-package.json") {
+          expect(fieldBasis, "a restored 2.0.0 record keeps no field_basis").toBeUndefined();
+        } else {
+          expect(fieldBasis?.value, record.record_type).toBeDefined();
+        }
+      }
     }, 120_000);
   }
 

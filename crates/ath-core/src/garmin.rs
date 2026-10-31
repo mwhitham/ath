@@ -124,6 +124,15 @@ pub fn import_garmin(store: &mut Store, path: &Path, write: bool) -> Result<Valu
     }))
 }
 
+/// The basis of a value a Garmin or Strava file states as its own (D187).
+pub fn provider_basis(activity_type: bool) -> Value {
+    if activity_type {
+        json!({ "value": "provider", "activity_type": "provider_label" })
+    } else {
+        json!({ "value": "provider" })
+    }
+}
+
 fn max_heart_rate_summary(
     source_id: &str,
     received_at: &str,
@@ -150,6 +159,7 @@ fn max_heart_rate_summary(
     if let Some(id) = provider_record_id {
         data.insert("provider_record_id".into(), json!(id));
     }
+    data.insert("field_basis".into(), provider_basis(false));
     data
 }
 
@@ -233,6 +243,8 @@ pub fn workout_from_json(
     if !supplied.is_empty() {
         data.insert("supplied_fields".into(), Value::Object(supplied));
     }
+    let has_activity_type = data.contains_key("activity_type");
+    data.insert("field_basis".into(), provider_basis(has_activity_type));
     Ok((data, understood, preserved))
 }
 
@@ -304,6 +316,7 @@ pub fn workout_from_gpx(
         data.insert("heart_rate_samples".into(), json!(samples));
         understood.push("heart_rate_samples".into());
     }
+    data.insert("field_basis".into(), provider_basis(false));
     Ok((data, understood, Vec::new(), skipped_untimed))
 }
 
@@ -363,6 +376,7 @@ fn workout_from_fit(
     if !samples.is_empty() {
         data.insert("heart_rate_samples".into(), json!(samples));
     }
+    data.insert("field_basis".into(), provider_basis(false));
     (data, vec!["name".into(), "route".into(), "heart_rate_samples".into()], Vec::new())
 }
 
@@ -527,6 +541,23 @@ mod tests {
         .unwrap();
         assert!(data.get("maximum_heart_rate_bpm").is_none());
         assert!(!understood.iter().any(|field| field == "maximum_heart_rate_bpm"));
+    }
+
+    #[test]
+    fn every_garmin_workout_states_its_basis() {
+        let named = serde_json::json!({
+            "activityId": "1002",
+            "startTimeGMT": "2026-01-02T15:00:00.000Z",
+            "activityType": { "typeKey": "running" }
+        });
+        let (data, _, _) = workout_from_json("preview", named.as_object().unwrap(), "2026-08-09T16:00:00.000Z").unwrap();
+        assert_eq!(data["field_basis"], serde_json::json!({ "value": "provider", "activity_type": "provider_label" }));
+        let unnamed = serde_json::json!({ "activityId": "1003", "startTimeGMT": "2026-01-02T15:00:00.000Z" });
+        let (data, _, _) = workout_from_json("preview", unnamed.as_object().unwrap(), "2026-08-09T16:00:00.000Z").unwrap();
+        assert_eq!(data["field_basis"], serde_json::json!({ "value": "provider" }));
+        let gpx = include_str!("../../../tests/fixtures/exports/garmin/namespaced-hr.gpx");
+        let (data, _, _, _) = workout_from_gpx("preview", "file.gpx", gpx, "2026-08-09T16:00:00.000Z").unwrap();
+        assert_eq!(data["field_basis"], serde_json::json!({ "value": "provider" }));
     }
 
     #[test]

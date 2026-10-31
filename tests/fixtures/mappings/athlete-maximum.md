@@ -6,6 +6,7 @@ This file must be refused. `maximum_heart_rate_bpm` is the athlete's known maxim
 name: athlete-maximum
 route: invented_workout
 writer_field: source.provider
+value_basis: provider
 
 [workout]
 id_field: id

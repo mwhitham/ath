@@ -358,11 +358,28 @@ export const SourceReportedSummary = z
 /** A value kept under the name it arrived with. */
 export const SuppliedFields = z.record(z.string().min(1), z.json());
 
-/** The basis this program assigns to a stored value. It is not a supplied field (D185). */
+/** Bases for a stored value (D185, D187). */
+export const ValueBasis = z.enum([
+  "provider_or_open_wearables",
+  "provider",
+  "hrv_mean_rmssd",
+  "provider_or_junction",
+  "provider_documented_rmssd",
+  "calculated_on_import",
+  "entered_by_hand",
+]);
+
+/** Where a workout's activity type came from (D185, D187). */
+export const ActivityTypeBasis = z.enum(["open_wearables_normalized", "provider_label"]);
+
+/** The basis this program assigns to a stored value. It is not a supplied field (D185, D187). */
 export const FieldBasis = z.strictObject({
-  activity_type: z.literal("open_wearables_normalized").optional(),
-  value: z.enum(["provider_or_open_wearables", "provider", "hrv_mean_rmssd"]).optional(),
+  activity_type: ActivityTypeBasis.optional(),
+  value: ValueBasis.optional(),
+  route_summaries: z.literal("calculated_on_import").optional(),
 });
+
+export type FieldBasisT = z.infer<typeof FieldBasis>;
 
 const measuredRecordFields = {
   source_id: RecordId,
@@ -371,6 +388,7 @@ const measuredRecordFields = {
   received_at: UtcTimestamp,
   received_at_basis: ReceivedAtBasis,
   supplied_fields: SuppliedFields.optional(),
+  field_basis: FieldBasis.optional(),
 } as const;
 
 export const HeartRateSample = z.strictObject({
@@ -520,7 +538,6 @@ export const PointMeasurementData = z
     input_timestamp: InputTimestampReceipt,
     value: SourceValue,
     calculations: z.array(PointMeasurementCalculation).optional(),
-    field_basis: FieldBasis.optional(),
   })
   .superRefine((value, context) => {
     const expectedUnit = POINT_MEASUREMENT_UNITS[value.quantity];
@@ -619,7 +636,6 @@ export const WorkoutSessionData = z
     route: z.array(RoutePoint).optional(),
     source_reported_summaries: z.array(SourceReportedSummary),
     segments: z.array(WorkoutSessionSegment).optional(),
-    field_basis: FieldBasis.optional(),
   })
   .refine((value) => Date.parse(value.end_at) >= Date.parse(value.start_at), {
     path: ["end_at"],
@@ -662,7 +678,6 @@ export const ProviderSummaryData = z
     value: SourceValue,
     recorded_at: UtcTimestamp.optional(),
     input_timestamp: InputTimestampReceipt,
-    field_basis: FieldBasis.optional(),
   })
   .refine(
     (value) =>
@@ -683,7 +698,6 @@ export const ProviderScoreData = z
     scale: z.string().min(1),
     recorded_at: UtcTimestamp.optional(),
     input_timestamp: InputTimestampReceipt,
-    field_basis: FieldBasis.optional(),
   })
   .refine(
     (value) =>

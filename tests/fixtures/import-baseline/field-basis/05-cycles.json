@@ -1,0 +1,147 @@
+{
+  "decision": "D187",
+  "records": [
+    {
+      "field_basis": {
+        "value": "provider_documented_rmssd"
+      },
+      "label": "record:6",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider_documented_rmssd"
+      },
+      "label": "record:7",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:8",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:9",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:10",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:11",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:12",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:13",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:14",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:15",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:16",
+      "record_type": "provider_score"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:17",
+      "record_type": "provider_score"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:18",
+      "record_type": "provider_score"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:19",
+      "record_type": "provider_score"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:20",
+      "record_type": "provider_score"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:21",
+      "record_type": "provider_score"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:22",
+      "record_type": "sleep_session"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:23",
+      "record_type": "sleep_session"
+    },
+    {
+      "field_basis": {
+        "activity_type": "provider_label",
+        "value": "provider"
+      },
+      "label": "record:25",
+      "record_type": "workout_session"
+    },
+    {
+      "field_basis": {
+        "activity_type": "provider_label",
+        "value": "provider"
+      },
+      "label": "record:26",
+      "record_type": "workout_session"
+    }
+  ]
+}

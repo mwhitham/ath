@@ -377,3 +377,83 @@ Rejected alternatives:
   intensity field, and this release does not add one.
 - Let a calculation read `supplied:intensity` or `supplied:Feeling`. Rejected
   because D103 keeps a source label out of the normalized facts a calculation uses.
+
+## D187. Every stored value states its basis
+
+Every measured record that an import, a mapping file, or `ath log` writes from
+2.1.0 on has `field_basis.value`. A workout with an activity type also has
+`field_basis.activity_type`. D185 put the object on four record types for mapped
+imports only. This decision extends it to all seven measured record types and to
+every importer. D185 is not rewritten.
+
+The object gains these values, and one key:
+
+- `value: "provider_or_junction"`. The provider or Junction computed the number.
+  Junction calculates some summary numbers from samples, and the summary does not
+  say which ones.
+- `value: "provider_documented_rmssd"`. The column says heart-rate variability
+  without naming the statistic. The provider documents it as RMSSD. D22 and D26
+  record that WHOOP and Oura report RMSSD.
+- `value: "calculated_on_import"`. This software calculated the value from the
+  source's own samples.
+- `value: "entered_by_hand"`. A person entered the value, or an agent entered it
+  for them through `ath log`. It was not read from a device file or service.
+- `activity_type: "provider_label"`. The writer named the activity. The software may
+  drop Apple's `HKWorkoutActivityType` prefix and change the letter case. That does
+  not change who chose the word.
+- `route_summaries: "calculated_on_import"`. This software calculated an Apple
+  workout's elevation gain or kilometre splits from its route file. The workout's
+  own totals stay `value: "provider"`. One value could not describe both.
+
+Each importer states what its source says:
+
+| Importer | Records | `field_basis` |
+|---|---|---|
+| Apple Health | points, series samples, workouts, and activity summaries from a writer | `value` `provider` |
+| Apple Health | a value whose writer is `Health` or `Manual` | `value` `entered_by_hand` |
+| Apple Health | sleep sessions, which are sums of the writer's sleep-stage samples | `value` `calculated_on_import` |
+| Apple Health | RMSSD from a beat list or an ECG, and ECG beat intervals | `value` `calculated_on_import` |
+| Apple Health | a workout | `activity_type` `provider_label`, and `route_summaries` when the route file supplied splits or elevation gain |
+| WHOOP | `Heart rate variability (ms)` as `hrv_rmssd` | `value` `provider_documented_rmssd` |
+| WHOOP | every other point, score, sleep session, and workout | `value` `provider`; a workout also `activity_type` `provider_label` |
+| Oura | the HRV column as `hrv_rmssd` | `value` `provider_documented_rmssd` |
+| Oura | every other point, score, and sleep session | `value` `provider` |
+| Garmin | account JSON workouts, GPX and FIT workouts, the `max_heart_rate` summary, the personal pull's workouts and `LastNightAvg` | `value` `provider`; a workout with an activity type also `activity_type` `provider_label` |
+| Strava | workouts | `value` `provider`; `activity_type` `provider_label` |
+| `ath log` | a plain-text measurement or benchmark result, and a structured measured record with no `field_basis.value` | `value` `entered_by_hand` |
+
+A mapping file states its basis. The header key `value_basis` is required. It is
+`provider`, `provider_or_open_wearables`, or `provider_or_junction`, and it applies
+to every value the file writes. A line's own `basis` replaces it for that record.
+Every provider score is `provider`. An `activity_type` line must state its basis.
+The Open Wearables file says `provider_or_open_wearables`. The Junction file says
+`provider_or_junction`. A file that does not state a basis is refused before
+anything is written, so no basis is guessed.
+
+`ath correct` stores the whole record the person gives, including its
+`field_basis`. The tool skill says to set `entered_by_hand` when a correction
+replaces a measured value with one a person typed.
+
+Migration step 4 does not backfill. A record written before 2.1.0 keeps no
+`field_basis`, and it stays valid because the key is optional. A restored 2.0.0
+package keeps its records as they were. The stored rows do not say which
+importer version wrote them, which writer was hand-entered at the time, or whether
+an Apple route file was read. A basis guessed from the source row could be wrong,
+and a wrong basis is worse than none. A later import of the same export states the
+basis in a new revision, because the content then differs.
+
+Rejected alternatives:
+
+- Backfill old records in migration step 4. Rejected because the basis would be
+  guessed, and every measured record would gain a revision the person did not make.
+- Write `field_basis` only for mapped imports. Rejected because a reader could not
+  tell an Apple sleep total this software summed from a WHOOP total WHOOP sent.
+- One basis for every record an importer writes. Rejected because an Apple export
+  holds writer values, hand-entered values, and values this software calculated.
+- A basis for each field name. Rejected because one value per record, plus the
+  activity type and the Apple route summaries, already describes every importer.
+- Default a mapping file's basis to `provider`. Rejected because a connector may
+  have computed the value, and the file's author is the one who knows.
+- Refuse a structured `ath log` record that has no `field_basis`. Rejected because
+  a value entered through `ath log` is entered by hand by definition, and existing
+  agents would fail.

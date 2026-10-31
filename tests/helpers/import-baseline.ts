@@ -98,6 +98,12 @@ function parseJson(value: unknown): unknown {
   return typeof value === "string" ? (JSON.parse(value) as unknown) : null;
 }
 
+function withoutTopKey(data: unknown, key: string | undefined): unknown {
+  if (key === undefined || typeof data !== "object" || data === null) return data;
+  const { [key]: _removed, ...rest } = data as Record<string, unknown>;
+  return rest;
+}
+
 /** Read every current record and the rows that hang off it. */
 export async function readImportSnapshot(databasePath: string): Promise<ImportSnapshot> {
   const client = createClient({ url: pathToFileURL(databasePath).href });
@@ -188,7 +194,7 @@ function compareText(left: string, right: string): number {
  * own type and key. A record with no key sorts after those, by type and then
  * by its JSON with every record id blanked.
  */
-export function labelRecords(snapshot: ImportSnapshot): Map<string, string> {
+export function labelRecords(snapshot: ImportSnapshot, withoutKey?: string): Map<string, string> {
   const byId = new Map(snapshot.records.map((record) => [record.record_id, record]));
   const ownIdentity = (id: string): string => {
     const record = byId.get(id);
@@ -210,7 +216,7 @@ export function labelRecords(snapshot: ImportSnapshot): Map<string, string> {
     if (keys.length > 0) {
       keyed.push({ id: record.record_id, sort: [...keys, record.record_type] });
     } else {
-      const blanked = replaceIds(withoutTimes(record.data), (match) =>
+      const blanked = replaceIds(withoutTimes(withoutTopKey(record.data, withoutKey)), (match) =>
         byId.has(match) ? "?" : match,
       );
       keyless.push({
@@ -237,19 +243,42 @@ export function labelRecords(snapshot: ImportSnapshot): Map<string, string> {
   return new Map(all.map((entry, index) => [entry.id, `record:${index + 1}`]));
 }
 
+export const MEASURED_RECORD_TYPES = new Set([
+  "point_measurement",
+  "measurement_sample",
+  "sleep_session",
+  "workout_session",
+  "benchmark_result",
+  "provider_summary",
+  "provider_score",
+]);
+
+/**
+ * Each record's `field_basis` (D187), under the same labels as the comparison
+ * string built without that key. Records with no `field_basis` are not listed.
+ */
+export function fieldBasisString(snapshot: ImportSnapshot): string {
+  const labels = labelRecords(snapshot, "field_basis");
+  const records = snapshot.records
+    .filter((record) => (record.data as { field_basis?: unknown }).field_basis !== undefined)
+    .map((record) => ({
+      label: labels.get(record.record_id)!,
+      record_type: record.record_type,
+      field_basis: (record.data as { field_basis: unknown }).field_basis,
+    }))
+    .sort((left, right) => Number(left.label.slice(7)) - Number(right.label.slice(7)));
+  return `${JSON.stringify(canonical({ decision: "D187", records }), null, 2)}\n`;
+}
+
 /** The comparison string for one import. Keys are sorted at every depth. */
 export function comparisonString(
   snapshot: ImportSnapshot,
   options: { withoutKey?: string } = {},
 ): string {
-  const labels = labelRecords(snapshot);
+  const labels = labelRecords(snapshot, options.withoutKey);
   const label = (id: string): string => labels.get(id) ?? id;
   const relabel = (value: unknown): unknown => replaceIds(value, label);
-  const strip = (data: unknown): unknown => {
-    if (options.withoutKey === undefined || typeof data !== "object" || data === null) return data;
-    const { [options.withoutKey]: _removed, ...rest } = data as Record<string, unknown>;
-    return rest;
-  };
+  const strip = (data: unknown): unknown => withoutTopKey(data, options.withoutKey);
   const records = snapshot.records
     .map((record) => ({
       label: label(record.record_id),

@@ -114,6 +114,8 @@ pub fn import_strava(store: &mut Store, path: &Path, write: bool) -> Result<Valu
         if !supplied.is_empty() {
             data.insert("supplied_fields".into(), Value::Object(supplied));
         }
+        let has_activity_type = data.contains_key("activity_type");
+        data.insert("field_basis".into(), crate::garmin::provider_basis(has_activity_type));
         let key = if activity_id.is_empty() {
             start.clone()
         } else {

@@ -6,6 +6,7 @@ This file must be refused. Efficiency is computed from `asleep_seconds` and `in_
 name: efficiency
 route: invented_sleep
 writer_field: source.provider
+value_basis: provider
 
 [sleep]
 id_field: id

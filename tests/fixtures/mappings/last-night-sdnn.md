@@ -6,6 +6,7 @@ This file must be refused. `LastNightAvg` does not name the statistic.
 name: last-night-sdnn
 route: invented_hrv
 writer_field: source.provider
+value_basis: provider
 
 [timeseries]
 time_field: timestamp
