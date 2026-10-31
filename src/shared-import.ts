@@ -96,6 +96,6 @@ export function renderMappedImport(result: unknown): string {
   ];
   for (const item of body.left_out ?? []) lines.push(`left out: ${item}`);
   const ids = body.record_ids ?? [];
-  if (ids.length > 0) lines.push(`records: ${ids.length} (${ids.join(", ")})`);
+  if (ids.length > 0) lines.push(`records: ${ids.length}. Pass --json to list their IDs.`);
   return lines.join("\n");
 }
