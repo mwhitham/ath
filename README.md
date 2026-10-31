@@ -109,6 +109,18 @@ Provider rows use route-specific import keys. Importing unchanged data reports a
 match. Changed data with the same key creates a new revision of the existing
 record. It does not create a second record.
 
+A JSON file from Open Wearables or Junction is read through a mapping file:
+
+```sh
+ath import ~/Downloads/open-wearables.json --mapping open-wearables
+ath import ~/Downloads/open-wearables.json --mapping open-wearables --yes
+```
+
+The mapping file lists their field and our field. A mapped field becomes the typed
+value. Every other field stays under the name it arrived with. The result lists
+each object that was left out and why. The shipped files are in
+[`mappings/`](mappings/). A person can add one in `.agents/mappings/`.
+
 When a v1 package conflicts with local history, the preview creates a temporary
 conflict set:
 
@@ -358,7 +370,8 @@ keeps the ID. Evidence names both the record ID and revision.
 The format defines 24 record types for profile data, sources, measurements,
 sessions, athlete reports, nutrition, attachments, benchmarks, predictions, plans,
 goals, and saved authored work. [`SPEC.md`](SPEC.md) is the public field reference.
-The generated JSON Schemas are in [`schema/2.0.0/`](schema/2.0.0/).
+The generated JSON Schemas are in [`schema/2.1.0/`](schema/2.1.0/). The published
+2.0.0 schemas stay in [`schema/2.0.0/`](schema/2.0.0/).
 
 Provider data research is in
 [`docs/connections.md`](docs/connections.md). The installed agent instructions are

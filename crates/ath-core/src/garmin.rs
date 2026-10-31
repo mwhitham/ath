@@ -558,11 +558,16 @@ mod tests {
         let conn = rusqlite::Connection::open(&database).unwrap();
         conn.execute_batch(include_str!("../../../spec/sql/migrations/001-initial.sql")).unwrap();
         conn.execute(
-            "INSERT INTO database_metadata (singleton_id, application_marker, sql_schema_version, athleticstandard_version, database_id, created_at) VALUES (1, 'ATH1', 3, '2.0.0', '018f0000-0000-7000-8000-000000000099', '2026-08-09T00:00:00.000Z')",
+            "INSERT INTO database_metadata (singleton_id, application_marker, sql_schema_version, athleticstandard_version, database_id, created_at) VALUES (1, 'ATH1', 1, '1.0.0', '018f0000-0000-7000-8000-000000000099', '2026-08-09T00:00:00.000Z')",
             [],
         ).unwrap();
         conn.execute("INSERT INTO database_state (singleton_id, current_revision) VALUES (1, 0)", []).unwrap();
         conn.execute_batch(include_str!("../../../spec/sql/migrations/003-version-2.sql")).unwrap();
+        conn.execute_batch(include_str!("../../../spec/sql/migrations/004-version-2-1.sql")).unwrap();
+        let stored: String = conn
+            .query_row("SELECT athleticstandard_version FROM database_metadata", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(stored, crate::RECORD_VERSION);
         drop(conn);
         let mut store = Store::open(&database).unwrap();
         let result = import_garmin(&mut store, &fit, true).unwrap();

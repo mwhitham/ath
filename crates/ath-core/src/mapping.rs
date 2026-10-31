@@ -383,10 +383,16 @@ fn check_line(section: &str, line: &MapLine) -> Result<(), String> {
     if let Some(basis) = &line.basis {
         let heart_rate_summary = matches!(kind, Target::Summary(_))
             && line.units.as_ref().is_some_and(|(_, unit)| unit == "bpm");
-        if !(our == "hrv_rmssd" || our == "hrv_sdnn" || heart_rate_summary) {
-            return Err("basis is only used for hrv_rmssd, hrv_sdnn, and heart-rate summaries".into());
-        }
-        if !VALUE_BASES.contains(&basis.as_str()) {
+        let known = if our == "activity_type" {
+            ACTIVITY_TYPE_BASES.contains(&basis.as_str())
+        } else if our == "hrv_rmssd" || our == "hrv_sdnn" || heart_rate_summary {
+            VALUE_BASES.contains(&basis.as_str())
+        } else {
+            return Err(
+                "basis is only used for activity_type, hrv_rmssd, hrv_sdnn, and heart-rate summaries".into(),
+            );
+        };
+        if !known {
             return Err(format!("unknown basis {basis}"));
         }
     }
@@ -415,8 +421,15 @@ fn check_line(section: &str, line: &MapLine) -> Result<(), String> {
     Ok(())
 }
 
-/// Values a mapping line may name with `basis`. They are the `field_basis` values.
+/// `field_basis.value` values a mapping line may name with `basis` (D185).
 pub const VALUE_BASES: &[&str] = &["provider_or_open_wearables", "provider", "hrv_mean_rmssd"];
+
+/// `field_basis.activity_type` values an `activity_type` line may name with `basis` (D185).
+pub const ACTIVITY_TYPE_BASES: &[&str] = &["open_wearables_normalized"];
+
+fn value_basis(value: &str) -> Value {
+    json!({ "value": value })
+}
 
 /// Convert by a fixed pair (D180). A whole result is an integer JSON number.
 pub fn convert_unit(value: f64, their_unit: &str, our_unit: &str) -> Result<Value, String> {
@@ -823,6 +836,7 @@ fn map_session(store: &mut Store, run: &mut Run, section: &Section, row: &Map<St
     let mut summaries = Vec::new();
     let mut stages = Map::new();
     let mut children = Vec::new();
+    let mut field_basis = Map::new();
     let mut written: HashSet<String> = HashSet::new();
     for line in applied_lines(section, &writer) {
         if line.when_absent && written.contains(&line.our_field) {
@@ -837,6 +851,9 @@ fn map_session(store: &mut Store, run: &mut Run, section: &Section, row: &Map<St
         if let Target::WorkoutText = kind {
             let Some(text) = value.as_str().filter(|text| !text.trim().is_empty()) else { continue };
             data.insert(line.our_field.clone(), json!(text));
+            if let Some(basis) = line.basis.as_ref().filter(|_| line.our_field == "activity_type") {
+                field_basis.insert("activity_type".into(), json!(basis));
+            }
         } else {
             let Some(number) = value.as_f64() else { continue };
             let (their_unit, our_unit) = line.units.clone().expect("checked mapping");
@@ -864,12 +881,18 @@ fn map_session(store: &mut Store, run: &mut Run, section: &Section, row: &Map<St
                     let mut child = run.base(&source_id);
                     child.insert("quantity".into(), json!(line.our_field));
                     child.insert("value".into(), source_value(converted, &our_unit, &value, &their_unit));
+                    if let Some(basis) = &line.basis {
+                        child.insert("field_basis".into(), value_basis(basis));
+                    }
                     children.push(("point_measurement", "point", line.our_field.clone(), child));
                 }
                 Target::Summary(summary_type) => {
                     let mut child = run.base(&source_id);
                     child.insert("summary_type".into(), json!(summary_type));
                     child.insert("value".into(), source_value(converted, &our_unit, &value, &their_unit));
+                    if let Some(basis) = &line.basis {
+                        child.insert("field_basis".into(), value_basis(basis));
+                    }
                     children.push(("provider_summary", "summary", summary_type, child));
                 }
                 Target::Score(metric) => {
@@ -877,6 +900,7 @@ fn map_session(store: &mut Store, run: &mut Run, section: &Section, row: &Map<St
                     child.insert("metric".into(), json!(metric));
                     child.insert("value".into(), source_value(converted, &our_unit, &value, &their_unit));
                     child.insert("scale".into(), json!(line.scale.clone().expect("checked mapping")));
+                    child.insert("field_basis".into(), value_basis("provider"));
                     children.push(("provider_score", "score", metric, child));
                 }
                 Target::WorkoutText => unreachable!(),
@@ -890,6 +914,9 @@ fn map_session(store: &mut Store, run: &mut Run, section: &Section, row: &Map<St
         data.insert("stage_minutes".into(), Value::Object(stages));
     }
     data.insert("source_reported_summaries".into(), Value::Array(summaries));
+    if !field_basis.is_empty() {
+        data.insert("field_basis".into(), Value::Object(field_basis));
+    }
     if !supplied.is_empty() {
         run.preserved.extend(supplied.keys().cloned());
         data.insert("supplied_fields".into(), Value::Object(supplied));
@@ -1017,6 +1044,11 @@ fn map_sample(
     data.insert("value".into(), source_value(converted, &our_unit, &value, &their_unit));
     data.insert("recorded_at".into(), json!(utc));
     data.insert("input_timestamp".into(), input_receipt(&time_text));
+    if matches!(kind, Target::Score(_)) {
+        data.insert("field_basis".into(), value_basis("provider"));
+    } else if let Some(basis) = &line.basis {
+        data.insert("field_basis".into(), value_basis(basis));
+    }
     if !supplied.is_empty() {
         run.preserved.extend(supplied.keys().cloned());
         data.insert("supplied_fields".into(), Value::Object(supplied));

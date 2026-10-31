@@ -271,6 +271,83 @@ Rejected alternatives:
 - Use the empty-sensor lookup in `ensure_source`. Rejected because a mapped Garmin
   row would attach to the Garmin file source when the sensor is empty.
 
+## D184. The program and the record stay one number, 2.1.0
+
+`ath --version` and `database_metadata.athleticstandard_version` are `2.1.0`. D152
+made them one number so a change does not have to pick which number moves. This
+release keeps that rule. The mapping adds one optional field, `field_basis`, and no
+required field. That is D185. Minor versions may add optional fields, which is the
+rule in [v0.1.0/spec.md](../v0.1.0/spec.md) at the `athleticstandard_version` line,
+and the rule D96 records. The number moves because the program moved and because
+`field_basis` is new.
+
+Migration step 4 stores `2.1.0` and SQL schema `4`. It adds no column and changes
+no record. A new database runs step 3 and then step 4 when it is created. Step 3 is
+not edited (D165). A `2.0.0` package still imports, because a `2.0.0` record is
+valid `2.1.0` data. `schema/2.0.0/` is not rewritten. `schema/2.1.0/` is new.
+
+Rejected alternatives:
+
+- Leave the record at 2.0.0 while the program becomes 2.1.0. Rejected because D152
+  and D164 already rejected a split, and a later change would again have to pick
+  which number moves.
+- Refuse a 2.0.0 package once the program is 2.1.0. Rejected because its records
+  are valid 2.1.0 records, and the person would lose the way back from a backup.
+
+## D185. A basis we assign is not a supplied field
+
+`supplied_fields` holds names the source sent (D153, D161). `intensity` is one of
+those names. It stays there verbatim. It is not a measured record.
+
+`received_at_basis` is already an ATH-owned field on every measured record.
+`ReceivedAtBasis` already allows `import_time`. Mapped imports set that. It is not
+copied into `supplied_fields`. No new enum value is added.
+
+The activity-type origin and the value basis are ours. They do not go in
+`supplied_fields`. They go in one new optional object, `field_basis`, on the
+record:
+
+```ts
+field_basis: z.strictObject({
+  activity_type: z.literal("open_wearables_normalized").optional(),
+  value: z.enum([
+    "provider_or_open_wearables",
+    "provider",
+    "hrv_mean_rmssd",
+  ]).optional(),
+}).optional()
+```
+
+`WorkoutSessionData`, `ProviderSummaryData`, `ProviderScoreData`, and
+`PointMeasurementData` gain the optional key. The objects are strict, so a 2.0.0
+reader rejects the key. That is why the record version moves (D184).
+
+A mapping line states the basis with `basis`. The Open Wearables workout line
+`type: activity_type basis open_wearables_normalized` stores
+`field_basis.activity_type` `open_wearables_normalized`, because Open Wearables
+normalizes that word. A heart-rate summary line with `basis
+provider_or_open_wearables` stores `field_basis.value` `provider_or_open_wearables`,
+because a workout object has no flag that says who computed the number. The
+Junction `average_hrv` line stores `field_basis.value` `hrv_mean_rmssd` on the
+`hrv_rmssd` point. Every stored score stores `field_basis.value` `provider`. The
+writer is `source.provider`. The enum has no `junction` value.
+
+D161 said a new source is a field mapping, not a new record format. This release
+still keeps the Athletic Standard record. It adds one optional field, in minor
+version 2.1.0. That is the case D96 allows. It is not the Open Wearables object used
+as the record, which is what D161 rejected.
+
+Rejected alternatives:
+
+- Put `activity_type_basis` and `value_basis` in `supplied_fields`. Rejected
+  because D153 and D161 keep that object for names the source sent.
+- Add a new `received_at_basis` value for mappings. Rejected because `import_time`
+  already names an import.
+- Add `field_basis` and also rewrite `schema/2.0.0/`. Rejected because that folder
+  is the published 2.0.0 schema.
+- Leave the basis off the record. Rejected because a later reader could not tell a
+  normalized activity type from a name the athlete wrote.
+
 ## D186. `intensity` stays in `supplied_fields`
 
 Open Wearables `intensity` is kept in `supplied_fields` under that name. It is not

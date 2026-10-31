@@ -196,6 +196,7 @@ describe("ath import --mapping open-wearables", () => {
       sensor_type: S_WATCH,
     });
     expect(workout.data.activity_type).toBe("running");
+    expect(workout.data.field_basis).toEqual({ activity_type: "open_wearables_normalized" });
     expect(workout.data.name).toBe("Invented loop");
     expect(workout.data.source_reported_summaries).toEqual([
       { summary_type: "distance", standard_value: 12, standard_unit: "m", input_value: 12, input_unit: "m" },
@@ -213,9 +214,11 @@ describe("ath import --mapping open-wearables", () => {
     const average = byKey.get(key("garmin", S_WATCH, "workout", "ow-workout-1", "summary", "average_heart_rate"))!;
     expect(average.data.value).toEqual({ standard_value: 140, standard_unit: "bpm", input_value: 140, input_unit: "bpm" });
     expect(average.data.supplied_fields).toBeUndefined();
+    expect(average.data.field_basis).toEqual({ value: "provider_or_open_wearables" });
     const peak = byKey.get(key("garmin", S_WATCH, "workout", "ow-workout-1", "summary", "max_heart_rate"))!;
     expect(peak.data.value.standard_value).toBe(180);
     expect(peak.data.supplied_fields).toBeUndefined();
+    expect(peak.data.field_basis).toEqual({ value: "provider_or_open_wearables" });
 
     expect(result.left_out).toContain("workout ow-workout-manual: entry_source manual is a personal report");
     expect([...byKey.keys()].some((matchKey) => matchKey.includes("ow-workout-manual"))).toBe(false);
@@ -261,10 +264,12 @@ describe("ath import --mapping open-wearables", () => {
     expect(stress.data).toMatchObject({ metric: "garmin_stress_level", scale: "1-100" });
     expect(stress.data.value.standard_value).toBe(15);
     expect(stress.data.supplied_fields).toBeUndefined();
+    expect(stress.data.field_basis).toEqual({ value: "provider" });
     expect(sourceOf(sources, stress.data.source_id)).toMatchObject({ data_writer: "garmin", sensor_type: S_WATCH });
 
     const battery = byKey.get(key("garmin", S_WATCH, "timeseries", "score", "garmin_body_battery", "2026-08-09T06:13:00.000Z"))!;
     expect(battery.data).toMatchObject({ metric: "garmin_body_battery", scale: "0-100" });
+    expect(battery.data.field_basis).toEqual({ value: "provider" });
     expect(battery.data.value).toEqual({ standard_value: 70, standard_unit: "score", input_value: 70, input_unit: "percent" });
     expect(sourceOf(sources, battery.data.source_id)).toMatchObject({ data_writer: "garmin", vendor: "garmin" });
     expect(byKey.get(key("garmin", S_WATCH, "source_device"))!.data.manufacturer).toBe("garmin");
@@ -428,6 +433,7 @@ describe("ath import --mapping junction", () => {
     });
     const hrv = byKey.get(key("oura", S_JORA, "sleep", "jn-sleep-1", "point", "hrv_rmssd"))!;
     expect(hrv.data.value.standard_value).toBe(55.5);
+    expect(hrv.data.field_basis).toEqual({ value: "hrv_mean_rmssd" });
     expect(hrv.data.input_timestamp).toEqual({
       timestamp_text: "2026-08-09T10:00:00.000-04:00",
       utc_offset_text: "-04:00",
@@ -442,10 +448,12 @@ describe("ath import --mapping junction", () => {
     const sleepScore = byKey.get(key("oura", S_JORA, "sleep", "jn-sleep-1", "score", "sleep.score"))!;
     expect(sleepScore.data).toMatchObject({ metric: "sleep.score", scale: "1-100" });
     expect(sleepScore.data.value.standard_value).toBe(80);
+    expect(sleepScore.data.field_basis).toEqual({ value: "provider" });
     expect(sourceOf(sources, sleepScore.data.source_id).data_writer).toBe("oura");
     const readiness = byKey.get(key("oura", S_JORA, "sleep", "jn-sleep-1", "score", "recovery_readiness_score"))!;
     expect(readiness.data).toMatchObject({ metric: "recovery_readiness_score", scale: "0-100" });
     expect(readiness.data.value.standard_value).toBe(70);
+    expect(readiness.data.field_basis).toEqual({ value: "provider" });
 
     const second = byKey.get(key("oura", S_JORA, "sleep", "jn-sleep-2"))!;
     expect(second.data.asleep_seconds).toBe(1000);
@@ -669,7 +677,9 @@ describe("refusals", () => {
       [`${SLEEP_HEADER}sleep_duration_seconds asleep_seconds`, "could not read 'sleep_duration_seconds asleep_seconds'"],
       [`${SLEEP_HEADER}x: steps count count`, "unknown field steps"],
       [`${SLEEP_HEADER}x: asleep_seconds s s when-absent\ny: asleep_seconds s s when-absent`, "two when-absent lines write asleep_seconds"],
-      [`${SLEEP_HEADER}x: asleep_seconds s s basis provider`, "basis is only used for hrv_rmssd, hrv_sdnn, and heart-rate summaries"],
+      [`${SLEEP_HEADER}x: asleep_seconds s s basis provider`, "basis is only used for activity_type, hrv_rmssd, hrv_sdnn, and heart-rate summaries"],
+      [`${SLEEP_HEADER}x: hrv_sdnn ms ms basis invented_basis`, "refusing to map x onto hrv_sdnn; the field does not name the statistic"],
+      [`${SLEEP_HEADER}heart_rate_variability_sdnn: hrv_sdnn ms ms basis invented_basis`, "unknown basis invented_basis"],
       [`${SLEEP_HEADER}x: asleep_seconds s s scale 1-100`, "scale is only used for provider_score"],
       [`${SLEEP_HEADER}x: provider_score.x score score`, "provider_score x needs a scale"],
       [`${SLEEP_HEADER}x: oxygen_saturation percent percent`, "oxygen_saturation uses %"],

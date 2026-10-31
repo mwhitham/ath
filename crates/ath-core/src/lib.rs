@@ -15,7 +15,7 @@ pub mod time;
 pub mod whoop;
 
 /// The program version. Revisions this library writes name it as the tool version.
-pub const APP_VERSION: &str = "2.0.0";
+pub const APP_VERSION: &str = "2.1.0";
 
 /// The record version a database must store before this library opens it.
-pub const RECORD_VERSION: &str = "2.0.0";
+pub const RECORD_VERSION: &str = "2.1.0";

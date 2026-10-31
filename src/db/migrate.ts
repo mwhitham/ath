@@ -1,6 +1,7 @@
 import { lstat, mkdir, open as openFile, unlink } from "node:fs/promises";
 import { PROVIDER_ENCODING_REPAIR_SQL } from "./migrations/002-provider-encoding-repair.js";
 import { VERSION_2_UPGRADE_SQL } from "./migrations/003-version-2.js";
+import { VERSION_2_1_UPGRADE_SQL } from "./migrations/004-version-2-1.js";
 import { repairProviderEncodingRows } from "./repair.js";
 import { withWriteTransaction } from "./transaction.js";
 import { incrementDatabaseRevision } from "./records.js";
@@ -36,7 +37,7 @@ import {
 } from "./backup.js";
 import { MIGRATION_CHAIN } from "./sql-contract.js";
 
-const READABLE_DATABASE_VERSIONS = new Set(["1.0.0", ATHLETIC_STANDARD_VERSION]);
+const READABLE_DATABASE_VERSIONS = new Set(["1.0.0", "2.0.0", ATHLETIC_STANDARD_VERSION]);
 
 export interface DatabaseMetadata {
   application_marker: typeof SQLITE_APPLICATION_MARKER;
@@ -149,6 +150,7 @@ async function installInitialSchema(
       "INSERT INTO database_state (singleton_id, current_revision) VALUES (1, 0)",
     );
     await transaction.executeMultiple(VERSION_2_UPGRADE_SQL);
+    await transaction.executeMultiple(VERSION_2_1_UPGRADE_SQL);
     if (database.isLocal) {
       await transaction.execute(`PRAGMA application_id = ${SQLITE_APPLICATION_ID}`);
       await transaction.execute(`PRAGMA user_version = ${SQL_SCHEMA_VERSION}`);
@@ -545,6 +547,15 @@ async function applyMigrationStep(
   if (targetVersion === 3) {
     await withWriteTransaction(database, async (transaction) => {
       await transaction.executeMultiple(VERSION_2_UPGRADE_SQL);
+      if (database.isLocal) {
+        await transaction.execute(`PRAGMA user_version = ${targetVersion}`);
+      }
+    });
+    return;
+  }
+  if (targetVersion === 4) {
+    await withWriteTransaction(database, async (transaction) => {
+      await transaction.executeMultiple(VERSION_2_1_UPGRADE_SQL);
       if (database.isLocal) {
         await transaction.execute(`PRAGMA user_version = ${targetVersion}`);
       }

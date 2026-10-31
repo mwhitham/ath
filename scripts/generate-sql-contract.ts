@@ -9,16 +9,19 @@ import {
   buildSqlContractDocument,
   MIGRATION_002_FILE_HEADER,
   MIGRATION_003_FILE_HEADER,
+  MIGRATION_004_FILE_HEADER,
   publishedMigrationSql,
 } from "../src/db/sql-contract.js";
 import { PROVIDER_ENCODING_REPAIR_SQL } from "../src/db/migrations/002-provider-encoding-repair.js";
 import { VERSION_2_UPGRADE_SQL } from "../src/db/migrations/003-version-2.js";
+import { VERSION_2_1_UPGRADE_SQL } from "../src/db/migrations/004-version-2-1.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const sqlDir = join(root, "spec", "sql");
 const migrationPath = join(sqlDir, "migrations", "001-initial.sql");
 const migration002Path = join(sqlDir, "migrations", "002-provider-encoding-repair.sql");
 const migration003Path = join(sqlDir, "migrations", "003-version-2.sql");
+const migration004Path = join(sqlDir, "migrations", "004-version-2-1.sql");
 const contractPath = join(sqlDir, "contract.json");
 
 const header = `-- Athletic Standard SQL schema migration 001 (sql_schema_version 1).
@@ -38,6 +41,9 @@ console.log(`wrote spec/sql/migrations/002-provider-encoding-repair.sql`);
 
 writeFileSync(migration003Path, `${MIGRATION_003_FILE_HEADER}${VERSION_2_UPGRADE_SQL}\n`);
 console.log(`wrote spec/sql/migrations/003-version-2.sql`);
+
+writeFileSync(migration004Path, `${MIGRATION_004_FILE_HEADER}${VERSION_2_1_UPGRADE_SQL}\n`);
+console.log(`wrote spec/sql/migrations/004-version-2-1.sql`);
 
 writeFileSync(contractPath, JSON.stringify(buildSqlContractDocument(), null, 2) + "\n");
 console.log(`wrote spec/sql/contract.json`);

@@ -14,11 +14,12 @@ Read these before making decisions — they are the project's memory and outrank
 2. **`build-history/v0.2.0/spec.md`** — the format revision that supersedes parts of it: sidecar series, vendor scores, per-modality distance, distinct temperature signals, and the importers.
 3. **`build-history/v1.0.0/spec.md`** — the approved SQLite build plan: SQLite is the live local record and JSON is the complete portable package. D101 rejects 0.x file migration, so runtime implementation begins with the v1 domain schemas.
 4. **`build-history/v2.0.0/spec.md`** — version 2.0.0. The program, the record, and the database share that version. Garmin and Strava imports and calculation skill files are described there.
-5. **`build-history/*/decisions.md`** — every decision with the alternatives that were rejected and why (D1 onward, numbered continuously across version folders). Do not relitigate these without new information; if a decision is superseded, append a new D-number in the current version's file. Don't rewrite earlier entries. Don't create addendum files.
-6. **`build-history/*/appendix/`** — the long-form studies that informed decisions. Link each study from its D-number. Do not move the decision into the appendix, and do not trim the study down to the decision line.
-7. **`build-history/*/progress.md`** — what's done and what's next.
-8. **`docs/connections.md`** — per-provider data research (what WHOOP/Oura/Garmin/Apple Health each provide via which path).
-9. **`SPEC.md`** — the public field-level format reference. Normative Zod for version 2.0.0 is in `src/v1/schema.ts`. `src/schema.ts` is legacy 0.x. JSON Schema is generated from these sources.
+5. **`build-history/v2.1.0/spec.md`** — version 2.1.0, the current version. Mapping files (`mappings/`, `ath import --mapping`), migration step 4, and `field_basis` are described there.
+6. **`build-history/*/decisions.md`** — every decision with the alternatives that were rejected and why (D1 onward, numbered continuously across version folders). Do not relitigate these without new information; if a decision is superseded, append a new D-number in the current version's file. Don't rewrite earlier entries. Don't create addendum files.
+7. **`build-history/*/appendix/`** — the long-form studies that informed decisions. Link each study from its D-number. Do not move the decision into the appendix, and do not trim the study down to the decision line.
+8. **`build-history/*/progress.md`** — what's done and what's next.
+9. **`docs/connections.md`** — per-provider data research (what WHOOP/Oura/Garmin/Apple Health each provide via which path).
+10. **`SPEC.md`** — the public field-level format reference. Normative Zod for version 2.1.0 is in `src/v1/schema.ts`. `src/schema.ts` is legacy 0.x. JSON Schema is generated from these sources.
 
 For v1 storage, IDs, revisions, import behavior, and final schema names, D82–D105 supersede the relevant
 parts of D4, D25, D36, D40, D43, D48, D62, D64, and D65. The old decisions still

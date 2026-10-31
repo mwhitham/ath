@@ -26,7 +26,7 @@ stages.rem_minutes: stage_minutes.rem min min
 id_field: id
 start_field: start_time
 end_field: end_time
-type: activity_type
+type: activity_type basis open_wearables_normalized
 name: name
 distance_meters: source_reported_summaries.distance m m
 elevation_gain_meters: source_reported_summaries.elevation_gain m m
