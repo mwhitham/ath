@@ -56,6 +56,10 @@ device measurement or enters a device baseline.
 An `athlete_report` or `nutrition_entry` has no source field. It cannot claim that a
 device measured the athlete's words, rating, meal, or note.
 
+`intensity` and `Feeling` in `supplied_fields` are labels a source sent. Quote them
+only as "the source said". Never use them as evidence. A calculation cannot read
+them.
+
 Authored records are separate again. Predictions, grades, plans, goals, reviews, and
 model interpretations name their author and exact evidence record revisions.
 
@@ -99,6 +103,7 @@ Import, export, and create:
 |---|---|
 | `ath import <path>` | Preview a provider export or complete v1 package |
 | `ath import <path> --yes` | Apply a conflict-free preview in one transaction |
+| `ath import <path> --mapping <name>` | Preview a JSON file read through a mapping file, such as `open-wearables` or `junction` |
 | `ath conflicts show` | Show complete local and imported values from a package conflict |
 | `ath conflicts resolve <record-id>` | Record a local, imported, or corrected choice without changing athlete data |
 | `ath export <directory>` | Write a complete deterministic JSON package |
@@ -171,6 +176,14 @@ conflict is never resolved by guessing.
 
 Provider rows use route-specific import keys. Repeating unchanged data is a match.
 Changed content with the same key creates a revision.
+
+A JSON file from Open Wearables or Junction is read with `--mapping open-wearables`
+or `--mapping junction`. A mapping file lists their field and our field. A mapped
+field becomes the typed value. Every other field stays in `supplied_fields` under
+the name it arrived with. The result lists each object that was left out and why.
+A person can add a mapping file in `.agents/mappings/`. A mapping that would turn a
+personal report into a measured record, or rename a generic HRV field to RMSSD or
+SDNN, is refused before anything is written.
 
 For a v1 package conflict, run `ath conflicts show`. Record one explicit choice for
 each record with `ath conflicts resolve`: `local`, `imported`, or `corrected`.

@@ -1,0 +1,7 @@
+{
+  "data": [
+    { "timestamp": "2026-08-09T06:10:00.000Z", "type": "garmin_stress_level", "value": 18, "unit": "score", "window_seconds": 300, "source": { "provider": "garmin", "source": "invented-app", "device": "invented-watch", "device_type": "watch", "device_id": "watch-1", "device_name": "Invented Watch" } }
+  ],
+  "pagination": { "has_more": false },
+  "metadata": { "resolution": "5min" }
+}

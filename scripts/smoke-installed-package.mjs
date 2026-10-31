@@ -17,6 +17,11 @@ const shipped = `vendor/ath-core/${process.platform}-${process.arch}/${binaryNam
 if (!listed.split("\n").some((line) => line.endsWith(shipped))) {
   throw new Error(`packed tarball has no ${shipped}`);
 }
+for (const mapping of ["package/mappings/open-wearables.md", "package/mappings/junction.md"]) {
+  if (!listed.split("\n").includes(mapping)) {
+    throw new Error(`packed tarball has no ${mapping}`);
+  }
+}
 const verbose = execFileSync("tar", ["-tvzf", tarball], { encoding: "utf8" });
 const modeLine = verbose.split("\n").find((line) => line.includes(shipped));
 if (modeLine === undefined || !/^-.{2}x/.test(modeLine)) {
@@ -59,6 +64,17 @@ try {
   console.log(run(["apply", "heart-rate-zones", "--record", id]));
   console.log(run(["import", join(root, "tests/fixtures/exports/garmin/namespaced-hr.gpx"), "--yes"]));
   console.log(run(["import", join(root, "tests/fixtures/exports/garmin/synthetic-position.fit"), "--yes"]));
+  const mapped = run([
+    "import",
+    join(root, "tests/fixtures/exports/open-wearables/summaries.json"),
+    "--mapping",
+    "open-wearables",
+    "--yes",
+  ]);
+  console.log(mapped);
+  if (!mapped.includes("left out: workout ow-workout-manual: entry_source manual is a personal report")) {
+    throw new Error("the installed package did not apply the shipped open-wearables mapping");
+  }
   const workouts = JSON.parse(run(["records", "list", "--type", "workout_session", "--json"]));
   const shown = [];
   for (const record of workouts.records) {

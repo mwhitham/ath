@@ -141,6 +141,38 @@ const approvedSyntheticFixtures = new Map<string, string>([
     "4cb6248df5443456996386a02325e0d21532d4251bfa5649c02ea0ca0d4c4ce1",
   ],
   [
+    "tests/fixtures/exports/open-wearables/summaries.json",
+    "2fa1da0408d0235421e34d12cd2f97abff73db6c94e8df7397d91c2c40b0cb0f",
+  ],
+  [
+    "tests/fixtures/exports/open-wearables/page-raw.json",
+    "f2d1b386326ecb23ae9fc1728bd0ae743408526feb5b7b55df83739e201dde63",
+  ],
+  [
+    "tests/fixtures/exports/open-wearables/page-workouts.json",
+    "1e6a6789b40772efffc4d451ba90a940e215589bd4699e4197e9b8666eaf5a35",
+  ],
+  [
+    "tests/fixtures/exports/open-wearables/page-sleep.json",
+    "af309b90d8b7bb11220f5e53fe17db387fa35b841f36f0303a310547f8360d6a",
+  ],
+  [
+    "tests/fixtures/exports/open-wearables/page-null-resolution.json",
+    "56ece15dfd869094cc8139f57402d545900e716b8a6e155dec90e663dd7e70df",
+  ],
+  [
+    "tests/fixtures/exports/open-wearables/page-5min.json",
+    "4e18d5e11e87d11f47fb52fee1ed7830ce64230c832598da853d3d69d2f523cb",
+  ],
+  [
+    "tests/fixtures/exports/open-wearables/page-empty.json",
+    "bd7cdc097685a02928d8634934476d250b1a8d8f188a7448fdedb831db8e64af",
+  ],
+  [
+    "tests/fixtures/exports/junction/summaries.json",
+    "4c358aa546987cd2b019bec7d9bf5759a159c10f1ab3d39f27b0b2ca2a0a2b76",
+  ],
+  [
     "tests/fixtures/version-2-0-0/database.ath.sqlite",
     "442e9a966711660c2a03d701b5de2c55479a78330702083a3a67a182992a7856",
   ],
