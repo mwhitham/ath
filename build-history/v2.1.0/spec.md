@@ -230,11 +230,19 @@ A timeseries sample uses `time_field` and `value_field`. The sample's `type` sel
 timeseries heart_rate_variability_rmssd 2026-08-09T07:00:00.000Z: unit bpm does not match ms
 ```
 
-The import expects raw samples. The file must be the result of query parameter `resolution` set to `raw`. That request is the guard against bucket rows. This release does not call Open Wearables, so the import cannot send the query. It can only read the rows it is given. At tag 0.10.0, commit `d18304f`, `GET /api/v1/users/{user_id}/timeseries` takes `resolution: Resolution = Resolution.RAW` (`backend/app/api/routes/v1/timeseries.py` line 26). The OpenAPI parameter name is `resolution`, and its default is `raw`. The `Resolution` enum is `raw`, `1min`, `5min`, `15min`, and `1hour`. Its description says RAW returns stored samples untouched.
+The import should be given the full Open Wearables response, envelope included. Two shapes are accepted.
 
-`window_seconds` is not an aggregate signal. Tag 0.10.0 has no such field. `TimeSeriesSample` there has no `window_seconds`, and `timeseries_service.py` at that tag does not mention it. On current main, `TimeSeriesSampleBase.window_seconds` is `int | None` (`backend/app/schemas/model_crud/activities/data_point_series.py` line 72). The raw read copies `sample.window_seconds` (`timeseries_service.py` line 539). The bucket read sets `window_seconds` from the bucket width (line 355). Garmin, Oura, Polar, Withings, Apple, and Google Health set it to the sample interval when they ingest. The field was added in commits `4ff8f48` and `cd45e77`. A parent of `4ff8f48` has no `window_seconds`. Because both paths set it, the field cannot tell a bucket row from a raw row. When a stored sample has `window_seconds`, that number stays verbatim in `supplied_fields`.
+An envelope is a JSON object with `data` (the sample array) and `metadata`. `pagination` may be present and is not mapped. At tag 0.10.0, commit `d18304f`, `PaginatedResponse` requires `data`, `pagination`, and `metadata` (`docs/openapi.json`, schema `PaginatedResponse[TimeSeriesSample]`). `TimeseriesMetadata.resolution` is the `Resolution` enum or null. `_page` sets `resolution=params.resolution` (`timeseries_service.py` lines 106–107). The sample object at that tag has no `window_seconds`. On current main, commit `8adb8d0`, `TimeseriesMetadata` is `resolution: Resolution | None` (`backend/app/schemas/utils/metadata.py` lines 28–29). It is the `metadata` field on the page (`backend/app/schemas/utils/pagination.py` line 35). `_page` fills it from `params.resolution` (`timeseries_service.py` lines 179–180). A sample on that page still has no `resolution` field (`data_point_responses.py` lines 22–37). The import does not invent one.
 
-A sample with `period_end`, `stats`, or `is_daily_total` true is an aggregate. It is `left_out` and nothing is written for it. The reason is `aggregate row, not a raw sample`. A stored score's writer is `source.provider`. When a stored row has `computed_by`, that string stays verbatim in `supplied_fields` and does not change the writer.
+Bare rows are the other shape. That is the invented `summaries.json` object, with `sleep`, `workout`, and `timeseries` arrays, and any file whose root has no `metadata.resolution`.
+
+If `metadata.resolution` is present, rows are accepted only when the value is `raw`. Any other value leaves every row in `data` out. The reason is `resolution {value}: not raw samples`. Nothing is written. Under a `raw` envelope, `window_seconds` is the sample interval. The row is stored, and `window_seconds` stays verbatim in `supplied_fields`.
+
+If `metadata.resolution` is absent, a row with `window_seconds` set to any non-null value is `left_out`. The reason is `window_seconds present without resolution: cannot confirm raw`. Nothing is written for that row. That fallback targets Open Wearables 0.10.0 raw output, which has no `window_seconds` on a sample. On current main a real raw row also carries `window_seconds`, so the same fallback leaves those rows out. Pass the full response.
+
+On current main the bucket path (`timeseries_service.py` lines 344–355) sets `window_seconds` to the bucket width and does not pass `period_end` or `stats`. A 5-minute page from that server has `metadata.resolution` `5min`, so every row is left out. The column was added in `6a42ac4d` (`window_seconds: Mapped[int | None]` on the model). `4ff8f48` adds the ingest field. `cd45e77` puts it on the response. `4ff8f48`'s parent is `8e371cb`, and that commit's parent is `6a42ac4d`.
+
+A sample with `period_end` is an aggregate. It is `left_out` in every case, envelope or not. The reason is `aggregate row, not a raw sample`. Nothing is written. On current main, `stats` is passed in the same call as `period_end` (`timeseries_service.py` lines 456–458), so a period row is already caught. `is_daily_total` is set only for a summed series (`daily_total_flag` in `aggregation_method.py` lines 178–191). None of the mapped types is a summed series, so that flag is not the check. If `stats` or `is_daily_total` is present on a row that is stored, it stays verbatim in `supplied_fields`. A stored score's writer is `source.provider`. When a stored row has `computed_by`, that string stays verbatim in `supplied_fields` and does not change the writer.
 
 The id in that string is the UTC timestamp when the sample has no id.
 
@@ -349,6 +357,8 @@ An object that cannot be stored is one `left_out` string. Other objects are stil
 - `duplicate match key {key}`
 - `activity: no mapping section`
 - `aggregate row, not a raw sample`
+- `resolution {value}: not raw samples`
+- `window_seconds present without resolution: cannot confirm raw`
 
 ## 3. A mapping file a person adds
 
@@ -533,7 +543,7 @@ A dotted their-field reads that path. `type.<name>` matches a timeseries sample'
 
 `when-writer` is a comma-separated list with no spaces. The line is applied only when `data_writer` is in the list. Otherwise their field stays in `supplied_fields` and the import continues. When two lines name the same their-field, the line whose `when-writer` matches is the one that writes. The line without `when-writer` is the fallback. That is how Apple `skin_temperature` becomes `wrist_temperature_sleeping` and every other writer keeps `skin_temperature`. `apple.rs` `point_mapping` maps `AppleSleepingWristTemperature` to `wrist_temperature_sleeping` (line 1122). The unit is `°C`.
 
-A timeseries line maps a raw sample. The import expects `resolution=raw`. A sample with `period_end`, `stats`, or `is_daily_total` true is left out. `window_seconds` is not that check. When it is present it stays in `supplied_fields`. `computed_by` appears only on aggregate rows, which are left out, so 2.1.0 never stores a connector-computed value under a provider's name. This mapping targets Open Wearables 0.10.0 raw output. Newer Open Wearables docs say resting heart rate, nightly HRV, SpO2, and VO2 max exist only at `1day` and coarser. Against a newer server those lines are left out as aggregates.
+A timeseries line maps a raw sample. The import should be given the full response, envelope included. If `metadata.resolution` is `raw`, a `window_seconds` value stays in `supplied_fields`. If `metadata.resolution` is any other value, every row is left out. If `metadata.resolution` is absent, a non-null `window_seconds` is left out. A sample with `period_end` is left out. Against 0.10.0 and current main (`8adb8d0`), `computed_by` appears only on aggregate rows, which are left out, so this release does not store a connector-computed value under a provider's name. Newer Open Wearables docs say resting heart rate, nightly HRV, SpO2, and VO2 max exist only at `1day` and coarser. Against a newer server those lines are left out.
 
 A trailing `\r` is stripped. Text outside the fence is not read.
 
@@ -922,6 +932,30 @@ Both files are invented. Dates are in 2026. Coordinates are invented. Pull reque
 }
 ```
 
+`tests/fixtures/exports/open-wearables/page-raw.json` is one page. `metadata.resolution` is `raw`. The one sample is `garmin_stress_level` at `2026-08-09T06:14:00.000Z`, value `18`, unit `score`, `window_seconds` `60`, on the same invented Garmin watch as `summaries.json`.
+
+```json
+{
+  "data": [
+    { "timestamp": "2026-08-09T06:14:00.000Z", "type": "garmin_stress_level", "value": 18, "unit": "score", "window_seconds": 60, "source": { "provider": "garmin", "source": "invented-app", "device": "invented-watch", "device_type": "watch", "device_id": "watch-1", "device_name": "Invented Watch" } }
+  ],
+  "pagination": { "has_more": false },
+  "metadata": { "resolution": "raw" }
+}
+```
+
+`tests/fixtures/exports/open-wearables/page-5min.json` is the same sample with `metadata.resolution` set to `5min`.
+
+```json
+{
+  "data": [
+    { "timestamp": "2026-08-09T06:14:00.000Z", "type": "garmin_stress_level", "value": 18, "unit": "score", "window_seconds": 60, "source": { "provider": "garmin", "source": "invented-app", "device": "invented-watch", "device_type": "watch", "device_id": "watch-1", "device_name": "Invented Watch" } }
+  ],
+  "pagination": { "has_more": false },
+  "metadata": { "resolution": "5min" }
+}
+```
+
 `tests/fixtures/exports/junction/summaries.json`:
 
 ```json
@@ -1013,8 +1047,10 @@ Test `open_wearables_fixture_maps_fields`. Sensor `ring|invented-ring|invented-a
 - `vo2_max` is a `provider_summary` summary type `vo2_max`, value `45`, unit `ml/kg/min`, key suffix `:summary:vo2_max`. The sample's unit was `ml_kg_min`. It is not a point quantity `vo2_max`.
 - `garmin_stress_level` is a `provider_score` metric `garmin_stress_level`, value `15`, scale `1-100`, writer `garmin`, sensor `S-watch`. The sample has no `computed_by`. `supplied_fields` does not contain that key. Test `missing_computed_by_uses_the_provider`. The writer is `source.provider` whether or not `computed_by` is present.
 - `garmin_body_battery` is a `provider_score` metric `garmin_body_battery`, value `70`, scale `0-100`, writer `garmin`, vendor `garmin`, sensor `S-watch`. The sample's unit was `percent`. The stored unit is `score`. The sample has no `computed_by`. `source_device.manufacturer` is `garmin`.
-- Test `window_seconds_stays_on_the_record`. The `garmin_stress_level` sample at `2026-08-09T06:14:00.000Z` has `window_seconds` `60` and no `period_end`, `stats`, or `is_daily_total`. It is a `provider_score`, value `18`, scale `1-100`, writer `garmin`. `supplied_fields` is `{ "window_seconds": 60 }`. `left_out` has no line for that timestamp.
-- Test `period_end_is_an_aggregate`. The `garmin_stress_level` sample at `2026-08-09T06:15:00.000Z` has `period_end` `2026-08-09T07:15:00.000Z`. `left_out` contains `timeseries garmin_stress_level 2026-08-09T06:15:00.000Z: aggregate row, not a raw sample`. No record exists for that timestamp. A row with `stats`, or with `is_daily_total` true, uses that same reason.
+- Test `raw_envelope_keeps_window_seconds`. Import `page-raw.json` with `--mapping open-wearables --yes`. `metadata.resolution` is `raw`. The `garmin_stress_level` sample is a `provider_score`, value `18`, scale `1-100`, writer `garmin`. `supplied_fields` is `{ "window_seconds": 60 }`. `left_out` has no line for that timestamp.
+- Test `five_minute_envelope_is_left_out`. Import `page-5min.json` with `--mapping open-wearables --yes`. `left_out` contains `timeseries garmin_stress_level 2026-08-09T06:14:00.000Z: resolution 5min: not raw samples`. No record is written.
+- Test `window_seconds_without_resolution_is_left_out`. `summaries.json` has no `metadata.resolution`. The `garmin_stress_level` sample at `2026-08-09T06:14:00.000Z` has `window_seconds` `60`. `left_out` contains `timeseries garmin_stress_level 2026-08-09T06:14:00.000Z: window_seconds present without resolution: cannot confirm raw`. No record exists for that timestamp.
+- Test `period_end_is_an_aggregate`. The `garmin_stress_level` sample at `2026-08-09T06:15:00.000Z` has `period_end` `2026-08-09T07:15:00.000Z`. `left_out` contains `timeseries garmin_stress_level 2026-08-09T06:15:00.000Z: aggregate row, not a raw sample`. No record exists for that timestamp.
 - The phone sample and the watch sample at `2026-08-09T08:00:00.000Z` are two `resting_heart_rate` points, `61` and `52`, on two sources. Sensors are `S-phone` and `S-awatch`. Both writers are `apple`. Match keys differ by that sensor.
 - `left_out` contains `timeseries dietary_caffeine 2026-08-09T06:12:00.000Z: unmapped type dietary_caffeine`, the same shape for `workout_effort_score` and `skin_temperature_deviation`, and `timeseries heart_rate_variability_rmssd 2026-08-09T07:00:00.000Z: unit bpm does not match ms`. No record exists for those four samples.
 
@@ -1239,11 +1275,11 @@ These are outside this release. This section does not assign them to a later ver
 
 - Real paged fixtures from Open Wearables and Junction, instead of one invented page.
 - Sleep reads that pass `include=stages` and `filter_by_priority=false`. Timeseries reads at `raw` or `1day`.
-- This mapping targets Open Wearables 0.10.0 raw output. Newer Open Wearables docs say resting heart rate, nightly HRV, SpO2, and VO2 max exist only at `1day` and coarser. Against a newer server those lines are left out as aggregates.
+- This mapping targets Open Wearables 0.10.0 raw output. Newer Open Wearables docs say resting heart rate, nightly HRV, SpO2, and VO2 max exist only at `1day` and coarser. Against a newer server those lines are left out as aggregates. Without the envelope, files from Open Wearables servers newer than 29 October store no timeseries samples, and each one is listed in `left_out`. An empty import there does not mean no data.
 - A check for an old self-hosted Open Wearables server that still has Oura RMSSD stored under the SDNN type. The study names that relabel. This release trusts the type string the server sends.
 - A mapping-file version stored on each record the mapping writes.
 - Open Wearables `/health-scores` is not read.
 - Temperature-deviation types are `left_out`. This release does not check a vendor baseline for them.
 - Junction activity summaries are `left_out`. This release does not store a UTC midnight as a measurement (D88, D110).
-- Open Wearables day, week, and month aggregate rows are not mapped. The import expects raw samples, which is `resolution=raw`. A row with `period_end`, `stats`, or `is_daily_total` true is `left_out`. `window_seconds` is not that check. On current Open Wearables main the bucket path sets `window_seconds` too, and so does the raw path, so that field cannot tell them apart. The 0.10.0 tag has no `computed_by` and no `window_seconds`.
+- Open Wearables day, week, and month aggregate rows are not mapped. The import should be given the full response. If `metadata.resolution` is present and is not `raw`, every row is `left_out`. If it is absent, a row with `window_seconds` is `left_out`. A row with `period_end` is `left_out`. On current main the bucket path sets `window_seconds` and does not set `period_end` or `stats` (`timeseries_service.py` lines 344–355). A full page at 0.10.0 already includes `metadata.resolution`. The sample at that tag has no `window_seconds` and no `computed_by`.
 - `google_health` is not on the `average_hrv` allow-list. Fitbit's HRV method through that slug is not confirmed.
