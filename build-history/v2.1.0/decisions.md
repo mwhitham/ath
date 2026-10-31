@@ -271,11 +271,16 @@ Rejected alternatives:
 - Use the empty-sensor lookup in `ensure_source`. Rejected because a mapped Garmin
   row would attach to the Garmin file source when the sensor is empty.
 
-## D184. The program and the record stay one number, 2.1.0
+## D184. 2.1.0 ships as option A: the program and the record stay one number
 
-`ath --version` and `database_metadata.athleticstandard_version` are `2.1.0`. D152
-made them one number so a change does not have to pick which number moves. This
-release keeps that rule. The mapping adds one optional field, `field_basis`, and no
+2.1.0 ships as option A. `ath --version` and
+`database_metadata.athleticstandard_version` are both `2.1.0`. Option A is
+[spec.md](spec.md) section 8.
+
+Mike chose option A in his direct chat with Chief of Staff on 2026-10-31 at 8:52 AM CT. Asked whether saved data should also say 2.1.0, with a field_basis note on each value, he answered "yes".
+
+D152 made the program version and the record version one number, so a change does not
+have to pick which number moves. This release keeps that rule. The mapping adds one optional field, `field_basis`, and no
 required field. That is D185. Minor versions may add optional fields, which is the
 rule in [v0.1.0/spec.md](../v0.1.0/spec.md) at the `athleticstandard_version` line,
 and the rule D96 records. The number moves because the program moved and because
@@ -288,9 +293,9 @@ valid `2.1.0` data. `schema/2.0.0/` is not rewritten. `schema/2.1.0/` is new.
 
 Rejected alternatives:
 
-- Leave the record at 2.0.0 while the program becomes 2.1.0. Rejected because D152
-  and D164 already rejected a split, and a later change would again have to pick
-  which number moves.
+- Option B: leave the record at 2.0.0 while the program becomes 2.1.0. Rejected
+  because D152 and D164 already rejected a split, and a later change would again
+  have to pick which number moves.
 - Refuse a 2.0.0 package once the program is 2.1.0. Rejected because its records
   are valid 2.1.0 records, and the person would lose the way back from a backup.
 

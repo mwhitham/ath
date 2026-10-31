@@ -11,10 +11,11 @@
 | 7 | `cargo test` on Linux, macOS, and Windows, a Windows path test, and the pack checks in CI | done |
 | 8 | The regenerated demo athlete, and a migrated copy of the 2.0.0 database that passes `ath check` | done |
 
-Mike approved the plan in [spec.md](spec.md) and changed it in three ways. The build is
-one pull request, not three. The version is option A: one number, 2.1.0. `field_basis`
-goes on every stored value, not only mapped values. That last change is D187. The spec
-says what was built where it differs from the plan.
+Mike approved the plan in [spec.md](spec.md). Three changes override it where they
+conflict. The build is one pull request, not three. 2.1.0 ships as option A: one
+number, 2.1.0. D184 quotes where and when Mike chose it. `field_basis` goes on every
+stored value, not only mapped values. That last change is D187. The spec says what was
+built where it differs from the plan.
 
 The baseline found one mistake in the plan. Its package row named
 `examples/demo-athlete/athlete.ath.json`, which is the legacy 0.4.3 file that `ath import`

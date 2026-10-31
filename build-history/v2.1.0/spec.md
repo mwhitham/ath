@@ -14,7 +14,7 @@ This plan was written in pull request 38. The build shipped as one later pull re
 
 ## How 2.1.0 was delivered
 
-One release, 2.1.0, in one pull request. Mike changed the plan's three pull requests to one. The plan's work for each part is still in that pull request, as separate commits, in this order:
+One release, 2.1.0, in one pull request instead of the plan's three. The plan's work for each part is still in that pull request, as separate commits, in this order:
 
 | Commit | What lands | Decisions |
 |---|---|---|
@@ -24,9 +24,9 @@ One release, 2.1.0, in one pull request. Mike changed the plan's three pull requ
 | Every value's basis | `field_basis` on every stored value, from every importer | D187 |
 | Notes | The nits from the last review, the progress note in section 9, and this spec | none |
 
-Nothing is published. Mike picked option A in section 8. Option B was not chosen. The tool skill `metadata.version` moves with the package version, to `2.1.0`, so `tests/skill.test.ts` still sees equal versions.
+Nothing is published. 2.1.0 ships as option A. Section 8 says where and when Mike chose it. Option B was not chosen. The tool skill `metadata.version` moves with the package version, to `2.1.0`, so `tests/skill.test.ts` still sees equal versions.
 
-Mike also asked for three changes that override the plan where they conflict: one pull request, option A, and `field_basis` on every stored value, not only mapped values. The third change is D187 and section 13.
+Three changes override the plan where they conflict: one pull request, option A, and `field_basis` on every stored value, not only mapped values. The third change is D187 and section 13.
 
 ## 1. The shipped mapping files
 
@@ -428,7 +428,7 @@ Test `personal_report_cannot_become_a_measured_record`: object `{ "id": "report-
 
 `tests/mapping-cli.test.ts` expects `ath: refusing to turn a personal report into a measured record`.
 
-`entry_source` `manual` is not this refusal. The default is `left_out` for that object only. Section 11 asks Mike if the whole import should refuse instead. Test `manual_entry_source_is_left_out` uses `ow-workout-manual`. The object writes no record. `left_out` contains `workout ow-workout-manual: entry_source manual is a personal report`.
+`entry_source` `manual` is not this refusal. That object alone is `left_out`, and the rest of the file is still written. Section 11 records the answer to the plan's question about refusing the whole import. Test `manual_entry_source_is_left_out` uses `ow-workout-manual`. The object writes no record. `left_out` contains `workout ow-workout-manual: entry_source manual is a personal report`.
 
 `intensity` is not a refusal and not a `left_out` line (D186). Test `intensity_stays_in_supplied_fields` uses `ow-workout-1`. `supplied_fields.intensity` is `moderate`. No measured field is named `intensity`. The precedent is Garmin `Feeling`, which `tests/v2-core.test.ts` line 54 keeps in `preserved`.
 
@@ -565,12 +565,12 @@ The decisions as adopted are in [decisions.md](decisions.md). Numbers continue f
 - D181. The match key is the writer, the sensor, their id, and the kind. Every part is escaped.
 - D182. A re-run updates the same row by replacing the stored object. A deleted record is not revised.
 - D183. The source names the device and the path.
-- D184. The program and the record stay one number, 2.1.0. Option A.
+- D184. 2.1.0 ships as option A: the program and the record stay one number.
 - D185. A basis we assign is not a supplied field. `field_basis` for mapped values.
 - D186. `intensity` stays in `supplied_fields`, and no calculation reads it or `Feeling`.
 - D187. Every stored value states its basis, from every importer, mapping file, and `ath log`. Migration step 4 does not backfill.
 
-D184 picks option A. Option B, two numbers, was not chosen, so no D185 stub was written.
+D184 records option A. Option B, two numbers, was not chosen, so no D185 stub was written.
 
 ## 6. Acceptance tests
 
@@ -998,7 +998,11 @@ The build adds the optional `field_basis` object to `src/v1/schema.ts` (D185, D1
 
 ## 8. Version
 
-Mike chose option A: the program version and the record version stay one number, 2.1.0. D152 made them one number for 2.0.0. D164 says that choice still holds from 2.0.0 on. Neither decision is rewritten here. The choice is D184.
+2.1.0 ships as option A: the program version and the record version stay one number, 2.1.0.
+
+Mike chose option A in his direct chat with Chief of Staff on 2026-10-31 at 8:52 AM CT. Asked whether saved data should also say 2.1.0, with a field_basis note on each value, he answered "yes".
+
+D152 made them one number for 2.0.0. D164 says that choice still holds from 2.0.0 on. Neither decision is rewritten here. The choice is D184.
 
 The code uses two constants.
 
@@ -1022,7 +1026,7 @@ The plan's D184 text was:
 >
 > - Leave the record at 2.0.0 while the program becomes 2.1.0. Rejected because D152 and D164 already rejected a split, and a later change would again have to pick which number moves.
 
-The adopted D184 in [decisions.md](decisions.md) adds two sentences. A 2.0.0 package still imports, because its records are valid 2.1.0 data. The build found that the package loader accepted only the current version, so a 2.1.0 program would have refused a 2.0.0 package. `IMPORTABLE_PACKAGE_VERSIONS` in `src/v1/schema.ts` is `2.0.0` and `2.1.0`.
+The adopted D184 in [decisions.md](decisions.md) opens with the sentence and the quote at the top of this section. It adds a paragraph on migration step 4 and the schema folders, and a second rejected alternative. A 2.0.0 package still imports, because its records are valid 2.1.0 data. The build found that the package loader accepted only the current version, so a 2.1.0 program would have refused a 2.0.0 package. `IMPORTABLE_PACKAGE_VERSIONS` in `src/v1/schema.ts` is `2.0.0` and `2.1.0`.
 
 What changed:
 
@@ -1071,7 +1075,7 @@ What this asks of a 2.0.0 database: `ath migrate` runs, and no column is added. 
 
 ### Option B. Not chosen
 
-Option B kept the record at 2.0.0 and the program at 2.1.0, with no migration and no `field_basis` on the record. Mike did not choose it. Its text is not copied into the decisions, and no D185 stub was written.
+Option B kept the record at 2.0.0 and the program at 2.1.0, with no migration and no `field_basis` on the record. It was not chosen. Its text is not copied into the decisions, and no D185 stub was written.
 
 ## 9. The 2.0.0 progress note
 
@@ -1098,7 +1102,7 @@ Mike asked to remove the outdated "Later, with the reason:" heading from
 
 `build-history/v2.1.0/decisions.md` holds D177 through D187. D184 and D185 were inserted before D186, and D187 follows D186. `build-history/README.md` "Current records" links the spec, the decisions, and the progress note, and says version 2.1.0 is the software now.
 
-The proof is an image in the build pull request's description. It is not committed. Mike asked for `ath --version` showing `2.1.0`, an `ath import --mapping open-wearables` run with its `left_out` lines, and `ath check` passing on a migrated copy of the 2.0.0 database. The plan's list also asked for:
+The proof is in the build pull request's description: screenshots and a short video of the packed package, installed into an empty folder. None of it is committed. The build request asked for `ath --version` showing `2.1.0`, an `ath import --mapping open-wearables` run with its `left_out` lines, `ath check` passing on a migrated copy of the 2.0.0 database, and one record from a built-in importer showing `field_basis`. The plan's list also asked for these seven items, and the proof shows all seven:
 
 1. `ath import` of the Open Wearables fixture with `--mapping open-wearables --yes`.
 2. The `hrv_rmssd` point at `42.5` and the `hrv_sdnn` point at `61.2`.
@@ -1127,9 +1131,9 @@ The plan pull request had no recording.
 
 ### Answers from Mike
 
-1. Option A or option B in section 8: option A. One number, 2.1.0, with `field_basis`, `schema/2.1.0/`, and migration step 4.
+1. Option A or option B in section 8: option A. One number, 2.1.0, with `field_basis`, `schema/2.1.0/`, and migration step 4. Section 8 quotes where and when Mike chose it.
 2. A workout with `entry_source` `manual`: Mike approved the plan with its recommendation. The object is left out of the measured import, and the other objects in the file are still written. The test is `ow-workout-manual`.
-3. Mike added one more change: `field_basis` goes on every stored value, not only mapped values. That is D187 and section 13.
+3. `field_basis` goes on every stored value, not only mapped values. The question Mike answered "yes" to, quoted in section 8, asked for a field_basis note on each value. That is D187 and section 13.
 
 `--mapping` is in this release. D174 does not need a new D-number. The fourth refusal stays. It is D179 item 4, from D172.
 
@@ -1157,7 +1161,7 @@ These are outside this release. This section does not assign them to a later ver
 
 ## 13. Every stored value's basis
 
-Mike extended `field_basis` from mapped values to every stored value. This section is that change. The decision is D187.
+`field_basis` goes on every stored value, not only on mapped values. The question Mike answered "yes" to, quoted in section 8, asked for a field_basis note on each value. This section is that change. The decision is D187.
 
 ### The object
 
