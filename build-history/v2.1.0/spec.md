@@ -1,6 +1,8 @@
 # Athletic Standard 2.1.0
 
-Status: **pending Mike's OK**. Not approved for build.
+Status: **approved by Mike and built in one pull request**. The decisions are in
+[decisions.md](decisions.md), D177 through D187. What was built is in
+[progress.md](progress.md).
 
 This release builds the source mapping [D161](../v2.0.0/decisions.md) describes. A source whose reader already produces named fields is imported by adding a mapping file. The file lists their field and our field. A mapped field becomes the typed value. Any other field stays in `supplied_fields` under the name it arrived with.
 
@@ -8,29 +10,29 @@ This release builds the source mapping [D161](../v2.0.0/decisions.md) describes.
 
 The field table is [v2.0.0/appendix/source-formats.md](../v2.0.0/appendix/source-formats.md). Id, start, end, and nested stage paths were read from those public pages on 31 October 2026. The study's word `source.slug` is the description Junction gives `source.provider`. The shipped Junction file reads `source.provider`.
 
-This pull request is the plan. The build after Mike's OK is three later pull requests, in this order.
+This plan was written in pull request 38. The build shipped as one later pull request.
 
-## How 2.1.0 is delivered
+## How 2.1.0 was delivered
 
-One release, 2.1.0. Three pull requests. Each one merges before the next starts. Pull requests (b) and (c) ship together as release 2.1.0. Nothing is published until (c) merges. Pull request (b) edits `skills/athletic-standard/SKILL.md` while the package version is still `2.0.0`. D164 replaces an installed tool skill only when its version is older than the version this program ships. A skill already at this version is not replaced. The new sentence reaches a person who has `2.0.0` when the published version is `2.1.0`. Version options A and B stay side by side until Mike picks. The pick is written in the third pull request.
+One release, 2.1.0, in one pull request. Mike changed the plan's three pull requests to one. The plan's work for each part is still in that pull request, as separate commits, in this order:
 
-| Pull request | What lands | Decisions |
+| Commit | What lands | Decisions |
 |---|---|---|
-| (a) Baseline | The comparison harness and the 2.0.0 database copy, taken from main `d418a8f653f7074ed9e08208c4eb555c391bcbc7` with no other edit | none |
-| (b) Mapping | The engine, `ath import --mapping`, the fixtures, the pack checks, the calculation refusal | D177–D183, D186 |
-| (c) Version | Option A or option B, then the progress-note cleanup in section 9 | D184. D185 only under option A. Under option B, a one-line stub: D185 not adopted |
+| Baseline | The comparison harness, the 2.0.0 database copy, and a 2.0.0 package exported from that copy, all from code that matches main `d418a8f653f7074ed9e08208c4eb555c391bcbc7` | none |
+| Mapping | The engine, `ath import --mapping`, the fixtures, the pack checks, the calculation refusal | D177–D183, D186 |
+| Version | Option A from section 8 | D184, D185 |
+| Every value's basis | `field_basis` on every stored value, from every importer | D187 |
+| Notes | The nits from the last review, the progress note in section 9, and this spec | none |
 
-Cloud-agent time, from Mike. Past runs are the basis. Pull request 35 took 13 fix rounds of about 10–50 minutes each. The three planning runs on this pull request took about 25, 12, and 6 minutes. The three build pull requests run in series.
+Nothing is published. Mike picked option A in section 8. Option B was not chosen. The tool skill `metadata.version` moves with the package version, to `2.1.0`, so `tests/skill.test.ts` still sees equal versions.
 
-- (a) is about 1.5–2 hours of active cloud-agent time. It adds `tests/import-baseline.test.ts`, the comparison JSON files under `tests/fixtures/import-baseline/`, and `tests/fixtures/version-2-0-0/database.ath.sqlite`. It edits `scripts/check-public-data.ts` and `.gitignore`. It does not change a reader or a version constant.
-- (b) is about 5–8 hours of active cloud-agent time. It adds `crates/ath-core/src/mapping.rs`, the two files under `mappings/`, the two invented fixtures, and the mapping tests. It edits `store.rs`, `main.rs`, `lib.rs`, `src/skill.ts`, `src/program.ts`, `src/help.ts`, `src/update.ts`, the generated `cli.md`, `package.json`, `scripts/smoke-installed-package.mjs`, `.github/workflows/ci.yml`, `crates/ath-core/src/calc.rs`, and `skills/athletic-standard/SKILL.md`. It writes D177–D183 and D186. Pull request (b) writes no `field_basis`. It does not add that key to the schema and it does not change `schema/2.0.0/`. The tool skill `metadata.version` stays `2.0.0`, equal to `ATH_PACKAGE_VERSION`, because `tests/skill.test.ts` line 105 requires that. It does not change `athleticstandard_version`.
-- (c) is about 1.5–2.5 hours of active cloud-agent time. Option A adds migration 4, `field_basis` in `schema/2.1.0/`, the `SPEC.md` note, the demo athlete regeneration, the `field_basis` writer in `crates/ath-core/src/mapping.rs`, and the expected test JSON that names `field_basis`. Option B changes the program version, writes no `field_basis`, writes the one-line stub `D185 not adopted` in `build-history/v2.1.0/decisions.md`, and does not edit `build-history/README.md` or `schema/2.0.0/`. Both set the tool skill version equal to the package version, insert D184, delete the heading in section 9, and write `build-history/v2.1.0/progress.md`. Nothing is published until this pull request merges.
-
-Together that is about 8–12.5 hours of active cloud-agent time, counting agent runs, review rounds, CI, and Verify. The low ends are 1.5 + 5 + 1.5. With the pull requests in series, that is about 1–2 calendar days once merges are included.
+Mike also asked for three changes that override the plan where they conflict: one pull request, option A, and `field_basis` on every stored value, not only mapped values. The third change is D187 and section 13.
 
 ## 1. The shipped mapping files
 
-A mapping file is markdown. The program reads the first fenced block whose info string is `ath-mapping`. Text outside that block is for a person. The grammar is D177. The build writes these two files in pull request (b).
+A mapping file is markdown. The program reads the first fenced block whose info string is `ath-mapping`. Text outside that block is for a person. The grammar is D177. These are the two shipped files, exactly as built.
+
+The header has more keys than the plan first listed. `sensor`, `device_name`, `device_model`, and `device_hardware` name the device fields (D183). They live in the file, so a mapping a person adds can keep two devices apart. `value_basis` gives the basis of every value the file writes (D187). The `type` line states the activity type's basis.
 
 Shipped paths:
 
@@ -44,12 +46,17 @@ Shipped paths:
 ~~~~markdown
 # Open Wearables
 
-Sleep sessions, workouts, and timeseries samples. The provider is `source.provider`. The device is `source.device_type`, `source.device`, and `source.source`. Stage minutes are under `stages`. `efficiency_percent` stays under that name. `entry_source` `manual` is left out. `intensity` stays under that name. A timeseries type is stored only when a line below names it.
+Sleep sessions, workouts, and timeseries samples. The provider is `source.provider`. The device is `source.device_type`, `source.device`, and `source.source`. A value's basis is `provider_or_open_wearables`, because an Open Wearables object does not say whether the provider or Open Wearables computed it. A provider score's basis is `provider`. Stage minutes are under `stages`. `efficiency_percent` stays under that name. `entry_source` `manual` is left out. `intensity` stays under that name. A timeseries type is stored only when a line below names it.
 
 ```ath-mapping
 name: open-wearables
 route: open_wearables
 writer_field: source.provider
+value_basis: provider_or_open_wearables
+sensor: source.device_type, source.device, source.source
+device_name: source.device_name, source.device
+device_model: source.device
+device_hardware: source.device_id
 
 [sleep]
 id_field: id
@@ -66,7 +73,7 @@ stages.rem_minutes: stage_minutes.rem min min
 id_field: id
 start_field: start_time
 end_field: end_time
-type: activity_type
+type: activity_type basis open_wearables_normalized
 name: name
 distance_meters: source_reported_summaries.distance m m
 elevation_gain_meters: source_reported_summaries.elevation_gain m m
@@ -90,9 +97,9 @@ type.garmin_body_battery: provider_score.garmin_body_battery percent score scale
 ```
 ~~~~
 
-`duration_seconds` stays in `supplied_fields`. `intensity` stays in `supplied_fields` under that name (D186). It is not a measured record. `name` is stored as the exact string. `activity_type` is stored as sent. Under option A the workout's `field_basis.activity_type` is `open_wearables_normalized`, because Open Wearables normalizes that word (D185). Under option B that key is absent.
+`duration_seconds` stays in `supplied_fields`. `intensity` stays in `supplied_fields` under that name (D186). It is not a measured record. `name` is stored as the exact string. `activity_type` is stored as sent. The workout's `field_basis.activity_type` is `open_wearables_normalized`, because Open Wearables normalizes that word (D185). Its `field_basis.value` is `provider_or_open_wearables` (D187).
 
-`avg_heart_rate_bpm` and `max_heart_rate_bpm` each become a `provider_summary`. The summary types are `average_heart_rate` and `max_heart_rate`. The basis stays `provider_or_open_wearables`, because a workout object has no flag that says who computed the number. Open Wearables does not send `{their_field}_computed_by`. That sibling rule is not part of this release. Under option A, `field_basis.value` holds `provider_or_open_wearables`. Under option B the basis is not stored on the record. `maximum_heart_rate_bpm` is never written (D172).
+`avg_heart_rate_bpm` and `max_heart_rate_bpm` each become a `provider_summary`. The summary types are `average_heart_rate` and `max_heart_rate`. The basis stays `provider_or_open_wearables`, because a workout object has no flag that says who computed the number. Open Wearables does not send `{their_field}_computed_by`. That sibling rule is not part of this release. `field_basis.value` holds `provider_or_open_wearables`. `maximum_heart_rate_bpm` is never written (D172).
 
 `hr_zones` is not a line. The object stays nested in `supplied_fields`. A line that aims `hr_zones.max_hr` at `maximum_heart_rate_bpm` is the D172 refusal in section 4.
 
@@ -107,12 +114,17 @@ Open Wearables `/health-scores` is not in this file. This release does not read 
 ~~~~markdown
 # Junction
 
-Sleep summaries. The provider is `source.provider`. The device is `source.type`, `source.device_id`, and `source.app_id`. `average_hrv` maps to `hrv_rmssd` only with basis `hrv_mean_rmssd`, and only when the writer is oura, whoop_v2, garmin, fitbit, or polar. `duration` stays under `duration`. `efficiency` stays under `efficiency`. There is no activity section.
+Sleep summaries. The provider is `source.provider`. The device is `source.type`, `source.device_id`, and `source.app_id`. A value's basis is `provider_or_junction`, because Junction calculates some summary numbers from samples. A provider score's basis is `provider`. `average_hrv` maps to `hrv_rmssd` only with basis `hrv_mean_rmssd`, and only when the writer is oura, whoop_v2, garmin, fitbit, or polar. `duration` stays under `duration`. `efficiency` stays under `efficiency`. There is no activity section.
 
 ```ath-mapping
 name: junction
 route: junction
 writer_field: source.provider
+value_basis: provider_or_junction
+sensor: source.type, source.device_id, source.app_id
+device_name: source.type
+device_model: source.device_id
+device_hardware: source.app_id
 
 [sleep]
 id_field: id
@@ -146,14 +158,14 @@ The older stage fields `awake`, `light`, `rem`, and `deep` are not lines. A `0` 
 
 ## 2. How a mapping runs
 
-The runner is new Rust in `crates/ath-core`, pull request (b). D155 put new imports there. D173 says the tests still have to pass. The Apple Health, WHOOP, Oura, Garmin, and Strava readers stay on their current functions.
+The runner is new Rust in `crates/ath-core`. D155 put new imports there. D173 says the tests still have to pass. The Apple Health, WHOOP, Oura, Garmin, and Strava readers stay on their current functions.
 
 ### Types and functions
 
 New module `crates/ath-core/src/mapping.rs`, declared from `lib.rs`.
 
 ```rust
-pub struct MappingFile { /* name, route, writer_field, sections */ }
+pub struct MappingFile { /* name, route, writer_field, value_basis, sensor, device_name, device_model, device_hardware, sections */ }
 pub struct MapLine { /* their_field, our_field, units, basis, scale, when_absent, when_writer */ }
 
 pub fn parse_mapping(text: &str) -> Result<MappingFile, String>
@@ -165,7 +177,7 @@ pub fn convert_unit(value: f64, their_unit: &str, our_unit: &str) -> Result<Valu
 
 `parse_mapping` strips a trailing `\r` from each line, so a CRLF file parses the same as a LF file. Test `crlf_mapping_file_parses`.
 
-There is no Rust `is_mapping_path`. `resolveMappingFile` in `src/skill.ts` resolves the name to an absolute path and passes that path as `--mapping-file`. Rust only reads the file. The path rule lives in TypeScript as `isMappingPath`, next to `resolveMappingFile`. It is true when the string contains `/` or `\`, or matches a drive prefix such as `C:`. `tests/mapping-path.test.ts` asserts `isMappingPath("C:\\mappings\\mine.md")` and `isMappingPath("mappings\\mine.md")`. Pull request (b) adds a `windows-latest` job. The existing `verify` job stays on `ubuntu-latest`. The new job copies `verify`'s setup steps from `.github/workflows/ci.yml` lines 20–28, then runs the one test file:
+There is no Rust `is_mapping_path`. `resolveMappingFile` in `src/skill.ts` resolves the name to an absolute path and passes that path as `--mapping-file`. Rust only reads the file. The path rule lives in TypeScript as `isMappingPath`, next to `resolveMappingFile`. It is true when the string contains `/` or `\`, or matches a drive prefix such as `C:`. `tests/mapping-path.test.ts` asserts `isMappingPath("C:\\mappings\\mine.md")` and `isMappingPath("mappings\\mine.md")`. The build adds a `windows-latest` job. The existing `verify` job stays on `ubuntu-latest`. The new job copies `verify`'s setup steps from `.github/workflows/ci.yml` lines 20–28, then runs the one test file:
 
 ```yaml
 mapping-path:
@@ -205,7 +217,9 @@ Today that lookup does not replace. At lines 218–219 `insert_record` calls `re
 - `provider_summary.` plus a non-empty summary type.
 - `provider_score.` plus a metric. The metric may contain dots (`sleep.score`). The line includes `scale`.
 
-A numeric target needs a unit pair. `activity_type`, `name`, `description`, and `text_result` take none.
+A numeric target needs a unit pair. `activity_type`, `name`, `description`, and `text_result` take none. Our unit must be the field's own unit (D180): `s` for `asleep_seconds` and `in_bed_seconds`, `min` for `stage_minutes`, `count` for `interruptions`, `m` for a workout distance or elevation gain, `kcal` for energy, and the `POINT_MEASUREMENT_UNITS` value for a point.
+
+`basis` is allowed on an `activity_type` line, on `hrv_rmssd` and `hrv_sdnn`, and on a `provider_summary` heart-rate line whose our unit is `bpm`. An `activity_type` line must have one: `open_wearables_normalized` or `provider_label` (D187). A value basis must be one of the `field_basis.value` values.
 
 `start_at` and `end_at` are UTC with millisecond precision, via `crate::time::format_datetime`. `input_receipt` keeps the original text. A `Z` suffix uses offset text `Z`, meaning `documented_recording_offset`, basis `source_instant`. Any other numeric offset keeps that text, meaning `meaning_not_documented`, basis `source_offset_timestamp`. No new offset meaning is added.
 
@@ -222,7 +236,7 @@ A point quantity, a `provider_summary`, or a `provider_score` from a session is 
 }
 ```
 
-A Junction child of `jn-sleep-1` stores `timestamp_text` `2026-08-09T10:00:00.000-04:00`, `utc_offset_text` `-04:00`, `utc_offset_meaning` `meaning_not_documented`, and `timestamp_basis` `source_offset_timestamp`. The child does not repeat the session's leftovers. Pull request (b) writes no `field_basis`. Under option A, pull request (c) adds the writer in `crates/ath-core/src/mapping.rs` and stores `field_basis` on that child when the line has a basis (D185). Under option B the key is absent. `field_basis` is not inside `supplied_fields`.
+A Junction child of `jn-sleep-1` stores `timestamp_text` `2026-08-09T10:00:00.000-04:00`, `utc_offset_text` `-04:00`, `utc_offset_meaning` `meaning_not_documented`, and `timestamp_basis` `source_offset_timestamp`. The child does not repeat the session's leftovers. The child stores `field_basis.value`: the line's `basis` when the line has one (D185), `provider` for a provider score, and otherwise the file's `value_basis` (D187). The session stores the file's `value_basis` too. `field_basis` is not inside `supplied_fields`.
 
 A timeseries sample uses `time_field` and `value_field`. The sample's `type` selects `type.<that string>`. If the sample's `unit` differs from the line's their-unit, the sample is `left_out` and nothing is written for it:
 
@@ -238,7 +252,7 @@ Bare rows are the other shape. That is the invented `summaries.json` object, wit
 
 If `metadata.resolution` is present, rows are accepted only when the value is `raw`. A null `metadata.resolution` is treated as absent. Any other value leaves every row in `data` out. The reason is `resolution {value}: not raw samples`. Nothing is written. Under a `raw` envelope, `window_seconds` is the sample interval. The row is stored, and `window_seconds` stays verbatim in `supplied_fields`.
 
-The check reads the first row of the envelope's `data`. An Open Wearables page comes from one endpoint, so its rows share one shape. The page is a timeseries page when that row has `timestamp`, `type`, `value`, and `unit`, and has no `start_time`. That is `TimeSeriesSample` at tag 0.10.0 (`backend/app/schemas/responses/activity/data_point_responses.py` lines 11–20). `list_sleep_sessions` is `GET /users/{user_id}/events/sleep` (`events.py` lines 118–134 at 0.10.0). A `SleepSession` there has `start_time`, `end_time`, `duration_seconds`, `stages`, and `is_nap`. It has no `bedtime_start` and no `type`. Sleep and workouts both use `start_time`, so the first row is not labeled by guessing those names. Otherwise the whole envelope is refused. Nothing is written. `left_out` is exactly one line: `envelope is not a timeseries page: pass its data array under workout or sleep`. Inside a timeseries page, later rows still get the usual per-row reasons.
+The check reads the first row of the envelope's `data`. An Open Wearables page comes from one endpoint, so its rows share one shape. The page is a timeseries page when that row has `timestamp`, `type`, `value`, and `unit`, and has no `start_time`. That is `TimeSeriesSample` at tag 0.10.0 (`backend/app/schemas/responses/activity/data_point_responses.py` lines 11–20). `list_sleep_sessions` is `GET /users/{user_id}/events/sleep` (`events.py` lines 118–134 at 0.10.0). A `SleepSession` (`backend/app/schemas/responses/activity/events.py` lines 118–130 at 0.10.0, commit `d18304f8076a7710c48a4b279f8e8abd5a16887e`) has `start_time`, `end_time`, `duration_seconds`, `stages`, and `is_nap`. It has no `bedtime_start` and no `type`. Sleep and workouts both use `start_time`, so the first row is not labeled by guessing those names. Otherwise the whole envelope is refused. Nothing is written. `left_out` is exactly one line: `envelope is not a timeseries page: pass its data array under workout or sleep`. Inside a timeseries page, later rows still get the usual per-row reasons. An envelope whose `data` is empty writes nothing and adds no line, because there is nothing to leave out. Open Wearables returns an empty page for an empty window. Test `an empty envelope writes nothing and adds no left_out line` uses `tests/fixtures/exports/open-wearables/page-empty.json`.
 
 If `metadata.resolution` is absent, a row with `window_seconds` set to any non-null value is `left_out`. The reason is `window_seconds present without resolution: cannot confirm raw`. Nothing is written for that row. That is the default refusal when resolution is missing. At 0.10.0 it does not fire: a sample has no `window_seconds`, and `_page` already sets `metadata.resolution` (`timeseries_service.py` lines 106–107). It catches envelope-stripped rows from current main, where a real raw row also carries `window_seconds`. Pass the full response.
 
@@ -250,7 +264,7 @@ The id in that string is the UTC timestamp when the sample has no id.
 
 ### `supplied_fields`
 
-Nested objects stay nested. A leaf that was used is removed. An object that becomes empty is dropped. Used means a mapping line consumed the leaf, or a section setting was read (`id_field`, `start_field`, `end_field`, `time_field`, `value_field`), or `writer_field` was read, or a device field was read for D183 (`source.source`, `source.device`, `source.device_type`, `source.device_id`, `source.device_name`, `source.type`, `source.app_id`).
+Nested objects stay nested. A leaf that was used is removed. An object that becomes empty is dropped. The removal keeps the order of the remaining keys. Used means a mapping line consumed the leaf, or a section setting was read (`id_field`, `start_field`, `end_field`, `time_field`, `value_field`), or `writer_field` was read, or a device field named in the header was read for D183. In the shipped files those are `source.source`, `source.device`, `source.device_type`, `source.device_id`, `source.device_name`, `source.type`, and `source.app_id`.
 
 `id`, `start_time`, `end_time`, `bedtime_start`, `bedtime_stop`, `timestamp`, `type`, `value`, `unit`, and `date` are not kept when they located the record or selected the timeseries line. `type` on a Junction sleep object is not that selector. It stays in `supplied_fields`.
 
@@ -279,7 +293,7 @@ D181. Their id is the match key. The method is `{route}/v1`. The key also carrie
 
 `{utc}` is the timestamp normalized to UTC with millisecond precision (`2026-08-09T06:12:00.000Z`), not the original offset text. `{metric}` for Junction's sleep score is `sleep.score`.
 
-Each part is escaped before the parts are joined with `:`. A `\` in a part becomes `\\`. A `:` in a part becomes `\:`. The sensor string can contain `|`. It must not contain a raw `:`. Two objects in one file that produce the same match key do not both write. The first is stored. The second is `left_out` as `duplicate match key {key}`. A later import of a new file still updates that row (D182).
+Each part is escaped before the parts are joined with `:`. A `\` in a part becomes `\\`. A `:` in a part becomes `\:`. That includes the colons inside `{utc}`. The sensor string can contain `|`. A stored timeseries key therefore looks like `oura:ring|invented-ring|invented-app:timeseries:point:heart_rate_variability_rmssd:2026-08-09T06\:12\:00.000Z`. Two objects in one file that produce the same match key do not both write. The first is stored. The second is `left_out` as `duplicate match key {key}`. A later import of a new file still updates that row (D182).
 
 `provider_record_id` is their id when the object has one. A timeseries sample has no id.
 
@@ -291,11 +305,9 @@ D182. A second run uses the same method and key. Today `insert_record` looks up 
 
 D183. `ensure_mapped_source(writer, route, vendor, sensor_type)` stores `source_type` `export_file`, `data_writer`, `data_route`, `vendor`, and `sensor_type`. The lookup is those three: writer, route, and sensor. A different sensor is a different source row and a different baseline, because baselines read `source_id`.
 
-Open Wearables sensor string, empty parts skipped, joined with `|`: `source.device_type`, then `source.device`, then `source.source`.
+The header key `sensor` names the sensor fields. Empty parts are skipped, and the rest are joined with `|`. The Open Wearables file says `sensor: source.device_type, source.device, source.source`. The Junction file says `sensor: source.type, source.device_id, source.app_id`. A file with no `sensor` key has an empty sensor.
 
-Junction sensor string, the same way: `source.type`, then `source.device_id`, then `source.app_id`.
-
-A `source_device` record is written for that source:
+A `source_device` record is written once per source in one run, from the first object of that source. `device_name`, `device_model`, and `device_hardware` in the header fill it. The first present field in each list is used. The shipped files give:
 
 | | Open Wearables | Junction |
 |---|---|---|
@@ -328,7 +340,9 @@ ath import <path> --mapping <name> --json
 
 `fail` in `src/cli/runtime.ts` prints `ath: ` in front of the message. Rust prints the message alone. The tests assert both.
 
-`src/help.ts` `EXAMPLES.import` shows `--mapping open-wearables`. `EXAMPLES.skill` says mapping files are copied into `.agents/mappings` when that copy is missing. Then `pnpm generate:skill-cli` rewrites `skills/athletic-standard/references/cli.md` (D80). The tool skill `metadata.version` stays `2.0.0` in pull request (b). `tests/skill.test.ts` line 105 requires it to equal `ATH_PACKAGE_VERSION`. Pull request (c) sets both to `2.1.0`. Calculation skill files stay at `2.0.0`.
+`src/help.ts` `EXAMPLES.import` shows `--mapping open-wearables`. `EXAMPLES.skill` says mapping files are copied into `.agents/mappings` when that copy is missing. Then `pnpm generate:skill-cli` rewrites `skills/athletic-standard/references/cli.md` (D80). The tool skill `metadata.version` and `ATH_PACKAGE_VERSION` are both `2.1.0`, because `tests/skill.test.ts` line 105 requires them to be equal. Calculation skill files stay at `2.0.0`.
+
+`ath init` and `ath skill install --json` report the copied mapping files as `mappings_installed`.
 
 The result JSON is:
 
@@ -346,22 +360,28 @@ On `--preview`, `record_ids` is empty and the database is unchanged.
 
 An object that cannot be stored is one `left_out` string. Other objects are still written. A section 4 refusal exits 1 and writes nothing.
 
-`left_out` reasons:
+`left_out` reasons. Each line is `{section} {id}: {reason}`, or `timeseries {type} {utc}: {reason}` for a sample:
 
-- `missing source.provider`
-- `missing start_time`
-- `missing end_time`
+- `missing {writer_field}`, such as `missing source.provider`
+- `missing {id_field}`, such as `missing id`
+- `missing start_time` and `missing end_time`, or the section's own field names
+- `{start_field} is not a timestamp with an offset`
 - `end is before the start`
 - `value is not a number`
 - `unit {sample unit} does not match {their_unit}`
 - `unmapped type {type}`
+- `{quantity} must be positive`
 - `entry_source manual is a personal report`
 - `duplicate match key {key}`
-- `activity: no mapping section`
+- `the stored record {id} is deleted` (D182)
+- `{key}: no mapping section`, such as `activity: no mapping section`, for an array at the root that the file has no section for
 - `aggregate row, not a raw sample`
 - `resolution {value}: not raw samples`
 - `window_seconds present without resolution: cannot confirm raw`
-- `envelope is not a timeseries page: pass its data array under workout or sleep`
+- `envelope is not a timeseries page: pass its data array under workout or sleep`. Only an envelope whose first row is a timeseries sample is read. Other pages, such as Open Wearables workout and sleep pages, are not mapped as envelopes; pass their `data` array under `workout` or `sleep`
+- `timeseries: no mapping section`, for a timeseries page when the file has no `[timeseries]` section
+
+A root that is not a JSON object fails with `the input must be a JSON object`. A field whose value has the wrong type for its target, such as text for a number, is not mapped. It stays in `supplied_fields` under its name, and the object is still stored.
 
 ## 3. A mapping file a person adds
 
@@ -384,7 +404,7 @@ An installed file wins over the shipped file, including after a later shipped fi
 
 Test `installed_mapping_file_is_the_one_that_runs`: `.agents/mappings/open-wearables.md` with a `LastNightAvg` line aimed at `hrv_rmssd` makes the import fail with the section 4 message. A second `installMappings` does not change those bytes.
 
-Test `person_adds_my_source`: write `.agents/mappings/my-source.md` with route `my_source`, one invented sleep object, `ath import <file> --mapping my-source --yes`. The sleep record exists. The source `data_route` is `my_source`. `ath skill` does not list `my-source`.
+Test `person_adds_my_source`: write `.agents/mappings/my-source.md` with route `my_source` and `value_basis: provider`, one invented sleep object, `ath import <file> --mapping my-source --yes`. The sleep record exists, and its `field_basis` is `{ "value": "provider" }`. The source `data_route` is `my_source`. `ath skill` does not list `my-source`, and `ath apply my-source` fails with `no calculation skill named my-source`.
 
 ## 4. Refusals
 
@@ -508,14 +528,22 @@ Test `zones_max_hr_cannot_become_the_athlete_maximum`, line `hr_zones.max_hr: ma
 These are not the four refusals. They still fail the file before a write, except the `left_out` rows, which skip one object and continue.
 
 - No fence: `the mapping file has no ath-mapping block`
-- A bad line: `could not read '{line}'`
+- A fence that never closes: `the ath-mapping block is not closed`
+- A bad line, including an unknown header key: `could not read '{line}'`
+- A missing header key: `the mapping file needs {key}`, for `name`, `route`, `writer_field`, or `value_basis`
+- A `value_basis` outside `provider`, `provider_or_open_wearables`, and `provider_or_junction`: `value_basis {token} is not one of provider, provider_or_open_wearables, provider_or_junction`
 - Unknown section: `unknown mapping section {name}`
 - Unknown our-field: `unknown field {our_field}`
 - Two `when-absent` lines for one our-field: `two when-absent lines write {our_field}`
-- `basis` on a field other than the two heart-rate variability quantities or a `provider_summary` heart-rate line: `basis is only used for hrv_rmssd, hrv_sdnn, and heart-rate summaries`
+- Two lines without `when-writer` for one their-field: `two lines read {their_field} without when-writer`
+- `basis` on any other field: `basis is only used for activity_type, hrv_rmssd, hrv_sdnn, and heart-rate summaries`
+- A `basis` token that is not a `field_basis` value: `unknown basis {token}`
+- An `activity_type` line with no basis: `activity_type needs a basis: one of open_wearables_normalized, provider_label`
+- A unit on a text field: `{our_field} takes no unit`
+- A numeric field with no unit pair: `{our_field} needs a unit pair`
 - `scale` on anything except `provider_score`: `scale is only used for provider_score`
 - `provider_score` without `scale`: `provider_score {their_field} needs a scale`
-- A point our-unit that is not that quantity's `POINT_MEASUREMENT_UNITS` value: `{quantity} uses {unit}`
+- An our-unit that is not the field's own unit: `{our_field} uses {unit}`, such as `oxygen_saturation uses %`
 - A unit pair outside D180: `cannot convert {their_unit} to {our_unit} for {their_field}`
 - A built-in route: `route {route} is already used by a built-in importer`
 - A built-in method: `match key method {route}/v1 is already used by a built-in importer`
@@ -526,207 +554,27 @@ Built-in methods: `garmin_account/v1`, `garmin_personal/v1`, `strava_bulk/v1`, `
 
 Test `builtin_route_is_rejected` uses route `garmin_account_export`.
 
-## 5. Proposed decisions
-
-Numbers continue from D176. D152 through D176 are not rewritten. Pull request (b) writes D177–D183 and D186. It does not write D185. Pull request (c) writes D184. Under option A it also writes D185 into `decisions.md`, inserted with D184 before D186. Under option B it writes one line in `build-history/v2.1.0/decisions.md` and does not write D185 as an adopted decision: `D185 not adopted. Option B was picked (D184).` The previous draft called the version decision D181. That number is now the match key. Under option A the finished file is D177 through D186. Under option B that one line is the stub for D185.
-
-### D177. A mapping file is an `ath-mapping` block
-
-A mapping file is markdown. The program reads the first fenced block tagged `ath-mapping`. `name`, `route`, and `writer_field` are read only before the first `[section]`. A later `name:` line, such as `name: name` under `[workout]`, is a mapping line: their field `name` to our field `name`.
-
-A section is `[sleep]`, `[workout]`, or `[timeseries]`. `[activity]` is not a shipped section. Settings `id_field`, `start_field`, `end_field`, `time_field`, and `value_field` locate the record. Every other line is:
-
-```text
-their_field: our_field [their_unit our_unit] [basis TOKEN] [scale TOKEN] [when-absent] [when-writer a,b,c]
-```
-
-A dotted their-field reads that path. `type.<name>` matches a timeseries sample's `type`. A numeric target needs a unit pair. `activity_type`, `name`, `description`, and `text_result` take none.
-
-`when-absent` uses the line only when every earlier line that writes the same our-field had no number. The unused their-field stays in `supplied_fields`. At most one `when-absent` line writes a given our-field.
-
-`when-writer` is a comma-separated list with no spaces. The line is applied only when `data_writer` is in the list. Otherwise their field stays in `supplied_fields` and the import continues. When two lines name the same their-field, the line whose `when-writer` matches is the one that writes. The line without `when-writer` is the fallback. That is how Apple `skin_temperature` becomes `wrist_temperature_sleeping` and every other writer keeps `skin_temperature`. `apple.rs` `point_mapping` maps `AppleSleepingWristTemperature` to `wrist_temperature_sleeping` (line 1122). The unit is `°C`.
-
-A timeseries line maps a raw sample. The import should be given the full timeseries response, envelope included. If `metadata.resolution` is `raw`, a `window_seconds` value stays in `supplied_fields`. If `metadata.resolution` is any other value, every row is left out. If `metadata.resolution` is absent, a non-null `window_seconds` is left out. A sample with `period_end` is left out. Against 0.10.0 and current main (`8adb8d0`), `computed_by` appears only on aggregate rows, which are left out, so this release does not store a connector-computed value under a provider's name. Newer Open Wearables docs say resting heart rate, nightly HRV, SpO2, and VO2 max exist only at `1day` and coarser. Against a newer server those lines are left out.
-
-A trailing `\r` is stripped. Text outside the fence is not read.
-
-Rejected alternatives:
-
-- A JSON file. Rejected because a person already edits a calculation as a fenced block.
-- A CSV of two columns. Rejected because a row cannot name the record, the unit pair, the basis, and the writer list without a second header language.
-- Reuse the `ath-calculation` tag. Rejected because `ath apply` would run a mapping as a calculation.
-- Treat `name` inside a section as the file name. Rejected because the workout field `name` is their field.
-- Use `window_seconds` alone to decide that a row is raw. Rejected because raw rows on current Open Wearables main carry `window_seconds` too. The envelope's `metadata.resolution` is the check when the file has it.
-
-### D178. Shipped mappings live in `mappings/`, and a person's copy lives in `.agents/mappings/`
-
-The shipped files are `mappings/open-wearables.md` and `mappings/junction.md`. A person's file is `.agents/mappings/<name>.md`. `ath init`, `ath skill install`, and `ath --update` copy a shipped file only when that destination is missing. They do not replace it. `ath init --no-skill` skips `installMappings` along with `installSkill`.
-
-An installed file wins over a later shipped file. That is accepted. A mapping is not the tool skill, so D164's version replace does not apply.
-
-Mapping files are not `skills/<name>/SKILL.md`.
-
-Rejected alternatives:
-
-- `skills/open-wearables/SKILL.md`. Rejected because `skillNames` treats every `SKILL.md` as a skill.
-- Replace the installed file when the shipped file changes. Rejected because the person may have edited it, which is the reason D157 leaves a calculation in place.
-- Give mappings a version and replace older copies. Rejected for this release. The installed file is the one the person added.
-
-### D179. The installed file is read first, and it is checked before a write
-
-`resolveMappingFile` uses the installed file, then the shipped file, then `no mapping file named <name>`. The entry point is `ath import <path> --mapping <name>`. `--mapping` is read before import detection. D174 is unchanged: the flag stays in the TypeScript command.
-
-`check_mapping` accepts the file or returns one message. The four refusals are:
-
-1. A personal report turned into a measured record. D161. Message: `refusing to turn a personal report into a measured record`.
-2. A generic heart-rate variability field renamed to `hrv_rmssd` or `hrv_sdnn`. D161. Message: `refusing to map {their_field} onto {our_field}; the field does not name the statistic`.
-3. Their efficiency percentage written onto the computed efficiency. `appendix/source-formats.md` lines 29 and 39. Message: `refusing to map {their_field} onto {our_field}; efficiency is computed from asleep_seconds and in_bed_seconds`.
-4. A workout peak written onto `maximum_heart_rate_bpm`. D172. The peak includes `max_heart_rate_bpm` and `hr_zones.max_hr`. Message: `refusing to map {their_field} onto maximum_heart_rate_bpm; that field is the athlete's known maximum`.
-
-`check_mapping` also rejects a `route`, or a method `{route}/v1`, that a built-in importer already uses: `garmin_account_export`, `garmin_personal_api`, `strava_bulk`, `apple_health`, `whoop_csv`, `oura_csv`, `manual_entry`, `unknown_import`, and the methods `garmin_account/v1`, `garmin_personal/v1`, `strava_bulk/v1`, `apple_health/v1`, `whoop_csv/v1`, `oura_csv/v1`, `manual_entry/v1`, `unknown_import/v1`. `ensure_source` looks up writer plus route with an empty sensor. A mapping that reused those routes would attach rows to the built-in source. `ensure_mapped_source` is a separate lookup, and this check stops the route string from matching.
-
-`ath check` does not read mapping files. After a mapped import, `ath check` is still run (section 6), because the Rust writer does not call the TypeScript schema parse.
-
-Rejected alternatives:
-
-- Read only the shipped file. Rejected because D161 says a person can add a file.
-- Check the mapping inside `ath check` after the write. Rejected because a bad file would already have stored a measured record.
-- Guess the mapping from the JSON keys, with no `--mapping` flag. Rejected because a Garmin file and a mapped file are both JSON, and the Garmin reader has to keep running when the flag is absent.
-- Let a mapping use `garmin_account_export`. Rejected because that route is the Garmin file source.
-
-### D180. Units convert by a fixed pair
-
-`convert_unit` accepts only these pairs. Any other pair fails with `cannot convert {their_unit} to {our_unit} for {their_field}`.
-
-| Their unit | Our unit | Result |
-|---|---|---|
-| `s` | `s` | the same number |
-| `min` | `min` | the same number |
-| `s` | `min` | divide by 60 in binary64 |
-| `ms` | `ms` | the same number |
-| `bpm` | `bpm` | the same number |
-| `m` | `m` | the same number |
-| `kcal` | `kcal` | the same number |
-| `count` | `count` | the same number |
-| `score` | `score` | the same number |
-| `brpm` | `brpm` | the same number |
-| `%` | `%` | the same number |
-| `percent` | `%` | the same number. SpO2 |
-| `celsius` | `°C` | the same number. Skin temperature |
-| `ml_kg_min` | `ml/kg/min` | the same number. VO2 max. The schema unit is `ml/kg/min` (`src/v1/schema.ts` line 438) |
-| `percent` | `score` | the same number. Body battery, scale 0–100 |
-
-`convert_unit` returns a `serde_json::Value`, not an `f64` that a printer later formats. The arithmetic is binary64. When that result is a whole number inside the safe integer range, the function builds `Value::Number` from the integer (`600` as `i64`), not from `600.0` as `f64`. A later `serde_json::to_string` then writes `600`. Any other result is a float `Value`, using serde_json's default float format, which round-trips through binary64. 100 seconds converted to minutes is the JSON number `1.6666666666666667`. Test `one_hundred_seconds_is_the_binary64_minute` asserts that number. Test `whole_seconds_are_an_integer_value` asserts that 600 seconds is a JSON integer whose debug form is `Number(600)` and whose text is `600`, not `600.0`. `600/700` is the JSON number `0.8571428571428571`.
-
-When the target is a point quantity, the our-unit must equal `POINT_MEASUREMENT_UNITS` for that quantity. `oxygen_saturation` uses `%`. `skin_temperature` uses `°C`. `respiratory_rate` uses `brpm`. `hr_recovery` uses `bpm`.
-
-The their-unit strings for Open Wearables samples are the strings `get_series_type_unit` returns in `backend/app/schemas/enums/series_types.py` at tag 0.10.0, commit `d18304f`. `oxygen_saturation` is `percent` (id 20). `skin_temperature` is `celsius` (id 46). `vo2_max` is `ml_kg_min` (id 60). `garmin_body_battery` is `percent` (id 223). `garmin_stress_level` is `score` (id 220). The 0.10.0 tests do not include a timeseries response body. `docs/openapi.json` at that tag types `TimeSeriesSample.unit` as a string and does not list the units. The same tag's `frontend/src/lib/timeseries/samples.ts` lines 133–139 says the backend names units for machines, `percent` and `ml_kg_min`, and maps those to the display strings. `timeseries.spec.ts` lines 54 and 58 expect `unitLabel('percent')` to be `%` and `unitLabel('ml_kg_min')` to be ` ml/kg/min`.
-
-When the target is a `SourceValue`, `input_value` and `input_unit` keep their number and their unit, and `standard_value` and `standard_unit` hold ours. `asleep_seconds`, `in_bed_seconds`, and `stage_minutes` are plain numbers, so the stored number is the converted one. The original field is not also copied into `supplied_fields`.
-
-A sample whose `unit` differs from the line's their-unit is `left_out` (section 2). Test `sample_unit_mismatch_is_left_out`.
-
-Rejected alternatives:
-
-- Store their number unchanged and ignore units. Rejected because Junction stage fields are seconds and `stage_minutes` is minutes.
-- A formula on the line. Rejected because a formula can divide asleep by time in bed, or relabel a heart-rate variability field.
-- Store SpO2's standard unit as `percent`. Rejected because `oxygen_saturation` uses `%` (`src/v1/schema.ts` line 441). Their string `percent` converts to `%`.
-- Round the binary64 result to a fixed number of decimals. Rejected because the test then depends on a second rounding rule.
-
-### D181. The match key is the writer, the sensor, their id, and the kind
-
-Their record id is the match key, as D161 says. The method is `{route}/v1`. The key is `{writer}:{sensor}:{section}:{id}` for a session. A child adds `:point:`, `:summary:`, or `:score:` and then the quantity, summary type, or metric. A timeseries sample has no id. Its key uses the type and the timestamp normalized to UTC milliseconds, with the same kind prefix. The table is in section 2.
-
-A second device from the same provider has a different sensor string, so it has a different key.
-
-Rejected alternatives:
-
-- Use their id alone. Rejected because a sleep id and a point taken from that sleep would update one row, and two devices that reuse an id would update one row.
-- Use the original offset text in a timeseries key. Rejected because `06:12Z` and `02:12-04:00` are one instant.
-- Drop a sample that has no id. Rejected because the Open Wearables timeseries object has no id, and the timestamp plus the type is the sample.
-
-### D182. A re-run updates the same row
-
-Today this is not a replace. `insert_record` looks up the match key and compares with `json_equal` (`store.rs` lines 204–221). When the JSON differs it calls `revise` (lines 218–219). `revise` merges the patch (`store.rs` lines 82–84) and commits its own transaction (line 169). A key the new object omits survives. The replace is a code change. `insert_group` runs the lookup inside one transaction and writes the new object as the whole record. It does not call `revise`. It sets `received_at` from the stored row before the compare. An unchanged re-run does not write a revision. A changed value keeps the record id and the first `received_at`, and the revision increases by one.
-
-Rejected alternatives:
-
-- Insert a second row on every run. Rejected because D161 says their id is the match key so a re-run updates the same record.
-- Treat a new `received_at` as a change. Rejected because the clock would revise every row on every run.
-- Add a second compare that ignores `insert_record`. Rejected because the lookup and `json_equal` are already there.
-
-### D183. The source names the device and the path
-
-D161 says the source names the device and the path. The path is `data_route` (`open_wearables` or `junction`). The device is `sensor_type` on the source row, plus a `source_device` record. The strings are in section 2. Open Wearables uses `source.device_type`, `source.device`, and `source.source`. Junction uses `source.type`, `source.device_id`, and `source.app_id`.
-
-An Apple Watch, an iPhone, and a third-party app do not share a source row. They do not share a baseline.
-
-Every stored score's `data_writer` is `source.provider`, whether or not `computed_by` is present. A provider score stays that provider's score (D27, D159). A stored row keeps `computed_by` verbatim in `supplied_fields`, and that string does not change the writer. Junction `sleep.score` and `recovery_readiness_score` have no `computed_by`. Their writer is `source.provider`. There is no `junction` writer value. `source_device.manufacturer` stays the provider string.
-
-`ensure_source` is not changed. Mapped imports call `ensure_mapped_source`.
-
-Rejected alternatives:
-
-- One source per provider, with the model only in `supplied_fields`. Rejected because a watch and a phone would then share a baseline. That reading of "device" is narrower than D161.
-- Put the device only on `source_device` and keep one `source_id`. Rejected because baselines group by `source_id`, so the rows would still share a baseline.
-- Use the empty-sensor lookup in `ensure_source`. Rejected because a mapped Garmin row would attach to the Garmin file source when the sensor is empty, and a non-empty sensor would not be found by that query.
-
-### D184. The version pick
-
-Written in pull request (c), using the option A text or the option B text in section 8. Mike picks before that pull request starts. Both texts are in this plan. Neither is copied into `decisions.md` until he picks. Pull request (b) writes D186 and does not write D185. Under option A, pull request (c) writes D185 and inserts D184 immediately before it, before D186. Under option B, pull request (c) writes D184 and the one-line stub `D185 not adopted. Option B was picked (D184).` in `build-history/v2.1.0/decisions.md`. D186 stays, because pull request (b) already wrote it.
-
-### D185. A basis we assign is not a supplied field
-
-`supplied_fields` holds names the source sent (D153, D161). `intensity` is one of those names. It stays there verbatim. It is not a measured record.
-
-`received_at_basis` is already an ATH-owned field on every measured record. `ReceivedAtBasis` in `src/v1/schema.ts` lines 229–235 already allows `import_time`. Mapped imports set that. It is not copied into `supplied_fields`. No new enum value is added.
-
-The activity-type origin and the value basis are ours. They do not go in `supplied_fields`. They go in one new optional object, `field_basis`, on the record:
-
-```ts
-field_basis: z.strictObject({
-  activity_type: z.literal("open_wearables_normalized").optional(),
-  value: z.enum([
-    "provider_or_open_wearables",
-    "provider",
-    "hrv_mean_rmssd",
-  ]).optional(),
-}).optional()
-```
-
-`field_basis` exists only under option A. `WorkoutSessionData`, `ProviderSummaryData`, `ProviderScoreData`, and `PointMeasurementData` gain the optional key. The objects are strict, so `ath check` rejects the key until the schema has it. Pull request (b) does not add the key and does not run `pnpm generate:json-schema` for it. `schema/2.0.0/` is not regenerated and is not edited, under either option. Option A adds the key in pull request (c) and writes a new `schema/2.1.0/` folder. `scripts/generate-json-schema.ts` writes `schema/${version}/` from `src/v1/schema.ts` (lines 54–56). With the version at `2.1.0` that path is `schema/2.1.0/`. The generator does not open `schema/2.0.0/`. Option A also documents `field_basis` in `SPEC.md`. Option B does not add the key, does not write it, and does not document it. The basis is kept off the record. That is a cost of B, stated in section 8.
-
-Under option A, a workout stores `field_basis.activity_type` as `open_wearables_normalized`. A heart-rate summary stores `field_basis.value` as `provider_or_open_wearables`. The Junction `hrv_rmssd` point stores `field_basis.value` as `hrv_mean_rmssd`. A stored score stores `field_basis.value` `provider`. The writer is `source.provider`. The enum has no `junction` value. The stored Junction `sleep.score`, `recovery_readiness_score`, `garmin_stress_level`, and `garmin_body_battery` samples have no `computed_by`, and they store `provider`.
-
-D161 said a new source is a field mapping, not a new record format. Under option A this release still keeps the Athletic Standard record. It adds one optional field, in minor version 2.1.0. D96 records the rule that a minor version may only add optional fields. This is that case. It is not the Open Wearables object used as the record, which is what D161 rejected.
-
-Rejected alternatives:
-
-- Put `activity_type_basis` and `value_basis` in `supplied_fields`. Rejected because D153 and D161 keep that object for names the source sent.
-- Add a new `received_at_basis` value for mappings. Rejected because `import_time` already names an import.
-- Add `field_basis` under option A and also rewrite `schema/2.0.0/`. Rejected because that folder is the published 2.0.0 schema.
-- Leave the basis off the record under option A. Rejected because a later reader cannot tell a normalized activity type from a name the athlete wrote. Option B accepts that cost. It does not add the field.
-
-### D186. `intensity` stays in `supplied_fields`
-
-Open Wearables `intensity` is kept in `supplied_fields` under that name. It is not a measured record. Garmin's `Feeling` is the same kind of field. `tests/v2-core.test.ts` line 54 expects the Garmin import to preserve `Feeling`. `intensity` follows that.
-
-No calculation may read `supplied:intensity` or `supplied:Feeling`. The ban covers only those two names. Other names in `supplied_fields` are not covered. D103 says a source-provided label stays in its named field and is not a normalized fact. `parse_skill` in `crates/ath-core/src/calc.rs` (lines 15–41) reads each setting value. Pull request (b) refuses those two values there, before the skill runs. The error names the value, `a calculation cannot read supplied:intensity` or `a calculation cannot read supplied:Feeling`. `lookup` (lines 94–96) still reads any other `supplied:` name. Test `supplied_intensity_and_feeling_are_refused` is in the `calc.rs` test module. It parses a block whose setting is `supplied:intensity`, and one whose setting is `supplied:Feeling`, and both fail.
-
-The tool skill says an agent may quote `intensity` and `Feeling` only as "the source said", never as evidence. That sentence goes under "The two-tier wall" in `skills/athletic-standard/SKILL.md`. This is stricter than D70. D70 lets a vendor score corroborate a claim but not be its basis.
-
-Rejected alternatives:
-
-- Name it in `left_out` and drop it. Rejected because D153 rejected dropping a column the person supplied, and D161 keeps any other field under the name it arrived with.
-- Turn it into a linked athlete report. Rejected because the workout object is a measured record, and a second record would invent a personal report the file did not contain.
-- Give it a typed field on the workout. Rejected because the record has no intensity field, and this release does not add one.
-- Let a calculation read `supplied:intensity` or `supplied:Feeling`. Rejected because D103 keeps a source label out of the normalized facts a calculation uses.
-
-If Mike sides with the product note that `intensity` should be left out, this decision flips. The test `intensity_stays_in_supplied_fields` flips with it, and the expected `supplied_fields` for `ow-workout-1` drops `intensity`. The `calc.rs` refusal and the tool-skill sentence flip with the decision.
+## 5. Decisions
+
+The decisions as adopted are in [decisions.md](decisions.md). Numbers continue from D176. D152 through D176 are not rewritten. The plan's drafts of D177 through D186 were copied there and then corrected to match the build. That file is the record. This section only lists them.
+
+- D177. A mapping file is an `ath-mapping` block. Its header names the device fields, and from D187 the value basis.
+- D178. Shipped mappings live in `mappings/`. A person's copy lives in `.agents/mappings/` and is never replaced.
+- D179. The installed file is read first, and it is checked before a write. The four refusals.
+- D180. Units convert by a fixed pair, and our unit is the field's own unit.
+- D181. The match key is the writer, the sensor, their id, and the kind. Every part is escaped.
+- D182. A re-run updates the same row by replacing the stored object. A deleted record is not revised.
+- D183. The source names the device and the path.
+- D184. The program and the record stay one number, 2.1.0. Option A.
+- D185. A basis we assign is not a supplied field. `field_basis` for mapped values.
+- D186. `intensity` stays in `supplied_fields`, and no calculation reads it or `Feeling`.
+- D187. Every stored value states its basis, from every importer, mapping file, and `ath log`. Migration step 4 does not backfill.
+
+D184 picks option A. Option B, two numbers, was not chosen, so no D185 stub was written.
 
 ## 6. Acceptance tests
 
-Pull request (a) runs:
+Every commit in the pull request runs:
 
 ```text
 pnpm check:public-data
@@ -736,7 +584,7 @@ pnpm build
 cargo test --manifest-path crates/ath-core/Cargo.toml
 ```
 
-Pull requests (b) and (c) run those, plus `pnpm check:schema-drift`, and:
+CI also runs `pnpm check:schema-drift`, and:
 
 ```text
 npm pack
@@ -744,9 +592,9 @@ node scripts/assert-packed-binary.mjs athleticstandard-<version>.tgz
 node scripts/smoke-installed-package.mjs
 ```
 
-`<version>` is `2.0.0` in pull request (b), because the program version has not moved yet. It is `2.1.0` in pull request (c). The smoke script already packs a tarball. It gains two checks: the tarball lists `package/mappings/open-wearables.md` and `package/mappings/junction.md`, and the installed `ath` runs `ath import <Open Wearables fixture> --mapping open-wearables --yes` against the fixture in the repo.
+`<version>` is the version in `package.json`, `2.1.0` at the end of the pull request. The smoke script already packs a tarball. It gains two checks: the tarball lists `package/mappings/open-wearables.md` and `package/mappings/junction.md`, and the installed `ath` runs `ath import <Open Wearables fixture> --mapping open-wearables --yes` against the fixture in the repo.
 
-Those pack commands are not steps in `.github/workflows/ci.yml` today. `pnpm check:schema-drift` is not a step there either. Pull request (b) adds them to the `package-smoke` job, after `pnpm build`:
+Those pack commands were not steps in `.github/workflows/ci.yml`. `pnpm check:schema-drift` was not a step there either. The build adds them to the `package-smoke` job, after `pnpm build`. `npm pack` runs after the step that marks the binaries executable:
 
 ```yaml
 - run: pnpm check:schema-drift
@@ -754,28 +602,28 @@ Those pack commands are not steps in `.github/workflows/ci.yml` today. `pnpm che
 - run: node scripts/assert-packed-binary.mjs "athleticstandard-$(node -p "require('./package.json').version").tgz"
 ```
 
-The `package-smoke` job already runs `node scripts/smoke-installed-package.mjs` (`.github/workflows/ci.yml`). Pull request (b) does not add that step again. The tarball name is read from `package.json`. It is `athleticstandard-2.0.0.tgz` in pull request (b) and `athleticstandard-2.1.0.tgz` in pull request (c), with no hardcoded version in the workflow.
+The `package-smoke` job already runs `node scripts/smoke-installed-package.mjs` (`.github/workflows/ci.yml`). The build does not add that step again. The tarball name is read from `package.json`. It is `athleticstandard-2.1.0.tgz`, with no hardcoded version in the workflow.
 
 `cargo test --manifest-path crates/ath-core/Cargo.toml` is added to the `ath-core-binary` job, which already runs on `ubuntu-latest`, `macos-latest`, and `windows-latest`. The CRLF parse test runs there. The Windows path test is the TypeScript job in section 2, not a Rust helper.
 
-The baseline test passes unchanged under option A and option B. It does not read the program version.
+The baseline test does not read the program version. After D187 it compares each import with `field_basis` removed, so the d418a8f files stay byte for byte, and it compares `field_basis` with a second set of committed files (below).
 
 ### Baseline from `d418a8f`
 
-Pull request (a) is branched from `d418a8f653f7074ed9e08208c4eb555c391bcbc7` and does not edit a reader. `tests/import-baseline.test.ts` contains:
+The first commit of the pull request has the same code as `d418a8f653f7074ed9e08208c4eb555c391bcbc7`. It adds only the baseline. It does not edit a reader. `tests/import-baseline.test.ts` contains:
 
 ```text
 BASELINE_FROM = d418a8f653f7074ed9e08208c4eb555c391bcbc7
 ```
 
-The test runs each importer, builds the comparison string, and asserts that the string is byte-for-byte the committed file. It does not write the file. The committed files are not regenerated in this release. Changing `BASELINE_FROM` fails the test.
+The test runs each importer, builds the comparison string, and asserts that the string is byte-for-byte the committed file. It does not write the file. The committed files are not regenerated in this release. Each file records `baseline_from`, so changing `BASELINE_FROM` fails the test.
 
 The comparison string is UTF-8 JSON with object keys sorted. The walk is:
 
 1. Read every record, every route point in `point_order`, every attachment, every attachment link, and every record link.
 2. Delete every key named `received_at` or `imported_at` at any depth, including `received_at` inside record JSON such as a Garmin `max_heart_rate` summary.
 3. Delete `created_at` and the database id.
-4. Sort records that have a match key by `match_key_method`, then `match_key`, then `record_type`.
+4. Sort records that have a match key by `match_key_method`, then `match_key`, then `record_type`. A provider import key contains its source's random record id. Before the sort, each record id inside a key is replaced by that record's type and its own keys, so the order does not depend on random ids.
 5. Sort records with no match key after those, by `record_type`, then by the JSON of the record after ids and the deleted time fields are removed.
 6. Assign `record:1`, `record:2`, and so on, in that order. Replace every record id at any depth, including `source_id`, link endpoints, attachment ids, and route-point workout ids.
 7. Sort attachments by `sha256`. Sort links by the normalized endpoint labels.
@@ -797,15 +645,21 @@ The comparison string is UTF-8 JSON with object keys sorted. The walk is:
 | `13-position.json` | `tests/fixtures/exports/garmin/synthetic-position.fit` |
 | `14-bulk.json` | `tests/fixtures/exports/strava` |
 | `15-personal-day.json` | `ath pull garmin` against a local server |
-| `16-package.json` | `examples/demo-athlete/athlete.ath.json` as it is at `d418a8f` |
+| `16-package.json` | `tests/fixtures/version-2-0-0/package`, the complete package `ath export` wrote from the 2.0.0 database copy at `d418a8f` |
 | `17-apple-zip.json` | `tests/fixtures/exports/apple` zipped at test time under `apple_health_export/` |
 | `18-apple-bare-xml.json` | `tests/fixtures/exports/apple/export.xml` as a file |
 
 The personal-day server follows the local server in `personal.rs`. The HRV body includes `LastNightAvg`. The comparison asserts `summary_type` `LastNightAvg`. File names do not contain `export`, `athlete`, `garmin`, `oura`, `whoop`, `healthkit`, or `apple-health`.
 
+Row 16 changed during the build. The plan named `examples/demo-athlete/athlete.ath.json`, but that file is the legacy 0.4.3 document. `ath import` refuses it with `Athletic Standard 0.4.3 is a prerelease JSON format`, so it never reaches the package restore. The row instead imports a complete 2.0.0 package: `athlete.ath.json`, `export-manifest.json`, the attachment, and the series file that `ath export` wrote from a copy of the 2.0.0 database, using code that matches `d418a8f`. Those files are in `tests/fixtures/version-2-0-0/package/` and are registered in `scripts/check-public-data.ts`. Under 2.1.0 the same package still imports (D184).
+
+### The field basis files
+
+D187 adds `field_basis` to every measured record an importer writes. The comparison above removes that one key before it compares. A second file for each row, `tests/fixtures/import-baseline/field-basis/<same name>`, lists every record that has `field_basis`, under the same labels, with its exact object. The test asserts that string byte for byte too. It also asserts that every measured record has `field_basis.value`, that no other record has `field_basis`, and that the restored 2.0.0 package (row 16) has none.
+
 ### The 2.0.0 database
 
-Copy `examples/demo-athlete/athlete.ath.sqlite` at `d418a8f` to `tests/fixtures/version-2-0-0/database.ath.sqlite`. The sha256 is `442e9a966711660c2a03d701b5de2c55479a78330702083a3a67a182992a7856`. Register that path and hash in `scripts/check-public-data.ts`. Add this line to `.gitignore`:
+Copy `examples/demo-athlete/athlete.ath.sqlite` at `d418a8f` to `tests/fixtures/version-2-0-0/database.ath.sqlite`. The sha256 is `442e9a966711660c2a03d701b5de2c55479a78330702083a3a67a182992a7856`. Register that path and hash in `scripts/check-public-data.ts`. Add this line to `.gitignore`, and the same for the package's `athlete.ath.json` and `export-manifest.json`:
 
 ```text
 !tests/fixtures/version-2-0-0/database.ath.sqlite
@@ -823,15 +677,13 @@ ath migrate --yes --confirm-migration 01890f3e-e7d3-7cc0-88c8-000000000001 --fil
 ath check --file <copy>
 ```
 
-Under option A, the second command applies step 4. The copy then has `athleticstandard_version` `2.1.0` and `sql_schema_version` `4`. The five counts stay 25, 26, 1, 1, and 1. `ath check` exits 0.
+The second command applies step 4. The copy then has `athleticstandard_version` `2.1.0` and `sql_schema_version` `4`. The five counts stay 25, 26, 1, 1, and 1. No record gains `field_basis` (D187). `ath check` exits 0. Test `migrate_version_2_database_to_schema_4` in `tests/version-2-1.test.ts` runs these commands on a copy, with the attachment copied beside it, and checks that the committed file keeps its hash.
 
-Under option B, the second command prints `No migration is required. Direct-read views and writable tables match this ath version.` The version stays `2.0.0`, the schema stays `3`, the five counts stay, and `ath check` exits 0.
-
-Opening the file does not migrate it.
+Opening the file does not migrate it. Before the migration, `ath-core` refuses the copy with `database version is 2.0.0; run ath migrate before using ath-core`.
 
 ### New fixtures
 
-Both files are invented. Dates are in 2026. Coordinates are invented. Pull request (b) writes them, then adds each path and its sha256 to `approvedSyntheticFixtures`. Add a `!` gitignore line only if that check asks for one.
+All the files are invented. Dates are in 2026. Coordinates are invented. The build writes them, then adds each path and its sha256 to `approvedSyntheticFixtures`. The check did not ask for a `!` gitignore line for any of them.
 
 `tests/fixtures/exports/open-wearables/summaries.json`:
 
@@ -985,6 +837,8 @@ Both files are invented. Dates are in 2026. Coordinates are invented. Pull reque
 }
 ```
 
+`tests/fixtures/exports/open-wearables/page-empty.json` is an empty `raw` page: `{ "data": [], "pagination": { "has_more": false }, "metadata": { "resolution": "raw" } }`. The import writes nothing and `left_out` is empty.
+
 `tests/fixtures/exports/open-wearables/page-5min.json` is a 5-minute bucket. The row starts at `2026-08-09T06:10:00.000Z` and `window_seconds` is `300`, which is the width that path sets. `metadata.resolution` is `5min`.
 
 ```json
@@ -1069,7 +923,7 @@ Both files are invented. Dates are in 2026. Coordinates are invented. Pull reque
 
 `0.88` is an invented efficiency. It is not Junction's documentation example.
 
-The bullets under the two fixture tests are pull request (b). They do not name `field_basis`. Pull request (b) writes no `field_basis`.
+The bullets under the two fixture tests were written before `field_basis`. The `field_basis` checks follow them.
 
 Test `open_wearables_fixture_maps_fields`. Sensor `ring|invented-ring|invented-app` is `S-ring`. Sensor `watch|invented-watch|invented-app` is `S-watch`. Sensor `phone|iPhone15,2|Health` is `S-phone`. Sensor `watch|Watch6,1|Health` is `S-awatch`.
 
@@ -1083,7 +937,7 @@ Test `open_wearables_fixture_maps_fields`. Sensor `ring|invented-ring|invented-a
 - `supplied_fields` on that workout is `{ "duration_seconds": 3, "intensity": "moderate", "start_latitude": 12.345, "start_longitude": -45.678, "calories_kcal": 1, "hr_zones": { "max_hr": 190 } }`.
 - A `provider_summary` `average_heart_rate` is `140` `bpm`, match key `garmin:S-watch:workout:ow-workout-1:summary:average_heart_rate`. A `provider_summary` `max_heart_rate` is `180` `bpm`, key suffix `:summary:max_heart_rate`. Neither summary has `supplied_fields`.
 - `ow-workout-manual` writes no record. `left_out` contains `workout ow-workout-manual: entry_source manual is a personal report`.
-- Points at `2026-08-09T06:12:00.000Z` on the oura ring source: `hrv_rmssd` `42.5`, `hrv_sdnn` `61.2`, `resting_heart_rate` `48`, `respiratory_rate` `16` unit `brpm`, `skin_temperature` `33.2` unit `°C`, `oxygen_saturation` `98` unit `%`, `hr_recovery` `22` unit `bpm`. The skin-temperature sample's unit was `celsius`. The oxygen-saturation sample's unit was `percent`. Keys look like `oura:S-ring:timeseries:point:heart_rate_variability_rmssd:2026-08-09T06:12:00.000Z`. Those samples have no `supplied_fields`. Each point's `input_timestamp` is the `Z` receipt in section 2. `asleep_seconds` `600` is the JSON integer `600`.
+- Points at `2026-08-09T06:12:00.000Z` on the oura ring source: `hrv_rmssd` `42.5`, `hrv_sdnn` `61.2`, `resting_heart_rate` `48`, `respiratory_rate` `16` unit `brpm`, `skin_temperature` `33.2` unit `°C`, `oxygen_saturation` `98` unit `%`, `hr_recovery` `22` unit `bpm`. The skin-temperature sample's unit was `celsius`. The oxygen-saturation sample's unit was `percent`. Keys look like `oura:S-ring:timeseries:point:heart_rate_variability_rmssd:2026-08-09T06\:12\:00.000Z`, with every part escaped (section 2). Those samples have no `supplied_fields`. Each point's `input_timestamp` is the `Z` receipt in section 2. `asleep_seconds` `600` is the JSON integer `600`.
 - The Apple watch sample at the same timestamp is `wrist_temperature_sleeping` `33.4` unit `°C`, writer `apple`, sensor `S-awatch`. The sample's unit was `celsius`. It is not `skin_temperature`.
 - `vo2_max` is a `provider_summary` summary type `vo2_max`, value `45`, unit `ml/kg/min`, key suffix `:summary:vo2_max`. The sample's unit was `ml_kg_min`. It is not a point quantity `vo2_max`.
 - `garmin_stress_level` is a `provider_score` metric `garmin_stress_level`, value `15`, scale `1-100`, writer `garmin`, sensor `S-watch`. The sample has no `computed_by`. `supplied_fields` does not contain that key. Test `missing_computed_by_uses_the_provider`. The writer is `source.provider` whether or not `computed_by` is present.
@@ -1106,7 +960,7 @@ Test `junction_fixture_maps_fields`. Junction oura sensor `ring|ring-j1|oura-app
 - `provider_score` metric `sleep.score`, value `80`, scale `1-100`, writer `oura`, key suffix `:score:sleep.score`. `provider_score` metric `recovery_readiness_score`, value `70`, scale `0-100`, writer `oura`. Neither object has `computed_by`. The writer is `source.provider` whether or not `computed_by` is present.
 - `jn-sleep-2` `asleep_seconds` is `1000`. `supplied_fields` is `{ "duration": 3600 }`.
 - `jn-nap-1` is its own `sleep_session`. `supplied_fields` is `{ "duration": 900, "type": "acknowledged_nap" }`. `asleep_seconds` is `800`. It is not merged into `jn-sleep-1`.
-- `jn-sleep-apple` has `asleep_seconds` `3000`. `supplied_fields` is `{ "duration": 3600, "average_hrv": 33 }`. The writer is `apple_health_kit`. The import writes no `hrv_rmssd` point for that id. Test name `apple_average_hrv_stays_unmapped`. The child's `input_timestamp.timestamp_text` is `2026-08-11T03:00:00.000Z`.
+- `jn-sleep-apple` has `asleep_seconds` `3000`. `supplied_fields` is `{ "duration": 3600, "average_hrv": 33 }`. The writer is `apple_health_kit`. The import writes no `hrv_rmssd` point for that id, so that session has no child. Test name `apple_average_hrv_stays_unmapped`. The session's `input_end_timestamp.timestamp_text` is `2026-08-11T03:00:00.000Z`.
 - `left_out` contains `activity: no mapping section`. No `steps` record is written.
 - Sources include writer `oura` route `junction` sensor `S-jora`, and writer `apple_health_kit` route `junction` sensor `S-japple`.
 
@@ -1116,46 +970,47 @@ Test `rerun_does_not_add_a_record`: import the Open Wearables fixture twice. One
 
 Test `garmin_file_and_mapping_stay_two_sources`: `ath import` of `tests/fixtures/exports/garmin/park-loop.json` with `--yes` and no `--mapping`, then the Open Wearables fixture with `--mapping open-wearables --yes`. Two workout sessions. Writer `garmin` appears on two sources: `data_route` `garmin_account_export` with an empty sensor, and `data_route` `open_wearables` with sensor `S-watch`. The file import still has `supplied_fields.Feeling` `smooth` and a `max_heart_rate` summary of `200`. The mapped workout has `start_latitude` `12.345` and a `max_heart_rate` summary of `180`.
 
-### Option A checks, pull request (c)
+### `field_basis` checks
 
-These checks are not in pull request (b). Under option A, pull request (c) adds the `field_basis` writer in `crates/ath-core/src/mapping.rs` and updates this expected JSON. Under option B the key is absent, `decisions.md` has the one-line stub `D185 not adopted`, and these checks are not added. There is no `{their_field}_computed_by` test. Open Wearables does not send that field.
+The `field_basis` writer is in `crates/ath-core/src/mapping.rs`. These checks hold under D185 and D187. There is no `{their_field}_computed_by` test. Open Wearables does not send that field.
 
-- `ow-workout-1` `field_basis` is `{ "activity_type": "open_wearables_normalized" }`.
+- `ow-workout-1` `field_basis` is `{ "value": "provider_or_open_wearables", "activity_type": "open_wearables_normalized" }`.
 - The `average_heart_rate` and `max_heart_rate` summaries have `field_basis` `{ "value": "provider_or_open_wearables" }`.
 - `garmin_stress_level` has `field_basis` `{ "value": "provider" }`. The sample has no `computed_by`.
 - `garmin_body_battery` has `field_basis` `{ "value": "provider" }`. The writer is `garmin`.
 - The Junction `hrv_rmssd` point has `field_basis` `{ "value": "hrv_mean_rmssd" }`.
 - `sleep.score` and `recovery_readiness_score` have `field_basis` `{ "value": "provider" }`.
+- Every other mapped record states the file's `value_basis` (D187): `ow-sleep-1` is `{ "value": "provider_or_open_wearables" }`, every Open Wearables timeseries point and the `vo2_max` summary are `provider_or_open_wearables`, and `jn-sleep-1` and its resting heart rate and respiratory rate points are `provider_or_junction`. Test `every mapped value states its basis (D187)`. A `source_device` record has no `field_basis`.
 
 ## 7. What this release does not change
 
-- The records, `supplied_fields`, sources, route points, attachments, links, and import receipts produced from the section 6 baseline, including the package, the Apple zip, the bare `export.xml`, and `ath pull garmin`. Those readers are not moved onto mapping files.
+- The records, `supplied_fields`, sources, route points, attachments, links, and import receipts produced from the section 6 baseline, including the package, the Apple zip, the bare `export.xml`, and `ath pull garmin`, apart from the one new key `field_basis` (D187). Those readers are not moved onto mapping files.
 - Required record fields. No new column.
 - The separation of measured readings and athlete reports. `hrv_rmssd` and `hrv_sdnn` stay two quantities. `LastNightAvg` on the Garmin personal pull stays `LastNightAvg`.
 - The TypeScript command front end, except the `--mapping` flag, the help sentences, the generated `cli.md`, and `installMappings`. The front end is not moved to Rust (D174).
-- Published migrations `001`, `002`, and `003` (D165).
+- Published migrations `001`, `002`, and `003` (D165). Step `004` is new.
 - Earlier D-numbers and earlier `build-history/` folders, except the one edit in section 9.
 - Network pulls, an Open Wearables client, a Junction client, sync, and any hosted service. `import-mapped` has no URL flag.
 
-Under option A, pull request (c) adds the optional `field_basis` object to `src/v1/schema.ts` (D185) and `pnpm generate:json-schema` writes `schema/2.1.0/`. `schema/2.0.0/` is not changed. Pull request (b) writes no `field_basis`. Under option B the schema file and the schema folder stay as they are, and the basis is kept off the record. `pnpm generate:v1-fixture` runs under option A, as section 8 says. No required field and no SQL column are added under either option.
+The build adds the optional `field_basis` object to `src/v1/schema.ts` (D185, D187), and `pnpm generate:json-schema` writes `schema/2.1.0/`. `schema/2.0.0/` is not changed. `pnpm generate:v1-fixture` regenerates the demo athlete, as section 8 says. No required field and no SQL column are added.
 
 ## 8. Version
 
-Mike has not chosen whether the program version and the record version stay one number. D152 made them one number for 2.0.0. D164 says that choice still holds from 2.0.0 on. Neither decision is rewritten here. The choice is D184, written in pull request (c).
+Mike chose option A: the program version and the record version stay one number, 2.1.0. D152 made them one number for 2.0.0. D164 says that choice still holds from 2.0.0 on. Neither decision is rewritten here. The choice is D184.
 
-The code uses two constants either way.
+The code uses two constants.
 
 - `src/version.ts` exports `ATH_PACKAGE_VERSION`. `ath --version` prints it.
 - `src/v1/schema.ts` exports `ATHLETIC_STANDARD_VERSION`. New databases store it. `ACCEPTED_RECORD_VERSIONS` lists the record versions this program can read.
 - `crates/ath-core/src/lib.rs` exports `APP_VERSION` and `RECORD_VERSION`. `Store::open` compares `database_metadata.athleticstandard_version` to `RECORD_VERSION`. The error stays `database version is {version}; run ath migrate before using ath-core`. `changed_by` uses `APP_VERSION`. The single `SOFTWARE_VERSION` constant is removed.
 
-Today those strings are all `2.0.0`. Splitting the names is the small change. Setting the strings is D184.
+Those strings were all `2.0.0`. Splitting the names was the small change. Setting the strings is D184.
 
-### Option A. One number, 2.1.0
+### Option A. One number, 2.1.0. Chosen and built
 
 `ath --version` prints `2.1.0`. A new database stores `2.1.0`. `APP_VERSION` and `RECORD_VERSION` are both `2.1.0`.
 
-D184 text if this option is picked:
+The plan's D184 text was:
 
 > D184. The program and the record stay one number, 2.1.0.
 >
@@ -1165,11 +1020,13 @@ D184 text if this option is picked:
 >
 > - Leave the record at 2.0.0 while the program becomes 2.1.0. Rejected because D152 and D164 already rejected a split, and a later change would again have to pick which number moves.
 
-What changes:
+The adopted D184 in [decisions.md](decisions.md) adds two sentences. A 2.0.0 package still imports, because its records are valid 2.1.0 data. The build found that the package loader accepted only the current version, so a 2.1.0 program would have refused a 2.0.0 package. `IMPORTABLE_PACKAGE_VERSIONS` in `src/v1/schema.ts` is `2.0.0` and `2.1.0`.
+
+What changed:
 
 - `package.json` `version` becomes `2.1.0`. The release workflow packs `athleticstandard-$(version).tgz`. The tarball name becomes `athleticstandard-2.1.0.tgz`. D171's `2.0.0` filename is the 2.0.0 case of that rule. It is not rewritten.
 - `ATH_PACKAGE_VERSION`, `ATHLETIC_STANDARD_VERSION`, `APP_VERSION`, and `RECORD_VERSION` become `2.1.0`.
-- `ACCEPTED_RECORD_VERSIONS` becomes `["1.0.0", "2.0.0", "2.1.0"]`. `READABLE_DATABASE_VERSIONS` in `src/db/migrate.ts` includes `"1.0.0"`, `"2.0.0"`, and `"2.1.0"`. If option A drops `"2.0.0"` from that set, migrate cannot open the database it is supposed to upgrade.
+- `ACCEPTED_RECORD_VERSIONS` becomes `["1.0.0", "2.0.0", "2.1.0"]`. `READABLE_DATABASE_VERSIONS` in `src/db/migrate.ts` includes `"1.0.0"`, `"2.0.0"`, and `"2.1.0"`. If `"2.0.0"` were dropped from that set, migrate could not open the database it is supposed to upgrade.
 - New migration step 4 only. Files: `src/db/migrations/004-version-2-1.ts` and `spec/sql/migrations/004-version-2-1.sql`, through `pnpm generate:sql-contract`. SQL:
 
 ```sql
@@ -1198,54 +1055,25 @@ WHERE singleton_id = 1;
 - `ath check` already compares `sql_schema_version` to `SQL_SCHEMA_VERSION`. A 2.0.0 database fails that check until migrate. After migrate it passes.
 - `Store::open` rejects `2.0.0` until migrate, with the existing sentence.
 - `src/db/backtest.ts` uses `ATHLETIC_STANDARD_VERSION` instead of a hardcoded `"2.0.0"`.
-- Rust tests that insert `'2.0.0'` and then call `Store::open` use `RECORD_VERSION`. Inserts that build a 1.0.0 or 2.0.0 file on purpose stay hardcoded. `crates/ath-core/src/persist.rs` `persist_inserts_a_source_and_bumps_the_revision` (line 1039) passes `tool_version` `2.0.0` inside `changed_by_json`. That test does not call `Store::open`. `apply` stores the string it is given. Under option A and option B the tool version is `2.1.0`, so that literal becomes `2.1.0`. The helper `database()` at line 1019 still inserts `athleticstandard_version` `2.0.0`, because it builds a pre-migration file.
+- The Rust test that built a `'2.0.0'` file and then called `Store::open` now runs the published `003` and `004` SQL files on a `1.0.0` file and asserts the stored version equals `RECORD_VERSION`. Inserts that build a 1.0.0 or 2.0.0 file on purpose stay hardcoded. `crates/ath-core/src/persist.rs` `persist_inserts_a_source_and_bumps_the_revision` (line 1039) passes `tool_version` inside `changed_by_json`. That test does not call `Store::open`. `apply` stores the string it is given. The tool version is `2.1.0`, so that literal is `2.1.0`. The helper `database()` at line 1019 still inserts `athleticstandard_version` `2.0.0`, because it builds a pre-migration file.
+- `crates/ath-core/Cargo.toml` `version` is `2.1.0`.
 - `pnpm generate:json-schema` writes `schema/2.1.0/` and does not rewrite `schema/2.0.0/`. `package.json` exports and `tests/v1-package-exports.test.ts` point at `schema/2.1.0/`. Both version constants are asserted equal to `2.1.0`.
-- `pnpm generate:v1-fixture` regenerates `examples/demo-athlete/` if the stored version is inside it. The new hashes replace the demo-athlete lines in `scripts/check-public-data.ts`. The fixture is not hand-edited. `tests/fixtures/version-2-0-0/database.ath.sqlite` is not regenerated.
-- `README.md` links `schema/2.1.0/` beside the existing `schema/2.0.0/` link. `schema/2.0.0/` is not rewritten. `SPEC.md` documents the optional `field_basis` object under this option only. The rest of the field list does not change.
+- `pnpm generate:v1-fixture` regenerates `examples/demo-athlete/athlete.ath.sqlite`, because the stored version is inside it. From D187 its measured records also state their basis. The new hash replaces the demo-athlete line in `scripts/check-public-data.ts`. The fixture is not hand-edited. `examples/demo-athlete/athlete.ath.json` is the legacy 0.4.3 file and does not change. `tests/fixtures/version-2-0-0/database.ath.sqlite` is not regenerated.
+- `README.md` links `schema/2.1.0/` beside the existing `schema/2.0.0/` link. `schema/2.0.0/` is not rewritten. `SPEC.md` documents the optional `field_basis` object. Its title, metadata table, package rule, and version section now say `2.1.0`. They still said `1.0.0` in two places, which was out of date since 2.0.0.
+- `AGENTS.md` lists this spec and names `2.1.0` as the version of the normative Zod.
 - `build-history/README.md` "Current records" gains the 2.1.0 links and the sentence: version 2.1.0 is the software now. The program, the record, and the database use that number.
-- Calculation skill files stay on metadata version `2.0.0`. The tool skill `metadata.version` becomes `2.1.0` in this pull request, in the same commit as `package.json`, so `tests/skill.test.ts` line 105 still sees equal versions.
-- Search the tree for `2.0.0` before the last commit of pull request (c). Change a hit only when it is this program's current version. Do not change `003`, historical decisions, the 2.0.0 schema folder, the baseline files, or the version-2-0-0 database copy.
+- Calculation skill files stay on metadata version `2.0.0`. The tool skill `metadata.version` becomes `2.1.0` in the same commit as `package.json`, so `tests/skill.test.ts` line 105 still sees equal versions.
+- Search the tree for `2.0.0` before the last commit. Change a hit only when it is this program's current version. Do not change `003`, historical decisions, the 2.0.0 schema folder, the baseline files, or the version-2-0-0 database copy.
 
 What this asks of a 2.0.0 database: `ath migrate` runs, and no column is added. `user_version` becomes 4. D152 says that integer is the upgrade step. The software version is the `2.1.0` stored beside it.
 
-### Option B. The program is 2.1.0 and the record stays 2.0.0
+### Option B. Not chosen
 
-`ath --version` prints `2.1.0`. A new database still stores `2.0.0`. `APP_VERSION` is `2.1.0`. `RECORD_VERSION` is `2.0.0`. `SQL_SCHEMA_VERSION` stays `3`. There is no migration 004. `applyMigrationStep` gains no arm. `001` and `003` are not edited.
-
-D184 text if this option is picked:
-
-> D184. The program is 2.1.0. The record stays 2.0.0.
->
-> `ath --version` prints `2.1.0`. `database_metadata.athleticstandard_version` stays `2.0.0`. This release adds a way to read named fields. It does not add a record field, a column, or a required value. `field_basis` is not written. The basis is kept off the record. A later reader cannot see, on the record, that an activity type was normalized or that `average_hrv` was accepted as `hrv_mean_rmssd`. That is a cost of this option. This supersedes D164's rejection of two numbers, and D152's one number, from 2.1.0 on. D152 and D164 are not rewritten.
->
-> Rejected alternatives:
->
-> - Move both numbers to 2.1.0. Rejected for this release because a migrate step with no new column would be the only effect on a 2.0.0 database.
-> - Hide the program version and keep printing 2.0.0 from `ath --version`. Rejected because the mapping command is new and the person needs to see that they are running it.
-
-What changes:
-
-- `package.json` `version`, `ATH_PACKAGE_VERSION`, and `APP_VERSION` become `2.1.0`. The tarball name becomes `athleticstandard-2.1.0.tgz`.
-- `ATHLETIC_STANDARD_VERSION` and `RECORD_VERSION` stay `2.0.0`. `ACCEPTED_RECORD_VERSIONS` stays `["1.0.0", "2.0.0"]`. `READABLE_DATABASE_VERSIONS` stays `"1.0.0"` plus the current record version.
-- No file under `src/db/migrations/` or `spec/sql/migrations/` is added or edited. `pnpm generate:sql-contract` does not run for a version bump.
-- `schema/2.0.0/` is not regenerated and is not edited. `src/v1/schema.ts` does not gain `field_basis`. `SPEC.md` does not document it. The demo athlete fixture is not regenerated. `tests/fixtures/version-2-0-0/database.ath.sqlite` stays the `d418a8f` bytes. The cost is that the basis stays off the record.
-- `tests/v1-package-exports.test.ts` expects package `2.1.0` and record `2.0.0`.
-- `ath migrate` on the temp copy prints the existing no-migration sentence. `ath check` passes with schema `3`. `Store::open` accepts `2.0.0`.
-- `crates/ath-core/src/persist.rs` line 1039 changes `tool_version` from `2.0.0` to `2.1.0`, because that string is the tool version and `APP_VERSION` is `2.1.0`. The `database()` helper keeps `athleticstandard_version` `2.0.0`.
-- The tool skill `metadata.version` becomes `2.1.0` here, with `package.json`. Calculation skills stay `2.0.0`.
-- `build-history/README.md` is not edited. The only edit to an earlier `build-history` folder is the heading removal in section 9. The note that the program is 2.1.0 and the record stays 2.0.0 is written in `build-history/v2.1.0/progress.md`, not in the README. That progress file also says a program release that does not change the record still uses the folder named in its plan.
-- `README.md` and `SPEC.md` keep their schema links on `schema/2.0.0/`.
-- `src/db/backtest.ts` stays on `2.0.0`.
-
-What this asks of a 2.0.0 database: `ath migrate` reports that no migration is required. The person sees `2.1.0` from `ath --version` and `2.0.0` inside the database. D184 says that this supersedes D152 and D164's rejection of two numbers. Those two decisions are not rewritten.
-
-### What is shared
-
-Both options add the two constants and point `Store::open` at `RECORD_VERSION`. Both leave required fields, migrations `001`–`003`, and the existing importers alone. Both run the migrate commands in section 6 on a copy of the named 2.0.0 database. Switching from B to A later is migration 4 plus the string `RECORD_VERSION`. Switching from A to B is not available once a database has been written at `2.1.0`.
+Option B kept the record at 2.0.0 and the program at 2.1.0, with no migration and no `field_basis` on the record. Mike did not choose it. Its text is not copied into the decisions, and no D185 stub was written.
 
 ## 9. The 2.0.0 progress note
 
-The build deletes the section whose heading is `Later, with the reason:` from `build-history/v2.0.0/progress.md`. The edit finds that heading. It does not find a line number. Mike asked for the deletion. The list is out of date. Pull request (c) makes the edit. This plan pull request does not.
+The build deletes the section whose heading is `Later, with the reason:` from `build-history/v2.0.0/progress.md`. The edit finds that heading. It does not find a line number. Mike asked for the deletion. The list is out of date. The build pull request makes the edit. The plan pull request did not.
 
 The heading and the bullets under it are removed. The paragraphs above the heading stay.
 
@@ -1256,7 +1084,7 @@ No file links to that heading. The one link inside the section points at `append
 
 `docs/connections.md` says an Open Wearables pull is not built. That sentence stays true. `docs/connections.md` is not edited.
 
-`build-history/v2.1.0/progress.md`, written in pull request (c), says Mike asked for the deletion, and it links the study:
+`build-history/v2.1.0/progress.md` says Mike asked for the deletion, and it links the study:
 
 ```markdown
 Mike asked to remove the outdated "Later, with the reason:" heading from
@@ -1266,9 +1094,9 @@ Mike asked to remove the outdated "Later, with the reason:" heading from
 
 ## 10. Notes and proof
 
-Pull request (b) starts `build-history/v2.1.0/decisions.md` with D177–D183 and D186. It does not write D185. Pull request (c) inserts D184 and writes `progress.md`. Under option A it also writes D185, inserted with D184 before D186. Under option B the same file gets one line, `D185 not adopted. Option B was picked (D184).` Under option A, `build-history/README.md` "Current records" links those three files. Under option B that README is not edited. The version sentence for B is in `build-history/v2.1.0/progress.md`.
+`build-history/v2.1.0/decisions.md` holds D177 through D187. D184 and D185 were inserted before D186, and D187 follows D186. `build-history/README.md` "Current records" links the spec, the decisions, and the progress note, and says version 2.1.0 is the software now.
 
-The proof is a screenshot or a playable mp4 on the pull request (b) body, and another on pull request (c) if the version pick changes what `ath --version` prints. The recording is not committed. Pull request (b) shows:
+The proof is an image in the build pull request's description. It is not committed. Mike asked for `ath --version` showing `2.1.0`, an `ath import --mapping open-wearables` run with its `left_out` lines, and `ath check` passing on a migrated copy of the 2.0.0 database. The plan's list also asked for:
 
 1. `ath import` of the Open Wearables fixture with `--mapping open-wearables --yes`.
 2. The `hrv_rmssd` point at `42.5` and the `hrv_sdnn` point at `61.2`.
@@ -1278,7 +1106,7 @@ The proof is a screenshot or a playable mp4 on the pull request (b) body, and an
 6. The `LastNightAvg` refusal on stderr, with nothing written.
 7. `ath check` exiting 0 after both fixtures.
 
-This plan pull request has no recording.
+The plan pull request had no recording.
 
 ## 11. Risks, the remaining question, and the order
 
@@ -1288,30 +1116,24 @@ This plan pull request has no recording.
 - A mapping route equal to `garmin_account_export` would reuse the built-in source through the empty-sensor lookup. D179 rejects that route before a write.
 - `received_at` is inside record JSON. The baseline walk deletes it at any depth. A walk that only deletes the column would fail the Garmin `max_heart_rate` summary.
 - Records with no match key need the sort in section 6. A sort that drops them would hide package links.
-- Pull request (b) must not bump `ATHLETIC_STANDARD_VERSION`. If it does, the baseline no longer matches `d418a8f`.
-- If option A drops `"2.0.0"` from `READABLE_DATABASE_VERSIONS`, migrate cannot open the version-2-0-0 copy.
-- Option A runs `003`, which sets version `2.0.0`, and then step 4. Editing `003` instead would violate D165. `applyMigrationStep` must gain the `targetVersion === 4` arm or the step throws.
+- The baseline commit must not bump `ATHLETIC_STANDARD_VERSION`. If it does, the baseline no longer matches `d418a8f`.
+- If `"2.0.0"` is dropped from `READABLE_DATABASE_VERSIONS`, migrate cannot open the version-2-0-0 copy.
+- A new database runs `003`, which sets version `2.0.0`, and then step 4. Editing `003` instead would violate D165. `applyMigrationStep` must gain the `targetVersion === 4` arm or the step throws.
 - Junction `average_hrv` from `apple_health_kit`, `health_connect`, or `samsung_health` stays in `supplied_fields`. A writer missing from the allow-list is left unmapped, not refused. `whoop_v2` is on the list. `google_health` is not. Fitbit's HRV method through that slug is not confirmed.
 - The npm package omits `mappings/` unless `package.json` `files` lists it. The smoke test asserts the tarball paths.
+- A re-import of a 2.0.0 export under 2.1.0 adds `field_basis` in a new revision of each record it matches (D187). A large Apple export gains one revision per record the first time.
 
-### Question for Mike
+### Answers from Mike
 
-1. Do you want option A or option B in section 8?
-   - Option A. Recommendation: this one. D152 and D164 already use one number.
-   - Option B. The record stays 2.0.0 and `schema/2.0.0/` is not edited. The basis is kept off the record. That is the cost of B. D184 would supersede D152 and D164's rejection of two numbers, and those two decisions would not be rewritten.
-
-2. A workout with `entry_source` `manual` is left out of the measured import. The other objects in the file are still written. The alternative is to refuse the whole file with `refusing to turn a personal report into a measured record`.
-   - Leave the object out. Recommendation: this one. One hand-entered workout does not throw away the measured rows in the same file. The test is `ow-workout-manual`.
-   - Refuse the whole file.
+1. Option A or option B in section 8: option A. One number, 2.1.0, with `field_basis`, `schema/2.1.0/`, and migration step 4.
+2. A workout with `entry_source` `manual`: Mike approved the plan with its recommendation. The object is left out of the measured import, and the other objects in the file are still written. The test is `ow-workout-manual`.
+3. Mike added one more change: `field_basis` goes on every stored value, not only mapped values. That is D187 and section 13.
 
 `--mapping` is in this release. D174 does not need a new D-number. The fourth refusal stays. It is D179 item 4, from D172.
 
 ### Order
 
-1. Mike says the plan is OK, and he answers the two questions.
-2. Pull request (a), from `d418a8f`, with no other change: the baseline files, the test, and `tests/fixtures/version-2-0-0/database.ath.sqlite`.
-3. Pull request (b): D177–D183 and D186, the engine, the flag, the fixtures, the pack checks, the `calc.rs` refusal, and `cargo test` on the three operating systems. Pull request (b) writes no `field_basis`.
-4. Pull request (c): D184 for the option he picked, the migrate commands on a copy of the named database, and section 9. Under option A it also writes D185, adds the `field_basis` writer in `crates/ath-core/src/mapping.rs`, and updates the expected test JSON. Under option B it writes the one-line stub `D185 not adopted. Option B was picked (D184).` in `build-history/v2.1.0/decisions.md`. Nothing is published until this pull request merges. (b) and (c) ship together as release 2.1.0.
+The build was one pull request, in the commit order at the top of this file: the baseline from code that matches `d418a8f`, then the mapping engine and its front end, then the version, then `field_basis` on every stored value, then the notes. Nothing is published.
 
 ## 12. Not in 2.1.0
 
@@ -1327,3 +1149,74 @@ These are outside this release. This section does not assign them to a later ver
 - Junction activity summaries are `left_out`. This release does not store a UTC midnight as a measurement (D88, D110).
 - Open Wearables day, week, and month aggregate rows are not mapped. The import should be given the full response. If `metadata.resolution` is present and is not `raw`, every row is `left_out`. If it is absent, a row with `window_seconds` is `left_out`. A row with `period_end` is `left_out`. On current main the bucket path sets `window_seconds` and does not set `period_end` or `stats` (`timeseries_service.py` lines 344–355). A full page at 0.10.0 already includes `metadata.resolution`. The sample at that tag has no `window_seconds` and no `computed_by`.
 - `google_health` is not on the `average_hrv` allow-list. Fitbit's HRV method through that slug is not confirmed.
+- A `field_basis` on records written before 2.1.0. Migration step 4 does not backfill (D187).
+- A basis for each field name. One value per record, plus the activity type and the Apple route summaries, is the whole object.
+
+## 13. Every stored value's basis
+
+Mike extended `field_basis` from mapped values to every stored value. This section is that change. The decision is D187.
+
+### The object
+
+`field_basis` moves into the fields every measured record shares, so all seven measured record types may carry it: `point_measurement`, `measurement_sample`, `sleep_session`, `workout_session`, `benchmark_result`, `provider_summary`, and `provider_score`. `source`, `source_device`, athlete reports, and authored records do not. An athlete report's basis is already its record type.
+
+```ts
+field_basis: z.strictObject({
+  activity_type: z.enum(["open_wearables_normalized", "provider_label"]).optional(),
+  value: z.enum([
+    "provider_or_open_wearables",
+    "provider",
+    "hrv_mean_rmssd",
+    "provider_or_junction",
+    "provider_documented_rmssd",
+    "calculated_on_import",
+    "entered_by_hand",
+  ]).optional(),
+  route_summaries: z.literal("calculated_on_import").optional(),
+}).optional()
+```
+
+The first three `value` values and `open_wearables_normalized` are D185. The rest are D187. `schema/2.1.0/` is generated from this. `schema/2.0.0/` is not touched.
+
+### What each importer states
+
+| Importer | Records | `field_basis` |
+|---|---|---|
+| Apple Health | points, series samples, workouts, and activity summaries from a writer | `value` `provider` |
+| Apple Health | a value whose writer is `Health` or `Manual`, which stays on the manual source (D173) | `value` `entered_by_hand` |
+| Apple Health | sleep sessions, which this software sums from the writer's sleep-stage samples | `value` `calculated_on_import` |
+| Apple Health | RMSSD from a beat list or an ECG, which already carries a `calculations` block, and ECG beat intervals | `value` `calculated_on_import` |
+| Apple Health | a workout | `activity_type` `provider_label`; `route_summaries` `calculated_on_import` when a route file supplied its elevation gain or kilometre splits |
+| WHOOP | `Heart rate variability (ms)` stored as `hrv_rmssd` | `value` `provider_documented_rmssd` |
+| WHOOP | every other point, score, sleep session, and workout | `value` `provider`; a workout also `activity_type` `provider_label` |
+| Oura | the HRV column stored as `hrv_rmssd` | `value` `provider_documented_rmssd` |
+| Oura | every other point, score, and sleep session | `value` `provider` |
+| Garmin | account JSON, GPX, and FIT workouts; the `max_heart_rate` summary; the personal pull's workouts and `LastNightAvg` | `value` `provider`; a workout with an activity type also `activity_type` `provider_label` |
+| Strava | workouts | `value` `provider`; `activity_type` `provider_label` |
+| `ath log` | a plain-text measurement or benchmark result; a structured measured record whose `field_basis.value` is missing | `value` `entered_by_hand` |
+| Open Wearables mapping | sleep, workouts, points, and summaries | `value` `provider_or_open_wearables`; a workout also `activity_type` `open_wearables_normalized` |
+| Junction mapping | sleep and points | `value` `provider_or_junction`; the `average_hrv` point `hrv_mean_rmssd` |
+| Any mapping | provider scores | `value` `provider` |
+
+Every importer could state a basis from what its source says. None had to be invented. Apple's hand-entered writers, its calculated sleep totals, and its route summaries are the three places where one record type from one source has more than one basis. Each is stated separately.
+
+The TypeScript provider import decides the basis in `valueBasis` in `src/db/provider-import.ts`. The Apple importer marks a workout whose splits or elevation gain it calculated, in `routeSummariesCalculated`. The Rust importers use `provider_basis` in `crates/ath-core/src/garmin.rs`.
+
+### Mapping files
+
+The header key `value_basis` is required. The value is `provider`, `provider_or_open_wearables`, or `provider_or_junction`. It applies to every record the file writes. A line's `basis` replaces it for that line's record. Every provider score is `provider`. An `activity_type` line must state its basis. The shipped Open Wearables file has `value_basis: provider_or_open_wearables` and `type: activity_type basis open_wearables_normalized`. The Junction file has `value_basis: provider_or_junction`. A `source_device` record has no `field_basis`.
+
+### Old records and corrections
+
+Migration step 4 does not backfill. A record written before 2.1.0 has no `field_basis`, and it stays valid. A restored 2.0.0 package keeps its records as they were. A re-import of the same export under 2.1.0 states the basis in a new revision, because the content then differs.
+
+`ath correct` stores the whole record the person gives. The tool skill says to set `field_basis.value` to `entered_by_hand` when a correction replaces a measured value with one a person typed.
+
+### Tests
+
+- The import baseline compares each import with `field_basis` removed against the d418a8f files, byte for byte. It compares the basis of every record against `tests/fixtures/import-baseline/field-basis/`, byte for byte. It asserts that every measured record has a basis value, that no other record has one, and that the restored 2.0.0 package has none.
+- `tests/mapping-cli.test.ts` asserts the basis of every mapped record, the `value_basis` and `activity_type` check failures, and a person's own file with `value_basis: provider`.
+- `tests/v2-core.test.ts` asserts the Garmin workout, the Garmin `max_heart_rate` summary, and the Strava workout.
+- `tests/v1-cli-writes.test.ts` asserts `entered_by_hand` on a plain-text measurement, a plain-text benchmark result, and a structured point, and that a structured point keeps a basis it already states.
+- `every_garmin_workout_states_its_basis` in `crates/ath-core/src/garmin.rs` covers JSON, GPX, and the activity type.
+- The demo athlete is regenerated. Its WHOOP-style HRV point is `provider_documented_rmssd`, its benchmark result is `entered_by_hand`, its workout states `provider_label`, and its other measured records are `provider`.
