@@ -54,6 +54,9 @@ validation-data/
 !tests/fixtures/exports/garmin/synthetic-position.fit
 !tests/fixtures/exports/strava/activities.csv
 !tests/fixtures/exports/strava/activities/river.gpx
+!tests/fixtures/version-2-0-0/database.ath.sqlite
+!tests/fixtures/version-2-0-0/package/athlete.ath.json
+!tests/fixtures/version-2-0-0/package/export-manifest.json
 
 # Large deterministic release fixtures are generated locally or in the release job.
 /performance/generated/

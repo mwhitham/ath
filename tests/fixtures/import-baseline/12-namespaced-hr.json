@@ -1,0 +1,103 @@
+{
+  "attachment_links": [],
+  "attachments": [],
+  "baseline_from": "d418a8f653f7074ed9e08208c4eb555c391bcbc7",
+  "links": [
+    {
+      "owner": "record:1",
+      "relation": "source",
+      "table": "workout_sessions",
+      "target": "record:2"
+    }
+  ],
+  "records": [
+    {
+      "current_revision": 1,
+      "data": {
+        "end_at": "2026-08-09T15:00:10.000Z",
+        "heart_rate_samples": [
+          {
+            "bpm": 100,
+            "offset_ms": 0
+          },
+          {
+            "bpm": 160,
+            "offset_ms": 10000
+          }
+        ],
+        "input_end_timestamp": {
+          "timestamp_basis": "source_instant",
+          "timestamp_text": "2026-08-09T15:00:10.000Z",
+          "utc_offset_meaning": "documented_recording_offset",
+          "utc_offset_text": "Z"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_instant",
+          "timestamp_text": "2026-08-09T15:00:00.000Z",
+          "utc_offset_meaning": "documented_recording_offset",
+          "utc_offset_text": "Z"
+        },
+        "name": "Park loop",
+        "provider_record_id": "namespaced-hr.gpx",
+        "received_at_basis": "import_time",
+        "route": [
+          {
+            "latitude_deg": 40,
+            "longitude_deg": -105,
+            "recorded_at": "2026-08-09T15:00:00.000Z"
+          },
+          {
+            "latitude_deg": 40.002,
+            "longitude_deg": -105.002,
+            "recorded_at": "2026-08-09T15:00:10.000Z"
+          }
+        ],
+        "source_id": "record:2",
+        "source_reported_summaries": [],
+        "start_at": "2026-08-09T15:00:00.000Z"
+      },
+      "import_keys": [
+        {
+          "key": "namespaced-hr.gpx",
+          "method": "garmin_account/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:1",
+      "record_type": "workout_session"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "data_route": "garmin_account_export",
+        "data_writer": "garmin",
+        "source_type": "export_file",
+        "vendor": "garmin"
+      },
+      "import_keys": [],
+      "is_deleted": false,
+      "label": "record:2",
+      "record_type": "source"
+    }
+  ],
+  "route_points": [
+    {
+      "order": 0,
+      "point": {
+        "latitude_deg": 40,
+        "longitude_deg": -105,
+        "recorded_at": "2026-08-09T15:00:00.000Z"
+      },
+      "workout": "record:1"
+    },
+    {
+      "order": 1,
+      "point": {
+        "latitude_deg": 40.002,
+        "longitude_deg": -105.002,
+        "recorded_at": "2026-08-09T15:00:10.000Z"
+      },
+      "workout": "record:1"
+    }
+  ]
+}

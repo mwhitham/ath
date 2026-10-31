@@ -1,0 +1,196 @@
+{
+  "attachment_links": [],
+  "attachments": [],
+  "baseline_from": "d418a8f653f7074ed9e08208c4eb555c391bcbc7",
+  "links": [
+    {
+      "owner": "record:2",
+      "relation": "source",
+      "table": "workout_sessions",
+      "target": "record:1"
+    },
+    {
+      "owner": "record:3",
+      "relation": "source",
+      "table": "workout_sessions",
+      "target": "record:1"
+    }
+  ],
+  "records": [
+    {
+      "current_revision": 1,
+      "data": {
+        "data_route": "apple_health",
+        "data_writer": "Apple Watch",
+        "detail": "Apple Watch via Apple Health export folder",
+        "source_type": "export_file",
+        "vendor": "apple"
+      },
+      "import_keys": [
+        {
+          "key": "[\"source\",\"Apple Watch\",\"apple_health\",\"\"]",
+          "method": "apple_health/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:1",
+      "record_type": "source"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "activity_type": "running",
+        "end_at": "2026-06-14T13:30:00.000Z",
+        "input_end_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-06-14 08:30:00 -0500",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-0500"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-06-14 08:00:00 -0500",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-0500"
+        },
+        "received_at_basis": "import_time",
+        "route": [
+          {
+            "input_timestamp": {
+              "timestamp_basis": "source_offset_timestamp",
+              "timestamp_text": "2026-06-14 08:01:00 -0500",
+              "utc_offset_meaning": "meaning_not_documented",
+              "utc_offset_text": "-0500"
+            },
+            "latitude_deg": 12.5,
+            "longitude_deg": 56.5,
+            "recorded_at": "2026-06-14T13:01:00.000Z",
+            "supplied_fields": {
+              "altitude": "200"
+            }
+          },
+          {
+            "input_timestamp": {
+              "timestamp_basis": "source_offset_timestamp",
+              "timestamp_text": "2026-06-14 08:02:00 -0500",
+              "utc_offset_meaning": "meaning_not_documented",
+              "utc_offset_text": "-0500"
+            },
+            "latitude_deg": 12.75,
+            "longitude_deg": 56.75,
+            "recorded_at": "2026-06-14T13:02:00.000Z",
+            "supplied_fields": {
+              "altitude": "201"
+            }
+          }
+        ],
+        "source_id": "record:1",
+        "source_reported_summaries": [],
+        "start_at": "2026-06-14T13:00:00.000Z",
+        "supplied_fields": {
+          "WorkoutRoute": [
+            {
+              "MetadataEntry": [
+                {
+                  "key": "HKMetadataKeySyncVersion",
+                  "value": "3"
+                }
+              ],
+              "creationDate": "2026-06-14 08:00:30 -0500",
+              "endDate": "2026-06-14 08:30:00 -0500",
+              "sourceName": "Demo Phone",
+              "sourceVersion": "1",
+              "startDate": "2026-06-14 08:00:00 -0500"
+            }
+          ]
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"workout_session\",\"record:1\",\"2026-06-14T13:00:00.000Z\",0]",
+          "method": "apple_health/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:2",
+      "record_type": "workout_session"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "activity_type": "walking",
+        "end_at": "2026-06-14T14:10:00.000Z",
+        "input_end_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-06-14 09:10:00 -0500",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-0500"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-06-14 09:00:00 -0500",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-0500"
+        },
+        "received_at_basis": "import_time",
+        "source_id": "record:1",
+        "source_reported_summaries": [],
+        "start_at": "2026-06-14T14:00:00.000Z",
+        "supplied_fields": {
+          "WorkoutRoute": [
+            {
+              "sourceName": "Apple Watch"
+            }
+          ]
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"workout_session\",\"record:1\",\"2026-06-14T14:00:00.000Z\",0]",
+          "method": "apple_health/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:3",
+      "record_type": "workout_session"
+    }
+  ],
+  "route_points": [
+    {
+      "order": 0,
+      "point": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-06-14 08:01:00 -0500",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-0500"
+        },
+        "latitude_deg": 12.5,
+        "longitude_deg": 56.5,
+        "recorded_at": "2026-06-14T13:01:00.000Z",
+        "supplied_fields": {
+          "altitude": "200"
+        }
+      },
+      "workout": "record:2"
+    },
+    {
+      "order": 1,
+      "point": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-06-14 08:02:00 -0500",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-0500"
+        },
+        "latitude_deg": 12.75,
+        "longitude_deg": 56.75,
+        "recorded_at": "2026-06-14T13:02:00.000Z",
+        "supplied_fields": {
+          "altitude": "201"
+        }
+      },
+      "workout": "record:2"
+    }
+  ]
+}

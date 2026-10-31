@@ -140,6 +140,26 @@ const approvedSyntheticFixtures = new Map<string, string>([
     "tests/fixtures/exports/whoop/workouts.csv",
     "4cb6248df5443456996386a02325e0d21532d4251bfa5649c02ea0ca0d4c4ce1",
   ],
+  [
+    "tests/fixtures/version-2-0-0/database.ath.sqlite",
+    "442e9a966711660c2a03d701b5de2c55479a78330702083a3a67a182992a7856",
+  ],
+  [
+    "tests/fixtures/version-2-0-0/package/athlete.ath.json",
+    "bc7ffe0c63d2d74be15beb6aba2d51b7d386965003884b7740f0f0a06b7a374f",
+  ],
+  [
+    "tests/fixtures/version-2-0-0/package/export-manifest.json",
+    "7166e5e381d4b269297afe4301e4a9571d3cffbcd022b21bfb2fa682e3aa69db",
+  ],
+  [
+    "tests/fixtures/version-2-0-0/package/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png",
+    "d3fe8e599fb1deea9821063c744434802875c26cceeb9f2d55e8566b15a012f4",
+  ],
+  [
+    "tests/fixtures/version-2-0-0/package/series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+    "2099f0bf78f680ddd168b2bd1a5a30e1fea3758e6699a12075c1ef712b985924",
+  ],
 ]);
 
 const requiredIgnoreRules = [

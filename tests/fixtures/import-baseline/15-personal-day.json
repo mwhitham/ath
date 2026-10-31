@@ -1,0 +1,106 @@
+{
+  "attachment_links": [],
+  "attachments": [],
+  "baseline_from": "d418a8f653f7074ed9e08208c4eb555c391bcbc7",
+  "links": [
+    {
+      "owner": "record:2",
+      "relation": "source",
+      "table": "provider_summaries",
+      "target": "record:3"
+    },
+    {
+      "owner": "record:1",
+      "relation": "source",
+      "table": "workout_sessions",
+      "target": "record:3"
+    }
+  ],
+  "records": [
+    {
+      "current_revision": 1,
+      "data": {
+        "activity_type": "running",
+        "end_at": "2026-08-09T15:10:00.000Z",
+        "input_end_timestamp": {
+          "timestamp_basis": "source_instant",
+          "timestamp_text": "2026-08-09T15:10:00.000Z",
+          "utc_offset_meaning": "documented_recording_offset",
+          "utc_offset_text": "Z"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_instant",
+          "timestamp_text": "2026-08-09T15:00:00.000Z",
+          "utc_offset_meaning": "documented_recording_offset",
+          "utc_offset_text": "Z"
+        },
+        "name": "Invented personal loop",
+        "provider_record_id": "7001",
+        "received_at_basis": "import_time",
+        "source_id": "record:3",
+        "source_reported_summaries": [],
+        "start_at": "2026-08-09T15:00:00.000Z",
+        "supplied_fields": {
+          "Feeling": "steady"
+        }
+      },
+      "import_keys": [
+        {
+          "key": "7001",
+          "method": "garmin_personal/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:1",
+      "record_type": "workout_session"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_instant",
+          "timestamp_text": "2026-08-09T00:00:00.000Z",
+          "utc_offset_meaning": "documented_recording_offset",
+          "utc_offset_text": "Z"
+        },
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-09T00:00:00.000Z",
+        "source_id": "record:3",
+        "summary_type": "LastNightAvg",
+        "supplied_fields": {
+          "status": "BALANCED",
+          "weeklyAvg": 44
+        },
+        "value": {
+          "input_unit": "ms",
+          "input_value": 41,
+          "standard_unit": "ms",
+          "standard_value": 41
+        }
+      },
+      "import_keys": [
+        {
+          "key": "LastNightAvg:2026-08-09",
+          "method": "garmin_personal/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:2",
+      "record_type": "provider_summary"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "data_route": "garmin_personal_api",
+        "data_writer": "garmin",
+        "source_type": "export_file",
+        "vendor": "garmin"
+      },
+      "import_keys": [],
+      "is_deleted": false,
+      "label": "record:3",
+      "record_type": "source"
+    }
+  ],
+  "route_points": []
+}

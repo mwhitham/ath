@@ -1,0 +1,375 @@
+{
+  "attachment_links": [],
+  "attachments": [],
+  "baseline_from": "d418a8f653f7074ed9e08208c4eb555c391bcbc7",
+  "links": [
+    {
+      "owner": "record:1",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:9"
+    },
+    {
+      "owner": "record:2",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:9"
+    },
+    {
+      "owner": "record:3",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:9"
+    },
+    {
+      "owner": "record:4",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:9"
+    },
+    {
+      "owner": "record:5",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:9"
+    },
+    {
+      "owner": "record:6",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:9"
+    },
+    {
+      "owner": "record:7",
+      "relation": "source",
+      "table": "sleep_sessions",
+      "target": "record:9"
+    },
+    {
+      "owner": "record:8",
+      "relation": "source",
+      "table": "sleep_sessions",
+      "target": "record:9"
+    }
+  ],
+  "records": [
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-09T07:00:00.000-04:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-04:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "quantity": "hrv_rmssd",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-09T11:00:00.000Z",
+        "source_id": "record:9",
+        "value": {
+          "input_unit": "ms",
+          "input_value": 45,
+          "standard_unit": "ms",
+          "standard_value": 45
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:9\",\"hrv_rmssd\",\"2026-08-09T11:00:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:1",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-10T06:40:00.000-04:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-04:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "quantity": "hrv_rmssd",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-10T10:40:00.000Z",
+        "source_id": "record:9",
+        "value": {
+          "input_unit": "ms",
+          "input_value": 48,
+          "standard_unit": "ms",
+          "standard_value": 48
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:9\",\"hrv_rmssd\",\"2026-08-10T10:40:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:2",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-09T07:00:00.000-04:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-04:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "quantity": "respiratory_rate",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-09T11:00:00.000Z",
+        "source_id": "record:9",
+        "value": {
+          "input_unit": "brpm",
+          "input_value": 14,
+          "standard_unit": "brpm",
+          "standard_value": 14
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:9\",\"respiratory_rate\",\"2026-08-09T11:00:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:3",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-10T06:40:00.000-04:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-04:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "quantity": "respiratory_rate",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-10T10:40:00.000Z",
+        "source_id": "record:9",
+        "value": {
+          "input_unit": "brpm",
+          "input_value": 15,
+          "standard_unit": "brpm",
+          "standard_value": 15
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:9\",\"respiratory_rate\",\"2026-08-10T10:40:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:4",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-09T07:00:00.000-04:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-04:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "quantity": "resting_heart_rate",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-09T11:00:00.000Z",
+        "source_id": "record:9",
+        "value": {
+          "input_unit": "bpm",
+          "input_value": 52,
+          "standard_unit": "bpm",
+          "standard_value": 52
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:9\",\"resting_heart_rate\",\"2026-08-09T11:00:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:5",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-10T06:40:00.000-04:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-04:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "quantity": "resting_heart_rate",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-10T10:40:00.000Z",
+        "source_id": "record:9",
+        "value": {
+          "input_unit": "bpm",
+          "input_value": 51,
+          "standard_unit": "bpm",
+          "standard_value": 51
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:9\",\"resting_heart_rate\",\"2026-08-10T10:40:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:6",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "end_at": "2026-08-09T11:00:00.000Z",
+        "input_end_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-09T07:00:00.000-04:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-04:00"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-08T23:00:00.000-04:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-04:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "source_id": "record:9",
+        "source_reported_summaries": [],
+        "start_at": "2026-08-09T03:00:00.000Z"
+      },
+      "import_keys": [
+        {
+          "key": "[\"sleep_session\",\"record:9\",\"2026-08-09T03:00:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:7",
+      "record_type": "sleep_session"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "end_at": "2026-08-10T10:40:00.000Z",
+        "input_end_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-10T06:40:00.000-04:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-04:00"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-09T23:10:00.000-04:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-04:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "source_id": "record:9",
+        "source_reported_summaries": [],
+        "start_at": "2026-08-10T03:10:00.000Z"
+      },
+      "import_keys": [
+        {
+          "key": "[\"sleep_session\",\"record:9\",\"2026-08-10T03:10:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:8",
+      "record_type": "sleep_session"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "data_route": "oura_csv",
+        "data_writer": "Oura",
+        "detail": "Oura CSV export",
+        "source_type": "export_file",
+        "vendor": "oura"
+      },
+      "import_keys": [
+        {
+          "key": "[\"source\",\"Oura\",\"oura_csv\",\"\"]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:9",
+      "record_type": "source"
+    }
+  ],
+  "route_points": []
+}

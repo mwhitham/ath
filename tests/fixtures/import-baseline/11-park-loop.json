@@ -1,0 +1,122 @@
+{
+  "attachment_links": [],
+  "attachments": [],
+  "baseline_from": "d418a8f653f7074ed9e08208c4eb555c391bcbc7",
+  "links": [
+    {
+      "owner": "record:2",
+      "relation": "source",
+      "table": "provider_summaries",
+      "target": "record:3"
+    },
+    {
+      "owner": "record:1",
+      "relation": "source",
+      "table": "workout_sessions",
+      "target": "record:3"
+    }
+  ],
+  "records": [
+    {
+      "current_revision": 1,
+      "data": {
+        "activity_type": "running",
+        "description": "easy jog",
+        "end_at": "2026-01-02T15:00:03.000Z",
+        "heart_rate_samples": [
+          {
+            "bpm": 100,
+            "offset_ms": 0
+          },
+          {
+            "bpm": 130,
+            "offset_ms": 1000
+          },
+          {
+            "bpm": 160,
+            "offset_ms": 2000
+          },
+          {
+            "bpm": 190,
+            "offset_ms": 3000
+          }
+        ],
+        "input_end_timestamp": {
+          "timestamp_basis": "source_instant",
+          "timestamp_text": "2026-01-02T15:00:03.000Z",
+          "utc_offset_meaning": "documented_recording_offset",
+          "utc_offset_text": "Z"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_instant",
+          "timestamp_text": "2026-01-02T15:00:00.000Z",
+          "utc_offset_meaning": "documented_recording_offset",
+          "utc_offset_text": "Z"
+        },
+        "name": "Park Loop",
+        "provider_record_id": "1001",
+        "received_at_basis": "import_time",
+        "source_id": "record:3",
+        "source_reported_summaries": [],
+        "start_at": "2026-01-02T15:00:00.000Z",
+        "supplied_fields": {
+          "Feeling": "smooth"
+        }
+      },
+      "import_keys": [
+        {
+          "key": "1001",
+          "method": "garmin_account/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:1",
+      "record_type": "workout_session"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_instant",
+          "timestamp_text": "2026-01-02T15:00:00.000Z",
+          "utc_offset_meaning": "documented_recording_offset",
+          "utc_offset_text": "Z"
+        },
+        "provider_record_id": "1001",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-01-02T15:00:00.000Z",
+        "source_id": "record:3",
+        "summary_type": "max_heart_rate",
+        "value": {
+          "input_unit": "bpm",
+          "input_value": 200,
+          "standard_unit": "bpm",
+          "standard_value": 200
+        }
+      },
+      "import_keys": [
+        {
+          "key": "1001:max_heart_rate",
+          "method": "garmin_account/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:2",
+      "record_type": "provider_summary"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "data_route": "garmin_account_export",
+        "data_writer": "garmin",
+        "source_type": "export_file",
+        "vendor": "garmin"
+      },
+      "import_keys": [],
+      "is_deleted": false,
+      "label": "record:3",
+      "record_type": "source"
+    }
+  ],
+  "route_points": []
+}
