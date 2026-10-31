@@ -8,6 +8,7 @@ use serde_json::{json, Value};
 use ath_core::apple;
 use ath_core::calc::{parse_skill, run_skill};
 use ath_core::garmin::import_garmin;
+use ath_core::mapping::{apply_mapping, check_mapping, parse_mapping};
 use ath_core::personal::pull_garmin;
 use ath_core::oura;
 use ath_core::persist;
@@ -31,7 +32,8 @@ fn main() {
         "import-whoop" => import_whoop_command(),
         "import-oura" => import_named(oura::import_oura),
         "import-apple" => import_apple_command(),
-        _ => Err("commands: show, revise, calculate, import-garmin, import-strava, pull-garmin, persist".into()),
+        "import-mapped" => import_mapped(&collect(args)),
+        _ => Err("commands: show, revise, calculate, import-garmin, import-strava, import-mapped, pull-garmin, persist".into()),
     };
     match result {
         Ok(value) => println!("{value}"),
@@ -110,6 +112,18 @@ fn import(
     let write = !args.iter().any(|arg| arg == "--preview");
     let mut store = Store::open(&PathBuf::from(flag(args, "database")?))?;
     run(&mut store, PathBuf::from(flag(args, "input")?).as_path(), write)
+}
+
+fn import_mapped(args: &[String]) -> Result<Value, String> {
+    let mapping_text = fs::read_to_string(flag(args, "mapping-file")?).map_err(|error| error.to_string())?;
+    let mapping = parse_mapping(&mapping_text)?;
+    check_mapping(&mapping)?;
+    let input_text = fs::read_to_string(flag(args, "input")?).map_err(|error| error.to_string())?;
+    let input: Value = serde_json::from_str(&input_text)
+        .map_err(|error| format!("the input is not JSON: {error}"))?;
+    let write = !args.iter().any(|arg| arg == "--preview");
+    let mut store = Store::open(&PathBuf::from(flag(args, "database")?))?;
+    apply_mapping(&mut store, &mapping, &input, write)
 }
 
 fn import_named(run: fn(&serde_json::Map<String, Value>, &str) -> Value) -> Result<Value, String> {
