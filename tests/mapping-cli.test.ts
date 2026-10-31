@@ -318,6 +318,19 @@ describe("ath import --mapping open-wearables", () => {
     expect(junctionNight.data.field_basis).toEqual({ value: "provider_or_junction" });
   }, 60_000);
 
+  it("prints what it understood, kept, and left out, and how many records it wrote", () => {
+    const dir = emptyDatabase();
+    const preview = ath(["import", join(OW, "summaries.json"), "--mapping", "open-wearables"], dir);
+    expect(preview.code, preview.stderr).toBe(0);
+    expect(preview.stdout).toContain("open-wearables import");
+    expect(preview.stdout).toContain("kept under original names: calories_kcal, duration_seconds");
+    expect(preview.stdout).toContain("left out: workout ow-workout-manual: entry_source manual is a personal report");
+    expect(preview.stdout).toContain("nothing written; pass --yes after reviewing this preview");
+    const written = ath(["import", join(OW, "summaries.json"), "--mapping", "open-wearables", "--yes"], dir);
+    expect(written.stdout).toContain("records: 22. Pass --json to list their IDs.");
+    expect(written.stdout).not.toContain("nothing written");
+  }, 60_000);
+
   it("missing_computed_by_uses_the_provider", async () => {
     const dir = emptyDatabase();
     mapped(dir, join(OW, "summaries.json"), "open-wearables");
