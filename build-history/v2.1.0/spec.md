@@ -230,13 +230,15 @@ A timeseries sample uses `time_field` and `value_field`. The sample's `type` sel
 timeseries heart_rate_variability_rmssd 2026-08-09T07:00:00.000Z: unit bpm does not match ms
 ```
 
-The import should be given the full Open Wearables response, envelope included. Two shapes are accepted.
+The import should be given the full timeseries response, envelope included. Two shapes are accepted.
 
-An envelope is a JSON object with `data` (the sample array) and `metadata`. `pagination` may be present and is not mapped. An envelope's `data` is read as the timeseries section only. A `metadata.resolution` of null is treated as absent. At tag 0.10.0, commit `d18304f`, `PaginatedResponse` requires `data`, `pagination`, and `metadata` (`docs/openapi.json`, schema `PaginatedResponse[TimeSeriesSample]`). `TimeseriesMetadata.resolution` is the `Resolution` enum or null. `_page` sets `resolution=params.resolution` (`timeseries_service.py` lines 106–107). The sample object at that tag has no `window_seconds`. On current main, commit `8adb8d0`, `TimeseriesMetadata` is `resolution: Resolution | None` (`backend/app/schemas/utils/metadata.py` lines 28–29). It is the `metadata` field on the page (`backend/app/schemas/utils/pagination.py` line 35). `_page` fills it from `params.resolution` (`timeseries_service.py` lines 179–180). A sample on that page still has no `resolution` field (`data_point_responses.py` lines 22–37). The import does not invent one. Workout and sleep use that same page type: `list_workouts` returns `PaginatedResponse[Workout]` and `list_sleep_sessions` returns `PaginatedResponse[SleepSession]` (`backend/app/api/routes/v1/events.py` lines 59 and 134, on `8adb8d0` and on tag 0.10.0).
+An envelope is a JSON object with `data` (the sample array) and `metadata`. `pagination` may be present and is not mapped. An envelope's `data` is read as the timeseries section only. A `metadata.resolution` of null is treated as absent. At tag 0.10.0, commit `d18304f`, `PaginatedResponse` requires `data`, `pagination`, and `metadata` (`docs/openapi.json`, schema `PaginatedResponse[TimeSeriesSample]`). `TimeseriesMetadata.resolution` is the `Resolution` enum or null. `_page` sets `resolution=params.resolution` (`timeseries_service.py` lines 106–107). The sample object at that tag has no `window_seconds`. On current main, commit `8adb8d0`, `TimeseriesMetadata` is `resolution: Resolution | None` (`backend/app/schemas/utils/metadata.py` lines 28–29). It is the `metadata` field on the page (`backend/app/schemas/utils/pagination.py` line 35). `_page` fills it from `params.resolution` (`timeseries_service.py` lines 179–180). A sample on that page still has no `resolution` field (`data_point_responses.py` lines 22–37). The import does not invent one. Workout and sleep use that same page type: `list_workouts` returns `PaginatedResponse[Workout]` and `list_sleep_sessions` returns `PaginatedResponse[SleepSession]` (`backend/app/api/routes/v1/events.py` lines 59 and 134, on `8adb8d0` and on tag 0.10.0). Their metadata is `TimeseriesMetadata` with `sample_count`, `start_time`, and `end_time`, and `resolution` left null. At 0.10.0 that is `event_record_service.py` lines 953–957 for workouts and lines 1076–1080 for sleep. On main, workouts are lines 997–1001. Those pages are not timeseries pages. They are not read as envelopes. The person passes the `data` array under `workout` or `sleep` in the bare shape.
 
 Bare rows are the other shape. That is the invented `summaries.json` object, with `sleep`, `workout`, and `timeseries` arrays, and any file whose root has no `metadata.resolution`.
 
-If `metadata.resolution` is present, rows are accepted only when the value is `raw`. A null `metadata.resolution` is treated as absent. Any other value leaves every row in `data` out. The reason is `resolution {value}: not raw samples`. Nothing is written. Under a `raw` envelope, `window_seconds` is the sample interval. The row is stored, and `window_seconds` stays verbatim in `supplied_fields`. An envelope's `data` is read as the timeseries section only.
+If `metadata.resolution` is present, rows are accepted only when the value is `raw`. A null `metadata.resolution` is treated as absent. Any other value leaves every row in `data` out. The reason is `resolution {value}: not raw samples`. Nothing is written. Under a `raw` envelope, `window_seconds` is the sample interval. The row is stored, and `window_seconds` stays verbatim in `supplied_fields`.
+
+An envelope whose `data` rows are not timeseries samples is refused as a whole. A timeseries sample has `timestamp`, `type`, `value`, and `unit`. A row with `start_time` is a workout. A row with `bedtime_start` is a sleep. The file writes nothing. `left_out` has exactly one line, `envelope is a {shape} page, not a timeseries page`, where `{shape}` is `workout` or `sleep`.
 
 If `metadata.resolution` is absent, a row with `window_seconds` set to any non-null value is `left_out`. The reason is `window_seconds present without resolution: cannot confirm raw`. Nothing is written for that row. That is the default refusal when resolution is missing. At 0.10.0 it does not fire: a sample has no `window_seconds`, and `_page` already sets `metadata.resolution` (`timeseries_service.py` lines 106–107). It catches envelope-stripped rows from current main, where a real raw row also carries `window_seconds`. Pass the full response.
 
@@ -359,6 +361,7 @@ An object that cannot be stored is one `left_out` string. Other objects are stil
 - `aggregate row, not a raw sample`
 - `resolution {value}: not raw samples`
 - `window_seconds present without resolution: cannot confirm raw`
+- `envelope is a {shape} page, not a timeseries page`
 
 ## 3. A mapping file a person adds
 
@@ -543,7 +546,7 @@ A dotted their-field reads that path. `type.<name>` matches a timeseries sample'
 
 `when-writer` is a comma-separated list with no spaces. The line is applied only when `data_writer` is in the list. Otherwise their field stays in `supplied_fields` and the import continues. When two lines name the same their-field, the line whose `when-writer` matches is the one that writes. The line without `when-writer` is the fallback. That is how Apple `skin_temperature` becomes `wrist_temperature_sleeping` and every other writer keeps `skin_temperature`. `apple.rs` `point_mapping` maps `AppleSleepingWristTemperature` to `wrist_temperature_sleeping` (line 1122). The unit is `°C`.
 
-A timeseries line maps a raw sample. The import should be given the full response, envelope included. If `metadata.resolution` is `raw`, a `window_seconds` value stays in `supplied_fields`. If `metadata.resolution` is any other value, every row is left out. If `metadata.resolution` is absent, a non-null `window_seconds` is left out. A sample with `period_end` is left out. Against 0.10.0 and current main (`8adb8d0`), `computed_by` appears only on aggregate rows, which are left out, so this release does not store a connector-computed value under a provider's name. Newer Open Wearables docs say resting heart rate, nightly HRV, SpO2, and VO2 max exist only at `1day` and coarser. Against a newer server those lines are left out.
+A timeseries line maps a raw sample. The import should be given the full timeseries response, envelope included. If `metadata.resolution` is `raw`, a `window_seconds` value stays in `supplied_fields`. If `metadata.resolution` is any other value, every row is left out. If `metadata.resolution` is absent, a non-null `window_seconds` is left out. A sample with `period_end` is left out. Against 0.10.0 and current main (`8adb8d0`), `computed_by` appears only on aggregate rows, which are left out, so this release does not store a connector-computed value under a provider's name. Newer Open Wearables docs say resting heart rate, nightly HRV, SpO2, and VO2 max exist only at `1day` and coarser. Against a newer server those lines are left out.
 
 A trailing `\r` is stripped. Text outside the fence is not read.
 
@@ -945,6 +948,31 @@ Both files are invented. Dates are in 2026. Coordinates are invented. Pull reque
 }
 ```
 
+`tests/fixtures/exports/open-wearables/page-workouts.json` is an invented workouts page. `metadata.resolution` is null. The one row is a workout, not a timeseries sample.
+
+```json
+{
+  "data": [
+    { "id": "ow-page-workout-1", "type": "running", "name": "Invented page loop", "start_time": "2026-08-09T15:00:00.000Z", "end_time": "2026-08-09T15:10:00.000Z", "source": { "provider": "garmin", "source": "invented-app", "device": "invented-watch", "device_type": "watch", "device_id": "watch-1", "device_name": "Invented Watch" } }
+  ],
+  "pagination": { "has_more": false },
+  "metadata": { "resolution": null, "sample_count": 1, "start_time": "2026-08-09T15:00:00.000Z", "end_time": "2026-08-09T15:10:00.000Z" }
+}
+```
+
+`tests/fixtures/exports/open-wearables/page-null-resolution.json` is a timeseries page with `metadata.resolution` null. The first row has `window_seconds` `60`. The second row does not.
+
+```json
+{
+  "data": [
+    { "timestamp": "2026-08-09T06:14:00.000Z", "type": "garmin_stress_level", "value": 18, "unit": "score", "window_seconds": 60, "source": { "provider": "garmin", "source": "invented-app", "device": "invented-watch", "device_type": "watch", "device_id": "watch-1", "device_name": "Invented Watch" } },
+    { "timestamp": "2026-08-09T06:17:00.000Z", "type": "garmin_stress_level", "value": 12, "unit": "score", "source": { "provider": "garmin", "source": "invented-app", "device": "invented-watch", "device_type": "watch", "device_id": "watch-1", "device_name": "Invented Watch" } }
+  ],
+  "pagination": { "has_more": false },
+  "metadata": { "resolution": null }
+}
+```
+
 `tests/fixtures/exports/open-wearables/page-5min.json` is a 5-minute bucket. The row starts at `2026-08-09T06:10:00.000Z` and `window_seconds` is `300`, which is the width that path sets. `metadata.resolution` is `5min`.
 
 ```json
@@ -1049,6 +1077,8 @@ Test `open_wearables_fixture_maps_fields`. Sensor `ring|invented-ring|invented-a
 - `garmin_stress_level` is a `provider_score` metric `garmin_stress_level`, value `15`, scale `1-100`, writer `garmin`, sensor `S-watch`. The sample has no `computed_by`. `supplied_fields` does not contain that key. Test `missing_computed_by_uses_the_provider`. The writer is `source.provider` whether or not `computed_by` is present.
 - `garmin_body_battery` is a `provider_score` metric `garmin_body_battery`, value `70`, scale `0-100`, writer `garmin`, vendor `garmin`, sensor `S-watch`. The sample's unit was `percent`. The stored unit is `score`. The sample has no `computed_by`. `source_device.manufacturer` is `garmin`.
 - Test `raw_envelope_keeps_window_seconds`. Import `page-raw.json` with `--mapping open-wearables --yes`. `metadata.resolution` is `raw`. The `garmin_stress_level` sample is a `provider_score`, value `18`, scale `1-100`, writer `garmin`. `supplied_fields` is `{ "window_seconds": 60 }`. `left_out` has no line for that timestamp.
+- Test `workout_page_is_not_a_timeseries_envelope`. Import `page-workouts.json` with `--mapping open-wearables --yes`. Nothing is written. `left_out` is exactly one line, `envelope is a workout page, not a timeseries page`.
+- Test `null_resolution_is_treated_as_absent`. Import `page-null-resolution.json` with `--mapping open-wearables --yes`. The row at `2026-08-09T06:14:00.000Z` is left out: `timeseries garmin_stress_level 2026-08-09T06:14:00.000Z: window_seconds present without resolution: cannot confirm raw`. No record exists for that timestamp. The row at `2026-08-09T06:17:00.000Z` is a `provider_score`, value `12`, scale `1-100`, writer `garmin`. It has no `window_seconds` and no `supplied_fields`.
 - Test `five_minute_envelope_is_left_out`. Import `page-5min.json` with `--mapping open-wearables --yes`. `left_out` contains `timeseries garmin_stress_level 2026-08-09T06:10:00.000Z: resolution 5min: not raw samples`. No record is written.
 - Test `window_seconds_without_resolution_is_left_out`. `summaries.json` has no `metadata.resolution`. The `garmin_stress_level` sample at `2026-08-09T06:14:00.000Z` has `window_seconds` `60`. `left_out` contains `timeseries garmin_stress_level 2026-08-09T06:14:00.000Z: window_seconds present without resolution: cannot confirm raw`. No record exists for that timestamp.
 - Test `period_end_is_an_aggregate`. The `garmin_stress_level` sample at `2026-08-09T06:15:00.000Z` has `period_end` `2026-08-09T07:15:00.000Z`. `left_out` contains `timeseries garmin_stress_level 2026-08-09T06:15:00.000Z: aggregate row, not a raw sample`. No record exists for that timestamp.
