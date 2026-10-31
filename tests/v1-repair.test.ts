@@ -156,7 +156,7 @@ describe("v1 provider-encoding repair", () => {
     openDatabases.push(database);
     const migration = await executeConfirmedDatabaseMigration(database);
     expect(migration.migrated).toBe(true);
-    expect(migration.preview.target_sql_schema_version).toBe(3);
+    expect(migration.preview.target_sql_schema_version).toBe(4);
 
     const check = await checkDatabase(database);
     expect(check.valid, JSON.stringify(check.issues.slice(0, 5), null, 2)).toBe(true);
@@ -212,7 +212,7 @@ describe("v1 provider-encoding repair", () => {
 
     const check = ath(["check"], directory);
     expect(check.code).toBe(0);
-    expect(check.stdout).toContain("valid Athletic Standard 2.0.0 database");
+    expect(check.stdout).toContain("valid Athletic Standard 2.1.0 database");
 
     const afterBytes = await snapshotRecordPayloadBytes(databasePath);
     expect(afterBytes).toEqual(beforeBytes);

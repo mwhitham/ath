@@ -8,7 +8,7 @@ JSON exists only as an explicit complete export or import package. It is not a l
 copy and does not stay synchronized.
 
 The full public field reference is `SPEC.md`. Exhaustive generated schemas are in
-`schema/2.0.0/`.
+`schema/2.1.0/`.
 
 ## Common record fields
 
@@ -116,6 +116,27 @@ Every measured record has:
 - optional `provider_reporting_periods`
 - `received_at`
 - `received_at_basis`
+- optional `supplied_fields`
+- optional `field_basis`
+
+`field_basis` says on what basis the values were stored. The software writes it.
+It is not a field the source sent. A record written before 2.1.0 has none.
+
+| `field_basis.value` | Meaning |
+|---|---|
+| `provider` | The writer computed or recorded the value and gives it as its own |
+| `provider_or_open_wearables` | The provider or Open Wearables computed it; the object does not say which |
+| `provider_or_junction` | The provider or Junction computed it; the summary does not say which |
+| `hrv_mean_rmssd` | Junction documents `average_hrv` as the mean RMSSD |
+| `provider_documented_rmssd` | The column says HRV; WHOOP or Oura documents it as RMSSD |
+| `calculated_on_import` | This software calculated it from the source's own samples |
+| `entered_by_hand` | A person entered it, or an agent entered it through `ath log` |
+
+`field_basis.activity_type` is `provider_label` when the writer named the activity,
+or `open_wearables_normalized` when Open Wearables chose the word.
+`field_basis.route_summaries` is `calculated_on_import` when this software
+calculated an Apple workout's elevation gain or kilometre splits from its route
+file.
 
 A source value has `standard_value` and `standard_unit`. It also has either
 `input_value` or `input_value_missing_reason`, and either `input_unit` or

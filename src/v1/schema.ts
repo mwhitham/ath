@@ -8,10 +8,16 @@
 import { z } from "zod";
 import { RecordExtensions, validateExtensionsForRecordType } from "./extensions.js";
 
-export const ATHLETIC_STANDARD_VERSION = "2.0.0";
+export const ATHLETIC_STANDARD_VERSION = "2.1.0";
 
 /** Record files this software can read. New writes use ATHLETIC_STANDARD_VERSION. */
-export const ACCEPTED_RECORD_VERSIONS = ["1.0.0", "2.0.0"] as const;
+export const ACCEPTED_RECORD_VERSIONS = ["1.0.0", "2.0.0", "2.1.0"] as const;
+
+/**
+ * Package versions `ath import` restores. A minor version only adds optional
+ * fields, so a 2.0.0 package is valid 2.1.0 data.
+ */
+export const IMPORTABLE_PACKAGE_VERSIONS = ["2.0.0", ATHLETIC_STANDARD_VERSION] as const;
 
 export const RecordFormatVersion = z.enum(ACCEPTED_RECORD_VERSIONS);
 
@@ -352,6 +358,29 @@ export const SourceReportedSummary = z
 /** A value kept under the name it arrived with. */
 export const SuppliedFields = z.record(z.string().min(1), z.json());
 
+/** Bases for a stored value (D185, D187). */
+export const ValueBasis = z.enum([
+  "provider_or_open_wearables",
+  "provider",
+  "hrv_mean_rmssd",
+  "provider_or_junction",
+  "provider_documented_rmssd",
+  "calculated_on_import",
+  "entered_by_hand",
+]);
+
+/** Where a workout's activity type came from (D185, D187). */
+export const ActivityTypeBasis = z.enum(["open_wearables_normalized", "provider_label"]);
+
+/** The basis this program assigns to a stored value. It is not a supplied field (D185, D187). */
+export const FieldBasis = z.strictObject({
+  activity_type: ActivityTypeBasis.optional(),
+  value: ValueBasis.optional(),
+  route_summaries: z.literal("calculated_on_import").optional(),
+});
+
+export type FieldBasisT = z.infer<typeof FieldBasis>;
+
 const measuredRecordFields = {
   source_id: RecordId,
   provider_record_id: z.string().min(1).optional(),
@@ -359,6 +388,7 @@ const measuredRecordFields = {
   received_at: UtcTimestamp,
   received_at_basis: ReceivedAtBasis,
   supplied_fields: SuppliedFields.optional(),
+  field_basis: FieldBasis.optional(),
 } as const;
 
 export const HeartRateSample = z.strictObject({

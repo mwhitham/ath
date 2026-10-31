@@ -37,8 +37,11 @@ build-history/
 - [Version 1.0.0 progress](v1.0.0/progress.md)
 - [Contribution readiness](v1.0.0/appendix/contribution-readiness.md)
 - [Version 2.0.0 specification](v2.0.0/spec.md)
+- [Version 2.1.0 specification](v2.1.0/spec.md)
+- [Version 2.1.0 decisions](v2.1.0/decisions.md)
+- [Version 2.1.0 progress](v2.1.0/progress.md)
 
-Version 2.0.0 is the software now. The program, the record, and the database
+Version 2.1.0 is the software now. The program, the record, and the database
 use that number.
 
 ## Why

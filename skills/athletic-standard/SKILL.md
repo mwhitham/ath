@@ -1,10 +1,10 @@
 ---
 name: athletic-standard
-description: Reads and writes an athlete's Athletic Standard SQLite database (.ath.sqlite) with the ath CLI. Applies when someone logs a workout, lift, named benchmark such as Fran, HRV as RMSSD or SDNN, resting heart rate, sleep, soreness, nutrition, or another athlete report; asks what training or recovery data shows; asks for a benchmark prediction or backtest; reports a result to grade; imports Apple Health, WHOOP, Oura, Garmin, or Strava, or an Athletic Standard 2.0.0 package; exports a complete package; runs ath apply on one record; or asks about Athletic Standard records, revisions, calculations, deletion, or privacy erasure.
+description: Reads and writes an athlete's Athletic Standard SQLite database (.ath.sqlite) with the ath CLI. Applies when someone logs a workout, lift, named benchmark such as Fran, HRV as RMSSD or SDNN, resting heart rate, sleep, soreness, nutrition, or another athlete report; asks what training or recovery data shows; asks for a benchmark prediction or backtest; reports a result to grade; imports Apple Health, WHOOP, Oura, Garmin, or Strava, or an Athletic Standard 2.0.0 or 2.1.0 package; reads an Open Wearables or Junction JSON file through a mapping file; exports a complete package; runs ath apply on one record; or asks about Athletic Standard records, revisions, calculations, deletion, or privacy erasure.
 license: MIT
 compatibility: Requires the ath CLI (npm package athleticstandard) on PATH. Local database use needs no network. Optional terminal model calls need a configured gateway.
 metadata:
-  version: "2.0.0"
+  version: "2.1.0"
 ---
 
 # Athletic Standard
@@ -13,8 +13,9 @@ The live local record is one SQLite database named `athlete.ath.sqlite`. `ath` r
 and writes it. A JSON package is an explicit complete snapshot. It is not a second
 live copy.
 
-This skill expects Athletic Standard **2.0.0**. A version 1.0.0 database upgrades
-with `ath migrate`. Prerelease `0.x` JSON documents are not imported.
+This skill expects Athletic Standard **2.1.0**. A version 1.0.0 or 2.0.0 database
+upgrades with `ath migrate`. A 2.0.0 package still imports. Prerelease `0.x` JSON
+documents are not imported.
 
 Local use needs no account, network connection, subscription, or hosted service.
 Optional bare-terminal prediction and backtest commands can call a model gateway.
@@ -56,6 +57,10 @@ device measurement or enters a device baseline.
 An `athlete_report` or `nutrition_entry` has no source field. It cannot claim that a
 device measured the athlete's words, rating, meal, or note.
 
+`intensity` and `Feeling` in `supplied_fields` are labels a source sent. Quote them
+only as "the source said". Never use them as evidence. A calculation cannot read
+them.
+
 Authored records are separate again. Predictions, grades, plans, goals, reviews, and
 model interpretations name their author and exact evidence record revisions.
 
@@ -67,6 +72,12 @@ and may support a later explanation. Keep the distinction explicit.
 Every logical record has a UUIDv7 `record_id` and a positive
 `current_revision`. Corrections keep the ID and add a complete revision. Evidence
 names both the record ID and revision.
+
+A measured record states its basis in `field_basis`, such as `provider`,
+`calculated_on_import`, or `entered_by_hand`. A record from before 2.1.0 has none.
+When a correction replaces a measured value with one a person typed, set
+`field_basis.value` to `entered_by_hand`. The values are in
+[references/format.md](references/format.md).
 
 Use:
 
@@ -99,6 +110,7 @@ Import, export, and create:
 |---|---|
 | `ath import <path>` | Preview a provider export or complete v1 package |
 | `ath import <path> --yes` | Apply a conflict-free preview in one transaction |
+| `ath import <path> --mapping <name>` | Preview a JSON file read through a mapping file, such as `open-wearables` or `junction` |
 | `ath conflicts show` | Show complete local and imported values from a package conflict |
 | `ath conflicts resolve <record-id>` | Record a local, imported, or corrected choice without changing athlete data |
 | `ath export <directory>` | Write a complete deterministic JSON package |
@@ -171,6 +183,14 @@ conflict is never resolved by guessing.
 
 Provider rows use route-specific import keys. Repeating unchanged data is a match.
 Changed content with the same key creates a revision.
+
+A JSON file from Open Wearables or Junction is read with `--mapping open-wearables`
+or `--mapping junction`. A mapping file lists their field and our field. A mapped
+field becomes the typed value. Every other field stays in `supplied_fields` under
+the name it arrived with. The result lists each object that was left out and why.
+A person can add a mapping file in `.agents/mappings/`. A mapping that would turn a
+personal report into a measured record, or rename a generic HRV field to RMSSD or
+SDNN, is refused before anything is written.
 
 For a v1 package conflict, run `ath conflicts show`. Record one explicit choice for
 each record with `ath conflicts resolve`: `local`, `imported`, or `corrected`.

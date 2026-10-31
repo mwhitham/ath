@@ -1,0 +1,1459 @@
+{
+  "attachment_links": [],
+  "attachments": [],
+  "baseline_from": "d418a8f653f7074ed9e08208c4eb555c391bcbc7",
+  "links": [
+    {
+      "owner": "record:10",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:24"
+    },
+    {
+      "owner": "record:11",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:24"
+    },
+    {
+      "owner": "record:12",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:24"
+    },
+    {
+      "owner": "record:13",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:24"
+    },
+    {
+      "owner": "record:14",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:24"
+    },
+    {
+      "owner": "record:15",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:24"
+    },
+    {
+      "owner": "record:6",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:24"
+    },
+    {
+      "owner": "record:7",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:24"
+    },
+    {
+      "owner": "record:8",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:24"
+    },
+    {
+      "owner": "record:9",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:24"
+    },
+    {
+      "owner": "record:16",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:24"
+    },
+    {
+      "owner": "record:17",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:24"
+    },
+    {
+      "owner": "record:18",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:24"
+    },
+    {
+      "owner": "record:19",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:24"
+    },
+    {
+      "owner": "record:20",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:24"
+    },
+    {
+      "owner": "record:21",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:24"
+    },
+    {
+      "owner": "record:22",
+      "relation": "source",
+      "table": "sleep_sessions",
+      "target": "record:24"
+    },
+    {
+      "owner": "record:23",
+      "relation": "source",
+      "table": "sleep_sessions",
+      "target": "record:24"
+    },
+    {
+      "owner": "record:25",
+      "relation": "source",
+      "table": "workout_sessions",
+      "target": "record:24"
+    },
+    {
+      "owner": "record:26",
+      "relation": "source",
+      "table": "workout_sessions",
+      "target": "record:24"
+    }
+  ],
+  "records": [
+    {
+      "current_revision": 1,
+      "data": {
+        "input_reported_at": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-09 06:20:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "note": "Feeling sick or unwell?: no",
+        "report_type": "note",
+        "reported_at": "2026-08-09T13:20:00.000Z",
+        "reported_via": "text"
+      },
+      "import_keys": [
+        {
+          "key": "[\"athlete_report\",\"note\",\"2026-08-09T13:20:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:1",
+      "record_type": "athlete_report"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_reported_at": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-09 06:20:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "note": "Spend time stretching?: yes",
+        "report_type": "note",
+        "reported_at": "2026-08-09T13:20:00.000Z",
+        "reported_via": "text"
+      },
+      "import_keys": [
+        {
+          "key": "[\"athlete_report\",\"note\",\"2026-08-09T13:20:00.000Z\",1]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:2",
+      "record_type": "athlete_report"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "athlete_description": "Have any alcoholic drinks?: yes — two beers",
+        "input_reported_at": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-09 06:20:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "reported_at": "2026-08-09T13:20:00.000Z",
+        "reported_items": [],
+        "reported_via": "text"
+      },
+      "import_keys": [
+        {
+          "key": "[\"athlete_report\",\"nutrition\",\"2026-08-09T13:20:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:3",
+      "record_type": "nutrition_entry"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "athlete_description": "Have any alcoholic drinks?: no",
+        "input_reported_at": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-10 06:30:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "reported_at": "2026-08-10T13:30:00.000Z",
+        "reported_items": [],
+        "reported_via": "text"
+      },
+      "import_keys": [
+        {
+          "key": "[\"athlete_report\",\"nutrition\",\"2026-08-10T13:30:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:4",
+      "record_type": "nutrition_entry"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_reported_at": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-10 06:30:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "note": "Practice mediation or breathwork?: yes — ten minutes",
+        "report_type": "stress",
+        "reported_at": "2026-08-10T13:30:00.000Z",
+        "reported_via": "text"
+      },
+      "import_keys": [
+        {
+          "key": "[\"athlete_report\",\"stress\",\"2026-08-10T13:30:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:5",
+      "record_type": "athlete_report"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-09 06:05:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-09T13:20:00.000Z",
+            "input_end_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-09 06:20:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "input_start_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-08 22:10:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "period_type": "whoop_physiological_cycle",
+            "start_at": "2026-08-09T05:10:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "UTC-07:00"
+          }
+        ],
+        "quantity": "hrv_rmssd",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-09T13:05:00.000Z",
+        "source_id": "record:24",
+        "value": {
+          "input_unit": "ms",
+          "input_value": 68.4,
+          "standard_unit": "ms",
+          "standard_value": 68.4
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:24\",\"hrv_rmssd\",\"2026-08-09T13:05:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:6",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-10 06:25:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-10T13:30:00.000Z",
+            "input_end_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-10 06:30:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "input_start_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-09 22:05:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "period_type": "whoop_physiological_cycle",
+            "start_at": "2026-08-10T05:05:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "UTC-07:00"
+          }
+        ],
+        "quantity": "hrv_rmssd",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-10T13:25:00.000Z",
+        "source_id": "record:24",
+        "value": {
+          "input_unit": "ms",
+          "input_value": 74.1,
+          "standard_unit": "ms",
+          "standard_value": 74.1
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:24\",\"hrv_rmssd\",\"2026-08-10T13:25:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:7",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-09 06:05:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-09T13:20:00.000Z",
+            "input_end_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-09 06:20:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "input_start_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-08 22:10:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "period_type": "whoop_physiological_cycle",
+            "start_at": "2026-08-09T05:10:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "UTC-07:00"
+          }
+        ],
+        "quantity": "oxygen_saturation",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-09T13:05:00.000Z",
+        "source_id": "record:24",
+        "value": {
+          "input_unit": "%",
+          "input_value": 96.5,
+          "standard_unit": "%",
+          "standard_value": 96.5
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:24\",\"oxygen_saturation\",\"2026-08-09T13:05:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:8",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-10 06:25:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-10T13:30:00.000Z",
+            "input_end_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-10 06:30:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "input_start_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-09 22:05:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "period_type": "whoop_physiological_cycle",
+            "start_at": "2026-08-10T05:05:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "UTC-07:00"
+          }
+        ],
+        "quantity": "oxygen_saturation",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-10T13:25:00.000Z",
+        "source_id": "record:24",
+        "value": {
+          "input_unit": "%",
+          "input_value": 97.1,
+          "standard_unit": "%",
+          "standard_value": 97.1
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:24\",\"oxygen_saturation\",\"2026-08-10T13:25:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:9",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-09 06:05:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-09T13:20:00.000Z",
+            "input_end_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-09 06:20:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "input_start_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-08 22:10:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "period_type": "whoop_physiological_cycle",
+            "start_at": "2026-08-09T05:10:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "UTC-07:00"
+          }
+        ],
+        "quantity": "respiratory_rate",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-09T13:05:00.000Z",
+        "source_id": "record:24",
+        "value": {
+          "input_unit": "brpm",
+          "input_value": 14.8,
+          "standard_unit": "brpm",
+          "standard_value": 14.8
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:24\",\"respiratory_rate\",\"2026-08-09T13:05:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:10",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-10 06:25:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-10T13:30:00.000Z",
+            "input_end_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-10 06:30:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "input_start_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-09 22:05:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "period_type": "whoop_physiological_cycle",
+            "start_at": "2026-08-10T05:05:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "UTC-07:00"
+          }
+        ],
+        "quantity": "respiratory_rate",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-10T13:25:00.000Z",
+        "source_id": "record:24",
+        "value": {
+          "input_unit": "brpm",
+          "input_value": 14.2,
+          "standard_unit": "brpm",
+          "standard_value": 14.2
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:24\",\"respiratory_rate\",\"2026-08-10T13:25:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:11",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-09 06:05:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-09T13:20:00.000Z",
+            "input_end_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-09 06:20:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "input_start_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-08 22:10:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "period_type": "whoop_physiological_cycle",
+            "start_at": "2026-08-09T05:10:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "UTC-07:00"
+          }
+        ],
+        "quantity": "resting_heart_rate",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-09T13:05:00.000Z",
+        "source_id": "record:24",
+        "value": {
+          "input_unit": "bpm",
+          "input_value": 52,
+          "standard_unit": "bpm",
+          "standard_value": 52
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:24\",\"resting_heart_rate\",\"2026-08-09T13:05:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:12",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-10 06:25:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-10T13:30:00.000Z",
+            "input_end_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-10 06:30:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "input_start_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-09 22:05:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "period_type": "whoop_physiological_cycle",
+            "start_at": "2026-08-10T05:05:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "UTC-07:00"
+          }
+        ],
+        "quantity": "resting_heart_rate",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-10T13:25:00.000Z",
+        "source_id": "record:24",
+        "value": {
+          "input_unit": "bpm",
+          "input_value": 49,
+          "standard_unit": "bpm",
+          "standard_value": 49
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:24\",\"resting_heart_rate\",\"2026-08-10T13:25:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:13",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-09 06:05:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-09T13:20:00.000Z",
+            "input_end_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-09 06:20:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "input_start_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-08 22:10:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "period_type": "whoop_physiological_cycle",
+            "start_at": "2026-08-09T05:10:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "UTC-07:00"
+          }
+        ],
+        "quantity": "skin_temperature",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-09T13:05:00.000Z",
+        "source_id": "record:24",
+        "value": {
+          "input_unit": "°C",
+          "input_value": 33.2,
+          "standard_unit": "°C",
+          "standard_value": 33.2
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:24\",\"skin_temperature\",\"2026-08-09T13:05:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:14",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-10 06:25:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-10T13:30:00.000Z",
+            "input_end_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-10 06:30:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "input_start_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-09 22:05:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "period_type": "whoop_physiological_cycle",
+            "start_at": "2026-08-10T05:05:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "UTC-07:00"
+          }
+        ],
+        "quantity": "skin_temperature",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-10T13:25:00.000Z",
+        "source_id": "record:24",
+        "value": {
+          "input_unit": "°C",
+          "input_value": 33,
+          "standard_unit": "°C",
+          "standard_value": 33
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:24\",\"skin_temperature\",\"2026-08-10T13:25:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:15",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-09 18:00:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "metric": "activity_strain",
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-09T13:20:00.000Z",
+            "input_end_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-09 06:20:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "input_start_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-08 22:10:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "period_type": "whoop_physiological_cycle",
+            "start_at": "2026-08-09T05:10:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "UTC-07:00"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-10T01:00:00.000Z",
+        "scale": "0-21",
+        "source_id": "record:24",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 11.4,
+          "standard_unit": "0-21",
+          "standard_value": 11.4
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:24\",\"activity_strain\",\"2026-08-10T01:00:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:16",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-10 07:15:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "metric": "activity_strain",
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-10T13:30:00.000Z",
+            "input_end_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-10 06:30:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "input_start_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-09 22:05:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "period_type": "whoop_physiological_cycle",
+            "start_at": "2026-08-10T05:05:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "UTC-07:00"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-10T14:15:00.000Z",
+        "scale": "0-21",
+        "source_id": "record:24",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 9.1,
+          "standard_unit": "0-21",
+          "standard_value": 9.1
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:24\",\"activity_strain\",\"2026-08-10T14:15:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:17",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-09 06:05:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "metric": "recovery",
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-09T13:20:00.000Z",
+            "input_end_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-09 06:20:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "input_start_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-08 22:10:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "period_type": "whoop_physiological_cycle",
+            "start_at": "2026-08-09T05:10:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "UTC-07:00"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-09T13:05:00.000Z",
+        "scale": "0-100",
+        "source_id": "record:24",
+        "value": {
+          "input_unit": "%",
+          "input_value": 67,
+          "standard_unit": "0-100",
+          "standard_value": 67
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:24\",\"recovery\",\"2026-08-09T13:05:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:18",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-10 06:25:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "metric": "recovery",
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-10T13:30:00.000Z",
+            "input_end_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-10 06:30:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "input_start_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-09 22:05:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "period_type": "whoop_physiological_cycle",
+            "start_at": "2026-08-10T05:05:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "UTC-07:00"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-10T13:25:00.000Z",
+        "scale": "0-100",
+        "source_id": "record:24",
+        "value": {
+          "input_unit": "%",
+          "input_value": 81,
+          "standard_unit": "0-100",
+          "standard_value": 81
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:24\",\"recovery\",\"2026-08-10T13:25:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:19",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-09 06:05:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "metric": "strain",
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-09T13:20:00.000Z",
+            "input_end_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-09 06:20:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "input_start_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-08 22:10:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "period_type": "whoop_physiological_cycle",
+            "start_at": "2026-08-09T05:10:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "UTC-07:00"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-09T13:05:00.000Z",
+        "scale": "0-21",
+        "source_id": "record:24",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 14.2,
+          "standard_unit": "0-21",
+          "standard_value": 14.2
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:24\",\"strain\",\"2026-08-09T13:05:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:20",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-10 06:25:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "metric": "strain",
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-10T13:30:00.000Z",
+            "input_end_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-10 06:30:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "input_start_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-09 22:05:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "period_type": "whoop_physiological_cycle",
+            "start_at": "2026-08-10T05:05:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "UTC-07:00"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-10T13:25:00.000Z",
+        "scale": "0-21",
+        "source_id": "record:24",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 9.8,
+          "standard_unit": "0-21",
+          "standard_value": 9.8
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:24\",\"strain\",\"2026-08-10T13:25:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:21",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "end_at": "2026-08-09T13:05:00.000Z",
+        "input_end_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-09 06:05:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-08 22:15:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-09T13:20:00.000Z",
+            "input_end_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-09 06:20:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "input_start_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-08 22:10:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "period_type": "whoop_physiological_cycle",
+            "start_at": "2026-08-09T05:10:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "UTC-07:00"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "source_id": "record:24",
+        "source_reported_summaries": [
+          {
+            "input_unit": "min",
+            "input_value": 415,
+            "standard_unit": "s",
+            "standard_value": 24900,
+            "summary_type": "sleep_duration"
+          },
+          {
+            "input_unit": "min",
+            "input_value": 470,
+            "standard_unit": "s",
+            "standard_value": 28200,
+            "summary_type": "time_in_bed"
+          },
+          {
+            "input_unit": "min",
+            "input_value": 210,
+            "standard_unit": "s",
+            "standard_value": 12600,
+            "summary_type": "light_sleep"
+          },
+          {
+            "input_unit": "min",
+            "input_value": 95,
+            "standard_unit": "s",
+            "standard_value": 5700,
+            "summary_type": "deep_sleep"
+          },
+          {
+            "input_unit": "min",
+            "input_value": 110,
+            "standard_unit": "s",
+            "standard_value": 6600,
+            "summary_type": "rem_sleep"
+          },
+          {
+            "input_unit": "min",
+            "input_value": 55,
+            "standard_unit": "s",
+            "standard_value": 3300,
+            "summary_type": "awake"
+          },
+          {
+            "input_unit": "%",
+            "input_value": 88.3,
+            "standard_unit": "%",
+            "standard_value": 88.3,
+            "summary_type": "sleep_efficiency"
+          }
+        ],
+        "start_at": "2026-08-09T05:15:00.000Z"
+      },
+      "import_keys": [
+        {
+          "key": "[\"sleep_session\",\"record:24\",\"2026-08-09T05:15:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:22",
+      "record_type": "sleep_session"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "end_at": "2026-08-10T13:25:00.000Z",
+        "input_end_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-10 06:25:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-09 22:20:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-10T13:30:00.000Z",
+            "input_end_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-10 06:30:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "input_start_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-09 22:05:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "period_type": "whoop_physiological_cycle",
+            "start_at": "2026-08-10T05:05:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "UTC-07:00"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "source_id": "record:24",
+        "source_reported_summaries": [
+          {
+            "input_unit": "min",
+            "input_value": 450,
+            "standard_unit": "s",
+            "standard_value": 27000,
+            "summary_type": "sleep_duration"
+          },
+          {
+            "input_unit": "min",
+            "input_value": 485,
+            "standard_unit": "s",
+            "standard_value": 29100,
+            "summary_type": "time_in_bed"
+          },
+          {
+            "input_unit": "min",
+            "input_value": 225,
+            "standard_unit": "s",
+            "standard_value": 13500,
+            "summary_type": "light_sleep"
+          },
+          {
+            "input_unit": "min",
+            "input_value": 105,
+            "standard_unit": "s",
+            "standard_value": 6300,
+            "summary_type": "deep_sleep"
+          },
+          {
+            "input_unit": "min",
+            "input_value": 120,
+            "standard_unit": "s",
+            "standard_value": 7200,
+            "summary_type": "rem_sleep"
+          },
+          {
+            "input_unit": "min",
+            "input_value": 35,
+            "standard_unit": "s",
+            "standard_value": 2100,
+            "summary_type": "awake"
+          },
+          {
+            "input_unit": "%",
+            "input_value": 92.8,
+            "standard_unit": "%",
+            "standard_value": 92.8,
+            "summary_type": "sleep_efficiency"
+          }
+        ],
+        "start_at": "2026-08-10T05:20:00.000Z"
+      },
+      "import_keys": [
+        {
+          "key": "[\"sleep_session\",\"record:24\",\"2026-08-10T05:20:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:23",
+      "record_type": "sleep_session"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "data_route": "whoop_csv",
+        "data_writer": "WHOOP",
+        "detail": "WHOOP export folder",
+        "source_type": "export_file",
+        "vendor": "whoop"
+      },
+      "import_keys": [
+        {
+          "key": "[\"source\",\"WHOOP\",\"whoop_csv\",\"\"]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:24",
+      "record_type": "source"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "activity_type": "functional fitness",
+        "end_at": "2026-08-10T01:42:00.000Z",
+        "input_end_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-09 18:42:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-09 18:00:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-09T13:20:00.000Z",
+            "input_end_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-09 06:20:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "input_start_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-08 22:10:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "period_type": "whoop_physiological_cycle",
+            "start_at": "2026-08-09T05:10:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "UTC-07:00"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "source_id": "record:24",
+        "source_reported_summaries": [
+          {
+            "input_unit": "bpm",
+            "input_value": 142,
+            "standard_unit": "bpm",
+            "standard_value": 142,
+            "summary_type": "average_heart_rate"
+          },
+          {
+            "input_unit": "bpm",
+            "input_value": 178,
+            "standard_unit": "bpm",
+            "standard_value": 178,
+            "summary_type": "max_heart_rate"
+          },
+          {
+            "input_unit": "cal",
+            "input_value": 412,
+            "standard_unit": "kcal",
+            "standard_value": 412,
+            "summary_type": "energy"
+          },
+          {
+            "input_unit": "m",
+            "input_value": 1995,
+            "standard_unit": "m",
+            "standard_value": 1995,
+            "summary_type": "distance"
+          }
+        ],
+        "start_at": "2026-08-10T01:00:00.000Z"
+      },
+      "import_keys": [
+        {
+          "key": "[\"workout_session\",\"record:24\",\"2026-08-10T01:00:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:25",
+      "record_type": "workout_session"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "activity_type": "running",
+        "end_at": "2026-08-10T15:05:00.000Z",
+        "input_end_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-10 08:05:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_local_timestamp_with_documented_offset",
+          "timestamp_text": "2026-08-10 07:15:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "UTC-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-10T13:30:00.000Z",
+            "input_end_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-10 06:30:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "input_start_timestamp": {
+              "timestamp_basis": "source_local_timestamp_with_documented_offset",
+              "timestamp_text": "2026-08-09 22:05:00",
+              "utc_offset_meaning": "provider_cycle_offset",
+              "utc_offset_text": "UTC-07:00"
+            },
+            "period_type": "whoop_physiological_cycle",
+            "start_at": "2026-08-10T05:05:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "UTC-07:00"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "source_id": "record:24",
+        "source_reported_summaries": [
+          {
+            "input_unit": "bpm",
+            "input_value": 138,
+            "standard_unit": "bpm",
+            "standard_value": 138,
+            "summary_type": "average_heart_rate"
+          },
+          {
+            "input_unit": "bpm",
+            "input_value": 171,
+            "standard_unit": "bpm",
+            "standard_value": 171,
+            "summary_type": "max_heart_rate"
+          },
+          {
+            "input_unit": "cal",
+            "input_value": 520,
+            "standard_unit": "kcal",
+            "standard_value": 520,
+            "summary_type": "energy"
+          },
+          {
+            "input_unit": "m",
+            "input_value": 8400,
+            "standard_unit": "m",
+            "standard_value": 8400,
+            "summary_type": "distance"
+          }
+        ],
+        "start_at": "2026-08-10T14:15:00.000Z"
+      },
+      "import_keys": [
+        {
+          "key": "[\"workout_session\",\"record:24\",\"2026-08-10T14:15:00.000Z\",0]",
+          "method": "whoop_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:26",
+      "record_type": "workout_session"
+    }
+  ],
+  "route_points": []
+}

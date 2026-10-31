@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://athleticstandard.ai/schema/2.0.0/athleticstandard.schema.json",
+  "$id": "https://athleticstandard.ai/schema/2.1.0/athleticstandard.schema.json",
   "title": "Athletic Standard portable package document",
   "type": "object",
   "properties": {
@@ -8,7 +8,8 @@
       "type": "string",
       "enum": [
         "1.0.0",
-        "2.0.0"
+        "2.0.0",
+        "2.1.0"
       ]
     },
     "database_id": {
@@ -553,6 +554,35 @@
                       "$ref": "#/$defs/__schema1"
                     }
                   },
+                  "field_basis": {
+                    "type": "object",
+                    "properties": {
+                      "activity_type": {
+                        "type": "string",
+                        "enum": [
+                          "open_wearables_normalized",
+                          "provider_label"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "enum": [
+                          "provider_or_open_wearables",
+                          "provider",
+                          "hrv_mean_rmssd",
+                          "provider_or_junction",
+                          "provider_documented_rmssd",
+                          "calculated_on_import",
+                          "entered_by_hand"
+                        ]
+                      },
+                      "route_summaries": {
+                        "type": "string",
+                        "const": "calculated_on_import"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
                   "quantity": {
                     "type": "string",
                     "enum": [
@@ -1024,6 +1054,35 @@
                     "additionalProperties": {
                       "$ref": "#/$defs/__schema1"
                     }
+                  },
+                  "field_basis": {
+                    "type": "object",
+                    "properties": {
+                      "activity_type": {
+                        "type": "string",
+                        "enum": [
+                          "open_wearables_normalized",
+                          "provider_label"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "enum": [
+                          "provider_or_open_wearables",
+                          "provider",
+                          "hrv_mean_rmssd",
+                          "provider_or_junction",
+                          "provider_documented_rmssd",
+                          "calculated_on_import",
+                          "entered_by_hand"
+                        ]
+                      },
+                      "route_summaries": {
+                        "type": "string",
+                        "const": "calculated_on_import"
+                      }
+                    },
+                    "additionalProperties": false
                   },
                   "start_at": {
                     "type": "string",
@@ -1503,6 +1562,35 @@
                     "additionalProperties": {
                       "$ref": "#/$defs/__schema1"
                     }
+                  },
+                  "field_basis": {
+                    "type": "object",
+                    "properties": {
+                      "activity_type": {
+                        "type": "string",
+                        "enum": [
+                          "open_wearables_normalized",
+                          "provider_label"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "enum": [
+                          "provider_or_open_wearables",
+                          "provider",
+                          "hrv_mean_rmssd",
+                          "provider_or_junction",
+                          "provider_documented_rmssd",
+                          "calculated_on_import",
+                          "entered_by_hand"
+                        ]
+                      },
+                      "route_summaries": {
+                        "type": "string",
+                        "const": "calculated_on_import"
+                      }
+                    },
+                    "additionalProperties": false
                   },
                   "start_at": {
                     "type": "string",
@@ -2204,6 +2292,35 @@
                       "$ref": "#/$defs/__schema1"
                     }
                   },
+                  "field_basis": {
+                    "type": "object",
+                    "properties": {
+                      "activity_type": {
+                        "type": "string",
+                        "enum": [
+                          "open_wearables_normalized",
+                          "provider_label"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "enum": [
+                          "provider_or_open_wearables",
+                          "provider",
+                          "hrv_mean_rmssd",
+                          "provider_or_junction",
+                          "provider_documented_rmssd",
+                          "calculated_on_import",
+                          "entered_by_hand"
+                        ]
+                      },
+                      "route_summaries": {
+                        "type": "string",
+                        "const": "calculated_on_import"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
                   "benchmark_definition_id": {
                     "type": "string",
                     "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
@@ -2621,6 +2738,35 @@
                       "$ref": "#/$defs/__schema1"
                     }
                   },
+                  "field_basis": {
+                    "type": "object",
+                    "properties": {
+                      "activity_type": {
+                        "type": "string",
+                        "enum": [
+                          "open_wearables_normalized",
+                          "provider_label"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "enum": [
+                          "provider_or_open_wearables",
+                          "provider",
+                          "hrv_mean_rmssd",
+                          "provider_or_junction",
+                          "provider_documented_rmssd",
+                          "calculated_on_import",
+                          "entered_by_hand"
+                        ]
+                      },
+                      "route_summaries": {
+                        "type": "string",
+                        "const": "calculated_on_import"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
                   "summary_type": {
                     "type": "string",
                     "minLength": 1
@@ -3005,6 +3151,35 @@
                     "additionalProperties": {
                       "$ref": "#/$defs/__schema1"
                     }
+                  },
+                  "field_basis": {
+                    "type": "object",
+                    "properties": {
+                      "activity_type": {
+                        "type": "string",
+                        "enum": [
+                          "open_wearables_normalized",
+                          "provider_label"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "enum": [
+                          "provider_or_open_wearables",
+                          "provider",
+                          "hrv_mean_rmssd",
+                          "provider_or_junction",
+                          "provider_documented_rmssd",
+                          "calculated_on_import",
+                          "entered_by_hand"
+                        ]
+                      },
+                      "route_summaries": {
+                        "type": "string",
+                        "const": "calculated_on_import"
+                      }
+                    },
+                    "additionalProperties": false
                   },
                   "metric": {
                     "type": "string",
@@ -7035,6 +7210,35 @@
                       "$ref": "#/$defs/__schema1"
                     }
                   },
+                  "field_basis": {
+                    "type": "object",
+                    "properties": {
+                      "activity_type": {
+                        "type": "string",
+                        "enum": [
+                          "open_wearables_normalized",
+                          "provider_label"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "enum": [
+                          "provider_or_open_wearables",
+                          "provider",
+                          "hrv_mean_rmssd",
+                          "provider_or_junction",
+                          "provider_documented_rmssd",
+                          "calculated_on_import",
+                          "entered_by_hand"
+                        ]
+                      },
+                      "route_summaries": {
+                        "type": "string",
+                        "const": "calculated_on_import"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
                   "quantity": {
                     "type": "string",
                     "enum": [
@@ -7588,6 +7792,35 @@
                     "additionalProperties": {
                       "$ref": "#/$defs/__schema1"
                     }
+                  },
+                  "field_basis": {
+                    "type": "object",
+                    "properties": {
+                      "activity_type": {
+                        "type": "string",
+                        "enum": [
+                          "open_wearables_normalized",
+                          "provider_label"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "enum": [
+                          "provider_or_open_wearables",
+                          "provider",
+                          "hrv_mean_rmssd",
+                          "provider_or_junction",
+                          "provider_documented_rmssd",
+                          "calculated_on_import",
+                          "entered_by_hand"
+                        ]
+                      },
+                      "route_summaries": {
+                        "type": "string",
+                        "const": "calculated_on_import"
+                      }
+                    },
+                    "additionalProperties": false
                   },
                   "start_at": {
                     "type": "string",
@@ -8149,6 +8382,35 @@
                     "additionalProperties": {
                       "$ref": "#/$defs/__schema1"
                     }
+                  },
+                  "field_basis": {
+                    "type": "object",
+                    "properties": {
+                      "activity_type": {
+                        "type": "string",
+                        "enum": [
+                          "open_wearables_normalized",
+                          "provider_label"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "enum": [
+                          "provider_or_open_wearables",
+                          "provider",
+                          "hrv_mean_rmssd",
+                          "provider_or_junction",
+                          "provider_documented_rmssd",
+                          "calculated_on_import",
+                          "entered_by_hand"
+                        ]
+                      },
+                      "route_summaries": {
+                        "type": "string",
+                        "const": "calculated_on_import"
+                      }
+                    },
+                    "additionalProperties": false
                   },
                   "start_at": {
                     "type": "string",
@@ -8932,6 +9194,35 @@
                       "$ref": "#/$defs/__schema1"
                     }
                   },
+                  "field_basis": {
+                    "type": "object",
+                    "properties": {
+                      "activity_type": {
+                        "type": "string",
+                        "enum": [
+                          "open_wearables_normalized",
+                          "provider_label"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "enum": [
+                          "provider_or_open_wearables",
+                          "provider",
+                          "hrv_mean_rmssd",
+                          "provider_or_junction",
+                          "provider_documented_rmssd",
+                          "calculated_on_import",
+                          "entered_by_hand"
+                        ]
+                      },
+                      "route_summaries": {
+                        "type": "string",
+                        "const": "calculated_on_import"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
                   "benchmark_definition_id": {
                     "type": "string",
                     "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
@@ -9431,6 +9722,35 @@
                       "$ref": "#/$defs/__schema1"
                     }
                   },
+                  "field_basis": {
+                    "type": "object",
+                    "properties": {
+                      "activity_type": {
+                        "type": "string",
+                        "enum": [
+                          "open_wearables_normalized",
+                          "provider_label"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "enum": [
+                          "provider_or_open_wearables",
+                          "provider",
+                          "hrv_mean_rmssd",
+                          "provider_or_junction",
+                          "provider_documented_rmssd",
+                          "calculated_on_import",
+                          "entered_by_hand"
+                        ]
+                      },
+                      "route_summaries": {
+                        "type": "string",
+                        "const": "calculated_on_import"
+                      }
+                    },
+                    "additionalProperties": false
+                  },
                   "summary_type": {
                     "type": "string",
                     "minLength": 1
@@ -9897,6 +10217,35 @@
                     "additionalProperties": {
                       "$ref": "#/$defs/__schema1"
                     }
+                  },
+                  "field_basis": {
+                    "type": "object",
+                    "properties": {
+                      "activity_type": {
+                        "type": "string",
+                        "enum": [
+                          "open_wearables_normalized",
+                          "provider_label"
+                        ]
+                      },
+                      "value": {
+                        "type": "string",
+                        "enum": [
+                          "provider_or_open_wearables",
+                          "provider",
+                          "hrv_mean_rmssd",
+                          "provider_or_junction",
+                          "provider_documented_rmssd",
+                          "calculated_on_import",
+                          "entered_by_hand"
+                        ]
+                      },
+                      "route_summaries": {
+                        "type": "string",
+                        "const": "calculated_on_import"
+                      }
+                    },
+                    "additionalProperties": false
                   },
                   "metric": {
                     "type": "string",

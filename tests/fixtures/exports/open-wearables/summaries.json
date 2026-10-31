@@ -1,0 +1,98 @@
+{
+  "sleep": [
+    {
+      "id": "ow-sleep-1",
+      "start_time": "2026-08-09T02:00:00.000-04:00",
+      "end_time": "2026-08-09T10:00:00.000-04:00",
+      "zone_offset": "-04:00",
+      "source": {
+        "provider": "oura",
+        "source": "invented-app",
+        "device": "invented-ring",
+        "device_type": "ring",
+        "device_id": "ring-1",
+        "device_name": "Invented Ring"
+      },
+      "duration_seconds": 800,
+      "sleep_duration_seconds": 600,
+      "time_in_bed_seconds": 700,
+      "efficiency_percent": 91,
+      "stages": { "awake_minutes": 2, "light_minutes": 3, "deep_minutes": 4, "rem_minutes": null },
+      "is_nap": false
+    },
+    {
+      "id": "ow-nap-1",
+      "start_time": "2026-08-09T18:00:00.000Z",
+      "end_time": "2026-08-09T18:20:00.000Z",
+      "source": {
+        "provider": "oura",
+        "source": "invented-app",
+        "device": "invented-ring",
+        "device_type": "ring",
+        "device_id": "ring-1",
+        "device_name": "Invented Ring"
+      },
+      "sleep_duration_seconds": 1000,
+      "time_in_bed_seconds": 1200,
+      "efficiency_percent": 80,
+      "is_nap": true
+    }
+  ],
+  "workout": [
+    {
+      "id": "ow-workout-1",
+      "type": "running",
+      "name": "Invented loop",
+      "start_time": "2026-01-02T15:00:00.000Z",
+      "end_time": "2026-01-02T15:00:03.000Z",
+      "source": {
+        "provider": "garmin",
+        "source": "invented-app",
+        "device": "invented-watch",
+        "device_type": "watch",
+        "device_id": "watch-1",
+        "device_name": "Invented Watch"
+      },
+      "duration_seconds": 3,
+      "distance_meters": 12,
+      "elevation_gain_meters": 4,
+      "avg_heart_rate_bpm": 140,
+      "max_heart_rate_bpm": 180,
+      "intensity": "moderate",
+      "start_latitude": 12.345,
+      "start_longitude": -45.678,
+      "calories_kcal": 1,
+      "hr_zones": { "max_hr": 190 }
+    },
+    {
+      "id": "ow-workout-manual",
+      "type": "running",
+      "name": "Typed by hand",
+      "entry_source": "manual",
+      "start_time": "2026-08-09T12:00:00.000Z",
+      "end_time": "2026-08-09T12:10:00.000Z",
+      "source": { "provider": "garmin", "device_type": "watch", "device": "invented-watch", "source": "invented-app" }
+    }
+  ],
+  "timeseries": [
+    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "heart_rate_variability_rmssd", "value": 42.5, "unit": "ms", "source": { "provider": "oura", "source": "invented-app", "device": "invented-ring", "device_type": "ring", "device_id": "ring-1", "device_name": "Invented Ring" } },
+    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "heart_rate_variability_sdnn", "value": 61.2, "unit": "ms", "source": { "provider": "oura", "source": "invented-app", "device": "invented-ring", "device_type": "ring", "device_id": "ring-1", "device_name": "Invented Ring" } },
+    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "resting_heart_rate", "value": 48, "unit": "bpm", "source": { "provider": "oura", "source": "invented-app", "device": "invented-ring", "device_type": "ring", "device_id": "ring-1", "device_name": "Invented Ring" } },
+    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "respiratory_rate", "value": 16, "unit": "brpm", "source": { "provider": "oura", "source": "invented-app", "device": "invented-ring", "device_type": "ring", "device_id": "ring-1", "device_name": "Invented Ring" } },
+    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "skin_temperature", "value": 33.2, "unit": "celsius", "source": { "provider": "oura", "source": "invented-app", "device": "invented-ring", "device_type": "ring", "device_id": "ring-1", "device_name": "Invented Ring" } },
+    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "oxygen_saturation", "value": 98, "unit": "percent", "source": { "provider": "oura", "source": "invented-app", "device": "invented-ring", "device_type": "ring", "device_id": "ring-1", "device_name": "Invented Ring" } },
+    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "heart_rate_recovery_one_minute", "value": 22, "unit": "bpm", "source": { "provider": "oura", "source": "invented-app", "device": "invented-ring", "device_type": "ring", "device_id": "ring-1", "device_name": "Invented Ring" } },
+    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "vo2_max", "value": 45, "unit": "ml_kg_min", "source": { "provider": "oura", "source": "invented-app", "device": "invented-ring", "device_type": "ring", "device_id": "ring-1", "device_name": "Invented Ring" } },
+    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "skin_temperature", "value": 33.4, "unit": "celsius", "source": { "provider": "apple", "source": "Health", "device": "Watch6,1", "device_type": "watch", "device_id": "watch-a", "device_name": "Invented Watch" } },
+    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "garmin_stress_level", "value": 15, "unit": "score", "source": { "provider": "garmin", "source": "invented-app", "device": "invented-watch", "device_type": "watch", "device_id": "watch-1", "device_name": "Invented Watch" } },
+    { "timestamp": "2026-08-09T06:13:00.000Z", "type": "garmin_body_battery", "value": 70, "unit": "percent", "source": { "provider": "garmin", "source": "invented-app", "device": "invented-watch", "device_type": "watch", "device_id": "watch-1", "device_name": "Invented Watch" } },
+    { "timestamp": "2026-08-09T06:14:00.000Z", "type": "garmin_stress_level", "value": 18, "unit": "score", "window_seconds": 60, "source": { "provider": "garmin", "source": "invented-app", "device": "invented-watch", "device_type": "watch", "device_id": "watch-1", "device_name": "Invented Watch" } },
+    { "timestamp": "2026-08-09T06:15:00.000Z", "type": "garmin_stress_level", "value": 20, "unit": "score", "period_end": "2026-08-09T07:15:00.000Z", "source": { "provider": "garmin", "source": "invented-app", "device": "invented-watch", "device_type": "watch", "device_id": "watch-1", "device_name": "Invented Watch" } },
+    { "timestamp": "2026-08-09T08:00:00.000Z", "type": "resting_heart_rate", "value": 61, "unit": "bpm", "source": { "provider": "apple", "source": "Health", "device": "iPhone15,2", "device_type": "phone", "device_id": "phone-1", "device_name": "Invented Phone" } },
+    { "timestamp": "2026-08-09T08:00:00.000Z", "type": "resting_heart_rate", "value": 52, "unit": "bpm", "source": { "provider": "apple", "source": "Health", "device": "Watch6,1", "device_type": "watch", "device_id": "watch-a", "device_name": "Invented Watch" } },
+    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "dietary_caffeine", "value": 40, "unit": "mg", "source": { "provider": "oura", "device_type": "ring", "device": "invented-ring", "source": "invented-app" } },
+    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "workout_effort_score", "value": 7, "unit": "score", "source": { "provider": "oura", "device_type": "ring", "device": "invented-ring", "source": "invented-app" } },
+    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "skin_temperature_deviation", "value": 0.2, "unit": "celsius", "source": { "provider": "oura", "device_type": "ring", "device": "invented-ring", "source": "invented-app" } },
+    { "timestamp": "2026-08-09T07:00:00.000Z", "type": "heart_rate_variability_rmssd", "value": 40, "unit": "bpm", "source": { "provider": "oura", "device_type": "ring", "device": "invented-ring", "source": "invented-app" } }
+  ]
+}

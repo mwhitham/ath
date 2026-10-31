@@ -1036,7 +1036,7 @@ mod tests {
                     "created_at": "2026-08-09T00:00:00.000Z",
                     "data_json": "{\"source_type\":\"wearable\",\"data_writer\":\"Oura\",\"data_route\":\"oura_csv\",\"vendor\":\"oura\"}",
                     "extensions_json": null,
-                    "changed_by_json": "{\"author_type\":\"tool\",\"tool\":\"ath-core\",\"tool_version\":\"2.0.0\"}",
+                    "changed_by_json": "{\"author_type\":\"tool\",\"tool\":\"ath-core\",\"tool_version\":\"2.1.0\"}",
                     "became_known_at": "2026-08-09T00:00:00.000Z",
                     "became_known_at_basis": "provider_import"
                 },

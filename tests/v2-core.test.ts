@@ -59,6 +59,7 @@ describe("version 2.0.0 shared library", () => {
       record: { current_revision: number; data: Record<string, unknown> };
     };
     expect(workout.record.data.maximum_heart_rate_bpm).toBeUndefined();
+    expect(workout.record.data.field_basis).toEqual({ value: "provider", activity_type: "provider_label" });
     const summaries = JSON.parse(
       ath(["records", "list", "--type", "provider_summary", "--json"], dir).stdout,
     ).records as Array<{ data: { summary_type: string; value: { standard_value: number; standard_unit: string } } }>;
@@ -67,6 +68,7 @@ describe("version 2.0.0 shared library", () => {
         data: expect.objectContaining({
           summary_type: "max_heart_rate",
           value: expect.objectContaining({ standard_value: 200, standard_unit: "bpm" }),
+          field_basis: { value: "provider" },
         }),
       }),
     ]);
@@ -138,6 +140,10 @@ describe("version 2.0.0 shared library", () => {
     expect(stravaBody.preserved).toContain("Gear");
     expect(stravaBody.understood).toContain("route");
     expect(stravaBody.record_ids).toHaveLength(1);
+    const ride = JSON.parse(ath(["records", "show", stravaBody.record_ids[0]!, "--json"], dir).stdout) as {
+      record: { data: Record<string, unknown> };
+    };
+    expect(ride.record.data.field_basis).toEqual({ value: "provider", activity_type: "provider_label" });
     const after = ath(["check"], dir);
     expect(after.code, after.stdout + after.stderr).toBe(0);
 

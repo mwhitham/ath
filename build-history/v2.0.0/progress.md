@@ -38,18 +38,3 @@ A referenced GPX file has to sit in that export's `workout-routes/` folder
 and overlap the workout, or the preview names it once and the points are
 not stored (D176). Two such files on one workout are both stored when
 each one overlaps. A bare `export.xml` does not read sibling folders.
-
-Later, with the reason:
-
-- iPhone app. This build cannot run it.
-- Strava's online connection. The bulk download is the path in this version,
-  and the permissions question is still open.
-- Android app. This version has the command-line tool.
-- Package import, checks, the upgrade, export, and erasure. D155 said those
-  pieces move after the same tests pass in `ath-core`. D173 says that wait is
-  no longer required. The tests still have to pass. The command-line front
-  end stays in TypeScript (D174).
-- A pull from Open Wearables or Junction, and the mapping file a new source
-  uses. D161 records the rule. The study is
-  [appendix/source-formats.md](appendix/source-formats.md). The pull is not
-  built yet.

@@ -42,10 +42,12 @@ import { complete } from "./gateway.js";
 import { latestReport, shareRefusal } from "./share.js";
 import { bareGuide, EXAMPLES, GROUPS, HELP_FOOTER } from "./help.js";
 import { runAthCore } from "./ath-core.js";
-import { detectSharedImport, renderSharedImport } from "./shared-import.js";
+import { detectSharedImport, renderMappedImport, renderSharedImport } from "./shared-import.js";
 import {
   ALWAYS_DIR,
+  installMappings,
   installSkill,
+  resolveMappingFile,
   shippedSkillVersion,
   resolveCalculationFile,
   skillSource,
@@ -296,6 +298,7 @@ export function buildProgram(): Command {
       // The skill always goes to .agents/skills, which every major harness reads,
       // and into any harness folder already here (D79).
       const installed = opts.skill === false ? [] : installSkill(process.cwd());
+      const mappings = opts.skill === false ? [] : installMappings(process.cwd());
 
       if (opts.json) {
         console.log(
@@ -308,6 +311,7 @@ export function buildProgram(): Command {
                 .filter((record) => record.record_type === "benchmark_definition")
                 .map((record) => record.record_id),
               skill_installed: installed,
+              mappings_installed: mappings,
             },
             null,
             2,
@@ -322,6 +326,9 @@ export function buildProgram(): Command {
         console.log(`  seeded ${SEED_BENCHMARKS.length} benchmarks: ${SEED_BENCHMARKS.map((b) => b.id).join(", ")}`);
       }
       for (const path of installed) console.log(`  installed the agent skill into ${path}`);
+      if (mappings.length > 0) {
+        console.log(`  copied ${mappings.length} mapping files into ${ALWAYS_DIR}/mappings`);
+      }
       if (installed.length > 0) {
         console.log(
           `  ${ALWAYS_DIR}/skills is read by Claude Code, Cursor, Codex, and Gemini CLI. ` +
@@ -354,14 +361,22 @@ export function buildProgram(): Command {
     .option("--json", "structured output, for an agent rather than a person")
     .action((opts: { json?: boolean }) => {
       const written = installSkill(process.cwd());
+      const mappings = installMappings(process.cwd());
       // Commander hands `--json` to the parent when both declare it.
       if (opts.json || skillCmd.opts().json) {
-        console.log(JSON.stringify({ shipped: shippedSkillVersion(), skill_installed: written }, null, 2));
+        console.log(
+          JSON.stringify(
+            { shipped: shippedSkillVersion(), skill_installed: written, mappings_installed: mappings },
+            null,
+            2,
+          ),
+        );
         return;
       }
       if (!existsSync(skillSource())) {
         return fail(`the skill is not here to copy: expected it at ${skillSource()}`);
       }
+      for (const path of mappings) console.log(`added mapping file ${path}`);
       if (written.length === 0) {
         console.log("left installed skill files unchanged");
         return;
@@ -601,15 +616,51 @@ export function buildProgram(): Command {
     .description("preview and import a package or an Apple Health, WHOOP, Oura, Garmin, or Strava export")
     .addHelpText("after", EXAMPLES.import!)
     .argument("<path>", "v1 package or supported provider export")
+    .option(
+      "--mapping <name>",
+      "read a JSON file with a mapping file: a name in .agents/mappings or mappings/, or a path",
+    )
     .option("--file <path>", "import into a database other than the one in this folder")
     .option("-y, --yes", "apply a conflict-free preview")
     .option("--json", "structured preview; never confirms the write")
     .action(async (
       importPath: string,
-      opts: { file?: string; yes?: boolean; json?: boolean },
+      opts: { mapping?: string; file?: string; yes?: boolean; json?: boolean },
     ) => {
       const athletePath = findOrFail(opts.file);
       const resolvedImportPath = resolve(process.cwd(), importPath);
+      if (opts.mapping !== undefined) {
+        let mappingFile: string;
+        try {
+          mappingFile = resolveMappingFile(opts.mapping, process.cwd());
+        } catch (error) {
+          return fail((error as Error).message);
+        }
+        const opened = await openOrFail(athletePath, opts.json);
+        await releaseLocalDatabase(opened);
+        const preview = opts.json === true || opts.yes !== true;
+        try {
+          const result = runAthCore([
+            "import-mapped",
+            "--database",
+            athletePath,
+            "--mapping-file",
+            mappingFile,
+            "--input",
+            resolvedImportPath,
+            ...(preview ? ["--preview"] : []),
+          ]);
+          if (opts.json) {
+            console.log(JSON.stringify({ ...(result as object), write_confirmed: false }, null, 2));
+            return;
+          }
+          console.log(renderMappedImport(result));
+          if (preview) console.log("nothing written; pass --yes after reviewing this preview");
+        } catch (error) {
+          return fail((error as Error).message);
+        }
+        return;
+      }
       const sharedImport = await detectSharedImport(resolvedImportPath);
       if (sharedImport !== null) {
         const opened = await openOrFail(athletePath, opts.json);

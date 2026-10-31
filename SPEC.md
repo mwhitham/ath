@@ -1,16 +1,21 @@
-# Athletic Standard Format Specification v2.0.0
+# Athletic Standard Format Specification v2.1.0
 
 **Status:** current format
 **Live local file:** `athlete.ath.sqlite`
 **Portable package:** `athlete.ath.json` plus generated files
 **Normative schemas:** [`src/v1/schema.ts`](src/v1/schema.ts)
-**Generated JSON Schemas:** [`schema/2.0.0/`](schema/2.0.0/)
+**Generated JSON Schemas:** [`schema/2.1.0/`](schema/2.1.0/). The published
+2.0.0 schemas stay in [`schema/2.0.0/`](schema/2.0.0/).
 
 Version 2.0.0 adds workout names, descriptions, text results, heart-rate
 samples, strength sets, route points, and `supplied_fields` for names the
-software does not understand yet. A version 1.0.0 database upgrades with
-`ath migrate`. The behavior is in
+software does not understand yet. The behavior is in
 [`build-history/v2.0.0/spec.md`](build-history/v2.0.0/spec.md).
+
+Version 2.1.0 adds one optional object, `field_basis` (section 5.7), and reads
+a JSON file through a mapping file. A version 1.0.0 or 2.0.0 database upgrades
+with `ath migrate`. The behavior is in
+[`build-history/v2.1.0/spec.md`](build-history/v2.1.0/spec.md).
 
 Athletic Standard is an open, local-first record for one athlete's training and
 recovery data. SQLite is the sole live local record. JSON is an explicit, complete
@@ -287,6 +292,8 @@ The seven measured record types are `point_measurement`, `measurement_sample`,
 | `provider_reporting_periods` | no | provider reporting period array |
 | `received_at` | yes | normalized UTC timestamp |
 | `received_at_basis` | yes | `provider_supplied`, `connector_received_time`, `file_modified_time`, `import_time`, or `local_write_time` |
+| `supplied_fields` | no | names the source sent that are not typed fields |
+| `field_basis` | no | the basis the software assigns to the stored values (section 5.7) |
 
 The source foreign key is required. A source of type `manual` marks a hand-entered
 measurement or benchmark result. It does not turn that record into device evidence.
@@ -320,6 +327,30 @@ A score is an object with at least one of:
 | `duration_s` | positive number |
 | `reps` | positive integer |
 | `weight_kg` | positive number |
+
+### 5.7 Field basis
+
+`field_basis` is an optional object that the software writes. It says on what
+basis a value was stored. It is not a field the source sent, so it is never inside
+`supplied_fields`. Every measured record type may carry it (D185, D187). Every
+measured record an import or `ath log` writes from version 2.1.0 on has
+`field_basis.value`.
+
+| Field | Values |
+|---|---|
+| `value` | `provider`: the writer computed or recorded the value and gives it as its own. A provider score stays that provider's score |
+| | `provider_or_open_wearables`: the provider or Open Wearables computed the number, and the object does not say which |
+| | `provider_or_junction`: the provider or Junction computed the number, and the summary does not say which |
+| | `hrv_mean_rmssd`: Junction documents `average_hrv` as the mean RMSSD |
+| | `provider_documented_rmssd`: the source column says heart-rate variability without the statistic, and WHOOP or Oura documents it as RMSSD |
+| | `calculated_on_import`: the software calculated the value from the source's own samples, such as Apple sleep totals, RMSSD from an Apple beat list or ECG, and ECG beat intervals |
+| | `entered_by_hand`: a person entered the value, or an agent entered it through `ath log`. It was not read from a device file or service |
+| `activity_type` | `provider_label`: the writer named the activity. The software may drop Apple's `HKWorkoutActivityType` prefix and change the letter case |
+| | `open_wearables_normalized`: Open Wearables chose the activity word |
+| `route_summaries` | `calculated_on_import`: the software calculated an Apple workout's elevation gain or kilometre splits from its route file |
+
+A record written before version 2.1.0 has no `field_basis`. It stays valid.
+`ath migrate` does not add one.
 
 ## 6. The 24 record types
 
@@ -728,7 +759,7 @@ The athlete's original nutrition claim remains in the linked source-free
 |---|---|
 | `application_marker` | `ATH1` |
 | `sql_schema_version` | Positive SQL migration version |
-| `athleticstandard_version` | `1.0.0` |
+| `athleticstandard_version` | `2.1.0` |
 | `database_id` | Stable UUIDv7 database ID |
 | `created_at` | Database creation timestamp |
 
@@ -931,9 +962,11 @@ Validation refuses:
 
 The generated JSON Schemas give exhaustive object validation:
 
-- [`schema/2.0.0/athleticstandard.schema.json`](schema/2.0.0/athleticstandard.schema.json)
-- [`schema/2.0.0/measurement-series.schema.json`](schema/2.0.0/measurement-series.schema.json)
-- [`schema/2.0.0/export-manifest.schema.json`](schema/2.0.0/export-manifest.schema.json)
+- [`schema/2.1.0/athleticstandard.schema.json`](schema/2.1.0/athleticstandard.schema.json)
+- [`schema/2.1.0/measurement-series.schema.json`](schema/2.1.0/measurement-series.schema.json)
+- [`schema/2.1.0/export-manifest.schema.json`](schema/2.1.0/export-manifest.schema.json)
+
+The published 2.0.0 schemas stay in [`schema/2.0.0/`](schema/2.0.0/).
 
 ## 9. Source separation and the two-tier wall
 
@@ -963,6 +996,7 @@ A v1 package import:
   and erasure markers;
 - refuses unknown fields and records it cannot represent;
 - does not delete a local record merely because the package omits it;
+- accepts a `2.0.0` or `2.1.0` package;
 - refuses prerelease Athletic Standard versions below `1.0.0`.
 
 An empty destination at database revision zero adopts the package database ID and
@@ -1029,11 +1063,13 @@ backup operation. A closed, checkpointed database may be copied.
 
 ## 13. Version behavior
 
-The record format version is `1.0.0`. The portable document, generated series
-files, export manifest, and live database metadata all carry that version.
+The program, the record, and the database use one version, `2.1.0` (D152, D184).
+The portable document, generated series files, export manifest, and live database
+metadata all carry that version.
 
-The npm package versions shipped CLI and TypeScript behavior separately. A package
-release may change without changing this format version.
+A minor version only adds optional fields. A `2.0.0` record has no `field_basis`
+and stays valid. `ath migrate` moves a `2.0.0` database to `2.1.0` without
+changing its records.
 
 Normative package and record data objects are strict. Unknown fields are rejected.
 The v1 importer refuses Athletic Standard `0.x` documents without modifying them.

@@ -1,0 +1,371 @@
+{
+  "attachment_links": [],
+  "attachments": [],
+  "baseline_from": "d418a8f653f7074ed9e08208c4eb555c391bcbc7",
+  "links": [
+    {
+      "owner": "record:1",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:9"
+    },
+    {
+      "owner": "record:2",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:9"
+    },
+    {
+      "owner": "record:3",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:9"
+    },
+    {
+      "owner": "record:4",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:9"
+    },
+    {
+      "owner": "record:5",
+      "relation": "source",
+      "table": "sleep_sessions",
+      "target": "record:9"
+    },
+    {
+      "owner": "record:6",
+      "relation": "source",
+      "table": "sleep_sessions",
+      "target": "record:9"
+    },
+    {
+      "owner": "record:7",
+      "relation": "source",
+      "table": "sleep_sessions",
+      "target": "record:9"
+    },
+    {
+      "owner": "record:8",
+      "relation": "source",
+      "table": "sleep_sessions",
+      "target": "record:9"
+    }
+  ],
+  "records": [
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "quantity": "oxygen_saturation",
+        "received_at_basis": "import_time",
+        "source_id": "record:9",
+        "value": {
+          "input_unit": "%",
+          "input_value": 97.2,
+          "standard_unit": "%",
+          "standard_value": 97.2
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:9\",\"oxygen_saturation\",\"2026-08-09\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:1",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-09T07:00:00+00:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "+00:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "quantity": "oxygen_saturation",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-09T07:00:00.000Z",
+        "source_id": "record:9",
+        "value": {
+          "input_unit": "%",
+          "input_value": 97.2,
+          "standard_unit": "%",
+          "standard_value": 97.2
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:9\",\"oxygen_saturation\",\"2026-08-09T07:00:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:2",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "quantity": "oxygen_saturation",
+        "received_at_basis": "import_time",
+        "source_id": "record:9",
+        "value": {
+          "input_unit": "%",
+          "input_value": 96.8,
+          "standard_unit": "%",
+          "standard_value": 96.8
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:9\",\"oxygen_saturation\",\"2026-08-10\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:3",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-10T07:00:00+00:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "+00:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "quantity": "oxygen_saturation",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-10T07:00:00.000Z",
+        "source_id": "record:9",
+        "value": {
+          "input_unit": "%",
+          "input_value": 96.8,
+          "standard_unit": "%",
+          "standard_value": 96.8
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:9\",\"oxygen_saturation\",\"2026-08-10T07:00:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:4",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "end_at": "2026-08-09T07:00:00.000Z",
+        "input_end_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-09T07:00:00+00:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "+00:00"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-08T23:00:00+00:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "+00:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "source_id": "record:9",
+        "source_reported_summaries": [],
+        "start_at": "2026-08-08T23:00:00.000Z"
+      },
+      "import_keys": [
+        {
+          "key": "[\"sleep_session\",\"record:9\",\"2026-08-08T23:00:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:5",
+      "record_type": "sleep_session"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "end_at": "2026-08-09T07:00:00.000Z",
+        "input_end_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-09T07:00:00+00:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "+00:00"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-08T23:00:00+00:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "+00:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "source_id": "record:9",
+        "source_reported_summaries": [],
+        "start_at": "2026-08-08T23:00:00.000Z"
+      },
+      "import_keys": [
+        {
+          "key": "[\"sleep_session\",\"record:9\",\"2026-08-08T23:00:00.000Z\",1]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:6",
+      "record_type": "sleep_session"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "end_at": "2026-08-10T07:00:00.000Z",
+        "input_end_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-10T07:00:00+00:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "+00:00"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-09T23:00:00+00:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "+00:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "source_id": "record:9",
+        "source_reported_summaries": [],
+        "start_at": "2026-08-09T23:00:00.000Z"
+      },
+      "import_keys": [
+        {
+          "key": "[\"sleep_session\",\"record:9\",\"2026-08-09T23:00:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:7",
+      "record_type": "sleep_session"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "end_at": "2026-08-10T07:00:00.000Z",
+        "input_end_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-10T07:00:00+00:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "+00:00"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-09T23:00:00+00:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "+00:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "source_id": "record:9",
+        "source_reported_summaries": [],
+        "start_at": "2026-08-09T23:00:00.000Z"
+      },
+      "import_keys": [
+        {
+          "key": "[\"sleep_session\",\"record:9\",\"2026-08-09T23:00:00.000Z\",1]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:8",
+      "record_type": "sleep_session"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "data_route": "oura_csv",
+        "data_writer": "Oura",
+        "detail": "Oura export folder",
+        "source_type": "export_file",
+        "vendor": "oura"
+      },
+      "import_keys": [
+        {
+          "key": "[\"source\",\"Oura\",\"oura_csv\",\"\"]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:9",
+      "record_type": "source"
+    }
+  ],
+  "route_points": []
+}

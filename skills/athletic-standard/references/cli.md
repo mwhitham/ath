@@ -170,6 +170,9 @@ ath init writes it to .agents/skills and into any harness folder already
 here. An older copy of the tool skill is replaced, so the agent does not
 keep reading the old instructions. A calculation skill that is already
 there is not replaced.
+
+Mapping files are copied into .agents/mappings when that copy is missing.
+An installed mapping file is not replaced.
 ```
 
 ## ath skill install
@@ -270,13 +273,15 @@ preview and import a package or an Apple Health, WHOOP, Oura, Garmin, or Strava
 export
 
 Arguments:
-  path           v1 package or supported provider export
+  path              v1 package or supported provider export
 
 Options:
-  --file <path>  import into a database other than the one in this folder
-  -y, --yes      apply a conflict-free preview
-  --json         structured preview; never confirms the write
-  -h, --help     display help for command
+  --mapping <name>  read a JSON file with a mapping file: a name in
+                    .agents/mappings or mappings/, or a path
+  --file <path>     import into a database other than the one in this folder
+  -y, --yes         apply a conflict-free preview
+  --json            structured preview; never confirms the write
+  -h, --help        display help for command
 
 
 Examples:
@@ -291,6 +296,15 @@ Examples:
     $ ath import ~/Downloads/apple_health_export.zip
     $ ath import ~/Downloads/whoop-export
     $ ath import ~/Downloads/oura-export
+
+  Read an Open Wearables JSON file with its mapping file:
+    $ ath import ~/Downloads/open-wearables.json --mapping open-wearables
+    $ ath import ~/Downloads/open-wearables.json --mapping open-wearables --yes
+
+`--mapping` names a file in .agents/mappings, then one shipped in
+mappings/, or takes a path. A mapped field becomes the typed value. Every
+other field stays under the name it arrived with. The import lists each
+object it left out and why.
 
 The default is always a preview. `--json` is also only a preview and
 never confirms a write. Provider rows keep separate Apple Health, WHOOP,
