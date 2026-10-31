@@ -80,13 +80,13 @@ type.heart_rate_variability_rmssd: hrv_rmssd ms ms
 type.heart_rate_variability_sdnn: hrv_sdnn ms ms
 type.resting_heart_rate: resting_heart_rate bpm bpm
 type.respiratory_rate: respiratory_rate brpm brpm
-type.skin_temperature: skin_temperature °C °C
-type.skin_temperature: wrist_temperature_sleeping °C °C when-writer apple
-type.oxygen_saturation: oxygen_saturation % %
+type.skin_temperature: skin_temperature celsius °C
+type.skin_temperature: wrist_temperature_sleeping celsius °C when-writer apple
+type.oxygen_saturation: oxygen_saturation percent %
 type.heart_rate_recovery_one_minute: hr_recovery bpm bpm
-type.vo2_max: provider_summary.vo2_max mL/kg/min ml/kg/min
+type.vo2_max: provider_summary.vo2_max ml_kg_min ml/kg/min
 type.garmin_stress_level: provider_score.garmin_stress_level score score scale 1-100
-type.garmin_body_battery: provider_score.garmin_body_battery score score scale 0-100
+type.garmin_body_battery: provider_score.garmin_body_battery percent score scale 0-100
 ```
 ~~~~
 
@@ -98,7 +98,7 @@ type.garmin_body_battery: provider_score.garmin_body_battery score score scale 0
 
 A timeseries type with no line is `left_out`. It is not a measured record. That includes `dietary_*`, `workout_effort_score`, `estimated_workout_effort_score`, and the temperature-deviation types. This release does not check a vendor baseline for those deviations. `vo2_max` is a `provider_summary`, not the point quantity `vo2_max`.
 
-`garmin_stress_level` and `garmin_body_battery` are `provider_score` records. The scale is on the line. A missing `computed_by` means the writer is `source.provider`. The field table says a provider score stays that provider's score. The `garmin_stress_level` sample has no `computed_by`. Its writer is `garmin`. Test `missing_computed_by_uses_the_provider`. `garmin_body_battery` has `computed_by` `open_wearables`, so its writer is `open_wearables`. The connector is the writer only when `computed_by` names it. There is no connector default and no origin token. The device maker stays on the `source_device` row either way (D183).
+`garmin_stress_level` and `garmin_body_battery` are `provider_score` records. The scale is on the line. Every score's writer is `source.provider`, whether or not `computed_by` is present. `computed_by` stays verbatim in `supplied_fields` when the source sent it, and it never changes the writer. A body-battery value flagged `open_wearables` is still Garmin's score (D27, D159). The field table says a provider score stays that provider's score. The `garmin_stress_level` sample has no `computed_by`. Its writer is `garmin`. Test `missing_computed_by_uses_the_provider`. The raw `garmin_body_battery` sample has no `computed_by` either. Its writer is `garmin`. Open Wearables main describes `computed_by` as who computed an aggregate: the provider, or Open Wearables from stored samples. Raw samples do not carry it (`timeseries_service.py` on main, the calls at lines 348 and 532). Period rows do (line 457). The 0.10.0 tag has no `computed_by`. This release maps raw samples only. A row with `period_end`, `stats`, or `is_daily_total` true is an aggregate and is `left_out`. The device maker stays on the `source_device` row (D183).
 
 Open Wearables `/health-scores` is not in this file. This release does not read that path.
 
@@ -138,7 +138,7 @@ There is no `[activity]` section. Junction activity summaries are dated at UTC m
 
 The older stage fields `awake`, `light`, `rem`, and `deep` are not lines. A `0` there stays in `supplied_fields`. A null `stage_*_second` is omitted.
 
-`score` is stored as `provider_score` metric `sleep.score`. `recovery_readiness_score` keeps that metric name. Neither object has `computed_by`, so the writer is `source.provider`. That is the same rule as every other score. The field table says a provider score stays that provider's score. D27 keeps a vendor score as that vendor's composite. D159 says a score a device maker computed stays that maker's score. The line has no origin token.
+`score` is stored as `provider_score` metric `sleep.score`. `recovery_readiness_score` keeps that metric name. Junction has no `computed_by`. The writer is `source.provider`, the same rule as every other score. The field table says a provider score stays that provider's score. D27 keeps a vendor score as that vendor's composite. D159 says a score a device maker computed stays that maker's score. There is no `junction` writer value.
 
 `hrv_mean_sdnn` is not on the summary object. This file has no line for it. A field literally named `hrv_mean_sdnn` may map to `hrv_sdnn`, because the name says SDNN.
 
@@ -290,7 +290,7 @@ A `source_device` record is written for that source:
 
 An Apple Watch, an iPhone, and a third-party app are three sensor strings, three source rows, and three baselines.
 
-A missing `computed_by` means `data_writer` and `vendor` are `source.provider`. The field table says a provider score stays that provider's score. Junction `sleep.score` and `recovery_readiness_score` follow that rule. A score names the connector as its writer only when `computed_by` names `open_wearables` or `junction`. Those are the connector's own names, not another spelling of the route. `source_device.manufacturer` stays `source.provider`. There is no connector default and no origin token.
+Every score's `data_writer` and `vendor` are `source.provider`. That holds whether or not `computed_by` is present. `computed_by` stays in `supplied_fields` when the source sent it, and it does not change the writer. Junction `sleep.score` and `recovery_readiness_score` follow that rule. There is no `junction` writer value. The field table says a provider score stays that provider's score. `source_device.manufacturer` stays `source.provider`.
 
 `ensure_source` is unchanged. Garmin's file import still uses writer `garmin` and route `garmin_account_export` with an empty sensor. A mapped Garmin watch uses route `open_wearables` or `junction` and a non-empty sensor. `check_mapping` rejects the built-in route names so a mapping cannot reuse those rows (D179).
 
@@ -590,10 +590,16 @@ Rejected alternatives:
 | `%` | `%` | the same number |
 | `°C` | `°C` | the same number |
 | `mL/kg/min` | `ml/kg/min` | the same number, stored lowercase |
+| `percent` | `%` | the same number. SpO2 |
+| `celsius` | `°C` | the same number. Skin temperature |
+| `ml_kg_min` | `ml/kg/min` | the same number. VO2 max. The schema unit is `ml/kg/min` (`src/v1/schema.ts` line 438) |
+| `percent` | `score` | the same number. Body battery, scale 0–100 |
 
 `convert_unit` returns a `serde_json::Value`, not an `f64` that a printer later formats. The arithmetic is binary64. When that result is a whole number inside the safe integer range, the function builds `Value::Number` from the integer (`600` as `i64`), not from `600.0` as `f64`. A later `serde_json::to_string` then writes `600`. Any other result is a float `Value`, using serde_json's default float format, which round-trips through binary64. 100 seconds converted to minutes is the JSON number `1.6666666666666667`. Test `one_hundred_seconds_is_the_binary64_minute` asserts that number. Test `whole_seconds_are_an_integer_value` asserts that 600 seconds is a JSON integer whose debug form is `Number(600)` and whose text is `600`, not `600.0`. `600/700` is the JSON number `0.8571428571428571`.
 
 When the target is a point quantity, the our-unit must equal `POINT_MEASUREMENT_UNITS` for that quantity. `oxygen_saturation` uses `%`. `skin_temperature` uses `°C`. `respiratory_rate` uses `brpm`. `hr_recovery` uses `bpm`.
+
+The their-unit strings for Open Wearables samples are the strings `get_series_type_unit` returns in `backend/app/schemas/enums/series_types.py` at tag 0.10.0, commit `d18304f`. `oxygen_saturation` is `percent` (id 20). `skin_temperature` is `celsius` (id 46). `vo2_max` is `ml_kg_min` (id 60). `garmin_body_battery` is `percent` (id 223). `garmin_stress_level` is `score` (id 220). The 0.10.0 tests do not include a timeseries response body. `docs/openapi.json` at that tag types `TimeSeriesSample.unit` as a string and does not list the units. The same tag's `frontend/src/lib/timeseries/samples.ts` lines 133–139 says the backend names units for machines, `percent` and `ml_kg_min`, and maps those to the display strings. `timeseries.spec.ts` lines 54 and 58 expect `unitLabel('percent')` to be `%` and `unitLabel('ml_kg_min')` to be ` ml/kg/min`.
 
 When the target is a `SourceValue`, `input_value` and `input_unit` keep their number and their unit, and `standard_value` and `standard_unit` hold ours. `asleep_seconds`, `in_bed_seconds`, and `stage_minutes` are plain numbers, so the stored number is the converted one. The original field is not also copied into `supplied_fields`.
 
@@ -603,7 +609,7 @@ Rejected alternatives:
 
 - Store their number unchanged and ignore units. Rejected because Junction stage fields are seconds and `stage_minutes` is minutes.
 - A formula on the line. Rejected because a formula can divide asleep by time in bed, or relabel a heart-rate variability field.
-- Call the percent unit `percent`. Rejected because the schema unit is `%`.
+- Store SpO2's standard unit as `percent`. Rejected because `oxygen_saturation` uses `%` (`src/v1/schema.ts` line 441). Their string `percent` converts to `%`.
 - Round the binary64 result to a fixed number of decimals. Rejected because the test then depends on a second rounding rule.
 
 ### D181. The match key is the writer, the sensor, their id, and the kind
@@ -634,7 +640,7 @@ D161 says the source names the device and the path. The path is `data_route` (`o
 
 An Apple Watch, an iPhone, and a third-party app do not share a source row. They do not share a baseline.
 
-A missing `computed_by` means `data_writer` is `source.provider`. A provider score stays that provider's score. Junction `sleep.score` and `recovery_readiness_score` follow that rule. The connector is `data_writer` only when `computed_by` names `open_wearables` or `junction`. `source_device.manufacturer` stays the provider string either way. There is no origin token.
+Every score's `data_writer` is `source.provider`, whether or not `computed_by` is present. A provider score stays that provider's score (D27, D159). `computed_by` does not change the writer. Junction `sleep.score` and `recovery_readiness_score` follow that rule. There is no `junction` writer value. `source_device.manufacturer` stays the provider string.
 
 `ensure_source` is not changed. Mapped imports call `ensure_mapped_source`.
 
@@ -662,8 +668,6 @@ field_basis: z.strictObject({
   value: z.enum([
     "provider_or_open_wearables",
     "provider",
-    "open_wearables",
-    "junction",
     "hrv_mean_rmssd",
   ]).optional(),
 }).optional()
@@ -671,7 +675,7 @@ field_basis: z.strictObject({
 
 `field_basis` exists only under option A. `WorkoutSessionData`, `ProviderSummaryData`, `ProviderScoreData`, and `PointMeasurementData` gain the optional key. The objects are strict, so `ath check` rejects the key until the schema has it. Pull request (b) does not add the key and does not run `pnpm generate:json-schema` for it. `schema/2.0.0/` is not regenerated and is not edited, under either option. Option A adds the key in pull request (c) and writes a new `schema/2.1.0/` folder. `scripts/generate-json-schema.ts` writes `schema/${version}/` from `src/v1/schema.ts` (lines 54–56). With the version at `2.1.0` that path is `schema/2.1.0/`. The generator does not open `schema/2.0.0/`. Option A also documents `field_basis` in `SPEC.md`. Option B does not add the key, does not write it, and does not document it. The basis is kept off the record. That is a cost of B, stated in section 8.
 
-Under option A, a workout stores `field_basis.activity_type` as `open_wearables_normalized`. A heart-rate summary stores `field_basis.value` as `provider_or_open_wearables`. The Junction `hrv_rmssd` point stores `field_basis.value` as `hrv_mean_rmssd`. A score stores `provider` when `computed_by` is missing or is `provider`. It stores `open_wearables` or `junction` only when `computed_by` names that connector. Junction `sleep.score` and `recovery_readiness_score` have no `computed_by`, so they store `provider`. The `garmin_stress_level` sample has no `computed_by`, so it stores `provider`. `garmin_body_battery` stores `open_wearables`.
+Under option A, a workout stores `field_basis.activity_type` as `open_wearables_normalized`. A heart-rate summary stores `field_basis.value` as `provider_or_open_wearables`. The Junction `hrv_rmssd` point stores `field_basis.value` as `hrv_mean_rmssd`. A score stores `field_basis.value` `provider`. The writer is `source.provider` whether or not `computed_by` is present. The enum has no `junction` value. Junction `sleep.score`, `recovery_readiness_score`, `garmin_stress_level`, and `garmin_body_battery` all store `provider`.
 
 D161 said a new source is a field mapping, not a new record format. Under option A this release still keeps the Athletic Standard record. It adds one optional field, in minor version 2.1.0. D96 records the rule that a minor version may only add optional fields. This is that case. It is not the Open Wearables object used as the record, which is what D161 rejected.
 
@@ -892,18 +896,18 @@ Both files are invented. Dates are in 2026. Coordinates are invented. Pull reque
     { "timestamp": "2026-08-09T06:12:00.000Z", "type": "heart_rate_variability_sdnn", "value": 61.2, "unit": "ms", "source": { "provider": "oura", "source": "invented-app", "device": "invented-ring", "device_type": "ring", "device_id": "ring-1", "device_name": "Invented Ring" } },
     { "timestamp": "2026-08-09T06:12:00.000Z", "type": "resting_heart_rate", "value": 48, "unit": "bpm", "source": { "provider": "oura", "source": "invented-app", "device": "invented-ring", "device_type": "ring", "device_id": "ring-1", "device_name": "Invented Ring" } },
     { "timestamp": "2026-08-09T06:12:00.000Z", "type": "respiratory_rate", "value": 16, "unit": "brpm", "source": { "provider": "oura", "source": "invented-app", "device": "invented-ring", "device_type": "ring", "device_id": "ring-1", "device_name": "Invented Ring" } },
-    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "skin_temperature", "value": 33.2, "unit": "°C", "source": { "provider": "oura", "source": "invented-app", "device": "invented-ring", "device_type": "ring", "device_id": "ring-1", "device_name": "Invented Ring" } },
-    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "oxygen_saturation", "value": 98, "unit": "%", "source": { "provider": "oura", "source": "invented-app", "device": "invented-ring", "device_type": "ring", "device_id": "ring-1", "device_name": "Invented Ring" } },
+    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "skin_temperature", "value": 33.2, "unit": "celsius", "source": { "provider": "oura", "source": "invented-app", "device": "invented-ring", "device_type": "ring", "device_id": "ring-1", "device_name": "Invented Ring" } },
+    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "oxygen_saturation", "value": 98, "unit": "percent", "source": { "provider": "oura", "source": "invented-app", "device": "invented-ring", "device_type": "ring", "device_id": "ring-1", "device_name": "Invented Ring" } },
     { "timestamp": "2026-08-09T06:12:00.000Z", "type": "heart_rate_recovery_one_minute", "value": 22, "unit": "bpm", "source": { "provider": "oura", "source": "invented-app", "device": "invented-ring", "device_type": "ring", "device_id": "ring-1", "device_name": "Invented Ring" } },
-    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "vo2_max", "value": 45, "unit": "mL/kg/min", "source": { "provider": "oura", "source": "invented-app", "device": "invented-ring", "device_type": "ring", "device_id": "ring-1", "device_name": "Invented Ring" } },
-    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "skin_temperature", "value": 33.4, "unit": "°C", "source": { "provider": "apple", "source": "Health", "device": "Watch6,1", "device_type": "watch", "device_id": "watch-a", "device_name": "Invented Watch" } },
+    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "vo2_max", "value": 45, "unit": "ml_kg_min", "source": { "provider": "oura", "source": "invented-app", "device": "invented-ring", "device_type": "ring", "device_id": "ring-1", "device_name": "Invented Ring" } },
+    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "skin_temperature", "value": 33.4, "unit": "celsius", "source": { "provider": "apple", "source": "Health", "device": "Watch6,1", "device_type": "watch", "device_id": "watch-a", "device_name": "Invented Watch" } },
     { "timestamp": "2026-08-09T06:12:00.000Z", "type": "garmin_stress_level", "value": 15, "unit": "score", "source": { "provider": "garmin", "source": "invented-app", "device": "invented-watch", "device_type": "watch", "device_id": "watch-1", "device_name": "Invented Watch" } },
-    { "timestamp": "2026-08-09T06:13:00.000Z", "type": "garmin_body_battery", "value": 70, "unit": "score", "computed_by": "open_wearables", "source": { "provider": "garmin", "source": "invented-app", "device": "invented-watch", "device_type": "watch", "device_id": "watch-1", "device_name": "Invented Watch" } },
+    { "timestamp": "2026-08-09T06:13:00.000Z", "type": "garmin_body_battery", "value": 70, "unit": "percent", "source": { "provider": "garmin", "source": "invented-app", "device": "invented-watch", "device_type": "watch", "device_id": "watch-1", "device_name": "Invented Watch" } },
     { "timestamp": "2026-08-09T08:00:00.000Z", "type": "resting_heart_rate", "value": 61, "unit": "bpm", "source": { "provider": "apple", "source": "Health", "device": "iPhone15,2", "device_type": "phone", "device_id": "phone-1", "device_name": "Invented Phone" } },
     { "timestamp": "2026-08-09T08:00:00.000Z", "type": "resting_heart_rate", "value": 52, "unit": "bpm", "source": { "provider": "apple", "source": "Health", "device": "Watch6,1", "device_type": "watch", "device_id": "watch-a", "device_name": "Invented Watch" } },
     { "timestamp": "2026-08-09T06:12:00.000Z", "type": "dietary_caffeine", "value": 40, "unit": "mg", "source": { "provider": "oura", "device_type": "ring", "device": "invented-ring", "source": "invented-app" } },
     { "timestamp": "2026-08-09T06:12:00.000Z", "type": "workout_effort_score", "value": 7, "unit": "score", "source": { "provider": "oura", "device_type": "ring", "device": "invented-ring", "source": "invented-app" } },
-    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "skin_temperature_deviation", "value": 0.2, "unit": "°C", "source": { "provider": "oura", "device_type": "ring", "device": "invented-ring", "source": "invented-app" } },
+    { "timestamp": "2026-08-09T06:12:00.000Z", "type": "skin_temperature_deviation", "value": 0.2, "unit": "celsius", "source": { "provider": "oura", "device_type": "ring", "device": "invented-ring", "source": "invented-app" } },
     { "timestamp": "2026-08-09T07:00:00.000Z", "type": "heart_rate_variability_rmssd", "value": 40, "unit": "bpm", "source": { "provider": "oura", "device_type": "ring", "device": "invented-ring", "source": "invented-app" } }
   ]
 }
@@ -995,11 +999,11 @@ Test `open_wearables_fixture_maps_fields`. Sensor `ring|invented-ring|invented-a
 - `supplied_fields` on that workout is `{ "duration_seconds": 3, "intensity": "moderate", "start_latitude": 12.345, "start_longitude": -45.678, "calories_kcal": 1, "hr_zones": { "max_hr": 190 } }`.
 - A `provider_summary` `average_heart_rate` is `140` `bpm`, match key `garmin:S-watch:workout:ow-workout-1:summary:average_heart_rate`. A `provider_summary` `max_heart_rate` is `180` `bpm`, key suffix `:summary:max_heart_rate`. Neither summary has `supplied_fields`.
 - `ow-workout-manual` writes no record. `left_out` contains `workout ow-workout-manual: entry_source manual is a personal report`.
-- Points at `2026-08-09T06:12:00.000Z` on the oura ring source: `hrv_rmssd` `42.5`, `hrv_sdnn` `61.2`, `resting_heart_rate` `48`, `respiratory_rate` `16` unit `brpm`, `skin_temperature` `33.2` unit `°C`, `oxygen_saturation` `98` unit `%`, `hr_recovery` `22` unit `bpm`. Keys look like `oura:S-ring:timeseries:point:heart_rate_variability_rmssd:2026-08-09T06:12:00.000Z`. Those samples have no `supplied_fields`. Each point's `input_timestamp` is the `Z` receipt in section 2. `asleep_seconds` `600` is the JSON integer `600`.
-- The Apple watch sample at the same timestamp is `wrist_temperature_sleeping` `33.4` unit `°C`, writer `apple`, sensor `S-awatch`. It is not `skin_temperature`.
-- `vo2_max` is a `provider_summary` summary type `vo2_max`, value `45`, unit `ml/kg/min`, key suffix `:summary:vo2_max`. The sample's unit was `mL/kg/min`. It is not a point quantity `vo2_max`.
-- `garmin_stress_level` is a `provider_score` metric `garmin_stress_level`, value `15`, scale `1-100`, writer `garmin`, sensor `S-watch`. The sample has no `computed_by`. `supplied_fields` does not contain that key. Test `missing_computed_by_uses_the_provider`.
-- `garmin_body_battery` is a `provider_score` metric `garmin_body_battery`, value `70`, scale `0-100`, writer `open_wearables`, vendor `open_wearables`, sensor `S-watch`. `source_device.manufacturer` is `garmin`. `supplied_fields` is `{ "computed_by": "open_wearables" }`. The connector is the writer because `computed_by` names it.
+- Points at `2026-08-09T06:12:00.000Z` on the oura ring source: `hrv_rmssd` `42.5`, `hrv_sdnn` `61.2`, `resting_heart_rate` `48`, `respiratory_rate` `16` unit `brpm`, `skin_temperature` `33.2` unit `°C`, `oxygen_saturation` `98` unit `%`, `hr_recovery` `22` unit `bpm`. The skin-temperature sample's unit was `celsius`. The oxygen-saturation sample's unit was `percent`. Keys look like `oura:S-ring:timeseries:point:heart_rate_variability_rmssd:2026-08-09T06:12:00.000Z`. Those samples have no `supplied_fields`. Each point's `input_timestamp` is the `Z` receipt in section 2. `asleep_seconds` `600` is the JSON integer `600`.
+- The Apple watch sample at the same timestamp is `wrist_temperature_sleeping` `33.4` unit `°C`, writer `apple`, sensor `S-awatch`. The sample's unit was `celsius`. It is not `skin_temperature`.
+- `vo2_max` is a `provider_summary` summary type `vo2_max`, value `45`, unit `ml/kg/min`, key suffix `:summary:vo2_max`. The sample's unit was `ml_kg_min`. It is not a point quantity `vo2_max`.
+- `garmin_stress_level` is a `provider_score` metric `garmin_stress_level`, value `15`, scale `1-100`, writer `garmin`, sensor `S-watch`. The sample has no `computed_by`. `supplied_fields` does not contain that key. Test `missing_computed_by_uses_the_provider`. The writer is `source.provider` whether or not `computed_by` is present.
+- `garmin_body_battery` is a `provider_score` metric `garmin_body_battery`, value `70`, scale `0-100`, writer `garmin`, vendor `garmin`, sensor `S-watch`. The sample's unit was `percent`. The stored unit is `score`. The sample has no `computed_by`. `source_device.manufacturer` is `garmin`.
 - The phone sample and the watch sample at `2026-08-09T08:00:00.000Z` are two `resting_heart_rate` points, `61` and `52`, on two sources. Sensors are `S-phone` and `S-awatch`. Both writers are `apple`. Match keys differ by that sensor.
 - `left_out` contains `timeseries dietary_caffeine 2026-08-09T06:12:00.000Z: unmapped type dietary_caffeine`, the same shape for `workout_effort_score` and `skin_temperature_deviation`, and `timeseries heart_rate_variability_rmssd 2026-08-09T07:00:00.000Z: unit bpm does not match ms`. No record exists for those four samples.
 
@@ -1008,7 +1012,7 @@ Test `junction_fixture_maps_fields`. Junction oura sensor `ring|ring-j1|oura-app
 - `jn-sleep-1` `asleep_seconds` is `600`. `supplied_fields` is `{ "duration": 700, "total": 500, "awake": 0, "light": 0, "rem": 0, "deep": 0, "efficiency": 0.88, "LastNightAvg": 40, "type": "long_sleep" }`. There is no `in_bed_seconds`.
 - `stage_minutes` is `{ "awake": 2, "light": 3, "deep": 4 }` with no `rem` key.
 - A point `hrv_rmssd` is `55.5`, key `oura:S-jora:sleep:jn-sleep-1:point:hrv_rmssd`. A point `resting_heart_rate` is `47`. A point `respiratory_rate` is `14` unit `brpm`. There is no `hrv_sdnn` record.
-- `provider_score` metric `sleep.score`, value `80`, scale `1-100`, writer `oura`, key suffix `:score:sleep.score`. `provider_score` metric `recovery_readiness_score`, value `70`, scale `0-100`, writer `oura`. Neither object has `computed_by`. The writer is `source.provider`, the same rule as a missing `computed_by` on any score.
+- `provider_score` metric `sleep.score`, value `80`, scale `1-100`, writer `oura`, key suffix `:score:sleep.score`. `provider_score` metric `recovery_readiness_score`, value `70`, scale `0-100`, writer `oura`. Neither object has `computed_by`. The writer is `source.provider` whether or not `computed_by` is present.
 - `jn-sleep-2` `asleep_seconds` is `1000`. `supplied_fields` is `{ "duration": 3600 }`.
 - `jn-nap-1` is its own `sleep_session`. `supplied_fields` is `{ "duration": 900, "type": "acknowledged_nap" }`. `asleep_seconds` is `800`. It is not merged into `jn-sleep-1`.
 - `jn-sleep-apple` has `asleep_seconds` `3000`. `supplied_fields` is `{ "duration": 3600, "average_hrv": 33 }`. The writer is `apple_health_kit`. The import writes no `hrv_rmssd` point for that id. Test name `apple_average_hrv_stays_unmapped`. The child's `input_timestamp.timestamp_text` is `2026-08-11T03:00:00.000Z`.
@@ -1028,7 +1032,7 @@ These checks are not in pull request (b). Under option A, pull request (c) adds 
 - `ow-workout-1` `field_basis` is `{ "activity_type": "open_wearables_normalized" }`.
 - The `average_heart_rate` and `max_heart_rate` summaries have `field_basis` `{ "value": "provider_or_open_wearables" }`.
 - `garmin_stress_level` has `field_basis` `{ "value": "provider" }`. The sample has no `computed_by`.
-- `garmin_body_battery` has `field_basis` `{ "value": "open_wearables" }`.
+- `garmin_body_battery` has `field_basis` `{ "value": "provider" }`. The writer is `garmin`.
 - The Junction `hrv_rmssd` point has `field_basis` `{ "value": "hrv_mean_rmssd" }`.
 - `sleep.score` and `recovery_readiness_score` have `field_basis` `{ "value": "provider" }`.
 
@@ -1229,4 +1233,5 @@ These are outside this release. This section does not assign them to a later ver
 - Open Wearables `/health-scores` is not read.
 - Temperature-deviation types are `left_out`. This release does not check a vendor baseline for them.
 - Junction activity summaries are `left_out`. This release does not store a UTC midnight as a measurement (D88, D110).
+- Open Wearables day, week, and month aggregate rows are not mapped. This release maps raw samples only. A row with `period_end`, `stats`, or `is_daily_total` true is `left_out`. On current Open Wearables main, `computed_by` is set on period rows and not on raw samples. The 0.10.0 tag has no `computed_by`.
 - `google_health` is not on the `average_hrv` allow-list. Fitbit's HRV method through that slug is not confirmed.
