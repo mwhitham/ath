@@ -1,4 +1,4 @@
-import { copyFile, lstat, mkdtemp, readFile, readdir, symlink, writeFile } from "node:fs/promises";
+import { copyFile, lstat, mkdir, mkdtemp, readFile, readdir, symlink, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -149,11 +149,19 @@ describe("v1 database migration", () => {
     openDatabases.push(database);
     const metadata = await readDatabaseMetadata(database);
     const directory = dirname(path);
-    const paths = [
-      join(directory, `athlete"quote.sqlite`),
-      join(directory, "athlete\\slash.sqlite"),
-      join(directory, "athlete\\t.sqlite"),
-    ];
+    // Windows does not allow " in a file name, and there \ separates folders,
+    // so the backslash cases go through a real folder named athlete.
+    const paths =
+      process.platform === "win32"
+        ? [join(directory, "athlete", "slash.sqlite"), join(directory, "athlete", "t.sqlite")]
+        : [
+            join(directory, `athlete"quote.sqlite`),
+            join(directory, "athlete\\slash.sqlite"),
+            join(directory, "athlete\\t.sqlite"),
+          ];
+    if (process.platform === "win32") {
+      await mkdir(join(directory, "athlete"));
+    }
     for (const backupPath of paths) {
       await createVerifiedSqliteBackup(database, path, backupPath, metadata);
       const stat = await lstat(backupPath);
