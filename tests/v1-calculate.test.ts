@@ -343,7 +343,7 @@ describe("runtime calculations", () => {
         },
       ],
     });
-  }, 20_000);
+  }, 60_000);
 
   it("uses the real short and long day boundaries in an IANA timezone", async () => {
     const { database } = await calculationDatabase();

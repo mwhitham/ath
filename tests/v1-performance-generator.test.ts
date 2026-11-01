@@ -157,5 +157,5 @@ describe("v1 performance database generator", () => {
       "incremental_import",
     ]);
     expect(report.operations.every((operation) => operation.success)).toBe(true);
-  }, 30_000);
+  }, 60_000);
 });

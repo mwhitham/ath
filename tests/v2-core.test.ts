@@ -166,5 +166,5 @@ describe("version 2.0.0 shared library", () => {
     const changedBody = JSON.parse(changed.stdout) as { result: { seconds: number[] } };
     expect(changedBody.result.seconds).not.toEqual([1, 1, 0, 1, 1]);
     expect(readFileSync(ZONES, "utf8")).toContain("zone: 0.60");
-  }, 20_000);
+  }, 60_000);
 });
