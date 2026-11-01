@@ -133,8 +133,8 @@ describe("v1 direct SQLite enforcement", () => {
   it("refuses a revision whose record_type disagrees with the parent record", async () => {
     const path = await seededDatabase();
     const client = await sqlClient(path);
-    await expect(
-      client.execute({
+    try {
+      await client.execute({
         sql: `
           INSERT INTO record_revisions (
             record_id, revision, record_type, record_json, extensions_json,
@@ -142,8 +142,12 @@ describe("v1 direct SQLite enforcement", () => {
           ) VALUES (?, 2, 'athlete_report', ?, NULL, ?, 'local_write', ?, 1)
         `,
         args: [sourceId, JSON.stringify(athleteReportData()), createdAt, toolActorJson],
-      }),
-    ).rejects.toThrow(/record_type/);
-    await client.close();
+      });
+      throw new Error("expected revision insert to fail");
+    } catch (error) {
+      expect((error as Error).message).toMatch(/record_type/);
+    } finally {
+      await client.close();
+    }
   });
 });

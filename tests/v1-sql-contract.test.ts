@@ -359,8 +359,8 @@ describe("v1 SQL contract", () => {
 
     const client = createClient({ url: pathToFileURL(path).href });
     await client.execute("PRAGMA foreign_keys = OFF");
-    await expect(
-      client.execute({
+    const refusal = await client
+      .execute({
         sql: `
           INSERT INTO record_revisions (
             record_id,
@@ -384,8 +384,12 @@ describe("v1 SQL contract", () => {
           createdAt,
           JSON.stringify(toolActor),
         ],
-      }),
-    ).rejects.toThrow();
-    await client.close();
+      })
+      .then(
+        () => undefined,
+        (error: unknown) => error,
+      );
+    client.close();
+    expect(refusal).toBeInstanceOf(Error);
   });
 });
