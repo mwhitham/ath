@@ -3,7 +3,6 @@
  * or a database created by createDatabase().
  */
 import { readFileSync } from "node:fs";
-import { rm } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { createClient } from "@libsql/client";
@@ -19,7 +18,11 @@ import {
 import { PROVIDER_ENCODING_REPAIR_SQL } from "../src/db/migrations/002-provider-encoding-repair.js";
 import { VERSION_2_UPGRADE_SQL } from "../src/db/migrations/003-version-2.js";
 import { VERSION_2_1_UPGRADE_SQL } from "../src/db/migrations/004-version-2-1.js";
-import { makeTemporaryDirectory, SQLITE_APPLICATION_ID } from "../src/db/client.js";
+import {
+  makeTemporaryDirectory,
+  removeTemporaryDirectory,
+  SQLITE_APPLICATION_ID,
+} from "../src/db/client.js";
 import {
   createDatabase,
   SQLITE_APPLICATION_MARKER,
@@ -86,7 +89,7 @@ async function schemaFromCreateDatabase(): Promise<SchemaSnapshot> {
     return { objects, header };
   } finally {
     database?.close();
-    await rm(directory, { recursive: true, force: true });
+    await removeTemporaryDirectory(directory);
   }
 }
 
@@ -147,7 +150,7 @@ async function schemaFromPublishedSqlFile(): Promise<SchemaSnapshot> {
   const objects = await listSchemaObjects((sql) => client.execute(sql));
   const header = await readDatabaseFileHeader((sql) => client.execute(sql));
   await client.close();
-  await rm(directory, { recursive: true, force: true });
+  await removeTemporaryDirectory(directory);
   return { objects, header };
 }
 

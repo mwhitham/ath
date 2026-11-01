@@ -5,6 +5,7 @@ export {
   releaseLocalDatabase,
   makeTemporaryDirectory,
   markSkipWalCheckpointOnRelease,
+  removeTemporaryDirectory,
   type AthleticDatabase,
 } from "./client.js";
 export {

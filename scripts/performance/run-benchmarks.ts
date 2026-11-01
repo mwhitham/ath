@@ -27,6 +27,7 @@ import {
   openDatabase,
   previewPackageImport,
   querySeries,
+  removeTemporaryDirectory,
   type AthleticDatabase,
 } from "../../src/db/index.js";
 import { databaseClient } from "../../src/db/client.js";
@@ -658,7 +659,7 @@ export async function runPerformanceBenchmarks(
     restored?.close();
     database.close();
     if (!options.keep_work) {
-      await rm(work, { recursive: true, force: true });
+      await removeTemporaryDirectory(work);
     }
   }
 }
