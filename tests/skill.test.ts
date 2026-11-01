@@ -1,7 +1,7 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
@@ -186,8 +186,8 @@ describe("ath skill (D79)", () => {
 
     const byAgent = Object.fromEntries(
       skillStatus(dir)
-        .filter((copy) => copy.path.includes(`/${SKILL_NAME}`))
-        .map((c) => [c.path.slice(dir.length + 1).split("/")[0], c]),
+        .filter((copy) => copy.path.includes(`${sep}${SKILL_NAME}`))
+        .map((c) => [c.path.slice(dir.length + 1).split(sep)[0], c]),
     );
     expect(byAgent[ALWAYS_DIR]!.state).toBe("installed");
     expect(byAgent[".codex"]).toMatchObject({ state: "installed", installed: "0.3.0" });
@@ -203,7 +203,7 @@ describe("ath skill (D79)", () => {
     const json = JSON.parse(ath(["skill", "--json"], dir).stdout);
     expect(json.shipped).toBe(ATH_PACKAGE_VERSION);
     const standard = json.copies.filter((copy: { path: string }) =>
-      copy.path.includes(`/${SKILL_NAME}`),
+      copy.path.includes(`${sep}${SKILL_NAME}`),
     );
     expect(standard.map((c: { state: string }) => c.state).sort()).toEqual([
       "installed",
