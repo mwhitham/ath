@@ -25,6 +25,10 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+      - name: Install sqlite3, which ath migrate and ath repair use for backups (D137)
+        if: runner.os == 'Windows'
+        run: choco install sqlite --no-progress -y
+      - run: sqlite3 --version
       - run: pnpm install --frozen-lockfile
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo test --manifest-path crates/ath-core/Cargo.toml
