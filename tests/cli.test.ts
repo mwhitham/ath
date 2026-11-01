@@ -6,16 +6,17 @@ import { fileURLToPath } from "node:url";
 import { createClient } from "@libsql/client";
 import { describe, expect, it } from "vitest";
 import { pathToFileURL } from "node:url";
+import { createRequire } from "node:module";
 import { ATH_PACKAGE_VERSION } from "../src/version.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../src/cli.ts");
-const TSX = resolve(here, "../node_modules/.bin/tsx");
+const TSX = createRequire(import.meta.url).resolve("tsx/cli");
 const FIXTURE = resolve(here, "../examples/demo-athlete/athlete.ath.sqlite");
 
 function ath(args: string[], cwd: string): { stdout: string; code: number } {
   try {
-    const stdout = execFileSync(TSX, [CLI, ...args], { cwd, encoding: "utf8", stdio: "pipe" });
+    const stdout = execFileSync(process.execPath, [TSX, CLI, ...args], { cwd, encoding: "utf8", stdio: "pipe" });
     return { stdout, code: 0 };
   } catch (e) {
     const err = e as { status: number; stdout?: string; stderr?: string };

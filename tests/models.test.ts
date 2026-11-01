@@ -3,6 +3,7 @@ import { lstatSync, mkdtempSync, readFileSync, symlinkSync, writeFileSync } from
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 import { afterEach, describe, expect, it } from "vitest";
 import { createDatabase } from "../src/db/index.js";
 import {
@@ -15,10 +16,10 @@ import { useCatalog } from "../src/gateway.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../src/cli.ts");
-const TSX = resolve(here, "../node_modules/.bin/tsx");
+const TSX = createRequire(import.meta.url).resolve("tsx/cli");
 function ath(args: string[], cwd: string): { stdout: string; code: number } {
   try {
-    const stdout = execFileSync(TSX, [CLI, ...args], {
+    const stdout = execFileSync(process.execPath, [TSX, CLI, ...args], {
       cwd,
       encoding: "utf8",
       stdio: "pipe",

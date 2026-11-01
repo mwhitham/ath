@@ -3,19 +3,20 @@ import { mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 import { athCoreBinary } from "../src/ath-core.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../src/cli.ts");
-const TSX = resolve(here, "../node_modules/.bin/tsx");
+const TSX = createRequire(import.meta.url).resolve("tsx/cli");
 const GARMIN = resolve(here, "fixtures/exports/garmin/park-loop.json");
 const STRAVA = resolve(here, "fixtures/exports/strava");
 const ZONES = resolve(here, "../skills/heart-rate-zones/SKILL.md");
 
 function ath(args: string[], cwd: string): { stdout: string; stderr: string; code: number } {
   try {
-    const stdout = execFileSync(TSX, [CLI, ...args], { cwd, encoding: "utf8", stdio: "pipe" });
+    const stdout = execFileSync(process.execPath, [TSX, CLI, ...args], { cwd, encoding: "utf8", stdio: "pipe" });
     return { stdout, stderr: "", code: 0 };
   } catch (error) {
     const err = error as { status: number; stdout?: string; stderr?: string };

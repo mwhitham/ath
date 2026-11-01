@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { createRequire } from "node:module";
 import { createClient } from "@libsql/client";
 import { describe, expect, it } from "vitest";
 import { athCoreBinary } from "../src/ath-core.js";
@@ -11,7 +12,7 @@ import { POINT_MEASUREMENT_UNITS } from "../src/v1/schema.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../src/cli.ts");
-const TSX = resolve(here, "../node_modules/.bin/tsx");
+const TSX = createRequire(import.meta.url).resolve("tsx/cli");
 const OW = resolve(here, "fixtures/exports/open-wearables");
 const JUNCTION = resolve(here, "fixtures/exports/junction/summaries.json");
 const GARMIN = resolve(here, "fixtures/exports/garmin/park-loop.json");
@@ -39,7 +40,7 @@ function run(command: string, args: string[], cwd?: string): Run {
   }
 }
 
-const ath = (args: string[], cwd: string) => run(TSX, [CLI, ...args], cwd);
+const ath = (args: string[], cwd: string) => run(process.execPath, [TSX, CLI, ...args], cwd);
 const core = (args: string[]) => run(athCoreBinary(), args);
 
 function emptyDatabase(options: { skill?: boolean } = {}): string {

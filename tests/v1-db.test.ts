@@ -287,14 +287,15 @@ describe("v1 database creation and opening", () => {
     const { fileURLToPath } = await import("node:url");
     const here = dirname(fileURLToPath(import.meta.url));
     const cli = resolve(here, "../src/cli.ts");
-    const tsx = resolve(here, "../node_modules/.bin/tsx");
+    const { createRequire } = await import("node:module");
+    const tsx = createRequire(import.meta.url).resolve("tsx/cli");
     for (const args of [
       ["check"],
       ["records", "list", "--json"],
       ["stats", "--json"],
       ["migrate", "--dry-run"],
     ]) {
-      execFileSync(tsx, [cli, ...args], { cwd: directory, encoding: "utf8", stdio: "pipe" });
+      execFileSync(process.execPath, [tsx, cli, ...args], { cwd: directory, encoding: "utf8", stdio: "pipe" });
     }
     const hashAfter = await hashDatabaseFilesRaw(path);
     expect(hashAfter).toBe(hashBefore);
@@ -324,14 +325,15 @@ describe("v1 database creation and opening", () => {
       const { fileURLToPath } = await import("node:url");
       const here = dirname(fileURLToPath(import.meta.url));
       const cli = resolve(here, "../src/cli.ts");
-      const tsx = resolve(here, "../node_modules/.bin/tsx");
+      const { createRequire } = await import("node:module");
+      const tsx = createRequire(import.meta.url).resolve("tsx/cli");
       for (const args of [
         ["check"],
         ["stats", "--json"],
         ["migrate", "--dry-run"],
       ]) {
         try {
-          execFileSync(tsx, [cli, ...args], { cwd: directory, encoding: "utf8", stdio: "pipe" });
+          execFileSync(process.execPath, [tsx, cli, ...args], { cwd: directory, encoding: "utf8", stdio: "pipe" });
         } catch {
           // read-only commands may exit non-zero on schema 1 or invalid data; they must not write.
         }
@@ -343,7 +345,7 @@ describe("v1 database creation and opening", () => {
       await client.close();
       const hashMismatch = await hashOf();
       try {
-        execFileSync(tsx, [cli, "migrate", "--dry-run"], {
+        execFileSync(process.execPath, [tsx, cli, "migrate", "--dry-run"], {
           cwd: directory,
           encoding: "utf8",
           stdio: "pipe",
@@ -356,7 +358,7 @@ describe("v1 database creation and opening", () => {
       await chmod(databasePath, 0o444);
       const readonlyHash = await hashOf();
       try {
-        execFileSync(tsx, [cli, "check"], { cwd: directory, encoding: "utf8", stdio: "pipe" });
+        execFileSync(process.execPath, [tsx, cli, "check"], { cwd: directory, encoding: "utf8", stdio: "pipe" });
       } catch {
         // check is expected to fail on a read-only database.
       }

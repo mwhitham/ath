@@ -4,12 +4,13 @@ import { chmodSync, copyFileSync, mkdirSync, mkdtempSync, readFileSync } from "n
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 import { athCoreBinary } from "../src/ath-core.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../src/cli.ts");
-const TSX = resolve(here, "../node_modules/.bin/tsx");
+const TSX = createRequire(import.meta.url).resolve("tsx/cli");
 const DATABASE = resolve(here, "fixtures/version-2-0-0/database.ath.sqlite");
 const ATTACHMENT = resolve(
   here,
@@ -56,7 +57,7 @@ describe("a 2.0.0 database under 2.1.0", () => {
     );
     expect(counts(copy)).toEqual([25, 26, 1, 1, 1]);
 
-    const ath = (args: string[]) => run(TSX, [CLI, ...args], directory);
+    const ath = (args: string[]) => run(process.execPath, [TSX, CLI, ...args], directory);
     const refused = run(athCoreBinary(), ["show", "--database", copy, "--record", DATABASE_ID], directory);
     expect(refused.code).toBe(1);
     expect(refused.stderr.trim()).toBe("database version is 2.0.0; run ath migrate before using ath-core");

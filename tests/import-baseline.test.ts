@@ -7,6 +7,7 @@ import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
+import { createRequire } from "node:module";
 import { ZipFile } from "yazl";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import {
@@ -19,7 +20,7 @@ import {
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../src/cli.ts");
-const TSX = resolve(here, "../node_modules/.bin/tsx");
+const TSX = createRequire(import.meta.url).resolve("tsx/cli");
 const EXPORTS = resolve(here, "fixtures/exports");
 const BASELINE = resolve(here, "fixtures/import-baseline");
 const PACKAGE = resolve(here, "fixtures/version-2-0-0/package");
@@ -31,7 +32,7 @@ async function ath(
   env: NodeJS.ProcessEnv = {},
 ): Promise<{ output: string; code: number }> {
   try {
-    const { stdout, stderr } = await run(TSX, [CLI, ...args], {
+    const { stdout, stderr } = await run(process.execPath, [TSX, CLI, ...args], {
       cwd,
       env: { ...process.env, ...env },
       maxBuffer: 64 * 1024 * 1024,

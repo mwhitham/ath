@@ -3,6 +3,7 @@ import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { createRequire } from "node:module";
 import { createClient } from "@libsql/client";
 import { afterEach, describe, expect, it } from "vitest";
 import { hashDatabaseFilesRaw } from "./helpers/raw-database-hash.js";
@@ -12,14 +13,14 @@ import { materializeNpm100ProviderDatabase } from "./helpers/npm100-database.js"
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../src/cli.ts");
-const TSX = resolve(here, "../node_modules/.bin/tsx");
+const TSX = createRequire(import.meta.url).resolve("tsx/cli");
 
 const openDatabases: AthleticDatabase[] = [];
 const directories: string[] = [];
 
 function ath(args: string[], cwd: string): { stdout: string; code: number } {
   try {
-    const stdout = execFileSync(TSX, [CLI, ...args], { cwd, encoding: "utf8", stdio: "pipe" });
+    const stdout = execFileSync(process.execPath, [TSX, CLI, ...args], { cwd, encoding: "utf8", stdio: "pipe" });
     return { stdout, code: 0 };
   } catch (error) {
     const err = error as { status: number; stdout?: string; stderr?: string };
