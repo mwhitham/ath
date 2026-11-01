@@ -989,15 +989,17 @@ The `field_basis` writer is in `crates/ath-core/src/mapping.rs`. These checks ho
 
 The 2.0.0 release run, `Release cross-platform` run 41329982327 on tag `v2.0.0`, failed on macOS and Windows and published nothing. The same jobs failed on this pull request at `738c5f9`, before the fixes below. The pull-request workflow had run the TypeScript tests on Linux only (D188).
 
-`release-cross-platform.yml` now runs on every pull request, and only a `v*` tag publishes (D188). These fixes make its test job pass on all three systems. No test or check was removed, skipped, or loosened.
+`release-cross-platform.yml` now runs on every pull request, and only a `v*` tag publishes (D188). These fixes make its test job pass on all three systems. No test or check was removed or loosened. One test case cannot run on Windows, and the last item says why.
 
 - Line endings. `.gitattributes` checks out text with LF on every system. Git on Windows had written CRLF, so `spec/sql/migrations/001-initial.sql` looked stale and every byte-for-byte comparison differed.
 - Starting the program in tests. The tests run `node` on tsx's own entry, `tsx/cli`. `node_modules/.bin/tsx` is a shell script, and Windows cannot start it.
 - The Rust program in a checkout. `src/ath-core.ts` adds `.exe` on Windows to the debug and release build paths. It had looked for `target/debug/ath-core`, so a finished `cargo build` still failed.
 - The temp folder on macOS. macOS reaches its temp folder through the `/var` symlink, and the database code refuses any path through a symlink. The program now makes its own temporary folders under the real path, with `makeTemporaryDirectory` in `src/db/client.ts`. Before this, `ath check --validate-export` failed on macOS. The test run sets `TMPDIR`, `TMP`, and `TEMP` to the real path. The symlink check is unchanged, so a path a person gives through a symlink is still refused. A test in `tests/cli.test.ts` points the temp folder through a symlink on every system and checks both.
-- Closed databases on Windows. The libsql driver keeps a closed database file open until its statements are garbage-collected, and Windows will not delete an open file. Tests that open a database in the test process remove their folders with `removeTemporaryDirectory` in `tests/helpers/temporary.ts`, which collects garbage first. Vitest runs with `--expose-gc`.
+- Closed databases on Windows. The libsql driver keeps a closed database file open until its statements are garbage-collected, and Windows will not delete an open file. Code that removes a folder holding a database it opened uses `removeTemporaryDirectory` in `src/db/client.ts`, which collects garbage first. Vitest, `pnpm check:schema-drift`, and `pnpm performance:run` start node with `--expose-gc`. Two tests used `rejects.toThrow()` on a refused SQL statement. Vitest keeps that rejected promise until the run ends, and the libsql error keeps the statement open, so those tests now catch the error and check it the way the tests beside them do.
+- Backups on Windows. `ath migrate` and `ath repair` now read the backup they just made with the same `sqlite3` tool, not an in-process connection. The in-process connection kept the backup open, so removing its `-wal` and `-shm` files failed on Windows and the command stopped.
 - `sqlite3` on Windows. The Windows test job installs it, because `ath migrate` and `ath repair` need it (D137).
 - Time per test. One CLI command can take several seconds on the macOS and Windows runners, so the default test timeout is 60 seconds. Many CLI tests already set that limit themselves.
+- One file name Windows does not allow. The backup test's name with a double quote runs on Linux and macOS. On Windows the same test backs up to paths that contain `\s` and `\t` through a real folder, because there `\` separates folders.
 
 ## 7. What this release does not change
 
@@ -1173,7 +1175,7 @@ These are outside this release. This section does not assign them to a later ver
 - A `field_basis` on records written before 2.1.0. Migration step 4 does not backfill (D187).
 - A basis for each field name. One value per record, plus the activity type and the Apple route summaries, is the whole object.
 - A GPX time with no UTC offset. `src/import/routes.ts` reads it in the machine's time zone when it works out an Apple workout's kilometre splits. The baseline runs row 04 with `TZ=UTC` (section 6).
-- Deleting a database in the same run that closed it, on Windows. The libsql driver keeps the file open until its statements are garbage-collected, so Windows refuses the delete. Only error paths do this: the cleanup after a failed `ath init`, after a failed database create, and after a failed backup.
+- Deleting a database in the same run that closed it, on Windows. The libsql driver keeps the file open until its statements are garbage-collected, so Windows refuses the delete. Only error paths do this: the cleanup after a failed `ath init` and after a failed database create.
 
 ## 13. Every stored value's basis
 

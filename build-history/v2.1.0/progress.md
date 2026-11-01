@@ -34,7 +34,8 @@ Migration step 4 does not backfill `field_basis` on older records (D187).
 The 2.0.0 release run failed on macOS and Windows, and nothing was published. The
 pull-request workflow had run the TypeScript tests on Linux only, so the failures first
 showed at release time. The release workflow now runs on every pull request (D188).
-Spec section 6 lists each fix. None removes, skips, or loosens a test.
+Spec section 6 lists each fix. None removes or loosens a test. One backup test case
+uses a file name that Windows does not allow, so it runs on Linux and macOS only.
 
 Mike asked to remove the outdated "Later, with the reason:" heading from
 [v2.0.0/progress.md](../v2.0.0/progress.md). The mapping study is
