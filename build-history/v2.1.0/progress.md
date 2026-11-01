@@ -10,6 +10,7 @@
 | 6 | `field_basis` on every stored value, from every importer and `ath log` (D187) | done |
 | 7 | `cargo test` on Linux, macOS, and Windows, a Windows path test, and the pack checks in CI | done |
 | 8 | The regenerated demo athlete, and a migrated copy of the 2.0.0 database that passes `ath check` | done |
+| 9 | The release workflow on every pull request, passing on Linux, macOS, and Windows (D188) | done |
 
 Mike approved the plan in [spec.md](spec.md). Three changes override it where they
 conflict. The build is one pull request, not three. 2.1.0 ships as option A: one
@@ -29,6 +30,11 @@ with `TZ=UTC`. The importer and the assertions are unchanged (spec section 6).
 
 Every importer could state a basis from what its source says. None had to be invented.
 Migration step 4 does not backfill `field_basis` on older records (D187).
+
+The 2.0.0 release run failed on macOS and Windows, and nothing was published. The
+pull-request workflow had run the TypeScript tests on Linux only, so the failures first
+showed at release time. The release workflow now runs on every pull request (D188).
+Spec section 6 lists each fix. None removes, skips, or loosens a test.
 
 Mike asked to remove the outdated "Later, with the reason:" heading from
 [v2.0.0/progress.md](../v2.0.0/progress.md). The mapping study is

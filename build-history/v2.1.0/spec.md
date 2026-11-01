@@ -1,7 +1,7 @@
 # Athletic Standard 2.1.0
 
 Status: **approved by Mike and built in one pull request**. The decisions are in
-[decisions.md](decisions.md), D177 through D187. What was built is in
+[decisions.md](decisions.md), D177 through D188. What was built is in
 [progress.md](progress.md).
 
 This release builds the source mapping [D161](../v2.0.0/decisions.md) describes. A source whose reader already produces named fields is imported by adding a mapping file. The file lists their field and our field. A mapped field becomes the typed value. Any other field stays in `supplied_fields` under the name it arrived with.
@@ -569,6 +569,7 @@ The decisions as adopted are in [decisions.md](decisions.md). Numbers continue f
 - D185. A basis we assign is not a supplied field. `field_basis` for mapped values.
 - D186. `intensity` stays in `supplied_fields`, and no calculation reads it or `Feeling`.
 - D187. Every stored value states its basis, from every importer, mapping file, and `ath log`. Migration step 4 does not backfill.
+- D188. Every pull request runs the release workflow. Only a `v*` tag publishes.
 
 D184 records option A. Option B, two numbers, was not chosen, so no D185 stub was written.
 
@@ -984,6 +985,20 @@ The `field_basis` writer is in `crates/ath-core/src/mapping.rs`. These checks ho
 - `sleep.score` and `recovery_readiness_score` have `field_basis` `{ "value": "provider" }`.
 - Every other mapped record states the file's `value_basis` (D187): `ow-sleep-1` is `{ "value": "provider_or_open_wearables" }`, every Open Wearables timeseries point and the `vo2_max` summary are `provider_or_open_wearables`, and `jn-sleep-1` and its resting heart rate and respiratory rate points are `provider_or_junction`. Test `every mapped value states its basis (D187)`. A `source_device` record has no `field_basis`.
 
+### The release workflow on every pull request
+
+The 2.0.0 release run, `Release cross-platform` run 41329982327 on tag `v2.0.0`, failed on macOS and Windows and published nothing. The same jobs failed on this pull request at `738c5f9`, before the fixes below. The pull-request workflow had run the TypeScript tests on Linux only (D188).
+
+`release-cross-platform.yml` now runs on every pull request, and only a `v*` tag publishes (D188). These fixes make its test job pass on all three systems. No test or check was removed, skipped, or loosened.
+
+- Line endings. `.gitattributes` checks out text with LF on every system. Git on Windows had written CRLF, so `spec/sql/migrations/001-initial.sql` looked stale and every byte-for-byte comparison differed.
+- Starting the program in tests. The tests run `node` on tsx's own entry, `tsx/cli`. `node_modules/.bin/tsx` is a shell script, and Windows cannot start it.
+- The Rust program in a checkout. `src/ath-core.ts` adds `.exe` on Windows to the debug and release build paths. It had looked for `target/debug/ath-core`, so a finished `cargo build` still failed.
+- The temp folder on macOS. macOS reaches its temp folder through the `/var` symlink, and the database code refuses any path through a symlink. The program now makes its own temporary folders under the real path, with `makeTemporaryDirectory` in `src/db/client.ts`. Before this, `ath check --validate-export` failed on macOS. The test run sets `TMPDIR`, `TMP`, and `TEMP` to the real path. The symlink check is unchanged, so a path a person gives through a symlink is still refused. A test in `tests/cli.test.ts` points the temp folder through a symlink on every system and checks both.
+- Closed databases on Windows. The libsql driver keeps a closed database file open until its statements are garbage-collected, and Windows will not delete an open file. Tests that open a database in the test process remove their folders with `removeTemporaryDirectory` in `tests/helpers/temporary.ts`, which collects garbage first. Vitest runs with `--expose-gc`.
+- `sqlite3` on Windows. The Windows test job installs it, because `ath migrate` and `ath repair` need it (D137).
+- Time per test. One CLI command can take several seconds on the macOS and Windows runners, so the default test timeout is 60 seconds. Many CLI tests already set that limit themselves.
+
 ## 7. What this release does not change
 
 - The records, `supplied_fields`, sources, route points, attachments, links, and import receipts produced from the section 6 baseline, including the package, the Apple zip, the bare `export.xml`, and `ath pull garmin`, apart from the one new key `field_basis` (D187). Those readers are not moved onto mapping files.
@@ -1100,7 +1115,7 @@ Mike asked to remove the outdated "Later, with the reason:" heading from
 
 ## 10. Notes and proof
 
-`build-history/v2.1.0/decisions.md` holds D177 through D187. D184 and D185 were inserted before D186, and D187 follows D186. `build-history/README.md` "Current records" links the spec, the decisions, and the progress note, and says version 2.1.0 is the software now.
+`build-history/v2.1.0/decisions.md` holds D177 through D188. D184 and D185 were inserted before D186, and D187 and D188 follow D186. `build-history/README.md` "Current records" links the spec, the decisions, and the progress note, and says version 2.1.0 is the software now.
 
 The proof is in the build pull request's description: screenshots and a short video of the packed package, installed into an empty folder. None of it is committed. The build request asked for `ath --version` showing `2.1.0`, an `ath import --mapping open-wearables` run with its `left_out` lines, `ath check` passing on a migrated copy of the 2.0.0 database, and one record from a built-in importer showing `field_basis`. The plan's list also asked for these seven items, and the proof shows all seven:
 
@@ -1158,6 +1173,7 @@ These are outside this release. This section does not assign them to a later ver
 - A `field_basis` on records written before 2.1.0. Migration step 4 does not backfill (D187).
 - A basis for each field name. One value per record, plus the activity type and the Apple route summaries, is the whole object.
 - A GPX time with no UTC offset. `src/import/routes.ts` reads it in the machine's time zone when it works out an Apple workout's kilometre splits. The baseline runs row 04 with `TZ=UTC` (section 6).
+- Deleting a database in the same run that closed it, on Windows. The libsql driver keeps the file open until its statements are garbage-collected, so Windows refuses the delete. Only error paths do this: the cleanup after a failed `ath init`, after a failed database create, and after a failed backup.
 
 ## 13. Every stored value's basis
 

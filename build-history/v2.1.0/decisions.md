@@ -462,3 +462,31 @@ Rejected alternatives:
 - Refuse a structured `ath log` record that has no `field_basis`. Rejected because
   a value entered through `ath log` is entered by hand by definition, and existing
   agents would fail.
+
+## D188. Every pull request runs the release workflow
+
+`.github/workflows/release-cross-platform.yml` runs on every pull request, as well
+as by hand and on a `v*` tag. Its test job runs `cargo test`, the TypeScript tests,
+and the release build on Linux, macOS, and Windows. Its package job packs the
+tarball and runs the installed-package smoke test. Only a `v*` tag publishes,
+because the publish step checks that the ref is a tag.
+
+The pull-request workflow ran the TypeScript tests on Linux only. On macOS and
+Windows it built and tested the Rust crate, and ran one test file on Windows. The
+2.0.0 release run was the first time the TypeScript tests met macOS and Windows,
+and it failed after the tag was pushed. A pull request now meets the same jobs
+before anything is tagged.
+
+The Windows test job installs `sqlite3`, because `ath migrate` and `ath repair` need
+it for a verified backup (D137). Every test job prints `sqlite3 --version`, so a
+missing tool stops the job before the tests run.
+
+Rejected alternatives:
+
+- Copy the release test matrix into `ci.yml`. Rejected because two copies drift
+  apart, and the release workflow is the one that has to pass before a tag.
+- Run the release workflow by hand before tagging. Rejected because a hand step can
+  be skipped, and a failure would still show up only at release time.
+- Call the release workflow from `ci.yml`. Rejected because both workflows upload
+  `ath-core-*` artifacts under the same names, and a called workflow shares the
+  caller's run.
