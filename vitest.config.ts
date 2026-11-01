@@ -13,6 +13,8 @@ export default defineConfig({
     // those subprocesses starve each other on shared CI runners and makes the
     // per-test timeout measure runner contention instead of command behavior.
     maxWorkers: 1,
+    // tests/helpers/temporary.ts collects garbage so libsql lets go of a closed file.
+    execArgv: ["--expose-gc"],
     env: { TMPDIR: temporaryRoot, TMP: temporaryRoot, TEMP: temporaryRoot },
     exclude: [...configDefaults.exclude],
   },

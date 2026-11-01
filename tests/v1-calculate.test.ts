@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -11,6 +11,7 @@ import {
   type AthleticDatabase,
 } from "../src/db/index.js";
 import { databaseClient } from "../src/db/client.js";
+import { removeTemporaryDirectory } from "./helpers/temporary.js";
 
 const opened: AthleticDatabase[] = [];
 const temporaryDirectories: string[] = [];
@@ -20,12 +21,12 @@ const actor = {
   tool_version: "1.0.0",
 };
 
-afterEach(() => {
+afterEach(async () => {
   for (const database of opened.splice(0)) {
     database.close();
   }
   for (const directory of temporaryDirectories.splice(0)) {
-    rmSync(directory, { recursive: true, force: true });
+    await removeTemporaryDirectory(directory);
   }
 });
 

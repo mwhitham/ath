@@ -1,4 +1,4 @@
-import { copyFile, cp, mkdtemp, rm } from "node:fs/promises";
+import { copyFile, cp, mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
@@ -23,6 +23,7 @@ import {
   materializeNpm100ProviderDatabase,
   snapshotRecordPayloadBytes,
 } from "./helpers/npm100-database.js";
+import { removeTemporaryDirectory } from "./helpers/temporary.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../src/cli.ts");
@@ -47,7 +48,7 @@ afterEach(async () => {
     database.close();
   }
   for (const directory of directories.splice(0)) {
-    await rm(directory, { recursive: true, force: true });
+    await removeTemporaryDirectory(directory);
   }
 });
 

@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
@@ -9,13 +9,14 @@ import {
 import { runPerformanceBenchmarks } from "../scripts/performance/run-benchmarks.js";
 import { checkDatabase, openDatabase } from "../src/db/index.js";
 import { databaseClient } from "../src/db/client.js";
+import { removeTemporaryDirectory } from "./helpers/temporary.js";
 
 const temporaryDirectories: string[] = [];
 
 afterEach(async () => {
   await Promise.all(
     temporaryDirectories.splice(0).map((path) =>
-      rm(path, { recursive: true, force: true }),
+      removeTemporaryDirectory(path),
     ),
   );
 });

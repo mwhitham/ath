@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { chmod, lstat, mkdir, mkdtemp, readFile, rm, symlink } from "node:fs/promises";
+import { chmod, lstat, mkdir, mkdtemp, readFile, symlink } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -33,6 +33,7 @@ import {
   readUserVersion,
 } from "../src/db/client.js";
 import { materializeNpm100ProviderDatabase } from "./helpers/npm100-database.js";
+import { removeTemporaryDirectory } from "./helpers/temporary.js";
 
 const databaseId = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e01";
 const sourceId = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e02";
@@ -119,7 +120,7 @@ afterEach(async () => {
   }
   await Promise.all(
     temporaryDirectories.splice(0).map((directory) =>
-      rm(directory, { recursive: true, force: true }),
+      removeTemporaryDirectory(directory),
     ),
   );
 });

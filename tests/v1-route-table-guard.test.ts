@@ -1,10 +1,10 @@
-import { rm } from "node:fs/promises";
 import { afterEach, describe, expect, it } from "vitest";
 import { openDatabase, type AthleticDatabase } from "../src/db/index.js";
 import { databaseClient } from "../src/db/client.js";
 import { rebuildTypedRowFromCurrentRevision } from "../src/db/records.js";
 import { createUuidV7 } from "../src/db/uuid.js";
 import { materializeNpm100ProviderDatabase } from "./helpers/npm100-database.js";
+import { removeTemporaryDirectory } from "./helpers/temporary.js";
 
 const openDatabases: AthleticDatabase[] = [];
 const directories: string[] = [];
@@ -14,7 +14,7 @@ afterEach(async () => {
     database.close();
   }
   for (const directory of directories.splice(0)) {
-    await rm(directory, { recursive: true, force: true });
+    await removeTemporaryDirectory(directory);
   }
 });
 

@@ -1,10 +1,11 @@
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { createClient } from "@libsql/client";
 import { afterEach, describe, expect, it } from "vitest";
 import { createDatabase, writeRecord } from "../src/db/index.js";
+import { removeTemporaryDirectory } from "./helpers/temporary.js";
 
 const databaseId = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1f01";
 const createdAt = "2026-08-09T12:00:00.000Z";
@@ -72,7 +73,7 @@ async function seededDatabase(): Promise<string> {
 describe("v1 direct SQLite enforcement", () => {
   afterEach(async () => {
     for (const directory of directories.splice(0)) {
-      await rm(directory, { recursive: true, force: true });
+      await removeTemporaryDirectory(directory);
     }
   });
 

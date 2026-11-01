@@ -22,6 +22,7 @@ import {
   writeRecord,
   type AthleticDatabase,
 } from "../src/db/index.js";
+import { removeTemporaryDirectory } from "./helpers/temporary.js";
 
 const fixture = resolve("examples/demo-athlete/athlete.ath.sqlite");
 const databases: AthleticDatabase[] = [];
@@ -33,12 +34,12 @@ function temporaryDirectory(prefix: string): string {
   return directory;
 }
 
-afterEach(() => {
+afterEach(async () => {
   for (const database of databases.splice(0)) {
     database.close();
   }
   for (const directory of directories.splice(0)) {
-    rmSync(directory, { recursive: true, force: true });
+    await removeTemporaryDirectory(directory);
   }
 });
 

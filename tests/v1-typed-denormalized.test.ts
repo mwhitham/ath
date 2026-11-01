@@ -1,4 +1,4 @@
-import { copyFile, mkdtemp, rm } from "node:fs/promises";
+import { copyFile, mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
@@ -7,6 +7,7 @@ import { databaseClient } from "../src/db/client.js";
 import type { AthleticDatabase } from "../src/db/index.js";
 import { ath } from "./helpers/cli-exec.js";
 import { prepareMigratedNpm100 } from "./helpers/npm100-prepared.js";
+import { removeTemporaryDirectory } from "./helpers/temporary.js";
 
 const openDatabases: AthleticDatabase[] = [];
 const directories: string[] = [];
@@ -21,7 +22,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   if (migratedTemplateDir !== "") {
-    await rm(migratedTemplateDir, { recursive: true, force: true });
+    await removeTemporaryDirectory(migratedTemplateDir);
   }
 });
 
@@ -38,7 +39,7 @@ afterEach(async () => {
     database.close();
   }
   for (const directory of directories.splice(0)) {
-    await rm(directory, { recursive: true, force: true });
+    await removeTemporaryDirectory(directory);
   }
 });
 
