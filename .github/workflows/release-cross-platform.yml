@@ -2,6 +2,7 @@ name: Release cross-platform
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
     tags:
       - "v*"
