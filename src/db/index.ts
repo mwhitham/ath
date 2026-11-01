@@ -3,6 +3,7 @@ export {
   SQLITE_APPLICATION_ID,
   SQLITE_APPLICATION_MARKER,
   releaseLocalDatabase,
+  makeTemporaryDirectory,
   markSkipWalCheckpointOnRelease,
   type AthleticDatabase,
 } from "./client.js";

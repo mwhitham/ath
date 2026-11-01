@@ -1,5 +1,6 @@
-import { chmod, lstat } from "node:fs/promises";
-import { parse, resolve, sep } from "node:path";
+import { chmod, lstat, mkdtemp, realpath } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, parse, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createClient, type Client, type ResultSet } from "@libsql/client";
 
@@ -117,6 +118,16 @@ export async function refuseSymbolicLinkComponents(
       throw error;
     }
   }
+}
+
+/**
+ * Make a private folder for this program's own temporary files. The system
+ * temp folder can sit behind an operating-system symlink, such as /var on
+ * macOS, so the folder is made under its real path. A path a person gives is
+ * still checked by refuseSymbolicLinkComponents.
+ */
+export async function makeTemporaryDirectory(prefix: string): Promise<string> {
+  return mkdtemp(join(await realpath(tmpdir()), prefix));
 }
 
 export async function connectDatabase(target: string): Promise<AthleticDatabase> {

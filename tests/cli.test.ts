@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { copyFileSync, mkdtempSync } from "node:fs";
+import { copyFileSync, mkdtempSync, readdirSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -14,9 +14,18 @@ const CLI = resolve(here, "../src/cli.ts");
 const TSX = createRequire(import.meta.url).resolve("tsx/cli");
 const FIXTURE = resolve(here, "../examples/demo-athlete/athlete.ath.sqlite");
 
-function ath(args: string[], cwd: string): { stdout: string; code: number } {
+function ath(
+  args: string[],
+  cwd: string,
+  env: NodeJS.ProcessEnv = {},
+): { stdout: string; code: number } {
   try {
-    const stdout = execFileSync(process.execPath, [TSX, CLI, ...args], { cwd, encoding: "utf8", stdio: "pipe" });
+    const stdout = execFileSync(process.execPath, [TSX, CLI, ...args], {
+      cwd,
+      env: { ...process.env, ...env },
+      encoding: "utf8",
+      stdio: "pipe",
+    });
     return { stdout, code: 0 };
   } catch (e) {
     const err = e as { status: number; stdout?: string; stderr?: string };
@@ -129,6 +138,22 @@ describe("ath check", () => {
       valid: true,
       export_validated: true,
     });
+  });
+
+  it("makes its own export under the real temp folder, and still refuses a path given through a symlink", () => {
+    const real = mkdtempSync(join(tmpdir(), "ath-temp-root-"));
+    const linked = `${real}-link`;
+    symlinkSync(real, linked, "junction");
+    const temp = { TMPDIR: linked, TMP: linked, TEMP: linked };
+    const res = ath(["check", FIXTURE, "--validate-export", "--json"], process.cwd(), temp);
+    expect(res.code, res.stdout).toBe(0);
+    expect(JSON.parse(res.stdout)).toMatchObject({ valid: true, export_validated: true });
+    expect(readdirSync(real).filter((name) => name.startsWith("ath-check-export-"))).toEqual([]);
+
+    copyFileSync(FIXTURE, join(real, "athlete.ath.sqlite"));
+    const refused = ath(["check", join(linked, "athlete.ath.sqlite")], process.cwd());
+    expect(refused.code).toBe(1);
+    expect(refused.stdout).toContain(`Refusing to use path through a symbolic link: ${linked}`);
   });
 
   it("fails a foreign-key violation with a pointed message", async () => {

@@ -9,8 +9,7 @@
  */
 import { Command } from "commander";
 import { existsSync } from "node:fs";
-import { mkdtemp, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { rm } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { createInterface } from "node:readline/promises";
 import {
@@ -95,6 +94,7 @@ import {
   releaseLocalDatabase,
   exportRecords,
   inspectDatabase,
+  makeTemporaryDirectory,
   gradePrediction,
   importProviderRecords,
   importRecords,
@@ -1518,7 +1518,7 @@ export function buildProgram(): Command {
         const result = await checkDatabase(database);
         let exportValidated = false;
         if (opts.validateExport) {
-          const temporary = await mkdtemp(join(tmpdir(), "ath-check-export-"));
+          const temporary = await makeTemporaryDirectory("ath-check-export-");
           try {
             await exportRecords(database, join(temporary, "package"));
             exportValidated = true;

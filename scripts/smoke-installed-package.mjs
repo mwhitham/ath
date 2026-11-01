@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { copyFileSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -27,7 +27,7 @@ const modeLine = verbose.split("\n").find((line) => line.includes(shipped));
 if (modeLine === undefined || !/^-.{2}x/.test(modeLine)) {
   throw new Error(`ath-core is not executable in the packed tarball: ${modeLine}`);
 }
-const directory = mkdtempSync(join(tmpdir(), "ath-installed-"));
+const directory = mkdtempSync(join(realpathSync(tmpdir()), "ath-installed-"));
 try {
   execFileSync("npm", ["install", "--ignore-scripts", tarball], { cwd: directory, stdio: "inherit" });
   const ath = join(directory, "node_modules", ".bin", "ath");

@@ -3,8 +3,7 @@
  * or a database created by createDatabase().
  */
 import { readFileSync } from "node:fs";
-import { mkdtemp, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { rm } from "node:fs/promises";
 import { dirname, join, resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import { createClient } from "@libsql/client";
@@ -20,7 +19,7 @@ import {
 import { PROVIDER_ENCODING_REPAIR_SQL } from "../src/db/migrations/002-provider-encoding-repair.js";
 import { VERSION_2_UPGRADE_SQL } from "../src/db/migrations/003-version-2.js";
 import { VERSION_2_1_UPGRADE_SQL } from "../src/db/migrations/004-version-2-1.js";
-import { SQLITE_APPLICATION_ID } from "../src/db/client.js";
+import { makeTemporaryDirectory, SQLITE_APPLICATION_ID } from "../src/db/client.js";
 import {
   createDatabase,
   SQLITE_APPLICATION_MARKER,
@@ -72,7 +71,7 @@ interface SchemaSnapshot {
 }
 
 async function schemaFromCreateDatabase(): Promise<SchemaSnapshot> {
-  const directory = await mkdtemp(join(tmpdir(), "ath-schema-drift-"));
+  const directory = await makeTemporaryDirectory("ath-schema-drift-");
   const path = join(directory, "athlete.ath.sqlite");
   const databaseId = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1f01";
   const createdAt = "2026-08-09T12:00:00.000Z";
@@ -92,7 +91,7 @@ async function schemaFromCreateDatabase(): Promise<SchemaSnapshot> {
 }
 
 async function schemaFromPublishedSqlFile(): Promise<SchemaSnapshot> {
-  const directory = await mkdtemp(join(tmpdir(), "ath-schema-drift-sql-"));
+  const directory = await makeTemporaryDirectory("ath-schema-drift-sql-");
   const path = join(directory, "athlete.ath.sqlite");
   const migrationFile = join(root, "spec", "sql", "migrations", "001-initial.sql");
   const version2File = join(root, "spec", "sql", "migrations", "003-version-2.sql");
