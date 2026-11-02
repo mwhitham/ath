@@ -890,6 +890,17 @@ describe("refusals", () => {
         "name: w\nroute: w_route\nwriter_field: source.provider\nvalue_basis: provider\n[workout]\nsport: activity_type",
         "activity_type needs a basis: one of aggregator_normalized, provider_label",
       ],
+      [`${SLEEP_HEADER}nightly: provider_summary.hrv_rmssd ms ms`, "refusing to map nightly onto provider_summary.hrv_rmssd; the field does not name the statistic"],
+      [`${SLEEP_HEADER.replace("id_field: id\n", "")}x: asleep_seconds s s`, "[sleep] needs id_field"],
+      [`${SLEEP_HEADER}window_field: window\nx: asleep_seconds s s`, "window_field is not a setting of [sleep]"],
+      [
+        "name: t\nroute: t_route\nwriter_field: source.provider\nvalue_basis: provider\n[timeseries]\ntime_field: at\ntype_field: kind\nvalue_field: reading\nunit_field: unit\nrmssd_night: hrv_rmssd ms ms",
+        "a [timeseries] line reads kind.<type>, not rmssd_night",
+      ],
+      [
+        `${SLEEP_HEADER.replace("value_basis: provider\n", "value_basis: provider\npage_rows: data\npage_section: sleep\n")}x: asleep_seconds s s`,
+        "the mapping file needs page_marker when it describes a page",
+      ],
     ];
     for (const [body, message] of cases) {
       const path = writeMapping(dir, "case", body);
@@ -952,6 +963,63 @@ describe("mapping files a person adds", () => {
     expect(apply.stderr).toContain("no calculation skill named my-source");
   }, 60_000);
 
+  it("a mapping file names its own page and sample fields", async () => {
+    const dir = emptyDatabase();
+    const mapping = writeMapping(
+      dir,
+      "samples",
+      [
+        "name: samples",
+        "route: samples_route",
+        "writer_field: maker",
+        "value_basis: provider_or_aggregator",
+        "personal_when: origin typed",
+        "page_rows: items",
+        "page_marker: meta",
+        "page_section: timeseries",
+        "page_resolution: meta.grain",
+        "raw_resolution: each",
+        "",
+        "[timeseries]",
+        "time_field: at",
+        "type_field: kind",
+        "value_field: reading",
+        "unit_field: unit",
+        "aggregate_field: until",
+        "window_field: span",
+        "kind.rmssd_night: hrv_rmssd ms ms",
+      ].join("\n"),
+    );
+    const sample = (at: string, extra: string) =>
+      `{"at":"${at}","kind":"rmssd_night","reading":41,"unit":"ms","maker":"invented-maker"${extra}}`;
+    const page = (grain: string) =>
+      `{"meta":{"grain":"${grain}"},"items":[${[
+        sample("2026-08-09T06:00:00.000Z", ',"span":60'),
+        sample("2026-08-09T06:01:00.000Z", ',"until":"2026-08-09T07:00:00.000Z"'),
+        sample("2026-08-09T06:02:00.000Z", ',"origin":"typed"'),
+      ].join(",")}]}`;
+    const raw = join(dir, "raw.json");
+    writeFileSync(raw, page("each"));
+    expect(mapped(dir, raw, mapping).left_out).toEqual([
+      "timeseries rmssd_night 2026-08-09T06:01:00.000Z: aggregate row, not a raw sample",
+      "timeseries rmssd_night 2026-08-09T06:02:00.000Z: origin typed is a personal report",
+    ]);
+    const { byKey } = await stored(dir);
+    expect(byKey.size).toBe(1);
+    const point = byKey.get(key("invented-maker", "-", "timeseries", "point", "rmssd_night", "2026-08-09T06:00:00.000Z"))!;
+    expect(point.data.quantity).toBe("hrv_rmssd");
+    expect(point.data.supplied_fields).toEqual({ span: 60 });
+    expect(point.data.field_basis).toEqual({ value: "provider_or_aggregator" });
+
+    const hourly = join(dir, "hourly.json");
+    writeFileSync(hourly, page("hourly"));
+    expect(mapped(dir, hourly, mapping).left_out).toEqual([
+      "timeseries rmssd_night 2026-08-09T06:00:00.000Z: resolution hourly: not raw samples",
+      "timeseries rmssd_night 2026-08-09T06:01:00.000Z: aggregate row, not a raw sample",
+      "timeseries rmssd_night 2026-08-09T06:02:00.000Z: resolution hourly: not raw samples",
+    ]);
+  }, 60_000);
+
   it("init_no_skill_skips_mapping_files", () => {
     const without = emptyDatabase();
     expect(existsSync(join(without, ".agents", "mappings"))).toBe(false);
@@ -990,5 +1058,6 @@ describe("the mapping engine's unit table", () => {
       );
     expect(list("VALUE_BASES")).toEqual(ValueBasis.options);
     expect(list("ACTIVITY_TYPE_BASES")).toEqual(ActivityTypeBasis.options);
+    expect(source).not.toMatch(/open_wearables|junction/i);
   });
 });

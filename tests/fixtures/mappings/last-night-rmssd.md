@@ -10,6 +10,8 @@ value_basis: provider
 
 [timeseries]
 time_field: timestamp
+type_field: type
 value_field: value
+unit_field: unit
 type.LastNightAvg: hrv_rmssd ms ms
 ```

@@ -3,6 +3,7 @@
 //! A mapping file is markdown. The program reads the first fenced block tagged
 //! `ath-mapping`. Each line names their field and our field. A mapped field becomes
 //! the typed value. Every other field stays in `supplied_fields` under its name.
+//! Field names that belong to one source's layout come from its mapping file.
 
 use std::collections::{BTreeSet, HashMap, HashSet};
 
@@ -11,11 +12,11 @@ use serde_json::{json, Map, Number, Value};
 use crate::store::{GroupOutcome, GroupRecord, MappedSource, Store};
 
 pub const REFUSE_PERSONAL_REPORT: &str = "refusing to turn a personal report into a measured record";
-pub const ENVELOPE_NOT_TIMESERIES: &str =
-    "envelope is not a timeseries page: pass its data array under workout or sleep";
 
 const SECTIONS: &[&str] = &["sleep", "workout", "timeseries"];
-const SETTINGS: &[&str] = &["id_field", "start_field", "end_field", "time_field", "value_field"];
+const SESSION_SETTINGS: &[&str] = &["id_field", "start_field", "end_field"];
+const SAMPLE_SETTINGS: &[&str] = &["time_field", "type_field", "value_field", "unit_field"];
+const SAMPLE_OPTIONAL_SETTINGS: &[&str] = &["aggregate_field", "window_field"];
 const BUILT_IN_ROUTES: &[&str] = &[
     "garmin_account_export",
     "garmin_personal_api",
@@ -83,8 +84,6 @@ const EFFICIENCY_FIELDS: &[&str] = &[
     "sleep-efficiency",
     "source_reported_summaries.sleep_efficiency",
 ];
-const RMSSD_NAMES: &[&str] = &["heart_rate_variability_rmssd"];
-const SDNN_NAMES: &[&str] = &["heart_rate_variability_sdnn", "hrv_mean_sdnn"];
 
 #[derive(Debug, Clone, Default)]
 pub struct MappingFile {
@@ -96,7 +95,22 @@ pub struct MappingFile {
     pub device_name: Vec<String>,
     pub device_model: Vec<String>,
     pub device_hardware: Vec<String>,
+    /// `personal_when: field value`. A row whose field has that value is a personal report.
+    pub personal_when: Option<(String, String)>,
+    pub page: PageSettings,
     pub sections: Vec<Section>,
+}
+
+/// How a source wraps one page of rows: `page_rows`, `page_marker`, `page_section`,
+/// and an optional `page_resolution` path whose value is `raw_resolution` for raw
+/// samples (D193).
+#[derive(Debug, Clone, Default)]
+pub struct PageSettings {
+    pub rows: Option<String>,
+    pub marker: Option<String>,
+    pub section: Option<String>,
+    pub resolution: Option<String>,
+    pub raw_resolution: Option<String>,
 }
 
 #[derive(Debug, Clone, Default)]
@@ -126,6 +140,11 @@ impl MappingFile {
 impl Section {
     fn setting(&self, key: &str) -> Option<&str> {
         self.settings.get(key).map(String::as_str)
+    }
+
+    /// A setting `check_mapping` requires.
+    fn field(&self, key: &str) -> &str {
+        self.setting(key).expect("checked mapping")
     }
 }
 
@@ -182,11 +201,23 @@ pub fn parse_mapping(text: &str) -> Result<MappingFile, String> {
                     "device_name" => file.device_name = list(),
                     "device_model" => file.device_model = list(),
                     "device_hardware" => file.device_hardware = list(),
+                    "personal_when" => {
+                        let parts: Vec<&str> = rest.split_whitespace().collect();
+                        let [field, value] = parts.as_slice() else {
+                            return Err(format!("could not read '{line}'"));
+                        };
+                        file.personal_when = Some((field.to_string(), value.to_string()));
+                    }
+                    "page_rows" => file.page.rows = Some(rest.to_string()),
+                    "page_marker" => file.page.marker = Some(rest.to_string()),
+                    "page_section" => file.page.section = Some(rest.to_string()),
+                    "page_resolution" => file.page.resolution = Some(rest.to_string()),
+                    "raw_resolution" => file.page.raw_resolution = Some(rest.to_string()),
                     _ => return Err(format!("could not read '{line}'")),
                 }
             }
             Some(section) => {
-                if SETTINGS.contains(&key) {
+                if SESSION_SETTINGS.contains(&key) || SAMPLE_SETTINGS.contains(&key) || SAMPLE_OPTIONAL_SETTINGS.contains(&key) {
                     section.settings.insert(key.to_string(), rest.to_string());
                 } else {
                     section.lines.push(parse_line(line, key, rest)?);
@@ -258,8 +289,35 @@ fn point_unit(quantity: &str) -> Option<&'static str> {
     POINT_UNITS.iter().find(|(name, _)| *name == quantity).map(|(_, unit)| *unit)
 }
 
-fn statistic_name(their_field: &str) -> &str {
-    their_field.strip_prefix("type.").unwrap_or(their_field)
+/// Their name for a value. A timeseries line reads `<type_field>.<type>`, and the
+/// type is the name.
+fn statistic_name<'a>(section: &Section, their_field: &'a str) -> &'a str {
+    if section.name != "timeseries" {
+        return their_field;
+    }
+    match section.setting("type_field") {
+        Some(type_field) => their_field
+            .strip_prefix(type_field)
+            .and_then(|rest| rest.strip_prefix('.'))
+            .unwrap_or(their_field),
+        None => their_field.split_once('.').map_or(their_field, |(_, rest)| rest),
+    }
+}
+
+/// The heart-rate variability statistic a target claims to store, from its name (D194).
+fn claimed_statistic(our_field: &str) -> Option<&'static str> {
+    let name = our_field
+        .strip_prefix("provider_summary.")
+        .or_else(|| our_field.strip_prefix("provider_score."))
+        .unwrap_or(our_field)
+        .to_ascii_lowercase();
+    if name.contains("rmssd") {
+        Some("rmssd")
+    } else if name.contains("sdnn") {
+        Some("sdnn")
+    } else {
+        None
+    }
 }
 
 enum Target {
@@ -309,8 +367,10 @@ pub fn check_mapping(file: &MappingFile) -> Result<(), String> {
             return Err(REFUSE_PERSONAL_REPORT.into());
         }
     }
-    for line in file.sections.iter().flat_map(|section| section.lines.iter()) {
-        refuse_line(line)?;
+    for section in &file.sections {
+        for line in &section.lines {
+            refuse_line(section, line)?;
+        }
     }
     for (key, value) in [
         ("name", &file.name),
@@ -351,22 +411,83 @@ pub fn check_mapping(file: &MappingFile) -> Result<(), String> {
                 return Err(format!("two lines read {} without when-writer", line.their_field));
             }
         }
+        check_settings(section)?;
+    }
+    check_page(file)
+}
+
+/// Each section names the fields that hold its rows. Nothing is assumed (D193).
+fn check_settings(section: &Section) -> Result<(), String> {
+    let (required, optional): (&[&str], &[&str]) = if section.name == "timeseries" {
+        (SAMPLE_SETTINGS, SAMPLE_OPTIONAL_SETTINGS)
+    } else {
+        (SESSION_SETTINGS, &[])
+    };
+    for key in required {
+        if section.setting(key).is_none() {
+            return Err(format!("[{}] needs {key}", section.name));
+        }
+    }
+    for key in section.settings.keys() {
+        if !required.contains(&key.as_str()) && !optional.contains(&key.as_str()) {
+            return Err(format!("{key} is not a setting of [{}]", section.name));
+        }
+    }
+    if section.name == "timeseries" {
+        let type_field = section.field("type_field");
+        for line in &section.lines {
+            if statistic_name(section, &line.their_field) == line.their_field.as_str() {
+                return Err(format!(
+                    "a [timeseries] line reads {type_field}.<type>, not {}",
+                    line.their_field
+                ));
+            }
+        }
+    }
+    Ok(())
+}
+
+fn check_page(file: &MappingFile) -> Result<(), String> {
+    let page = &file.page;
+    let described = page.rows.is_some()
+        || page.marker.is_some()
+        || page.section.is_some()
+        || page.resolution.is_some()
+        || page.raw_resolution.is_some();
+    if !described {
+        return Ok(());
+    }
+    for (key, value) in [("page_rows", &page.rows), ("page_marker", &page.marker), ("page_section", &page.section)] {
+        if value.is_none() {
+            return Err(format!("the mapping file needs {key} when it describes a page"));
+        }
+    }
+    let section = page.section.as_deref().unwrap_or_default();
+    if file.section(section).is_none() {
+        return Err(format!("page_section {section} is not a section of this file"));
+    }
+    if page.resolution.is_some() != page.raw_resolution.is_some() {
+        return Err("page_resolution and raw_resolution go together".into());
     }
     Ok(())
 }
 
 /// The four refusals in D179 that come from a single line.
-fn refuse_line(line: &MapLine) -> Result<(), String> {
+fn refuse_line(section: &Section, line: &MapLine) -> Result<(), String> {
     let our = line.our_field.as_str();
-    let name = statistic_name(&line.their_field);
-    if our == "hrv_rmssd" || our == "hrv_sdnn" {
-        let named = if our == "hrv_rmssd" {
-            RMSSD_NAMES.contains(&name)
-                || (name == "average_hrv"
-                    && line.basis.as_deref() == Some("hrv_mean_rmssd")
-                    && line.when_writer.is_some())
+    let name = statistic_name(section, &line.their_field);
+    if let Some(statistic) = claimed_statistic(our) {
+        let lower = name.to_ascii_lowercase();
+        let names_rmssd = lower.contains("rmssd");
+        let names_sdnn = lower.contains("sdnn");
+        let named = if statistic == "rmssd" {
+            (names_rmssd && !names_sdnn)
+                || (!names_rmssd
+                    && !names_sdnn
+                    && line.when_writer.is_some()
+                    && line.basis.as_deref().is_some_and(|basis| RMSSD_BASES.contains(&basis)))
         } else {
-            SDNN_NAMES.contains(&name)
+            names_sdnn && !names_rmssd
         };
         if !named {
             return Err(format!(
@@ -448,6 +569,9 @@ pub const VALUE_BASES: &[&str] = &[
     "calculated_on_import",
     "entered_by_hand",
 ];
+
+/// Bases that say the value is RMSSD.
+const RMSSD_BASES: &[&str] = &["hrv_mean_rmssd", "provider_documented_rmssd"];
 
 /// `value_basis` values a mapping file may give every value it writes (D187, D192).
 pub const FILE_BASES: &[&str] = &["provider", "provider_or_aggregator"];
@@ -625,6 +749,12 @@ impl Run<'_> {
         paths
     }
 
+    /// A row whose `personal_when` field has the named value is a personal report.
+    fn personal_report(&self, row: &Map<String, Value>) -> Option<String> {
+        let (field, value) = self.file.personal_when.as_ref()?;
+        (path_text(row, field).as_deref() == Some(value.as_str())).then(|| format!("{field} {value} is a personal report"))
+    }
+
     /// The source, and the device's `source_device` record the first time it is seen.
     /// None when a person deleted the source: its rows are left out, not written again.
     fn source_group(
@@ -767,36 +897,32 @@ fn map_input(store: &mut Store, file: &MappingFile, root: &Map<String, Value>) -
         keys: HashSet::new(),
         devices: HashSet::new(),
     };
-    let resolution = root
-        .get("metadata")
-        .and_then(Value::as_object)
-        .and_then(|metadata| metadata.get("resolution"))
-        .and_then(Value::as_str)
-        .map(str::to_string);
+    let resolution = file.page.resolution.as_deref().and_then(|path| path_text(root, path));
     let mut rows: Vec<(String, Value)> = Vec::new();
-    let envelope = root.get("data").and_then(Value::as_array).filter(|_| root.contains_key("metadata"));
-    if let Some(data) = envelope {
-        if let Some(first) = data.first() {
-            if is_timeseries_row(first) {
-                if file.section("timeseries").is_some() {
-                    rows.extend(data.iter().map(|row| ("timeseries".to_string(), row.clone())));
+    match page_rows(file, root) {
+        Some((section_name, data)) => {
+            if let Some(first) = data.first() {
+                if row_fits(file, section_name, first) {
+                    rows.extend(data.iter().map(|row| (section_name.to_string(), row.clone())));
                 } else {
-                    run.left_out.push("timeseries: no mapping section".into());
+                    run.left_out.push(format!(
+                        "envelope is not a {section_name} page: pass its {} array under workout or sleep",
+                        file.page.rows.as_deref().unwrap_or_default()
+                    ));
                 }
-            } else {
-                run.left_out.push(ENVELOPE_NOT_TIMESERIES.into());
             }
         }
-    } else {
-        for (key, value) in root {
-            let Some(items) = value.as_array() else { continue };
-            if items.is_empty() {
-                continue;
-            }
-            if file.section(key).is_some() {
-                rows.extend(items.iter().map(|row| (key.clone(), row.clone())));
-            } else {
-                run.left_out.push(format!("{key}: no mapping section"));
+        None => {
+            for (key, value) in root {
+                let Some(items) = value.as_array() else { continue };
+                if items.is_empty() {
+                    continue;
+                }
+                if file.section(key).is_some() {
+                    rows.extend(items.iter().map(|row| (key.clone(), row.clone())));
+                } else {
+                    run.left_out.push(format!("{key}: no mapping section"));
+                }
             }
         }
     }
@@ -822,6 +948,33 @@ fn map_input(store: &mut Store, file: &MappingFile, root: &Map<String, Value>) -
     }))
 }
 
+/// The rows of a page, and the section they map with, when the input is a page.
+fn page_rows<'a>(file: &'a MappingFile, root: &'a Map<String, Value>) -> Option<(&'a str, &'a Vec<Value>)> {
+    let page = &file.page;
+    let rows = root.get(page.rows.as_deref()?)?.as_array()?;
+    root.contains_key(page.marker.as_deref()?).then_some(())?;
+    Some((page.section.as_deref()?, rows))
+}
+
+/// Whether a row has the fields its section reads. A sample row also has none of
+/// the start fields the file's session sections read.
+fn row_fits(file: &MappingFile, section_name: &str, row: &Value) -> bool {
+    let (Some(object), Some(section)) = (row.as_object(), file.section(section_name)) else {
+        return false;
+    };
+    let keys: &[&str] = if section.name == "timeseries" { SAMPLE_SETTINGS } else { SESSION_SETTINGS };
+    if !keys.iter().all(|key| path_value(object, section.field(key)).is_some()) {
+        return false;
+    }
+    section.name != "timeseries"
+        || file
+            .sections
+            .iter()
+            .filter(|other| other.name != "timeseries")
+            .filter_map(|other| other.setting("start_field"))
+            .all(|start| path_value(object, start).is_none())
+}
+
 fn refuse_personal_reports(root: &Map<String, Value>) -> Result<(), String> {
     let personal = |object: &Map<String, Value>| object.contains_key("report_type") || object.contains_key("reported_via");
     if personal(root) {
@@ -837,22 +990,11 @@ fn refuse_personal_reports(root: &Map<String, Value>) -> Result<(), String> {
     Ok(())
 }
 
-fn is_timeseries_row(row: &Value) -> bool {
-    row.as_object().is_some_and(|object| {
-        ["timestamp", "type", "value", "unit"].iter().all(|key| object.contains_key(*key))
-            && !object.contains_key("start_time")
-    })
-}
-
-fn manual_entry(object: &Map<String, Value>) -> bool {
-    object.get("entry_source").and_then(Value::as_str) == Some("manual")
-}
-
 fn map_session(store: &mut Store, run: &mut Run, section: &Section, row: &Map<String, Value>) -> Result<(), String> {
     let name = section.name.as_str();
-    let id_field = section.setting("id_field").unwrap_or("id");
-    let start_field = section.setting("start_field").unwrap_or("start_time");
-    let end_field = section.setting("end_field").unwrap_or("end_time");
+    let id_field = section.field("id_field");
+    let start_field = section.field("start_field");
+    let end_field = section.field("end_field");
     let Some(id) = path_text(row, id_field) else {
         run.left_out.push(format!("{name}: missing {id_field}"));
         return Ok(());
@@ -862,8 +1004,8 @@ fn map_session(store: &mut Store, run: &mut Run, section: &Section, row: &Map<St
         run.left_out.push(format!("{label}: missing {}", run.file.writer_field));
         return Ok(());
     };
-    if manual_entry(row) {
-        run.left_out.push(format!("{label}: entry_source manual is a personal report"));
+    if let Some(reason) = run.personal_report(row) {
+        run.left_out.push(format!("{label}: {reason}"));
         return Ok(());
     }
     let (Some(start_text), Some(end_text)) = (path_text(row, start_field), path_text(row, end_field)) else {
@@ -1010,9 +1152,11 @@ fn map_sample(
     row: &Map<String, Value>,
     resolution: Option<&str>,
 ) -> Result<(), String> {
-    let time_field = section.setting("time_field").unwrap_or("timestamp");
-    let value_field = section.setting("value_field").unwrap_or("value");
-    let sample_type = row.get("type").and_then(Value::as_str).unwrap_or("").to_string();
+    let time_field = section.field("time_field");
+    let type_field = section.field("type_field");
+    let value_field = section.field("value_field");
+    let unit_field = section.field("unit_field");
+    let sample_type = path_text(row, type_field).unwrap_or_default();
     let time_text = path_text(row, time_field);
     let utc = time_text.as_deref().and_then(utc_text);
     let label = format!(
@@ -1020,17 +1164,18 @@ fn map_sample(
         if sample_type.is_empty() { "(no type)" } else { &sample_type },
         utc.clone().or_else(|| time_text.clone()).unwrap_or_else(|| "(no timestamp)".into())
     );
-    let present = |key: &str| row.get(key).is_some_and(|value| !value.is_null());
-    if present("period_end") {
+    let present = |key: &str| path_value(row, key).is_some_and(|value| !value.is_null());
+    if section.setting("aggregate_field").is_some_and(|field| present(field)) {
         run.left_out.push(format!("{label}: aggregate row, not a raw sample"));
         return Ok(());
     }
-    if let Some(resolution) = resolution.filter(|value| *value != "raw") {
+    let raw = run.file.page.raw_resolution.as_deref();
+    if let Some(resolution) = resolution.filter(|value| Some(*value) != raw) {
         run.left_out.push(format!("{label}: resolution {resolution}: not raw samples"));
         return Ok(());
     }
-    if resolution.is_none() && present("window_seconds") {
-        run.left_out.push(format!("{label}: window_seconds present without resolution: cannot confirm raw"));
+    if let Some(window) = section.setting("window_field").filter(|field| resolution.is_none() && present(field)) {
+        run.left_out.push(format!("{label}: {window} present without resolution: cannot confirm raw"));
         return Ok(());
     }
     let (Some(time_text), Some(utc)) = (time_text, utc) else {
@@ -1038,26 +1183,26 @@ fn map_sample(
         return Ok(());
     };
     if sample_type.is_empty() {
-        run.left_out.push(format!("{label}: missing type"));
+        run.left_out.push(format!("{label}: missing {type_field}"));
         return Ok(());
     }
     let Some(writer) = path_text(row, &run.file.writer_field) else {
         run.left_out.push(format!("{label}: missing {}", run.file.writer_field));
         return Ok(());
     };
-    if manual_entry(row) {
-        run.left_out.push(format!("{label}: entry_source manual is a personal report"));
+    if let Some(reason) = run.personal_report(row) {
+        run.left_out.push(format!("{label}: {reason}"));
         return Ok(());
     }
-    let their_field = format!("type.{sample_type}");
+    let their_field = format!("{type_field}.{sample_type}");
     let Some(line) = applied_lines(section, &writer).into_iter().find(|line| line.their_field == their_field) else {
         run.left_out.push(format!("{label}: unmapped type {sample_type}"));
         return Ok(());
     };
     let (their_unit, our_unit) = line.units.clone().expect("checked mapping");
-    let sample_unit = row.get("unit").and_then(Value::as_str).unwrap_or("");
+    let sample_unit = path_text(row, unit_field).unwrap_or_default();
     if sample_unit != their_unit {
-        let shown = if sample_unit.is_empty() { "(none)" } else { sample_unit };
+        let shown = if sample_unit.is_empty() { "(none)" } else { &sample_unit };
         run.left_out.push(format!("{label}: unit {shown} does not match {their_unit}"));
         return Ok(());
     }
@@ -1090,7 +1235,7 @@ fn map_sample(
         return Ok(());
     };
     let mut supplied = row.clone();
-    for path in run.used_paths().iter().chain([time_field.to_string(), value_field.to_string(), "type".into(), "unit".into()].iter()) {
+    for path in run.used_paths().iter().chain([time_field, value_field, type_field, unit_field].map(str::to_string).iter()) {
         remove_path(&mut supplied, path);
     }
     let mut data = run.base(&source_id);
@@ -1130,6 +1275,12 @@ mod tests {
 
     const SMALL: &str = "# Small\n\n```ath-mapping\nname: small\nroute: small_route\nwriter_field: source.provider\nvalue_basis: provider\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\nsleep_duration_seconds: asleep_seconds s s\n```\n";
 
+    const SAMPLES: &str = "```ath-mapping\nname: samples\nroute: samples_route\nwriter_field: source.provider\nvalue_basis: provider\n\n[timeseries]\ntime_field: at\ntype_field: kind\nvalue_field: reading\nunit_field: unit\nkind.rmssd_night: hrv_rmssd ms ms\n```";
+
+    fn refusal(text: &str) -> String {
+        check_mapping(&parse_mapping(text).unwrap()).unwrap_err()
+    }
+
     #[test]
     fn crlf_mapping_file_parses() {
         let lf = parse_mapping(SMALL).unwrap();
@@ -1161,8 +1312,7 @@ mod tests {
     #[test]
     fn a_pair_outside_the_table_is_refused() {
         let text = SMALL.replace("asleep_seconds s s", "asleep_seconds ms s");
-        let error = check_mapping(&parse_mapping(&text).unwrap()).unwrap_err();
-        assert_eq!(error, "cannot convert ms to s for sleep_duration_seconds");
+        assert_eq!(refusal(&text), "cannot convert ms to s for sleep_duration_seconds");
     }
 
     #[test]
@@ -1191,5 +1341,68 @@ mod tests {
     #[test]
     fn key_parts_escape_colons_and_backslashes() {
         assert_eq!(key_part("a:b\\c"), "a\\:b\\\\c");
+    }
+
+    #[test]
+    fn every_section_names_the_fields_of_its_rows() {
+        assert_eq!(refusal(&SMALL.replace("id_field: id\n", "")), "[sleep] needs id_field");
+        assert_eq!(refusal(&SAMPLES.replace("unit_field: unit\n", "")), "[timeseries] needs unit_field");
+        assert_eq!(refusal(&SMALL.replace("id_field: id\n", "id_field: id\ntime_field: at\n")), "time_field is not a setting of [sleep]");
+        check_mapping(&parse_mapping(SAMPLES).unwrap()).unwrap();
+    }
+
+    #[test]
+    fn a_timeseries_line_reads_the_type_field() {
+        let text = SAMPLES.replace("kind.rmssd_night:", "rmssd_night:");
+        assert_eq!(refusal(&text), "a [timeseries] line reads kind.<type>, not rmssd_night");
+    }
+
+    #[test]
+    fn a_page_is_described_in_full() {
+        let page = SAMPLES.replace("value_basis: provider\n", "value_basis: provider\npage_rows: rows\npage_section: timeseries\n");
+        assert_eq!(refusal(&page), "the mapping file needs page_marker when it describes a page");
+        let elsewhere = page.replace("page_section: timeseries\n", "page_marker: meta\npage_section: sleep\n");
+        assert_eq!(refusal(&elsewhere), "page_section sleep is not a section of this file");
+        let half = page.replace("page_section: timeseries\n", "page_marker: meta\npage_section: timeseries\npage_resolution: meta.resolution\n");
+        assert_eq!(refusal(&half), "page_resolution and raw_resolution go together");
+        let full = half.replace("page_resolution: meta.resolution\n", "page_resolution: meta.resolution\nraw_resolution: raw\n");
+        check_mapping(&parse_mapping(&full).unwrap()).unwrap();
+    }
+
+    #[test]
+    fn personal_when_names_a_field_and_a_value() {
+        let text = SMALL.replace("value_basis: provider\n", "value_basis: provider\npersonal_when: origin typed\n");
+        let file = parse_mapping(&text).unwrap();
+        assert_eq!(file.personal_when, Some(("origin".to_string(), "typed".to_string())));
+        let broken = SMALL.replace("value_basis: provider\n", "value_basis: provider\npersonal_when: origin\n");
+        assert_eq!(parse_mapping(&broken).unwrap_err(), "could not read 'personal_when: origin'");
+    }
+
+    #[test]
+    fn an_hrv_value_names_its_statistic_in_any_record() {
+        assert_eq!(
+            refusal(&SMALL.replace("sleep_duration_seconds: asleep_seconds s s", "nightly_hrv: provider_summary.hrv_rmssd ms ms")),
+            "refusing to map nightly_hrv onto provider_summary.hrv_rmssd; the field does not name the statistic"
+        );
+        assert_eq!(
+            refusal(&SMALL.replace("sleep_duration_seconds: asleep_seconds s s", "hrv_rmssd_night: provider_score.sdnn_balance score score scale 0-100")),
+            "refusing to map hrv_rmssd_night onto provider_score.sdnn_balance; the field does not name the statistic"
+        );
+        assert_eq!(
+            refusal(&SAMPLES.replace("kind.rmssd_night:", "kind.sdnn_night:")),
+            "refusing to map sdnn_night onto hrv_rmssd; the field does not name the statistic"
+        );
+        let summary = SMALL.replace("sleep_duration_seconds: asleep_seconds s s", "rmssd_night: provider_summary.hrv_rmssd ms ms");
+        check_mapping(&parse_mapping(&summary).unwrap()).unwrap();
+    }
+
+    #[test]
+    fn a_field_without_the_statistic_needs_an_rmssd_basis_and_writers() {
+        let line = |rest: &str| SMALL.replace("sleep_duration_seconds: asleep_seconds s s", &format!("nightly: hrv_rmssd ms ms{rest}"));
+        let refused = "refusing to map nightly onto hrv_rmssd; the field does not name the statistic";
+        assert_eq!(refusal(&line("")), refused);
+        assert_eq!(refusal(&line(" basis hrv_mean_rmssd")), refused);
+        assert_eq!(refusal(&line(" basis provider when-writer a")), refused);
+        check_mapping(&parse_mapping(&line(" basis hrv_mean_rmssd when-writer a,b")).unwrap()).unwrap();
     }
 }
