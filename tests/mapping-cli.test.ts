@@ -891,6 +891,8 @@ describe("refusals", () => {
         "activity_type needs a basis: one of aggregator_normalized, provider_label",
       ],
       [`${SLEEP_HEADER}nightly: provider_summary.hrv_rmssd ms ms`, "refusing to map nightly onto provider_summary.hrv_rmssd; the field does not name the statistic"],
+      [`${SLEEP_HEADER}rmssd_night: hrv_rmssd ms ms basis entered_by_hand`, "a mapping line cannot claim basis entered_by_hand; use one of provider, provider_or_aggregator, hrv_mean_rmssd, provider_documented_rmssd"],
+      [`${SLEEP_HEADER}rmssd_night: hrv_rmssd ms ms basis calculated_on_import`, "a mapping line cannot claim basis calculated_on_import; use one of provider, provider_or_aggregator, hrv_mean_rmssd, provider_documented_rmssd"],
       [`${SLEEP_HEADER.replace("id_field: id\n", "")}x: asleep_seconds s s`, "[sleep] needs id_field"],
       [`${SLEEP_HEADER}window_field: window\nx: asleep_seconds s s`, "window_field is not a setting of [sleep]"],
       [

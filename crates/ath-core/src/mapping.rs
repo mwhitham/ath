@@ -518,17 +518,25 @@ fn check_line(section: &str, line: &MapLine) -> Result<(), String> {
     if let Some(basis) = &line.basis {
         let heart_rate_summary = matches!(kind, Target::Summary(_))
             && line.units.as_ref().is_some_and(|(_, unit)| unit == "bpm");
-        let known = if our == "activity_type" {
-            ACTIVITY_TYPE_BASES.contains(&basis.as_str())
+        if our == "activity_type" {
+            if !ACTIVITY_TYPE_BASES.contains(&basis.as_str()) {
+                return Err(format!("unknown basis {basis}"));
+            }
         } else if our == "hrv_rmssd" || our == "hrv_sdnn" || heart_rate_summary {
-            VALUE_BASES.contains(&basis.as_str())
+            if !LINE_BASES.contains(&basis.as_str()) {
+                return Err(if VALUE_BASES.contains(&basis.as_str()) {
+                    format!("a mapping line cannot claim basis {basis}; use one of {}", LINE_BASES.join(", "))
+                } else {
+                    format!("unknown basis {basis}")
+                });
+            }
+            if RMSSD_BASES.contains(&basis.as_str()) && our != "hrv_rmssd" {
+                return Err(format!("basis {basis} is only used for hrv_rmssd"));
+            }
         } else {
             return Err(
                 "basis is only used for activity_type, hrv_rmssd, hrv_sdnn, and heart-rate summaries".into(),
             );
-        };
-        if !known {
-            return Err(format!("unknown basis {basis}"));
         }
     }
     match (&kind, &line.scale) {
@@ -570,7 +578,11 @@ pub const VALUE_BASES: &[&str] = &[
     "entered_by_hand",
 ];
 
-/// Bases that say the value is RMSSD.
+/// The bases a mapping line may claim with `basis` (D195). A mapping does not
+/// calculate, and its rows are not entered by hand.
+pub const LINE_BASES: &[&str] = &["provider", "provider_or_aggregator", "hrv_mean_rmssd", "provider_documented_rmssd"];
+
+/// Bases that say the value is RMSSD. Only an `hrv_rmssd` line may claim them.
 const RMSSD_BASES: &[&str] = &["hrv_mean_rmssd", "provider_documented_rmssd"];
 
 /// `value_basis` values a mapping file may give every value it writes (D187, D192).
@@ -1404,5 +1416,24 @@ mod tests {
         assert_eq!(refusal(&line(" basis hrv_mean_rmssd")), refused);
         assert_eq!(refusal(&line(" basis provider when-writer a")), refused);
         check_mapping(&parse_mapping(&line(" basis hrv_mean_rmssd when-writer a,b")).unwrap()).unwrap();
+    }
+
+    #[test]
+    fn a_line_claims_only_a_basis_a_mapping_can_know() {
+        let line = |basis: &str| SMALL.replace("sleep_duration_seconds: asleep_seconds s s", &format!("rmssd_night: hrv_rmssd ms ms basis {basis}"));
+        assert_eq!(
+            refusal(&line("entered_by_hand")),
+            "a mapping line cannot claim basis entered_by_hand; use one of provider, provider_or_aggregator, hrv_mean_rmssd, provider_documented_rmssd"
+        );
+        assert_eq!(
+            refusal(&line("calculated_on_import")),
+            "a mapping line cannot claim basis calculated_on_import; use one of provider, provider_or_aggregator, hrv_mean_rmssd, provider_documented_rmssd"
+        );
+        let heart_rate = SMALL.replace(
+            "sleep_duration_seconds: asleep_seconds s s",
+            "avg_hr: provider_summary.average_heart_rate bpm bpm basis hrv_mean_rmssd",
+        );
+        assert_eq!(refusal(&heart_rate), "basis hrv_mean_rmssd is only used for hrv_rmssd");
+        check_mapping(&parse_mapping(&line("provider_or_aggregator")).unwrap()).unwrap();
     }
 }
