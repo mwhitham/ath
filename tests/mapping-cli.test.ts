@@ -133,6 +133,33 @@ function writeMapping(dir: string, name: string, body: string): string {
   return path;
 }
 
+/** `ath import --json` only previews, so the written result comes from ath-core. */
+function coreImport(dir: string, input: string, mappingFile: string, preview: boolean): Run {
+  return core([
+    "import-mapped",
+    "--database",
+    join(dir, "athlete.ath.sqlite"),
+    "--mapping-file",
+    mappingFile,
+    "--input",
+    input,
+    ...(preview ? ["--preview"] : []),
+  ]);
+}
+
+/** Preview, then write, and return both results. They differ only in `record_ids`. */
+function previewThenWrite(dir: string, input: string, mappingFile: string): { previewed: any; written: any } {
+  const preview = coreImport(dir, input, mappingFile, true);
+  expect(preview.code, preview.stderr).toBe(0);
+  const write = coreImport(dir, input, mappingFile, false);
+  expect(write.code, write.stderr).toBe(0);
+  const previewed = JSON.parse(preview.stdout);
+  const written = JSON.parse(write.stdout);
+  expect(previewed.record_ids).toEqual([]);
+  expect({ ...previewed, record_ids: written.record_ids }).toEqual(written);
+  return { previewed, written };
+}
+
 function night(id: string, maker: string, day: string, extra: string): string {
   return `{"id":"${id}","start_time":"2026-08-${day}T01:00:00.000Z","end_time":"2026-08-${day}T07:00:00.000Z","source":{"provider":"${maker}"},"asleep":20000${extra}}`;
 }
@@ -330,10 +357,14 @@ describe("ath import --mapping open-wearables", () => {
     expect(preview.stdout).toContain("open-wearables import");
     expect(preview.stdout).toContain("kept under original names: calories_kcal, duration_seconds");
     expect(preview.stdout).toContain("left out: workout ow-workout-manual: entry_source manual is a personal report");
+    expect(preview.stdout).toContain("outcome: 22 new, 0 changed, 0 unchanged");
     expect(preview.stdout).toContain("nothing written; pass --yes after reviewing this preview");
     const written = ath(["import", join(OW, "summaries.json"), "--mapping", "open-wearables", "--yes"], dir);
+    expect(written.stdout).toContain("outcome: 22 new, 0 changed, 0 unchanged");
     expect(written.stdout).toContain("records: 22. Pass --json to list their IDs.");
     expect(written.stdout).not.toContain("nothing written");
+    const again = ath(["import", join(OW, "summaries.json"), "--mapping", "open-wearables"], dir);
+    expect(again.stdout).toContain("outcome: 0 new, 0 changed, 22 unchanged");
   }, 60_000);
 
   it("missing_computed_by_uses_the_provider", async () => {
@@ -611,6 +642,89 @@ describe("mapped imports and the rest of the file", () => {
       missing: ["in_bed_seconds"],
       result: null,
     });
+  }, 60_000);
+});
+
+describe("one mapped import is one transaction", () => {
+  const OW_FILE = join(SHIPPED, "open-wearables.md");
+
+  it("a deleted mapped source is left out when the file is imported again, in the preview and the write", async () => {
+    const dir = emptyDatabase();
+    const input = join(OW, "summaries.json");
+    mapped(dir, input, "open-wearables");
+    const before = await stored(dir);
+    const ring = before.sources.find((source) => source.data_writer === "oura" && source.sensor_type === S_RING)!;
+    const removed = ath(["delete", ring.record_id, "--revision", "1", "--yes"], dir);
+    expect(removed.code, removed.stderr).toBe(0);
+
+    const { written } = previewThenWrite(dir, input, OW_FILE);
+    const gone = `its source ${ring.record_id} is deleted`;
+    expect(written.left_out).toContain(`sleep ow-sleep-1: ${gone}`);
+    expect(written.left_out).toContain(`timeseries heart_rate_variability_rmssd 2026-08-09T06:12:00.000Z: ${gone}`);
+    const kept = [...before.byKey.values()].filter((record) => record.data.source_id !== ring.record_id);
+    expect(written.outcome).toEqual({ new: 0, changed: 0, unchanged: kept.length });
+
+    const again = ath(["import", input, "--mapping", "open-wearables", "--yes"], dir);
+    expect(again.code, again.stderr).toBe(0);
+    expect(again.stdout).toContain(`left out: sleep ow-nap-1: ${gone}`);
+    const after = await stored(dir);
+    expect(after.recordCount).toBe(before.recordCount);
+    expect(after.sources).toHaveLength(before.sources.length);
+    expect(after.sources.filter((source) => source.data_writer === "oura" && source.sensor_type === S_RING)).toHaveLength(1);
+    const check = ath(["check"], dir);
+    expect(check.code, check.stdout + check.stderr).toBe(0);
+  }, 90_000);
+
+  it("a deleted mapped record is left out the same way in the preview and the write", async () => {
+    const dir = emptyDatabase();
+    const input = join(OW, "summaries.json");
+    mapped(dir, input, "open-wearables");
+    const before = await stored(dir);
+    const nightRecord = before.byKey.get(key("oura", S_RING, "sleep", "ow-sleep-1"))!;
+    const removed = ath(["delete", nightRecord.record_id, "--revision", "1", "--yes"], dir);
+    expect(removed.code, removed.stderr).toBe(0);
+
+    const { written } = previewThenWrite(dir, input, OW_FILE);
+    expect(written.left_out).toContain(`sleep ow-sleep-1: the stored record ${nightRecord.record_id} is deleted`);
+    expect(written.outcome).toEqual({ new: 0, changed: 0, unchanged: before.byKey.size - 1 });
+    expect((await stored(dir)).recordCount).toBe(before.recordCount);
+  }, 90_000);
+
+  it("a failure partway through an import writes nothing", async () => {
+    const dir = emptyDatabase();
+    const mapping = writeMapping(dir, "nights", `${SLEEP_HEADER}asleep: asleep_seconds s s`);
+    const first = join(dir, "first.json");
+    writeFileSync(first, `{"sleep":[${night("good-night", "invented-maker", "09", "")}]}`);
+    const imported = ath(["import", first, "--mapping", mapping, "--yes"], dir);
+    expect(imported.code, imported.stderr).toBe(0);
+    const before = await stored(dir);
+    const goodKey = key("invented-maker", "-", "sleep", "good-night");
+
+    const second = join(dir, "second.json");
+    const rows = [
+      night("good-night", "invented-maker", "09", ',"mood_word":"fine"'),
+      night("next-night", "invented-maker", "10", ""),
+      night("bad-night", "other-maker", "11", ',"":"no name"'),
+    ];
+    writeFileSync(second, `{"sleep":[${rows.join(",")}]}`);
+    const message = "sleep_session bad-night: a supplied field has an empty name, and the format needs a name for every field";
+    for (const flag of ["--json", "--yes"]) {
+      const refused = ath(["import", second, "--mapping", mapping, flag], dir);
+      expect(refused.code, flag).toBe(1);
+      expect(refused.stderr.trim(), flag).toBe(`ath: ${message}`);
+    }
+    const fromCore = coreImport(dir, second, mapping, false);
+    expect(fromCore.code).toBe(1);
+    expect(fromCore.stderr.trim()).toBe(message);
+
+    const after = await stored(dir);
+    expect(after.recordCount).toBe(before.recordCount);
+    expect(after.sources).toEqual(before.sources);
+    expect([...after.byKey.keys()]).toEqual([goodKey]);
+    expect(after.byKey.get(goodKey)!.current_revision).toBe(1);
+    expect(after.byKey.get(goodKey)!.data.supplied_fields).toBeUndefined();
+    const check = ath(["check"], dir);
+    expect(check.code, check.stdout + check.stderr).toBe(0);
   }, 60_000);
 });
 

@@ -188,6 +188,8 @@ A JSON file from Open Wearables or Junction is read with `--mapping open-wearabl
 or `--mapping junction`. A mapping file lists their field and our field. A mapped
 field becomes the typed value. Every other field stays in `supplied_fields` under
 the name it arrived with. The result lists each object that was left out and why.
+The preview runs the whole import and rolls it back, so it shows what `--yes` would
+write. If one object cannot be written, the import writes nothing.
 A person can add a mapping file in `.agents/mappings/`. A mapping that would turn a
 personal report into a measured record, or rename a generic HRV field to RMSSD or
 SDNN, is refused before anything is written.

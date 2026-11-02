@@ -8,7 +8,7 @@ use std::collections::{BTreeSet, HashMap, HashSet};
 
 use serde_json::{json, Map, Number, Value};
 
-use crate::store::{GroupOutcome, GroupRecord, Store};
+use crate::store::{GroupOutcome, GroupRecord, MappedSource, Store};
 
 pub const REFUSE_PERSONAL_REPORT: &str = "refusing to turn a personal report into a measured record";
 pub const ENVELOPE_NOT_TIMESERIES: &str =
@@ -577,8 +577,10 @@ fn remove_path(object: &mut Map<String, Value>, path: &str) {
 struct Run<'a> {
     file: &'a MappingFile,
     received_at: String,
-    write: bool,
     record_ids: Vec<String>,
+    new: usize,
+    changed: usize,
+    unchanged: usize,
     understood: BTreeSet<String>,
     preserved: BTreeSet<String>,
     left_out: Vec<String>,
@@ -623,15 +625,21 @@ impl Run<'_> {
         paths
     }
 
+    /// The source, and the device's `source_device` record the first time it is seen.
+    /// None when a person deleted the source: its rows are left out, not written again.
     fn source_group(
         &mut self,
         store: &mut Store,
         device: &Device,
-    ) -> Result<(String, Vec<GroupRecord>), String> {
-        if !self.write {
-            return Ok(("preview".into(), Vec::new()));
-        }
-        let source_id = store.ensure_mapped_source(&device.writer, &self.file.route, &device.writer, &device.sensor)?;
+        label: &str,
+    ) -> Result<Option<(String, Vec<GroupRecord>)>, String> {
+        let source_id = match store.ensure_mapped_source(&device.writer, &self.file.route, &device.writer, &device.sensor)? {
+            MappedSource::Current(id) => id,
+            MappedSource::Deleted(id) => {
+                self.left_out.push(format!("{label}: its source {id} is deleted"));
+                return Ok(None);
+            }
+        };
         let mut group = Vec::new();
         let has_device_fields = !(self.file.device_name.is_empty()
             && self.file.device_model.is_empty()
@@ -648,7 +656,7 @@ impl Run<'_> {
                 key: match_key(&[&device.writer, sensor_part(&device.sensor), "source_device"]),
             });
         }
-        Ok((source_id, group))
+        Ok(Some((source_id, group)))
     }
 
     fn method(&self) -> String {
@@ -656,18 +664,22 @@ impl Run<'_> {
     }
 
     fn finish_group(&mut self, store: &mut Store, label: &str, group: Vec<GroupRecord>) -> Result<(), String> {
-        if !self.write || group.is_empty() {
+        if group.is_empty() {
             return Ok(());
         }
         for outcome in store.insert_group(&group)? {
-            match outcome {
-                GroupOutcome::Deleted(id) => self.left_out.push(format!("{label}: the stored record {id} is deleted")),
-                other => {
-                    let id = other.record_id().to_string();
-                    if !self.record_ids.contains(&id) {
-                        self.record_ids.push(id);
-                    }
+            match &outcome {
+                GroupOutcome::Deleted(id) => {
+                    self.left_out.push(format!("{label}: the stored record {id} is deleted"));
+                    continue;
                 }
+                GroupOutcome::Inserted(_) => self.new += 1,
+                GroupOutcome::Revised(_) => self.changed += 1,
+                GroupOutcome::Unchanged(_) => self.unchanged += 1,
+            }
+            let id = outcome.record_id().to_string();
+            if !self.record_ids.contains(&id) {
+                self.record_ids.push(id);
             }
         }
         Ok(())
@@ -719,15 +731,36 @@ fn positive_point(quantity: &str, value: &Value) -> bool {
     quantity == "temperature_deviation" || value.as_f64().is_some_and(|number| number > 0.0)
 }
 
-/// Apply a checked mapping to one input file.
+/// Apply a checked mapping to one input file, in one transaction (D189).
+///
+/// A preview runs exactly the same writes and rolls them back, so it reports what
+/// the import would do. Any error rolls back everything, so nothing is half written.
 pub fn apply_mapping(store: &mut Store, file: &MappingFile, input: &Value, write: bool) -> Result<Value, String> {
     let root = input.as_object().ok_or("the input must be a JSON object")?;
     refuse_personal_reports(root)?;
+    store.begin()?;
+    let mut result = match map_input(store, file, root) {
+        Ok(result) => result,
+        Err(error) => {
+            let _ = store.finish(false);
+            return Err(error);
+        }
+    };
+    store.finish(write)?;
+    if !write {
+        result["record_ids"] = json!([]);
+    }
+    Ok(result)
+}
+
+fn map_input(store: &mut Store, file: &MappingFile, root: &Map<String, Value>) -> Result<Value, String> {
     let mut run = Run {
         file,
         received_at: crate::store::utc_now(),
-        write,
         record_ids: Vec::new(),
+        new: 0,
+        changed: 0,
+        unchanged: 0,
         understood: BTreeSet::new(),
         preserved: BTreeSet::new(),
         left_out: Vec::new(),
@@ -782,6 +815,7 @@ pub fn apply_mapping(store: &mut Store, file: &MappingFile, input: &Value, write
     Ok(json!({
         "mapping": file.name,
         "record_ids": run.record_ids,
+        "outcome": { "new": run.new, "changed": run.changed, "unchanged": run.unchanged },
         "understood": run.understood.into_iter().collect::<Vec<_>>(),
         "preserved": run.preserved.into_iter().collect::<Vec<_>>(),
         "left_out": run.left_out,
@@ -855,7 +889,9 @@ fn map_session(store: &mut Store, run: &mut Run, section: &Section, row: &Map<St
         run.left_out.push(format!("{label}: duplicate match key {session_key}"));
         return Ok(());
     }
-    let (source_id, mut group) = run.source_group(store, &device)?;
+    let Some((source_id, mut group)) = run.source_group(store, &device, &label)? else {
+        return Ok(());
+    };
     let mut supplied = row.clone();
     for path in run.used_paths().iter().chain([id_field.to_string(), start_field.to_string(), end_field.to_string()].iter()) {
         remove_path(&mut supplied, path);
@@ -1050,7 +1086,9 @@ fn map_sample(
         run.left_out.push(format!("{label}: duplicate match key {key}"));
         return Ok(());
     }
-    let (source_id, mut group) = run.source_group(store, &device)?;
+    let Some((source_id, mut group)) = run.source_group(store, &device, &label)? else {
+        return Ok(());
+    };
     let mut supplied = row.clone();
     for path in run.used_paths().iter().chain([time_field.to_string(), value_field.to_string(), "type".into(), "unit".into()].iter()) {
         remove_path(&mut supplied, path);

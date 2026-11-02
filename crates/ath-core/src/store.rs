@@ -40,6 +40,14 @@ pub enum GroupOutcome {
     Deleted(String),
 }
 
+/// The source a mapped import writes under.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum MappedSource {
+    Current(String),
+    /// A person deleted this source. Its rows are not written again (D190).
+    Deleted(String),
+}
+
 impl GroupOutcome {
     pub fn record_id(&self) -> &str {
         match self {
@@ -124,10 +132,7 @@ impl Store {
         let next = current.revision + 1;
         let now = utc_now();
         let changed_by = tool_actor();
-        let tx = self
-            .conn
-            .transaction()
-            .map_err(|error| error.to_string())?;
+        let tx = self.conn.savepoint().map_err(|error| error.to_string())?;
         tx.execute_batch("PRAGMA foreign_keys = ON; PRAGMA defer_foreign_keys = ON;")
             .map_err(|error| error.to_string())?;
         tx.execute(
@@ -174,31 +179,57 @@ impl Store {
         self.insert_record("source", &data, None, "provider_import")
     }
 
+    /// Start one transaction that every later write joins, until `finish` (D189).
+    pub fn begin(&mut self) -> Result<(), String> {
+        self.conn
+            .execute_batch("BEGIN IMMEDIATE")
+            .map_err(|error| error.to_string())
+    }
+
+    /// Commit the transaction from `begin`, or roll it back. A failed commit is rolled back.
+    pub fn finish(&mut self, commit: bool) -> Result<(), String> {
+        if !commit {
+            return self.conn.execute_batch("ROLLBACK").map_err(|error| error.to_string());
+        }
+        if let Err(error) = self.conn.execute_batch("COMMIT") {
+            if !self.conn.is_autocommit() {
+                let _ = self.conn.execute_batch("ROLLBACK");
+            }
+            return Err(error.to_string());
+        }
+        Ok(())
+    }
+
     /// The source for a mapped import. Writer, route, and sensor together name it,
     /// so two devices from one provider are two sources and two baselines.
+    ///
+    /// A deleted source keeps its row, and the unique index on writer, route, and
+    /// sensor still covers it. It is reported, not created again or revived.
     pub fn ensure_mapped_source(
         &mut self,
         writer: &str,
         route: &str,
         vendor: &str,
         sensor_type: &str,
-    ) -> Result<String, String> {
-        if let Some(existing) = self
+    ) -> Result<MappedSource, String> {
+        if let Some((existing, deleted)) = self
             .conn
             .query_row(
-                "SELECT sources.record_id FROM sources
+                "SELECT sources.record_id, records.is_deleted FROM sources
                  JOIN records ON records.record_id = sources.record_id
                  WHERE sources.data_writer = ?1 AND sources.data_route = ?2
-                   AND COALESCE(sources.sensor_type, '') = ?3 AND records.is_deleted = 0
-                 ORDER BY records.created_at, sources.record_id
-                 LIMIT 1",
+                   AND COALESCE(sources.sensor_type, '') = ?3",
                 params![writer, route, sensor_type],
-                |row| row.get::<_, String>(0),
+                |row| Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?)),
             )
             .optional()
             .map_err(|error| error.to_string())?
         {
-            return Ok(existing);
+            return Ok(if deleted != 0 {
+                MappedSource::Deleted(existing)
+            } else {
+                MappedSource::Current(existing)
+            });
         }
         let mut data = Map::new();
         data.insert("source_type".into(), Value::String("export_file".into()));
@@ -209,6 +240,7 @@ impl Store {
             data.insert("sensor_type".into(), Value::String(sensor_type.into()));
         }
         self.insert_record("source", &data, None, "provider_import")
+            .map(MappedSource::Current)
     }
 
     /// Write every record of one group in one transaction.
@@ -226,7 +258,7 @@ impl Store {
         }
         let now = utc_now();
         let changed_by = tool_actor();
-        let tx = self.conn.transaction().map_err(|error| error.to_string())?;
+        let tx = self.conn.savepoint().map_err(|error| error.to_string())?;
         tx.execute_batch("PRAGMA foreign_keys = ON; PRAGMA defer_foreign_keys = ON;")
             .map_err(|error| error.to_string())?;
         let mut outcomes = Vec::new();
@@ -372,7 +404,7 @@ impl Store {
         let now = utc_now();
         let json = serde_json::to_string(&Value::Object(data.clone())).map_err(|error| error.to_string())?;
         let changed_by = tool_actor();
-        let tx = self.conn.transaction().map_err(|error| error.to_string())?;
+        let tx = self.conn.savepoint().map_err(|error| error.to_string())?;
         tx.execute_batch("PRAGMA foreign_keys = ON; PRAGMA defer_foreign_keys = ON;")
             .map_err(|error| error.to_string())?;
         tx.execute(
@@ -450,7 +482,7 @@ impl Store {
 }
 
 fn insert_typed(
-    tx: &rusqlite::Transaction,
+    tx: &Connection,
     record_type: &str,
     record_id: &str,
     data: &Map<String, Value>,
@@ -599,7 +631,7 @@ fn insert_typed(
 
 /// Set every typed column from the record. A column whose key is absent becomes NULL.
 fn update_typed(
-    tx: &rusqlite::Transaction,
+    tx: &Connection,
     record_type: &str,
     record_id: &str,
     data: &Map<String, Value>,
@@ -747,7 +779,7 @@ fn update_typed(
     Ok(())
 }
 
-fn replace_route(tx: &rusqlite::Transaction, record_id: &str, route: &[Value]) -> Result<(), String> {
+fn replace_route(tx: &Connection, record_id: &str, route: &[Value]) -> Result<(), String> {
     tx.execute(
         "DELETE FROM workout_route_points WHERE workout_session_id = ?1",
         [record_id],
