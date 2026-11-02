@@ -277,7 +277,7 @@ Rejected alternatives:
 `database_metadata.athleticstandard_version` are both `2.1.0`. Option A is
 [spec.md](spec.md) section 8.
 
-Mike chose option A in his direct chat with Chief of Staff on 2026-10-31 at 8:52 AM CT. Asked whether saved data should also say 2.1.0, with a field_basis note on each value, he answered "yes".
+The maintainer chose option A on 2026-10-31 at 8:52 AM CT. Asked whether saved data should also say 2.1.0, with a field_basis note on each value, the maintainer answered "yes".
 
 D152 made the program version and the record version one number, so a change does not
 have to pick which number moves. This release keeps that rule. The mapping adds one optional field, `field_basis`, and no

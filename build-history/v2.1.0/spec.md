@@ -1,6 +1,6 @@
 # Athletic Standard 2.1.0
 
-Status: **approved by Mike and built in one pull request**. The decisions are in
+Status: **approved by the maintainer and built in one pull request**. The decisions are in
 [decisions.md](decisions.md), D177 through D188. What was built is in
 [progress.md](progress.md).
 
@@ -24,7 +24,7 @@ One release, 2.1.0, in one pull request instead of the plan's three. The plan's 
 | Every value's basis | `field_basis` on every stored value, from every importer | D187 |
 | Notes | The nits from the last review, the progress note in section 9, and this spec | none |
 
-Nothing is published. 2.1.0 ships as option A. Section 8 says where and when Mike chose it. Option B was not chosen. The tool skill `metadata.version` moves with the package version, to `2.1.0`, so `tests/skill.test.ts` still sees equal versions.
+Nothing is published. 2.1.0 ships as option A. Section 8 says when the maintainer chose it. Option B was not chosen. The tool skill `metadata.version` moves with the package version, to `2.1.0`, so `tests/skill.test.ts` still sees equal versions.
 
 Three changes override the plan where they conflict: one pull request, option A, and `field_basis` on every stored value, not only mapped values. The third change is D187 and section 13.
 
@@ -1017,7 +1017,7 @@ The build adds the optional `field_basis` object to `src/v1/schema.ts` (D185, D1
 
 2.1.0 ships as option A: the program version and the record version stay one number, 2.1.0.
 
-Mike chose option A in his direct chat with Chief of Staff on 2026-10-31 at 8:52 AM CT. Asked whether saved data should also say 2.1.0, with a field_basis note on each value, he answered "yes".
+The maintainer chose option A on 2026-10-31 at 8:52 AM CT. Asked whether saved data should also say 2.1.0, with a field_basis note on each value, the maintainer answered "yes".
 
 D152 made them one number for 2.0.0. D164 says that choice still holds from 2.0.0 on. Neither decision is rewritten here. The choice is D184.
 
@@ -1096,7 +1096,7 @@ Option B kept the record at 2.0.0 and the program at 2.1.0, with no migration an
 
 ## 9. The 2.0.0 progress note
 
-The build deletes the section whose heading is `Later, with the reason:` from `build-history/v2.0.0/progress.md`. The edit finds that heading. It does not find a line number. Mike asked for the deletion. The list is out of date. The build pull request makes the edit. The plan pull request did not.
+The build deletes the section whose heading is `Later, with the reason:` from `build-history/v2.0.0/progress.md`. The edit finds that heading. It does not find a line number. The maintainer asked for the deletion. The list is out of date. The build pull request makes the edit. The plan pull request did not.
 
 The heading and the bullets under it are removed. The paragraphs above the heading stay.
 
@@ -1107,10 +1107,10 @@ No file links to that heading. The one link inside the section points at `append
 
 `docs/connections.md` says an Open Wearables pull is not built. That sentence stays true. `docs/connections.md` is not edited.
 
-`build-history/v2.1.0/progress.md` says Mike asked for the deletion, and it links the study:
+`build-history/v2.1.0/progress.md` says the maintainer asked for the deletion, and it links the study:
 
 ```markdown
-Mike asked to remove the outdated "Later, with the reason:" heading from
+The maintainer asked to remove the outdated "Later, with the reason:" heading from
 [v2.0.0/progress.md](../v2.0.0/progress.md). The mapping study is
 [v2.0.0/appendix/source-formats.md](../v2.0.0/appendix/source-formats.md) (D161).
 ```
@@ -1146,11 +1146,11 @@ The plan pull request had no recording.
 - The npm package omits `mappings/` unless `package.json` `files` lists it. The smoke test asserts the tarball paths.
 - A re-import of a 2.0.0 export under 2.1.0 adds `field_basis` in a new revision of each record it matches (D187). A large Apple export gains one revision per record the first time.
 
-### Answers from Mike
+### Answers from the maintainer
 
-1. Option A or option B in section 8: option A. One number, 2.1.0, with `field_basis`, `schema/2.1.0/`, and migration step 4. Section 8 quotes where and when Mike chose it.
-2. A workout with `entry_source` `manual`: Mike approved the plan with its recommendation. The object is left out of the measured import, and the other objects in the file are still written. The test is `ow-workout-manual`.
-3. `field_basis` goes on every stored value, not only mapped values. The question Mike answered "yes" to, quoted in section 8, asked for a field_basis note on each value. That is D187 and section 13.
+1. Option A or option B in section 8: option A. One number, 2.1.0, with `field_basis`, `schema/2.1.0/`, and migration step 4. Section 8 says when the maintainer chose it and quotes the answer.
+2. A workout with `entry_source` `manual`: the maintainer approved the plan with its recommendation. The object is left out of the measured import, and the other objects in the file are still written. The test is `ow-workout-manual`.
+3. `field_basis` goes on every stored value, not only mapped values. The question the maintainer answered "yes" to, quoted in section 8, asked for a field_basis note on each value. That is D187 and section 13.
 
 `--mapping` is in this release. D174 does not need a new D-number. The fourth refusal stays. It is D179 item 4, from D172.
 
@@ -1179,7 +1179,7 @@ These are outside this release. This section does not assign them to a later ver
 
 ## 13. Every stored value's basis
 
-`field_basis` goes on every stored value, not only on mapped values. The question Mike answered "yes" to, quoted in section 8, asked for a field_basis note on each value. This section is that change. The decision is D187.
+`field_basis` goes on every stored value, not only on mapped values. The question the maintainer answered "yes" to, quoted in section 8, asked for a field_basis note on each value. This section is that change. The decision is D187.
 
 ### The object
 

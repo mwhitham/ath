@@ -12,11 +12,11 @@
 | 8 | The regenerated demo athlete, and a migrated copy of the 2.0.0 database that passes `ath check` | done |
 | 9 | The release workflow on every pull request, passing on Linux, macOS, and Windows (D188) | done |
 
-Mike approved the plan in [spec.md](spec.md). Three changes override it where they
-conflict. The build is one pull request, not three. 2.1.0 ships as option A: one
-number, 2.1.0. D184 quotes where and when Mike chose it. `field_basis` goes on every
-stored value, not only mapped values. That last change is D187. The spec says what was
-built where it differs from the plan.
+The maintainer approved the plan in [spec.md](spec.md). Three changes override it where
+they conflict. The build is one pull request, not three. 2.1.0 ships as option A: one
+number, 2.1.0. D184 says when the maintainer chose it and quotes the answer.
+`field_basis` goes on every stored value, not only mapped values. That last change is
+D187. The spec says what was built where it differs from the plan.
 
 The baseline found one mistake in the plan. Its package row named
 `examples/demo-athlete/athlete.ath.json`, which is the legacy 0.4.3 file that `ath import`
@@ -37,7 +37,7 @@ showed at release time. The release workflow now runs on every pull request (D18
 Spec section 6 lists each fix. None removes or loosens a test. One backup test case
 uses a file name that Windows does not allow, so it runs on Linux and macOS only.
 
-Mike asked to remove the outdated "Later, with the reason:" heading from
+The maintainer asked to remove the outdated "Later, with the reason:" heading from
 [v2.0.0/progress.md](../v2.0.0/progress.md). The mapping study is
 [v2.0.0/appendix/source-formats.md](../v2.0.0/appendix/source-formats.md) (D161).
 
