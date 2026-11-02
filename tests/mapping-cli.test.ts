@@ -8,7 +8,7 @@ import { createClient } from "@libsql/client";
 import { describe, expect, it } from "vitest";
 import { athCoreBinary } from "../src/ath-core.js";
 import { installMappings } from "../src/skill.js";
-import { POINT_MEASUREMENT_UNITS } from "../src/v1/schema.js";
+import { ActivityTypeBasis, POINT_MEASUREMENT_UNITS, ValueBasis } from "../src/v1/schema.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../src/cli.ts");
@@ -229,8 +229,8 @@ describe("ath import --mapping open-wearables", () => {
     });
     expect(workout.data.activity_type).toBe("running");
     expect(workout.data.field_basis).toEqual({
-      value: "provider_or_open_wearables",
-      activity_type: "open_wearables_normalized",
+      value: "provider_or_aggregator",
+      activity_type: "aggregator_normalized",
     });
     expect(workout.data.name).toBe("Invented loop");
     expect(workout.data.source_reported_summaries).toEqual([
@@ -249,11 +249,11 @@ describe("ath import --mapping open-wearables", () => {
     const average = byKey.get(key("garmin", S_WATCH, "workout", "ow-workout-1", "summary", "average_heart_rate"))!;
     expect(average.data.value).toEqual({ standard_value: 140, standard_unit: "bpm", input_value: 140, input_unit: "bpm" });
     expect(average.data.supplied_fields).toBeUndefined();
-    expect(average.data.field_basis).toEqual({ value: "provider_or_open_wearables" });
+    expect(average.data.field_basis).toEqual({ value: "provider_or_aggregator" });
     const peak = byKey.get(key("garmin", S_WATCH, "workout", "ow-workout-1", "summary", "max_heart_rate"))!;
     expect(peak.data.value.standard_value).toBe(180);
     expect(peak.data.supplied_fields).toBeUndefined();
-    expect(peak.data.field_basis).toEqual({ value: "provider_or_open_wearables" });
+    expect(peak.data.field_basis).toEqual({ value: "provider_or_aggregator" });
 
     expect(result.left_out).toContain("workout ow-workout-manual: entry_source manual is a personal report");
     expect([...byKey.keys()].some((matchKey) => matchKey.includes("ow-workout-manual"))).toBe(false);
@@ -328,7 +328,6 @@ describe("ath import --mapping open-wearables", () => {
     mapped(dir, join(OW, "summaries.json"), "open-wearables");
     mapped(dir, JUNCTION, "junction");
     const { byKey } = await stored(dir);
-    const route = async (sourceId: string) => (await stored(dir)).sources.find((source) => source.record_id === sourceId)?.data_route;
     for (const [matchKey, record] of byKey) {
       if (record.record_type === "source_device") {
         expect(record.data.field_basis, matchKey).toBeUndefined();
@@ -339,15 +338,13 @@ describe("ath import --mapping open-wearables", () => {
           ? "provider"
           : matchKey.endsWith(":point:hrv_rmssd") && matchKey.includes(":sleep:")
             ? "hrv_mean_rmssd"
-            : (await route(record.data.source_id)) === "junction"
-              ? "provider_or_junction"
-              : "provider_or_open_wearables";
+            : "provider_or_aggregator";
       expect(record.data.field_basis?.value, matchKey).toBe(expected);
     }
     const night = byKey.get(key("oura", S_RING, "sleep", "ow-sleep-1"))!;
-    expect(night.data.field_basis).toEqual({ value: "provider_or_open_wearables" });
+    expect(night.data.field_basis).toEqual({ value: "provider_or_aggregator" });
     const junctionNight = byKey.get(key("oura", S_JORA, "sleep", "jn-sleep-1"))!;
-    expect(junctionNight.data.field_basis).toEqual({ value: "provider_or_junction" });
+    expect(junctionNight.data.field_basis).toEqual({ value: "provider_or_aggregator" });
   }, 60_000);
 
   it("prints what it understood, kept, and left out, and how many records it wrote", () => {
@@ -887,11 +884,11 @@ describe("refusals", () => {
       ],
       [
         SLEEP_HEADER.replace("value_basis: provider", "value_basis: hrv_mean_rmssd") + "x: asleep_seconds s s",
-        "value_basis hrv_mean_rmssd is not one of provider, provider_or_open_wearables, provider_or_junction",
+        "value_basis hrv_mean_rmssd is not one of provider, provider_or_aggregator",
       ],
       [
         "name: w\nroute: w_route\nwriter_field: source.provider\nvalue_basis: provider\n[workout]\nsport: activity_type",
-        "activity_type needs a basis: one of open_wearables_normalized, provider_label",
+        "activity_type needs a basis: one of aggregator_normalized, provider_label",
       ],
     ];
     for (const [body, message] of cases) {
@@ -983,5 +980,15 @@ describe("the mapping engine's unit table", () => {
     const table = /pub const POINT_UNITS: &\[\(&str, &str\)\] = &\[([\s\S]*?)\];/.exec(source)![1]!;
     const pairs = [...table.matchAll(/\("([^"]+)", "([^"]+)"\)/g)].map((match) => [match[1], match[2]]);
     expect(Object.fromEntries(pairs)).toEqual(POINT_MEASUREMENT_UNITS);
+  });
+
+  it("names the same bases as the record schema", () => {
+    const source = readFileSync(resolve(here, "../crates/ath-core/src/mapping.rs"), "utf8");
+    const list = (name: string) =>
+      [...new RegExp(`pub const ${name}: &\\[&str\\] = &\\[([\\s\\S]*?)\\];`).exec(source)![1]!.matchAll(/"([^"]+)"/g)].map(
+        (match) => match[1],
+      );
+    expect(list("VALUE_BASES")).toEqual(ValueBasis.options);
+    expect(list("ACTIVITY_TYPE_BASES")).toEqual(ActivityTypeBasis.options);
   });
 });

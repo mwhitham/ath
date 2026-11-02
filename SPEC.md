@@ -332,21 +332,20 @@ A score is an object with at least one of:
 
 `field_basis` is an optional object that the software writes. It says on what
 basis a value was stored. It is not a field the source sent, so it is never inside
-`supplied_fields`. Every measured record type may carry it (D185, D187). Every
+`supplied_fields`. Every measured record type may carry it (D185, D187, D192). Every
 measured record an import or `ath log` writes from version 2.1.0 on has
 `field_basis.value`.
 
 | Field | Values |
 |---|---|
 | `value` | `provider`: the writer computed or recorded the value and gives it as its own. A provider score stays that provider's score |
-| | `provider_or_open_wearables`: the provider or Open Wearables computed the number, and the object does not say which |
-| | `provider_or_junction`: the provider or Junction computed the number, and the summary does not say which |
-| | `hrv_mean_rmssd`: Junction documents `average_hrv` as the mean RMSSD |
+| | `provider_or_aggregator`: the provider or a service that passed the data on, such as Open Wearables or Junction, computed the number, and the record does not say which |
+| | `hrv_mean_rmssd`: the source documents the field as the mean RMSSD, as Junction does for `average_hrv` |
 | | `provider_documented_rmssd`: the source column says heart-rate variability without the statistic, and WHOOP or Oura documents it as RMSSD |
 | | `calculated_on_import`: the software calculated the value from the source's own samples, such as Apple sleep totals, RMSSD from an Apple beat list or ECG, and ECG beat intervals |
 | | `entered_by_hand`: a person entered the value, or an agent entered it through `ath log`. It was not read from a device file or service |
 | `activity_type` | `provider_label`: the writer named the activity. The software may drop Apple's `HKWorkoutActivityType` prefix and change the letter case |
-| | `open_wearables_normalized`: Open Wearables chose the activity word |
+| | `aggregator_normalized`: a service that passed the data on, such as Open Wearables, chose the activity word |
 | `route_summaries` | `calculated_on_import`: the software calculated an Apple workout's elevation gain or kilometre splits from its route file |
 
 A record written before version 2.1.0 has no `field_basis`. It stays valid.

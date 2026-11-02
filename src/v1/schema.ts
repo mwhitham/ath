@@ -358,19 +358,18 @@ export const SourceReportedSummary = z
 /** A value kept under the name it arrived with. */
 export const SuppliedFields = z.record(z.string().min(1), z.json());
 
-/** Bases for a stored value (D185, D187). */
+/** Bases for a stored value (D185, D187, D192). */
 export const ValueBasis = z.enum([
-  "provider_or_open_wearables",
+  "provider_or_aggregator",
   "provider",
   "hrv_mean_rmssd",
-  "provider_or_junction",
   "provider_documented_rmssd",
   "calculated_on_import",
   "entered_by_hand",
 ]);
 
-/** Where a workout's activity type came from (D185, D187). */
-export const ActivityTypeBasis = z.enum(["open_wearables_normalized", "provider_label"]);
+/** Where a workout's activity type came from (D185, D187, D192). */
+export const ActivityTypeBasis = z.enum(["aggregator_normalized", "provider_label"]);
 
 /** The basis this program assigns to a stored value. It is not a supplied field (D185, D187). */
 export const FieldBasis = z.strictObject({

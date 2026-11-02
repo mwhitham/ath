@@ -321,17 +321,16 @@
                   "activity_type": {
                     "type": "string",
                     "enum": [
-                      "open_wearables_normalized",
+                      "aggregator_normalized",
                       "provider_label"
                     ]
                   },
                   "value": {
                     "type": "string",
                     "enum": [
-                      "provider_or_open_wearables",
+                      "provider_or_aggregator",
                       "provider",
                       "hrv_mean_rmssd",
-                      "provider_or_junction",
                       "provider_documented_rmssd",
                       "calculated_on_import",
                       "entered_by_hand"
@@ -848,17 +847,16 @@
                   "activity_type": {
                     "type": "string",
                     "enum": [
-                      "open_wearables_normalized",
+                      "aggregator_normalized",
                       "provider_label"
                     ]
                   },
                   "value": {
                     "type": "string",
                     "enum": [
-                      "provider_or_open_wearables",
+                      "provider_or_aggregator",
                       "provider",
                       "hrv_mean_rmssd",
-                      "provider_or_junction",
                       "provider_documented_rmssd",
                       "calculated_on_import",
                       "entered_by_hand"

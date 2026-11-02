@@ -1,12 +1,12 @@
 # Open Wearables
 
-Sleep sessions, workouts, and timeseries samples. The provider is `source.provider`. The device is `source.device_type`, `source.device`, and `source.source`. A value's basis is `provider_or_open_wearables`, because an Open Wearables object does not say whether the provider or Open Wearables computed it. A provider score's basis is `provider`. Stage minutes are under `stages`. `efficiency_percent` stays under that name. `entry_source` `manual` is left out. `intensity` stays under that name. A timeseries type is stored only when a line below names it.
+Sleep sessions, workouts, and timeseries samples. The provider is `source.provider`. The device is `source.device_type`, `source.device`, and `source.source`. A value's basis is `provider_or_aggregator`, because an Open Wearables object does not say whether the provider or Open Wearables computed it. Open Wearables normalizes the workout type, so its basis is `aggregator_normalized`. A provider score's basis is `provider`. Stage minutes are under `stages`. `efficiency_percent` stays under that name. `entry_source` `manual` is left out. `intensity` stays under that name. A timeseries type is stored only when a line below names it.
 
 ```ath-mapping
 name: open-wearables
 route: open_wearables
 writer_field: source.provider
-value_basis: provider_or_open_wearables
+value_basis: provider_or_aggregator
 sensor: source.device_type, source.device, source.source
 device_name: source.device_name, source.device
 device_model: source.device
@@ -27,12 +27,12 @@ stages.rem_minutes: stage_minutes.rem min min
 id_field: id
 start_field: start_time
 end_field: end_time
-type: activity_type basis open_wearables_normalized
+type: activity_type basis aggregator_normalized
 name: name
 distance_meters: source_reported_summaries.distance m m
 elevation_gain_meters: source_reported_summaries.elevation_gain m m
-avg_heart_rate_bpm: provider_summary.average_heart_rate bpm bpm basis provider_or_open_wearables
-max_heart_rate_bpm: provider_summary.max_heart_rate bpm bpm basis provider_or_open_wearables
+avg_heart_rate_bpm: provider_summary.average_heart_rate bpm bpm basis provider_or_aggregator
+max_heart_rate_bpm: provider_summary.max_heart_rate bpm bpm basis provider_or_aggregator
 
 [timeseries]
 time_field: timestamp

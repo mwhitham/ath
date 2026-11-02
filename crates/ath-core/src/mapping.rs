@@ -438,22 +438,22 @@ fn check_line(section: &str, line: &MapLine) -> Result<(), String> {
     Ok(())
 }
 
-/// `field_basis.value` values a mapping line may name with `basis` (D185, D187).
+/// Every `field_basis.value` in the record format (D185, D187, D192). A test keeps
+/// this list equal to `ValueBasis` in `src/v1/schema.ts`.
 pub const VALUE_BASES: &[&str] = &[
-    "provider_or_open_wearables",
+    "provider_or_aggregator",
     "provider",
     "hrv_mean_rmssd",
-    "provider_or_junction",
     "provider_documented_rmssd",
     "calculated_on_import",
     "entered_by_hand",
 ];
 
-/// `value_basis` values a mapping file may give every value it writes (D187).
-pub const FILE_BASES: &[&str] = &["provider", "provider_or_open_wearables", "provider_or_junction"];
+/// `value_basis` values a mapping file may give every value it writes (D187, D192).
+pub const FILE_BASES: &[&str] = &["provider", "provider_or_aggregator"];
 
-/// `field_basis.activity_type` values an `activity_type` line may name with `basis` (D185, D187).
-pub const ACTIVITY_TYPE_BASES: &[&str] = &["open_wearables_normalized", "provider_label"];
+/// `field_basis.activity_type` values an `activity_type` line may name with `basis` (D185, D192).
+pub const ACTIVITY_TYPE_BASES: &[&str] = &["aggregator_normalized", "provider_label"];
 
 fn value_basis(value: &str) -> Value {
     json!({ "value": value })
