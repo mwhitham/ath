@@ -5,6 +5,10 @@ Decisions continue after D176. Earlier decisions stay as they are. The plan is
 
 ## D177. A mapping file is an `ath-mapping` block
 
+Changed by D193 and D196 before 2.1.0 was published: the page and row field names
+below are now settings in each mapping file, and a `when-absent` line is tried after
+every other line.
+
 A mapping file is markdown. The program reads the first fenced block tagged
 `ath-mapping`. Text outside that block is for a person. A trailing `\r` is
 stripped from each line, so a file with Windows line endings reads the same.
@@ -216,6 +220,9 @@ Rejected alternatives:
 
 ## D182. A re-run updates the same row
 
+Changed by D189 before 2.1.0 was published: the whole mapped import is now one
+transaction, and each source object's records are written in a savepoint inside it.
+
 A re-run looks up the import key inside one transaction for each source object. The
 stored `received_at` is copied onto the new record before the compare. An equal
 record is not written again. A changed record keeps its id and its first
@@ -301,6 +308,10 @@ Rejected alternatives:
 
 ## D185. A basis we assign is not a supplied field
 
+Changed by D192 before 2.1.0 was published: `provider_or_open_wearables` is now
+`provider_or_aggregator`, and `open_wearables_normalized` is now
+`aggregator_normalized`.
+
 `supplied_fields` holds names the source sent (D153, D161). `intensity` is one of
 those names. It stays there verbatim. It is not a measured record.
 
@@ -384,6 +395,10 @@ Rejected alternatives:
   because D103 keeps a source label out of the normalized facts a calculation uses.
 
 ## D187. Every stored value states its basis
+
+Changed by D192 before 2.1.0 was published: `provider_or_open_wearables` and
+`provider_or_junction` are now one value, `provider_or_aggregator`. D195 limits the
+bases a mapping line may claim.
 
 Every measured record that an import, a mapping file, or `ath log` writes from
 2.1.0 on has `field_basis.value`. A workout with an activity type also has
@@ -490,3 +505,297 @@ Rejected alternatives:
 - Call the release workflow from `ci.yml`. Rejected because both workflows upload
   `ath-core-*` artifacts under the same names, and a called workflow shares the
   caller's run.
+
+## D189. One mapped import is one transaction, and the preview runs it
+
+`ath import --mapping` writes inside one SQLite transaction. It begins before the first
+row is read and ends after the last one. Each source object's records are written in a
+savepoint inside it. Any error rolls back the whole import. A failure partway through
+leaves nothing written, including the sources and devices made earlier in the run.
+
+The preview is the same run, rolled back at the end. It reads the same stored records
+and makes the same checks. So it shows the same `left_out` lines, the same counts, and
+the same error that the write would. Only `record_ids` differs. It is empty, because
+nothing was kept.
+
+The result gains `outcome`: how many records are new, changed, and unchanged. The text
+output prints it as `outcome: 22 new, 0 changed, 0 unchanged`.
+
+The transaction starts with `BEGIN IMMEDIATE`. It holds the write lock from the first
+read, so another writer cannot change a row between the lookup and the write.
+
+The final review found the problem. A bad row late in a file stopped the import after
+the earlier rows were committed. The old preview skipped every write. It could not see a
+deleted source, a deleted record, or a row the store would refuse.
+
+This changes D182, which said each source object had its own transaction. D182 was
+added in this release, which is not published. It now starts with a short note that
+points here. The rest of its text is unchanged.
+
+Rejected alternatives:
+
+- One transaction for each source object, as D182 first said. Rejected because a
+  failure in a later object left the earlier objects written.
+- A preview that only reads. Rejected because a row's outcome can depend on a row
+  written earlier in the same run, such as a new source or a new key.
+- Check every row in a first pass, then write in a second. Rejected because the store's
+  own checks run only when a record is written, so the two passes could disagree.
+
+## D190. A deleted mapped source is left out
+
+When a person deletes the source a mapped import writes under, a later import of the
+same file leaves out that source's rows. Each row adds `{label}: its source {id} is
+deleted` to `left_out`. Nothing is written under the source, and no second source is
+made. Rows under other sources are written as usual.
+
+`ensure_mapped_source` finds the source by writer, route, and sensor, whether or not it
+is deleted. A deleted source keeps its row, and the unique index on those three columns
+still covers it. Before this, the lookup skipped deleted sources. The import then tried
+to add a second source with the same three values, and SQLite stopped it with a UNIQUE
+error.
+
+An erased source is removed with every record that depends on it and their import keys.
+A later import makes the source again, with new records.
+
+This follows D182. A deleted record is not revised, and its object is left out. A
+deleted source is the same rule for the source.
+
+Rejected alternatives:
+
+- Make a new source beside the deleted one. Rejected because the unique index refuses
+  it. Dropping the index would let one device become two sources.
+- Undelete the source. Rejected because a person chose to hide it, and an import should
+  not undo that.
+- Refuse the whole import. Rejected because the rows under other sources are still
+  good. D182 already leaves out only the deleted record's object.
+
+## D191. A supplied field needs a name every reader keeps
+
+The store refuses a record whose `supplied_fields` has an empty name, or a name
+`__proto__` at any depth. The check covers the record's own `supplied_fields` and the
+`supplied_fields` of each route point. It runs in `ath-core` before a record is
+inserted or revised, so it covers every importer that writes through the store. The
+message names the record and the reason:
+
+```text
+sleep_session bad-night: a supplied field has an empty name, and the format needs a name for every field
+sleep_session bad-night: a supplied field is named __proto__, which JavaScript readers drop
+```
+
+Under D189 the whole mapped import then stops, and nothing is written.
+
+The record schema already requires a name of at least one character (`SuppliedFields`
+in `src/v1/schema.ts`). The Rust writers do not run that schema. A mapped row with a
+`""` key was stored. Then `ath check` said the database was invalid, and `ath export`
+failed. A `__proto__` key was stored too. `ath check` passed, but `ath export` dropped
+the key without a warning, at the top level and inside nested objects. JavaScript
+treats that name as the object's prototype, not as a field.
+
+Other names are kept. A name of spaces, a name with control characters, and an empty
+name inside a nested value all pass `ath check` and come back from `ath export`
+unchanged.
+
+The TypeScript package import already refuses an empty name, through the schema. It
+still drops a `__proto__` name in a package that another program wrote. This release
+does not change that reader.
+
+Rejected alternatives:
+
+- Drop the bad field and store the rest. Rejected because D153 and D161 keep what the
+  source sent, and the loss would be silent.
+- Rename the field, for example to `_empty`. Rejected because the stored name would no
+  longer be the name the source sent.
+- Check only in the mapping engine. Rejected because the Garmin, Strava, and
+  personal-pull writers also copy source names into `supplied_fields`.
+
+## D192. A basis names no product
+
+`field_basis.value` `provider_or_aggregator` replaces `provider_or_open_wearables` and
+`provider_or_junction`. It means the provider or the service that passed the data on
+computed the number, and the record does not say which. `field_basis.activity_type`
+`aggregator_normalized` replaces `open_wearables_normalized`. It means that service
+chose the activity word. The other values are unchanged.
+
+The Open Wearables file and the Junction file both state `value_basis:
+provider_or_aggregator`. The Open Wearables workout line is `type: activity_type basis
+aggregator_normalized`. The source's route, `open_wearables` or `junction`, still names
+the service. A reader who needs the service reads the source.
+
+The final review asked for this. A product name in the format means each new service
+needs a new value and a new schema. With one value, a mapping file for another service
+needs no format change.
+
+`schema/2.1.0/` is regenerated. 2.1.0 is not published, so no stored record or package
+has the old values. A test keeps the engine's lists equal to the schema's (`names the
+same bases as the record schema` in `tests/mapping-cli.test.ts`).
+
+This changes D185 and D187, which were added in this release. Each now starts with a
+short note that points here. The rest of their text is unchanged.
+
+Rejected alternatives:
+
+- One value for each service. Rejected because each new service would change the
+  record format.
+- Use `provider` for data a service passed on. Rejected because the service may have
+  computed the number, and `provider` would claim more than the file says.
+- Keep the old values beside the new one. Rejected because no released record uses
+  them, and two names for one meaning need a rule for which one to write.
+
+## D193. A mapping file names its own layout
+
+The engine, `crates/ath-core/src/mapping.rs`, names no source. Every field name that
+belongs to one source's layout is a setting in that source's mapping file. These are
+new header keys:
+
+- `personal_when: {field} {value}`. A row whose field has that value is a personal
+  report. It is left out as `{field} {value} is a personal report`. The Open Wearables
+  file says `personal_when: entry_source manual`.
+- `page_rows`, `page_marker`, and `page_section`. An input whose root has the
+  `page_rows` array and the `page_marker` key is one page. Its rows map with the
+  section `page_section`. The Open Wearables file says `data`, `metadata`, and
+  `timeseries`.
+- `page_resolution` and `raw_resolution`, which go together. When a page has a value
+  at `page_resolution` and it is not `raw_resolution`, every row is left out. The Open
+  Wearables file says `metadata.resolution` and `raw`.
+
+A section now names the fields of its rows. `[sleep]` and `[workout]` need `id_field`,
+`start_field`, and `end_field`. `[timeseries]` needs `time_field`, `type_field`,
+`value_field`, and `unit_field`. It may also name `aggregate_field`, whose presence
+marks an aggregate row, and `window_field`, which cannot be confirmed raw on a page
+with no resolution. The Open Wearables file says `timestamp`, `type`, `value`, `unit`,
+`period_end`, and `window_seconds`. A timeseries line reads `{type_field}.{type}`.
+
+The check refuses a section without its settings, a setting the section does not use, a
+timeseries line that does not start with the type field, and a page that is only partly
+described.
+
+The shipped files write the same records and the same `left_out` lines as before, with
+two changes. A page given to a file that does not describe pages is read as plain
+arrays, so its rows are `data: no mapping section`, not `timeseries: no mapping
+section`. The envelope line is built from the settings: `envelope is not a
+{page_section} page: pass its {page_rows} array under workout or sleep`. For the Open
+Wearables file it is the same line as before.
+
+The final review found Open Wearables and Junction names in the engine: `entry_source`,
+`metadata.resolution`, `window_seconds`, `period_end`, the sample's `type` and `unit`,
+and the heart-rate variability field names (D194). A person who adds a mapping for
+another source could not change them.
+
+This changes D177, which was added in this release. It now starts with a short note
+that points here. The rest of its text is unchanged.
+
+Rejected alternatives:
+
+- Keep the names in the engine as defaults. Rejected because a default is still one
+  source's layout, and a file that left out a setting would get it without knowing.
+- A separate settings file for each source. Rejected because the mapping file is
+  already the one file a person reads and edits for that source.
+
+## D194. The heart-rate variability check reads names, in every record a line writes
+
+A line whose target names RMSSD or SDNN must read a field that names the same
+statistic. The target names it when `rmssd` or `sdnn` is in the point quantity, the
+summary type, or the score metric, in any letter case. So `hrv_rmssd`,
+`provider_summary.hrv_rmssd`, and `provider_score.sdnn_balance` are all checked. The
+field names it when its name contains `rmssd` or `sdnn`, and not both. For a timeseries
+line, the name is the type after `{type_field}.`.
+
+A field that names neither statistic may write an RMSSD target only with basis
+`hrv_mean_rmssd` or `provider_documented_rmssd`, and only with a `when-writer` list.
+That keeps the shipped Junction line `average_hrv: hrv_rmssd ms ms basis hrv_mean_rmssd
+when-writer oura,whoop_v2,garmin,fitbit,polar`. Every other case is refused with D179's
+message: `refusing to map {their_field} onto {our_field}; the field does not name the
+statistic`.
+
+This replaces two fixed lists of Open Wearables and Junction names in the engine:
+`heart_rate_variability_rmssd` for RMSSD, and `heart_rate_variability_sdnn` and
+`hrv_mean_sdnn` for SDNN, plus the exception for `average_hrv`. The rule is still
+D161's: a value is stored as RMSSD or SDNN only when the source says which. `LastNightAvg`,
+`hrv`, and `HRV` are still refused for both.
+
+The final review also found that the check covered only point records. A line could
+put a field with no statistic in its name into `provider_summary.hrv_rmssd`. That is
+now refused too. A provider score whose metric names neither statistic is not checked,
+because it is that provider's own score (D27, D159).
+
+Rejected alternatives:
+
+- Keep the fixed lists and add each new source's names. Rejected because each new
+  source would need an engine change, which D193 removes.
+- Check only point records. Rejected because a summary named `hrv_rmssd` makes the same
+  claim.
+- Let any basis stand in for the name. Rejected because only an RMSSD basis says which
+  statistic a field holds, and only for the writers the file lists.
+
+## D195. A mapping line claims only a basis a mapping can know
+
+A line's `basis` may be `provider`, `provider_or_aggregator`, `hrv_mean_rmssd`, or
+`provider_documented_rmssd`. The two RMSSD bases are for `hrv_rmssd` only. An
+`activity_type` line uses `aggregator_normalized` or `provider_label`. A file's
+`value_basis` is `provider` or `provider_or_aggregator` (D187, D192).
+
+A line that claims another value fails the check with `a mapping line cannot claim
+basis {token}; use one of provider, provider_or_aggregator, hrv_mean_rmssd,
+provider_documented_rmssd`. An RMSSD basis on another field fails with `basis {token}
+is only used for hrv_rmssd`.
+
+`calculated_on_import` means this software calculated the value. A mapping copies
+values and calculates none. `entered_by_hand` means a person typed the value. A mapped
+file comes from a device or a service. Before this, a line could claim either one, and
+the stored basis would be false.
+
+Rejected alternatives:
+
+- Allow every `field_basis.value`. Rejected because two of them describe work a mapping
+  never does.
+- Allow `entered_by_hand` in a mapping file a person wrote. Rejected because the person
+  wrote the mapping, not the values. The values still come from the input file.
+
+## D196. The first line that writes a field wins
+
+When two lines of one section write the same our-field for one row, the first line in
+the file that has a value to write writes it. A `when-absent` line is tried after every
+other line, wherever it sits in the file. The fields of the lines that did not write
+stay in `supplied_fields` under their names.
+
+Before this, both lines wrote. A session field kept the last value. A point, summary,
+or score got two records with one match key, so the second revised the first. Every
+later import of the same file revised the record twice more, with no change in the
+file.
+
+The check does not refuse the second line. A file may list a fallback on purpose. The
+Junction file reads `stage_asleep_second`, then `total` with `when-absent`.
+
+D177 said a `when-absent` line looks only at the lines before it. The short note at the
+top of D177 points here too.
+
+Rejected alternatives:
+
+- Refuse two lines that write one field. Rejected because a fallback field is a real
+  need, and `when-absent` already marks one.
+- Let the last line win. Rejected because D181 already stores the first of two objects
+  with one key, and one rule for both is easier to follow.
+
+## D197. The Windows release job retries Chocolatey, then uses a pinned archive
+
+The Windows test job in `release-cross-platform.yml` runs `choco install sqlite` up to
+three times. It waits 20 seconds after the first failure and 40 after the second. If
+all three fail, it downloads `sqlite-tools-win-x64-3540100.zip` from sqlite.org, checks
+its SHA-256, and adds the folder to `PATH`. A different hash stops the job. Every test
+job still prints `sqlite3 --version` before the tests (D188).
+
+The SHA-256 is `fb20997ade5583a5fbf1e36db7bc3c82c9416b3f314f16961e1572aa4e49487d`. The
+file's SHA3-256 matches the value sqlite.org lists for it. The archive holds
+`sqlite3.exe` at its top level.
+
+Release run 41375453717 on this pull request failed at the install step. Chocolatey
+answered HTTP 503 for the sqlite package. Nothing in the code was wrong.
+
+Rejected alternatives:
+
+- Download from sqlite.org only. Rejected because then an outage at that one server
+  stops every run.
+- Retry Chocolatey with no fallback. Rejected because a longer outage would still stop
+  the release.
+- Download without a hash check. Rejected because the job would then run whatever file
+  the server returned.

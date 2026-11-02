@@ -1,7 +1,7 @@
 # Athletic Standard 2.1.0
 
 Status: **approved by the maintainer and built in one pull request**. The decisions are in
-[decisions.md](decisions.md), D177 through D188. What was built is in
+[decisions.md](decisions.md), D177 through D197. What was built is in
 [progress.md](progress.md).
 
 This release builds the source mapping [D161](../v2.0.0/decisions.md) describes. A source whose reader already produces named fields is imported by adding a mapping file. The file lists their field and our field. A mapped field becomes the typed value. Any other field stays in `supplied_fields` under the name it arrived with.
@@ -23,6 +23,7 @@ One release, 2.1.0, in one pull request instead of the plan's three. The plan's 
 | Version | Option A from section 8 | D184, D185 |
 | Every value's basis | `field_basis` on every stored value, from every importer | D187 |
 | Notes | The nits from the last review, the progress note in section 9, and this spec | none |
+| Final review | One transaction for a mapped import, deleted sources, supplied field names, bases that name no product, each source's layout in its mapping file, the heart-rate variability name check, the bases a line may claim, the first line that writes a field, and the Windows `sqlite3` install | D189–D197 |
 
 Nothing is published. 2.1.0 ships as option A. Section 8 says when the maintainer chose it. Option B was not chosen. The tool skill `metadata.version` moves with the package version, to `2.1.0`, so `tests/skill.test.ts` still sees equal versions.
 
@@ -33,6 +34,8 @@ Three changes override the plan where they conflict: one pull request, option A,
 A mapping file is markdown. The program reads the first fenced block whose info string is `ath-mapping`. Text outside that block is for a person. The grammar is D177. These are the two shipped files, exactly as built.
 
 The header has more keys than the plan first listed. `sensor`, `device_name`, `device_model`, and `device_hardware` name the device fields (D183). They live in the file, so a mapping a person adds can keep two devices apart. `value_basis` gives the basis of every value the file writes (D187). The `type` line states the activity type's basis.
+
+From D193 the file also names its own layout. `personal_when` names the field and value that mark a personal report. `page_rows`, `page_marker`, `page_section`, `page_resolution`, and `raw_resolution` describe a page of samples. Each section names the fields of its rows. The engine names no source.
 
 Shipped paths:
 
@@ -46,13 +49,21 @@ Shipped paths:
 ~~~~markdown
 # Open Wearables
 
-Sleep sessions, workouts, and timeseries samples. The provider is `source.provider`. The device is `source.device_type`, `source.device`, and `source.source`. A value's basis is `provider_or_open_wearables`, because an Open Wearables object does not say whether the provider or Open Wearables computed it. A provider score's basis is `provider`. Stage minutes are under `stages`. `efficiency_percent` stays under that name. `entry_source` `manual` is left out. `intensity` stays under that name. A timeseries type is stored only when a line below names it.
+Sleep sessions, workouts, and timeseries samples. The provider is `source.provider`. The device is `source.device_type`, `source.device`, and `source.source`. A value's basis is `provider_or_aggregator`, because an Open Wearables object does not say whether the provider or Open Wearables computed it. Open Wearables normalizes the workout type, so its basis is `aggregator_normalized`. A provider score's basis is `provider`. Stage minutes are under `stages`. `efficiency_percent` stays under that name. A row whose `entry_source` is `manual` is a personal report, and it is left out. `intensity` stays under that name. A timeseries type is stored only when a line below names it.
+
+A page is the `data` array of an object that also has `metadata`. Its rows are timeseries samples. Only raw samples are stored: `metadata.resolution` must be `raw`. A row with `period_end` is an aggregate. A row with `window_seconds` on a page with no resolution cannot be confirmed raw.
 
 ```ath-mapping
 name: open-wearables
 route: open_wearables
 writer_field: source.provider
-value_basis: provider_or_open_wearables
+value_basis: provider_or_aggregator
+personal_when: entry_source manual
+page_rows: data
+page_marker: metadata
+page_section: timeseries
+page_resolution: metadata.resolution
+raw_resolution: raw
 sensor: source.device_type, source.device, source.source
 device_name: source.device_name, source.device
 device_model: source.device
@@ -73,16 +84,20 @@ stages.rem_minutes: stage_minutes.rem min min
 id_field: id
 start_field: start_time
 end_field: end_time
-type: activity_type basis open_wearables_normalized
+type: activity_type basis aggregator_normalized
 name: name
 distance_meters: source_reported_summaries.distance m m
 elevation_gain_meters: source_reported_summaries.elevation_gain m m
-avg_heart_rate_bpm: provider_summary.average_heart_rate bpm bpm basis provider_or_open_wearables
-max_heart_rate_bpm: provider_summary.max_heart_rate bpm bpm basis provider_or_open_wearables
+avg_heart_rate_bpm: provider_summary.average_heart_rate bpm bpm basis provider_or_aggregator
+max_heart_rate_bpm: provider_summary.max_heart_rate bpm bpm basis provider_or_aggregator
 
 [timeseries]
 time_field: timestamp
+type_field: type
 value_field: value
+unit_field: unit
+aggregate_field: period_end
+window_field: window_seconds
 type.heart_rate_variability_rmssd: hrv_rmssd ms ms
 type.heart_rate_variability_sdnn: hrv_sdnn ms ms
 type.resting_heart_rate: resting_heart_rate bpm bpm
@@ -97,9 +112,9 @@ type.garmin_body_battery: provider_score.garmin_body_battery percent score scale
 ```
 ~~~~
 
-`duration_seconds` stays in `supplied_fields`. `intensity` stays in `supplied_fields` under that name (D186). It is not a measured record. `name` is stored as the exact string. `activity_type` is stored as sent. The workout's `field_basis.activity_type` is `open_wearables_normalized`, because Open Wearables normalizes that word (D185). Its `field_basis.value` is `provider_or_open_wearables` (D187).
+`duration_seconds` stays in `supplied_fields`. `intensity` stays in `supplied_fields` under that name (D186). It is not a measured record. `name` is stored as the exact string. `activity_type` is stored as sent. The workout's `field_basis.activity_type` is `aggregator_normalized`, because Open Wearables normalizes that word (D185, D192). Its `field_basis.value` is `provider_or_aggregator` (D187, D192).
 
-`avg_heart_rate_bpm` and `max_heart_rate_bpm` each become a `provider_summary`. The summary types are `average_heart_rate` and `max_heart_rate`. The basis stays `provider_or_open_wearables`, because a workout object has no flag that says who computed the number. Open Wearables does not send `{their_field}_computed_by`. That sibling rule is not part of this release. `field_basis.value` holds `provider_or_open_wearables`. `maximum_heart_rate_bpm` is never written (D172).
+`avg_heart_rate_bpm` and `max_heart_rate_bpm` each become a `provider_summary`. The summary types are `average_heart_rate` and `max_heart_rate`. The basis stays `provider_or_aggregator`, because a workout object has no flag that says who computed the number. Open Wearables does not send `{their_field}_computed_by`. That sibling rule is not part of this release. `field_basis.value` holds `provider_or_aggregator`. `maximum_heart_rate_bpm` is never written (D172).
 
 `hr_zones` is not a line. The object stays nested in `supplied_fields`. A line that aims `hr_zones.max_hr` at `maximum_heart_rate_bpm` is the D172 refusal in section 4.
 
@@ -114,13 +129,13 @@ Open Wearables `/health-scores` is not in this file. This release does not read 
 ~~~~markdown
 # Junction
 
-Sleep summaries. The provider is `source.provider`. The device is `source.type`, `source.device_id`, and `source.app_id`. A value's basis is `provider_or_junction`, because Junction calculates some summary numbers from samples. A provider score's basis is `provider`. `average_hrv` maps to `hrv_rmssd` only with basis `hrv_mean_rmssd`, and only when the writer is oura, whoop_v2, garmin, fitbit, or polar. `duration` stays under `duration`. `efficiency` stays under `efficiency`. There is no activity section.
+Sleep summaries. The provider is `source.provider`. The device is `source.type`, `source.device_id`, and `source.app_id`. A value's basis is `provider_or_aggregator`, because Junction calculates some summary numbers from samples. A provider score's basis is `provider`. `average_hrv` maps to `hrv_rmssd` only with basis `hrv_mean_rmssd`, and only when the writer is oura, whoop_v2, garmin, fitbit, or polar. `duration` stays under `duration`. `efficiency` stays under `efficiency`. There is no activity section.
 
 ```ath-mapping
 name: junction
 route: junction
 writer_field: source.provider
-value_basis: provider_or_junction
+value_basis: provider_or_aggregator
 sensor: source.type, source.device_id, source.app_id
 device_name: source.type
 device_model: source.device_id
@@ -165,7 +180,9 @@ The runner is new Rust in `crates/ath-core`. D155 put new imports there. D173 sa
 New module `crates/ath-core/src/mapping.rs`, declared from `lib.rs`.
 
 ```rust
-pub struct MappingFile { /* name, route, writer_field, value_basis, sensor, device_name, device_model, device_hardware, sections */ }
+pub struct MappingFile { /* name, route, writer_field, value_basis, sensor, device_name, device_model, device_hardware, personal_when, page, sections */ }
+pub struct PageSettings { /* rows, marker, section, resolution, raw_resolution */ }
+pub struct Section { /* name, settings, lines */ }
 pub struct MapLine { /* their_field, our_field, units, basis, scale, when_absent, when_writer */ }
 
 pub fn parse_mapping(text: &str) -> Result<MappingFile, String>
@@ -199,9 +216,13 @@ mapping-path:
 
 `main.rs` gains `import-mapped` with `--database`, `--mapping-file`, `--input`, and `--preview`.
 
-`Store::ensure_mapped_source(writer, route, vendor, sensor_type)` looks up `data_writer`, `data_route`, and `sensor_type` together. It does not call the empty-sensor query in `ensure_source` (`store.rs` around line 175). Built-in importers keep calling `ensure_source`.
+`Store::ensure_mapped_source(writer, route, vendor, sensor_type)` looks up `data_writer`, `data_route`, and `sensor_type` together. It does not call the empty-sensor query in `ensure_source` (`store.rs` around line 175). Built-in importers keep calling `ensure_source`. From D190 the lookup also finds a deleted source and returns `MappedSource::Deleted`. The rows under it are left out.
 
-`Store::insert_group` writes every record from one source object in one transaction. Today `insert_record` opens a transaction and commits it (`store.rs` lines 229 and 259), and `revise` opens another and commits it (lines 94 and 169). `insert_group` does not call those wrappers. It opens one transaction, looks up `record_import_keys` the way `insert_record` does at lines 204–221, and compares with `json_equal`. `apply_mapping` copies the stored `received_at` onto the new JSON before that compare, so an unchanged re-run is equal and does not write. This is D182.
+`apply_mapping` calls `Store::begin` before the first row and `Store::finish` after the last (D189). `begin` runs `BEGIN IMMEDIATE`. `finish` commits a write and rolls back a preview or an error. `insert_record`, `revise`, and `insert_group` open savepoints, not transactions, so their writes join that one transaction. Built-in importers that call them without `begin` get one transaction for each call, as before.
+
+`insert_record`, `revise`, and `insert_group` call `check_supplied_fields` before they write (D191). It refuses a record whose `supplied_fields`, or a route point's `supplied_fields`, has an empty name or a name `__proto__` at any depth.
+
+`Store::insert_group` writes every record from one source object together. Today `insert_record` opens a transaction and commits it (`store.rs` lines 229 and 259), and `revise` opens another and commits it (lines 94 and 169). `insert_group` does not call those wrappers. It opens one savepoint inside the import's transaction (D189), looks up `record_import_keys` the way `insert_record` does at lines 204–221, and compares with `json_equal`. `apply_mapping` copies the stored `received_at` onto the new JSON before that compare, so an unchanged re-run is equal and does not write. This is D182.
 
 Today that lookup does not replace. At lines 218–219 `insert_record` calls `revise` with the whole new object as the patch. `revise` merges the patch into the current object (`store.rs` lines 82–84). A key the new object omits stays. The replace is a code change. `insert_group` writes the new object as the whole `record_json` and does not call `revise`. It refreshes typed columns for `sleep_session`, `workout_session`, `provider_summary`, `point_measurement`, `provider_score`, `source`, and `source_device`. `ath check` compares a sleep row's `start_at`, `end_at`, `provider_record_id`, and `received_at` (`src/db/records.ts` lines 288–294). A column whose key is absent is set to NULL. `revise` stays a merge for `ath-core revise --patch`. It also gains that column refresh for `sleep_session`, `point_measurement`, and `provider_score`, so a patch of those records updates the columns and not only `data_json`.
 
@@ -219,7 +240,9 @@ Today that lookup does not replace. At lines 218–219 `insert_record` calls `re
 
 A numeric target needs a unit pair. `activity_type`, `name`, `description`, and `text_result` take none. Our unit must be the field's own unit (D180): `s` for `asleep_seconds` and `in_bed_seconds`, `min` for `stage_minutes`, `count` for `interruptions`, `m` for a workout distance or elevation gain, `kcal` for energy, and the `POINT_MEASUREMENT_UNITS` value for a point.
 
-`basis` is allowed on an `activity_type` line, on `hrv_rmssd` and `hrv_sdnn`, and on a `provider_summary` heart-rate line whose our unit is `bpm`. An `activity_type` line must have one: `open_wearables_normalized` or `provider_label` (D187). A value basis must be one of the `field_basis.value` values.
+`basis` is allowed on an `activity_type` line, on `hrv_rmssd` and `hrv_sdnn`, and on a `provider_summary` heart-rate line whose our unit is `bpm`. An `activity_type` line must have one: `aggregator_normalized` or `provider_label` (D187, D192). A value basis on a line must be `provider`, `provider_or_aggregator`, `hrv_mean_rmssd`, or `provider_documented_rmssd` (D195). The two RMSSD bases are for `hrv_rmssd` only.
+
+When two lines write the same our-field for one row, the first line in the file that has a value to write writes it. A `when-absent` line is tried after every other line. The other lines' fields stay in `supplied_fields` (D196).
 
 `start_at` and `end_at` are UTC with millisecond precision, via `crate::time::format_datetime`. `input_receipt` keeps the original text. A `Z` suffix uses offset text `Z`, meaning `documented_recording_offset`, basis `source_instant`. Any other numeric offset keeps that text, meaning `meaning_not_documented`, basis `source_offset_timestamp`. No new offset meaning is added.
 
@@ -238,11 +261,13 @@ A point quantity, a `provider_summary`, or a `provider_score` from a session is 
 
 A Junction child of `jn-sleep-1` stores `timestamp_text` `2026-08-09T10:00:00.000-04:00`, `utc_offset_text` `-04:00`, `utc_offset_meaning` `meaning_not_documented`, and `timestamp_basis` `source_offset_timestamp`. The child does not repeat the session's leftovers. The child stores `field_basis.value`: the line's `basis` when the line has one (D185), `provider` for a provider score, and otherwise the file's `value_basis` (D187). The session stores the file's `value_basis` too. `field_basis` is not inside `supplied_fields`.
 
-A timeseries sample uses `time_field` and `value_field`. The sample's `type` selects `type.<that string>`. If the sample's `unit` differs from the line's their-unit, the sample is `left_out` and nothing is written for it:
+A timeseries sample uses `time_field`, `type_field`, `value_field`, and `unit_field` (D193). The value at `type_field` selects the line `{type_field}.<that value>`. In the Open Wearables file that is `type.<that value>`. If the value at `unit_field` differs from the line's their-unit, the sample is `left_out` and nothing is written for it:
 
 ```text
 timeseries heart_rate_variability_rmssd 2026-08-09T07:00:00.000Z: unit bpm does not match ms
 ```
+
+From D193 the engine reads the page and row names in the rest of this part from the mapping file. The Open Wearables file sets `page_rows: data`, `page_marker: metadata`, `page_section: timeseries`, `page_resolution: metadata.resolution`, `raw_resolution: raw`, `aggregate_field: period_end`, and `window_field: window_seconds`. The paragraphs below use those values. A file with no page settings reads every input as plain arrays.
 
 The import should be given the full timeseries response, envelope included. Two shapes are accepted.
 
@@ -252,7 +277,7 @@ Bare rows are the other shape. That is the invented `summaries.json` object, wit
 
 If `metadata.resolution` is present, rows are accepted only when the value is `raw`. A null `metadata.resolution` is treated as absent. Any other value leaves every row in `data` out. The reason is `resolution {value}: not raw samples`. Nothing is written. Under a `raw` envelope, `window_seconds` is the sample interval. The row is stored, and `window_seconds` stays verbatim in `supplied_fields`.
 
-The check reads the first row of the envelope's `data`. An Open Wearables page comes from one endpoint, so its rows share one shape. The page is a timeseries page when that row has `timestamp`, `type`, `value`, and `unit`, and has no `start_time`. That is `TimeSeriesSample` at tag 0.10.0 (`backend/app/schemas/responses/activity/data_point_responses.py` lines 11–20). `list_sleep_sessions` is `GET /users/{user_id}/events/sleep` (`events.py` lines 118–134 at 0.10.0). A `SleepSession` (`backend/app/schemas/responses/activity/events.py` lines 118–130 at 0.10.0, commit `d18304f8076a7710c48a4b279f8e8abd5a16887e`) has `start_time`, `end_time`, `duration_seconds`, `stages`, and `is_nap`. It has no `bedtime_start` and no `type`. Sleep and workouts both use `start_time`, so the first row is not labeled by guessing those names. Otherwise the whole envelope is refused. Nothing is written. `left_out` is exactly one line: `envelope is not a timeseries page: pass its data array under workout or sleep`. Inside a timeseries page, later rows still get the usual per-row reasons. An envelope whose `data` is empty writes nothing and adds no line, because there is nothing to leave out. Open Wearables returns an empty page for an empty window. Test `an empty envelope writes nothing and adds no left_out line` uses `tests/fixtures/exports/open-wearables/page-empty.json`.
+The check reads the first row of the envelope's `data`. An Open Wearables page comes from one endpoint, so its rows share one shape. The page is a timeseries page when that row has `timestamp`, `type`, `value`, and `unit`, and has no `start_time`. Those are the four sample fields of the file's `[timeseries]` section and the `start_field` of its other sections. That is `TimeSeriesSample` at tag 0.10.0 (`backend/app/schemas/responses/activity/data_point_responses.py` lines 11–20). `list_sleep_sessions` is `GET /users/{user_id}/events/sleep` (`events.py` lines 118–134 at 0.10.0). A `SleepSession` (`backend/app/schemas/responses/activity/events.py` lines 118–130 at 0.10.0, commit `d18304f8076a7710c48a4b279f8e8abd5a16887e`) has `start_time`, `end_time`, `duration_seconds`, `stages`, and `is_nap`. It has no `bedtime_start` and no `type`. Sleep and workouts both use `start_time`, so the first row is not labeled by guessing those names. Otherwise the whole envelope is refused. Nothing is written. `left_out` is exactly one line: `envelope is not a timeseries page: pass its data array under workout or sleep`. Inside a timeseries page, later rows still get the usual per-row reasons. An envelope whose `data` is empty writes nothing and adds no line, because there is nothing to leave out. Open Wearables returns an empty page for an empty window. Test `an empty envelope writes nothing and adds no left_out line` uses `tests/fixtures/exports/open-wearables/page-empty.json`.
 
 If `metadata.resolution` is absent, a row with `window_seconds` set to any non-null value is `left_out`. The reason is `window_seconds present without resolution: cannot confirm raw`. Nothing is written for that row. That is the default refusal when resolution is missing. At 0.10.0 it does not fire: a sample has no `window_seconds`, and `_page` already sets `metadata.resolution` (`timeseries_service.py` lines 106–107). It catches envelope-stripped rows from current main, where a real raw row also carries `window_seconds`. Pass the full response.
 
@@ -264,9 +289,9 @@ The id in that string is the UTC timestamp when the sample has no id.
 
 ### `supplied_fields`
 
-Nested objects stay nested. A leaf that was used is removed. An object that becomes empty is dropped. The removal keeps the order of the remaining keys. Used means a mapping line consumed the leaf, or a section setting was read (`id_field`, `start_field`, `end_field`, `time_field`, `value_field`), or `writer_field` was read, or a device field named in the header was read for D183. In the shipped files those are `source.source`, `source.device`, `source.device_type`, `source.device_id`, `source.device_name`, `source.type`, and `source.app_id`.
+Nested objects stay nested. A leaf that was used is removed. An object that becomes empty is dropped. The removal keeps the order of the remaining keys. Used means a mapping line consumed the leaf, or a section setting was read (`id_field`, `start_field`, `end_field`, `time_field`, `type_field`, `value_field`, `unit_field`), or `writer_field` was read, or a device field named in the header was read for D183. In the shipped files those are `source.source`, `source.device`, `source.device_type`, `source.device_id`, `source.device_name`, `source.type`, and `source.app_id`.
 
-`id`, `start_time`, `end_time`, `bedtime_start`, `bedtime_stop`, `timestamp`, `type`, `value`, `unit`, and `date` are not kept when they located the record or selected the timeseries line. `type` on a Junction sleep object is not that selector. It stays in `supplied_fields`.
+`id`, `start_time`, `end_time`, `bedtime_start`, `bedtime_stop`, `timestamp`, `type`, `value`, and `unit` are not kept when they located the record or selected the timeseries line. `type` on a Junction sleep object is not that selector. It stays in `supplied_fields`. `aggregate_field` and `window_field` are read but not removed, so `window_seconds` on a raw page stays in `supplied_fields`.
 
 A null mapped value is removed. It is not stored as zero, and it is not copied into `supplied_fields`.
 
@@ -299,7 +324,7 @@ Each part is escaped before the parts are joined with `:`. A `\` in a part becom
 
 ### Re-run
 
-D182. A second run uses the same method and key. Today `insert_record` looks up that row and compares with `json_equal` (`store.rs` lines 204–221). When the JSON differs it calls `revise` (lines 218–219). `revise` merges (`store.rs` lines 82–84), so a key the new object omits survives. The replace is a code change. `insert_group` does that lookup inside one transaction and writes the new object as the whole record. It does not call `revise`. Before the compare, `apply_mapping` sets `received_at` to the stored value. An unchanged import does not write a revision. A changed mapped value keeps the record id, increases `current_revision` by one, and keeps the first `received_at`. The sleep re-run test changes `end_at`, which `ath check` compares (`src/db/records.ts` lines 288–294), not only `asleep_seconds`.
+D182. A second run uses the same method and key. Today `insert_record` looks up that row and compares with `json_equal` (`store.rs` lines 204–221). When the JSON differs it calls `revise` (lines 218–219). `revise` merges (`store.rs` lines 82–84), so a key the new object omits survives. The replace is a code change. `insert_group` does that lookup inside the import's transaction (D189) and writes the new object as the whole record. It does not call `revise`. Before the compare, `apply_mapping` sets `received_at` to the stored value. An unchanged import does not write a revision. A changed mapped value keeps the record id, increases `current_revision` by one, and keeps the first `received_at`. The sleep re-run test changes `end_at`, which `ath check` compares (`src/db/records.ts` lines 288–294), not only `asleep_seconds`.
 
 ### The source row
 
@@ -336,7 +361,7 @@ ath import <path> --mapping <name> --json
 
 `ath pull` is unchanged. `ath pull openwearables` still fails with `pull currently reads garmin`.
 
-`resolveMappingFile` returns a path. `runAthCore` is called with `import-mapped`. `--json` and a missing `--yes` pass `--preview`. `renderMappedImport` in `src/shared-import.ts` prints understood, kept under original names, left out, and records.
+`resolveMappingFile` returns a path. `runAthCore` is called with `import-mapped`. `--json` and a missing `--yes` pass `--preview`. `renderMappedImport` in `src/shared-import.ts` prints understood, kept under original names, left out, the outcome, and records.
 
 `fail` in `src/cli/runtime.ts` prints `ath: ` in front of the message. Rust prints the message alone. The tests assert both.
 
@@ -350,15 +375,18 @@ The result JSON is:
 {
   "mapping": "open-wearables",
   "record_ids": [],
+  "outcome": { "new": 0, "changed": 0, "unchanged": 0 },
   "understood": [],
   "preserved": [],
   "left_out": []
 }
 ```
 
-On `--preview`, `record_ids` is empty and the database is unchanged.
+`outcome` counts the records the import wrote as new, revised, and equal to the stored record. A source row is not counted. The text output prints `outcome: {new} new, {changed} changed, {unchanged} unchanged`.
 
-An object that cannot be stored is one `left_out` string. Other objects are still written. A section 4 refusal exits 1 and writes nothing.
+On `--preview`, the import runs every write and then rolls it back (D189). `outcome`, `understood`, `preserved`, `left_out`, and any error are the ones the write would give. `record_ids` is empty and the database is unchanged.
+
+An object that cannot be stored is one `left_out` string. Other objects are still written. A section 4 refusal exits 1 and writes nothing. An error while writing, such as a supplied field with no name (D191), exits 1 and writes nothing, including the objects before it (D189).
 
 `left_out` reasons. Each line is `{section} {id}: {reason}`, or `timeseries {type} {utc}: {reason}` for a sample:
 
@@ -371,15 +399,15 @@ An object that cannot be stored is one `left_out` string. Other objects are stil
 - `unit {sample unit} does not match {their_unit}`
 - `unmapped type {type}`
 - `{quantity} must be positive`
-- `entry_source manual is a personal report`
+- `{field} {value} is a personal report`, from the header key `personal_when`, such as `entry_source manual is a personal report` (D193)
 - `duplicate match key {key}`
 - `the stored record {id} is deleted` (D182)
-- `{key}: no mapping section`, such as `activity: no mapping section`, for an array at the root that the file has no section for
-- `aggregate row, not a raw sample`
+- `its source {id} is deleted` (D190)
+- `{key}: no mapping section`, such as `activity: no mapping section`, for an array at the root that the file has no section for. A page given to a file with no page settings is read the same way, so its `data` array is left out as `data: no mapping section`
+- `aggregate row, not a raw sample`, when the row has a value at `aggregate_field`
 - `resolution {value}: not raw samples`
-- `window_seconds present without resolution: cannot confirm raw`
-- `envelope is not a timeseries page: pass its data array under workout or sleep`. Only an envelope whose first row is a timeseries sample is read. Other pages, such as Open Wearables workout and sleep pages, are not mapped as envelopes; pass their `data` array under `workout` or `sleep`
-- `timeseries: no mapping section`, for a timeseries page when the file has no `[timeseries]` section
+- `{window_field} present without resolution: cannot confirm raw`, such as `window_seconds present without resolution: cannot confirm raw`
+- `envelope is not a {page_section} page: pass its {page_rows} array under workout or sleep`, such as `envelope is not a timeseries page: pass its data array under workout or sleep`. Only an envelope whose first row is a timeseries sample is read. Other pages, such as Open Wearables workout and sleep pages, are not mapped as envelopes; pass their `data` array under `workout` or `sleep`
 
 A root that is not a JSON object fails with `the input must be a JSON object`. A field whose value has the wrong type for its target, such as text for a number, is not mapped. It stays in `supplied_fields` under its name, and the object is still stored.
 
@@ -428,17 +456,15 @@ Test `personal_report_cannot_become_a_measured_record`: object `{ "id": "report-
 
 `tests/mapping-cli.test.ts` expects `ath: refusing to turn a personal report into a measured record`.
 
-`entry_source` `manual` is not this refusal. That object alone is `left_out`, and the rest of the file is still written. Section 11 records the answer to the plan's question about refusing the whole import. Test `manual_entry_source_is_left_out` uses `ow-workout-manual`. The object writes no record. `left_out` contains `workout ow-workout-manual: entry_source manual is a personal report`.
+`entry_source` `manual` is not this refusal. That object alone is `left_out`, and the rest of the file is still written. The Open Wearables file names that field and value with `personal_when` (D193). Section 11 records the answer to the plan's question about refusing the whole import. Test `manual_entry_source_is_left_out` uses `ow-workout-manual`. The object writes no record. `left_out` contains `workout ow-workout-manual: entry_source manual is a personal report`.
 
 `intensity` is not a refusal and not a `left_out` line (D186). Test `intensity_stays_in_supplied_fields` uses `ow-workout-1`. `supplied_fields.intensity` is `moderate`. No measured field is named `intensity`. The precedent is Garmin `Feeling`, which `tests/v2-core.test.ts` line 54 keeps in `preserved`.
 
 ### An unlabeled heart-rate variability field
 
-These their-field names may map to `hrv_rmssd` with no basis: `heart_rate_variability_rmssd`.
+A line whose target names RMSSD or SDNN must read a field that names the same statistic (D194). The target names it when `rmssd` or `sdnn` is in the point quantity, the summary type, or the score metric, in any letter case. The field names it when its name contains `rmssd` or `sdnn`, in any letter case, and not both. For a timeseries line the name is the type after `{type_field}.`. So `heart_rate_variability_rmssd` may map to `hrv_rmssd`, and `heart_rate_variability_sdnn` and `hrv_mean_sdnn` may map to `hrv_sdnn`, with no basis.
 
-These may map to `hrv_sdnn` with no basis: `heart_rate_variability_sdnn`, `hrv_mean_sdnn`.
-
-`average_hrv` may map to `hrv_rmssd` only with `basis hrv_mean_rmssd` and only when `when-writer` includes the writer. Any other their-field, including `LastNightAvg`, `hrv`, and `HRV`, is refused for both quantities.
+A field that names neither statistic may write an RMSSD target only with basis `hrv_mean_rmssd` or `provider_documented_rmssd`, and only with a `when-writer` list. The Junction `average_hrv` line is that case. Any other their-field, including `LastNightAvg`, `hrv`, and `HRV`, is refused for both statistics, whether the target is a point, a summary, or a score.
 
 ```text
 refusing to map LastNightAvg onto hrv_rmssd; the field does not name the statistic
@@ -458,6 +484,8 @@ Tests:
 - `average_hrv_cannot_become_sdnn`, line `average_hrv: hrv_sdnn ms ms basis hrv_mean_rmssd`, message `refusing to map average_hrv onto hrv_sdnn; the field does not name the statistic`. The basis names RMSSD, so the line cannot write `hrv_sdnn`.
 
 `average_hrv_with_basis_can_become_rmssd` accepts the shipped Junction line.
+
+The Rust tests `an_hrv_value_names_its_statistic_in_any_record` and `a_field_without_the_statistic_needs_an_rmssd_basis_and_writers` cover a summary, a score, a timeseries type, and the basis and writer rule. `other check failures name the line` refuses `nightly: provider_summary.hrv_rmssd ms ms`.
 
 `pull_garmin` still stores `LastNightAvg` as a provider summary of that name.
 
@@ -531,14 +559,20 @@ These are not the four refusals. They still fail the file before a write, except
 - A fence that never closes: `the ath-mapping block is not closed`
 - A bad line, including an unknown header key: `could not read '{line}'`
 - A missing header key: `the mapping file needs {key}`, for `name`, `route`, `writer_field`, or `value_basis`
-- A `value_basis` outside `provider`, `provider_or_open_wearables`, and `provider_or_junction`: `value_basis {token} is not one of provider, provider_or_open_wearables, provider_or_junction`
+- A `value_basis` outside `provider` and `provider_or_aggregator`: `value_basis {token} is not one of provider, provider_or_aggregator`
 - Unknown section: `unknown mapping section {name}`
+- A section without the fields of its rows: `[{section}] needs {setting}`, such as `[sleep] needs id_field` (D193)
+- A setting the section does not use: `{setting} is not a setting of [{section}]`
+- A timeseries line that does not read the type field: `a [timeseries] line reads {type_field}.<type>, not {their_field}`
+- A page described in part: `the mapping file needs {key} when it describes a page`, `page_section {name} is not a section of this file`, or `page_resolution and raw_resolution go together`
 - Unknown our-field: `unknown field {our_field}`
 - Two `when-absent` lines for one our-field: `two when-absent lines write {our_field}`
 - Two lines without `when-writer` for one their-field: `two lines read {their_field} without when-writer`
 - `basis` on any other field: `basis is only used for activity_type, hrv_rmssd, hrv_sdnn, and heart-rate summaries`
 - A `basis` token that is not a `field_basis` value: `unknown basis {token}`
-- An `activity_type` line with no basis: `activity_type needs a basis: one of open_wearables_normalized, provider_label`
+- A basis a mapping cannot know: `a mapping line cannot claim basis {token}; use one of provider, provider_or_aggregator, hrv_mean_rmssd, provider_documented_rmssd` (D195)
+- An RMSSD basis on another field: `basis {token} is only used for hrv_rmssd`
+- An `activity_type` line with no basis: `activity_type needs a basis: one of aggregator_normalized, provider_label`
 - A unit on a text field: `{our_field} takes no unit`
 - A numeric field with no unit pair: `{our_field} needs a unit pair`
 - `scale` on anything except `provider_score`: `scale is only used for provider_score`
@@ -570,6 +604,17 @@ The decisions as adopted are in [decisions.md](decisions.md). Numbers continue f
 - D186. `intensity` stays in `supplied_fields`, and no calculation reads it or `Feeling`.
 - D187. Every stored value states its basis, from every importer, mapping file, and `ath log`. Migration step 4 does not backfill.
 - D188. Every pull request runs the release workflow. Only a `v*` tag publishes.
+- D189. One mapped import is one transaction, and the preview runs it and rolls it back.
+- D190. A deleted mapped source is left out. No second source is made.
+- D191. A supplied field needs a name every reader keeps: not empty, and not `__proto__`.
+- D192. A basis names no product: `provider_or_aggregator` and `aggregator_normalized`.
+- D193. A mapping file names its own layout. The engine names no source.
+- D194. The heart-rate variability check reads names, in every record a line writes.
+- D195. A mapping line claims only a basis a mapping can know.
+- D196. The first line that writes a field wins.
+- D197. The Windows release job retries Chocolatey, then uses a pinned `sqlite3` archive.
+
+D189 through D197 came from the final review. D177, D182, D185, and D187 were added in this release. Each now starts with a short note that points to the decision that changed it.
 
 D184 records option A. Option B, two numbers, was not chosen, so no D185 stub was written.
 
@@ -977,13 +1022,28 @@ Test `garmin_file_and_mapping_stay_two_sources`: `ath import` of `tests/fixtures
 
 The `field_basis` writer is in `crates/ath-core/src/mapping.rs`. These checks hold under D185 and D187. There is no `{their_field}_computed_by` test. Open Wearables does not send that field.
 
-- `ow-workout-1` `field_basis` is `{ "value": "provider_or_open_wearables", "activity_type": "open_wearables_normalized" }`.
-- The `average_heart_rate` and `max_heart_rate` summaries have `field_basis` `{ "value": "provider_or_open_wearables" }`.
+- `ow-workout-1` `field_basis` is `{ "value": "provider_or_aggregator", "activity_type": "aggregator_normalized" }`.
+- The `average_heart_rate` and `max_heart_rate` summaries have `field_basis` `{ "value": "provider_or_aggregator" }`.
 - `garmin_stress_level` has `field_basis` `{ "value": "provider" }`. The sample has no `computed_by`.
 - `garmin_body_battery` has `field_basis` `{ "value": "provider" }`. The writer is `garmin`.
 - The Junction `hrv_rmssd` point has `field_basis` `{ "value": "hrv_mean_rmssd" }`.
 - `sleep.score` and `recovery_readiness_score` have `field_basis` `{ "value": "provider" }`.
-- Every other mapped record states the file's `value_basis` (D187): `ow-sleep-1` is `{ "value": "provider_or_open_wearables" }`, every Open Wearables timeseries point and the `vo2_max` summary are `provider_or_open_wearables`, and `jn-sleep-1` and its resting heart rate and respiratory rate points are `provider_or_junction`. Test `every mapped value states its basis (D187)`. A `source_device` record has no `field_basis`.
+- Every other mapped record states the file's `value_basis` (D187): `ow-sleep-1` is `{ "value": "provider_or_aggregator" }`, every Open Wearables timeseries point and the `vo2_max` summary are `provider_or_aggregator`, and `jn-sleep-1` and its resting heart rate and respiratory rate points are `provider_or_aggregator` too (D192). Test `every mapped value states its basis (D187)`. A `source_device` record has no `field_basis`.
+- Test `names the same bases as the record schema` reads `VALUE_BASES` and `ACTIVITY_TYPE_BASES` from `mapping.rs` and asserts they equal `ValueBasis` and `ActivityTypeBasis` in `src/v1/schema.ts`. It also asserts that `mapping.rs` does not contain `open_wearables` or `junction` (D193).
+
+### The final review
+
+These tests were added for D189 through D196. They are in `tests/mapping-cli.test.ts` unless named otherwise.
+
+- `a deleted mapped source is left out when the file is imported again, in the preview and the write`. Import the Open Wearables fixture, delete the ring's source, and import it again. The preview and the write give the same result apart from `record_ids`. `left_out` has `sleep ow-sleep-1: its source {id} is deleted`. `outcome` is 0 new, 0 changed, and every record under the other sources unchanged. `ath import --yes` exits 0. The record count and the source count do not change, and `ath check` exits 0 (D189, D190).
+- `a deleted mapped record is left out the same way in the preview and the write`. Delete `ow-sleep-1` and import again. Both have `sleep ow-sleep-1: the stored record {id} is deleted` (D182, D189).
+- `a failure partway through an import writes nothing`. Import one night. Then import a file with that night changed, a new night, and a night from a new writer with a supplied field named `""`, in that order. `--json` and `--yes` both exit 1 with the D191 message, and so does `ath-core` without `--preview`. The record count, the sources, the stored night, and its revision do not change. `ath check` exits 0 (D189, D191).
+- `a supplied field with no name or named __proto__ cannot be saved, and check and export keep working`. A `""` name, a top-level `__proto__`, and a nested `__proto__` are each refused with the record's label. Nothing is written. `ath check` and `ath export` exit 0, and the export keeps the night that was stored before (D191).
+- `the first line that writes a field wins, so importing again changes nothing`. Two lines write `hrv_rmssd`, and a `when-absent` line comes before the line it backs up. Two imports leave every record at revision 1. The second line's field and the unused `when-absent` field stay in `supplied_fields` (D196).
+- `a mapping file names its own page and sample fields`. An invented source names `items`, `meta`, `meta.grain`, `each`, `at`, `kind`, `reading`, `unit`, `until`, and `span`. A raw page stores one point and leaves out an aggregate row and a personal report. An `hourly` page leaves out every row (D193).
+- `prints what it understood, kept, and left out, and how many records it wrote` asserts `outcome: 22 new, 0 changed, 0 unchanged` in the preview and the write, and `outcome: 0 new, 0 changed, 22 unchanged` in a second preview (D189).
+- `other check failures name the line` adds the D193, D194, and D195 messages.
+- In `crates/ath-core/src/store.rs`, `a_supplied_field_needs_a_name_that_every_reader_keeps` covers a route point and the names that are kept. In `crates/ath-core/src/mapping.rs`, `every_section_names_the_fields_of_its_rows`, `a_timeseries_line_reads_the_type_field`, `a_page_is_described_in_full`, `personal_when_names_a_field_and_a_value`, and `a_line_claims_only_a_basis_a_mapping_can_know` cover the check.
 
 ### The release workflow on every pull request
 
@@ -997,7 +1057,7 @@ The 2.0.0 release run, `Release cross-platform` run 41329982327 on tag `v2.0.0`,
 - The temp folder on macOS. macOS reaches its temp folder through the `/var` symlink, and the database code refuses any path through a symlink. The program now makes its own temporary folders under the real path, with `makeTemporaryDirectory` in `src/db/client.ts`. Before this, `ath check --validate-export` failed on macOS. The test run sets `TMPDIR`, `TMP`, and `TEMP` to the real path. The symlink check is unchanged, so a path a person gives through a symlink is still refused. A test in `tests/cli.test.ts` points the temp folder through a symlink on every system and checks both.
 - Closed databases on Windows. The libsql driver keeps a closed database file open until its statements are garbage-collected, and Windows will not delete an open file. Code that removes a folder holding a database it opened uses `removeTemporaryDirectory` in `src/db/client.ts`, which collects garbage first. Vitest, `pnpm check:schema-drift`, and `pnpm performance:run` start node with `--expose-gc`. Two tests used `rejects.toThrow()` on a refused SQL statement. Vitest keeps that rejected promise until the run ends, and the libsql error keeps the statement open, so those tests now catch the error and check it the way the tests beside them do.
 - Backups on Windows. `ath migrate` and `ath repair` now read the backup they just made with the same `sqlite3` tool, not an in-process connection. The in-process connection kept the backup open, so removing its `-wal` and `-shm` files failed on Windows and the command stopped.
-- `sqlite3` on Windows. The Windows test job installs it, because `ath migrate` and `ath repair` need it (D137).
+- `sqlite3` on Windows. The Windows test job installs it, because `ath migrate` and `ath repair` need it (D137). Chocolatey gets three tries. Then the job uses `sqlite-tools-win-x64-3540100.zip` from sqlite.org, only if its SHA-256 matches the pinned value (D197).
 - Time per test. One CLI command can take several seconds on the macOS and Windows runners, so the default test timeout is 60 seconds. Many CLI tests already set that limit themselves. Five heavy tests had their own limits of 20 or 30 seconds. One of them took 2.3 seconds on Linux and macOS but went past 20 on Windows, so all five now allow 60. No assertion changed.
 - One file name Windows does not allow. The backup test's name with a double quote runs on Linux and macOS. On Windows the same test backs up to paths that contain `\s` and `\t` through a real folder, because there `\` separates folders.
 
@@ -1117,7 +1177,7 @@ The maintainer asked to remove the outdated "Later, with the reason:" heading fr
 
 ## 10. Notes and proof
 
-`build-history/v2.1.0/decisions.md` holds D177 through D188. D184 and D185 were inserted before D186, and D187 and D188 follow D186. `build-history/README.md` "Current records" links the spec, the decisions, and the progress note, and says version 2.1.0 is the software now.
+`build-history/v2.1.0/decisions.md` holds D177 through D197. D184 and D185 were inserted before D186, and D187 and D188 follow D186. D189 through D197 follow D188. `build-history/README.md` "Current records" links the spec, the decisions, and the progress note, and says version 2.1.0 is the software now.
 
 The proof is in the build pull request's description: screenshots and a short video of the packed package, installed into an empty folder. None of it is committed. The build request asked for `ath --version` showing `2.1.0`, an `ath import --mapping open-wearables` run with its `left_out` lines, `ath check` passing on a migrated copy of the 2.0.0 database, and one record from a built-in importer showing `field_basis`. The plan's list also asked for these seven items, and the proof shows all seven:
 
@@ -1187,12 +1247,11 @@ These are outside this release. This section does not assign them to a later ver
 
 ```ts
 field_basis: z.strictObject({
-  activity_type: z.enum(["open_wearables_normalized", "provider_label"]).optional(),
+  activity_type: z.enum(["aggregator_normalized", "provider_label"]).optional(),
   value: z.enum([
-    "provider_or_open_wearables",
+    "provider_or_aggregator",
     "provider",
     "hrv_mean_rmssd",
-    "provider_or_junction",
     "provider_documented_rmssd",
     "calculated_on_import",
     "entered_by_hand",
@@ -1201,7 +1260,7 @@ field_basis: z.strictObject({
 }).optional()
 ```
 
-The first three `value` values and `open_wearables_normalized` are D185. The rest are D187. `schema/2.1.0/` is generated from this. `schema/2.0.0/` is not touched.
+The first three `value` values and `aggregator_normalized` come from D185. The rest are D187. D192 replaced `provider_or_open_wearables` and `provider_or_junction` with `provider_or_aggregator`, and `open_wearables_normalized` with `aggregator_normalized`. `schema/2.1.0/` is generated from this. `schema/2.0.0/` is not touched.
 
 ### What each importer states
 
@@ -1219,8 +1278,8 @@ The first three `value` values and `open_wearables_normalized` are D185. The res
 | Garmin | account JSON, GPX, and FIT workouts; the `max_heart_rate` summary; the personal pull's workouts and `LastNightAvg` | `value` `provider`; a workout with an activity type also `activity_type` `provider_label` |
 | Strava | workouts | `value` `provider`; `activity_type` `provider_label` |
 | `ath log` | a plain-text measurement or benchmark result; a structured measured record whose `field_basis.value` is missing | `value` `entered_by_hand` |
-| Open Wearables mapping | sleep, workouts, points, and summaries | `value` `provider_or_open_wearables`; a workout also `activity_type` `open_wearables_normalized` |
-| Junction mapping | sleep and points | `value` `provider_or_junction`; the `average_hrv` point `hrv_mean_rmssd` |
+| Open Wearables mapping | sleep, workouts, points, and summaries | `value` `provider_or_aggregator`; a workout also `activity_type` `aggregator_normalized` |
+| Junction mapping | sleep and points | `value` `provider_or_aggregator`; the `average_hrv` point `hrv_mean_rmssd` |
 | Any mapping | provider scores | `value` `provider` |
 
 Every importer could state a basis from what its source says. None had to be invented. Apple's hand-entered writers, its calculated sleep totals, and its route summaries are the three places where one record type from one source has more than one basis. Each is stated separately.
@@ -1229,7 +1288,7 @@ The TypeScript provider import decides the basis in `valueBasis` in `src/db/prov
 
 ### Mapping files
 
-The header key `value_basis` is required. The value is `provider`, `provider_or_open_wearables`, or `provider_or_junction`. It applies to every record the file writes. A line's `basis` replaces it for that line's record. Every provider score is `provider`. An `activity_type` line must state its basis. The shipped Open Wearables file has `value_basis: provider_or_open_wearables` and `type: activity_type basis open_wearables_normalized`. The Junction file has `value_basis: provider_or_junction`. A `source_device` record has no `field_basis`.
+The header key `value_basis` is required. The value is `provider` or `provider_or_aggregator` (D192). It applies to every record the file writes. A line's `basis` replaces it for that line's record. A line may claim only `provider`, `provider_or_aggregator`, `hrv_mean_rmssd`, or `provider_documented_rmssd` (D195). Every provider score is `provider`. An `activity_type` line must state its basis. The shipped Open Wearables file has `value_basis: provider_or_aggregator` and `type: activity_type basis aggregator_normalized`. The Junction file has `value_basis: provider_or_aggregator`. A `source_device` record has no `field_basis`.
 
 ### Old records and corrections
 
