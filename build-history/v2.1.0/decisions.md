@@ -779,20 +779,31 @@ Rejected alternatives:
 ## D197. The Windows release job retries Chocolatey, then uses a pinned archive
 
 The Windows test job in `release-cross-platform.yml` runs `choco install sqlite` up to
-three times. It waits 20 seconds after the first failure and 40 after the second. If
-all three fail, it downloads `sqlite-tools-win-x64-3540100.zip` from sqlite.org, checks
-its SHA-256, and adds the folder to `PATH`. A different hash stops the job. Every test
-job still prints `sqlite3 --version` before the tests (D188).
+three times. A try counts only when `sqlite3` is on the path afterwards. Chocolatey's
+exit code is not trusted. The job waits 20 seconds after the first failed try and 40
+after the second. If `sqlite3` never appears, the job downloads
+`sqlite-tools-win-x64-3540100.zip` from sqlite.org, checks its SHA-256, and adds the
+folder to `PATH`. A different hash stops the job. The step ends with `exit 0`.
+Without it, the runner would end the step with Chocolatey's exit code. Every test job
+still prints `sqlite3 --version` before the tests (D188).
 
 The SHA-256 is `fb20997ade5583a5fbf1e36db7bc3c82c9416b3f314f16961e1572aa4e49487d`. The
 file's SHA3-256 matches the value sqlite.org lists for it. The archive holds
 `sqlite3.exe` at its top level.
 
-Release run 41375453717 on this pull request failed at the install step. Chocolatey
-answered HTTP 503 for the sqlite package. Nothing in the code was wrong.
+In release run 41375453717 on this pull request, Chocolatey answered HTTP 503 for the
+sqlite package. It installed 0 of 0 packages and still exited 0, so the install step
+passed. The job then failed at `sqlite3 --version`. Nothing in the code was wrong.
+
+The first version of this step trusted Chocolatey's exit code. In that run it would have
+passed after one try and never used the archive. The final review found this. The step
+was run locally in PowerShell 7.4.6 with a `choco` that exits 0 and installs nothing. It
+made three tries and then used the archive.
 
 Rejected alternatives:
 
+- Trust Chocolatey's exit code. Rejected because Chocolatey exited 0 after the 503,
+  with nothing installed.
 - Download from sqlite.org only. Rejected because then an outage at that one server
   stops every run.
 - Retry Chocolatey with no fallback. Rejected because a longer outage would still stop
