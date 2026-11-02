@@ -1062,8 +1062,12 @@ fn map_session(store: &mut Store, run: &mut Run, section: &Section, row: &Map<St
     let mut field_basis = Map::new();
     field_basis.insert("value".into(), json!(run.file.value_basis));
     let mut written: HashSet<String> = HashSet::new();
-    for line in applied_lines(section, &writer) {
-        if line.when_absent && written.contains(&line.our_field) {
+    // The first line that writes a field wins, and `when-absent` lines come last (D196).
+    // A second line for the same field leaves its value under the name it arrived with.
+    let lines = applied_lines(section, &writer);
+    let ordered = lines.iter().filter(|line| !line.when_absent).chain(lines.iter().filter(|line| line.when_absent));
+    for line in ordered {
+        if written.contains(&line.our_field) {
             continue;
         }
         let Some(value) = path_value(row, &line.their_field).cloned() else { continue };

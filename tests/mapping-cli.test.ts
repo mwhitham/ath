@@ -759,6 +759,32 @@ describe("supplied field names", () => {
   }, 60_000);
 });
 
+describe("two lines that write one field", () => {
+  it("the first line that writes a field wins, so importing again changes nothing", async () => {
+    const dir = emptyDatabase();
+    const mapping = writeMapping(
+      dir,
+      "two-lines",
+      `${SLEEP_HEADER}rmssd_first: hrv_rmssd ms ms\nrmssd_second: hrv_rmssd ms ms\nasleep_total: asleep_seconds s s when-absent\nasleep: asleep_seconds s s`,
+    );
+    const input = join(dir, "nights.json");
+    writeFileSync(input, `{"sleep":[${night("n-1", "invented-maker", "09", ',"asleep_total":21000,"rmssd_first":40,"rmssd_second":44')}]}`);
+    const first = previewThenWrite(dir, input, mapping).written;
+    expect(first.outcome).toEqual({ new: 2, changed: 0, unchanged: 0 });
+    const second = previewThenWrite(dir, input, mapping).written;
+    expect(second.outcome).toEqual({ new: 0, changed: 0, unchanged: 2 });
+
+    const { byKey } = await stored(dir);
+    const session = byKey.get(key("invented-maker", "-", "sleep", "n-1"))!;
+    expect(session.current_revision).toBe(1);
+    expect(session.data.asleep_seconds).toBe(20000);
+    expect(session.data.supplied_fields).toEqual({ asleep_total: 21000, rmssd_second: 44 });
+    const point = byKey.get(key("invented-maker", "-", "sleep", "n-1", "point", "hrv_rmssd"))!;
+    expect(point.current_revision).toBe(1);
+    expect(point.data.value.standard_value).toBe(40);
+  }, 60_000);
+});
+
 describe("refusals", () => {
   it("personal_report_cannot_become_a_measured_record", async () => {
     const dir = emptyDatabase();
