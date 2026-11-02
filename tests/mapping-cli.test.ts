@@ -133,6 +133,10 @@ function writeMapping(dir: string, name: string, body: string): string {
   return path;
 }
 
+function night(id: string, maker: string, day: string, extra: string): string {
+  return `{"id":"${id}","start_time":"2026-08-${day}T01:00:00.000Z","end_time":"2026-08-${day}T07:00:00.000Z","source":{"provider":"${maker}"},"asleep":20000${extra}}`;
+}
+
 const SLEEP_HEADER = "name: invented\nroute: invented_route\nwriter_field: source.provider\nvalue_basis: provider\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\n";
 const Z_RECEIPT = (text: string) => ({
   timestamp_text: text,
@@ -607,6 +611,40 @@ describe("mapped imports and the rest of the file", () => {
       missing: ["in_bed_seconds"],
       result: null,
     });
+  }, 60_000);
+});
+
+describe("supplied field names", () => {
+  it("a supplied field with no name or named __proto__ cannot be saved, and check and export keep working", async () => {
+    const dir = emptyDatabase();
+    const mapping = writeMapping(dir, "nights", `${SLEEP_HEADER}asleep: asleep_seconds s s`);
+    const good = join(dir, "good.json");
+    writeFileSync(good, `{"sleep":[${night("good-night", "invented-maker", "09", ',"mood_word":"fine"')}]}`);
+    expect(ath(["import", good, "--mapping", mapping, "--yes"], dir).code).toBe(0);
+    const before = await stored(dir);
+
+    const cases: Array<[string, string]> = [
+      [',"":"no name"', "a supplied field has an empty name, and the format needs a name for every field"],
+      [',"__proto__":{"polluted":true}', "a supplied field is named __proto__, which JavaScript readers drop"],
+      [',"extra":{"__proto__":1}', "a supplied field is named __proto__, which JavaScript readers drop"],
+    ];
+    for (const [extra, reason] of cases) {
+      const bad = join(dir, "bad.json");
+      writeFileSync(bad, `{"sleep":[${night("bad-night", "invented-maker", "10", extra)}]}`);
+      const refused = ath(["import", bad, "--mapping", mapping, "--yes"], dir);
+      expect(refused.code, extra).toBe(1);
+      expect(refused.stderr.trim(), extra).toBe(`ath: sleep_session bad-night: ${reason}`);
+    }
+
+    const after = await stored(dir);
+    expect(after.recordCount).toBe(before.recordCount);
+    expect([...after.byKey.keys()]).toEqual([key("invented-maker", "-", "sleep", "good-night")]);
+    const check = ath(["check"], dir);
+    expect(check.code, check.stdout + check.stderr).toBe(0);
+    const exported = ath(["export", join(dir, "package"), "--json"], dir);
+    expect(exported.code, exported.stdout + exported.stderr).toBe(0);
+    const pack = JSON.parse(readFileSync(join(dir, "package", "athlete.ath.json"), "utf8"));
+    expect(JSON.stringify(pack)).toContain('"mood_word":"fine"');
   }, 60_000);
 });
 

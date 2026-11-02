@@ -119,6 +119,7 @@ impl Store {
         if current.record_type == "workout_session" {
             validate_workout(&data)?;
         }
+        check_supplied_fields(&current.record_type, &data)?;
         let json = serde_json::to_string(&Value::Object(data.clone())).map_err(|error| error.to_string())?;
         let next = current.revision + 1;
         let now = utc_now();
@@ -221,6 +222,7 @@ impl Store {
             if record.record_type == "workout_session" {
                 validate_workout(&record.data)?;
             }
+            check_supplied_fields(&record.record_type, &record.data)?;
         }
         let now = utc_now();
         let changed_by = tool_actor();
@@ -346,6 +348,7 @@ impl Store {
         if record_type == "workout_session" {
             validate_workout(data)?;
         }
+        check_supplied_fields(record_type, data)?;
         if let Some((method, key)) = match_key {
             if let Some(existing) = self
                 .conn
@@ -859,6 +862,47 @@ pub fn validate_workout(data: &Map<String, Value>) -> Result<(), String> {
     Ok(())
 }
 
+/// Every reader must keep a supplied field under its exact name (D191). The record
+/// schema refuses an empty name, so `ath check` and `ath export` would fail on the
+/// record. JavaScript readers drop a key named `__proto__`, at any depth, without a
+/// warning.
+pub fn check_supplied_fields(record_type: &str, data: &Map<String, Value>) -> Result<(), String> {
+    let label = match data.get("provider_record_id").and_then(Value::as_str) {
+        Some(id) => format!("{record_type} {id}"),
+        None => record_type.to_string(),
+    };
+    let mut objects: Vec<&Value> = data.get("supplied_fields").into_iter().collect();
+    for point in data.get("route").and_then(Value::as_array).into_iter().flatten() {
+        objects.extend(point.get("supplied_fields"));
+    }
+    for fields in objects {
+        let Some(fields) = fields.as_object() else {
+            return Err(format!("{label}: supplied_fields is not an object"));
+        };
+        if fields.contains_key("") {
+            return Err(format!(
+                "{label}: a supplied field has an empty name, and the format needs a name for every field"
+            ));
+        }
+        if contains_proto_key(&Value::Object(fields.clone())) {
+            return Err(format!(
+                "{label}: a supplied field is named __proto__, which JavaScript readers drop"
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn contains_proto_key(value: &Value) -> bool {
+    match value {
+        Value::Object(object) => object
+            .iter()
+            .any(|(key, child)| key == "__proto__" || contains_proto_key(child)),
+        Value::Array(items) => items.iter().any(contains_proto_key),
+        _ => false,
+    }
+}
+
 fn required_str<'a>(data: &'a Map<String, Value>, key: &str) -> Result<&'a str, String> {
     data.get(key).and_then(Value::as_str).ok_or_else(|| format!("missing {key}"))
 }
@@ -922,4 +966,37 @@ fn string_at(data: &Map<String, Value>, path: &[&str]) -> Result<String, String>
 
 fn json_equal(left: &Value, right: &Value) -> bool {
     left == right
+}
+
+#[cfg(test)]
+mod tests {
+    use super::check_supplied_fields;
+    use serde_json::{json, Map, Value};
+
+    fn record(value: Value) -> Map<String, Value> {
+        value.as_object().unwrap().clone()
+    }
+
+    #[test]
+    fn a_supplied_field_needs_a_name_that_every_reader_keeps() {
+        let empty = record(json!({ "provider_record_id": "n-1", "supplied_fields": { "": 1 } }));
+        assert_eq!(
+            check_supplied_fields("sleep_session", &empty).unwrap_err(),
+            "sleep_session n-1: a supplied field has an empty name, and the format needs a name for every field"
+        );
+        let nested = record(json!({ "supplied_fields": { "extra": [{ "__proto__": 1 }] } }));
+        assert_eq!(
+            check_supplied_fields("source", &nested).unwrap_err(),
+            "source: a supplied field is named __proto__, which JavaScript readers drop"
+        );
+        let route = record(json!({ "route": [{ "supplied_fields": { "": 1 } }] }));
+        assert!(check_supplied_fields("workout_session", &route).is_err());
+        let text = record(json!({ "supplied_fields": "not an object" }));
+        assert_eq!(
+            check_supplied_fields("sleep_session", &text).unwrap_err(),
+            "sleep_session: supplied_fields is not an object"
+        );
+        let kept = record(json!({ "supplied_fields": { " ": 1, "proto": 2, "extra": { "": 3 } } }));
+        check_supplied_fields("sleep_session", &kept).unwrap();
+    }
 }
