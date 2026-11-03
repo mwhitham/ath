@@ -4,6 +4,7 @@ import {
   PointMeasurementTypeSchema,
   RecordType,
   UtcTimestamp,
+  type FieldBasisT,
   type RecordActorT,
 } from "../v1/schema.js";
 import type { RecordExtensionsT } from "../v1/extensions.js";
@@ -340,6 +341,7 @@ async function planPlainText(
                 input_value: value,
                 input_unit: inputUnit,
               },
+              field_basis: { value: "entered_by_hand" },
             },
           },
         ],
@@ -397,6 +399,7 @@ async function planPlainText(
         ...(resultMatch[3] === undefined
           ? {}
           : { scaling: resultMatch[3].toLowerCase() }),
+        field_basis: { value: "entered_by_hand" },
       },
     });
     return {
@@ -469,6 +472,24 @@ function structuredLogIssue(index: number, message: string): Error {
   return new Error(`structured log item ${index + 1} ${message}`);
 }
 
+const MEASURED_RECORD_TYPES = new Set<string>([
+  "point_measurement",
+  "measurement_sample",
+  "sleep_session",
+  "workout_session",
+  "benchmark_result",
+  "provider_summary",
+  "provider_score",
+]);
+
+/** A value written through `ath log` was entered, not read from a device file (D187). */
+function withEnteredBasis(recordType: string, data: unknown): unknown {
+  if (!MEASURED_RECORD_TYPES.has(recordType)) return data;
+  const record = data as { field_basis?: FieldBasisT };
+  if (record.field_basis?.value !== undefined) return data;
+  return { ...record, field_basis: { ...record.field_basis, value: "entered_by_hand" } };
+}
+
 function planStructured(
   value: unknown,
   actor: RecordActorT,
@@ -536,7 +557,7 @@ function planStructured(
       record_id: parsed.data.record_id,
       created_at: parsed.data.created_at,
       changed_by: actor,
-      data: parsed.data.data,
+      data: withEnteredBasis(parsed.data.record_type, parsed.data.data),
       ...(parsed.data.extensions === undefined
         ? {}
         : { extensions: parsed.data.extensions }),

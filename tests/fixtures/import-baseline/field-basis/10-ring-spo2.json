@@ -1,0 +1,61 @@
+{
+  "decision": "D187",
+  "records": [
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:1",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:2",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:3",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:4",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:5",
+      "record_type": "sleep_session"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:6",
+      "record_type": "sleep_session"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:7",
+      "record_type": "sleep_session"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:8",
+      "record_type": "sleep_session"
+    }
+  ]
+}

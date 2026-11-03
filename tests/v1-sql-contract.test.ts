@@ -1,5 +1,5 @@
 import { readFileSync } from "node:fs";
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { spawnSync } from "node:child_process";
@@ -27,6 +27,7 @@ import {
   SQLITE_APPLICATION_ID,
 } from "../src/db/client.js";
 import type { AthleticDatabase } from "../src/db/index.js";
+import { removeTemporaryDirectory } from "./helpers/temporary.js";
 
 const databaseId = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1f10";
 const createdAt = "2026-08-09T12:00:00.000Z";
@@ -53,7 +54,7 @@ afterEach(async () => {
     database.close();
   }
   for (const directory of directories.splice(0)) {
-    await rm(directory, { recursive: true, force: true });
+    await removeTemporaryDirectory(directory);
   }
 });
 
@@ -358,8 +359,8 @@ describe("v1 SQL contract", () => {
 
     const client = createClient({ url: pathToFileURL(path).href });
     await client.execute("PRAGMA foreign_keys = OFF");
-    await expect(
-      client.execute({
+    const refusal = await client
+      .execute({
         sql: `
           INSERT INTO record_revisions (
             record_id,
@@ -383,8 +384,12 @@ describe("v1 SQL contract", () => {
           createdAt,
           JSON.stringify(toolActor),
         ],
-      }),
-    ).rejects.toThrow();
-    await client.close();
+      })
+      .then(
+        () => undefined,
+        (error: unknown) => error,
+      );
+    client.close();
+    expect(refusal).toBeInstanceOf(Error);
   });
 });

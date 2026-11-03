@@ -14,6 +14,7 @@ import {
   AthleticStandardPackage,
   CurrentRecord,
   ExportManifest,
+  IMPORTABLE_PACKAGE_VERSIONS,
   MeasurementSeriesFile,
   RecordRevision,
   type AthleticStandardPackageT,
@@ -299,7 +300,10 @@ export async function loadAthleticStandardPackage(
       `Athletic Standard ${version} is a prerelease JSON format. v1 does not import 0.x files.`,
     );
   }
-  if (version !== ATHLETIC_STANDARD_VERSION) {
+  if (
+    version === undefined ||
+    !(IMPORTABLE_PACKAGE_VERSIONS as readonly string[]).includes(version)
+  ) {
     throw new PackageRepresentationError({
       ...rawPackageMetadata(document.value),
       ...(version === undefined

@@ -2,6 +2,7 @@ name: Release cross-platform
 
 on:
   workflow_dispatch:
+  pull_request:
   push:
     tags:
       - "v*"
@@ -24,6 +25,30 @@ jobs:
         with:
           node-version: 22
           cache: pnpm
+      - name: Install sqlite3, which ath migrate and ath repair use for backups (D137)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        # Chocolatey can answer HTTP 503, install 0 packages, and still exit 0, so a try
+        # counts only when sqlite3 is on the path afterwards. After three tries the pinned
+        # sqlite.org archive is used, only if its SHA-256 matches (D197).
+        run: |
+          for ($try = 1; $try -le 3; $try++) {
+            choco install sqlite --no-progress -y
+            if (Get-Command sqlite3 -ErrorAction SilentlyContinue) { exit 0 }
+            if ($try -lt 3) { Start-Sleep -Seconds (20 * $try) }
+          }
+          $zip = Join-Path $env:RUNNER_TEMP "sqlite-tools.zip"
+          Invoke-WebRequest -Uri "https://www.sqlite.org/2026/sqlite-tools-win-x64-3540100.zip" -OutFile $zip -MaximumRetryCount 3 -RetryIntervalSec 15
+          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
+          if ($hash -ne "fb20997ade5583a5fbf1e36db7bc3c82c9416b3f314f16961e1572aa4e49487d") {
+            throw "sqlite-tools-win-x64-3540100.zip has SHA-256 $hash, not the pinned value"
+          }
+          $tools = Join-Path $env:RUNNER_TEMP "sqlite-tools"
+          Expand-Archive -Path $zip -DestinationPath $tools -Force
+          Add-Content -Path $env:GITHUB_PATH -Value $tools
+          # The runner ends the step with the last native exit code, which can be choco's.
+          exit 0
+      - run: sqlite3 --version
       - run: pnpm install --frozen-lockfile
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo test --manifest-path crates/ath-core/Cargo.toml

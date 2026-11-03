@@ -3,14 +3,15 @@ import { mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../src/cli.ts");
-const TSX = resolve(here, "../node_modules/.bin/tsx");
+const TSX = createRequire(import.meta.url).resolve("tsx/cli");
 
 function ath(args: string[], cwd: string): { stdout: string; code: number } {
-  const res = spawnSync(TSX, [CLI, ...args], { cwd, encoding: "utf8" });
+  const res = spawnSync(process.execPath, [TSX, CLI, ...args], { cwd, encoding: "utf8" });
   return { stdout: (res.stdout ?? "") + (res.stderr ?? ""), code: res.status ?? 1 };
 }
 

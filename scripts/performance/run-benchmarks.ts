@@ -1,13 +1,12 @@
 import { execFileSync } from "node:child_process";
 import {
   mkdir,
-  mkdtemp,
   readFile,
   rm,
   stat,
   writeFile,
 } from "node:fs/promises";
-import { arch, cpus, platform, release, tmpdir, totalmem } from "node:os";
+import { arch, cpus, platform, release, totalmem } from "node:os";
 import { join, resolve } from "node:path";
 import { performance } from "node:perf_hooks";
 import { pathToFileURL } from "node:url";
@@ -24,9 +23,11 @@ import {
   exportRecords,
   importRecords,
   loadAthleticStandardPackage,
+  makeTemporaryDirectory,
   openDatabase,
   previewPackageImport,
   querySeries,
+  removeTemporaryDirectory,
   type AthleticDatabase,
 } from "../../src/db/index.js";
 import { databaseClient } from "../../src/db/client.js";
@@ -306,7 +307,7 @@ export async function runPerformanceBenchmarks(
   const database = await openDatabase(databasePath, {
     onSecurityWarning: () => undefined,
   });
-  const work = await mkdtemp(join(tmpdir(), "ath-v1-performance-run-"));
+  const work = await makeTemporaryDirectory("ath-v1-performance-run-");
   const packageDirectory = join(work, "full-package");
   const restorePath = join(work, "restored.ath.sqlite");
   const deltaDirectory = join(work, "delta-package");
@@ -658,7 +659,7 @@ export async function runPerformanceBenchmarks(
     restored?.close();
     database.close();
     if (!options.keep_work) {
-      await rm(work, { recursive: true, force: true });
+      await removeTemporaryDirectory(work);
     }
   }
 }

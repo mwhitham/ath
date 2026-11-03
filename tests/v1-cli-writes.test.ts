@@ -3,12 +3,13 @@ import { copyFileSync, mkdirSync, mkdtempSync, readFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 import { openDatabase, resolveEvidenceReference } from "../src/db/index.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../src/cli.ts");
-const TSX = resolve(here, "../node_modules/.bin/tsx");
+const TSX = createRequire(import.meta.url).resolve("tsx/cli");
 const FIXTURE = resolve(here, "../examples/demo-athlete/athlete.ath.sqlite");
 const FIXTURE_ATTACHMENT = resolve(
   here,
@@ -17,7 +18,7 @@ const FIXTURE_ATTACHMENT = resolve(
 
 function ath(args: string[], cwd: string, stdin = ""): { stdout: string; code: number } {
   try {
-    const stdout = execFileSync(TSX, [CLI, ...args], {
+    const stdout = execFileSync(process.execPath, [TSX, CLI, ...args], {
       cwd,
       input: stdin,
       encoding: "utf8",
@@ -100,9 +101,54 @@ describe("v1 ath log", () => {
         data: {
           quantity: "hrv_rmssd",
           value: { standard_value: 61, standard_unit: "ms" },
+          field_basis: { value: "entered_by_hand" },
         },
       },
     ]);
+  });
+
+  it("marks every value entered through ath log as entered by hand (D187)", () => {
+    const directory = newDatabase();
+    expect(ath(["log", "fran 3:15 rx", "--yes"], directory).code).toBe(0);
+    expect(records(directory, "benchmark_result")).toMatchObject([
+      { data: { field_basis: { value: "entered_by_hand" } } },
+    ]);
+    const manualSource = records(directory, "source").find(
+      (record) => (record.data as { source_type?: string }).source_type === "manual",
+    )!;
+    const receipt = {
+      timestamp_text: "2026-10-13T12:00:00.000Z",
+      utc_offset_text: "Z",
+      utc_offset_meaning: "documented_recording_offset",
+      timestamp_basis: "source_instant",
+    };
+    const point = (quantity: string, value: number, unit: string, extra: object = {}) => ({
+      record_type: "point_measurement",
+      data: {
+        source_id: manualSource.record_id,
+        received_at: "2026-10-13T12:00:00.000Z",
+        received_at_basis: "local_write_time",
+        quantity,
+        recorded_at: "2026-10-13T12:00:00.000Z",
+        input_timestamp: receipt,
+        value: { standard_value: value, standard_unit: unit, input_value: value, input_unit: unit },
+        ...extra,
+      },
+    });
+    const batch = JSON.stringify([
+      point("body_weight", 70, "kg"),
+      point("height", 180, "cm", { field_basis: { value: "provider" } }),
+    ]);
+    expect(ath(["log", batch, "--yes"], directory).code).toBe(0);
+    const written = records(directory, "point_measurement").map(
+      (record) => record.data as { quantity: string; field_basis: unknown },
+    );
+    expect(written.find((data) => data.quantity === "body_weight")?.field_basis).toEqual({
+      value: "entered_by_hand",
+    });
+    expect(written.find((data) => data.quantity === "height")?.field_basis).toEqual({
+      value: "provider",
+    });
   });
 
   it("refuses ambiguous HRV rather than mixing RMSSD and SDNN", () => {

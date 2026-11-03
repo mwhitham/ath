@@ -10,8 +10,8 @@ import { fileURLToPath } from "node:url";
 const here = dirname(fileURLToPath(import.meta.url));
 const packageRoot = resolve(here, "..");
 const crateRoot = resolve(packageRoot, "crates/ath-core");
-const debugBinary = resolve(crateRoot, "target/debug/ath-core");
-const releaseBinary = resolve(crateRoot, "target/release/ath-core");
+const debugBinary = resolve(crateRoot, "target/debug", binaryName());
+const releaseBinary = resolve(crateRoot, "target/release", binaryName());
 
 function binaryName(): string {
   return process.platform === "win32" ? "ath-core.exe" : "ath-core";

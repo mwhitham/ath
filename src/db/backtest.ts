@@ -1,7 +1,7 @@
 import { open as openFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import type { CompleteRequest, CompleteResponse } from "../gateway.js";
-import { CurrentRecord, type CurrentRecordT } from "../v1/schema.js";
+import { ATHLETIC_STANDARD_VERSION, CurrentRecord, type CurrentRecordT } from "../v1/schema.js";
 import { databaseClient, type AthleticDatabase } from "./client.js";
 import { currentRecordPayloadFromRow } from "./revision-encoding.js";
 import { buildEvidence } from "./evidence.js";
@@ -19,7 +19,7 @@ export interface BacktestReplay {
 }
 
 export interface V1BacktestReport {
-  athleticstandard_version: "2.0.0";
+  athleticstandard_version: typeof ATHLETIC_STANDARD_VERSION;
   created_at: string;
   models: string[];
   replayable_result_count: number;
@@ -220,7 +220,7 @@ export async function runV1Backtest(
   }
 
   return {
-    athleticstandard_version: "2.0.0",
+    athleticstandard_version: ATHLETIC_STANDARD_VERSION,
     created_at: input.created_at ?? new Date().toISOString(),
     models: [...input.models],
     replayable_result_count: targets.length,

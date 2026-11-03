@@ -1,0 +1,1100 @@
+{
+  "decision": "D187",
+  "records": [
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:1",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:2",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:3",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:4",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:5",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:6",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:7",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:8",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:9",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:10",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:11",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:12",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:13",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:14",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:15",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:16",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:17",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:18",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:19",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:20",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:21",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:22",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:23",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:24",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:25",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:26",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:27",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:28",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:29",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:30",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:31",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:32",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:33",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:34",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:35",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:36",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:37",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:38",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:39",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:40",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:41",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:42",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:43",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:44",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:45",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:46",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:47",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:48",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:49",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:50",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:51",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:52",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:53",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:54",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:55",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:56",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:57",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:58",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:59",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:60",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:61",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:62",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:63",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:64",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:65",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:66",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:67",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:68",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:69",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:70",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:71",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:72",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:73",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:74",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:75",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:76",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:77",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:78",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:79",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:80",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:81",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:82",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:83",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:84",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:85",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:86",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:87",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:88",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:89",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:90",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:91",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:92",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:93",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:94",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:95",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:96",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:97",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:98",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:99",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:100",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:101",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:102",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:103",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:104",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:105",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:106",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:107",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:108",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:109",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:110",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:111",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:112",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:113",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:114",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:115",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:116",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:117",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:118",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:119",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:120",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:121",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:122",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:123",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:124",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:125",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:126",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:127",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:128",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:129",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:130",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:131",
+      "record_type": "measurement_sample"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:132",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:133",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:134",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:135",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:136",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:137",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:138",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:139",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:140",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:141",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:142",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:143",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:144",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "entered_by_hand"
+      },
+      "label": "record:145",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "entered_by_hand"
+      },
+      "label": "record:146",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:147",
+      "record_type": "provider_summary"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:148",
+      "record_type": "provider_summary"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:149",
+      "record_type": "provider_summary"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:150",
+      "record_type": "provider_summary"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:151",
+      "record_type": "provider_summary"
+    },
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:152",
+      "record_type": "provider_summary"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:153",
+      "record_type": "sleep_session"
+    },
+    {
+      "field_basis": {
+        "value": "calculated_on_import"
+      },
+      "label": "record:154",
+      "record_type": "sleep_session"
+    },
+    {
+      "field_basis": {
+        "activity_type": "provider_label",
+        "value": "provider"
+      },
+      "label": "record:165",
+      "record_type": "workout_session"
+    },
+    {
+      "field_basis": {
+        "activity_type": "provider_label",
+        "route_summaries": "calculated_on_import",
+        "value": "provider"
+      },
+      "label": "record:166",
+      "record_type": "workout_session"
+    }
+  ]
+}

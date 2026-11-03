@@ -79,3 +79,26 @@ export function renderSharedImport(kind: SharedImport, preview: unknown): string
   }
   return lines.join("\n");
 }
+
+/** The result of `ath import --mapping`, for a person. */
+export function renderMappedImport(result: unknown): string {
+  const body = result as {
+    mapping?: string;
+    understood?: string[];
+    preserved?: string[];
+    left_out?: string[];
+    record_ids?: string[];
+    outcome?: { new?: number; changed?: number; unchanged?: number };
+  };
+  const lines = [
+    `${body.mapping ?? "mapped"} import`,
+    `understood: ${(body.understood ?? []).join(", ") || "none"}`,
+    `kept under original names: ${(body.preserved ?? []).join(", ") || "none"}`,
+  ];
+  for (const item of body.left_out ?? []) lines.push(`left out: ${item}`);
+  const outcome = body.outcome ?? {};
+  lines.push(`outcome: ${outcome.new ?? 0} new, ${outcome.changed ?? 0} changed, ${outcome.unchanged ?? 0} unchanged`);
+  const ids = body.record_ids ?? [];
+  if (ids.length > 0) lines.push(`records: ${ids.length}. Pass --json to list their IDs.`);
+  return lines.join("\n");
+}

@@ -1,12 +1,13 @@
-import { chmod, lstat } from "node:fs/promises";
-import { parse, resolve, sep } from "node:path";
+import { chmod, lstat, mkdtemp, realpath, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join, parse, resolve, sep } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { createClient, type Client, type ResultSet } from "@libsql/client";
 
 export const SQLITE_APPLICATION_ID = 0x41544831;
 export const SQLITE_APPLICATION_MARKER = "ATH1";
 export const SQLITE_BUSY_TIMEOUT_MS = 5_000;
-export const SQL_SCHEMA_VERSION = 3;
+export const SQL_SCHEMA_VERSION = 4;
 
 export interface AthleticDatabase {
   readonly url: string;
@@ -117,6 +118,28 @@ export async function refuseSymbolicLinkComponents(
       throw error;
     }
   }
+}
+
+/**
+ * Make a private folder for this program's own temporary files. The system
+ * temp folder can sit behind an operating-system symlink, such as /var on
+ * macOS, so the folder is made under its real path. A path a person gives is
+ * still checked by refuseSymbolicLinkComponents.
+ */
+export async function makeTemporaryDirectory(prefix: string): Promise<string> {
+  return mkdtemp(join(await realpath(tmpdir()), prefix));
+}
+
+/**
+ * Remove a temporary folder that held a database this process opened. The
+ * libsql driver lets go of a closed file only once its statements are
+ * garbage-collected, and Windows will not delete a file that is still open.
+ * Collection runs here when node was started with --expose-gc.
+ */
+export async function removeTemporaryDirectory(path: string): Promise<void> {
+  (globalThis as { gc?: () => void }).gc?.();
+  await new Promise((resolve) => setImmediate(resolve));
+  await rm(path, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
 }
 
 export async function connectDatabase(target: string): Promise<AthleticDatabase> {

@@ -6,6 +6,7 @@ import {
   SeriesQuantitySchema,
   UtcTimestamp,
   type CurrentRecordT,
+  type FieldBasisT,
   type InputTimestampReceiptT,
   type ProviderReportingPeriodT,
   type RecordTypeT,
@@ -168,6 +169,36 @@ const missingTimestampReceipt = {
   timestamp_missing_reason: "not_provided_by_source" as const,
   utc_offset_missing_reason: "not_provided_by_source" as const,
 };
+
+/**
+ * The basis for a value this import stores (D187).
+ *
+ * A value this program calculated says so, even from a hand-entered input. Apple
+ * sleep totals are sums of the writer's sleep-stage samples. A value a person
+ * typed into Apple Health is `entered_by_hand`. WHOOP and Oura label their HRV
+ * column without naming the statistic, and both document it as RMSSD (D22, D26).
+ */
+function valueBasis(
+  parsed: ParsedProviderExport,
+  legacySourceId: string,
+  record: { record_type: RecordTypeT; quantity?: string; derived?: boolean },
+): NonNullable<FieldBasisT["value"]> {
+  if (record.derived === true) return "calculated_on_import";
+  if (parsed.route === "apple_health" && record.record_type === "sleep_session") {
+    return "calculated_on_import";
+  }
+  if (record.quantity === "ecg_beats") return "calculated_on_import";
+  if (parsed.sources.find((source) => source.id === legacySourceId)?.kind === "manual") {
+    return "entered_by_hand";
+  }
+  if (
+    record.quantity === "hrv_rmssd" &&
+    (parsed.route === "whoop_csv" || parsed.route === "oura_csv")
+  ) {
+    return "provider_documented_rmssd";
+  }
+  return "provider";
+}
 
 function sourceValue(
   value: number,
@@ -442,6 +473,9 @@ function providerSummaryDraft(
       ...(summary.provider_record_id === undefined
         ? {}
         : { provider_record_id: summary.provider_record_id }),
+      field_basis: {
+        value: valueBasis(parsed, summary.source, { record_type: "provider_summary" }),
+      },
     },
     match_key_method: method,
     ...key,
@@ -554,6 +588,9 @@ function hardSignalDraft(
           signal.aggregates,
           receipt?.input_summaries,
         ),
+        field_basis: {
+          value: valueBasis(parsed, signal.source, { record_type: "sleep_session" }),
+        },
       },
       match_key_method: method,
       ...key,
@@ -603,6 +640,15 @@ function hardSignalDraft(
               })),
             }),
         ...workoutRoute(signal),
+        field_basis: {
+          value: valueBasis(parsed, signal.source, { record_type: "workout_session" }),
+          ...(signal.aggregates.activity === undefined
+            ? {}
+            : { activity_type: "provider_label" as const }),
+          ...(parsed.payload.routeSummariesCalculated.has(signal)
+            ? { route_summaries: "calculated_on_import" as const }
+            : {}),
+        },
       },
       match_key_method: method,
       ...key,
@@ -633,6 +679,9 @@ function hardSignalDraft(
         ...(receipt?.provider_record_id === undefined
           ? {}
           : { provider_record_id: receipt.provider_record_id }),
+        field_basis: {
+          value: valueBasis(parsed, signal.source, { record_type: "provider_score" }),
+        },
       },
       match_key_method: method,
       ...key,
@@ -687,6 +736,13 @@ function hardSignalDraft(
               },
             ],
           }),
+      field_basis: {
+        value: valueBasis(parsed, signal.source, {
+          record_type: "point_measurement",
+          quantity,
+          derived: signal.derived !== undefined,
+        }),
+      },
     },
     match_key_method: method,
     ...key,
@@ -819,6 +875,12 @@ function seriesDrafts(
                   "series_start_plus_offset_ms_v1",
               }
             : {}),
+          field_basis: {
+            value: valueBasis(parsed, built.source, {
+              record_type: "measurement_sample",
+              quantity,
+            }),
+          },
         },
         match_key_method: method,
         ...key,
