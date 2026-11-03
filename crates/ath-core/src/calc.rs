@@ -6,6 +6,9 @@ use serde_json::{json, Map, Value};
 
 use crate::store::StoredRecord;
 
+/// Source labels that stay in `supplied_fields` and never feed a calculation (D186).
+const SOURCE_LABELS: &[&str] = &["supplied:intensity", "supplied:Feeling"];
+
 #[derive(Debug, Clone)]
 pub struct SkillFile {
     pub name: String,
@@ -27,10 +30,14 @@ pub fn parse_skill(text: &str) -> Result<SkillFile, String> {
         let (key, value) = line
             .split_once(':')
             .ok_or_else(|| format!("could not read '{line}'"))?;
+        let value = value.trim();
+        if SOURCE_LABELS.contains(&value) {
+            return Err(format!("a calculation cannot read {value}"));
+        }
         settings
             .entry(key.trim().to_string())
             .or_default()
-            .push(value.trim().to_string());
+            .push(value.to_string());
     }
     let name = settings
         .get("name")
@@ -538,6 +545,17 @@ mod tests {
         let result = run_skill(&skill, &record, &[]);
         assert_eq!(result["result"]["seconds"], json!([1.0, 1.0, 0.0, 1.0, 1.0]));
         assert!(result["missing"].as_array().unwrap().is_empty());
+    }
+
+    #[test]
+    fn supplied_intensity_and_feeling_are_refused() {
+        for name in ["intensity", "Feeling"] {
+            let text = format!("```ath-calculation\nname: label-read\nuse: field\nfield: supplied:{name}\n```\n");
+            let error = parse_skill(&text).unwrap_err();
+            assert_eq!(error, format!("a calculation cannot read supplied:{name}"));
+        }
+        let other = "```ath-calculation\nname: other-read\nuse: field\nfield: supplied:Gear\n```\n";
+        assert!(parse_skill(other).is_ok());
     }
 }
 

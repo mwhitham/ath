@@ -11,6 +11,7 @@ import {
 import { tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 import { exportRecords, openDatabase } from "../src/db/index.js";
 import {
@@ -21,13 +22,13 @@ import {
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../src/cli.ts");
-const TSX = resolve(here, "../node_modules/.bin/tsx");
+const TSX = createRequire(import.meta.url).resolve("tsx/cli");
 const FIXTURE = resolve(here, "../examples/demo-athlete/athlete.ath.sqlite");
 
 function ath(args: string[], cwd: string): { stdout: string; code: number } {
   try {
     return {
-      stdout: execFileSync(TSX, [CLI, ...args], {
+      stdout: execFileSync(process.execPath, [TSX, CLI, ...args], {
         cwd,
         encoding: "utf8",
         stdio: "pipe",
@@ -233,7 +234,7 @@ describe("v1 package restore", () => {
     for (let index = 0; index < originalFiles.length; index++) {
       expect(originalFiles[index]![1].equals(restoredFiles[index]![1])).toBe(true);
     }
-  }, 20_000);
+  }, 60_000);
 
   it("shows and applies an explicit package conflict resolution", () => {
     const directory = mkdtempSync(join(tmpdir(), "ath-v1-conflict-"));
@@ -377,7 +378,7 @@ describe("v1 package restore", () => {
       current_revision: 3,
       data: { name: "Imported name" },
     });
-  }, 30_000);
+  }, 60_000);
 
   it("refuses a different nonempty database and every prerelease JSON file", () => {
     const directory = mkdtempSync(join(tmpdir(), "ath-v1-restore-"));

@@ -106,7 +106,10 @@ The skill is a folder an agent reads to learn the file and the commands.
 ath init writes it to .agents/skills and into any harness folder already
 here. An older copy of the tool skill is replaced, so the agent does not
 keep reading the old instructions. A calculation skill that is already
-there is not replaced.`,
+there is not replaced.
+
+Mapping files are copied into .agents/mappings when that copy is missing.
+An installed mapping file is not replaced.`,
 
   check: `
 Examples:
@@ -138,6 +141,15 @@ Examples:
     $ ath import ~/Downloads/apple_health_export.zip
     $ ath import ~/Downloads/whoop-export
     $ ath import ~/Downloads/oura-export
+
+  Read an Open Wearables JSON file with its mapping file:
+    $ ath import ~/Downloads/open-wearables.json --mapping open-wearables
+    $ ath import ~/Downloads/open-wearables.json --mapping open-wearables --yes
+
+\`--mapping\` names a file in .agents/mappings, then one shipped in
+mappings/, or takes a path. A mapped field becomes the typed value. Every
+other field stays under the name it arrived with. The import lists each
+object it left out and why.
 
 The default is always a preview. \`--json\` is also only a preview and
 never confirms a write. Provider rows keep separate Apple Health, WHOOP,

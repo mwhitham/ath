@@ -1,0 +1,1688 @@
+{
+  "athleticstandard_version": "2.0.0",
+  "database_id": "01890f3e-e7d3-7cc0-88c8-000000000001",
+  "database_revision": 3,
+  "measurement_series_files": [
+    {
+      "deletion_count": 0,
+      "end_at": "2026-08-09T11:12:00.000Z",
+      "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+      "import_key_count": 0,
+      "quantity": "heart_rate",
+      "revision_count": 1,
+      "sample_count": 1,
+      "sha256": "2099f0bf78f680ddd168b2bd1a5a30e1fea3758e6699a12075c1ef712b985924",
+      "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+      "start_at": "2026-08-09T11:12:00.000Z"
+    }
+  ],
+  "record_deletions": [
+    {
+      "deleted_at": "2026-08-11T12:00:00.000Z",
+      "deleted_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+      "record_revision": 1
+    }
+  ],
+  "record_erasure_markers": [],
+  "record_import_keys": [],
+  "record_revisions": [
+    {
+      "became_known_at": "2026-08-09T12:00:00.000Z",
+      "became_known_at_basis": "local_write",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "birth_year": 1990,
+        "default_time_zone": "America/Chicago",
+        "display_units": "metric",
+        "name": "Demo Athlete",
+        "sex": "female"
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000002",
+      "record_type": "athlete_profile",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-09T12:00:00.000Z",
+      "became_known_at_basis": "provider_import",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "data_route": "whoop_csv",
+        "data_writer": "WHOOP",
+        "sensor_type": "optical",
+        "source_type": "wearable",
+        "vendor": "whoop"
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+      "record_type": "source",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-09T12:00:00.000Z",
+      "became_known_at_basis": "local_write",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "data_route": "manual_entry",
+        "data_writer": "ath",
+        "source_type": "manual"
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000004",
+      "record_type": "source",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-09T12:00:00.000Z",
+      "became_known_at_basis": "provider_import",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "accepted_record_count": 5,
+        "coverage_end_date": "2026-08-10",
+        "coverage_start_date": "2026-08-08",
+        "model": "4.0",
+        "name": "WHOOP",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000005",
+      "record_type": "source_device",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-09T12:00:00.000Z",
+      "became_known_at_basis": "local_write",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-08-09T12:00:00.000Z",
+          "content_version": 1,
+          "evidence": [],
+          "status": "active"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "definition": "21-15-9 thrusters and pull-ups for time",
+        "score_type": "time",
+        "tags": [
+          "short",
+          "high-power"
+        ]
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+      "record_type": "benchmark_definition",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-09T12:00:00.000Z",
+      "became_known_at_basis": "provider_import",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-09T06:12:00-05:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "-05:00"
+        },
+        "provider_record_id": "whoop-recovery-2026-08-09",
+        "quantity": "hrv_rmssd",
+        "received_at": "2026-08-09T12:00:00.000Z",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-09T11:12:00.000Z",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "value": {
+          "input_unit": "ms",
+          "input_value": 62,
+          "standard_unit": "ms",
+          "standard_value": 62
+        }
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+      "record_type": "point_measurement",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-10T12:00:00.000Z",
+      "became_known_at_basis": "provider_import",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-09T06:12:00-05:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "-05:00"
+        },
+        "provider_record_id": "whoop-recovery-2026-08-09",
+        "quantity": "hrv_rmssd",
+        "received_at": "2026-08-10T12:00:00.000Z",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-09T11:12:00.000Z",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "value": {
+          "input_unit": "ms",
+          "input_value": 64,
+          "standard_unit": "ms",
+          "standard_value": 64
+        }
+      },
+      "previous_revision": 1,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+      "record_type": "point_measurement",
+      "revision": 2
+    },
+    {
+      "became_known_at": "2026-08-09T12:00:00.000Z",
+      "became_known_at_basis": "provider_import",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "end_at": "2026-08-09T11:00:00.000Z",
+        "input_end_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-09T06:00:00-05:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "-05:00"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-08T22:30:00-05:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "-05:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-09T11:00:00.000Z",
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-2026-08-09",
+            "start_at": "2026-08-08T11:00:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "-05:00"
+          }
+        ],
+        "received_at": "2026-08-09T12:00:00.000Z",
+        "received_at_basis": "import_time",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "source_reported_summaries": [
+          {
+            "input_unit": "min",
+            "input_value": 435,
+            "standard_unit": "s",
+            "standard_value": 26100,
+            "summary_type": "sleep_duration"
+          }
+        ],
+        "start_at": "2026-08-09T03:30:00.000Z"
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+      "record_type": "sleep_session",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-10T18:00:00.000Z",
+      "became_known_at_basis": "provider_import",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "activity_type": "crossfit",
+        "end_at": "2026-08-10T17:48:00.000Z",
+        "input_end_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-10T12:48:00-05:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "-05:00"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-10T12:25:00-05:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "-05:00"
+        },
+        "received_at": "2026-08-10T18:00:00.000Z",
+        "received_at_basis": "import_time",
+        "segments": [
+          {
+            "label": "Fran",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 300,
+                "standard_unit": "s",
+                "standard_value": 300,
+                "summary_type": "duration"
+              }
+            ]
+          }
+        ],
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "source_reported_summaries": [
+          {
+            "input_unit": "bpm",
+            "input_value": 168,
+            "standard_unit": "bpm",
+            "standard_value": 168,
+            "summary_type": "average_heart_rate"
+          }
+        ],
+        "start_at": "2026-08-10T17:25:00.000Z"
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000a",
+      "record_type": "workout_session",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-10T18:00:00.000Z",
+      "became_known_at_basis": "local_write",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "input_timestamp": {
+          "timestamp_basis": "source_instant",
+          "timestamp_text": "2026-08-10T17:48:00.000Z",
+          "utc_offset_meaning": "documented_recording_offset",
+          "utc_offset_text": "Z"
+        },
+        "received_at": "2026-08-10T18:00:00.000Z",
+        "received_at_basis": "local_write_time",
+        "recorded_at": "2026-08-10T17:48:00.000Z",
+        "scaling": "rx",
+        "score": {
+          "duration_s": 300
+        },
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000004",
+        "workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a"
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+      "record_type": "benchmark_result",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-09T12:00:00.000Z",
+      "became_known_at_basis": "provider_import",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "metric": "recovery",
+        "provider_record_id": "whoop-recovery-score-2026-08-09",
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-2026-08-09"
+          }
+        ],
+        "received_at": "2026-08-09T12:00:00.000Z",
+        "received_at_basis": "import_time",
+        "scale": "0-100",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "value": {
+          "input_unit": "score",
+          "input_value": 78,
+          "standard_unit": "score",
+          "standard_value": 78
+        }
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000c",
+      "record_type": "provider_score",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-09T13:00:00.000Z",
+      "became_known_at_basis": "local_write",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "input_reported_at": {
+          "timestamp_basis": "source_instant",
+          "timestamp_text": "2026-08-09T13:00:00.000Z",
+          "utc_offset_meaning": "documented_recording_offset",
+          "utc_offset_text": "Z"
+        },
+        "note": "Poor sleep before training",
+        "rating": 2,
+        "rating_scale": "1-5",
+        "report_type": "sleep_quality",
+        "reported_at": "2026-08-09T13:00:00.000Z",
+        "reported_via": "text"
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+      "record_type": "athlete_report",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-09T18:00:00.000Z",
+      "became_known_at_basis": "local_write",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "byte_count": 68,
+        "description": "Meal photo",
+        "file_name": "meal-photo.png",
+        "media_type": "image/png",
+        "sha256": "d3fe8e599fb1deea9821063c744434802875c26cceeb9f2d55e8566b15a012f4"
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000e",
+      "record_type": "attachment",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-09T18:00:00.000Z",
+      "became_known_at_basis": "local_write",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "athlete_description": "Chicken, rice, and vegetables",
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ],
+        "input_reported_at": {
+          "timestamp_basis": "source_instant",
+          "timestamp_text": "2026-08-09T18:00:00.000Z",
+          "utc_offset_meaning": "documented_recording_offset",
+          "utc_offset_text": "Z"
+        },
+        "reported_at": "2026-08-09T18:00:00.000Z",
+        "reported_items": [
+          {
+            "amount": 1,
+            "amount_unit": "bowl",
+            "food_description": "chicken and rice bowl"
+          }
+        ],
+        "reported_via": "photo"
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+      "record_type": "nutrition_entry",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-09T15:00:00.000Z",
+      "became_known_at_basis": "local_write",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "authorship": {
+          "author": {
+            "agent": "ath-reference-agent",
+            "agent_version": "1.0.0",
+            "author_type": "agent",
+            "model": "fixture-model",
+            "model_version": "1"
+          },
+          "authored_at": "2026-08-09T15:00:00.000Z",
+          "content_version": 1,
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+              "revision": 1
+            }
+          ],
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "confidence": "moderate",
+        "predicted_range": {
+          "high": {
+            "duration_s": 290
+          },
+          "low": {
+            "duration_s": 270
+          }
+        },
+        "predicted_score": {
+          "duration_s": 280
+        },
+        "reasoning": "HRV and sleep evidence supported a moderate prediction."
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+      "record_type": "prediction",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-10T18:00:00.000Z",
+      "became_known_at_basis": "local_write",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "content_version": 1,
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "1.0.0"
+        },
+        "linked_at": "2026-08-10T18:00:00.000Z",
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "status": "active"
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+      "record_type": "prediction_result_link",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-10T18:00:00.000Z",
+      "became_known_at_basis": "local_write",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "absolute_error_percentage": 6.7,
+        "actual_score": {
+          "duration_s": 300
+        },
+        "authorship": {
+          "author": {
+            "author_type": "tool",
+            "calculation_version": "prediction-grade-v1",
+            "tool": "ath",
+            "tool_version": "1.0.0"
+          },
+          "authored_at": "2026-08-10T18:00:00.000Z",
+          "content_version": 1,
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+              "revision": 1
+            }
+          ],
+          "status": "active"
+        },
+        "predicted_score": {
+          "duration_s": 280
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "result_in_predicted_range": false,
+        "signed_error": -20
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+      "record_type": "prediction_grade",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-10T19:00:00.000Z",
+      "became_known_at_basis": "local_write",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "authorship": {
+          "author": {
+            "agent": "ath-reference-agent",
+            "agent_version": "1.0.0",
+            "author_type": "agent",
+            "model": "fixture-model",
+            "model_version": "1"
+          },
+          "authored_at": "2026-08-10T19:00:00.000Z",
+          "content_version": 1,
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+              "revision": 1
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+              "revision": 1
+            }
+          ],
+          "status": "active"
+        },
+        "causes": [
+          {
+            "evidence": {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+              "revision": 1
+            },
+            "explanation": "The athlete reported poor sleep before the attempt."
+          }
+        ],
+        "error_direction": "slower",
+        "error_severity": "significant",
+        "lesson": "Include reported sleep quality in short high-power predictions.",
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "unexplained": false
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000013",
+      "record_type": "prediction_error_analysis",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-09T16:00:00.000Z",
+      "became_known_at_basis": "local_write",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "authorship": {
+          "author": {
+            "agent": "ath-reference-agent",
+            "agent_version": "1.0.0",
+            "author_type": "agent",
+            "model": "fixture-model",
+            "model_version": "1"
+          },
+          "authored_at": "2026-08-09T16:00:00.000Z",
+          "content_version": 1,
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+              "revision": 1
+            }
+          ],
+          "status": "active"
+        },
+        "end_date": "2026-08-16",
+        "objective": "Practice benchmark pacing",
+        "start_date": "2026-08-10",
+        "title": "Demo training week"
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000014",
+      "record_type": "training_plan",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-09T16:00:00.000Z",
+      "became_known_at_basis": "local_write",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "activity_type": "crossfit",
+        "authorship": {
+          "author": {
+            "agent": "ath-reference-agent",
+            "agent_version": "1.0.0",
+            "author_type": "agent",
+            "model": "fixture-model",
+            "model_version": "1"
+          },
+          "authored_at": "2026-08-09T16:00:00.000Z",
+          "content_version": 1,
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+              "revision": 1
+            }
+          ],
+          "status": "active"
+        },
+        "blocks": [
+          {
+            "block_type": "benchmark",
+            "instructions": "Complete at sustainable opening pace.",
+            "title": "Fran"
+          }
+        ],
+        "completed_workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a",
+        "completion_status": "completed",
+        "scheduled_date": "2026-08-10",
+        "title": "Fran pacing session",
+        "training_plan_id": "01890f3e-e7d3-7cc0-88c8-000000000014"
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000015",
+      "record_type": "planned_session",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-10T19:00:00.000Z",
+      "became_known_at_basis": "local_write",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "applies_from": "2026-08-10",
+        "authorship": {
+          "author": {
+            "agent": "ath-reference-agent",
+            "agent_version": "1.0.0",
+            "author_type": "agent",
+            "model": "fixture-model",
+            "model_version": "1"
+          },
+          "authored_at": "2026-08-10T19:00:00.000Z",
+          "content_version": 1,
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+              "revision": 1
+            }
+          ],
+          "status": "active"
+        },
+        "note": "Use a steadier opening set next time.",
+        "title": "Pacing"
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000016",
+      "record_type": "coaching_note",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-10T19:00:00.000Z",
+      "became_known_at_basis": "local_write",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "authorship": {
+          "author": {
+            "agent": "ath-reference-agent",
+            "agent_version": "1.0.0",
+            "author_type": "agent",
+            "model": "fixture-model",
+            "model_version": "1"
+          },
+          "authored_at": "2026-08-10T19:00:00.000Z",
+          "content_version": 1,
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+              "revision": 1
+            }
+          ],
+          "status": "active"
+        },
+        "period_end": "2026-08-10",
+        "period_start": "2026-08-04",
+        "recommendations": [
+          "Use steadier benchmark pacing."
+        ],
+        "summary": "Training was consistent; the benchmark missed its predicted range."
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000017",
+      "record_type": "saved_training_review",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-10T19:00:00.000Z",
+      "became_known_at_basis": "local_write",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "authorship": {
+          "author": {
+            "agent": "ath-reference-agent",
+            "agent_version": "1.0.0",
+            "author_type": "agent",
+            "model": "fixture-model",
+            "model_version": "1"
+          },
+          "authored_at": "2026-08-10T19:00:00.000Z",
+          "content_version": 1,
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+              "revision": 1
+            }
+          ],
+          "status": "active"
+        },
+        "target_benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "target_date": "2026-12-31",
+        "target_score": {
+          "duration_s": 270
+        },
+        "title": "Fran under 4:30"
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000018",
+      "record_type": "goal",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-09T18:05:00.000Z",
+      "became_known_at_basis": "local_write",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "authorship": {
+          "author": {
+            "agent": "ath-reference-agent",
+            "agent_version": "1.0.0",
+            "author_type": "agent",
+            "model": "fixture-model",
+            "model_version": "1"
+          },
+          "authored_at": "2026-08-09T18:05:00.000Z",
+          "content_version": 1,
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+              "revision": 1
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000e",
+              "revision": 1
+            }
+          ],
+          "status": "active"
+        },
+        "confidence": 0.78,
+        "explanation": "Interpretation of the athlete's description and photo.",
+        "interpreted_items": [
+          {
+            "amount": 1,
+            "amount_unit": "bowl",
+            "food_description": "chicken and rice bowl"
+          }
+        ],
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f"
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000019",
+      "record_type": "nutrition_model_interpretation",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-08-09T12:00:00.000Z",
+      "became_known_at_basis": "provider_import",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "provider_record_id": "whoop-sleep-duration-2026-08-09",
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-2026-08-09"
+          }
+        ],
+        "received_at": "2026-08-09T12:00:00.000Z",
+        "received_at_basis": "import_time",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "summary_type": "sleep_duration",
+        "value": {
+          "input_unit": "min",
+          "input_value": 465,
+          "standard_unit": "s",
+          "standard_value": 27900
+        }
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-00000000001a",
+      "record_type": "provider_summary",
+      "revision": 1
+    }
+  ],
+  "records": [
+    {
+      "created_at": "2026-08-09T12:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "birth_year": 1990,
+        "default_time_zone": "America/Chicago",
+        "display_units": "metric",
+        "name": "Demo Athlete",
+        "sex": "female"
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000002",
+      "record_type": "athlete_profile"
+    },
+    {
+      "created_at": "2026-08-09T12:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "data_route": "whoop_csv",
+        "data_writer": "WHOOP",
+        "sensor_type": "optical",
+        "source_type": "wearable",
+        "vendor": "whoop"
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+      "record_type": "source"
+    },
+    {
+      "created_at": "2026-08-09T12:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "data_route": "manual_entry",
+        "data_writer": "ath",
+        "source_type": "manual"
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000004",
+      "record_type": "source"
+    },
+    {
+      "created_at": "2026-08-09T12:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "accepted_record_count": 5,
+        "coverage_end_date": "2026-08-10",
+        "coverage_start_date": "2026-08-08",
+        "model": "4.0",
+        "name": "WHOOP",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000005",
+      "record_type": "source_device"
+    },
+    {
+      "created_at": "2026-08-09T12:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-08-09T12:00:00.000Z",
+          "content_version": 1,
+          "evidence": [],
+          "status": "active"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "definition": "21-15-9 thrusters and pull-ups for time",
+        "score_type": "time",
+        "tags": [
+          "short",
+          "high-power"
+        ]
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+      "record_type": "benchmark_definition"
+    },
+    {
+      "created_at": "2026-08-09T12:00:00.000Z",
+      "current_revision": 2,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-09T06:12:00-05:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "-05:00"
+        },
+        "provider_record_id": "whoop-recovery-2026-08-09",
+        "quantity": "hrv_rmssd",
+        "received_at": "2026-08-10T12:00:00.000Z",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-09T11:12:00.000Z",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "value": {
+          "input_unit": "ms",
+          "input_value": 64,
+          "standard_unit": "ms",
+          "standard_value": 64
+        }
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+      "record_type": "point_measurement"
+    },
+    {
+      "created_at": "2026-08-09T12:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "end_at": "2026-08-09T11:00:00.000Z",
+        "input_end_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-09T06:00:00-05:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "-05:00"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-08T22:30:00-05:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "-05:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "end_at": "2026-08-09T11:00:00.000Z",
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-2026-08-09",
+            "start_at": "2026-08-08T11:00:00.000Z",
+            "timezone_offset_meaning": "provider_cycle_offset",
+            "timezone_offset_text": "-05:00"
+          }
+        ],
+        "received_at": "2026-08-09T12:00:00.000Z",
+        "received_at_basis": "import_time",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "source_reported_summaries": [
+          {
+            "input_unit": "min",
+            "input_value": 435,
+            "standard_unit": "s",
+            "standard_value": 26100,
+            "summary_type": "sleep_duration"
+          }
+        ],
+        "start_at": "2026-08-09T03:30:00.000Z"
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+      "record_type": "sleep_session"
+    },
+    {
+      "created_at": "2026-08-10T18:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "activity_type": "crossfit",
+        "end_at": "2026-08-10T17:48:00.000Z",
+        "input_end_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-10T12:48:00-05:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "-05:00"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-10T12:25:00-05:00",
+          "utc_offset_meaning": "provider_cycle_offset",
+          "utc_offset_text": "-05:00"
+        },
+        "received_at": "2026-08-10T18:00:00.000Z",
+        "received_at_basis": "import_time",
+        "segments": [
+          {
+            "label": "Fran",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 300,
+                "standard_unit": "s",
+                "standard_value": 300,
+                "summary_type": "duration"
+              }
+            ]
+          }
+        ],
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "source_reported_summaries": [
+          {
+            "input_unit": "bpm",
+            "input_value": 168,
+            "standard_unit": "bpm",
+            "standard_value": 168,
+            "summary_type": "average_heart_rate"
+          }
+        ],
+        "start_at": "2026-08-10T17:25:00.000Z"
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000a",
+      "record_type": "workout_session"
+    },
+    {
+      "created_at": "2026-08-10T18:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "input_timestamp": {
+          "timestamp_basis": "source_instant",
+          "timestamp_text": "2026-08-10T17:48:00.000Z",
+          "utc_offset_meaning": "documented_recording_offset",
+          "utc_offset_text": "Z"
+        },
+        "received_at": "2026-08-10T18:00:00.000Z",
+        "received_at_basis": "local_write_time",
+        "recorded_at": "2026-08-10T17:48:00.000Z",
+        "scaling": "rx",
+        "score": {
+          "duration_s": 300
+        },
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000004",
+        "workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a"
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+      "record_type": "benchmark_result"
+    },
+    {
+      "created_at": "2026-08-09T12:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "metric": "recovery",
+        "provider_record_id": "whoop-recovery-score-2026-08-09",
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-2026-08-09"
+          }
+        ],
+        "received_at": "2026-08-09T12:00:00.000Z",
+        "received_at_basis": "import_time",
+        "scale": "0-100",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "value": {
+          "input_unit": "score",
+          "input_value": 78,
+          "standard_unit": "score",
+          "standard_value": 78
+        }
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000c",
+      "record_type": "provider_score"
+    },
+    {
+      "created_at": "2026-08-09T13:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "input_reported_at": {
+          "timestamp_basis": "source_instant",
+          "timestamp_text": "2026-08-09T13:00:00.000Z",
+          "utc_offset_meaning": "documented_recording_offset",
+          "utc_offset_text": "Z"
+        },
+        "note": "Poor sleep before training",
+        "rating": 2,
+        "rating_scale": "1-5",
+        "report_type": "sleep_quality",
+        "reported_at": "2026-08-09T13:00:00.000Z",
+        "reported_via": "text"
+      },
+      "is_deleted": true,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+      "record_type": "athlete_report"
+    },
+    {
+      "created_at": "2026-08-09T18:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "byte_count": 68,
+        "description": "Meal photo",
+        "file_name": "meal-photo.png",
+        "media_type": "image/png",
+        "sha256": "d3fe8e599fb1deea9821063c744434802875c26cceeb9f2d55e8566b15a012f4"
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000e",
+      "record_type": "attachment"
+    },
+    {
+      "created_at": "2026-08-09T18:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "athlete_description": "Chicken, rice, and vegetables",
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ],
+        "input_reported_at": {
+          "timestamp_basis": "source_instant",
+          "timestamp_text": "2026-08-09T18:00:00.000Z",
+          "utc_offset_meaning": "documented_recording_offset",
+          "utc_offset_text": "Z"
+        },
+        "reported_at": "2026-08-09T18:00:00.000Z",
+        "reported_items": [
+          {
+            "amount": 1,
+            "amount_unit": "bowl",
+            "food_description": "chicken and rice bowl"
+          }
+        ],
+        "reported_via": "photo"
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+      "record_type": "nutrition_entry"
+    },
+    {
+      "created_at": "2026-08-09T15:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "authorship": {
+          "author": {
+            "agent": "ath-reference-agent",
+            "agent_version": "1.0.0",
+            "author_type": "agent",
+            "model": "fixture-model",
+            "model_version": "1"
+          },
+          "authored_at": "2026-08-09T15:00:00.000Z",
+          "content_version": 1,
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+              "revision": 1
+            }
+          ],
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "confidence": "moderate",
+        "predicted_range": {
+          "high": {
+            "duration_s": 290
+          },
+          "low": {
+            "duration_s": 270
+          }
+        },
+        "predicted_score": {
+          "duration_s": 280
+        },
+        "reasoning": "HRV and sleep evidence supported a moderate prediction."
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+      "record_type": "prediction"
+    },
+    {
+      "created_at": "2026-08-10T18:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "content_version": 1,
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "1.0.0"
+        },
+        "linked_at": "2026-08-10T18:00:00.000Z",
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "status": "active"
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+      "record_type": "prediction_result_link"
+    },
+    {
+      "created_at": "2026-08-10T18:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "absolute_error_percentage": 6.7,
+        "actual_score": {
+          "duration_s": 300
+        },
+        "authorship": {
+          "author": {
+            "author_type": "tool",
+            "calculation_version": "prediction-grade-v1",
+            "tool": "ath",
+            "tool_version": "1.0.0"
+          },
+          "authored_at": "2026-08-10T18:00:00.000Z",
+          "content_version": 1,
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+              "revision": 1
+            }
+          ],
+          "status": "active"
+        },
+        "predicted_score": {
+          "duration_s": 280
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "result_in_predicted_range": false,
+        "signed_error": -20
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+      "record_type": "prediction_grade"
+    },
+    {
+      "created_at": "2026-08-10T19:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "authorship": {
+          "author": {
+            "agent": "ath-reference-agent",
+            "agent_version": "1.0.0",
+            "author_type": "agent",
+            "model": "fixture-model",
+            "model_version": "1"
+          },
+          "authored_at": "2026-08-10T19:00:00.000Z",
+          "content_version": 1,
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+              "revision": 1
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+              "revision": 1
+            }
+          ],
+          "status": "active"
+        },
+        "causes": [
+          {
+            "evidence": {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+              "revision": 1
+            },
+            "explanation": "The athlete reported poor sleep before the attempt."
+          }
+        ],
+        "error_direction": "slower",
+        "error_severity": "significant",
+        "lesson": "Include reported sleep quality in short high-power predictions.",
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "unexplained": false
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000013",
+      "record_type": "prediction_error_analysis"
+    },
+    {
+      "created_at": "2026-08-09T16:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "authorship": {
+          "author": {
+            "agent": "ath-reference-agent",
+            "agent_version": "1.0.0",
+            "author_type": "agent",
+            "model": "fixture-model",
+            "model_version": "1"
+          },
+          "authored_at": "2026-08-09T16:00:00.000Z",
+          "content_version": 1,
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+              "revision": 1
+            }
+          ],
+          "status": "active"
+        },
+        "end_date": "2026-08-16",
+        "objective": "Practice benchmark pacing",
+        "start_date": "2026-08-10",
+        "title": "Demo training week"
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000014",
+      "record_type": "training_plan"
+    },
+    {
+      "created_at": "2026-08-09T16:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "activity_type": "crossfit",
+        "authorship": {
+          "author": {
+            "agent": "ath-reference-agent",
+            "agent_version": "1.0.0",
+            "author_type": "agent",
+            "model": "fixture-model",
+            "model_version": "1"
+          },
+          "authored_at": "2026-08-09T16:00:00.000Z",
+          "content_version": 1,
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+              "revision": 1
+            }
+          ],
+          "status": "active"
+        },
+        "blocks": [
+          {
+            "block_type": "benchmark",
+            "instructions": "Complete at sustainable opening pace.",
+            "title": "Fran"
+          }
+        ],
+        "completed_workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a",
+        "completion_status": "completed",
+        "scheduled_date": "2026-08-10",
+        "title": "Fran pacing session",
+        "training_plan_id": "01890f3e-e7d3-7cc0-88c8-000000000014"
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000015",
+      "record_type": "planned_session"
+    },
+    {
+      "created_at": "2026-08-10T19:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "applies_from": "2026-08-10",
+        "authorship": {
+          "author": {
+            "agent": "ath-reference-agent",
+            "agent_version": "1.0.0",
+            "author_type": "agent",
+            "model": "fixture-model",
+            "model_version": "1"
+          },
+          "authored_at": "2026-08-10T19:00:00.000Z",
+          "content_version": 1,
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+              "revision": 1
+            }
+          ],
+          "status": "active"
+        },
+        "note": "Use a steadier opening set next time.",
+        "title": "Pacing"
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000016",
+      "record_type": "coaching_note"
+    },
+    {
+      "created_at": "2026-08-10T19:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "authorship": {
+          "author": {
+            "agent": "ath-reference-agent",
+            "agent_version": "1.0.0",
+            "author_type": "agent",
+            "model": "fixture-model",
+            "model_version": "1"
+          },
+          "authored_at": "2026-08-10T19:00:00.000Z",
+          "content_version": 1,
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+              "revision": 1
+            }
+          ],
+          "status": "active"
+        },
+        "period_end": "2026-08-10",
+        "period_start": "2026-08-04",
+        "recommendations": [
+          "Use steadier benchmark pacing."
+        ],
+        "summary": "Training was consistent; the benchmark missed its predicted range."
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000017",
+      "record_type": "saved_training_review"
+    },
+    {
+      "created_at": "2026-08-10T19:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "authorship": {
+          "author": {
+            "agent": "ath-reference-agent",
+            "agent_version": "1.0.0",
+            "author_type": "agent",
+            "model": "fixture-model",
+            "model_version": "1"
+          },
+          "authored_at": "2026-08-10T19:00:00.000Z",
+          "content_version": 1,
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+              "revision": 1
+            }
+          ],
+          "status": "active"
+        },
+        "target_benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "target_date": "2026-12-31",
+        "target_score": {
+          "duration_s": 270
+        },
+        "title": "Fran under 4:30"
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000018",
+      "record_type": "goal"
+    },
+    {
+      "created_at": "2026-08-09T18:05:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "authorship": {
+          "author": {
+            "agent": "ath-reference-agent",
+            "agent_version": "1.0.0",
+            "author_type": "agent",
+            "model": "fixture-model",
+            "model_version": "1"
+          },
+          "authored_at": "2026-08-09T18:05:00.000Z",
+          "content_version": 1,
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+              "revision": 1
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000e",
+              "revision": 1
+            }
+          ],
+          "status": "active"
+        },
+        "confidence": 0.78,
+        "explanation": "Interpretation of the athlete's description and photo.",
+        "interpreted_items": [
+          {
+            "amount": 1,
+            "amount_unit": "bowl",
+            "food_description": "chicken and rice bowl"
+          }
+        ],
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f"
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000019",
+      "record_type": "nutrition_model_interpretation"
+    },
+    {
+      "created_at": "2026-08-09T12:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "provider_record_id": "whoop-sleep-duration-2026-08-09",
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-2026-08-09"
+          }
+        ],
+        "received_at": "2026-08-09T12:00:00.000Z",
+        "received_at_basis": "import_time",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "summary_type": "sleep_duration",
+        "value": {
+          "input_unit": "min",
+          "input_value": 465,
+          "standard_unit": "s",
+          "standard_value": 27900
+        }
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-e7d3-7cc0-88c8-00000000001a",
+      "record_type": "provider_summary"
+    }
+  ]
+}

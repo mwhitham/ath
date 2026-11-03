@@ -4,17 +4,18 @@ import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { once } from "node:events";
+import { createRequire } from "node:module";
 import { ZipFile } from "yazl";
 import { describe, expect, it } from "vitest";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../src/cli.ts");
-const TSX = resolve(here, "../node_modules/.bin/tsx");
+const TSX = createRequire(import.meta.url).resolve("tsx/cli");
 const fixture = resolve(here, "fixtures/exports/apple-file-reference");
 
 function ath(args: string[], cwd: string): { stdout: string; code: number } {
   try {
-    const stdout = execFileSync(TSX, [CLI, ...args], { cwd, encoding: "utf8", stdio: "pipe" });
+    const stdout = execFileSync(process.execPath, [TSX, CLI, ...args], { cwd, encoding: "utf8", stdio: "pipe" });
     return { stdout, code: 0 };
   } catch (error) {
     const failed = error as { status: number; stdout?: string; stderr?: string };

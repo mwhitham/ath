@@ -124,6 +124,15 @@ pub fn import_garmin(store: &mut Store, path: &Path, write: bool) -> Result<Valu
     }))
 }
 
+/// The basis of a value a Garmin or Strava file states as its own (D187).
+pub fn provider_basis(activity_type: bool) -> Value {
+    if activity_type {
+        json!({ "value": "provider", "activity_type": "provider_label" })
+    } else {
+        json!({ "value": "provider" })
+    }
+}
+
 fn max_heart_rate_summary(
     source_id: &str,
     received_at: &str,
@@ -150,6 +159,7 @@ fn max_heart_rate_summary(
     if let Some(id) = provider_record_id {
         data.insert("provider_record_id".into(), json!(id));
     }
+    data.insert("field_basis".into(), provider_basis(false));
     data
 }
 
@@ -233,6 +243,8 @@ pub fn workout_from_json(
     if !supplied.is_empty() {
         data.insert("supplied_fields".into(), Value::Object(supplied));
     }
+    let has_activity_type = data.contains_key("activity_type");
+    data.insert("field_basis".into(), provider_basis(has_activity_type));
     Ok((data, understood, preserved))
 }
 
@@ -304,6 +316,7 @@ pub fn workout_from_gpx(
         data.insert("heart_rate_samples".into(), json!(samples));
         understood.push("heart_rate_samples".into());
     }
+    data.insert("field_basis".into(), provider_basis(false));
     Ok((data, understood, Vec::new(), skipped_untimed))
 }
 
@@ -363,6 +376,7 @@ fn workout_from_fit(
     if !samples.is_empty() {
         data.insert("heart_rate_samples".into(), json!(samples));
     }
+    data.insert("field_basis".into(), provider_basis(false));
     (data, vec!["name".into(), "route".into(), "heart_rate_samples".into()], Vec::new())
 }
 
@@ -530,6 +544,23 @@ mod tests {
     }
 
     #[test]
+    fn every_garmin_workout_states_its_basis() {
+        let named = serde_json::json!({
+            "activityId": "1002",
+            "startTimeGMT": "2026-01-02T15:00:00.000Z",
+            "activityType": { "typeKey": "running" }
+        });
+        let (data, _, _) = workout_from_json("preview", named.as_object().unwrap(), "2026-08-09T16:00:00.000Z").unwrap();
+        assert_eq!(data["field_basis"], serde_json::json!({ "value": "provider", "activity_type": "provider_label" }));
+        let unnamed = serde_json::json!({ "activityId": "1003", "startTimeGMT": "2026-01-02T15:00:00.000Z" });
+        let (data, _, _) = workout_from_json("preview", unnamed.as_object().unwrap(), "2026-08-09T16:00:00.000Z").unwrap();
+        assert_eq!(data["field_basis"], serde_json::json!({ "value": "provider" }));
+        let gpx = include_str!("../../../tests/fixtures/exports/garmin/namespaced-hr.gpx");
+        let (data, _, _, _) = workout_from_gpx("preview", "file.gpx", gpx, "2026-08-09T16:00:00.000Z").unwrap();
+        assert_eq!(data["field_basis"], serde_json::json!({ "value": "provider" }));
+    }
+
+    #[test]
     fn a_latitude_past_90_is_refused() {
         let data = serde_json::json!({
             "source_id": "preview",
@@ -558,11 +589,16 @@ mod tests {
         let conn = rusqlite::Connection::open(&database).unwrap();
         conn.execute_batch(include_str!("../../../spec/sql/migrations/001-initial.sql")).unwrap();
         conn.execute(
-            "INSERT INTO database_metadata (singleton_id, application_marker, sql_schema_version, athleticstandard_version, database_id, created_at) VALUES (1, 'ATH1', 3, '2.0.0', '018f0000-0000-7000-8000-000000000099', '2026-08-09T00:00:00.000Z')",
+            "INSERT INTO database_metadata (singleton_id, application_marker, sql_schema_version, athleticstandard_version, database_id, created_at) VALUES (1, 'ATH1', 1, '1.0.0', '018f0000-0000-7000-8000-000000000099', '2026-08-09T00:00:00.000Z')",
             [],
         ).unwrap();
         conn.execute("INSERT INTO database_state (singleton_id, current_revision) VALUES (1, 0)", []).unwrap();
         conn.execute_batch(include_str!("../../../spec/sql/migrations/003-version-2.sql")).unwrap();
+        conn.execute_batch(include_str!("../../../spec/sql/migrations/004-version-2-1.sql")).unwrap();
+        let stored: String = conn
+            .query_row("SELECT athleticstandard_version FROM database_metadata", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(stored, crate::RECORD_VERSION);
         drop(conn);
         let mut store = Store::open(&database).unwrap();
         let result = import_garmin(&mut store, &fit, true).unwrap();

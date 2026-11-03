@@ -14,7 +14,7 @@ const approvedSyntheticFixtures = new Map<string, string>([
   ],
   [
     "examples/demo-athlete/athlete.ath.sqlite",
-    "442e9a966711660c2a03d701b5de2c55479a78330702083a3a67a182992a7856",
+    "5e8aff5b38ceb31db1457e0f8085bd8b8f1b675838e10bfd28af9769ca6eaef0",
   ],
   [
     "examples/demo-athlete/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png",
@@ -139,6 +139,58 @@ const approvedSyntheticFixtures = new Map<string, string>([
   [
     "tests/fixtures/exports/whoop/workouts.csv",
     "4cb6248df5443456996386a02325e0d21532d4251bfa5649c02ea0ca0d4c4ce1",
+  ],
+  [
+    "tests/fixtures/exports/open-wearables/summaries.json",
+    "2fa1da0408d0235421e34d12cd2f97abff73db6c94e8df7397d91c2c40b0cb0f",
+  ],
+  [
+    "tests/fixtures/exports/open-wearables/page-raw.json",
+    "f2d1b386326ecb23ae9fc1728bd0ae743408526feb5b7b55df83739e201dde63",
+  ],
+  [
+    "tests/fixtures/exports/open-wearables/page-workouts.json",
+    "1e6a6789b40772efffc4d451ba90a940e215589bd4699e4197e9b8666eaf5a35",
+  ],
+  [
+    "tests/fixtures/exports/open-wearables/page-sleep.json",
+    "af309b90d8b7bb11220f5e53fe17db387fa35b841f36f0303a310547f8360d6a",
+  ],
+  [
+    "tests/fixtures/exports/open-wearables/page-null-resolution.json",
+    "56ece15dfd869094cc8139f57402d545900e716b8a6e155dec90e663dd7e70df",
+  ],
+  [
+    "tests/fixtures/exports/open-wearables/page-5min.json",
+    "4e18d5e11e87d11f47fb52fee1ed7830ce64230c832598da853d3d69d2f523cb",
+  ],
+  [
+    "tests/fixtures/exports/open-wearables/page-empty.json",
+    "bd7cdc097685a02928d8634934476d250b1a8d8f188a7448fdedb831db8e64af",
+  ],
+  [
+    "tests/fixtures/exports/junction/summaries.json",
+    "4c358aa546987cd2b019bec7d9bf5759a159c10f1ab3d39f27b0b2ca2a0a2b76",
+  ],
+  [
+    "tests/fixtures/version-2-0-0/database.ath.sqlite",
+    "442e9a966711660c2a03d701b5de2c55479a78330702083a3a67a182992a7856",
+  ],
+  [
+    "tests/fixtures/version-2-0-0/package/athlete.ath.json",
+    "bc7ffe0c63d2d74be15beb6aba2d51b7d386965003884b7740f0f0a06b7a374f",
+  ],
+  [
+    "tests/fixtures/version-2-0-0/package/export-manifest.json",
+    "7166e5e381d4b269297afe4301e4a9571d3cffbcd022b21bfb2fa682e3aa69db",
+  ],
+  [
+    "tests/fixtures/version-2-0-0/package/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png",
+    "d3fe8e599fb1deea9821063c744434802875c26cceeb9f2d55e8566b15a012f4",
+  ],
+  [
+    "tests/fixtures/version-2-0-0/package/series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+    "2099f0bf78f680ddd168b2bd1a5a30e1fea3758e6699a12075c1ef712b985924",
   ],
 ]);
 

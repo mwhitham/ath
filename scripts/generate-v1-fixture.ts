@@ -206,6 +206,7 @@ async function generate(): Promise<void> {
             input_value: 62,
             input_unit: "ms",
           },
+          field_basis: { value: "provider_documented_rmssd" },
         },
       },
       {
@@ -228,6 +229,7 @@ async function generate(): Promise<void> {
             input_value: 142,
             input_unit: "count/min",
           },
+          field_basis: { value: "provider" },
         },
       },
       {
@@ -269,6 +271,7 @@ async function generate(): Promise<void> {
               timezone_offset_meaning: "provider_cycle_offset",
             },
           ],
+          field_basis: { value: "provider" },
         },
       },
       {
@@ -315,6 +318,7 @@ async function generate(): Promise<void> {
               ],
             },
           ],
+          field_basis: { value: "provider", activity_type: "provider_label" },
         },
       },
       {
@@ -337,6 +341,7 @@ async function generate(): Promise<void> {
           score: { duration_s: 300 },
           scaling: "rx",
           workout_session_id: ids.workout,
+          field_basis: { value: "entered_by_hand" },
         },
       },
       {
@@ -367,6 +372,7 @@ async function generate(): Promise<void> {
               provider_period_id: "cycle-2026-08-09",
             },
           ],
+          field_basis: { value: "provider" },
         },
       },
       {
@@ -398,6 +404,7 @@ async function generate(): Promise<void> {
               provider_period_id: "cycle-2026-08-09",
             },
           ],
+          field_basis: { value: "provider" },
         },
       },
       {
@@ -676,6 +683,7 @@ async function generate(): Promise<void> {
           input_value: 64,
           input_unit: "ms",
         },
+        field_basis: { value: "provider_documented_rmssd" },
       },
     });
 

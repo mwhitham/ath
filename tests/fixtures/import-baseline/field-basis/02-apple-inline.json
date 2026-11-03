@@ -1,0 +1,21 @@
+{
+  "decision": "D187",
+  "records": [
+    {
+      "field_basis": {
+        "activity_type": "provider_label",
+        "value": "provider"
+      },
+      "label": "record:2",
+      "record_type": "workout_session"
+    },
+    {
+      "field_basis": {
+        "activity_type": "provider_label",
+        "value": "provider"
+      },
+      "label": "record:3",
+      "record_type": "workout_session"
+    }
+  ]
+}

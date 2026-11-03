@@ -11,7 +11,7 @@ import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync, readlinkSync, realpathSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { installSkill, skillStatus } from "./skill.js";
+import { installMappings, installSkill, skillStatus } from "./skill.js";
 
 const PACKAGE_NAME = "athleticstandard";
 const REGISTRY_LATEST = "https://registry.npmjs.org/athleticstandard/latest";
@@ -211,6 +211,7 @@ export interface UpdateInput {
   error?: (line: string) => void;
   skillPresent?: (cwd: string) => boolean;
   installSkill?: (cwd: string) => string[];
+  installMappings?: (cwd: string) => string[];
 }
 
 function defaultSpawn(command: string, args: string[]): number {
@@ -287,5 +288,8 @@ export async function runUpdate(input: UpdateInput): Promise<number> {
   const line = skillUpdateLine(input.cwd, written);
   if (line) log(line);
   else log("left installed skill files unchanged");
+  for (const path of (input.installMappings ?? installMappings)(input.cwd)) {
+    log(`added mapping file ${path}`);
+  }
   return 0;
 }

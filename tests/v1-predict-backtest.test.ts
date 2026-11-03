@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process";
 import { copyFileSync, mkdtempSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
+import { createRequire } from "node:module";
 import { afterEach, describe, expect, it } from "vitest";
 import {
   databaseStats,
@@ -12,7 +13,7 @@ import {
 } from "../src/db/index.js";
 
 const cli = resolve("src/cli.ts");
-const tsx = resolve("node_modules/.bin/tsx");
+const tsx = createRequire(import.meta.url).resolve("tsx/cli");
 const fixture = resolve("examples/demo-athlete/athlete.ath.sqlite");
 const databases: AthleticDatabase[] = [];
 
@@ -25,8 +26,9 @@ afterEach(() => {
 describe("v1 prediction evidence and backtesting", () => {
   it("returns bounded SQLite evidence without calling a gateway", () => {
     const stdout = execFileSync(
-      tsx,
+      process.execPath,
       [
+        tsx,
         cli,
         "predict",
         "fran",
