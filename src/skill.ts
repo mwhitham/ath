@@ -209,3 +209,50 @@ export function skillStatus(cwd: string): SkillCopy[] {
 export function staleSkillWarning(_cwd: string): string | null {
   return null;
 }
+
+/** Where shipped mapping files live. `mappings/` sits beside `skills/`. */
+export function mappingRoot(): string {
+  return resolve(dirname(fileURLToPath(import.meta.url)), "..", "mappings");
+}
+
+/** True when `--mapping` names a file path rather than a mapping name. */
+export function isMappingPath(name: string): boolean {
+  return name.includes("/") || name.includes("\\") || /^[A-Za-z]:/.test(name);
+}
+
+/**
+ * The mapping file for `ath import --mapping` (D178, D179).
+ *
+ * A path is used as given. A name reads the installed `.agents/mappings/<name>.md`
+ * first, then the shipped `mappings/<name>.md`.
+ */
+export function resolveMappingFile(name: string, cwd: string): string {
+  if (isMappingPath(name)) {
+    const path = resolve(cwd, name);
+    if (!existsSync(path)) throw new Error(`no mapping file at ${path}`);
+    return path;
+  }
+  const installed = join(cwd, ALWAYS_DIR, "mappings", `${name}.md`);
+  if (existsSync(installed)) return installed;
+  const shipped = join(mappingRoot(), `${name}.md`);
+  if (existsSync(shipped)) return shipped;
+  throw new Error(`no mapping file named ${name}`);
+}
+
+/**
+ * Copy each shipped mapping file into `.agents/mappings` when that copy is missing.
+ * An installed file is never replaced, because the person may have edited it.
+ */
+export function installMappings(cwd: string): string[] {
+  if (!existsSync(mappingRoot())) return [];
+  const destination = join(cwd, ALWAYS_DIR, "mappings");
+  const written: string[] = [];
+  for (const name of readdirSync(mappingRoot()).filter((entry) => entry.endsWith(".md")).sort()) {
+    const target = join(destination, name);
+    if (existsSync(target)) continue;
+    mkdirSync(destination, { recursive: true });
+    cpSync(join(mappingRoot(), name), target);
+    written.push(target);
+  }
+  return written;
+}

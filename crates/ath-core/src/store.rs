@@ -3,11 +3,11 @@
 use std::path::Path;
 
 use chrono::{Datelike, Timelike};
-use rusqlite::{params, Connection};
+use rusqlite::{params, Connection, OptionalExtension};
 use serde_json::{Map, Value};
 use uuid::Uuid;
 
-use crate::SOFTWARE_VERSION;
+use crate::{APP_VERSION, RECORD_VERSION};
 
 pub struct Store {
     conn: Connection,
@@ -19,6 +19,48 @@ pub struct StoredRecord {
     pub record_type: String,
     pub revision: i64,
     pub data: Value,
+}
+
+/// One record of a group that is written in a single transaction.
+#[derive(Debug, Clone)]
+pub struct GroupRecord {
+    pub record_type: String,
+    pub data: Map<String, Value>,
+    pub method: String,
+    pub key: String,
+}
+
+/// What happened to one record of a group.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum GroupOutcome {
+    Inserted(String),
+    Revised(String),
+    Unchanged(String),
+    /// The import key names a record that was deleted. It is not revised.
+    Deleted(String),
+}
+
+/// The source a mapped import writes under.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum MappedSource {
+    Current(String),
+    /// A person deleted this source. Its rows are not written again (D190).
+    Deleted(String),
+}
+
+impl GroupOutcome {
+    pub fn record_id(&self) -> &str {
+        match self {
+            GroupOutcome::Inserted(id)
+            | GroupOutcome::Revised(id)
+            | GroupOutcome::Unchanged(id)
+            | GroupOutcome::Deleted(id) => id,
+        }
+    }
+}
+
+fn tool_actor() -> String {
+    format!("{{\"author_type\":\"tool\",\"tool\":\"ath-core\",\"tool_version\":\"{APP_VERSION}\"}}")
 }
 
 impl Store {
@@ -33,7 +75,7 @@ impl Store {
                 |row| row.get(0),
             )
             .map_err(|error| format!("not an Athletic Standard database: {error}"))?;
-        if version != SOFTWARE_VERSION {
+        if version != RECORD_VERSION {
             return Err(format!(
                 "database version is {version}; run ath migrate before using ath-core"
             ));
@@ -85,16 +127,12 @@ impl Store {
         if current.record_type == "workout_session" {
             validate_workout(&data)?;
         }
+        check_supplied_fields(&current.record_type, &data)?;
         let json = serde_json::to_string(&Value::Object(data.clone())).map_err(|error| error.to_string())?;
         let next = current.revision + 1;
         let now = utc_now();
-        let changed_by = format!(
-            "{{\"author_type\":\"tool\",\"tool\":\"ath-core\",\"tool_version\":\"{SOFTWARE_VERSION}\"}}"
-        );
-        let tx = self
-            .conn
-            .transaction()
-            .map_err(|error| error.to_string())?;
+        let changed_by = tool_actor();
+        let tx = self.conn.savepoint().map_err(|error| error.to_string())?;
         tx.execute_batch("PRAGMA foreign_keys = ON; PRAGMA defer_foreign_keys = ON;")
             .map_err(|error| error.to_string())?;
         tx.execute(
@@ -110,57 +148,7 @@ impl Store {
             params![next, record_id],
         )
         .map_err(|error| error.to_string())?;
-        let table = typed_table(&current.record_type)?;
-        tx.execute(
-            &format!("UPDATE {table} SET data_json = ?1 WHERE record_id = ?2"),
-            params![json, record_id],
-        )
-        .map_err(|error| error.to_string())?;
-        if current.record_type == "workout_session" {
-            tx.execute(
-                "UPDATE workout_sessions
-                 SET source_id = ?1, start_at = ?2, end_at = ?3, activity_type = ?4,
-                     name = ?5, description = ?6, text_result = ?7,
-                     provider_record_id = ?8, received_at = ?9
-                 WHERE record_id = ?10",
-                params![
-                    required_string(&data, "source_id")?,
-                    required_string(&data, "start_at")?,
-                    required_string(&data, "end_at")?,
-                    optional_string(data.get("activity_type")),
-                    optional_string(data.get("name")),
-                    optional_string(data.get("description")),
-                    optional_string(data.get("text_result")),
-                    optional_string(data.get("provider_record_id")),
-                    required_string(&data, "received_at")?,
-                    record_id,
-                ],
-            )
-            .map_err(|error| error.to_string())?;
-            if let Some(route) = data.get("route").and_then(Value::as_array) {
-                replace_route(&tx, record_id, route)?;
-            }
-        }
-        if current.record_type == "provider_summary" {
-            tx.execute(
-                "UPDATE provider_summaries
-                 SET source_id = ?1, summary_type = ?2, recorded_at = ?3,
-                     standard_value = ?4, standard_unit = ?5,
-                     provider_record_id = ?6, received_at = ?7
-                 WHERE record_id = ?8",
-                params![
-                    required_string(&data, "source_id")?,
-                    required_string(&data, "summary_type")?,
-                    optional_string(data.get("recorded_at")),
-                    number_at(&data, &["value", "standard_value"])?,
-                    string_at(&data, &["value", "standard_unit"])?,
-                    optional_string(data.get("provider_record_id")),
-                    required_string(&data, "received_at")?,
-                    record_id,
-                ],
-            )
-            .map_err(|error| error.to_string())?;
-        }
+        update_typed(&tx, &current.record_type, record_id, &data, &json)?;
         tx.execute(
             "UPDATE database_state SET current_revision = current_revision + 1 WHERE singleton_id = 1",
             [],
@@ -191,6 +179,197 @@ impl Store {
         self.insert_record("source", &data, None, "provider_import")
     }
 
+    /// Start one transaction that every later write joins, until `finish` (D189).
+    pub fn begin(&mut self) -> Result<(), String> {
+        self.conn
+            .execute_batch("BEGIN IMMEDIATE")
+            .map_err(|error| error.to_string())
+    }
+
+    /// Commit the transaction from `begin`, or roll it back. A failed commit is rolled back.
+    pub fn finish(&mut self, commit: bool) -> Result<(), String> {
+        if !commit {
+            return self.conn.execute_batch("ROLLBACK").map_err(|error| error.to_string());
+        }
+        if let Err(error) = self.conn.execute_batch("COMMIT") {
+            if !self.conn.is_autocommit() {
+                let _ = self.conn.execute_batch("ROLLBACK");
+            }
+            return Err(error.to_string());
+        }
+        Ok(())
+    }
+
+    /// The source for a mapped import. Writer, route, and sensor together name it,
+    /// so two devices from one provider are two sources and two baselines.
+    ///
+    /// A deleted source keeps its row, and the unique index on writer, route, and
+    /// sensor still covers it. It is reported, not created again or revived.
+    pub fn ensure_mapped_source(
+        &mut self,
+        writer: &str,
+        route: &str,
+        vendor: &str,
+        sensor_type: &str,
+    ) -> Result<MappedSource, String> {
+        if let Some((existing, deleted)) = self
+            .conn
+            .query_row(
+                "SELECT sources.record_id, records.is_deleted FROM sources
+                 JOIN records ON records.record_id = sources.record_id
+                 WHERE sources.data_writer = ?1 AND sources.data_route = ?2
+                   AND COALESCE(sources.sensor_type, '') = ?3",
+                params![writer, route, sensor_type],
+                |row| Ok((row.get::<_, String>(0)?, row.get::<_, i64>(1)?)),
+            )
+            .optional()
+            .map_err(|error| error.to_string())?
+        {
+            return Ok(if deleted != 0 {
+                MappedSource::Deleted(existing)
+            } else {
+                MappedSource::Current(existing)
+            });
+        }
+        let mut data = Map::new();
+        data.insert("source_type".into(), Value::String("export_file".into()));
+        data.insert("data_writer".into(), Value::String(writer.into()));
+        data.insert("data_route".into(), Value::String(route.into()));
+        data.insert("vendor".into(), Value::String(vendor.into()));
+        if !sensor_type.is_empty() {
+            data.insert("sensor_type".into(), Value::String(sensor_type.into()));
+        }
+        self.insert_record("source", &data, None, "provider_import")
+            .map(MappedSource::Current)
+    }
+
+    /// Write every record of one group in one transaction.
+    ///
+    /// A record whose import key already exists is compared with the stored record
+    /// after the stored `received_at` is copied onto it. An equal record is left
+    /// alone. A different record replaces the whole stored object in a new revision.
+    /// It is not merged.
+    pub fn insert_group(&mut self, records: &[GroupRecord]) -> Result<Vec<GroupOutcome>, String> {
+        for record in records {
+            if record.record_type == "workout_session" {
+                validate_workout(&record.data)?;
+            }
+            check_supplied_fields(&record.record_type, &record.data)?;
+        }
+        let now = utc_now();
+        let changed_by = tool_actor();
+        let tx = self.conn.savepoint().map_err(|error| error.to_string())?;
+        tx.execute_batch("PRAGMA foreign_keys = ON; PRAGMA defer_foreign_keys = ON;")
+            .map_err(|error| error.to_string())?;
+        let mut outcomes = Vec::new();
+        let mut wrote = false;
+        for record in records {
+            let existing = tx
+                .query_row(
+                    "SELECT records.record_id, records.record_type, records.current_revision,
+                            records.is_deleted, record_revisions.record_json
+                     FROM record_import_keys
+                     JOIN records ON records.record_id = record_import_keys.record_id
+                     JOIN record_revisions
+                       ON record_revisions.record_id = records.record_id
+                      AND record_revisions.revision = records.current_revision
+                     WHERE record_import_keys.match_key_method = ?1
+                       AND record_import_keys.match_key = ?2",
+                    params![record.method, record.key],
+                    |row| {
+                        Ok((
+                            row.get::<_, String>(0)?,
+                            row.get::<_, String>(1)?,
+                            row.get::<_, i64>(2)?,
+                            row.get::<_, i64>(3)?,
+                            row.get::<_, String>(4)?,
+                        ))
+                    },
+                )
+                .optional()
+                .map_err(|error| error.to_string())?;
+            match existing {
+                Some((record_id, record_type, revision, deleted, json)) => {
+                    if record_type != record.record_type {
+                        return Err(format!(
+                            "import key {} points to {record_type}, not {}",
+                            record.key, record.record_type
+                        ));
+                    }
+                    if deleted != 0 {
+                        outcomes.push(GroupOutcome::Deleted(record_id));
+                        continue;
+                    }
+                    let stored: Value = serde_json::from_str(&json).map_err(|error| error.to_string())?;
+                    let mut data = record.data.clone();
+                    if let Some(received) = stored.get("received_at") {
+                        data.insert("received_at".into(), received.clone());
+                    }
+                    if json_equal(&stored, &Value::Object(data.clone())) {
+                        outcomes.push(GroupOutcome::Unchanged(record_id));
+                        continue;
+                    }
+                    let json = serde_json::to_string(&Value::Object(data.clone()))
+                        .map_err(|error| error.to_string())?;
+                    let next = revision + 1;
+                    tx.execute(
+                        "INSERT INTO record_revisions (
+                            record_id, revision, record_type, record_json, extensions_json,
+                            became_known_at, became_known_at_basis, changed_by_json, previous_revision
+                         ) VALUES (?1, ?2, ?3, ?4, NULL, ?5, 'provider_import', ?6, ?7)",
+                        params![record_id, next, record_type, json, now, changed_by, revision],
+                    )
+                    .map_err(|error| error.to_string())?;
+                    tx.execute(
+                        "UPDATE records SET current_revision = ?1 WHERE record_id = ?2",
+                        params![next, record_id],
+                    )
+                    .map_err(|error| error.to_string())?;
+                    update_typed(&tx, &record_type, &record_id, &data, &json)?;
+                    wrote = true;
+                    outcomes.push(GroupOutcome::Revised(record_id));
+                }
+                None => {
+                    let record_id = Uuid::now_v7().to_string();
+                    let json = serde_json::to_string(&Value::Object(record.data.clone()))
+                        .map_err(|error| error.to_string())?;
+                    tx.execute(
+                        "INSERT INTO record_revisions (
+                            record_id, revision, record_type, record_json, extensions_json,
+                            became_known_at, became_known_at_basis, changed_by_json, previous_revision
+                         ) VALUES (?1, 1, ?2, ?3, NULL, ?4, 'provider_import', ?5, NULL)",
+                        params![record_id, record.record_type, json, now, changed_by],
+                    )
+                    .map_err(|error| error.to_string())?;
+                    tx.execute(
+                        "INSERT INTO records (record_id, record_type, current_revision, created_at, is_deleted)
+                         VALUES (?1, ?2, 1, ?3, 0)",
+                        params![record_id, record.record_type, now],
+                    )
+                    .map_err(|error| error.to_string())?;
+                    insert_typed(&tx, &record.record_type, &record_id, &record.data, &json)?;
+                    tx.execute(
+                        "INSERT INTO record_import_keys (record_id, match_key_method, match_key, imported_at)
+                         VALUES (?1, ?2, ?3, ?4)",
+                        params![record_id, record.method, record.key, now],
+                    )
+                    .map_err(|error| error.to_string())?;
+                    wrote = true;
+                    outcomes.push(GroupOutcome::Inserted(record_id));
+                }
+            }
+        }
+        if wrote {
+            tx.execute(
+                "UPDATE database_state SET current_revision = current_revision + 1 WHERE singleton_id = 1",
+                [],
+            )
+            .map_err(|error| error.to_string())?;
+        }
+        tx.commit().map_err(|error| error.to_string())?;
+        Ok(outcomes)
+    }
+
     pub fn insert_record(
         &mut self,
         record_type: &str,
@@ -201,6 +380,7 @@ impl Store {
         if record_type == "workout_session" {
             validate_workout(data)?;
         }
+        check_supplied_fields(record_type, data)?;
         if let Some((method, key)) = match_key {
             if let Some(existing) = self
                 .conn
@@ -223,10 +403,8 @@ impl Store {
         let record_id = Uuid::now_v7().to_string();
         let now = utc_now();
         let json = serde_json::to_string(&Value::Object(data.clone())).map_err(|error| error.to_string())?;
-        let changed_by = format!(
-            "{{\"author_type\":\"tool\",\"tool\":\"ath-core\",\"tool_version\":\"{SOFTWARE_VERSION}\"}}"
-        );
-        let tx = self.conn.transaction().map_err(|error| error.to_string())?;
+        let changed_by = tool_actor();
+        let tx = self.conn.savepoint().map_err(|error| error.to_string())?;
         tx.execute_batch("PRAGMA foreign_keys = ON; PRAGMA defer_foreign_keys = ON;")
             .map_err(|error| error.to_string())?;
         tx.execute(
@@ -304,7 +482,7 @@ impl Store {
 }
 
 fn insert_typed(
-    tx: &rusqlite::Transaction,
+    tx: &Connection,
     record_type: &str,
     record_id: &str,
     data: &Map<String, Value>,
@@ -313,13 +491,51 @@ fn insert_typed(
     match record_type {
         "source" => tx.execute(
             "INSERT INTO sources (record_id, record_type, source_type, data_writer, data_route, vendor, sensor_type, data_json)
-             VALUES (?1, 'source', ?2, ?3, ?4, ?5, NULL, ?6)",
+             VALUES (?1, 'source', ?2, ?3, ?4, ?5, ?6, ?7)",
             params![
                 record_id,
                 required_string(data, "source_type")?,
                 required_string(data, "data_writer")?,
                 required_string(data, "data_route")?,
                 optional_string(data.get("vendor")),
+                optional_string(data.get("sensor_type")),
+                json,
+            ],
+        ),
+        "source_device" => tx.execute(
+            "INSERT INTO source_devices (
+                record_id, record_type, source_id, name, manufacturer, model, hardware,
+                serial_number, coverage_start_date, coverage_end_date, accepted_record_count, data_json
+             ) VALUES (?1, 'source_device', ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+            params![
+                record_id,
+                required_string(data, "source_id")?,
+                optional_string(data.get("name")),
+                optional_string(data.get("manufacturer")),
+                optional_string(data.get("model")),
+                optional_string(data.get("hardware")),
+                optional_string(data.get("serial_number")),
+                optional_string(data.get("coverage_start_date")),
+                optional_string(data.get("coverage_end_date")),
+                data.get("accepted_record_count").and_then(Value::as_i64),
+                json,
+            ],
+        ),
+        "provider_score" => tx.execute(
+            "INSERT INTO provider_scores (
+                record_id, record_type, source_id, metric, recorded_at, standard_value,
+                standard_unit, scale, provider_record_id, received_at, data_json
+             ) VALUES (?1, 'provider_score', ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10)",
+            params![
+                record_id,
+                required_string(data, "source_id")?,
+                required_string(data, "metric")?,
+                optional_string(data.get("recorded_at")),
+                number_at(data, &["value", "standard_value"])?,
+                string_at(data, &["value", "standard_unit"])?,
+                required_string(data, "scale")?,
+                optional_string(data.get("provider_record_id")),
+                required_string(data, "received_at")?,
                 json,
             ],
         ),
@@ -413,7 +629,157 @@ fn insert_typed(
     Ok(())
 }
 
-fn replace_route(tx: &rusqlite::Transaction, record_id: &str, route: &[Value]) -> Result<(), String> {
+/// Set every typed column from the record. A column whose key is absent becomes NULL.
+fn update_typed(
+    tx: &Connection,
+    record_type: &str,
+    record_id: &str,
+    data: &Map<String, Value>,
+    json: &str,
+) -> Result<(), String> {
+    match record_type {
+        "source" => tx.execute(
+            "UPDATE sources SET source_type = ?1, data_writer = ?2, data_route = ?3, vendor = ?4,
+                 sensor_type = ?5, data_json = ?6
+             WHERE record_id = ?7",
+            params![
+                required_string(data, "source_type")?,
+                required_string(data, "data_writer")?,
+                required_string(data, "data_route")?,
+                optional_string(data.get("vendor")),
+                optional_string(data.get("sensor_type")),
+                json,
+                record_id,
+            ],
+        ),
+        "source_device" => tx.execute(
+            "UPDATE source_devices SET source_id = ?1, name = ?2, manufacturer = ?3, model = ?4,
+                 hardware = ?5, serial_number = ?6, coverage_start_date = ?7, coverage_end_date = ?8,
+                 accepted_record_count = ?9, data_json = ?10
+             WHERE record_id = ?11",
+            params![
+                required_string(data, "source_id")?,
+                optional_string(data.get("name")),
+                optional_string(data.get("manufacturer")),
+                optional_string(data.get("model")),
+                optional_string(data.get("hardware")),
+                optional_string(data.get("serial_number")),
+                optional_string(data.get("coverage_start_date")),
+                optional_string(data.get("coverage_end_date")),
+                data.get("accepted_record_count").and_then(Value::as_i64),
+                json,
+                record_id,
+            ],
+        ),
+        "workout_session" => {
+            tx.execute(
+                "UPDATE workout_sessions
+                 SET source_id = ?1, start_at = ?2, end_at = ?3, activity_type = ?4,
+                     name = ?5, description = ?6, text_result = ?7,
+                     provider_record_id = ?8, received_at = ?9, data_json = ?10
+                 WHERE record_id = ?11",
+                params![
+                    required_string(data, "source_id")?,
+                    required_string(data, "start_at")?,
+                    required_string(data, "end_at")?,
+                    optional_string(data.get("activity_type")),
+                    optional_string(data.get("name")),
+                    optional_string(data.get("description")),
+                    optional_string(data.get("text_result")),
+                    optional_string(data.get("provider_record_id")),
+                    required_string(data, "received_at")?,
+                    json,
+                    record_id,
+                ],
+            )
+            .map_err(|error| error.to_string())?;
+            let route = data.get("route").and_then(Value::as_array).cloned().unwrap_or_default();
+            replace_route(tx, record_id, &route)?;
+            return Ok(());
+        }
+        "sleep_session" => tx.execute(
+            "UPDATE sleep_sessions
+             SET source_id = ?1, start_at = ?2, end_at = ?3, provider_record_id = ?4,
+                 received_at = ?5, data_json = ?6
+             WHERE record_id = ?7",
+            params![
+                required_string(data, "source_id")?,
+                required_string(data, "start_at")?,
+                required_string(data, "end_at")?,
+                optional_string(data.get("provider_record_id")),
+                required_string(data, "received_at")?,
+                json,
+                record_id,
+            ],
+        ),
+        "provider_summary" => tx.execute(
+            "UPDATE provider_summaries
+             SET source_id = ?1, summary_type = ?2, recorded_at = ?3,
+                 standard_value = ?4, standard_unit = ?5,
+                 provider_record_id = ?6, received_at = ?7, data_json = ?8
+             WHERE record_id = ?9",
+            params![
+                required_string(data, "source_id")?,
+                required_string(data, "summary_type")?,
+                optional_string(data.get("recorded_at")),
+                number_at(data, &["value", "standard_value"])?,
+                string_at(data, &["value", "standard_unit"])?,
+                optional_string(data.get("provider_record_id")),
+                required_string(data, "received_at")?,
+                json,
+                record_id,
+            ],
+        ),
+        "point_measurement" => tx.execute(
+            "UPDATE point_measurements
+             SET source_id = ?1, quantity = ?2, recorded_at = ?3,
+                 standard_value = ?4, standard_unit = ?5,
+                 provider_record_id = ?6, received_at = ?7, data_json = ?8
+             WHERE record_id = ?9",
+            params![
+                required_string(data, "source_id")?,
+                required_string(data, "quantity")?,
+                optional_string(data.get("recorded_at")),
+                number_at(data, &["value", "standard_value"])?,
+                string_at(data, &["value", "standard_unit"])?,
+                optional_string(data.get("provider_record_id")),
+                required_string(data, "received_at")?,
+                json,
+                record_id,
+            ],
+        ),
+        "provider_score" => tx.execute(
+            "UPDATE provider_scores
+             SET source_id = ?1, metric = ?2, recorded_at = ?3,
+                 standard_value = ?4, standard_unit = ?5, scale = ?6,
+                 provider_record_id = ?7, received_at = ?8, data_json = ?9
+             WHERE record_id = ?10",
+            params![
+                required_string(data, "source_id")?,
+                required_string(data, "metric")?,
+                optional_string(data.get("recorded_at")),
+                number_at(data, &["value", "standard_value"])?,
+                string_at(data, &["value", "standard_unit"])?,
+                required_string(data, "scale")?,
+                optional_string(data.get("provider_record_id")),
+                required_string(data, "received_at")?,
+                json,
+                record_id,
+            ],
+        ),
+        other => {
+            let table = typed_table(other)?;
+            tx.execute(
+                &format!("UPDATE {table} SET data_json = ?1 WHERE record_id = ?2"),
+                params![json, record_id],
+            )
+        }
+    }
+    .map_err(|error| error.to_string())?;
+    Ok(())
+}
+
+fn replace_route(tx: &Connection, record_id: &str, route: &[Value]) -> Result<(), String> {
     tx.execute(
         "DELETE FROM workout_route_points WHERE workout_session_id = ?1",
         [record_id],
@@ -439,6 +805,8 @@ fn typed_table(record_type: &str) -> Result<&'static str, String> {
         "provider_summary" => Ok("provider_summaries"),
         "point_measurement" => Ok("point_measurements"),
         "athlete_report" => Ok("athlete_reports"),
+        "provider_score" => Ok("provider_scores"),
+        "source_device" => Ok("source_devices"),
         other => Err(format!("no typed table for {other}")),
     }
 }
@@ -526,6 +894,47 @@ pub fn validate_workout(data: &Map<String, Value>) -> Result<(), String> {
     Ok(())
 }
 
+/// Every reader must keep a supplied field under its exact name (D191). The record
+/// schema refuses an empty name, so `ath check` and `ath export` would fail on the
+/// record. JavaScript readers drop a key named `__proto__`, at any depth, without a
+/// warning.
+pub fn check_supplied_fields(record_type: &str, data: &Map<String, Value>) -> Result<(), String> {
+    let label = match data.get("provider_record_id").and_then(Value::as_str) {
+        Some(id) => format!("{record_type} {id}"),
+        None => record_type.to_string(),
+    };
+    let mut objects: Vec<&Value> = data.get("supplied_fields").into_iter().collect();
+    for point in data.get("route").and_then(Value::as_array).into_iter().flatten() {
+        objects.extend(point.get("supplied_fields"));
+    }
+    for fields in objects {
+        let Some(fields) = fields.as_object() else {
+            return Err(format!("{label}: supplied_fields is not an object"));
+        };
+        if fields.contains_key("") {
+            return Err(format!(
+                "{label}: a supplied field has an empty name, and the format needs a name for every field"
+            ));
+        }
+        if contains_proto_key(&Value::Object(fields.clone())) {
+            return Err(format!(
+                "{label}: a supplied field is named __proto__, which JavaScript readers drop"
+            ));
+        }
+    }
+    Ok(())
+}
+
+fn contains_proto_key(value: &Value) -> bool {
+    match value {
+        Value::Object(object) => object
+            .iter()
+            .any(|(key, child)| key == "__proto__" || contains_proto_key(child)),
+        Value::Array(items) => items.iter().any(contains_proto_key),
+        _ => false,
+    }
+}
+
 fn required_str<'a>(data: &'a Map<String, Value>, key: &str) -> Result<&'a str, String> {
     data.get(key).and_then(Value::as_str).ok_or_else(|| format!("missing {key}"))
 }
@@ -589,4 +998,37 @@ fn string_at(data: &Map<String, Value>, path: &[&str]) -> Result<String, String>
 
 fn json_equal(left: &Value, right: &Value) -> bool {
     left == right
+}
+
+#[cfg(test)]
+mod tests {
+    use super::check_supplied_fields;
+    use serde_json::{json, Map, Value};
+
+    fn record(value: Value) -> Map<String, Value> {
+        value.as_object().unwrap().clone()
+    }
+
+    #[test]
+    fn a_supplied_field_needs_a_name_that_every_reader_keeps() {
+        let empty = record(json!({ "provider_record_id": "n-1", "supplied_fields": { "": 1 } }));
+        assert_eq!(
+            check_supplied_fields("sleep_session", &empty).unwrap_err(),
+            "sleep_session n-1: a supplied field has an empty name, and the format needs a name for every field"
+        );
+        let nested = record(json!({ "supplied_fields": { "extra": [{ "__proto__": 1 }] } }));
+        assert_eq!(
+            check_supplied_fields("source", &nested).unwrap_err(),
+            "source: a supplied field is named __proto__, which JavaScript readers drop"
+        );
+        let route = record(json!({ "route": [{ "supplied_fields": { "": 1 } }] }));
+        assert!(check_supplied_fields("workout_session", &route).is_err());
+        let text = record(json!({ "supplied_fields": "not an object" }));
+        assert_eq!(
+            check_supplied_fields("sleep_session", &text).unwrap_err(),
+            "sleep_session: supplied_fields is not an object"
+        );
+        let kept = record(json!({ "supplied_fields": { " ": 1, "proto": 2, "extra": { "": 3 } } }));
+        check_supplied_fields("sleep_session", &kept).unwrap();
+    }
 }

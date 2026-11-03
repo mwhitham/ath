@@ -1,4 +1,4 @@
-import { chmod, copyFile, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { chmod, copyFile, mkdtemp, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -18,6 +18,7 @@ import { ath } from "./helpers/cli-exec.js";
 import { materializeNpm100ProviderDatabase } from "./helpers/npm100-database.js";
 import { prepareMigratedNpm100 } from "./helpers/npm100-prepared.js";
 import { hashDatabaseFilesRaw, useDeleteJournalMode } from "./helpers/raw-database-hash.js";
+import { removeTemporaryDirectory } from "./helpers/temporary.js";
 
 const DEMO_FIXTURE = resolve(
   dirname(fileURLToPath(import.meta.url)),
@@ -95,7 +96,7 @@ afterEach(async () => {
     database.close();
   }
   for (const directory of directories.splice(0)) {
-    await rm(directory, { recursive: true, force: true });
+    await removeTemporaryDirectory(directory);
   }
 });
 
@@ -274,6 +275,6 @@ describe.runIf(process.platform !== "win32")("CLI refusal paths and WAL sidecars
   }, 180_000);
 
   afterAll(async () => {
-    await rm(migratedTemplateDir, { recursive: true, force: true });
+    await removeTemporaryDirectory(migratedTemplateDir);
   });
 });

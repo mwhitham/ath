@@ -1,0 +1,1381 @@
+{
+  "attachment_links": [],
+  "attachments": [],
+  "baseline_from": "d418a8f653f7074ed9e08208c4eb555c391bcbc7",
+  "links": [
+    {
+      "owner": "record:1",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:2",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:3",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:4",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:5",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:6",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:7",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:8",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:10",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:11",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:12",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:13",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:14",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:15",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:16",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:17",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:18",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:19",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:20",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:21",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:22",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:23",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:24",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:25",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:26",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:27",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:28",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:9",
+      "relation": "source",
+      "table": "provider_scores",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:29",
+      "relation": "source",
+      "table": "sleep_sessions",
+      "target": "record:31"
+    },
+    {
+      "owner": "record:30",
+      "relation": "source",
+      "table": "sleep_sessions",
+      "target": "record:31"
+    }
+  ],
+  "records": [
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-09T06:08:00-07:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "quantity": "hrv_rmssd",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-09T13:08:00.000Z",
+        "source_id": "record:31",
+        "value": {
+          "input_unit": "ms",
+          "input_value": 63,
+          "standard_unit": "ms",
+          "standard_value": 63
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:31\",\"hrv_rmssd\",\"2026-08-09T13:08:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:1",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-10T06:22:00-07:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "quantity": "hrv_rmssd",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-10T13:22:00.000Z",
+        "source_id": "record:31",
+        "value": {
+          "input_unit": "ms",
+          "input_value": 71,
+          "standard_unit": "ms",
+          "standard_value": 71
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:31\",\"hrv_rmssd\",\"2026-08-10T13:22:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:2",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-09T06:08:00-07:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "quantity": "respiratory_rate",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-09T13:08:00.000Z",
+        "source_id": "record:31",
+        "value": {
+          "input_unit": "brpm",
+          "input_value": 14.6,
+          "standard_unit": "brpm",
+          "standard_value": 14.6
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:31\",\"respiratory_rate\",\"2026-08-09T13:08:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:3",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-10T06:22:00-07:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "quantity": "respiratory_rate",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-10T13:22:00.000Z",
+        "source_id": "record:31",
+        "value": {
+          "input_unit": "brpm",
+          "input_value": 14.1,
+          "standard_unit": "brpm",
+          "standard_value": 14.1
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:31\",\"respiratory_rate\",\"2026-08-10T13:22:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:4",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-09T06:08:00-07:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "quantity": "resting_heart_rate",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-09T13:08:00.000Z",
+        "source_id": "record:31",
+        "value": {
+          "input_unit": "bpm",
+          "input_value": 48,
+          "standard_unit": "bpm",
+          "standard_value": 48
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:31\",\"resting_heart_rate\",\"2026-08-09T13:08:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:5",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-10T06:22:00-07:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "quantity": "resting_heart_rate",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-10T13:22:00.000Z",
+        "source_id": "record:31",
+        "value": {
+          "input_unit": "bpm",
+          "input_value": 46,
+          "standard_unit": "bpm",
+          "standard_value": 46
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:31\",\"resting_heart_rate\",\"2026-08-10T13:22:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:6",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "quantity": "temperature_deviation",
+        "received_at_basis": "import_time",
+        "source_id": "record:31",
+        "value": {
+          "input_unit": "°C",
+          "input_value": -0.21,
+          "standard_unit": "°C",
+          "standard_value": -0.21
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:31\",\"temperature_deviation\",\"2026-08-09\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:7",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "quantity": "temperature_deviation",
+        "received_at_basis": "import_time",
+        "source_id": "record:31",
+        "value": {
+          "input_unit": "°C",
+          "input_value": 0.34,
+          "standard_unit": "°C",
+          "standard_value": 0.34
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:31\",\"temperature_deviation\",\"2026-08-10\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:8",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "metric": "readiness",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "scale": "0-100",
+        "source_id": "record:31",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 74,
+          "standard_unit": "0-100",
+          "standard_value": 74
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:31\",\"readiness\",\"2026-08-09\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:9",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "metric": "readiness",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "scale": "0-100",
+        "source_id": "record:31",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 88,
+          "standard_unit": "0-100",
+          "standard_value": 88
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:31\",\"readiness\",\"2026-08-10\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:10",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "metric": "readiness_contributor_activity_balance",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "scale": "0-100",
+        "source_id": "record:31",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 90,
+          "standard_unit": "0-100",
+          "standard_value": 90
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:31\",\"readiness_contributor_activity_balance\",\"2026-08-09\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:11",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "metric": "readiness_contributor_activity_balance",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "scale": "0-100",
+        "source_id": "record:31",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 92,
+          "standard_unit": "0-100",
+          "standard_value": 92
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:31\",\"readiness_contributor_activity_balance\",\"2026-08-10\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:12",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "metric": "readiness_contributor_body_temperature",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "scale": "0-100",
+        "source_id": "record:31",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 86,
+          "standard_unit": "0-100",
+          "standard_value": 86
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:31\",\"readiness_contributor_body_temperature\",\"2026-08-09\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:13",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "metric": "readiness_contributor_body_temperature",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "scale": "0-100",
+        "source_id": "record:31",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 88,
+          "standard_unit": "0-100",
+          "standard_value": 88
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:31\",\"readiness_contributor_body_temperature\",\"2026-08-10\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:14",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "metric": "readiness_contributor_hrv_balance",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "scale": "0-100",
+        "source_id": "record:31",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 73,
+          "standard_unit": "0-100",
+          "standard_value": 73
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:31\",\"readiness_contributor_hrv_balance\",\"2026-08-09\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:15",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "metric": "readiness_contributor_hrv_balance",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "scale": "0-100",
+        "source_id": "record:31",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 81,
+          "standard_unit": "0-100",
+          "standard_value": 81
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:31\",\"readiness_contributor_hrv_balance\",\"2026-08-10\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:16",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "metric": "readiness_contributor_previous_day_activity",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "scale": "0-100",
+        "source_id": "record:31",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 86,
+          "standard_unit": "0-100",
+          "standard_value": 86
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:31\",\"readiness_contributor_previous_day_activity\",\"2026-08-09\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:17",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "metric": "readiness_contributor_previous_day_activity",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "scale": "0-100",
+        "source_id": "record:31",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 90,
+          "standard_unit": "0-100",
+          "standard_value": 90
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:31\",\"readiness_contributor_previous_day_activity\",\"2026-08-10\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:18",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "metric": "readiness_contributor_previous_night",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "scale": "0-100",
+        "source_id": "record:31",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 73,
+          "standard_unit": "0-100",
+          "standard_value": 73
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:31\",\"readiness_contributor_previous_night\",\"2026-08-09\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:19",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "metric": "readiness_contributor_previous_night",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "scale": "0-100",
+        "source_id": "record:31",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 84,
+          "standard_unit": "0-100",
+          "standard_value": 84
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:31\",\"readiness_contributor_previous_night\",\"2026-08-10\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:20",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "metric": "readiness_contributor_recovery_index",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "scale": "0-100",
+        "source_id": "record:31",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 60,
+          "standard_unit": "0-100",
+          "standard_value": 60
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:31\",\"readiness_contributor_recovery_index\",\"2026-08-09\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:21",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "metric": "readiness_contributor_recovery_index",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "scale": "0-100",
+        "source_id": "record:31",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 72,
+          "standard_unit": "0-100",
+          "standard_value": 72
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:31\",\"readiness_contributor_recovery_index\",\"2026-08-10\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:22",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "metric": "readiness_contributor_resting_heart_rate",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "scale": "0-100",
+        "source_id": "record:31",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 97,
+          "standard_unit": "0-100",
+          "standard_value": 97
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:31\",\"readiness_contributor_resting_heart_rate\",\"2026-08-09\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:23",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "metric": "readiness_contributor_resting_heart_rate",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "scale": "0-100",
+        "source_id": "record:31",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 99,
+          "standard_unit": "0-100",
+          "standard_value": 99
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:31\",\"readiness_contributor_resting_heart_rate\",\"2026-08-10\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:24",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "metric": "readiness_contributor_sleep_balance",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "scale": "0-100",
+        "source_id": "record:31",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 86,
+          "standard_unit": "0-100",
+          "standard_value": 86
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:31\",\"readiness_contributor_sleep_balance\",\"2026-08-09\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:25",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "metric": "readiness_contributor_sleep_balance",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_day_unspecified",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "scale": "0-100",
+        "source_id": "record:31",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 90,
+          "standard_unit": "0-100",
+          "standard_value": 90
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:31\",\"readiness_contributor_sleep_balance\",\"2026-08-10\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:26",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-09T06:08:00-07:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-07:00"
+        },
+        "metric": "sleep_score",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-09T13:08:00.000Z",
+        "scale": "0-100",
+        "source_id": "record:31",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 79,
+          "standard_unit": "0-100",
+          "standard_value": 79
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:31\",\"sleep_score\",\"2026-08-09T13:08:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:27",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-10T06:22:00-07:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-07:00"
+        },
+        "metric": "sleep_score",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-08-10T13:22:00.000Z",
+        "scale": "0-100",
+        "source_id": "record:31",
+        "value": {
+          "input_unit_missing_reason": "not_provided_by_source",
+          "input_value": 86,
+          "standard_unit": "0-100",
+          "standard_value": 86
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"provider_score\",\"record:31\",\"sleep_score\",\"2026-08-10T13:22:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:28",
+      "record_type": "provider_score"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "end_at": "2026-08-09T13:08:00.000Z",
+        "input_end_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-09T06:08:00-07:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-07:00"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-08T22:18:00-07:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-09",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "source_id": "record:31",
+        "source_reported_summaries": [
+          {
+            "input_unit": "s",
+            "input_value": 24900,
+            "standard_unit": "s",
+            "standard_value": 24900,
+            "summary_type": "sleep_duration"
+          },
+          {
+            "input_unit": "s",
+            "input_value": 28200,
+            "standard_unit": "s",
+            "standard_value": 28200,
+            "summary_type": "time_in_bed"
+          },
+          {
+            "input_unit": "s",
+            "input_value": 5700,
+            "standard_unit": "s",
+            "standard_value": 5700,
+            "summary_type": "deep_sleep"
+          },
+          {
+            "input_unit": "s",
+            "input_value": 6600,
+            "standard_unit": "s",
+            "standard_value": 6600,
+            "summary_type": "rem_sleep"
+          },
+          {
+            "input_unit": "s",
+            "input_value": 12600,
+            "standard_unit": "s",
+            "standard_value": 12600,
+            "summary_type": "light_sleep"
+          },
+          {
+            "input_unit": "s",
+            "input_value": 3300,
+            "standard_unit": "s",
+            "standard_value": 3300,
+            "summary_type": "awake"
+          },
+          {
+            "input_unit": "%",
+            "input_value": 88,
+            "standard_unit": "%",
+            "standard_value": 88,
+            "summary_type": "sleep_efficiency"
+          }
+        ],
+        "start_at": "2026-08-09T05:18:00.000Z"
+      },
+      "import_keys": [
+        {
+          "key": "[\"sleep_session\",\"record:31\",\"2026-08-09T05:18:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:29",
+      "record_type": "sleep_session"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "end_at": "2026-08-10T13:22:00.000Z",
+        "input_end_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-10T06:22:00-07:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-07:00"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-08-09T22:24:00-07:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-07:00"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-08-10",
+            "timezone_offset_missing_reason": "not_provided_by_source"
+          }
+        ],
+        "received_at_basis": "import_time",
+        "source_id": "record:31",
+        "source_reported_summaries": [
+          {
+            "input_unit": "s",
+            "input_value": 27000,
+            "standard_unit": "s",
+            "standard_value": 27000,
+            "summary_type": "sleep_duration"
+          },
+          {
+            "input_unit": "s",
+            "input_value": 28680,
+            "standard_unit": "s",
+            "standard_value": 28680,
+            "summary_type": "time_in_bed"
+          },
+          {
+            "input_unit": "s",
+            "input_value": 6300,
+            "standard_unit": "s",
+            "standard_value": 6300,
+            "summary_type": "deep_sleep"
+          },
+          {
+            "input_unit": "s",
+            "input_value": 7200,
+            "standard_unit": "s",
+            "standard_value": 7200,
+            "summary_type": "rem_sleep"
+          },
+          {
+            "input_unit": "s",
+            "input_value": 13500,
+            "standard_unit": "s",
+            "standard_value": 13500,
+            "summary_type": "light_sleep"
+          },
+          {
+            "input_unit": "s",
+            "input_value": 1680,
+            "standard_unit": "s",
+            "standard_value": 1680,
+            "summary_type": "awake"
+          },
+          {
+            "input_unit": "%",
+            "input_value": 94,
+            "standard_unit": "%",
+            "standard_value": 94,
+            "summary_type": "sleep_efficiency"
+          }
+        ],
+        "start_at": "2026-08-10T05:24:00.000Z"
+      },
+      "import_keys": [
+        {
+          "key": "[\"sleep_session\",\"record:31\",\"2026-08-10T05:24:00.000Z\",0]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:30",
+      "record_type": "sleep_session"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "data_route": "oura_csv",
+        "data_writer": "Oura",
+        "detail": "Oura export folder",
+        "source_type": "export_file",
+        "vendor": "oura"
+      },
+      "import_keys": [
+        {
+          "key": "[\"source\",\"Oura\",\"oura_csv\",\"\"]",
+          "method": "oura_csv/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:31",
+      "record_type": "source"
+    }
+  ],
+  "route_points": []
+}

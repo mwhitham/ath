@@ -1,10 +1,7 @@
 import { chmod, lstat, open as openFile, unlink } from "node:fs/promises";
 import { dirname } from "node:path";
 import { spawnSync } from "node:child_process";
-import { pathToFileURL } from "node:url";
-import { createClient } from "@libsql/client";
 import {
-  connectDatabase,
   databaseClient,
   refuseSymbolicLinkComponents,
   type AthleticDatabase,
@@ -94,46 +91,57 @@ async function readRecordCount(database: AthleticDatabase): Promise<number> {
   throw new Error("Could not read record count while verifying a migration backup");
 }
 
-async function readBackupMetadata(backupPath: string): Promise<DatabaseMetadata> {
-  const backupDatabase = await connectDatabase(backupPath);
-  try {
-    const result = await databaseClient(backupDatabase).execute(
-      "SELECT application_marker, sql_schema_version, athleticstandard_version, database_id, created_at FROM database_metadata WHERE singleton_id = 1",
-    );
-    const row = result.rows[0];
-    if (row === undefined || result.rows.length !== 1) {
-      throw new Error("Migration backup is missing Athletic Standard metadata");
-    }
-    const applicationMarker = String(row.application_marker);
-    if (applicationMarker !== "ATH1") {
-      throw new Error("Migration backup has the wrong application marker");
-    }
-    return {
-      application_marker: "ATH1",
-      sql_schema_version: Number(row.sql_schema_version),
-      athleticstandard_version: String(
-        row.athleticstandard_version,
-      ) as DatabaseMetadata["athleticstandard_version"],
-      database_id: String(row.database_id),
-      created_at: String(row.created_at),
-    };
-  } finally {
-    backupDatabase.close();
+/**
+ * Read the backup with the sqlite3 tool that wrote it. An in-process libsql
+ * connection keeps the file open until its statements are garbage-collected,
+ * and Windows then refuses to remove the backup's -wal and -shm files.
+ */
+function readBackupRows(backupPath: string, sql: string, what: string): string[][] {
+  const result = spawnSync(
+    "sqlite3",
+    ["-batch", "-list", "-noheader", "-separator", "|", backupPath, sql],
+    { encoding: "utf8" },
+  );
+  if (result.status !== 0) {
+    throw new Error(`Could not read ${what} from the migration backup: ${result.stderr || result.stdout}`);
   }
+  return result.stdout
+    .split(/\r?\n/)
+    .filter((line) => line !== "")
+    .map((line) => line.split("|"));
 }
 
-async function readBackupRecordCount(backupPath: string): Promise<number> {
-  const client = createClient({ url: pathToFileURL(backupPath).href, intMode: "number" });
-  try {
-    const result = await client.execute("SELECT COUNT(*) AS count FROM records");
-    const value = result.rows[0]?.count;
-    if (typeof value === "number" || typeof value === "bigint") {
-      return Number(value);
-    }
-    throw new Error("Migration backup is missing record counts");
-  } finally {
-    client.close();
+async function readBackupMetadata(backupPath: string): Promise<DatabaseMetadata> {
+  await refuseSymbolicLinkComponents(backupPath);
+  const rows = readBackupRows(
+    backupPath,
+    "SELECT application_marker, sql_schema_version, athleticstandard_version, database_id, created_at FROM database_metadata WHERE singleton_id = 1;",
+    "metadata",
+  );
+  const row = rows[0];
+  if (row === undefined || rows.length !== 1 || row.length !== 5) {
+    throw new Error("Migration backup is missing Athletic Standard metadata");
   }
+  const [applicationMarker, sqlSchemaVersion, athleticstandardVersion, databaseId, createdAt] = row;
+  if (applicationMarker !== "ATH1") {
+    throw new Error("Migration backup has the wrong application marker");
+  }
+  return {
+    application_marker: "ATH1",
+    sql_schema_version: Number(sqlSchemaVersion),
+    athleticstandard_version: athleticstandardVersion as DatabaseMetadata["athleticstandard_version"],
+    database_id: String(databaseId),
+    created_at: String(createdAt),
+  };
+}
+
+function readBackupRecordCount(backupPath: string): number {
+  const rows = readBackupRows(backupPath, "SELECT COUNT(*) FROM records;", "record counts");
+  const value = Number(rows[0]?.[0]);
+  if (rows.length !== 1 || !Number.isInteger(value)) {
+    throw new Error("Migration backup is missing record counts");
+  }
+  return value;
 }
 
 export async function verifySqliteBackup(
@@ -161,7 +169,7 @@ export async function verifySqliteBackup(
   }
 
   const sourceCount = await readRecordCount(sourceDatabase);
-  const backupCount = await readBackupRecordCount(backupPath);
+  const backupCount = readBackupRecordCount(backupPath);
   if (backupCount !== sourceCount) {
     throw new Error(
       `Migration backup record count ${backupCount} does not match the source database ${sourceCount}`,

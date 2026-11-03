@@ -1,4 +1,4 @@
-import { mkdtemp, rm } from "node:fs/promises";
+import { mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -14,6 +14,7 @@ import {
 import { databaseClient } from "../src/db/client.js";
 import { withWriteTransaction } from "../src/db/transaction.js";
 import { materializeNpm100ProviderDatabase } from "./helpers/npm100-database.js";
+import { removeTemporaryDirectory } from "./helpers/temporary.js";
 
 const openDatabases: AthleticDatabase[] = [];
 const directories: string[] = [];
@@ -24,7 +25,7 @@ afterEach(async () => {
     database.close();
   }
   for (const directory of directories.splice(0)) {
-    await rm(directory, { recursive: true, force: true });
+    await removeTemporaryDirectory(directory);
   }
 });
 

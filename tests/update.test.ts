@@ -3,6 +3,7 @@ import { existsSync, mkdirSync, mkdtempSync, readFileSync, symlinkSync, writeFil
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 import { ATHLETIC_STANDARD_VERSION } from "../src/v1/schema.js";
 import { ATH_PACKAGE_VERSION } from "../src/version.js";
@@ -19,10 +20,10 @@ import {
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../src/cli.ts");
-const TSX = resolve(here, "../node_modules/.bin/tsx");
+const TSX = createRequire(import.meta.url).resolve("tsx/cli");
 
 function ath(args: string[], cwd: string): { stdout: string; stderr: string; code: number } {
-  const res = spawnSync(TSX, [CLI, ...args], { cwd, encoding: "utf8" });
+  const res = spawnSync(process.execPath, [TSX, CLI, ...args], { cwd, encoding: "utf8" });
   return { stdout: res.stdout ?? "", stderr: res.stderr ?? "", code: res.status ?? 1 };
 }
 

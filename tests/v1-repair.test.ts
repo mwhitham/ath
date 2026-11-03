@@ -1,8 +1,9 @@
-import { copyFile, cp, mkdtemp, rm } from "node:fs/promises";
+import { copyFile, cp, mkdtemp } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { execFileSync } from "node:child_process";
+import { createRequire } from "node:module";
 import { createClient } from "@libsql/client";
 import { afterEach, describe, expect, it } from "vitest";
 import {
@@ -22,10 +23,11 @@ import {
   materializeNpm100ProviderDatabase,
   snapshotRecordPayloadBytes,
 } from "./helpers/npm100-database.js";
+import { removeTemporaryDirectory } from "./helpers/temporary.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../src/cli.ts");
-const TSX = resolve(here, "../node_modules/.bin/tsx");
+const TSX = createRequire(import.meta.url).resolve("tsx/cli");
 const providerFixtures = join(here, "fixtures/exports");
 
 const openDatabases: AthleticDatabase[] = [];
@@ -33,7 +35,7 @@ const directories: string[] = [];
 
 function ath(args: string[], cwd: string): { stdout: string; code: number } {
   try {
-    const stdout = execFileSync(TSX, [CLI, ...args], { cwd, encoding: "utf8", stdio: "pipe" });
+    const stdout = execFileSync(process.execPath, [TSX, CLI, ...args], { cwd, encoding: "utf8", stdio: "pipe" });
     return { stdout, code: 0 };
   } catch (error) {
     const err = error as { status: number; stdout?: string; stderr?: string };
@@ -46,7 +48,7 @@ afterEach(async () => {
     database.close();
   }
   for (const directory of directories.splice(0)) {
-    await rm(directory, { recursive: true, force: true });
+    await removeTemporaryDirectory(directory);
   }
 });
 
@@ -156,7 +158,7 @@ describe("v1 provider-encoding repair", () => {
     openDatabases.push(database);
     const migration = await executeConfirmedDatabaseMigration(database);
     expect(migration.migrated).toBe(true);
-    expect(migration.preview.target_sql_schema_version).toBe(3);
+    expect(migration.preview.target_sql_schema_version).toBe(4);
 
     const check = await checkDatabase(database);
     expect(check.valid, JSON.stringify(check.issues.slice(0, 5), null, 2)).toBe(true);
@@ -212,7 +214,7 @@ describe("v1 provider-encoding repair", () => {
 
     const check = ath(["check"], directory);
     expect(check.code).toBe(0);
-    expect(check.stdout).toContain("valid Athletic Standard 2.0.0 database");
+    expect(check.stdout).toContain("valid Athletic Standard 2.1.0 database");
 
     const afterBytes = await snapshotRecordPayloadBytes(databasePath);
     expect(afterBytes).toEqual(beforeBytes);

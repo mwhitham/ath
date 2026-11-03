@@ -1,0 +1,21 @@
+{
+  "decision": "D187",
+  "records": [
+    {
+      "field_basis": {
+        "value": "provider"
+      },
+      "label": "record:1",
+      "record_type": "point_measurement"
+    },
+    {
+      "field_basis": {
+        "activity_type": "provider_label",
+        "route_summaries": "calculated_on_import",
+        "value": "provider"
+      },
+      "label": "record:3",
+      "record_type": "workout_session"
+    }
+  ]
+}

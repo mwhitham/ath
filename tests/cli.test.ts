@@ -1,21 +1,31 @@
 import { execFileSync } from "node:child_process";
-import { copyFileSync, mkdtempSync } from "node:fs";
+import { copyFileSync, mkdtempSync, readdirSync, symlinkSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createClient } from "@libsql/client";
 import { describe, expect, it } from "vitest";
 import { pathToFileURL } from "node:url";
+import { createRequire } from "node:module";
 import { ATH_PACKAGE_VERSION } from "../src/version.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../src/cli.ts");
-const TSX = resolve(here, "../node_modules/.bin/tsx");
+const TSX = createRequire(import.meta.url).resolve("tsx/cli");
 const FIXTURE = resolve(here, "../examples/demo-athlete/athlete.ath.sqlite");
 
-function ath(args: string[], cwd: string): { stdout: string; code: number } {
+function ath(
+  args: string[],
+  cwd: string,
+  env: NodeJS.ProcessEnv = {},
+): { stdout: string; code: number } {
   try {
-    const stdout = execFileSync(TSX, [CLI, ...args], { cwd, encoding: "utf8", stdio: "pipe" });
+    const stdout = execFileSync(process.execPath, [TSX, CLI, ...args], {
+      cwd,
+      env: { ...process.env, ...env },
+      encoding: "utf8",
+      stdio: "pipe",
+    });
     return { stdout, code: 0 };
   } catch (e) {
     const err = e as { status: number; stdout?: string; stderr?: string };
@@ -68,7 +78,7 @@ describe("ath init", () => {
 
     const check = ath(["check"], dir);
     expect(check.code).toBe(0);
-    expect(check.stdout).toContain("valid Athletic Standard 2.0.0 database");
+    expect(check.stdout).toContain("valid Athletic Standard 2.1.0 database");
   });
 
   it("refuses to overwrite an existing file", () => {
@@ -89,8 +99,8 @@ describe("ath migrate", () => {
     expect(res.code).toBe(0);
     const json = JSON.parse(res.stdout);
     expect(json.migration_needed).toBe(false);
-    expect(json.source_sql_schema_version).toBe(3);
-    expect(json.target_sql_schema_version).toBe(3);
+    expect(json.source_sql_schema_version).toBe(4);
+    expect(json.target_sql_schema_version).toBe(4);
   });
 
   it("does not switch journal mode during a dry-run preview", async () => {
@@ -128,6 +138,22 @@ describe("ath check", () => {
       valid: true,
       export_validated: true,
     });
+  });
+
+  it("makes its own export under the real temp folder, and still refuses a path given through a symlink", () => {
+    const real = mkdtempSync(join(tmpdir(), "ath-temp-root-"));
+    const linked = `${real}-link`;
+    symlinkSync(real, linked, "junction");
+    const temp = { TMPDIR: linked, TMP: linked, TEMP: linked };
+    const res = ath(["check", FIXTURE, "--validate-export", "--json"], process.cwd(), temp);
+    expect(res.code, res.stdout).toBe(0);
+    expect(JSON.parse(res.stdout)).toMatchObject({ valid: true, export_validated: true });
+    expect(readdirSync(real).filter((name) => name.startsWith("ath-check-export-"))).toEqual([]);
+
+    copyFileSync(FIXTURE, join(real, "athlete.ath.sqlite"));
+    const refused = ath(["check", join(linked, "athlete.ath.sqlite")], process.cwd());
+    expect(refused.code).toBe(1);
+    expect(refused.stdout).toContain(`Refusing to use path through a symbolic link: ${linked}`);
   });
 
   it("fails a foreign-key violation with a pointed message", async () => {
