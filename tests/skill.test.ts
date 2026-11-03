@@ -1,8 +1,9 @@
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
+import { createRequire } from "node:module";
 import { describe, expect, it } from "vitest";
 import { buildProgram } from "../src/program.js";
 import { ATHLETIC_STANDARD_VERSION } from "../src/v1/schema.js";
@@ -22,10 +23,10 @@ import { commandPaths, renderCliReference } from "../src/skillcli.js";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const CLI = resolve(here, "../src/cli.ts");
-const TSX = resolve(here, "../node_modules/.bin/tsx");
+const TSX = createRequire(import.meta.url).resolve("tsx/cli");
 
 function ath(args: string[], cwd: string): { stdout: string; stderr: string; code: number } {
-  const res = spawnSync(TSX, [CLI, ...args], { cwd, encoding: "utf8" });
+  const res = spawnSync(process.execPath, [TSX, CLI, ...args], { cwd, encoding: "utf8" });
   return { stdout: res.stdout ?? "", stderr: res.stderr ?? "", code: res.status ?? 1 };
 }
 
@@ -185,8 +186,8 @@ describe("ath skill (D79)", () => {
 
     const byAgent = Object.fromEntries(
       skillStatus(dir)
-        .filter((copy) => copy.path.includes(`/${SKILL_NAME}`))
-        .map((c) => [c.path.slice(dir.length + 1).split("/")[0], c]),
+        .filter((copy) => copy.path.includes(`${sep}${SKILL_NAME}`))
+        .map((c) => [c.path.slice(dir.length + 1).split(sep)[0], c]),
     );
     expect(byAgent[ALWAYS_DIR]!.state).toBe("installed");
     expect(byAgent[".codex"]).toMatchObject({ state: "installed", installed: "0.3.0" });
@@ -202,7 +203,7 @@ describe("ath skill (D79)", () => {
     const json = JSON.parse(ath(["skill", "--json"], dir).stdout);
     expect(json.shipped).toBe(ATH_PACKAGE_VERSION);
     const standard = json.copies.filter((copy: { path: string }) =>
-      copy.path.includes(`/${SKILL_NAME}`),
+      copy.path.includes(`${sep}${SKILL_NAME}`),
     );
     expect(standard.map((c: { state: string }) => c.state).sort()).toEqual([
       "installed",

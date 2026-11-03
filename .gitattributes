@@ -1,0 +1,6 @@
+# Check out text with LF on every platform. Generated files and test fixtures
+# are compared byte for byte, and Git on Windows would otherwise write CRLF.
+* text=auto eol=lf
+*.sqlite binary
+*.png binary
+*.fit binary

@@ -1,0 +1,939 @@
+{
+  "attachment_links": [],
+  "attachments": [],
+  "baseline_from": "d418a8f653f7074ed9e08208c4eb555c391bcbc7",
+  "links": [
+    {
+      "owner": "record:1",
+      "relation": "source",
+      "table": "point_measurements",
+      "target": "record:2"
+    },
+    {
+      "owner": "record:3",
+      "relation": "source",
+      "table": "workout_sessions",
+      "target": "record:2"
+    }
+  ],
+  "records": [
+    {
+      "current_revision": 1,
+      "data": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-06-14 07:00:00 -0500",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-0500"
+        },
+        "quantity": "resting_heart_rate",
+        "received_at_basis": "import_time",
+        "recorded_at": "2026-06-14T12:00:00.000Z",
+        "source_id": "record:2",
+        "value": {
+          "input_unit": "count/min",
+          "input_value": 55,
+          "standard_unit": "bpm",
+          "standard_value": 55
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"point_measurement\",\"record:2\",\"resting_heart_rate\",\"2026-06-14T12:00:00.000Z\",0]",
+          "method": "apple_health/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:1",
+      "record_type": "point_measurement"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "data_route": "apple_health",
+        "data_writer": "Apple Watch",
+        "detail": "Apple Watch via Apple Health export folder",
+        "source_type": "export_file",
+        "vendor": "apple"
+      },
+      "import_keys": [
+        {
+          "key": "[\"source\",\"Apple Watch\",\"apple_health\",\"\"]",
+          "method": "apple_health/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:2",
+      "record_type": "source"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "activity_type": "running",
+        "end_at": "2026-06-14T13:30:00.000Z",
+        "input_end_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-06-14 08:30:00 -0500",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-0500"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-06-14 08:00:00 -0500",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-0500"
+        },
+        "received_at_basis": "import_time",
+        "route": [
+          {
+            "input_timestamp": {
+              "timestamp_basis": "source_offset_timestamp",
+              "timestamp_text": "2026-06-14T08:01:00-05:00",
+              "utc_offset_meaning": "meaning_not_documented",
+              "utc_offset_text": "-05:00"
+            },
+            "latitude_deg": 13.5,
+            "longitude_deg": 57.5,
+            "recorded_at": "2026-06-14T13:01:00.000Z",
+            "supplied_fields": {
+              "ele": "10"
+            }
+          },
+          {
+            "input_timestamp": {
+              "timestamp_basis": "source_offset_timestamp",
+              "timestamp_text": "2026-06-14T08:02:00-05:00",
+              "utc_offset_meaning": "meaning_not_documented",
+              "utc_offset_text": "-05:00"
+            },
+            "latitude_deg": 13.75,
+            "longitude_deg": 57.75,
+            "recorded_at": "2026-06-14T13:02:00.000Z",
+            "supplied_fields": {
+              "ele": "11"
+            }
+          }
+        ],
+        "segments": [
+          {
+            "label": "km 1",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 2",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 3",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 4",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 5",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 6",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 7",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 8",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 9",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 10",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 11",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 12",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 13",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 14",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 15",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 16",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 17",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 18",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 19",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 20",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 21",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 22",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 23",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 24",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 25",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 26",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 27",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 28",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 29",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 30",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 31",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 32",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 33",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 34",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 35",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 36",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 37",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 38",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.5,
+                "standard_unit": "s",
+                "standard_value": 1.5,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 1000,
+                "standard_unit": "m",
+                "standard_value": 1000,
+                "summary_type": "distance"
+              }
+            ]
+          },
+          {
+            "label": "km 39 (partial)",
+            "source_reported_summaries": [
+              {
+                "input_unit": "s",
+                "input_value": 1.2,
+                "standard_unit": "s",
+                "standard_value": 1.2,
+                "summary_type": "sleep_duration"
+              },
+              {
+                "input_unit": "m",
+                "input_value": 764,
+                "standard_unit": "m",
+                "standard_value": 764,
+                "summary_type": "distance"
+              }
+            ]
+          }
+        ],
+        "source_id": "record:2",
+        "source_reported_summaries": [
+          {
+            "input_unit": "m",
+            "input_value": 1,
+            "standard_unit": "m",
+            "standard_value": 1,
+            "summary_type": "elevation_gain"
+          }
+        ],
+        "start_at": "2026-06-14T13:00:00.000Z",
+        "supplied_fields": {
+          "WorkoutRoute": [
+            {
+              "FileReference": "/workout-routes/route_2026-06-14.gpx",
+              "MetadataEntry": [
+                {
+                  "key": "HKMetadataKeySyncVersion",
+                  "value": "4"
+                }
+              ],
+              "creationDate": "2026-06-14 08:05:00 -0500",
+              "endDate": "2026-06-14 08:30:00 -0500",
+              "sourceName": "Demo Phone",
+              "sourceVersion": "1",
+              "startDate": "2026-06-14 08:00:00 -0500"
+            }
+          ]
+        }
+      },
+      "import_keys": [
+        {
+          "key": "[\"workout_session\",\"record:2\",\"2026-06-14T13:00:00.000Z\",0]",
+          "method": "apple_health/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:3",
+      "record_type": "workout_session"
+    }
+  ],
+  "route_points": [
+    {
+      "order": 0,
+      "point": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-06-14T08:01:00-05:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-05:00"
+        },
+        "latitude_deg": 13.5,
+        "longitude_deg": 57.5,
+        "recorded_at": "2026-06-14T13:01:00.000Z",
+        "supplied_fields": {
+          "ele": "10"
+        }
+      },
+      "workout": "record:3"
+    },
+    {
+      "order": 1,
+      "point": {
+        "input_timestamp": {
+          "timestamp_basis": "source_offset_timestamp",
+          "timestamp_text": "2026-06-14T08:02:00-05:00",
+          "utc_offset_meaning": "meaning_not_documented",
+          "utc_offset_text": "-05:00"
+        },
+        "latitude_deg": 13.75,
+        "longitude_deg": 57.75,
+        "recorded_at": "2026-06-14T13:02:00.000Z",
+        "supplied_fields": {
+          "ele": "11"
+        }
+      },
+      "workout": "record:3"
+    }
+  ]
+}

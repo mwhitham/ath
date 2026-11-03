@@ -1,0 +1,7 @@
+{
+  "data": [
+    { "id": "018f0000-0000-7000-8000-0000000000a1", "type": "running", "name": "Invented page loop", "start_time": "2026-08-09T15:00:00.000Z", "end_time": "2026-08-09T15:10:00.000Z", "source": { "provider": "garmin", "source": "invented-app", "device": "invented-watch", "device_type": "watch", "device_id": "watch-1", "device_name": "Invented Watch" } }
+  ],
+  "pagination": { "has_more": false },
+  "metadata": { "resolution": null, "sample_count": 1, "start_time": "2026-08-09T15:00:00.000Z", "end_time": "2026-08-09T15:10:00.000Z" }
+}

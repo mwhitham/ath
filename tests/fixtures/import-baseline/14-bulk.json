@@ -1,0 +1,107 @@
+{
+  "attachment_links": [],
+  "attachments": [],
+  "baseline_from": "d418a8f653f7074ed9e08208c4eb555c391bcbc7",
+  "links": [
+    {
+      "owner": "record:1",
+      "relation": "source",
+      "table": "workout_sessions",
+      "target": "record:2"
+    }
+  ],
+  "records": [
+    {
+      "current_revision": 1,
+      "data": {
+        "activity_type": "Ride",
+        "end_at": "2026-01-03T16:00:02.000Z",
+        "heart_rate_samples": [
+          {
+            "bpm": 110,
+            "offset_ms": 0
+          },
+          {
+            "bpm": 130,
+            "offset_ms": 2000
+          }
+        ],
+        "input_end_timestamp": {
+          "timestamp_basis": "source_instant",
+          "timestamp_text": "2026-01-03T16:00:02.000Z",
+          "utc_offset_meaning": "documented_recording_offset",
+          "utc_offset_text": "Z"
+        },
+        "input_start_timestamp": {
+          "timestamp_basis": "source_instant",
+          "timestamp_text": "2026-01-03T16:00:00.000Z",
+          "utc_offset_meaning": "documented_recording_offset",
+          "utc_offset_text": "Z"
+        },
+        "name": "River Path",
+        "provider_record_id": "2002",
+        "received_at_basis": "import_time",
+        "route": [
+          {
+            "latitude_deg": 40,
+            "longitude_deg": -105,
+            "recorded_at": "2026-01-03T16:00:00.000Z"
+          },
+          {
+            "latitude_deg": 40.001,
+            "longitude_deg": -105.001,
+            "recorded_at": "2026-01-03T16:00:02.000Z"
+          }
+        ],
+        "source_id": "record:2",
+        "source_reported_summaries": [],
+        "start_at": "2026-01-03T16:00:00.000Z",
+        "supplied_fields": {
+          "Gear": "Blue bike"
+        }
+      },
+      "import_keys": [
+        {
+          "key": "2002",
+          "method": "strava_bulk/v1"
+        }
+      ],
+      "is_deleted": false,
+      "label": "record:1",
+      "record_type": "workout_session"
+    },
+    {
+      "current_revision": 1,
+      "data": {
+        "data_route": "strava_bulk",
+        "data_writer": "strava",
+        "source_type": "export_file",
+        "vendor": "strava"
+      },
+      "import_keys": [],
+      "is_deleted": false,
+      "label": "record:2",
+      "record_type": "source"
+    }
+  ],
+  "route_points": [
+    {
+      "order": 0,
+      "point": {
+        "latitude_deg": 40,
+        "longitude_deg": -105,
+        "recorded_at": "2026-01-03T16:00:00.000Z"
+      },
+      "workout": "record:1"
+    },
+    {
+      "order": 1,
+      "point": {
+        "latitude_deg": 40.001,
+        "longitude_deg": -105.001,
+        "recorded_at": "2026-01-03T16:00:02.000Z"
+      },
+      "workout": "record:1"
+    }
+  ]
+}
