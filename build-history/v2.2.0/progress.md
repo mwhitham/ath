@@ -5,7 +5,7 @@ program, the record, or the database has changed for 2.2.0.
 
 | Step | What | Status |
 |---|---|---|
-| 0 | The plan: spec, decisions D198–D202, and the Open Wearables study | written, not approved |
+| 0 | The plan: proposals D198–D202, and the Open Wearables study. Revised after product, insights, engineer, and verify reviews of `d1fdde1`. Still not adopted. The new head needs re-review | written, not approved |
 | 1 | Version 2.2.0, migration step 5, no new column (D198) | not started |
 | 2 | `ath pull openwearables` in `ath-core`, using the shipped mapping (D199, D201) | not started |
 | 3 | Key, server, and user id kept out of the record (D200) | not started |

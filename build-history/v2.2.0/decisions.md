@@ -2,8 +2,8 @@
 
 D-numbers continue from [v2.1.0](../v2.1.0/decisions.md). D198 follows D197.
 
-These decisions are the proposal in [spec.md](spec.md). The maintainer has not
-approved them. This pull request does not build them. A change of mind before
+These are proposals in [spec.md](spec.md). The maintainer has not adopted
+them. This pull request does not build them. A change of mind before
 approval is an edit of the proposal. After approval, a change is a new
 D-number.
 
@@ -29,18 +29,22 @@ until `ath migrate`.
 The build is one pull request after this plan is approved. It is not split
 into a version change, a client, and a mapping change.
 
-The versions named here are boundaries for this plan. They are not specs.
+The version numbers below are proposals. They are not specs, and they are
+not adopted.
 
-- 2.2.0 is this pull.
-- 2.3.0 is a Junction pull. This release does not call Junction.
-- 2.4.0 is automatic incremental sync, saved sign-in refresh, retries, and
-  backfill. This release has none of those.
-- 2.5.0 is the work of storing day aggregates and the heart-rate stream.
-  This release does not store them, and it does not decide to add an Open
-  Wearables period type. `ProviderReportingPeriodType` stays the Whoop, Oura,
-  and Apple values it has now.
+- 2.2.0 is this pull: sleep, workouts, and raw samples.
+- 2.3.0 is a proposed Junction pull. This release does not call Junction.
+- 2.4.0 is proposed automatic incremental sync, saved sign-in refresh,
+  retries, and backfill. This release has none of those.
+- Day aggregates and the heart-rate stream are left out of this pull. D88
+  supports that exclusion, because a day must not become an invented midnight.
+  D88 does not say they wait until after the proposed Junction pull and the
+  proposed automatic sync. This proposal suggests 2.5.0 for that work. The
+  maintainer decides the timing. `ProviderReportingPeriodType` stays the
+  Whoop, Oura, and Apple values it has now.
 - A connector interface that every future source would implement is later
-  than 2.5.0. This release adds one module for this server.
+  than the slot suggested for day aggregates. This release adds one module
+  for this server.
 
 File imports stay: Apple Health, WHOOP, Oura, Garmin, and Strava. `ath pull
 garmin` stays as it is. `ath import --mapping` stays as it is.
@@ -54,8 +58,12 @@ Rejected alternatives:
 - Ship the pull as three pull requests. Rejected because the maintainer asked
   for one versioned build.
 - Pull Junction, start sync jobs, or add a connector trait in this release.
-  Rejected because each of those is a later version, and this release has to
-  make one manual read reliable first.
+  Rejected because this release has to make one manual read reliable first.
+  The later version numbers are proposals, not adopted assignments.
+- Store day aggregates in this release by calling them 2.5.0 work and then
+  requesting them anyway. Rejected. Leaving them out is the proposal. Adding
+  them silently is not. The maintainer can choose an earlier version than
+  the suggested 2.5.0. That choice is still open.
 
 ## D199. The pull fetches pages and the shipped mapping writes the records
 
@@ -80,32 +88,68 @@ shipped file's page section is `timeseries`, so `apply_mapping` would leave
 that envelope out. The pull passes sleep rows as `{ "sleep": [ ... ] }` and
 workout rows as `{ "workout": [ ... ] }`. It passes each timeseries response
 through unchanged, so `metadata.resolution` still reaches the mapping. The
-pull does not drop a row before the mapping sees it. A manual workout stays
-the mapping's `left_out`, and the other rows in that page are still written.
+pull does not drop one row and keep its neighbors. A credential, a reflected
+origin or user id, a same-key `device_id` collision, or a bad envelope
+rejects the whole page first. A manual workout stays the mapping's
+`left_out`, and the other rows in that page are still written.
 
 The timeseries query's `types` list is the `type.<name>` lines in the
-resolved mapping file, read when the command runs. Each name is one repeated
-`types` query parameter. A name that appears twice is sent once.
-`skin_temperature` is that case. A comma-joined value is not a series type
-on the 0.11.0 server and returns 422. The Rust source has no second copy of
-those names. `heart_rate` is not one of those lines, and it is not a point
-quantity the mapping can write. This release does not add the line and does
-not store the heart-rate stream. Workout `avg_heart_rate_bpm` and
+resolved mapping file, read when the command runs. The prefix is that
+section's `type_field`. Each name is one repeated `types` query parameter.
+A name that appears twice is sent once. `skin_temperature` is that case. A
+comma-joined string is not a member of the `SeriesType` enum. This study did
+not send that request, so it does not claim a live 422. The Rust source has
+no second copy of those names.
+
+If the checked mapping produces no timeseries types, the pull skips the
+timeseries request and reports zero counts for that read. The read is
+`skipped`. On Open Wearables 0.11.0 the route defaults `types` to an empty
+list, and the repository applies a type filter only when the list is
+nonempty (`data_point_series_repository.py`). An empty list therefore
+returns every series, including heart rate and location. This pull never
+sends that request. A mapping that cannot be read for types fails before
+any network call.
+
+`heart_rate` is not one of the shipped lines, and it is not a point quantity
+the mapping can write. This proposal does not add the line and does not
+store the heart-rate stream. Workout `avg_heart_rate_bpm` and
 `max_heart_rate_bpm` stay as the file already maps them.
 
 `apply_mapping` adds counts by record type and keeps the existing `outcome`
-field. The pull prints the sleep, workout, point, summary, and score counts.
-It does not add `outcome` across pages. Those printed counts match the write
-when each object id appears on one page. A server that repeats an id on a
-later page can make the preview say new where the write says unchanged. The
-write still follows D182.
+field. The pull adds those counts into the committed result for a page that
+committed and into `estimated` for a page that was rolled back. It does not
+add `outcome` across pages. Estimated counts are against the database before
+this command. They are not equal to the write when the same match key appears
+on two pages, or when the server changes between runs. The write still
+follows D182. This proposal does not keep a command-wide preview overlay.
 
-Day aggregates, recovery summaries, health scores, meals, and body summaries
-are not requested. On Open Wearables 0.11.0 those day values are no longer
-raw samples. Storing a date as midnight would break D88. This release leaves
-`ProviderReportingPeriodType` unchanged. Whether a later version adds an Open
-Wearables period is a later decision. Storing the day values is named as
-2.5.0 work, and that name is a boundary, not that decision.
+The proposed read order is sleep, then workouts, then raw timeseries. That
+order is part of what the maintainer approves. A failure in a later read
+leaves the earlier read's pages committed and the reads after the failure
+unattempted. The result says so. See D201.
+
+The coverage table in the specification is the proposed scope. Day
+aggregates, sleep-linked physiology, recovery summaries, health scores,
+meals, and body summaries are not requested. Open Wearables 0.11.0 already
+returns reporting bounds on a day sample: an interval, `period_end`,
+`computed_by`, and `stats`. Leaving those values out is incomplete coverage.
+It is not required by D88. D88 forbids inventing a midnight. It does not
+forbid storing a bound the server sent, and it does not assign the work to
+a version after Junction and automatic sync. The suggested version is 2.5.0.
+That suggestion is not adopted, and it is not approval of the loss.
+
+The other choice is a preservation design: store those intervals with their
+bounds and basis, after a new period type. This proposal does not add that
+type, does not label an Open Wearables day as a Whoop cycle or an Oura day,
+and does not turn a summary into a point or a score.
+
+Sleep requests `include=stages`. Workouts request `include=zones`. Stage
+minute totals return either way. The timeline and the zones are null when
+the expansion is omitted, so omitting it would drop them before
+`supplied_fields` can keep them. This proposal requests them and keeps
+unmapped fields under the server's names. It does not request
+`include=segments`. Segments are a separate size and privacy choice because
+they can carry nested route detail. A page over 8 MiB still fails.
 
 Rejected alternatives:
 
@@ -121,7 +165,13 @@ Rejected alternatives:
   keep them.
 - Map `heart_rate` samples as points, or map recovery summaries onto
   midnight. Rejected because one invents a point quantity and the other
-  invents an instant (D88, D110).
+  invents an instant (D88, D110). The server's own period bounds are a
+  different fact. This proposal still does not store them.
+- Send timeseries with an empty `types` list. Rejected because 0.11.0 then
+  returns every series.
+- Put `device_id` on the match key in this pull only. Rejected because file
+  import and pull would stop sharing an identity. Changing both paths is a
+  separate decision. The pull guard rejects an ambiguous page instead.
 
 ## D200. The key, the server, and the user id stay out of the record
 
@@ -133,11 +183,26 @@ The child process receives it as `ATH_CORE_OPEN_WEARABLES_KEY`. The key is
 not a command argument. If the password store is missing, the command refuses
 and does not write a file.
 
-`ath key clear openwearables` deletes that saved key. `ath key clear` with
-no name still clears only the gateway keys. The Open Wearables key is cleared
-only when it is named. `ath key` keeps its gateway lines and adds one line
-that says whether an Open Wearables key is saved or set in the environment.
-The line does not include the key. Garmin's key command is unchanged.
+Open Wearables is not added to the gateway list. `GATEWAYS` stays `vercel`
+and `openrouter`. `ath key clear` with no name still clears only those
+gateway keys, and it still exits successfully when that is what it did.
+When a saved Open Wearables key remains, the text adds two sentences: the
+Open Wearables key remains saved, and `ath key clear openwearables` removes
+it. When no saved Open Wearables key remains, the gateway sentences stay as
+they are today. `ath key clear vercel` and `ath key clear openrouter` do not
+remove the Open Wearables key and do not gain that sentence.
+
+`ath key clear openwearables` deletes the password-store key only. It does
+not unset `OPEN_WEARABLES_API_KEY`. The text says the saved key was removed.
+When the environment variable is set, the text also says that key is still
+available and a pull can still use it. When the variable is unset, the text
+does not claim an environment key remains.
+
+`ath key` keeps its gateway lines. It adds separate lines for a saved Open
+Wearables key and for `OPEN_WEARABLES_API_KEY`, and it prints neither value.
+`ath key --json` keeps `saved` and `environment` as the gateway lists they
+are today, and adds `openwearables.saved` and `openwearables.environment`.
+Garmin's key command is unchanged.
 
 The server is `--base-url` or `OPEN_WEARABLES_BASE_URL`. The user id is
 `--user` or `OPEN_WEARABLES_USER_ID`. Neither is written into the database,
@@ -149,13 +214,19 @@ password, no path other than empty or `/`, no query, and no fragment. `http`
 is allowed only for `localhost`, `127.0.0.1`, and `::1`. Any other host
 requires `https`. The pull appends `/api/v1` itself. Redirects are not
 followed. A timeout, a non-JSON body, or an HTTP error becomes the page
-failure in D201. The printed error is the status and, when the body is
-problem JSON, the `code`. It does not include the request path. The path
-contains the user id. The response body is checked for the key before
-`apply_mapping`. A body that contains the key is not written. The key is
-removed from any text the command prints. A result that still contains the
-key is replaced with a fixed refusal, as the Garmin pull already does for
-its own key.
+failure in D201. The printed error is a fixed sentence and the HTTP status. A problem `code`
+is printed only when it is one short token and does not contain the key,
+the origin, or the user id. Otherwise it is withheld. A transport error or
+a parser error is replaced with a fixed sentence that has no URL, no path,
+and no user id.
+
+After the body is read inside the size cap and parsed, and before
+`apply_mapping`, `open_wearables.rs` walks every object key and every string.
+A value that contains the API key, the selected origin, or the selected user
+id rejects the whole page. The row is not rewritten. A scan of the raw text
+misses a Unicode escape. The raw-text scan and the check before printing
+stay as defense in depth. They are not what keeps the key out of a committed
+page. Named clear of the saved key does not revoke it on the server.
 
 The shell history can contain the server and the user id when they are
 passed as flags. The key is not a flag. `ath key set openwearables`, or
@@ -180,22 +251,41 @@ Rejected alternatives:
 
 Each response page is one `apply_mapping` call. D189 still makes that call
 one transaction: a failure rolls the page back, and a preview rolls the page
-back after counting. The pull itself is a series of those calls. Sleep pages
-finish before workout pages, then timeseries pages.
+back after counting. The pull itself is a series of those calls. The proposed
+order is sleep pages, then workout pages, then timeseries pages. A committed
+page follows D189. A committed page does not mean the pull is complete.
 
-The command previews unless `--yes` is present. `--json` is a preview and
-does not write, matching `ath import --mapping`. `--yes` writes each page as
-that page succeeds. If a later page fails, pages already written stay. The
-message names the read. When at least one page was written, it says those
-pages are kept. It says to run the same command again. An empty range is a
-successful pull with zero records. A repeat uses the
-match key from D181 and the replace from D182, so an unchanged row is not
-written again.
+The command previews unless `--yes` is present. `--json` does not write,
+with or without `--yes`, matching `ath import --mapping`. `--yes` without
+`--json` writes each page as that page succeeds. The text of that write
+reports actual committed counts. Preview text and `--json` report
+`estimated` counts against the pre-pull database, and committed zeros.
+
+Each of `sleep`, `workouts`, and `timeseries` is `completed`, `failed`,
+`skipped`, or `not_attempted`. `skipped` is the timeseries read when the
+mapping named no types. `range_complete` is true only on a `--yes` write
+whose reads finished without a failed page. The success sentence is printed
+only then. A non-zero committed count with an incomplete range is a partial
+pull. The message names the failed read, names any read not attempted, gives
+the retained counts, and says to run the same command again. A preview that
+fails writes nothing, including pages that had already been counted.
+
+Before `apply_mapping`, the page must be a JSON object, `data` must be an
+array, `pagination` must be an object, and `has_more` must be a boolean.
+Anything else fails the page. It is not an empty success. The result keeps
+a `left_out` total and at most 20 examples.
+
+An empty range whose three reads completed is a successful pull with
+committed counts of zero and `range_complete` true. A repeat uses the match
+key from D181 and the replace from D182, so an unchanged row is not written
+again. A rerun after a partial write leaves the committed rows in place,
+runs the failed read again, and runs any read that was not attempted.
 
 `has_more: false` is the only successful end of a read. A repeated cursor,
 a null cursor while `has_more` is true, the 1000-page cap, and a body over
-8 MiB fail that read. The failed page is not written. The success line is
-not printed. A cursor with the `prev_` prefix is not sent.
+8 MiB fail that read. The failed page is not written. Later reads are
+`unattempted`. The success line is not printed. A cursor with the `prev_`
+prefix is not sent.
 `limit` is 1000. One attempt is made per request. There is no retry. The
 connect timeout is 10 seconds and the read timeout is 30 seconds.
 
@@ -215,14 +305,16 @@ records the disagreement between the docs and the 0.11.0 parser.
 Queries that are sent:
 
 - Sleep: `start_date`, `end_date`, `limit`, `cursor` after the first page,
-  `filter_by_priority=false`. `is_nap` is omitted, so naps and main sleep
-  both return. `include` is omitted.
-- Workouts: `start_date`, `end_date`, `limit`, `cursor` after the first page.
-  No priority flag, because 0.11.0 has none and current `main` already
-  returns every device when the flag is absent.
-- Timeseries: `start_time`, `end_time`, `limit`, `resolution=raw`,
-  `filter_by_priority=false`, `types` from the mapping file, and `cursor`
-  after the first page.
+  `filter_by_priority=false`, `include=stages`. `is_nap` is omitted, so naps
+  and main sleep both return.
+- Workouts: `start_date`, `end_date`, `limit`, `cursor` after the first page,
+  `include=zones`. `include=segments` is not sent. No priority flag, because
+  0.11.0 has none and current `main` already returns every device when the
+  flag is absent.
+- Timeseries, only when the mapping names at least one type: `start_time`,
+  `end_time`, `limit`, `resolution=raw`, `filter_by_priority=false`, repeated
+  `types` from the mapping file, and `cursor` after the first page. No types
+  means no request.
 
 `source_selection` is not sent. On 0.11.0 the parameter does not exist. On
 current `main`, omitting it returns every device when the priority flag is
@@ -232,7 +324,11 @@ Rejected alternatives:
 
 - One transaction for the whole range. Rejected because a raw range can be
   large, and a failure at the end would discard pages that had already
-  succeeded. Each page is still atomic.
+  succeeded. Each page stays atomic under D189. The pull's result still says
+  the requested range is incomplete when a later read failed or was not
+  attempted.
+- Treat a committed page as a finished pull. Rejected because the person and
+  an agent would read a partial database as the whole requested range.
 - Store a resume cursor in the database. Rejected because the same command
   finds the same rows by their match keys, so a stored cursor would be a
   second copy of progress.

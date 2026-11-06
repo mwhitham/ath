@@ -14,7 +14,8 @@ GitHub is MIT. The repository was created on 30 October 2025. GitHub reported
 the default branch `main` pushed at 13:43 UTC on 6 November 2026.
 
 The newest published release on that date was `0.11.0`, published at 16:10 UTC
-on 2 November 2026, at commit `183e8cc4f6de`. Its title is "0.11 - Daily
+on 2 November 2026, at commit `183e8cc4f6de897dbd288c93d49a691f2cf721ae`.
+Its title is "0.11 - Daily
 aggregates & faster summaries". The commit on `main` that day,
 `7ca121dd4e48`, is "chore: update OW to 1.0 (#2065)". There was no GitHub
 release named 1.0.0.
@@ -95,8 +96,20 @@ Sleep, from the `0.11.0` schema `SleepSession`: `id`, `start_time`,
 `end_time`, `zone_offset`, `source`, `duration_seconds`,
 `sleep_duration_seconds`, `time_in_bed_seconds`, `efficiency_percent`,
 `stages`, `sleep_stage_intervals`, `is_nap`. Stages have `awake_minutes`,
-`light_minutes`, `deep_minutes`, `rem_minutes`. `source` has `provider`,
-`source`, `device`, `device_type`, `device_id`, and read-only `device_name`.
+`light_minutes`, `deep_minutes`, `rem_minutes`. The session object does not
+carry resting heart rate, heart-rate variability, blood oxygen, skin
+temperature, or respiration. `sleep_stage_intervals` is null unless the
+query sends `include=stages` (`event_record_service.py` on this commit).
+Stage minute totals are returned either way. Workout zones need
+`include=zones`. Workout segments need `include=segments`. `source` has
+`provider`, `source`, `device`, `device_type`, `device_id`, and read-only
+`device_name`. `metadata.py` on this commit says `device_id` tells
+same-model devices apart. `provider` is the integration, and `source` is
+the writer inside it.
+
+The timeseries route defaults `types` to an empty list. The repository
+filters by type only when that list is nonempty. An empty list is every
+series.
 
 Workouts, from `Workout`: `id`, `type`, `name`, `start_time`, `end_time`,
 `zone_offset`, `source`, `entry_source`, `intensity`, the distance, heart-rate,
@@ -124,12 +137,13 @@ The API introduction says a date-only start is midnight UTC and a date-only
 end covers that whole UTC day.
 
 The `0.11.0` parser does not say UTC. `parse_query_datetime` in
-`backend/app/utils/dates.py` uses `datetime.fromisoformat` after rejecting a
-value that parses as a number. A date-only string becomes midnight with no
-timezone. `parse_query_end_datetime` turns a date-only end into the next
-midnight, also with no timezone, because the comparison is `<`. This study
-did not follow those naive values into the database session, so it does not
-claim which timezone PostgreSQL applies.
+`backend/app/utils/dates.py` accepts a numeric Unix timestamp in seconds
+before it tries `datetime.fromisoformat`. A date-only string becomes midnight
+with no timezone. `parse_query_end_datetime` turns a date-only end into the
+next midnight, also with no timezone, because the comparison is `<`. This
+study did not follow those naive values into the database session, so it does
+not claim which timezone PostgreSQL applies. Athletic Standard's own command
+still refuses a numeric bound. That is this program's rule, not the server's.
 
 A full timestamp is sent through as parsed. The docs say a value with an
 explicit time is used as given, and `end_time` at midnight includes nothing
