@@ -9,14 +9,15 @@ D-number.
 
 ## D198. Version 2.2.0 is one manual pull, and the program and the record share that number
 
-`ath pull openwearables` reads sleep, workouts, and raw samples from an Open
-Wearables server the person runs, for one user and one range they name. The
-command is manual. The person runs it. The program does not schedule it, retry
-it, or sign the person in to a device maker.
+`ath pull openwearables` reads the stored measurements D203 lists from an
+Open Wearables server the person runs, for one user and one range they name. The
+command is manual. The person runs it. The program does not schedule it,
+retry a failed request, or sign the person in to a device maker.
 
 The program, the record, and the database become `2.2.0` together. D152 made
 those one number. D184 kept that rule. Migration step 5 stores `2.2.0` and
-SQL schema 5. It adds no column and changes no record. Step 4 is not edited
+SQL schema 5. It adds no column. It rebuilds `provider_summaries` as D203
+describes and copies existing rows with their numbers. Step 4 is not edited
 (D165). A new database runs step 5 after step 4 and before `user_version` is
 set. `applyMigrationStep` handles target 5. The migration chain, the SQL
 contract generator, and the drift check gain that step. The package exports
@@ -32,19 +33,17 @@ into a version change, a client, and a mapping change.
 The version numbers below are proposals. They are not specs, and they are
 not adopted.
 
-- 2.2.0 is this pull: sleep, workouts, and raw samples.
+- 2.2.0 is this pull. D203 says which stored measurements it keeps.
 - 2.3.0 is a proposed Junction pull. This release does not call Junction.
 - 2.4.0 is proposed automatic incremental sync, saved sign-in refresh,
-  retries, and backfill. This release has none of those.
-- Day aggregates and the heart-rate stream are left out of this proposed
-  pull. That is the proposed scope. D88 forbids a fabricated instant. It does
-  not forbid keeping a reporting bound the server sent, and it does not put
-  that work after Junction or automatic sync. This proposal suggests 2.5.0
-  for that work. The maintainer decides the timing. `ProviderReportingPeriodType`
-  stays the Whoop, Oura, and Apple values it has now.
-- A connector interface that every future source would implement is later
-  than the slot suggested for day aggregates. This release adds one module
-  for this server.
+  retries, and backfill. This release has none of those. A smaller page
+  after a local 8 MiB cap, described in D203, is not that retry.
+- An earlier draft of this plan left day aggregates and the heart-rate
+  stream out and suggested 2.5.0 for them. D203 supersedes that draft.
+  D88 still forbids a fabricated instant. It does not forbid keeping a
+  bound the server sent.
+- A connector interface that every future source would implement is not
+  part of this release. This release adds one module for this server.
 
 File imports stay: Apple Health, WHOOP, Oura, Garmin, and Strava. `ath pull
 garmin` stays as it is. Mapped import for every route other than
@@ -63,15 +62,14 @@ Rejected alternatives:
 - Pull Junction, start sync jobs, or add a connector trait in this release.
   Rejected because this release has to make one manual read reliable first.
   The later version numbers are proposals, not adopted assignments.
-- Store day aggregates in this release by calling them 2.5.0 work and then
-  requesting them anyway. Rejected. Leaving them out is the proposal. Adding
-  them silently is not. The maintainer can choose an earlier version than
-  the suggested 2.5.0. That choice is still open.
+- Leave day aggregates and the heart-rate stream for a later version, or
+  request them while still calling that later version their home. Superseded
+  by D203. The current proposal stores them in this pull and says so.
 
 ## D199. The pull fetches pages and the shipped mapping writes the records
 
-New Rust module `crates/ath-core/src/open_wearables.rs` requests the three
-reads and calls `apply_mapping`. The command-line front end stays in
+New Rust module `crates/ath-core/src/open_wearables.rs` requests the reads
+in D203 and calls `apply_mapping`. The command-line front end stays in
 TypeScript (D174). New imports stay in `ath-core` (D155). The HTTP client is
 the `ureq` 2.12 dependency the Garmin pull already uses. No new crate.
 
@@ -104,18 +102,15 @@ comma-joined string is not a member of the `SeriesType` enum. This study did
 not send that request, so it does not claim a live 422. The Rust source has
 no second copy of those names.
 
-If the checked mapping produces no timeseries types, the pull skips the
-timeseries request and reports zero counts for that read. The read is
-`skipped`. On Open Wearables 0.11.0 the route defaults `types` to an empty
-list, and the repository applies a type filter only when the list is
-nonempty (`data_point_series_repository.py`). An empty list therefore
-returns every series, including heart rate and location. This pull never
-sends that request. A mapping that cannot be read for types fails before
-any network call.
+On Open Wearables 0.11.0 the route defaults `types` to an empty list, and
+the repository applies a type filter only when the list is nonempty
+(`data_point_series_repository.py`). An empty list therefore returns every
+series. D203 omits `types` on the raw read and the day read for that
+reason. A mapping that cannot store those series fails before any network
+call. A comma-joined type string is still not sent.
 
-`heart_rate` is not one of the shipped lines, and it is not a point quantity
-the mapping can write. This proposal does not add the line and does not
-store the heart-rate stream. Workout `avg_heart_rate_bpm` and
+`heart_rate` is a series quantity. D203 stores the raw stream as
+measurement samples. Workout `avg_heart_rate_bpm` and
 `max_heart_rate_bpm` stay as the file already maps them.
 
 `apply_mapping` adds counts by record type and keeps the existing `outcome`
@@ -126,33 +121,21 @@ this command. They are not equal to the write when the same match key appears
 on two pages, or when the server changes between runs. The write still
 follows D182. This proposal does not keep a command-wide preview overlay.
 
-The proposed read order is sleep, then workouts, then raw timeseries. That
-order is part of what the maintainer approves. A failure in a later read
+The read order is the order in D203. A failure in a later read
 leaves the earlier read's pages committed and the reads after the failure
 `not_attempted`. The result says so. See D201.
 
-The coverage table in the specification is the proposed scope. Day
-aggregates, sleep-linked physiology, recovery summaries, health scores,
-meals, and body summaries are not requested. Open Wearables 0.11.0 already
-returns reporting bounds on a day sample: an interval, `period_end`,
-`computed_by`, and `stats`. Leaving those values out is incomplete coverage.
-It is not required by D88. D88 forbids inventing a midnight. It does not
-forbid storing a bound the server sent, and it does not assign the work to
-a version after Junction and automatic sync. The suggested version is 2.5.0.
-That suggestion is not adopted, and it is not approval of the loss.
+D203 is the coverage rule. An earlier draft of this decision left the day
+rows, the summaries, and the heart-rate stream unrequested. That draft is
+superseded. D88 still forbids inventing a midnight. The period type in
+D203 stores the bound the server sent. An Open Wearables window is not
+labeled as a Whoop cycle or an Oura day.
 
-The other choice is a preservation design: store those intervals with their
-bounds and basis, after a new period type. This proposal does not add that
-type, does not label an Open Wearables day as a Whoop cycle or an Oura day,
-and does not turn a summary into a point or a score.
-
-Sleep requests `include=stages`. Workouts request `include=zones`. Stage
-minute totals return either way. The timeline and the zones are null when
-the expansion is omitted, so omitting it would drop them before
-`supplied_fields` can keep them. This proposal requests them and keeps
-unmapped fields under the server's names. It does not request
-`include=segments`. Segments are a separate size and privacy choice because
-they can carry nested route detail. A page over 8 MiB still fails.
+Sleep requests `include=stages`. Workouts request `include=zones` and
+`include=segments`. Stage minute totals return either way. The timeline,
+the zones, and the segments are null when the expansion is omitted, so
+omitting it would drop them before `supplied_fields` can keep them. A page
+over 8 MiB is handled as D203 says.
 
 Rejected alternatives:
 
@@ -162,16 +145,16 @@ Rejected alternatives:
 - Pass the sleep envelope straight to `apply_mapping`. Rejected because the
   current page rule would leave the page out. The check is `page_rows` and
   `row_fits` in `crates/ath-core/src/mapping.rs`.
-- Request every series type and let `left_out` drop the rest. Rejected
-  because the type list includes latitude, longitude, and other series the
-  file does not store. The pull would download them for a result that cannot
-  keep them.
-- Map `heart_rate` samples as points, or map recovery summaries onto
-  midnight. Rejected because one invents a point quantity and the other
-  invents an instant (D88, D110). The server's own period bounds are a
-  different fact. This proposal still does not store them.
-- Send timeseries with an empty `types` list. Rejected because 0.11.0 then
-  returns every series.
+- Request every series type and let `left_out` drop the ones the mapping
+  cannot store. Rejected. D203 stores them. `left_out` remains a row the
+  server returned and this program refused for a named reason.
+- Map `heart_rate` samples as points, or map a day summary onto midnight.
+  Rejected. `heart_rate` is stored as a measurement sample. A day row is
+  stored as a reporting window (D88, D110, D203).
+- Refuse an empty `types` list in order to avoid heart rate and location.
+  Superseded by D203. Omitting `types` is how 0.11.0 returns every series,
+  and those series are stored. A comma-joined string is still not a member
+  of the enum.
 - Put `device_id` on the sensor string, and therefore on the match key, for
   both import and pull. Not this proposal. It needs no new column, and the
   mapping engine already joins configured sensor paths, but it changes
@@ -310,22 +293,24 @@ array, `pagination` must be an object, and `has_more` must be a boolean.
 Anything else fails the page. It is not an empty success. The result keeps
 a `left_out` total and at most 20 examples.
 
-An empty range whose three reads completed is a successful pull with
+An empty range whose reads completed is a successful pull with
 committed counts of zero and `range_complete` true. A repeat uses the match
 key from D181 and the replace from D182, so an unchanged row is not written
 again. A rerun after a partial write leaves the committed rows in place,
 runs the failed read again, and runs any read that was `not_attempted`.
 
 `has_more: false` is the only successful end of a read. A repeated cursor,
-a null cursor while `has_more` is true, the 1000-page cap, and a body over
-8 MiB fail that read. The failed page is not written. Later reads are
-`not_attempted`. The success line is not printed. A cursor with the `prev_`
-prefix is not sent.
-`limit` is 1000. One attempt is made per request. There is no retry. The
-connect timeout is 10 seconds and the read timeout is 30 seconds.
+a null cursor while `has_more` is true, and the 1000-page cap fail that
+read. A body over 8 MiB is handled by D203: the same query is sent with a
+smaller limit, and one row that is still over 8 MiB fails that read. The
+failed page is not written. Later reads are `not_attempted`. The success
+line is not printed. A cursor with the `prev_` prefix is not sent.
+`limit` starts at 1000. One attempt is made per request, except the smaller
+page D203 sends after a local size cap. A transport error is not retried.
+The connect timeout is 10 seconds and the read timeout is 30 seconds.
 
 A row that this range did not return is left where it is. The pull does not
-call `DELETE`. There is no deletion feed on the three reads. Absence can be
+call `DELETE`. There is no deletion feed on these reads. Absence can be
 a short range, a failed page, or a server filter. D190 still applies: a
 source the person has deleted stays deleted, and its rows are left out. A
 record the person has deleted stays deleted, and that object is left out
@@ -343,13 +328,21 @@ Queries that are sent:
   `filter_by_priority=false`, `include=stages`. `is_nap` is omitted, so naps
   and main sleep both return.
 - Workouts: `start_date`, `end_date`, `limit`, `cursor` after the first page,
-  `include=zones`. `include=segments` is not sent. No priority flag, because
-  0.11.0 has none and current `main` already returns every device when the
-  flag is absent.
-- Timeseries, only when the mapping names at least one type: `start_time`,
-  `end_time`, `limit`, `resolution=raw`, `filter_by_priority=false`, repeated
-  `types` from the mapping file, and `cursor` after the first page. No types
-  means no request.
+  `include=zones`, and `include=segments`. No priority flag, because 0.11.0
+  has none and current `main` already returns every device when the flag
+  is absent.
+- Timeseries, twice: `start_time`, `end_time`, `limit`,
+  `filter_by_priority=false`, `cursor` after the first page, and
+  `resolution=raw` on one read and `resolution=1day` on the other. `types`
+  is omitted on both.
+- Sleep summary, activity summary, and recovery summary: `start_date`,
+  `end_date`, `limit`, and `cursor` after the first page.
+- Body summary: one request. `average_period` and `latest_window_hours`
+  are omitted, so the server's defaults apply.
+- Health scores: `start_date`, `end_date`, `limit`, and `offset` until a
+  short page. This route has no cursor.
+- Meals and menstrual cycles: `start_date`, `end_date`, `limit`, and
+  `cursor` after the first page.
 
 `source_selection` is not sent. On 0.11.0 the parameter does not exist. On
 current `main`, omitting it returns every device when the priority flag is
@@ -394,7 +387,9 @@ open. They do not run on a pull. This build does not change them.
 for HTTP. `mapping.rs` may add the count by record type that D199 names, and the
 open-wearables device-binding check in the specification. That check is
 shared by mapped import and pull, and it is limited to route
-`open_wearables`. Nothing else is added to `mapping.rs`. `store.rs` may
+`open_wearables`. D203 also adds the measurement-sample target, the
+reporting-window write, and the segment copy. Nothing beyond that is added
+to `mapping.rs`. `store.rs` may
 preserve `device_binding` inside `revise` when the record is a source, and
 refuse a partial patch that contains that key. `revise` cannot set, change,
 or clear the receipt. The connection is private, `ensure_mapped_source`
@@ -425,3 +420,56 @@ Rejected alternatives:
   the pull writes, and the maintainer asked not to widen this build.
 - Block the pull on those fixes. Rejected for the same reason. A later
   change can take any one of them on its own.
+
+## D203. Stored Open Wearables measurements are kept in this pull
+
+This supersedes the earlier draft, inside D198 and D199, that left day
+values, the heart-rate stream, sleep and recovery summaries, meals, and
+workout segments out of this pull. Those drafts are not deleted above.
+They are not the current proposal. The specification's section 2 is the
+list of reads, the storage rule, and the omissions that remain.
+
+A raw series that 2.1.0 already stores as a point stays a point, on the
+same match key. A raw `heart_rate` series is a measurement sample because
+that quantity already exists and it is not a point. Every other pinned
+series type that has no quantity yet gains one. The unit and the number
+come from the server. A row with `period_end` is a provider summary with
+period type `open_wearables_reporting_window`. `recorded_at` is unset.
+`start_at` and `end_at` are the server's `timestamp` and `period_end`.
+
+`ProviderReportingPeriodType` gains that one value. `ValueBasis` gains
+`aggregator`, used when `computed_by` is `open_wearables`. Series
+quantities gain the missing pinned types. `quantity` is already an
+unconstrained text column, so those names add no SQL column. Step 5
+rebuilds `provider_summaries` so `standard_value` and `standard_unit` can
+be null together. Existing summary rows are copied with their numbers.
+The device receipt still adds no column. The receipt, the transaction,
+the preview counts, and the public non-writing `--json` rule are
+unchanged.
+
+The mapping file `mappings/open-wearables.md` is rewritten in the build
+so a raw point, a raw sample, a day window, and a segment follow section
+2. A resolved file that does not do that fails before any request. D179
+still lets an installed file win. This check stops the 2.1.0 file from
+dropping rows the pull can store.
+
+Rejected alternatives:
+
+- Keep the earlier draft and store these values in a later version.
+  Rejected. The server already returns them, and a later version was
+  being used as a reason to leave them out.
+- Store a day row as a point at the period start. Rejected. That would
+  make a reporting window look like one instant (D88, D110).
+- Drop latitude, longitude, segments, or a large series to keep a
+  response under 8 MiB. Rejected. The smaller page in the specification
+  stores the rows. One row larger than 8 MiB is a real limit and is
+  named.
+- Call the personal-record route, the live provider workout proxy, or
+  the totals routes so the pull can say it hit every path. Rejected.
+  The personal record is birth date, gender, and sex. The provider
+  workout routes read the vendor through the server's connection. The
+  totals routes add up rows this pull already stores.
+- Invent a midnight, a zero, or an SDNN value from an RMSSD value.
+  Rejected. A null stays absent. Skin temperature is stored only from
+  a response that has the field. `RecoverySummary` at the pinned commit
+  does not have one.

@@ -5,9 +5,9 @@ program, the record, or the database has changed for 2.2.0.
 
 | Step | What | Status |
 |---|---|---|
-| 0 | The plan: proposals D198–D202, and the Open Wearables study. Revised after the four reviews of `c9ca93a`. Still not adopted. The new head needs re-review | written, not approved |
-| 1 | Version 2.2.0, migration step 5, no new column (D198) | not started |
-| 2 | `ath pull openwearables` in `ath-core`, using the shipped mapping (D199, D201) | not started |
+| 0 | The plan: proposals D198–D203, and the Open Wearables study. D203 keeps the stored measurements in this pull. Still not adopted. The new head needs re-review | written, not approved |
+| 1 | Version 2.2.0 and migration step 5. No new column. Provider summaries may omit a number (D198, D203) | not started |
+| 2 | `ath pull openwearables` in `ath-core`, with the rewritten mapping (D199, D201, D203) | not started |
 | 3 | Key, server, and user id kept out of the record (D200) | not started |
 | 4 | Fixture tests, with no live key in CI | not started |
 | 5 | Generated schema, demo athlete, skill command reference, and the public-data list | not started |

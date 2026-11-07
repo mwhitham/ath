@@ -45,10 +45,11 @@ introduction, that stores data for people who do not run the server.
 Open Wearables is not Junction. Junction remains the other shipped mapping
 file, and this plan does not call it.
 
-## The read this plan uses
+## The reads this plan uses
 
-All three reads are under `/api/v1` and take a user id in the path. The user
-id is an Open Wearables UUID. Dates are required.
+D203 names every read. The paths below are the ones this study opened
+first. Each is under `/api/v1` and takes a user id in the path. The user
+id is an Open Wearables UUID. Dates are required on the paged reads.
 
 | Read | Path on `0.11.0` | Page shape |
 |---|---|---|
@@ -125,11 +126,11 @@ Timeseries, from `TimeSeriesSample`: `timestamp`, `zone_offset`, `type`,
 capture a live JSON body, so it does not claim the wire format beyond that
 schema. `zone_offset` is a separate string, `+01:00` or `-05:30`, or null.
 
-The shipped mapping file's timeseries lines do not name `heart_rate`. In
+The 2.1.0 mapping file's timeseries lines do not name `heart_rate`. In
 Athletic Standard, `heart_rate` is a series quantity
 (`SERIES_QUANTITY_UNITS` in `src/v1/schema.ts`). It is not one of the point
-quantities the mapping engine writes. A raw heart-rate stream therefore has
-nowhere to go in the current mapping.
+quantities the 2.1.0 mapping engine writes. D203 stores that stream as
+measurement samples. The 2.1.0 file, by itself, still has nowhere to put it.
 
 ## Time bounds
 
@@ -192,6 +193,54 @@ and `avg_hrv_sdnn_ms` as separate fields.
 
 No rate-limit field was in the API introduction or in the three `0.11.0`
 route files. A limit may still exist in middleware this study did not open.
+
+## Coverage audit on 7 November 2026
+
+The same commit, `183e8cc4f6de897dbd288c93d49a691f2cf721ae`, was read again
+for every user data route. The OpenAPI file is `docs/openapi.json`,
+`info.version` `0.11.0`. The storage rule is D203. This section records
+what the source shows.
+
+`SeriesType` is the enum in `backend/app/schemas/enums/series_types.py`.
+Each entry in `SERIES_TYPE_DEFINITIONS` is an id, a name, and a unit.
+`heart_rate` is `bpm`. `latitude` and `longitude` are `degrees`. The raw
+path in `timeseries_service.py` copies `recorded_at`, `zone_offset`, the
+type, the value, and `window_seconds`. It does not set `period_end` or
+`computed_by`.
+
+`_aggregated_timeseries` handles `1min`, `5min`, `15min`, and `1hour`. It
+sets `window_seconds` from `BUCKET_SIZES` and does not set `period_end`.
+Those rows are buckets of raw samples, built when the query runs.
+
+`_period_timeseries` handles `1day`, `1week`, and `1month`. The timestamp
+is `CalendarPeriod.of_date(period, zone_offset).start`. `period_end` is
+the start of the next period. For a day, `computed_by` is the stored row's
+value. For a week or a month, the code sets `computed_by` to
+`open_wearables`. The comment says weeks start on Monday and months on
+the first, from the local day. One response row is one period, one
+source, and one series type. `stats` is the combined object.
+
+`SleepSession` has no resting heart rate, heart-rate variability, blood
+oxygen, respiration, or temperature. `SleepSummary` has
+`avg_heart_rate_bpm`, `avg_hrv_sdnn_ms`, `avg_hrv_rmssd_ms`,
+`avg_respiratory_rate`, and `avg_spo2_percent`, plus a `date` and optional
+`start_time` and `end_time`. `RecoverySummary` has `resting_heart_rate_bpm`,
+`avg_hrv_rmssd_ms`, `avg_hrv_sdnn_ms`, `avg_spo2_percent`, and
+`recovery_score`. It has no temperature field. The SDNN field text says
+the value is null for current rows because they come from WHOOP and
+WHOOP's HRV there is RMSSD. `recovery_score` is deprecated in that class
+and documented as 0 to 100. `BodyLatest` has `skin_temperature_celsius`
+and `skin_temperature_measured_at`. `BodyAveraged` has `period_start`,
+`period_end`, and separate RMSSD and SDNN fields.
+
+Workout `segments` is an array of objects. `event_record_service.py`
+fills it only when `include=segments`. Zones are filled only when
+`include=zones`. The provider workout routes describe a live call to
+Suunto, Polar, or Garmin. They are not the stored workout object.
+
+Sleep totals, workout totals, and activity totals describe sums of the
+listed rows. The personal-record response fields are `birth_date`,
+`gender`, and `sex`.
 
 ## What was not checked
 
