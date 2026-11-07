@@ -36,12 +36,12 @@ not adopted.
 - 2.3.0 is a proposed Junction pull. This release does not call Junction.
 - 2.4.0 is proposed automatic incremental sync, saved sign-in refresh,
   retries, and backfill. This release has none of those.
-- Day aggregates and the heart-rate stream are left out of this pull. D88
-  supports that exclusion, because a day must not become an invented midnight.
-  D88 does not say they wait until after the proposed Junction pull and the
-  proposed automatic sync. This proposal suggests 2.5.0 for that work. The
-  maintainer decides the timing. `ProviderReportingPeriodType` stays the
-  Whoop, Oura, and Apple values it has now.
+- Day aggregates and the heart-rate stream are left out of this proposed
+  pull. That is the proposed scope. D88 forbids a fabricated instant. It does
+  not forbid keeping a reporting bound the server sent, and it does not put
+  that work after Junction or automatic sync. This proposal suggests 2.5.0
+  for that work. The maintainer decides the timing. `ProviderReportingPeriodType`
+  stays the Whoop, Oura, and Apple values it has now.
 - A connector interface that every future source would implement is later
   than the slot suggested for day aggregates. This release adds one module
   for this server.
@@ -169,9 +169,18 @@ Rejected alternatives:
   different fact. This proposal still does not store them.
 - Send timeseries with an empty `types` list. Rejected because 0.11.0 then
   returns every series.
-- Put `device_id` on the match key in this pull only. Rejected because file
-  import and pull would stop sharing an identity. Changing both paths is a
-  separate decision. The pull guard rejects an ambiguous page instead.
+- Put `device_id` on the sensor string, and therefore on the match key, for
+  both import and pull. Not this proposal. It needs no new column, and the
+  mapping engine already joins configured sensor paths, but it changes
+  source, baseline, and key identity. Old triple-key rows would stay where
+  they are, and dedupe against them cannot be promised. A `device_id` that
+  contains `|` collides with the join unless those values are refused or
+  the join is encoded. The shared binding in the specification keeps the
+  current keys and refuses the unsafe write instead.
+- Guard the pull only, or treat `source_devices.hardware` as the binding.
+  Rejected. Import after pull would still replace the point, and hardware
+  is one mutable column. The point's revisions do not contain `device_id`
+  today, because that path is removed as hardware.
 
 ## D200. The key, the server, and the user id stay out of the record
 
@@ -257,18 +266,27 @@ page follows D189. A committed page does not mean the pull is complete.
 
 The command previews unless `--yes` is present. `--json` does not write,
 with or without `--yes`, matching `ath import --mapping`. `--yes` without
-`--json` writes each page as that page succeeds. The text of that write
-reports actual committed counts. Preview text and `--json` report
-`estimated` counts against the pre-pull database, and committed zeros.
+`--json` writes each page as that page succeeds.
+
+The child returns one bounded outcome for the mode it ran. A preview,
+including public `--json`, has `written` false, committed zeros, estimated
+counts, and `range_complete` false. A confirmed `--yes` has the actual
+committed counts. `written` is true only when that command committed a new
+or revised record. A successful repeat has `written` false and
+`database_changed` false. The database is unchanged. The parent renders the
+confirmed outcome as text. It renders the preview outcome as public JSON.
+On a partial failure the child returns the confirmed outcome and then exits
+nonzero. The parent renders the text before it uses that status.
 
 Each of `sleep`, `workouts`, and `timeseries` is `completed`, `failed`,
-`skipped`, or `not_attempted`. `skipped` is the timeseries read when the
-mapping named no types. `range_complete` is true only on a `--yes` write
-whose reads finished without a failed page. The success sentence is printed
-only then. A non-zero committed count with an incomplete range is a partial
-pull. The message names the failed read, names any read not attempted, gives
-the retained counts, and says to run the same command again. A preview that
-fails writes nothing, including pages that had already been counted.
+`skipped`, or `not_attempted`. The token is `not_attempted` in the outcome
+and in the text. `skipped` is the timeseries read when the mapping named no
+types. `range_complete` is true only on a `--yes` write whose reads finished
+without a failed page. The success sentence is printed only then. A retained
+count with an incomplete range is a partial pull. The message names the
+failed read, names any `not_attempted` read, gives the retained counts, and
+says to run the same command again. A preview that fails makes no database
+changes, including for pages that had already been counted.
 
 Before `apply_mapping`, the page must be a JSON object, `data` must be an
 array, `pagination` must be an object, and `has_more` must be a boolean.
@@ -279,7 +297,7 @@ An empty range whose three reads completed is a successful pull with
 committed counts of zero and `range_complete` true. A repeat uses the match
 key from D181 and the replace from D182, so an unchanged row is not written
 again. A rerun after a partial write leaves the committed rows in place,
-runs the failed read again, and runs any read that was not attempted.
+runs the failed read again, and runs any read that was `not_attempted`.
 
 `has_more: false` is the only successful end of a read. A repeated cursor,
 a null cursor while `has_more` is true, the 1000-page cap, and a body over
@@ -356,9 +374,11 @@ open. They do not run on a pull. This build does not change them.
 
 `crates/ath-core/src/store.rs` is 1034 lines. `mapping.rs` is 1443.
 `persist.rs` is 1051. The pull is a new module so those files do not grow
-for HTTP. `mapping.rs` may add the count by record type that D199 names, and
-nothing else. Splitting the files is separate work. It is not required to
-make the pull correct.
+for HTTP. `mapping.rs` may add the count by record type that D199 names, and the
+open-wearables device-binding check in the specification. That check is
+shared by mapped import and pull, and it is limited to route
+`open_wearables`. Nothing else is added to `mapping.rs`. Splitting the
+files is separate work. It is not required to make the pull correct.
 
 `check_supplied_fields` runs in `store.rs` before insert and revise (D191).
 `persist.rs` `insert_record` writes `data_json` and does not call that check.

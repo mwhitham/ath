@@ -72,7 +72,7 @@ Preview text prints:
 - `preview only; nothing stored`
 - `reads finished` or `reads incomplete`
 - one line each for `sleep`, `workouts`, and `timeseries`: `completed`,
-  `failed`, `skipped`, or `not attempted`
+  `failed`, `skipped`, or `not_attempted`
 - estimated counts, by record type, of sleep sessions, workouts, points,
   summaries, and scores
 - committed counts of zero
@@ -87,18 +87,23 @@ prints actual committed counts for pages kept. It prints `requested range
 false, or timeseries was skipped because the mapping named no types. Only
 then does it print `pulled openwearables from <from> through <to>`.
 
-If a later page fails, the command exits nonzero. The text says the
-requested range is incomplete, names the failed read, names any read not
-attempted, prints the retained counts, and says to run the same command
-again. It does not print the success sentence. The failed page leaves no
-rows and no revisions. An empty range whose reads finished says the range
-is complete, with committed counts of zero.
+If a later page fails, the child returns a typed outcome to the parent
+before the process exits nonzero. The parent renders that outcome as text,
+then uses the exit status. The text says the requested range is incomplete,
+names the failed read, names any read that is `not_attempted`, prints the
+retained counts, and says to run the same command again. It does not print
+the success sentence. The failed page makes no database changes. Records
+already stored stay, including their revisions. An empty range whose reads
+finished says the range is complete. `written` is false when the confirmed
+command changed nothing. The database is unchanged. That is not a claim that
+the database has no rows.
 
-`--json` uses this shape. `written` is false. `committed` is zero.
-`estimated` holds the page-local estimates. `range_complete` is false,
-because a preview has not stored the range. `reads_finished` is true only
-when every read completed or was skipped. The object has no key, server,
-user id, or request path.
+Public `--json`, with or without `--yes`, is only the preview outcome below.
+`written` is false. `committed` is zero. `estimated` holds the page-local
+estimates. `range_complete` is false. `reads_finished` is true only when
+every read completed or was skipped. The read status token is
+`not_attempted`, in this object and in the text. The object has no key,
+server, user id, or request path.
 
 ```json
 {
@@ -123,7 +128,16 @@ user id, or request path.
 ```
 
 The same record types are present for workouts, points, summaries, and
-scores. The example above is shortened.
+scores. The example above is shortened. It is the preview outcome.
+
+The child returns a different outcome for `--yes` without `--json`. That
+outcome has the actual `committed` counts, `database_changed`, and
+`range_complete`. `written` is true only when that confirmed command
+committed at least one new or revised record. A successful repeat has
+`written` false, `database_changed` false, `range_complete` true, and
+unchanged counts. A later-page failure has `range_complete` false and the
+retained counts. The parent prints sentences from this outcome. It does not
+print the outcome as public JSON.
 
 `--date` stays required only for `garmin`. `--from` and `--to` are required
 only for `openwearables`, and they are flags, not environment variables.
@@ -248,37 +262,80 @@ saved copy of that object, updates the same rows.
 The writer is `source.provider`. The sensor string is `source.device_type`,
 `source.device`, and `source.source`. Two devices with different triples are
 two sources and two baselines. Two devices that share the triple share one
-source and one baseline. `source.device_id` is stored as hardware on the
-source-device row. It does not split the source, and it is not part of the
-match key (D181, D183). The mapping file is not rewritten. File import and
-pull of the same mapped object, in either order, keep one record id when
-they use that same checked mapping. A replaced mapping that changes `name`
-or `route` is a different source. The dedupe promise does not cover that
-file.
+source and one baseline. `source.device_id` is copied to `source_device.hardware`.
+It does not split the source, and it is not part of the match key (D181,
+D183). Route, writer, and sensor are the source identity. The mapping
+`name` is a label. Changing `name` alone does not change the source or the
+match key. File import and pull of the same mapped object, in either order,
+keep one record id when route, writer, and sensor are the same.
 
-Open Wearables uses `device_id` to tell same-model devices apart. The pinned
-note is `backend/app/schemas/utils/metadata.py` at
-`183e8cc4f6de897dbd288c93d49a691f2cf721ae`. A shared match key is then
-conditional loss, not the intentional choice to share a baseline. Two
-samples with the same triple, the same type, and the same timestamp, and
-different `device_id` values, are one timeseries key. Inside one mapping
-call the second row is left out. Across calls, D182 can replace the stored
-point.
+Open Wearables uses `device_id` to tell same-model devices apart when a
+provider sends it. The pinned field is optional (`str | None`) in
+`backend/app/schemas/utils/metadata.py` at
+`183e8cc4f6de897dbd288c93d49a691f2cf721ae`. This study does not treat that
+id as stable or unique for every provider. A timeseries sample has no
+sample id. Its match key is the writer, the sensor, the kind, the type, and
+the UTC time. Two `device_id` values therefore share one key. The mapping
+removes `source.device_id` from the point because that path is hardware, so
+the point and its revisions do not carry it. `source_devices.hardware` is
+one mutable column. A later write can revise it. It is not a binding.
+D45 records hardware without splitting a source. D181 and D182 then replace
+one key with a different payload. None of those decisions says a second
+device's observation may replace the first.
 
-This proposal does not put `device_id` on the match key. Doing that for the
-pull alone would break the file-import identity. Doing it for both paths
-would be a new decision, and putting it on the sensor string would also
-split baselines. The maintainer can adopt that decision later. It is not
-this proposal.
+The recommended rule keeps the match key, the sensor, and the baseline.
+Putting `device_id` into the sensor list would split sources and baselines,
+change keys, and drop the promise that an old triple-key row and a new pull
+are one record. The sensor join uses `|`, so a `device_id` that contains
+`|` is not a safe extra part unless values containing `|` are refused or
+the join is encoded. That identity change is not this proposal. Old rows
+are not rewritten, moved, or deleted.
 
-Until that decision, the pull guard lives in `open_wearables.rs` and not in
-`mapping.rs`. Before `apply_mapping`, if this page, or this page together
-with a key already accepted in this command, has one timeseries match key
-and two `device_id` values, the page is rejected with a fixed sentence.
-Nothing from that page is written. On `--yes`, earlier pages stay and the
-range is incomplete. A later command that contains only the second device
-can still replace the stored point. The proposal names that remaining hole.
-It does not close it. The queries in D201 ask for every device.
+Both `ath import --mapping` and `ath pull` call `apply_mapping`. The check
+lives there, for route `open_wearables` only, inside the same transaction
+as the write and before `insert_group` changes a source device or a
+timeseries record. Other routes are not checked. A pull-only check would
+leave import-after-pull able to replace the point. The check reads every
+incoming row, not only the first.
+
+The binding is `source.supplied_fields.device_binding`, one nonempty
+string. `SourceData` already allows `supplied_fields`, so step 5 adds no
+column and does not copy hardware into this field. The binding is written
+once, with the first accepted write, and is never replaced by another id.
+
+- A new source whose accepted rows share one nonempty `device_id` stores
+  that binding with the first write.
+- The same `device_id` may repeat unchanged or revise a value under D182.
+  It may not change the binding or replace hardware with a different id.
+- A different, missing, null, or blank `device_id` refuses the whole page
+  or the whole file import before any mutation. A missing id does not clear
+  a binding and is not proof of the same device. Equal point values with a
+  different id are still a conflict. The second observation is not dropped
+  inside the call. The call is refused.
+- A source that already has records and has no binding is unbound legacy.
+  Hardware, including disagreeing older hardware revisions, is not promoted
+  into a binding. The write is refused. Existing records, revisions,
+  sources, and hardware stay. A 2.1.0 open-wearables source cannot be
+  refreshed by this pull or by this mapped import until a separate
+  reconciliation exists. That block is this safety rule. It is not the
+  coverage choice in section 2.
+- A new source whose rows have no `device_id` does not get a binding. The
+  result says device identity is unprovable. Timeseries rows with no id are
+  refused, because they share a key. Sleep and workout keys are not
+  redesigned. A later timeseries row then sees records and no binding and
+  is refused.
+- A device at a different timestamp is the same rule. Its first conflicting
+  row refuses the call before hardware changes, so a later row cannot
+  overwrite an older point after the receipt has been rewritten.
+
+Preview keeps the binding it would have stored, in memory only, across
+pages that were rolled back, so the next preview page can see the conflict.
+That memory is not a second stored binding. `--json` and `--json --yes`
+make no database changes. On `--yes`, an earlier committed page stays, the
+failed page makes no database changes, the range is not complete, and the
+exit is nonzero. File import rolls back the whole call. The queries in
+D201 still ask for every device. A second device is refused rather than
+merged.
 
 `zone_offset` is not copied into `start_at`. It remains in `supplied_fields`
 when the server sends it. The timestamp text is the server's `start_time`,
@@ -387,8 +444,12 @@ interactive open can preview, back up, ask, and then migrate.
 `personal.rs` remains the Garmin pull. The two clients may each call `ureq`.
 A shared trait is the later connector work, and this release does not add it.
 
-`mapping.rs` changes in one place. `apply_mapping` keeps its `outcome` field
-and adds counts by record type. The pull sums only `sleep_session`,
+`mapping.rs` changes in two places, both required by this proposal.
+`apply_mapping` keeps its `outcome` field and adds counts by record type.
+For route `open_wearables` only, it also runs the device-binding check in
+section 3 before it mutates a source device or a timeseries record. That
+check is the shared import and pull enforcement. It is not a new match key
+and it does not apply to any other route. The pull sums only `sleep_session`,
 `workout_session`, `point_measurement`, `provider_summary`, and
 `provider_score`. A committed page adds those counts to the actual committed
 result. A rolled-back preview page adds them to `estimated`. It does not add
@@ -400,10 +461,13 @@ The Rust command reads the key from the environment only. It has no `--key`
 flag. The decoded-key walk in section 4 runs before `apply_mapping`. The
 parent still checks stdout and stderr before printing.
 
-The child returns the object from section 1. The parent prints it for
-`--json`, and prints sentences for a person. `--json` still does not write.
-The success sentence is parent text, and only after `--yes` when the range
-is complete.
+The child returns the preview outcome from section 1 when the mode is a
+preview, including public `--json`. It returns the confirmed outcome when
+the mode is `--yes` without `--json`. On a partial failure it returns that
+confirmed outcome to the parent and then exits nonzero. The parent renders
+text from the confirmed outcome and public JSON from the preview outcome.
+The success sentence is parent text, and only after `--yes` when
+`range_complete` is true.
 
 The program runs on Linux, macOS, and Windows with the same command. The
 fixture server listens on `127.0.0.1` and an ephemeral port, which is the
@@ -438,7 +502,9 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   runs. The exit is nonzero. The success sentence is absent. The text gives
   the retained counts. The same command run again stores no second copy
 - the same failure sequence with no `--yes`, and again with `--json --yes`,
-  leaves zero rows, including from page 1
+  makes no database changes. Rows that were already stored stay. A
+  successful `--json --yes` of a readable range is also a preview and makes
+  no database changes
 - a sleep-only mapping, installed where `.agents/mappings/` wins, produces
   no timeseries types. The server sees no `/timeseries` request. Counts for
   that read are zero and the read is `skipped`. A nonempty type list is
@@ -450,15 +516,27 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   that send them. Sleep sends `include=stages`. Workouts send `include=zones`.
   Neither sends `include=segments`. A fixture with stages omitted has null
   intervals and still has stage totals. A fixture with `include=stages` keeps
-  the intervals under the server's names
-- two distinct sensor triples become two sources. The same triple with two
-  `device_id` values on one page rejects that page and writes nothing from
-  it. The same collision on page 2, after page 1 committed a different key,
-  keeps page 1 and writes nothing from page 2
-- import the synthetic objects, then pull them, and pull them, then import
-  them. Both orders keep the same record ids, sources, match keys, and
-  revisions when both paths use the same checked mapping. A sample keeps
-  basis `provider_or_aggregator`. A provider score keeps basis `provider`
+  the intervals under the server's names. A fixture with `include=zones`
+  keeps the nested heart-rate and power zones under the server's names
+- two distinct sensor triples become two sources. Device A is stored, then
+  a separate operation contains only device B at the same triple, type, and
+  instant, with a different value. The operation fails. The current point,
+  its revisions, the source, and hardware are unchanged, and the range is
+  not complete. The pairs are pull then pull, pull then pull in reverse,
+  file import then pull, and pull then file import. The same collision
+  inside one page, and split across two pages, refuses the failed page
+  instead of keeping one device and dropping the other. On `--yes`, an
+  earlier committed page stays. Preview and `--json --yes` make no database
+  changes. Equal values with different ids still fail. B at a different
+  timestamp fails before hardware changes, and a later B row does not
+  replace A's older point
+- the same `device_id` with the same payload is unchanged. The same
+  `device_id` with a changed value revises that record and does not change
+  the binding. Import then pull, and pull then import, of that one device
+  keep one record id. A missing, null, or blank id does not replace a bound
+  source. A 2.1.0 source that already has records and has no binding is
+  refused, and its rows are not rewritten. A sample keeps basis
+  `provider_or_aggregator`. A provider score keeps basis `provider`
 - `page-sleep.json` becomes a sleep session. A manual workout is left out
   and its automatic neighbor is kept. `page-raw.json` is stored.
   `page-5min.json` is left out. RMSSD and SDNN stay different quantities
@@ -514,7 +592,8 @@ store. They cover:
   `openwearables.saved` and `openwearables.environment`
 - a preview `--json` has `written: false`, committed zeros, `estimated`
   counts, and `range_complete: false`
-- `--json --yes` after a later-page failure writes nothing, including page 1
+- `--json --yes` is a preview. After a later-page failure, and after a
+  readable range, the database is unchanged
 
 `pnpm check:public-data`, `pnpm typecheck`, `pnpm test`, and `pnpm build`
 pass, and `cargo test` passes, before the build is called done.
@@ -545,11 +624,12 @@ the fixture key once into `ath key set openwearables`.
 
 The automated cases in section 7 are not extra card steps.
 
-The build pull request's description carries a screenshot of each step and
-one video that plays on the pull request page. The images are not committed.
-The numbers on screen are the fixture's invented values. The release workflow
-on Linux, macOS, and Windows is the cross-platform proof. The video is one
-system.
+The build's proof is one phone message in Grok Bot. That message contains a
+screenshot of each step inline and one video that plays in the conversation.
+A video that plays only on the pull request page is not that packet. The
+images are not committed. The numbers on screen are the fixture's invented
+values. The release workflow on Linux, macOS, and Windows is the
+cross-platform proof. The video is one system.
 
 This plan pull request has no screenshots and no video.
 
@@ -595,11 +675,10 @@ Risks:
 - Date-only bounds mean whatever Open Wearables decides. The docs and the
   0.11.0 parser disagree about UTC. This release does not correct that server.
 - The table in section 2 is incomplete coverage, chosen on purpose and
-  still not adopted. It is separate from the same-model `device_id`
-  collision, which is conditional loss and rejects the ambiguous page.
-  Suggesting 2.5.0 does not approve either one. Workout average and maximum
-  heart rate can still be stored. Raw heart-rate variability can still arrive
-  when the mapping names it.
+  still not adopted. It is not the device-binding rule. Suggesting 2.5.0
+  does not approve the coverage gap. Workout average and maximum heart rate
+  can still be stored. Raw heart-rate variability can still arrive when the
+  mapping names it and the device binding allows the write.
 - Fields on a sleep or workout object that the mapping does not consume are
   stored under the server's names. The shipped mapping does not request
   latitude or longitude. A replaced mapping file can name more series, and
@@ -610,9 +689,10 @@ Risks:
 
 The maintainer approves or rejects this plan before any build. D198 through
 D202 are the proposal. They are not adopted. Reviews of commit `d1fdde1`
-were incorporated here. Those reviews are not approval of this revision.
-The next head needs their re-review. A product review accepted a migration
-with no new column, under D152 and D184. That acceptance does not adopt D198.
+were incorporated here, and the re-reviews of `1124e56` are incorporated
+here. None of those reviews approves this revision. The next head needs
+their re-review. A product review accepted a migration with no new column,
+under D152 and D184. That acceptance does not adopt D198.
 
 1. One number, 2.2.0. Readable sets keep `1.0.0`. Step 5 runs on create and
    on migrate. No new column. A `2.1.0` database does not open until
@@ -633,7 +713,10 @@ with no new column, under D152 and D184. That acceptance does not adopt D198.
    write. `--yes` commits each successful page under D189, and a committed
    page is not a completed pull. The text of `--yes` shows retained counts
    and whether the requested range is complete. A missing row is not deleted.
-   An empty type list skips timeseries. Same-model `device_id` collisions
-   reject the ambiguous page and do not change the match key (D201).
-5. The Windows cleanup and the maintainability notes stay separate. The count
-   by record type is the only `mapping.rs` change (D202).
+   An empty type list skips timeseries. The same sensor triple keeps one
+   source. A second `device_id` does not replace or suppress the first, in
+   a later command or in a mapped file import. Unbound legacy data is
+   refused and left in place (D201).
+5. The Windows cleanup and the maintainability notes stay separate.
+   `mapping.rs` gains counts by record type and the open-wearables binding
+   check. It gains nothing else (D202).
