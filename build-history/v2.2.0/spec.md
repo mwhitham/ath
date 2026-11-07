@@ -340,8 +340,9 @@ call is one of these states:
   command again cannot change the id.
 - The source exists, the source key is absent, and any history exists.
   History includes a deleted record and a deleted source device, not only
-  live rows. `same_source_records` is not this test, because it keeps
-  `is_deleted = 0`. The call is refused. Hardware is not promoted. The text
+  live rows. `same_source_records` keeps `is_deleted = 0`, so it is not
+  this test. The store read below includes the deleted rows. The call is
+  refused. Hardware is not promoted. The text
   says this Open Wearables history cannot be refreshed until a separate
   reconciliation exists, and that running the command again cannot create
   the binding. This is the block for 2.1.0 history. It is not the coverage
@@ -355,10 +356,11 @@ call is one of these states:
   `device_binding`. The result says the device id is unknown. An accepted
   timeseries row with no id is refused. Accepted rows that mix a nonempty
   id with a missing id are refused. Accepted rows that share one nonempty
-  `source.device_id` store that string on the new source in the same
-  transaction as the first accepted write. A call that accepts no rows
-  creates no binding. A source created inside a refused call is rolled
-  back with the call.
+  `source.device_id` store that string on the source in the same
+  transaction as the first accepted write. That source may be created in
+  this call, or it may already exist with no receipt and no history. A call
+  that accepts no rows creates no binding. A source created or first-bound
+  inside a refused call is rolled back with the call.
 
 A second device is refused rather than merged. On `--yes`, an earlier
 committed page stays, the failed page makes no database changes, the range
@@ -388,11 +390,36 @@ person who replaces the database file is outside this rule.
 
 `Store::revise` on a source is a partial update. It applies the other keys
 in the patch and keeps the current `device_binding`, including when the key
-is absent. A patch that contains `device_binding` is refused, and the
-source stays unchanged. This is the one `store.rs` change. Other record
-types are unchanged. The automatic path sets the key only on the source
-object `ensure_mapped_source` already builds. It does not replace
-`detail`, `vendor`, or `supplied_fields`.
+is absent. A patch that contains `device_binding` is refused. The source
+stays unchanged. `revise` cannot set, change, or clear the receipt. Other
+record types are unchanged.
+
+The store connection is private. `ensure_mapped_source` takes the writer,
+the route, the vendor, and the sensor. An existing source returns before a
+data object is built. A new source's JSON is built inside that function,
+and that JSON has no receipt argument today. The mapping receives a source
+id. It cannot add the receipt to an object it does not hold, and it cannot
+read deleted rows through `same_source_records` or through the private
+connection. A later `revise` cannot fill the receipt in, because that patch
+is refused.
+
+`store.rs` therefore gains three source operations besides the `revise`
+rule above. It gains nothing else:
+
+- Read the committed receipt, and whether any record or source device for
+  that source exists, including a deleted row.
+- Create a source with the checked receipt already in its JSON.
+- Write the checked receipt on an existing source only when the receipt is
+  absent and that same read shows no accepted or deleted record and no
+  source device. Every other source field stays. The write uses the normal
+  revision and `data_json` bookkeeping. Writer, route, sensor, import keys,
+  and baselines stay.
+
+The three operations run inside the caller's `BEGIN IMMEDIATE` transaction.
+A refused call rolls them back with the call. Other routes do not call
+them. The build may extend `ensure_mapped_source` or add a narrow operation
+beside it. It does not add a table, a trait, or a file split. The automatic
+path does not replace `detail`, `vendor`, or `supplied_fields`.
 
 `zone_offset` is not copied into `start_at`. It remains in `supplied_fields`
 when the server sends it. The timestamp text is the server's `start_time`,
@@ -498,6 +525,7 @@ interactive open can preview, back up, ask, and then migrate.
 | Mapping names and field rules | the existing file `mappings/open-wearables.md` |
 | Stored records | the existing store and mapping engine |
 | Keep `device_binding` on a partial source update | `Store::revise` in `crates/ath-core/src/store.rs`, sources only |
+| Read receipt and tombstone history; create or first-bind with the checked receipt | three source operations in `store.rs`, inside the caller's transaction |
 | Whole source record from the owner | existing `ath correct`, package restore, and an accepted package merge |
 
 `store.rs`, `persist.rs`, and `personal.rs` are not the home for this client.
@@ -509,11 +537,13 @@ A shared trait is the later connector work, and this release does not add it.
 For route `open_wearables` only, it also runs the device-binding check in
 section 3 before it mutates a source device or a timeseries record. That
 check is the shared mapped-import and pull enforcement. It is not a new
-match key and it does not apply to any other route. `store.rs` changes
-`revise` for a source record only, so a partial update keeps
-`device_binding`. `ath correct`, package restore, and an accepted package
-merge stay whole-record owner writes. They are named in section 3 so the
-binding survives a 2.2.0 round trip. They are not a new importer. The pull sums only `sleep_session`,
+match key and it does not apply to any other route. `store.rs` keeps the
+`revise` refusal and adds the three source operations in section 3: the
+receipt and tombstone read, creation with the checked receipt, and a
+first bind on an existing source that has no history. `ath correct`,
+package restore, and an accepted package merge stay whole-record owner
+writes. They are named in section 3 so the binding survives a 2.2.0 round
+trip. They are not a new importer. The pull sums only `sleep_session`,
 `workout_session`, `point_measurement`, `provider_summary`, and
 `provider_score`. A committed page adds those counts to the actual committed
 result. A rolled-back preview page adds them to `estimated`. It does not add
@@ -613,6 +643,12 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   `device_hardware` stays `source.device_id` keeps the same binding. A
   mapping whose `device_hardware` points elsewhere is refused before any
   write
+- an existing open-wearables source has no receipt, no record, and no
+  source device. The first accepted write stores the checked receipt on
+  that source. Its other fields, its writer, its route, its sensor, and
+  its baselines stay. The revision and `data_json` record that receipt. A
+  source whose only history is a deleted record or a deleted source device
+  is still refused, and that refusal writes no receipt
 - a new source of only id-less sleep is stored with no source key. A later
   timeseries row with an id is refused, and the sleep row stays. One call
   that accepts both an id and a missing id is refused. A `left_out` row does
@@ -738,7 +774,8 @@ is in the build pull request.
 - `store.rs` and `mapping.rs` are past a thousand lines. The pull does not
   add HTTP to them. `mapping.rs` gains the counts by record type and the
   shared open-wearables binding check in section 6. `store.rs` gains the
-  source-only preserve in section 3. Splitting the files stays out.
+  partial-update refusal and the three source operations in section 3.
+  Splitting the files stays out.
 - `persist.rs` can still store a supplied field named `__proto__` if a caller
   uses `ath-core persist` directly. The pull does not use that path.
 - The mapping path rule is already one function. There is no duplicate to
@@ -782,9 +819,9 @@ Risks:
 
 The maintainer approves or rejects this plan before any build. D198 through
 D202 are the proposal. They are not adopted. Reviews of commit `d1fdde1`
-were incorporated here. The re-reviews of `1124e56` and of `da006a6` are
-incorporated here. None of those reviews approves this revision. The next
-head needs their re-review. A product review accepted a migration with no
+were incorporated here. The re-reviews of `1124e56`, `da006a6`, and
+`c9ca93a` are incorporated here. None of those reviews approves this
+revision. The next head needs their re-review. A product review accepted a migration with no
 new column, under D152 and D184. That acceptance does not adopt D198. The
 optional source key adds no column.
 
@@ -816,5 +853,7 @@ optional source key adds no column.
    owner's whole source record (D201).
 5. The Windows cleanup and the maintainability notes stay separate.
    `mapping.rs` gains counts by record type and the open-wearables binding
-   check. `store.rs` gains the source-only preserve. Nothing else is added
-   to either file (D202).
+   check. `store.rs` gains the partial-update refusal, the receipt and
+   tombstone read, creation with the checked receipt, and the first bind
+   of an existing source that has no history. Nothing else is added to
+   either file (D202).

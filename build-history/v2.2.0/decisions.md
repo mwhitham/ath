@@ -396,10 +396,19 @@ open-wearables device-binding check in the specification. That check is
 shared by mapped import and pull, and it is limited to route
 `open_wearables`. Nothing else is added to `mapping.rs`. `store.rs` may
 preserve `device_binding` inside `revise` when the record is a source, and
-refuse a partial patch that contains that key. Nothing else is added to
-`store.rs`. `ath correct`, package restore, and an accepted package merge
-remain the owner's whole source record. Splitting the files is separate
-work. It is not required to make the pull correct.
+refuse a partial patch that contains that key. `revise` cannot set, change,
+or clear the receipt. The connection is private, `ensure_mapped_source`
+has no receipt argument, and `same_source_records` omits deleted rows, so
+`store.rs` may also read the receipt and tombstone-inclusive history,
+create a source with the checked receipt, and write that receipt on an
+existing unbound source only when the same transaction shows no accepted
+or deleted record and no source device. Those writes keep every other
+source field and the normal revision and `data_json` bookkeeping. They
+join the caller's `BEGIN IMMEDIATE` transaction. Nothing else is added to
+`store.rs`. Other routes do not call them. `ath correct`, package restore,
+and an accepted package merge remain the owner's whole source record.
+Splitting the files is separate work. It is not required to make the pull
+correct.
 
 `check_supplied_fields` runs in `store.rs` before insert and revise (D191).
 `persist.rs` `insert_record` writes `data_json` and does not call that check.
