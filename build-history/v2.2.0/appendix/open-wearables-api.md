@@ -198,7 +198,7 @@ route files. A limit may still exist in middleware this study did not open.
 
 The same commit, `183e8cc4f6de897dbd288c93d49a691f2cf721ae`, was read again
 for every user data route. The OpenAPI file is `docs/openapi.json`,
-`info.version` `0.11.0`. The storage rule is D203. This section records
+`info.version` `0.11.0`. The storage rule is D205. This section records
 what the source shows.
 
 `SeriesType` is the enum in `backend/app/schemas/enums/series_types.py`.
@@ -245,7 +245,7 @@ listed rows. The personal-record response fields are `birth_date`,
 ## Contract read on 7 November 2026
 
 The same commit was read again for the summary, score, meal, cycle, body,
-and personal-record contracts. D204 is the storage rule. This section
+and personal-record contracts. D205 is the storage rule. This section
 records the source facts that rule uses. `SERIES_TYPE_DEFINITIONS` has 141
 entries.
 
@@ -255,49 +255,162 @@ series are `heart_rate_variability_rmssd`, `heart_rate_variability_sdnn`,
 `oxygen_saturation`, `heart_rate_recovery_one_minute`, `vo2_max`,
 `garmin_stress_level`, and `garmin_body_battery`.
 
-These raw series become points because one existing quantity fits each of
-them: `walking_heart_rate`, `body_temperature`, `height`, `weight`,
-`body_fat_percentage`, `lean_body_mass`, `blood_pressure_systolic`, and
-`blood_pressure_diastolic`. `weight` is stored as `body_weight`. The
-series name stays in `supplied_fields`.
+The table below is the mapping for all 141 series. D205 is the storage rule.
+`input_value` and the input unit are the server's number and unit.
+`standard_value` equals `input_value` except where the conversion is
+`divide by 100`. A day row uses the day record in the last column. It is
+never a measurement sample. Apple skin temperature stays
+`wrist_temperature_sleeping` when the writer is `apple`. `weight` is stored
+as `body_weight`. The series name stays in `supplied_fields`.
 
-These raw series are provider summaries, not samples:
-`peripheral_perfusion_index`, `breathing_disturbance_index`,
-`body_mass_index`, `cardiovascular_age`, `workout_effort_score`,
-`estimated_workout_effort_score`, `garmin_fitness_age`,
-`withings_metabolic_age`, and `nike_fuel`.
+Sleep summary numbers in `event_record_repository.py` sum every non-nap
+session in the source and date. The summary service sets `start_time` and
+`end_time` from the longest main sleep. Those bounds stay on the original
+object. They are not the period of the summed fields.
 
-Reported intake is every `dietary_*` series and
-`number_of_alcoholic_beverages`. There are 42 `dietary_*` series. They are
-provider summaries.
-
-The remaining 71 raw series are measurement samples:
-
-`heart_rate`, `blood_glucose`, `sleeping_breathing_disturbances`,
-`blood_alcohol_content`, `forced_vital_capacity`,
-`forced_expiratory_volume_1`, `peak_expiratory_flow_rate`,
-`waist_circumference`, `body_fat_mass`, `skeletal_muscle_mass`,
-`skin_temperature_deviation`, `skin_temperature_trend_deviation`,
-`bone_mass`, `body_water_mass`, `six_minute_walk_test_distance`, `steps`,
-`active_energy`, `basal_energy`, `stand_time`, `exercise_time`,
-`physical_effort`, `flights_climbed`, `active_time`, `total_energy`,
-`distance_walking_running`, `distance_cycling`, `distance_swimming`,
-`distance_downhill_snow_sports`, `distance_other`, `walking_step_length`,
-`walking_speed`, `walking_double_support_percentage`,
-`walking_asymmetry_percentage`, `walking_steadiness`,
-`stair_descent_speed`, `stair_ascent_speed`, `running_power`,
-`running_speed`, `running_vertical_oscillation`,
-`running_ground_contact_time`, `running_stride_length`,
-`running_vertical_ratio`, `running_stance_time_balance`,
-`swimming_stroke_count`, `underwater_depth`, `cadence`, `power`, `speed`,
-`distance`, `elevation_gain`, `environmental_audio_exposure`,
-`headphone_audio_exposure`, `environmental_sound_reduction`,
-`time_in_daylight`, `water_temperature`, `uv_exposure`, `inhaler_usage`,
-`weather_temperature`, `weather_humidity`, `elevation`, `latitude`,
-`longitude`, `air_temperature`, `garmin_skin_temperature`,
-`withings_pulse_wave_velocity`, `electrodermal_activity`, `push_count`,
-`atrial_fibrillation_burden`, `insulin_delivery`,
-`number_of_times_fallen`, and `hydration`.
+| Series | Input unit | Raw class | Target | Standard unit | Conversion | Day record |
+|---|---|---|---|---|---|---|
+| `heart_rate` | `bpm` | measurement_sample | `heart_rate` | `bpm` | unchanged | provider_summary window |
+| `resting_heart_rate` | `bpm` | point | `resting_heart_rate` | `bpm` | unchanged | provider_summary window |
+| `heart_rate_variability_sdnn` | `ms` | point | `hrv_sdnn` | `ms` | unchanged | provider_summary window |
+| `heart_rate_recovery_one_minute` | `bpm` | point | `heart_rate_recovery_one_minute` | `bpm` | unchanged | provider_summary window |
+| `walking_heart_rate` | `bpm` | point | `walking_heart_rate` | `bpm` | unchanged | provider_summary window |
+| `heart_rate_variability_rmssd` | `ms` | point | `hrv_rmssd` | `ms` | unchanged | provider_summary window |
+| `oxygen_saturation` | `percent` | point | `oxygen_saturation` | `%` | alias | provider_summary window |
+| `blood_glucose` | `mg_dl` | measurement_sample | `blood_glucose` | `mg_dl` | unchanged | provider_summary window |
+| `blood_pressure_systolic` | `mmHg` | point | `blood_pressure_systolic` | `mmHg` | unchanged | provider_summary window |
+| `blood_pressure_diastolic` | `mmHg` | point | `blood_pressure_diastolic` | `mmHg` | unchanged | provider_summary window |
+| `respiratory_rate` | `brpm` | point | `respiratory_rate` | `brpm` | unchanged | provider_summary window |
+| `sleeping_breathing_disturbances` | `count` | measurement_sample | `sleeping_breathing_disturbances` | `count` | unchanged | provider_summary window |
+| `blood_alcohol_content` | `mg_dl` | measurement_sample | `blood_alcohol_content` | `mg_dl` | unchanged | provider_summary window |
+| `peripheral_perfusion_index` | `score` | source_report | `peripheral_perfusion_index` | `score` | unchanged | source_report window |
+| `forced_vital_capacity` | `liters` | measurement_sample | `forced_vital_capacity` | `liters` | unchanged | provider_summary window |
+| `forced_expiratory_volume_1` | `liters` | measurement_sample | `forced_expiratory_volume_1` | `liters` | unchanged | provider_summary window |
+| `peak_expiratory_flow_rate` | `L/min` | measurement_sample | `peak_expiratory_flow_rate` | `L/min` | unchanged | provider_summary window |
+| `breathing_disturbance_index` | `score` | source_report | `breathing_disturbance_index` | `score` | unchanged | source_report window |
+| `height` | `cm` | point | `height` | `cm` | unchanged | provider_summary window |
+| `weight` | `kg` | point | `body_weight` | `kg` | unchanged | provider_summary window |
+| `body_fat_percentage` | `percent` | point | `body_fat_percentage` | `%` | alias | provider_summary window |
+| `body_mass_index` | `kg_m2` | source_report | `body_mass_index` | `kg_m2` | unchanged | source_report window |
+| `lean_body_mass` | `kg` | point | `lean_body_mass` | `kg` | unchanged | provider_summary window |
+| `body_temperature` | `celsius` | point | `body_temperature` | `°C` | alias | provider_summary window |
+| `skin_temperature` | `celsius` | point | `skin_temperature` | `°C` | alias | provider_summary window |
+| `waist_circumference` | `cm` | measurement_sample | `waist_circumference` | `cm` | unchanged | provider_summary window |
+| `body_fat_mass` | `kg` | measurement_sample | `body_fat_mass` | `kg` | unchanged | provider_summary window |
+| `skeletal_muscle_mass` | `kg` | measurement_sample | `skeletal_muscle_mass` | `kg` | unchanged | provider_summary window |
+| `skin_temperature_deviation` | `celsius` | measurement_sample | `skin_temperature_deviation` | `°C` | alias | provider_summary window |
+| `skin_temperature_trend_deviation` | `celsius` | measurement_sample | `skin_temperature_trend_deviation` | `°C` | alias | provider_summary window |
+| `bone_mass` | `kg` | measurement_sample | `bone_mass` | `kg` | unchanged | provider_summary window |
+| `body_water_mass` | `kg` | measurement_sample | `body_water_mass` | `kg` | unchanged | provider_summary window |
+| `vo2_max` | `ml_kg_min` | provider_summary | `vo2_max` | `ml/kg/min` | alias | provider_summary window |
+| `six_minute_walk_test_distance` | `meters` | measurement_sample | `six_minute_walk_test_distance` | `m` | alias | provider_summary window |
+| `cardiovascular_age` | `years` | source_report | `cardiovascular_age` | `years` | unchanged | source_report window |
+| `steps` | `count` | measurement_sample | `steps` | `count` | unchanged | provider_summary window |
+| `active_energy` | `kcal` | measurement_sample | `active_energy` | `kcal` | unchanged | provider_summary window |
+| `basal_energy` | `kcal` | measurement_sample | `basal_energy` | `kcal` | unchanged | provider_summary window |
+| `stand_time` | `minutes` | measurement_sample | `stand_time` | `min` | alias | provider_summary window |
+| `exercise_time` | `minutes` | measurement_sample | `exercise_time` | `min` | alias | provider_summary window |
+| `physical_effort` | `met` | measurement_sample | `physical_effort` | `MET` | alias | provider_summary window |
+| `flights_climbed` | `count` | measurement_sample | `flights_climbed` | `count` | unchanged | provider_summary window |
+| `active_time` | `minutes` | measurement_sample | `active_time` | `min` | alias | provider_summary window |
+| `total_energy` | `kcal` | measurement_sample | `total_energy` | `kcal` | unchanged | provider_summary window |
+| `distance_walking_running` | `meters` | measurement_sample | `distance_walking_running` | `m` | alias | provider_summary window |
+| `distance_cycling` | `meters` | measurement_sample | `distance_cycling` | `m` | alias | provider_summary window |
+| `distance_swimming` | `meters` | measurement_sample | `distance_swimming` | `m` | alias | provider_summary window |
+| `distance_downhill_snow_sports` | `meters` | measurement_sample | `distance_downhill_snow_sports` | `m` | alias | provider_summary window |
+| `distance_other` | `meters` | measurement_sample | `distance_other` | `m` | alias | provider_summary window |
+| `walking_step_length` | `cm` | measurement_sample | `walking_step_length` | `m` | divide by 100 | provider_summary window |
+| `walking_speed` | `m_per_s` | measurement_sample | `walking_speed` | `m/s` | alias | provider_summary window |
+| `walking_double_support_percentage` | `percent` | measurement_sample | `walking_double_support_percentage` | `%` | alias | provider_summary window |
+| `walking_asymmetry_percentage` | `percent` | measurement_sample | `walking_asymmetry_percentage` | `%` | alias | provider_summary window |
+| `walking_steadiness` | `percent` | measurement_sample | `walking_steadiness` | `%` | alias | provider_summary window |
+| `stair_descent_speed` | `m_per_s` | measurement_sample | `stair_descent_speed` | `m/s` | alias | provider_summary window |
+| `stair_ascent_speed` | `m_per_s` | measurement_sample | `stair_ascent_speed` | `m/s` | alias | provider_summary window |
+| `running_power` | `watts` | measurement_sample | `running_power` | `W` | alias | provider_summary window |
+| `running_speed` | `m_per_s` | measurement_sample | `running_speed` | `m/s` | alias | provider_summary window |
+| `running_vertical_oscillation` | `cm` | measurement_sample | `running_vertical_oscillation` | `cm` | unchanged | provider_summary window |
+| `running_ground_contact_time` | `ms` | measurement_sample | `running_ground_contact_time` | `ms` | unchanged | provider_summary window |
+| `running_stride_length` | `cm` | measurement_sample | `running_stride_length` | `m` | divide by 100 | provider_summary window |
+| `running_vertical_ratio` | `percent` | measurement_sample | `running_vertical_ratio` | `%` | alias | provider_summary window |
+| `running_stance_time_balance` | `percent` | measurement_sample | `running_stance_time_balance` | `%` | alias | provider_summary window |
+| `swimming_stroke_count` | `count` | measurement_sample | `swimming_stroke_count` | `count` | unchanged | provider_summary window |
+| `underwater_depth` | `meters` | measurement_sample | `underwater_depth` | `m` | alias | provider_summary window |
+| `cadence` | `rpm` | measurement_sample | `cadence` | `rpm` | unchanged | provider_summary window |
+| `power` | `watts` | measurement_sample | `power` | `W` | alias | provider_summary window |
+| `speed` | `m_per_s` | measurement_sample | `speed` | `m/s` | alias | provider_summary window |
+| `workout_effort_score` | `score` | source_report | `workout_effort_score` | `score` | unchanged | source_report window |
+| `estimated_workout_effort_score` | `score` | source_report | `estimated_workout_effort_score` | `score` | unchanged | source_report window |
+| `distance` | `meters` | measurement_sample | `distance` | `m` | alias | provider_summary window |
+| `elevation_gain` | `meters` | measurement_sample | `elevation_gain` | `m` | alias | provider_summary window |
+| `environmental_audio_exposure` | `dB` | measurement_sample | `environmental_audio_exposure` | `dB` | unchanged | provider_summary window |
+| `headphone_audio_exposure` | `dB` | measurement_sample | `headphone_audio_exposure` | `dB` | unchanged | provider_summary window |
+| `environmental_sound_reduction` | `dB` | measurement_sample | `environmental_sound_reduction` | `dB` | unchanged | provider_summary window |
+| `time_in_daylight` | `minutes` | measurement_sample | `time_in_daylight` | `min` | alias | provider_summary window |
+| `water_temperature` | `celsius` | measurement_sample | `water_temperature` | `°C` | alias | provider_summary window |
+| `uv_exposure` | `count` | measurement_sample | `uv_exposure` | `count` | unchanged | provider_summary window |
+| `inhaler_usage` | `count` | measurement_sample | `inhaler_usage` | `count` | unchanged | provider_summary window |
+| `weather_temperature` | `celsius` | measurement_sample | `weather_temperature` | `°C` | alias | provider_summary window |
+| `weather_humidity` | `percent` | measurement_sample | `weather_humidity` | `%` | alias | provider_summary window |
+| `elevation` | `meters` | measurement_sample | `elevation` | `m` | alias | provider_summary window |
+| `latitude` | `degrees` | measurement_sample | `latitude` | `deg` | alias | provider_summary window |
+| `longitude` | `degrees` | measurement_sample | `longitude` | `deg` | alias | provider_summary window |
+| `air_temperature` | `celsius` | measurement_sample | `air_temperature` | `°C` | alias | provider_summary window |
+| `garmin_stress_level` | `score` | provider_score | `garmin_stress_level` | `score` | unchanged; scale 1-100 | provider_score window |
+| `garmin_skin_temperature` | `celsius` | measurement_sample | `garmin_skin_temperature` | `°C` | alias | provider_summary window |
+| `garmin_fitness_age` | `years` | source_report | `garmin_fitness_age` | `years` | unchanged | source_report window |
+| `garmin_body_battery` | `percent` | provider_score | `garmin_body_battery` | `score` | unchanged; input percent; scale 0-100 | provider_score window |
+| `withings_pulse_wave_velocity` | `m_per_s` | measurement_sample | `withings_pulse_wave_velocity` | `m/s` | alias | provider_summary window |
+| `withings_metabolic_age` | `years` | source_report | `withings_metabolic_age` | `years` | unchanged | source_report window |
+| `dietary_energy_consumed` | `kcal` | source_report | `dietary_energy_consumed` | `kcal` | unchanged | source_report window |
+| `dietary_carbohydrates` | `g` | source_report | `dietary_carbohydrates` | `g` | unchanged | source_report window |
+| `dietary_fiber` | `g` | source_report | `dietary_fiber` | `g` | unchanged | source_report window |
+| `dietary_sugar` | `g` | source_report | `dietary_sugar` | `g` | unchanged | source_report window |
+| `dietary_fat_total` | `g` | source_report | `dietary_fat_total` | `g` | unchanged | source_report window |
+| `dietary_fat_saturated` | `g` | source_report | `dietary_fat_saturated` | `g` | unchanged | source_report window |
+| `dietary_fat_monounsaturated` | `g` | source_report | `dietary_fat_monounsaturated` | `g` | unchanged | source_report window |
+| `dietary_fat_polyunsaturated` | `g` | source_report | `dietary_fat_polyunsaturated` | `g` | unchanged | source_report window |
+| `dietary_cholesterol` | `mg` | source_report | `dietary_cholesterol` | `mg` | unchanged | source_report window |
+| `dietary_protein` | `g` | source_report | `dietary_protein` | `g` | unchanged | source_report window |
+| `dietary_sodium` | `mg` | source_report | `dietary_sodium` | `mg` | unchanged | source_report window |
+| `dietary_potassium` | `mg` | source_report | `dietary_potassium` | `mg` | unchanged | source_report window |
+| `dietary_calcium` | `mg` | source_report | `dietary_calcium` | `mg` | unchanged | source_report window |
+| `dietary_iron` | `mg` | source_report | `dietary_iron` | `mg` | unchanged | source_report window |
+| `dietary_magnesium` | `mg` | source_report | `dietary_magnesium` | `mg` | unchanged | source_report window |
+| `dietary_phosphorus` | `mg` | source_report | `dietary_phosphorus` | `mg` | unchanged | source_report window |
+| `dietary_zinc` | `mg` | source_report | `dietary_zinc` | `mg` | unchanged | source_report window |
+| `dietary_copper` | `mg` | source_report | `dietary_copper` | `mg` | unchanged | source_report window |
+| `dietary_manganese` | `mg` | source_report | `dietary_manganese` | `mg` | unchanged | source_report window |
+| `dietary_selenium` | `mcg` | source_report | `dietary_selenium` | `mcg` | unchanged | source_report window |
+| `dietary_chromium` | `mcg` | source_report | `dietary_chromium` | `mcg` | unchanged | source_report window |
+| `dietary_molybdenum` | `mcg` | source_report | `dietary_molybdenum` | `mcg` | unchanged | source_report window |
+| `dietary_iodine` | `mcg` | source_report | `dietary_iodine` | `mcg` | unchanged | source_report window |
+| `dietary_chloride` | `mg` | source_report | `dietary_chloride` | `mg` | unchanged | source_report window |
+| `dietary_vitamin_a` | `mcg` | source_report | `dietary_vitamin_a` | `mcg` | unchanged | source_report window |
+| `dietary_vitamin_b6` | `mg` | source_report | `dietary_vitamin_b6` | `mg` | unchanged | source_report window |
+| `dietary_vitamin_b12` | `mcg` | source_report | `dietary_vitamin_b12` | `mcg` | unchanged | source_report window |
+| `dietary_vitamin_c` | `mg` | source_report | `dietary_vitamin_c` | `mg` | unchanged | source_report window |
+| `dietary_vitamin_d` | `mcg` | source_report | `dietary_vitamin_d` | `mcg` | unchanged | source_report window |
+| `dietary_vitamin_e` | `mg` | source_report | `dietary_vitamin_e` | `mg` | unchanged | source_report window |
+| `dietary_vitamin_k` | `mcg` | source_report | `dietary_vitamin_k` | `mcg` | unchanged | source_report window |
+| `dietary_thiamin` | `mg` | source_report | `dietary_thiamin` | `mg` | unchanged | source_report window |
+| `dietary_riboflavin` | `mg` | source_report | `dietary_riboflavin` | `mg` | unchanged | source_report window |
+| `dietary_niacin` | `mg` | source_report | `dietary_niacin` | `mg` | unchanged | source_report window |
+| `dietary_folate` | `mcg` | source_report | `dietary_folate` | `mcg` | unchanged | source_report window |
+| `dietary_pantothenic_acid` | `mg` | source_report | `dietary_pantothenic_acid` | `mg` | unchanged | source_report window |
+| `dietary_biotin` | `mcg` | source_report | `dietary_biotin` | `mcg` | unchanged | source_report window |
+| `dietary_caffeine` | `mg` | source_report | `dietary_caffeine` | `mg` | unchanged | source_report window |
+| `dietary_fat_trans` | `g` | source_report | `dietary_fat_trans` | `g` | unchanged | source_report window |
+| `dietary_energy_from_fat` | `kcal` | source_report | `dietary_energy_from_fat` | `kcal` | unchanged | source_report window |
+| `dietary_fat_unsaturated` | `g` | source_report | `dietary_fat_unsaturated` | `g` | unchanged | source_report window |
+| `dietary_folic_acid` | `mcg` | source_report | `dietary_folic_acid` | `mcg` | unchanged | source_report window |
+| `electrodermal_activity` | `count` | measurement_sample | `electrodermal_activity` | `count` | unchanged | provider_summary window |
+| `push_count` | `count` | measurement_sample | `push_count` | `count` | unchanged | provider_summary window |
+| `atrial_fibrillation_burden` | `count` | measurement_sample | `atrial_fibrillation_burden` | `count` | unchanged | provider_summary window |
+| `insulin_delivery` | `count` | measurement_sample | `insulin_delivery` | `count` | unchanged | provider_summary window |
+| `number_of_times_fallen` | `count` | measurement_sample | `number_of_times_fallen` | `count` | unchanged | provider_summary window |
+| `number_of_alcoholic_beverages` | `count` | source_report | `number_of_alcoholic_beverages` | `count` | unchanged | source_report window |
+| `nike_fuel` | `count` | source_report | `nike_fuel` | `count` | unchanged | source_report window |
+| `hydration` | `mL` | measurement_sample | `hydration` | `mL` | unchanged | provider_summary window |
 
 `get_day_rows` keeps one row per data source, series, and local day. It
 orders provider-computed rows first, then the later `period_start`.
@@ -306,9 +419,12 @@ A week or month forces `computed_by` to `open_wearables`. A day page's
 `limit` counts periods. The service floors that count at 1, and one period
 can contain one row per source and series.
 
-`HEALTH_SCORE_RANGES` sets the finite scales. Polar readiness is 0 to 10.
-Polar recovery is 1 to 6. WHOOP strain is 0 to 21. Polar strain has no
-finite maximum. The route text says `provider: internal` scores were
+`HEALTH_SCORE_RANGES` sets the finite scales. Sleep is 0 to 100 for
+internal, WHOOP, and Samsung, and 1 to 100 for Oura, Garmin, and Polar.
+Oura readiness and Oura activity are 1 to 100. Polar readiness is 0 to 10.
+Garmin stress and Garmin body battery are 0 to 100. WHOOP and Suunto
+recovery are 0 to 100. Polar recovery is 1 to 6. WHOOP strain is 0 to 21.
+Polar strain has no finite maximum. The route text says `provider: internal` scores were
 computed by Open Wearables and are still returned. WHOOP recovery
 components include `skin_temp_celsius` when the provider sent it.
 

@@ -4,7 +4,7 @@ Status: **plan only. The maintainer has not approved it. Not approved for build.
 
 `ath pull openwearables` reads one person's stored health data from an Open
 Wearables server they run, and writes it with the mapping this release
-ships. The proposals are D198 through D204 in
+ships. The proposals are D198 through D205 in
 [decisions.md](decisions.md). They are not adopted. The evidence is
 [appendix/open-wearables-api.md](appendix/open-wearables-api.md), checked on
 6 and 7 November 2026.
@@ -73,11 +73,12 @@ Preview text prints:
 - `reads finished` or `reads incomplete`
 - one line each for the twelve reads in section 2: `completed`, `failed`,
   or `not_attempted`
-- for body, one extra line: `body snapshot stored`, `body snapshot empty`,
-  or `body snapshot incomplete`
+- for body, on a preview: `body snapshot would store` or `body snapshot
+  would be empty`. On a confirmed write: `body snapshot stored`,
+  `body snapshot empty`, or `body snapshot incomplete`
 - estimated counts, by record type, of sleep sessions, workouts, points,
-  measurement samples, summaries, and scores
-- committed counts of zero
+  measurement samples, summaries, scores, and source reports
+- committed counts of zero on a preview
 - the coverage lines in section 2
 - `left_out` as a total plus at most 20 example lines
 - `nothing written; pass --yes after reviewing this preview`
@@ -94,13 +95,18 @@ print that sentence. The body line still says the snapshot is incomplete.
 
 If a later page fails, the child returns a typed outcome to the parent
 before the process exits nonzero. The parent renders that outcome as text,
-then uses the exit status. The text says the requested range is incomplete,
-names the failed read, names any read that is `not_attempted`, and prints
-the retained counts. A failed read says to run the same command again. An
-identity refusal uses the sentence in section 3, which says a rerun cannot
+then uses the exit status. When a ranged read failed, the text says the
+requested range is incomplete. When every ranged read completed and body
+or the personal record failed, the text says the requested range is
+complete and names the snapshot that failed. It names any read that is
+`not_attempted`, and it prints the retained counts. The exit is nonzero
+in both cases. The success sentence is not printed. A failed read says to
+run the same command again. An identity refusal uses the sentence in
+section 3, which says a rerun cannot
 repair the device id. It does not print the success sentence. The failed page makes no database changes. Records
-already stored stay, including their revisions. An empty range whose reads
-finished says the range is complete. `written` is false when the confirmed
+already stored stay, including their revisions. An empty ranged result
+can still store the personal record or the body snapshot. Those writes are
+counted. They are not ranged rows. `written` is false when the confirmed
 command changed nothing. The database is unchanged. That is not a claim that
 the database has no rows.
 
@@ -134,17 +140,21 @@ server, user id, or request path.
 }
 ```
 
-The same record types are present for workouts, points, summaries, and
-scores. The example above is shortened. It is the preview outcome.
+The same record types are present for workouts, points, summaries, scores,
+and source reports. The example above is shortened. It is the preview
+outcome. A preview does not say a snapshot was stored.
 
 The child returns a different outcome for `--yes` without `--json`. That
-outcome has the actual `committed` counts, `database_changed`, and
-`range_complete`. `written` is true only when that confirmed command
-committed at least one new or revised record. A successful repeat has
-`written` false, `database_changed` false, `range_complete` true, and
-unchanged counts. A later-page failure has `range_complete` false and the
-retained counts. The parent prints sentences from this outcome. It does not
-print the outcome as public JSON.
+outcome has the actual `committed` counts, `database_changed`,
+`range_complete`, and `snapshots_complete`. `range_complete` is true when
+the ranged reads finished. `snapshots_complete` is true when the personal
+record and the body snapshot finished. `written` is true only when that
+confirmed command committed at least one new or revised record. A
+successful repeat has `written` false, `database_changed` false, both
+flags true, and unchanged counts. A failed ranged page has
+`range_complete` false. A failed snapshot after a finished range has
+`range_complete` true and `snapshots_complete` false. The parent prints
+sentences from this outcome. It does not print the outcome as public JSON.
 
 `--date` stays required only for `garmin`. `--from` and `--to` are required
 only for `openwearables`, and they are flags, not environment variables.
@@ -177,8 +187,10 @@ gateway commands they are today.
 
 ## 2. What this pull stores
 
-D204 is the storage rule. D203 keeps these values in this pull. D204
-corrects how they are identified, timed, and classified. An earlier draft
+D205 is the storage rule. D203 keeps these values in this pull. D204
+corrected source, time, and score direction. D205 corrects units, day
+windows, sleep bounds, identity encoding, reported records, and child
+withdrawal. An earlier draft
 left day values, the heart-rate stream, summaries, and workout segments for
 a later version. That draft is superseded. File imports stay. The Garmin pull stays. A Junction pull is proposed as
 2.3.0. Automatic sync, retries, token refresh, and backfill are proposed as
@@ -256,176 +268,206 @@ have no limit. An oversized response fails that read and names the read.
 Earlier committed pages stay. The pull does not drop a series, a segment,
 or a location to stay under the cap.
 
-Device rows and other rows do not share a source. A device source uses the
-2.1.0 sensor, `device_type|device|source`. Its receipt rules in section 3
-are unchanged. A row enters that source only when its `source` object has a
-nonempty `device_id`, or when it is an id-less sleep or workout on a new
-source with no history. A raw or day sample whose `source` object exists
-and whose `device_id` is missing, null, or blank is `left_out`. The reason
-is the missing device id. No id is copied from another row.
+A device source uses the 2.1.0 sensor, `device_type|device|source`. Its
+receipt rules in section 3 are unchanged. A sleep session or an automatic
+workout enters that source when it has a nonempty `device_id`, or when it
+is id-less on a new source with no history. Every raw or day series row
+whose `source` object exists enters that same check, including intake and
+index series. The stored class is still the appendix class. A source
+report on that source is not a measurement. A missing, null, or blank
+`device_id` on that row refuses the whole call before any write. It is
+not classified `left_out` first. A valid row beside it on the same page
+is not stored. No id is copied from another row. Summaries, meals,
+cycles, manual workouts, scores, and the personal record use the sensors
+below. They do not establish the device receipt.
 
-A summary built without `device_id` uses a different sensor,
-`summary:{family}:{provider}:{device}:{device_type}:{source}`. A missing
-part is `-`. Sleep, activity, recovery, and body summaries use that sensor.
-The builders in `summaries_service.py` omit `device_id`. Body's `source`
-is the newest slow-changing measurement's provider, writer, model, and
-type. The service discards provider and device on the latest readings.
-That object is the response's umbrella source. It is not the author of
-every field, and it is not a device receipt. A meal or cycle with no
-`device_id` uses `event:{family}:{provider}:{device}:{device_type}:{source}`.
-A meal or cycle that has a `device_id` uses the device source. A timeseries
-or score with `source: null` uses
-`unattributed:{resource}:{author}`. A health score's sensor is
-`score:{author}`, where `{author}` is the top-level `provider`, or `-`
-when that field is null. The score's `source` is the input object. It is
-stored on the record and does not choose the sensor.
+A new sensor is the prefix `ow1:` plus a JSON array. The array has no
+spaces. A missing part is JSON `null`. An empty string and the text `-`
+stay strings. JSON escaping keeps a colon, a quote, and a backslash
+inside one part. Two different tuples therefore stay different sensors.
+The legacy device sensor is not rewritten into this form. D181 still
+escapes `:` and `\` when the sensor is placed in a match key.
 
-These sensors do not establish `device_binding`. Their history is not
-history of the device source. A summary stored first does not block a
-later raw page from binding its own device source. A bound device source
-does not reject a later summary. Preview memory is kept per sensor. A
-refused device page rolls back only that page.
+The array shapes are:
 
-Match keys stay D181 for the existing raw points, the raw `vo2_max`
-summary, and the raw `garmin_stress_level` and `garmin_body_battery`
-scores. A day row adds `1day` and `period_end` to its key, so it does not
-replace the raw row. A summary field's key is the writer, the summary
-sensor, the family, the `date`, and the field path. A meal, cycle, or
-score uses the server id. Two meals at one timestamp stay two records.
-Two metrics on one date stay two records. A body field's key is the
-writer, the body sensor, the group, and the field path. It has no
-requested date. A later snapshot revises that record. `received_at` stays
-the time this program stored the revision. It is not the measurement time.
-The personal record's key is the writer, its sensor, and `personal_record`.
-The athlete profile is not changed. Birth date, gender, and sex do not fit
-that profile: it has a birth year, a two-value sex, and no source.
+- Summary or body: `["summary", family, provider, device, device_type, source, device_id]`
+- Meal, cycle, or manual workout: `["event", family, provider, device, device_type, source, device_id]`
+- Health score: `["score", provider]`. `provider` is the top-level author,
+  or JSON `null` when that field is null. The input `source` is not in
+  the array.
+- Timeseries with `source: null`: `["unattributed", "timeseries"]`
+- Personal record: `["personal_record"]`
 
-The original server object is stored on one anchor record, in
-`supplied_fields`, including nulls, text, booleans, codes, and nested
-objects. A normalized number is a second record. Its `supplied_fields`
-hold the leaf it came from, including that leaf's unit. Transport through
-this API is not by itself evidence the value was measured (D161). The
-classes are:
+The writer is `source.provider` when that string is nonempty. A health
+score uses its top-level `provider` when that string is nonempty. The
+personal record, a null-provider score, and a null-source timeseries use
+the writer `open_wearables`. That word names this route. It is not a
+device maker and it is not an invented author. The vendor is omitted.
+`source_type` is `connector`. These sensors do not establish
+`device_binding`. Their history is not history of a device source.
 
-- A raw point the 2.1.0 file already stores stays that point. The lines
-  are RMSSD, SDNN, resting heart rate, respiratory rate, skin temperature,
-  blood oxygen, and one-minute heart-rate recovery. Apple skin temperature
-  stays `wrist_temperature_sleeping` when the writer is `apple`.
-- Raw `vo2_max` stays `provider_summary.vo2_max`. Raw
-  `garmin_stress_level` stays a provider score on scale `1-100`. Raw
-  `garmin_body_battery` stays a provider score on scale `0-100`. Body
-  battery is not a sample.
-- These raw series are points because Athletic Standard already has one
-  quantity for each, and the original series name stays in
-  `supplied_fields`: `walking_heart_rate`, `body_temperature`, `height`,
-  `weight` as `body_weight`, `body_fat_percentage`, `lean_body_mass`,
-  `blood_pressure_systolic`, and `blood_pressure_diastolic`.
-- The other raw series readings are measurement samples. The appendix
-  lists all 71. The number is unchanged. The unit is the server unit,
-  using the existing conversions `percent` to `%`, `celsius` to `°C`,
-  `degrees` to `deg`, and `brpm`, `bpm`, `ms`, and `m` unchanged. A new
-  series quantity uses the server's unit string when no conversion exists.
-  Latitude and longitude are samples. A negative coordinate stays negative.
-  `heart_rate` is a sample. It is not a point. Integer `window_seconds`
-  sets `duration_ms` to that count times 1000, and the original field
-  stays.
-- Dietary series, and `number_of_alcoholic_beverages`, are reported
-  intake. Each is a provider summary at the sample time. The summary type
-  is the series name. They are not nutrition entries and not samples.
-- These raw series are provider summaries, not samples:
-  `peripheral_perfusion_index`, `breathing_disturbance_index`,
-  `body_mass_index`, `cardiovascular_age`, `workout_effort_score`,
-  `estimated_workout_effort_score`, `garmin_fitness_age`,
-  `withings_metabolic_age`, and `nike_fuel`. The estimated effort score
-  keeps that name. Its basis is omitted. It is not relabeled as measured.
-- A day row uses the same class, with the window below. The two Garmin
-  scores stay scores. A day row of a point series is a provider summary,
-  not a point. `vo2_max` on a day row is a window summary. Its key is not
-  the raw `vo2_max` key.
+A health score never uses the unattributed timeseries sensor. A change
+of its input `source` from null to an object, or the reverse, revises
+the same score. The writer, the sensor, and the score id stay put.
+
+A null-source timeseries row has no sample id. Two rows with the same
+type and timestamp are one record only when the whole returned row is
+equal. A different value, in the same call or a later call, refuses the
+call. The stored row stays. The text says the rows are ambiguous and a
+rerun cannot choose one. `ath correct` remains the owner's way to replace
+a record. The same rule applies to a day row with `source: null`.
+
+File import and pull use one envelope table. The pull passes these
+objects. A saved file imports the same object. A mapping that sends a
+device row to another sensor, or that changes a series class in the
+appendix table, fails before any request.
+
+| Resource | Envelope | Writer | Sensor | Anchor | Child |
+|---|---|---|---|---|---|
+| Sleep session | `{ "sleep": data }` | `source.provider` | legacy device | `sleep_session`, D181 id key | stage and duration fields on that session |
+| Automatic workout | `{ "workout": data }` | `source.provider` | legacy device | `workout_session`, D181 id key | existing typed fields and source-reported summaries |
+| Manual workout | `{ "workout": data }` | `source.provider` | `ow1` event | `source_report` `manual_workout`, server id | none. The original object is the record |
+| Raw series with `device_id` | timeseries object, `resolution` `raw` | `source.provider` | legacy device | the raw class in the appendix, D181 time key | none |
+| Raw or day series, source present, no `device_id` | timeseries object | `source.provider` | legacy device, then the call is refused | nothing stored | none |
+| Raw series, `source` null | timeseries object | `open_wearables` | `ow1` unattributed | the raw class, D181 time key | none. Unequal payloads refuse the call |
+| Day series | timeseries object, `resolution` `1day` | same as the raw row | same as the raw row | window form in the appendix. Key adds `1day` and `period_end` | none |
+| Sleep, activity, or recovery summary | `{ "sleep_summary": data }`, `{ "activity_summary": data }`, or `{ "recovery_summary": data }` | `source.provider` | `ow1` summary | `source_report` subject `object`, date | one measured child per numeric field, field path in the key |
+| Body | the object | umbrella `source.provider`, or `open_wearables` when it is missing | `ow1` summary, family `body` | `source_report` subject `object` | slow-changing weight, height, fat, and muscle are time-unknown provider summaries; averaged heart rate and HRV use the server window; latest temperature and blood pressure use their own times; age and BMI are source reports |
+| Health score | `{ "health_score": data }` | top-level `provider`, or `open_wearables` | `ow1` score | `provider_score` when the scale table has a finite range, otherwise `source_report` | none. Components stay on the record |
+| Meal | `{ "meal": data }` | `source.provider` | `ow1` event | `source_report` subject `object`, meal id | one `source_report` per numeric field path |
+| Cycle | `{ "cycle": data }` | `source.provider` | `ow1` event | `source_report` subject `object`, cycle id | one `source_report` per numeric reported length |
+| Personal record | the object after `user_id` is removed | `open_wearables` | `ow1` personal | `source_report` subject `personal_record` | none |
+
+`source_report` is not one of the seven measured record types in SPEC
+section 5.4. It has a source, so it is not an athlete report and it is
+not a nutrition entry. Nutrition entries have no source. D161 still says
+a mapping cannot turn a personal report into a measured record. A source
+report stores that report without making it a measurement. The eight range calculations and
+`provider-period-summary` do not read it. Step 5 creates the
+`source_reports` table. Value and unit are both present or both absent.
+`report_kind` is one of `intake`, `account`, `predicted`, `code`, `text`,
+`manual_workout`, `index`, or `original`. Gender uses `account`. It is not
+copied into `sex` or the athlete profile. The receipt still adds no column.
+
+Match keys for the new records are the writer, the sensor, the resource,
+the server id or the date or the body group, and the subject. The anchor
+subject is `object`. A child subject is the field path, one key part, so
+`nutrients.dietary_sugar` and `calories_kcal` do not collide. Two meals
+at one timestamp stay two records because the meal id differs. Legacy
+device keys are unchanged.
+
+The original server object is stored on the anchor, in `supplied_fields`,
+including nulls, text, booleans, codes, and nested objects. A normalized
+number is a child. Its `input_value` and `input_unit` are the server's
+number and unit. `supplied_fields` hold that leaf. The appendix table is
+the mapping for all 141 series, raw and day. `standard_value` equals
+`input_value` except for `walking_step_length` and `running_stride_length`.
+Those quantities are metres. The server sends centimetres, so
+`standard_value` is `input_value / 100`. A 70 cm step is 0.70 m. A 120 cm
+stride is 1.20 m. The other aliases change the unit text and not the
+number: `percent` to `%`, `celsius` to `°C`, `degrees` to `deg`, `meters`
+to `m`, `m_per_s` to `m/s`, `watts` to `W`, `met` to `MET`, `minutes` to
+`min`, and `ml_kg_min` to `ml/kg/min`. A new quantity uses that alias, or
+the server's unit token when it has no alias. Existing quantity units are
+not edited to match the server token.
+
+No day row is a measurement sample. The day `timestamp` is
+`CalendarPeriod.of_date(...).start`. `period_end` is the next boundary.
+`window_seconds` is null. Those bounds are the reporting window
+`open_wearables_reporting_window` on a provider summary, a provider
+score, or a source report. `recorded_at` is unset. `duration_ms` is unset.
+The program does not turn the two bounds into a duration, so a 23-hour or
+25-hour local day stays the server's two timestamps. The window is not
+called the measurement instant. Integer `window_seconds` on a raw sample
+sets `duration_ms` to that count times 1000. The original field stays. Raw `heart_rate` stays a sample at the
+server timestamp. Day `heart_rate`, day steps, and day speed are window
+summaries. The two Garmin day scores stay scores on their existing
+scales, with the window and without `recorded_at`. Raw points, raw
+`vo2_max`, and the two raw Garmin scores keep their kinds and keys.
 
 `computed_by: provider` sets basis `provider`. `computed_by:
 open_wearables` sets basis `aggregator`. `computed_by: null` omits the
-basis and keeps the null. A raw row has no `computed_by`. Its basis stays
-`provider_or_aggregator`. A health score with top-level `provider:
-internal` has basis `aggregator`. That score was computed by Open
-Wearables. A vendor name in that field has basis `provider`. A null
-`provider` omits the basis. The writer field on the device sensor is not
-this author.
+basis and keeps the null. A raw row that omits `computed_by` keeps the
+2.1.0 basis `provider_or_aggregator`. That omission is not the JSON null.
+The raw Garmin scores keep basis `provider` from the existing lines.
+A health score with top-level `provider: internal` has basis
+`aggregator`. A vendor name there has basis `provider`. A null provider
+omits the basis. The device writer is not this author.
 
-A health score with a finite range in `constants/health_scores.py` is a
-provider score. The scale text is `{min}-{max}`. The unit is `score` when
-the number is present. Polar readiness is `0-10`. Polar recovery is `1-6`.
-WHOOP strain is `0-21`. Sleep, and WHOOP recovery, are `0-100` only for
-the provider entries in that table. Polar strain has no finite maximum, so
-it is not given a scale. A category or provider missing from the table is
-not given `0-100`. That score is a provider summary with no numeric
-`value`. The number, qualifier, components, and `event_record_id` stay on
-the anchor. A null score value uses the same kind as a present value for
-that provider and category, with `value` and unit both absent. Components
-are not turned into extra scores. RMSSD and SDNN stay separate names.
-`RecoverySummary.recovery_score` is a deprecated 0 to 100 field. A present
-number is a provider score on scale `0-100`. A null is only the anchor's
-original object.
+A finite range in `constants/health_scores.py` is the only scale. The
+text is `{min}-{max}`. The unit is `score` when the number is present.
+Sleep is `0-100` for internal, WHOOP, and Samsung, and `1-100` for Oura,
+Garmin, and Polar. Oura readiness is `1-100`. Polar readiness is `0-10`.
+Oura activity is `1-100`. Garmin stress and Garmin body battery are
+`0-100`. WHOOP and Suunto recovery are `0-100`. Polar recovery is `1-6`.
+WHOOP strain is `0-21`. Polar strain has no finite maximum. A missing
+category or provider is not given a scale. That score is a
+`source_report`. The number stays in the original object. The raw series
+`garmin_stress_level` and `garmin_body_battery` stay the existing score
+lines. They are not these health-score rows. A null value uses the same kind as a present value for
+that provider and category. Components are not extra scores. RMSSD and
+SDNN stay separate. `RecoverySummary.recovery_score`, when the number is
+present, is a provider score on scale `0-100`. When it is null, that
+child is withdrawn as section 2 says. The anchor keeps the null.
 
-WHOOP recovery components can include `skin_temp_celsius`. The health-score
+WHOOP recovery components can include `skin_temp_celsius`. The score
 object keeps that component. `RecoverySummary` has no skin-temperature
-field. Its class ends at `recovery_score`. Its `avg_hrv_sdnn_ms` text says
-current rows are null because they come from WHOOP and that HRV is RMSSD.
-A non-null SDNN is stored. RMSSD is not copied into it. The body snapshot
-does not fill historical temperature.
+field. A non-null SDNN is stored. RMSSD is not copied into it. The body
+snapshot does not fill historical temperature.
 
-Sleep summary `start_time` and `end_time` are the longest main sleep when
-one exists, and otherwise the service's minimum start and maximum end.
-Those bounds are the period `open_wearables_main_sleep` only for
-`duration_minutes`, `time_in_bed_minutes`, `efficiency_percent`, the stage
-minutes, and `interruptions_count`. `total_duration_minutes`, nap count,
-nap duration, the session list, and the heart-rate, HRV, respiration, and
-blood-oxygen averages stay on `provider_date` alone. A nap outside the
-main sleep does not inherit the main-sleep bounds. The session list stays
-on the anchor. It does not become extra sleep sessions. The service can
-add a missing main duration as zero when it builds
-`total_duration_minutes`. This program stores the returned number and the
-original. It does not turn a null into zero, and it does not reverse the
-server's sum.
+Sleep summary numbers are sums or weighted values across every non-nap
+session in the selected source and date. `start_time` and `end_time` are
+only the longest main sleep, or the service's minimum start and maximum
+end when no main sleep exists. Those bounds stay inside the anchor's
+original object. They are not a reporting period on `duration_minutes`,
+time in bed, efficiency, stage minutes, or interruptions. Two main sleeps,
+00:00–04:00 and 06:00–08:00, can sum to 360 minutes. That 360 stays on
+`provider_date`. It is not placed inside the four-hour sleep. This
+program does not re-sum the sessions and does not invent an interval.
+Nap totals and the heart-rate, HRV, respiration, and blood-oxygen
+averages are also date-only. The session list stays on the anchor. The
+service can add a missing part as zero when it builds
+`total_duration_minutes`. A returned zero stays zero. A null stays null.
 
-Activity fields are date-only. `floors_climbed` is described as calculated
-from elevation. `total_calories_kcal` can be the provider total or the sum
-of active and basal energy. The response does not say which. The basis
+Activity fields are date-only provider summaries. `floors_climbed` is
+described as calculated from elevation. `total_calories_kcal` can be the
+provider total or a sum. The response does not say which, so the basis
 stays `provider_or_aggregator`. Intensity minutes can be returned as zero
-where the service fills a missing key with zero. A returned zero stays
-zero.
+where the service fills a missing key with zero.
 
-Body is one current snapshot. `range_complete` does not treat it as the
-requested dates. `slow_changing` has weight, height, fat, muscle, BMI, and
-age, and no measurement time. Those values use
-`input_timestamp.timestamp_missing_reason: not_provided_by_source`. They
-have no `recorded_at` and no reporting period. The average window is not
-borrowed, and the pull time is not written as the measurement time. Age is
-basis `aggregator` because the service calculates it from the birth date
-and the server clock. BMI is not called measured. The response does not
-say whether that BMI was stored or calculated, so its basis is omitted.
-`averaged` uses the server's `period_start` and `period_end`. Those bounds
-are the current averaging window, computed from `datetime.now` in the
-service. They are not applied to `slow_changing` or `latest`. Each latest
-field uses its own time: `body_temperature_measured_at`,
-`skin_temperature_measured_at`, or `blood_pressure_measured_at`. A value
-with a null time uses the same time-unknown receipt. The three groups can
-be stored together or alone. A null group stores no field records. The
-anchor still holds the object.
+Body is the current snapshot. It is not the requested range. The anchor
+is a `source_report`. Weight, height, fat, and muscle are provider
+summaries with `timestamp_missing_reason: not_provided_by_source`, no
+`recorded_at`, and no borrowed window. Age and BMI are `source_report`
+children. Age is calculated. BMI is not labeled measured. The averaged
+heart-rate and HRV values are provider summaries on the server's
+`period_start` and `period_end`. Those bounds are not copied onto the
+slow-changing fields. Each latest field uses its own measured-at time
+when the server sends one. A value with a null time uses the time-unknown
+receipt. A null group withdraws that group's existing children. It does
+not delete them because a different request omitted the snapshot.
 
-A meal's calories, macros, water, and `nutrients` entries are provider
-summaries at the meal timestamp. A nutrient uses the value and unit on
-that entry. The name, meal type, and full nutrient map stay on the anchor.
-A meal with no numbers is the anchor only. A cycle's reported lengths are
-provider summaries on the cycle's start and end. `current_phase` is a
-code. `predicted_cycle_length` and `is_predicted_cycle` stay on the
-anchor, as do booleans, text, and `pregnancy_snapshot`. They are not
-turned into measurements. Workout numbers that are not already typed stay
-on the workout as source-reported summaries, and the original fields stay.
-`intensity` stays under that name. It is not a sample. Segments stay under
-`segments`. A segment with a label is also a typed segment. A missing
-label is not filled in. Zones stay under the server's names. A workout
-with `entry_source` `manual` is left out.
+Meal numbers, nutrient numbers, dietary series, alcoholic-beverage
+counts, and the index, age, and effort series are `source_report`
+records. They are not provider summaries and not nutrition entries. A
+nutrient keeps the value and unit on its leaf. Cycle codes, predicted
+lengths, booleans, text, and `pregnancy_snapshot` stay on the cycle
+anchor. A numeric cycle length is also a `source_report` child, not a
+measurement. On an automatic workout, a number that is not already a
+typed session field stays in `supplied_fields` and is a `source_report`
+child. It is not a provider summary. `intensity` stays under that name.
+Segments and zones stay under the server's names. A
+manual workout is the `source_report` in the table. It does not become a
+workout session, a point, or a device receipt.
+
+The same returned object can change a child from a number to null, or
+remove a nutrient. The mapper emits that child again with value and unit
+both absent. The record id, the revisions, and the first `received_at`
+stay. D182 copies the stored `received_at` onto the new revision.
+`became_known_at` is when that revision was written. A later number
+returns on the same child. A range that does not return the object does
+not withdraw its children. A refused page rolls the withdrawals back
+with the page.
 
 A provider summary or provider score may omit `value` only together with
 its unit. One without the other is refused. Step 5 rebuilds both typed
@@ -433,7 +475,7 @@ tables so the pair can be null, copies every existing row, and keeps
 record ids, `data_json`, import keys, revisions, tombstones, and reporting
 periods. Scale on a provider score stays required. No number is invented.
 The time-unknown summary is valid only with the missing-timestamp reason
-above. A summary that has a server time uses that time.
+above.
 
 The following are not requested. Each line is the reason.
 
@@ -546,8 +588,11 @@ at `source.device_id`. A resolved mapping that points `device_hardware`
 somewhere else fails before any write, because that file cannot satisfy this
 contract. The source already stored stays unchanged.
 
-The check runs on accepted rows. A row the mapping has already classified
-as `left_out` does not establish a binding and does not supply the id. The
+The check runs on device-source rows, including a raw or day row whose
+`source` object has no `device_id`. That row is not marked `left_out`
+before the check. A query-bucket row that is already `left_out` does not
+establish a binding and does not supply the id. Summary, event, score,
+unattributed, and personal-record rows do not enter this check. The
 call is one of these states:
 
 - The source is deleted. D190 leaves its rows out. The call does not revive
@@ -661,8 +706,10 @@ built without that field. Day rows carry it, and those rows are stored.
 
 D200 is the rule. The key never enters the athlete database, the export, the
 preview, or an error line. The pull reads only the paths in section 2.
-It does not list users. The personal-record object includes `user_id`.
-That field is removed before the scan below and is not stored. Birth date,
+It does not list users. The personal-record object includes `user_id`. When that field is a
+string, it must equal the selected user id. Any other string refuses the
+page. A matching string is removed before the scan below and is not stored.
+A null or absent field is not filled in. Birth date,
 gender, and sex are stored. They are account health data, not the API key.
 
 The process refuses a base URL that could carry the key in the URL itself.
@@ -674,9 +721,10 @@ the key cannot be sent to a second host. One attempt, then stop. Timeouts are
 The body is read inside that cap and parsed before any `apply_mapping` call.
 The guard is in `open_wearables.rs`. It walks every decoded object key and
 every decoded string. A value that contains the API key, the selected
-origin, or the selected user id rejects the whole page. The removed
-personal-record `user_id` is the only field that is dropped before this
-walk. Any other copy of the user id still rejects the page. The page is not
+origin, or the selected user id rejects the whole page. The matching personal-record `user_id` is the only field that is dropped
+before this walk. Any other copy of the user id still rejects the page. A
+personal-record `user_id` that is not the selected user refuses the page
+before the drop. The page is not
 rewritten and it is not mapped. A Unicode escape such as `\u0073` is visible
 only after parsing, so a scan of the raw text is not enough. The raw-text
 scan still runs on a body that did not parse, and the parent still refuses
@@ -703,9 +751,10 @@ reads in section 2, no user list.
 
 The build sets `2.2.0` on the package, the record, and `ath-core`, by the
 same constants 2.1.0 moved. Migration step 5 is a new SQL file. It updates
-`athleticstandard_version` to `2.2.0` and `sql_schema_version` to 5. No column
-is added. The same file rebuilds `provider_summaries` and `provider_scores`
-as section 2 describes and copies existing rows, including deleted rows.
+`athleticstandard_version` to `2.2.0` and `sql_schema_version` to 5. No
+column is added to an existing table. The same file creates
+`source_reports` and rebuilds `provider_summaries` and `provider_scores`
+as section 2 describes. It copies existing rows, including deleted rows.
 Record ids, revisions, import keys, and reporting-period rows stay. Step 4
 and file `004` are not edited (D165).
 
@@ -726,13 +775,19 @@ would make a 1.0.0 database unloadable, so migrate could not open it.
 
 The build generates `schema/2.2.0/` and does not rewrite `schema/2.1.0/` or
 `schema/2.0.0/`. The 2.2.0 source object gains optional `device_binding`.
-`ProviderReportingPeriodType` gains `open_wearables_reporting_window` and
-`open_wearables_main_sleep`. `ValueBasis` gains `aggregator`. Series
-quantities gain the sample series in section 2, not the intake, index, age,
-or effort series. `provider_summary.value` and `provider_score.value` may
-be omitted together with the unit, as section 2 says. A provider summary
-may also omit `recorded_at` and reporting periods when its input timestamp
-uses `not_provided_by_source`. No other field is added. The folder exists
+`ProviderReportingPeriodType` gains `open_wearables_reporting_window`.
+`ValueBasis` gains `aggregator`. Series quantities gain the sample series
+whose units are in the appendix table. Intake, index, age, and effort
+series do not gain quantities. The record type `source_report` is added.
+It is not a measured type. Its table has `record_id`, `source_id`,
+`report_kind`, `subject`, optional `reported_at`, optional
+`standard_value` and `standard_unit` together, optional
+`provider_record_id`, `received_at`, and `data_json`. It has no required
+measured value. `provider_summary.value` and
+`provider_score.value` may be omitted together with the unit, as section 2
+says. A provider summary may also omit `recorded_at` and reporting periods
+when its input timestamp uses `not_provided_by_source`. No other field is
+added. The folder exists
 so the package version and the schema path
 stay aligned. The demo athlete is
 regenerated because the stored version is inside it. `examples/demo-athlete/athlete.ath.json`
@@ -766,7 +821,7 @@ interactive open can preview, back up, ask, and then migrate.
 | Stored records | the existing store and mapping engine |
 | Keep `device_binding` on a partial source update | `Store::revise` in `crates/ath-core/src/store.rs`, sources only |
 | Read receipt and tombstone history; create or first-bind with the checked receipt | three source operations in `store.rs`, inside the caller's transaction |
-| Measurement samples; paired null value and unit on summaries and scores | `insert_typed`, `update_typed`, and `typed_table` in `store.rs`; the same pair in `src/db/records.ts`, `src/db/import-package.ts`, `src/db/records-view.ts`, and the repair copy from `data_json` |
+| Measurement samples, source reports, paired null value and unit, and child withdrawal | `insert_typed`, `update_typed`, and `typed_table` in `store.rs`; the same pair and table in `src/db/records.ts`, `src/db/import-package.ts`, `src/db/records-view.ts`, and the repair copy from `data_json` |
 | Whole source record from the owner | existing `ath correct`, package restore, and an accepted package merge |
 
 `store.rs`, `persist.rs`, and `personal.rs` are not the home for this client.
@@ -785,16 +840,20 @@ copy from section 2. HTTP stays out of `mapping.rs`. `store.rs` keeps the
 `revise` refusal and adds the three source operations in section 3: the
 receipt and tombstone read, creation with the checked receipt, and a
 first bind on an existing source that has no history. It also inserts and
-updates `measurement_sample`, and it accepts a provider summary or provider
-score whose `value` and unit are both present or both absent. A half-null
-pair is refused. `src/db/records.ts`, `src/db/import-package.ts`,
+updates `measurement_sample` and `source_report`, and it accepts a provider
+summary or provider score whose `value` and unit are both present or both
+absent. A half-null pair is refused. When an anchor in this response no
+longer emits a child, that child is revised to the absent pair in the same
+transaction. `src/db/records.ts`, `src/db/import-package.ts`,
 `src/db/records-view.ts`, and the repair copy from `data_json` follow that
-pair. No other store behavior changes. `ath correct`,
+pair and the new table. The eight range calculations and
+`provider-period-summary` do not read `source_reports`. No other store
+behavior changes. `ath correct`,
 package restore, and an accepted package merge stay whole-record owner
 writes. They are named in section 3 so the binding survives a 2.2.0 round
 trip. They are not a new importer. The pull sums only `sleep_session`, `workout_session`,
-`point_measurement`, `measurement_sample`, `provider_summary`, and
-`provider_score`. A committed page adds those counts to the actual committed
+`point_measurement`, `measurement_sample`, `provider_summary`,
+`provider_score`, and `source_report`. A committed page adds those counts to the actual committed
 result. A rolled-back preview page adds them to `estimated`. It does not add
 `outcome` across pages. `outcome` counts the source-device row in the same
 group. Filtering that row out of the totals does not make a preview equal a
@@ -810,7 +869,7 @@ the mode is `--yes` without `--json`. On a partial failure it returns that
 confirmed outcome to the parent and then exits nonzero. The parent renders
 text from the confirmed outcome and public JSON from the preview outcome.
 The success sentence is parent text, and only after `--yes` when
-`range_complete` is true.
+`range_complete` and `snapshots_complete` are both true.
 
 The program runs on Linux, macOS, and Windows with the same command. The
 fixture server listens on `127.0.0.1` and an ephemeral port, which is the
@@ -833,8 +892,12 @@ Unix seconds. A bad bound does not open a socket.
 
 Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
 
-- two pages, the second `next_cursor`, then `has_more: false`. `--yes` sets
-  `range_complete` in the text and prints the success sentence
+- two pages, the second `next_cursor`, then `has_more: false`. `--yes`
+  with a finished body and personal record prints the success sentence.
+  A finished range whose body read fails says the range is complete, names
+  the body snapshot, does not print the success sentence, and exits
+  nonzero. A preview says the snapshot would be stored. An empty ranged
+  result can still store the personal record
 - the same session id on two pages, identical payload: the preview estimate
   counts two new rows, and `--yes` counts one new and one unchanged
 - the same session id on two pages, changed payload: the preview estimate
@@ -868,16 +931,23 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   segment that has a label is also a typed segment
 - a raw `heart_rate` row becomes a measurement sample in bpm at the
   server's timestamp. Export and import keep that timestamp, unit, and
-  value. A day row for resting heart rate, RMSSD, SDNN, and blood oxygen
-  becomes a provider summary with `open_wearables_reporting_window`, no
-  `recorded_at`, and the server's `timestamp` and `period_end`. Raw
+  value. A day row for heart rate, steps, running speed, resting heart
+  rate, RMSSD, SDNN, and blood oxygen becomes a provider summary with
+  `open_wearables_reporting_window`, no `recorded_at`, and the server's
+  `timestamp` and `period_end`. Check, export, and import keep that window
+  and do not invent an instant. A step length of 70 cm is stored as 0.70 m.
+  A stride of 120 cm is stored as 1.20 m. The input number and `cm` stay
+  on the record. Every row in the appendix table has one raw fixture and
+  one day fixture. Check, export, and import keep the input pair, the
+  standard pair, and the day window. Raw
   `vo2_max` stays `provider_summary.vo2_max` on its 2.1.0 key. A day
   `vo2_max` row is a different window summary. Raw `garmin_stress_level`
   and `garmin_body_battery` stay provider scores on their existing scales
   and keys. They do not become samples. A null RMSSD beside a present SDNN
   stores only the SDNN. A sleep-summary respiratory rate is date-only. The
   sleep session from the same night still has no respiration field. Nap
-  totals do not receive the main-sleep bounds. Skin temperature is stored
+  totals do not receive main-sleep bounds. Two main sleeps of 240 and 120
+  minutes store duration 360 on `provider_date` only. Skin temperature is stored
   from a series row or from body latest when that time is present. A
   recovery object does not gain a skin field. A WHOOP health-score
   component named `skin_temp_celsius` stays on that object.
@@ -900,31 +970,47 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   file import, and import then import keep one summary id. A refused
   device page rolls back only that page. Two meals with one timestamp and
   different ids stay two records. Two summary fields on one date stay two
-  records. A timeseries row with a source and no `device_id` is `left_out`.
-  A timeseries row with `source: null` is stored on the unattributed sensor
+  records. A page with one bound heart-rate row and one same-triple row
+  whose `device_id` is missing refuses the page. Neither row is stored.
+  Import then pull of that pair refuses the same way. A timeseries row with
+  `source: null` is stored on the unattributed sensor when the payload
+  matches. A different payload at that type and time refuses the call.
+  Sensors `ow1:["summary","sleep",null]` and a colon inside a provider
+  name stay different from a shifted tuple. The text `-` is not the same
+  sensor as a missing part. A score whose input source changes from null
+  to an object keeps its id. A personal record repeats. A personal record
+  with no birth date uses the time-unknown receipt. A meal with calories
+  and two nutrients stays three children plus the anchor
 - an internal health score has basis `aggregator`. A vendor score has
   basis `provider`. A null `provider` omits the basis. Polar readiness uses
   scale `0-10`, Polar recovery uses `1-6`, and WHOOP strain uses `0-21`.
   A score with no finite range keeps its number on the anchor and does not
-  use scale `0-100`. A null value and a later number revise the same
-  record. `computed_by: null` omits the basis and keeps the null
+  use scale `0-100`. An Oura sleep score uses `1-100`. A null value and a
+  later number revise the same record. `computed_by: null` omits the basis
+  and keeps the null. A raw row that omits `computed_by` keeps
+  `provider_or_aggregator`
 - body fetched during a historical range is the current object. Weight
   with no time has no `recorded_at` and does not use the average window.
   A latest value with a null time is stored the same way. Age has basis
   `aggregator`. BMI's basis is omitted. The three groups can arrive
   together or alone. JSON null and a returned zero and a missing field
   stay three different results
-- a dietary series is a provider summary, not a sample and not a nutrition
-  entry. A cycle code, a predicted length, and a pregnancy snapshot stay
-  on the anchor. A cycle that starts in range and ends later keeps that
-  end. A cycle that starts later is not stored, and the read can still
-  complete. Birth date, gender, and sex are stored. `user_id` is not.
-  The athlete profile is unchanged
+- a dietary series and `number_of_alcoholic_beverages` are source reports,
+  not samples, not provider summaries, and not nutrition entries. A cycle
+  code, a predicted length, and a pregnancy snapshot stay on the anchor.
+  A cycle that starts in range and ends later keeps that end. A cycle that
+  starts later is not stored, and the read can still complete. Birth date,
+  gender, and sex are source reports. Gender is not copied into the
+  athlete profile. A matching `user_id` is not stored. A different
+  `user_id` refuses the page. The athlete profile is unchanged
 - step 5 keeps an old summary's id, number, unit, `data_json`, import key,
   revisions, and tombstone. A numeric summary can be corrected to
   numberless and back. A half-null value and unit is refused. A sample
   repeats and corrects. `ath check`, export, native import, and restore
-  accept the numberless summary and the sample
+  accept the numberless summary, the numberless score, and the sample. A
+  meal nutrient that changes from a number to null, then back, keeps one
+  child id. A null body group withdraws that group's children. A refused
+  page restores the withdrawn child
 - two distinct sensor triples become two sources. Device A is stored, then
   a separate operation contains only device B at the same triple, type, and
   instant, with a different value. The operation fails. The current point,
@@ -949,13 +1035,16 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   device B. The same misleading field in a 2.1.0 package is still a supplied
   field after import. Device B does not replace A's point. The supplied
   field and the hardware stay. No source key is added. A sample keeps basis
-  `provider_or_aggregator`. A provider score keeps basis `provider`
+  `provider_or_aggregator`. A raw Garmin score keeps basis `provider`. An
+  internal score keeps basis `aggregator`
 - a raw page and a mapped file that carry `device_binding` on the row, on a
   nested source object, and inside `supplied_fields` do not set, replace, or
   erase the source key. A mapping whose `name` changes and whose
   `device_hardware` stays `source.device_id` keeps the same binding. A
   mapping whose `device_hardware` points elsewhere is refused before any
-  write
+  write. A mapping that sends a device row to an `ow1` sensor, or that
+  changes a series class in the appendix table, is refused before any
+  request
 - an existing open-wearables source has no receipt, no record, and no
   source device. The first accepted write stores the checked receipt on
   that source. Its other fields, its writer, its route, its sensor, and
@@ -978,8 +1067,11 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   id can correct the point. A different id is refused, with no new point
   revision, source revision, or hardware revision. A stored source key that
   is not a nonempty string refuses the automatic write and is left unchanged
-- `page-sleep.json` becomes a sleep session. A manual workout is left out
-  and its automatic neighbor is kept. `page-raw.json` is stored.
+- `page-sleep.json` becomes a sleep session. A manual workout and its
+  automatic neighbor from one response stay two records. The automatic
+  workout is a session on the device source. The manual workout is a
+  source report with the original object and no device receipt. Export and
+  import keep both. `page-raw.json` is stored.
   `page-5min.json` is left out. RMSSD and SDNN stay different quantities
 - a changed end time keeps the record id and increases the revision
 - a `__proto__` supplied field fails the page
@@ -1057,7 +1149,7 @@ the fixture key once into `ath key set openwearables`.
 3. Write. Success: the same command with `--yes` says the requested range is
    complete, shows the body snapshot line, shows committed counts, and
    `ath check` exits 0. Failure: the success sentence appears while the
-   range is incomplete, or `ath check` fails.
+   range or the body snapshot is incomplete, or `ath check` fails.
 4. Repeat. Success: `--yes` again reports the stored rows unchanged.
    Failure: a second copy of a sleep session or a point appears.
 5. Compatibility. Success: one synthetic Apple, WHOOP, or Oura import still
@@ -1128,15 +1220,15 @@ Risks:
   is to avoid copying the key into the record.
 
 The build, after approval, is one pull request in this order. First the
-schema and step 5: the period types, the `aggregator` basis, the sample
-series quantities, the paired null value and unit, and the time-unknown
-summary. Then the store and record paths in section 6. Then the mapping
+schema and step 5: the period type, the `aggregator` basis, the sample
+series quantities in the appendix table, the `source_report` type and
+table, the paired null value and unit, and the time-unknown summary. Then the store and record paths in section 6. Then the mapping
 engine and `mappings/open-wearables.md`. Then the reads, the cycle filter,
 the smaller-page split, and the tests in section 7. The laptop card and the phone proof are
 part of that same pull request. This plan pull request has no media.
 
 The maintainer approves or rejects this plan before any build. D198 through
-D204 are the proposal. They are not adopted. Reviews of earlier heads were
+D205 are the proposal. They are not adopted. Reviews of earlier heads were
 incorporated here. None of those reviews approves this revision. The next
 head needs re-review. An earlier review accepted a
 migration with no new column, under D152 and D184. That acceptance does not
@@ -1148,11 +1240,11 @@ optional source key adds no column.
    `provider_summaries` and `provider_scores` so a numberless object can omit
    `value` and its unit together. Existing ids and rows are copied. A
    `2.1.0` database does not open until `ath migrate`. This release does
-   not schedule, refresh a token, backfill, or store a cursor (D198, D204).
+   not schedule, refresh a token, backfill, or store a cursor (D198, D205).
 2. Store the returned representations in section 2. Device receipts stay
    on device sources. Summaries without a device id use their own sensors.
    Null stays null. A missing response is not called provider-unavailable.
-   The omissions in section 2 are the ones with a reason (D203, D204).
+   The omissions in section 2 are the ones with a reason (D203, D205).
 3. The key, the selected origin, and the selected user id are rejected in
    decoded JSON before a page is mapped. Failure text uses a fixed sentence.
    `ath key clear` with no name still clears only the gateway keys and says
@@ -1176,5 +1268,5 @@ optional source key adds no column.
    check, and the preservation writes in section 2. `store.rs` gains the
    partial-update refusal, the receipt and tombstone read, creation with
    the checked receipt, and the first bind of an existing source that has
-   no history, and the sample and paired-null writes in section 6.
-   Nothing else is added to either file (D202, D204).
+   no history, and the sample, source-report, withdrawal, and paired-null
+   writes in section 6. Nothing else is added to either file (D202, D205).

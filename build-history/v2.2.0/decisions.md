@@ -9,15 +9,16 @@ D-number.
 
 ## D198. Version 2.2.0 is one manual pull, and the program and the record share that number
 
-`ath pull openwearables` reads the stored measurements D204 lists from an
+`ath pull openwearables` reads the stored representations D205 lists from an
 Open Wearables server the person runs, for one user and one range they name. The
 command is manual. The person runs it. The program does not schedule it,
 retry a failed request, or sign the person in to a device maker.
 
 The program, the record, and the database become `2.2.0` together. D152 made
 those one number. D184 kept that rule. Migration step 5 stores `2.2.0` and
-SQL schema 5. It adds no column. It rebuilds `provider_summaries` as D203
-describes and copies existing rows with their numbers. Step 4 is not edited
+SQL schema 5. It adds no column to an existing table. It rebuilds
+`provider_summaries` and `provider_scores`, and it creates
+`source_reports`, as D205 describes. Existing rows keep their numbers. Step 4 is not edited
 (D165). A new database runs step 5 after step 4 and before `user_version` is
 set. `applyMigrationStep` handles target 5. The migration chain, the SQL
 contract generator, and the drift check gain that step. The package exports
@@ -297,8 +298,9 @@ empty success. Body may be one object or JSON `null`. `null` is a completed
 empty snapshot. The personal record is one object. The result keeps a
 `left_out` total and at most 20 examples.
 
-An empty range whose reads completed is a successful pull with
-committed counts of zero and `range_complete` true. A repeat uses the match
+An empty ranged result whose ranged reads completed has `range_complete`
+true. The personal record and the body snapshot can still be written.
+Those writes are counted. They are not ranged rows. A repeat uses the match
 key from D181 and the replace from D182, so an unchanged row is not written
 again. A rerun after a partial write leaves the committed rows in place,
 runs the failed read again, and runs any read that was `not_attempted`.
@@ -388,7 +390,9 @@ join the caller's `BEGIN IMMEDIATE` transaction. D204 also allows
 `measurement_sample` insert and update, and a null value and unit pair on
 provider summaries and provider scores. A half-null pair is refused. The
 same pair is allowed in the TypeScript projection, package import, record
-view, and repair copy. Nothing beyond that is added to `store.rs`. Other
+view, and repair copy. D205 also allows `source_report` insert and update,
+and withdrawal of a child whose anchor is in this response. Nothing beyond
+that is added to `store.rs`. Other
 routes do not call the receipt operations. `ath correct`, package restore,
 and an accepted package merge remain the owner's whole source record.
 Splitting the files is separate work. It is not required to make the pull
@@ -413,9 +417,9 @@ Rejected alternatives:
 ## D203. Stored Open Wearables measurements are kept in this pull
 
 D204 supersedes the classification, source identity, time, score, endpoint,
-and size sentences in this proposal. The decision to keep the returned
-health data in this pull stands. Where a paragraph below disagrees with
-D204, D204 is the proposal.
+and size sentences in this proposal. D205 supersedes D204 where they
+disagree. The decision to keep the returned health data in this pull
+stands. Where a paragraph below disagrees with D205, D205 is the proposal.
 
 This supersedes the earlier draft, inside D198 and D199, that left day
 values, the heart-rate stream, sleep and recovery summaries, meals, and
@@ -469,7 +473,16 @@ Rejected alternatives:
 
 ## D204. Returned values keep their meaning, source, and time
 
-This corrects D203. The values stay in this pull. The corrections are the
+D205 supersedes the sentences below that call dietary or index series
+provider summaries, that store a day row as the same class as its raw
+sample, that build a sensor by joining parts with `:` and `-`, that put
+main-sleep bounds on a summed field, that leave a missing device id as
+`left_out`, that omit a manual workout, and that treat `received_at` as
+the time a revision was written. The values stay in this pull. The
+device-receipt rules stay. Where this proposal disagrees with D205, D205
+is the proposal.
+
+This corrects D203. The corrections that D205 does not replace are the
 contracts in the specification's section 2.
 
 A device source is still the 2.1.0 sensor, and its receipt rules are
@@ -532,3 +545,107 @@ Rejected alternatives:
   Rejected. The pinned range table and `provider: internal` say otherwise.
 - Stop a day read at `limit` 1 and report one oversized series. Rejected.
   That limit counts periods, and one period can hold many rows.
+
+## D205. Units, windows, reported records, and identities stay distinct
+
+This corrects D204. The returned health data stays in this pull. The
+specification's section 2 and the appendix series table are the contract.
+
+Every series has an input number, an input unit, a standard number, and a
+standard unit. The input pair is the server's pair. The standard number
+equals the input number except for `walking_step_length` and
+`running_stride_length`. Those quantities are metres in Athletic Standard
+and centimetres on the server, so the standard number is the input number
+divided by 100. A 70 cm step is 0.70 m. The aliases change the unit text
+and not the number: `percent` to `%`, `celsius` to `°C`, `degrees` to
+`deg`, `meters` to `m`, `m_per_s` to `m/s`, `watts` to `W`, `met` to
+`MET`, `minutes` to `min`, and `ml_kg_min` to `ml/kg/min`. A new quantity
+uses that alias, or the server unit token when it has no alias. Existing
+quantity units are not edited.
+
+A raw row keeps the class in the appendix table. A day row is never a
+measurement sample. Its `timestamp` is the start of a calendar period, and
+`window_seconds` is null. The stored period is
+`open_wearables_reporting_window`, from that timestamp to `period_end`,
+with `recorded_at` unset. The window is not called the measurement
+instant. Raw points, raw `vo2_max`, and the two raw Garmin scores keep
+their kinds and keys. Day heart rate, day steps, and day speed are window
+summaries. Day Garmin scores stay scores on the window.
+
+Sleep summary numbers cover every non-nap session in the selected source
+and date. The longest session supplies `start_time` and `end_time` on the
+original object only. Those bounds are not a period on the summed fields.
+A 360 minute total from two main sleeps stays on `provider_date`. This
+program does not re-sum the sessions and does not invent the missing
+interval.
+
+`source_report` is a new record type. It has a source, so it is not an
+athlete report and not a nutrition entry. It is not one of the seven
+measured types. D161 still forbids turning a personal report into a
+measured record. Dietary series, alcoholic-beverage counts, meal and
+nutrient numbers, index, age, and effort series, personal-record fields,
+predicted and coded cycle content, BMI, calculated age, an unbounded
+health score, and a manual workout use this type. The eight range
+calculations and `provider-period-summary` do not read it. A manual
+workout is not left out and is not a workout session. An automatic
+workout stays a measured session on the device source.
+
+A new sensor is `ow1:` plus a JSON array with no spaces. JSON `null`, an
+empty string, and `-` stay different. Legacy device sensors are not
+rewritten. A health score's sensor is `["score", provider]`, using the
+top-level author. The input source is not in that array, so a change from
+null to a known input revises the same score. A null-source timeseries
+uses `["unattributed", "timeseries"]` and the writer `open_wearables`.
+Two unequal payloads at the same type and time refuse the call. The
+personal record uses `["personal_record"]` and that same writer. A meal,
+cycle, or manual workout uses the event array even when `device_id` is
+present. That id stays in the array and in the original object. It does
+not establish `device_binding`.
+
+A raw or day row whose `source` object has no `device_id` is an incoming
+device row. The whole call is refused, including a valid row on the same
+page. It is not marked `left_out` before the check. Null-source rows do
+not enter that check.
+
+The same returned object can change a child from a number to null or
+remove a nutrient. That child is revised to an absent value and unit.
+The id and the first `received_at` stay. D182 copies that `received_at`
+onto the revision. `became_known_at` is when the revision was written. A
+later number returns on the same child. A range that does not return the
+object does not withdraw its children. A refused page rolls the
+withdrawal back.
+
+A finished range with a failed body or personal-record read says the
+range is complete, names the failed snapshot, and exits nonzero. It does
+not print the success sentence. A preview says a snapshot would be
+stored. It does not say it was stored. An empty ranged result does not
+mean the command wrote nothing.
+
+`computed_by` omitted on a raw row keeps basis `provider_or_aggregator`.
+`computed_by: null` omits the basis. The raw Garmin scores keep basis
+`provider`. `provider: internal` keeps basis `aggregator`. The scale text
+comes only from `HEALTH_SCORE_RANGES`, including the `1-100` rows.
+
+Rejected alternatives:
+
+- Store a day heart-rate, step, or speed row as a measurement sample at
+  the calendar start. Rejected. That start is not a measurement instant,
+  and a sample requires `recorded_at`.
+- Add an interval-sample table so a day row can carry a duration.
+  Rejected for this release. The reporting window already holds the
+  bounds the server returned, and a day row does not carry
+  `window_seconds`.
+- Put the longest sleep's bounds on the summed duration. Rejected. The
+  sum covers every non-nap session, and the bounds cover one session.
+- Keep colon-joined sensors with `-` for a missing part. Rejected. A
+  colon in a part and a literal hyphen collide with that encoding.
+- Treat a second null-source payload as a correction. Rejected. There is
+  no sample id, so the program cannot tell a correction from a second
+  observation.
+- Call dietary intake or a manual workout a provider summary or a workout
+  session. Rejected. SPEC section 5.4 and D161 keep those measured types
+  for measured records. A source report preserves the object without
+  making it a measurement.
+- Leave a removed nutrient current because the store compares emitted
+  keys. Rejected. The same object no longer contains that number.
+
