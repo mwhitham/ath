@@ -9,7 +9,7 @@ D-number.
 
 ## D198. Version 2.2.0 is one manual pull, and the program and the record share that number
 
-`ath pull openwearables` reads the stored representations D205 lists from an
+`ath pull openwearables` reads the stored representations D206 lists from an
 Open Wearables server the person runs, for one user and one range they name. The
 command is manual. The person runs it. The program does not schedule it,
 retry a failed request, or sign the person in to a device maker.
@@ -419,7 +419,7 @@ Rejected alternatives:
 D204 supersedes the classification, source identity, time, score, endpoint,
 and size sentences in this proposal. D205 supersedes D204 where they
 disagree. The decision to keep the returned health data in this pull
-stands. Where a paragraph below disagrees with D205, D205 is the proposal.
+stands. Where a paragraph below disagrees with D206, D206 is the proposal.
 
 This supersedes the earlier draft, inside D198 and D199, that left day
 values, the heart-rate stream, sleep and recovery summaries, meals, and
@@ -548,6 +548,14 @@ Rejected alternatives:
 
 ## D205. Units, windows, reported records, and identities stay distinct
 
+D206 supersedes the sentences below that put every source-present series
+through the device check, that compare null-source rows by type and
+timestamp alone, that leave a refused original unstored in every case,
+that map `heart_rate_recovery_one_minute` to a quantity of that same
+name, and that call `hydration` a measurement sample. The units, day
+windows, sleep bounds, and reported-record direction stay. Where this
+proposal disagrees with D206, D206 is the proposal.
+
 This corrects D204. The returned health data stays in this pull. The
 specification's section 2 and the appendix series table are the contract.
 
@@ -648,4 +656,78 @@ Rejected alternatives:
   making it a measurement.
 - Leave a removed nutrient current because the store compares emitted
   keys. Rejected. The same object no longer contains that number.
+
+## D206. The new record type, numberless inputs, and refused originals stay separable
+
+This corrects D205. The returned health data stays in this pull. The
+specification is the contract.
+
+`records.record_type` is a closed check. `source_report` is not in it.
+Creating `source_reports` does not make a root row insertable. Step 5
+adds `source_report` to that check in the generated contract. It does
+not edit migrations 001 through 004, and it does not drop the check.
+Ordinary writes keep foreign keys on. The migration connection may turn
+them off only before its own transaction, rebuild `records` and the two
+nullable typed tables by copy, rename, and recreate, then require
+`foreign_key_check` and `integrity_check` before commit. A drop of
+`records` inside the ordinary foreign-key transaction is not the
+procedure. Fresh init and a populated, deleted, history-bearing upgrade
+both have to accept a source report afterward.
+
+A numberless provider summary or provider score is excluded by the
+instant reader and the period reader before the limit, the count, and
+the numeric decode. It is not zero, and it is not the previous revision.
+Source reports stay out of those readers. The formulas stay.
+
+`RecoverySummary.recovery_score` takes its scale from
+`HEALTH_SCORE_RANGES` and the provider the builder copied. Polar recovery
+is 1 to 6. A provider the table does not name is a source report. The
+WHOOP-only prose is not the scale.
+
+Raw `heart_rate_recovery_one_minute` is quantity `hr_recovery`. The
+server name and the old key stay. `hydration` is a source report. A
+device id does not make that intake a sample.
+
+Sleep, workout, meal, cycle, and score ids must be UUIDs. A raw HTTP
+personal record must have a `user_id` UUID equal to the selected user
+before that field is removed. The canonical envelope does not contain
+it. A missing id refuses the protected page. It is not `left_out`, and
+it is not archived.
+
+`entry_source` `unknown`, null, and omission are `unknown_workout`
+reports. They are not sessions and not manual reports. The same server
+id with a different kind refuses the page.
+
+A protected refusal rolls back. For a missing device id on a
+device-targeted series row, and for unequal null-source payloads of one
+full match key, a later archive transaction stores kind `original` with
+no amount and no device receipt. `written` stays false. The command
+exits nonzero. Credential failures, invalid ids, conflicting device ids,
+legacy history, and kind changes are not archived. Those originals are
+not kept, because storing them would invent an id or keep a payload the
+guard rejected. Preview does not see a cross-page null-source conflict.
+A raw midnight row and a day window that starts then are different keys.
+
+Rejected alternatives:
+
+- Rebuild `records` with `DROP TABLE` inside the foreign-key write
+  transaction. Rejected. The child links cascade or the drop fails, and
+  the history would not survive.
+- Leave foreign keys off after migrate. Rejected. Ordinary writes keep
+  the check.
+- Decode a null summary as zero or as its previous number. Rejected. The
+  current row says the number is absent.
+- Use 0 to 100 for every recovery summary because the class prose says
+  so. Rejected. Polar writes 1 to 6, and the query copies that value.
+- Add a point quantity named `heart_rate_recovery_one_minute`. Rejected.
+  `hr_recovery` is the existing quantity and the existing key.
+- Treat unknown provenance as automatic when a device id is present.
+  Rejected. The id is not a measurement label.
+- Archive every refused page, or write the archive inside the refused
+  transaction. Rejected. The first keeps rejected secrets and rejected
+  devices. The second stores the refused write.
+- Drop the originals of a missing device id so the refusal stays one
+  transaction. Rejected for the two reasons above. The archive is a
+  second transaction with a failed protected-write status. The other
+  refusal reasons stay unstored.
 

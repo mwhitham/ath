@@ -5,9 +5,9 @@ program, the record, or the database has changed for 2.2.0.
 
 | Step | What | Status |
 |---|---|---|
-| 0 | The plan: proposals D198–D205, and the Open Wearables study. D205 corrects units, day windows, sleep bounds, identities, and reported records. Still not adopted. The new head needs re-review | written, not approved |
-| 1 | Version 2.2.0 and migration step 5. No new column on an existing table. `source_reports` is created. Summary and score values may be omitted in pairs (D198, D205) | not started |
-| 2 | `ath pull openwearables` in `ath-core`, with the rewritten mapping (D199, D201, D205) | not started |
+| 0 | The plan: proposals D198–D206, and the Open Wearables study. D206 corrects the root record check, numberless calculation inputs, recovery scales, required ids, and the archive of a refused original. Still not adopted. The new head needs re-review | written, not approved |
+| 1 | Version 2.2.0 and migration step 5. No new column on an existing table. The root check gains `source_report` by the copy in D206. Summary and score values may be omitted in pairs (D198, D206) | not started |
+| 2 | `ath pull openwearables` in `ath-core`, with the rewritten mapping (D199, D201, D206) | not started |
 | 3 | Key, server, and user id kept out of the record (D200) | not started |
 | 4 | Fixture tests, with no live key in CI | not started |
 | 5 | Generated schema, demo athlete, skill command reference, and the public-data list | not started |

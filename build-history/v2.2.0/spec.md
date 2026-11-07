@@ -4,7 +4,7 @@ Status: **plan only. The maintainer has not approved it. Not approved for build.
 
 `ath pull openwearables` reads one person's stored health data from an Open
 Wearables server they run, and writes it with the mapping this release
-ships. The proposals are D198 through D205 in
+ships. The proposals are D198 through D206 in
 [decisions.md](decisions.md). They are not adopted. The evidence is
 [appendix/open-wearables-api.md](appendix/open-wearables-api.md), checked on
 6 and 7 November 2026.
@@ -103,8 +103,11 @@ complete and names the snapshot that failed. It names any read that is
 in both cases. The success sentence is not printed. A failed read says to
 run the same command again. An identity refusal uses the sentence in
 section 3, which says a rerun cannot
-repair the device id. It does not print the success sentence. The failed page makes no database changes. Records
-already stored stay, including their revisions. An empty ranged result
+repair the device id. It does not print the success sentence. The
+protected transaction of a refused page makes no database changes.
+Records already stored stay, including their revisions. An archive, when
+section 2 allows one, is a later transaction. It does not print the
+success sentence, and it does not set `written`. An empty ranged result
 can still store the personal record or the body snapshot. Those writes are
 counted. They are not ranged rows. `written` is false when the confirmed
 command changed nothing. The database is unchanged. That is not a claim that
@@ -187,10 +190,12 @@ gateway commands they are today.
 
 ## 2. What this pull stores
 
-D205 is the storage rule. D203 keeps these values in this pull. D204
+D206 is the storage rule. D203 keeps these values in this pull. D204
 corrected source, time, and score direction. D205 corrects units, day
 windows, sleep bounds, identity encoding, reported records, and child
-withdrawal. An earlier draft
+withdrawal. D206 corrects the root record type, numberless calculation
+inputs, recovery scales, required ids, workout provenance, hydration,
+and the archive of a refused original. An earlier draft
 left day values, the heart-rate stream, summaries, and workout segments for
 a later version. That draft is superseded. File imports stay. The Garmin pull stays. A Junction pull is proposed as
 2.3.0. Automatic sync, retries, token refresh, and backfill are proposed as
@@ -269,17 +274,35 @@ Earlier committed pages stay. The pull does not drop a series, a segment,
 or a location to stay under the cap.
 
 A device source uses the 2.1.0 sensor, `device_type|device|source`. Its
-receipt rules in section 3 are unchanged. A sleep session or an automatic
-workout enters that source when it has a nonempty `device_id`, or when it
-is id-less on a new source with no history. Every raw or day series row
-whose `source` object exists enters that same check, including intake and
-index series. The stored class is still the appendix class. A source
-report on that source is not a measurement. A missing, null, or blank
-`device_id` on that row refuses the whole call before any write. It is
-not classified `left_out` first. A valid row beside it on the same page
-is not stored. No id is copied from another row. Summaries, meals,
-cycles, manual workouts, scores, and the personal record use the sensors
-below. They do not establish the device receipt.
+receipt rules in section 3 are unchanged. A sleep session or a workout
+with `entry_source` `automatic` enters that source when it has a nonempty
+`device_id`, or when it is id-less on a new source with no history. A raw
+or day row enters that check only when the appendix class is a point, a
+measurement sample, `vo2_max`, or one of the two Garmin scores. A missing,
+null, or blank `device_id` on that row refuses the protected transaction
+before any measured write. It is not classified `left_out` first. A valid
+row beside it on the same page is not stored as a measurement. No id is
+copied from another row. Intake, index, age, effort, and `hydration` do
+not enter that check. A device id on those rows is original data. It is
+not a receipt and it is not evidence the value was measured.
+
+`entry_source` `automatic` is the only workout class that becomes a
+workout session. `manual` is a source report of kind `manual_workout`.
+`unknown`, JSON null, and a missing `entry_source` are source reports of
+kind `unknown_workout`. The original keeps null and absence distinct.
+Unknown is not labeled manual, and it is not labeled automatic because a
+model or a device id is present. A repeated server workout id that arrives
+as a different kind or sensor refuses the protected page. The stored
+record stays. The new interpretation is not written beside it. The text
+says the classification changed and a rerun cannot choose. `ath correct`
+remains the owner's way to replace the record.
+
+Sleep, workout, meal, cycle, and health-score objects need a `id` that is
+a UUID string. Missing, null, blank, and any other shape refuse the
+protected page before a source, a row, or hardware changes. The row is not
+`left_out`. No empty or time-based id is invented. A valid neighbor on
+that page is not stored. A later page of the same command still rolls
+back only the failed page, and earlier committed pages stay.
 
 A new sensor is the prefix `ow1:` plus a JSON array. The array has no
 spaces. A missing part is JSON `null`. An empty string and the text `-`
@@ -291,11 +314,13 @@ escapes `:` and `\` when the sensor is placed in a match key.
 The array shapes are:
 
 - Summary or body: `["summary", family, provider, device, device_type, source, device_id]`
-- Meal, cycle, or manual workout: `["event", family, provider, device, device_type, source, device_id]`
+- Meal, cycle, manual workout, or unknown workout: `["event", family, provider, device, device_type, source, device_id]`
+- Reported series: `["report", resolution, provider, device, device_type, source, device_id]`. `resolution` is `raw` or `1day`.
 - Health score: `["score", provider]`. `provider` is the top-level author,
   or JSON `null` when that field is null. The input `source` is not in
   the array.
 - Timeseries with `source: null`: `["unattributed", "timeseries"]`
+- Archive originals: `["archive"]`
 - Personal record: `["personal_record"]`
 
 The writer is `source.provider` when that string is nonempty. A health
@@ -310,12 +335,19 @@ A health score never uses the unattributed timeseries sensor. A change
 of its input `source` from null to an object, or the reverse, revises
 the same score. The writer, the sensor, and the score id stay put.
 
-A null-source timeseries row has no sample id. Two rows with the same
-type and timestamp are one record only when the whole returned row is
-equal. A different value, in the same call or a later call, refuses the
-call. The stored row stays. The text says the rows are ambiguous and a
-rerun cannot choose one. `ath correct` remains the owner's way to replace
-a record. The same rule applies to a day row with `source: null`.
+A null-source timeseries row has no sample id. The comparison is the full
+match key: writer, sensor, `timeseries`, resolution, series type, UTC
+timestamp, and, for a day row, `period_end`. A raw row at midnight and a
+day window that starts at that midnight are different keys. Two rows with
+one key are one normalized record only when the whole returned row is
+equal. A different value, in the same page or a later confirmed call,
+refuses the protected transaction. The stored normalized row stays. The
+text says the rows are ambiguous and a rerun cannot choose the normalized
+row. `ath correct` remains the owner's way to replace that row. Preview
+pages roll back, and the command memory holds device-binding facts only.
+A preview therefore does not claim to see a null-source conflict from an
+earlier preview page. A confirmed `--yes` page does see an earlier
+committed page.
 
 File import and pull use one envelope table. The pull passes these
 objects. A saved file imports the same object. A mapping that sends a
@@ -325,11 +357,13 @@ appendix table, fails before any request.
 | Resource | Envelope | Writer | Sensor | Anchor | Child |
 |---|---|---|---|---|---|
 | Sleep session | `{ "sleep": data }` | `source.provider` | legacy device | `sleep_session`, D181 id key | stage and duration fields on that session |
-| Automatic workout | `{ "workout": data }` | `source.provider` | legacy device | `workout_session`, D181 id key | existing typed fields and source-reported summaries |
+| Automatic workout | `{ "workout": data }` | `source.provider` | legacy device | `workout_session`, D181 id key | existing typed fields; untyped numbers are source reports |
 | Manual workout | `{ "workout": data }` | `source.provider` | `ow1` event | `source_report` `manual_workout`, server id | none. The original object is the record |
-| Raw series with `device_id` | timeseries object, `resolution` `raw` | `source.provider` | legacy device | the raw class in the appendix, D181 time key | none |
-| Raw or day series, source present, no `device_id` | timeseries object | `source.provider` | legacy device, then the call is refused | nothing stored | none |
-| Raw series, `source` null | timeseries object | `open_wearables` | `ow1` unattributed | the raw class, D181 time key | none. Unequal payloads refuse the call |
+| Unknown, null, or omitted `entry_source` | `{ "workout": data }` | `source.provider` | `ow1` event | `source_report` `unknown_workout`, server id | none. The original object is the record |
+| Measured raw series with `device_id` | timeseries object, `resolution` `raw` | `source.provider` | legacy device | the raw class in the appendix, D181 time key | none |
+| Measured raw or day series, source present, no `device_id` | timeseries object | `source.provider` | legacy device, then the protected transaction is refused | no measured row. Section 2 may archive the original | none |
+| Reported series, with or without `device_id` | timeseries object | `source.provider`, or `open_wearables` when that string is missing | `ow1` report | `source_report`, appendix subject | none. The amount is the reported pair |
+| Raw series, `source` null | timeseries object | `open_wearables` | `ow1` unattributed | the raw class, full match key | none. An unequal payload refuses the protected transaction and may be archived |
 | Day series | timeseries object, `resolution` `1day` | same as the raw row | same as the raw row | window form in the appendix. Key adds `1day` and `period_end` | none |
 | Sleep, activity, or recovery summary | `{ "sleep_summary": data }`, `{ "activity_summary": data }`, or `{ "recovery_summary": data }` | `source.provider` | `ow1` summary | `source_report` subject `object`, date | one measured child per numeric field, field path in the key |
 | Body | the object | umbrella `source.provider`, or `open_wearables` when it is missing | `ow1` summary, family `body` | `source_report` subject `object` | slow-changing weight, height, fat, and muscle are time-unknown provider summaries; averaged heart rate and HRV use the server window; latest temperature and blood pressure use their own times; age and BMI are source reports |
@@ -346,8 +380,43 @@ report stores that report without making it a measurement. The eight range calcu
 `provider-period-summary` do not read it. Step 5 creates the
 `source_reports` table. Value and unit are both present or both absent.
 `report_kind` is one of `intake`, `account`, `predicted`, `code`, `text`,
-`manual_workout`, `index`, or `original`. Gender uses `account`. It is not
-copied into `sex` or the athlete profile. The receipt still adds no column.
+`manual_workout`, `unknown_workout`, `index`, or `original`. Gender uses
+`account`. It is not copied into `sex` or the athlete profile. The
+receipt still adds no column.
+
+One source report has this JSON shape. Extra fields are refused.
+
+```json
+{
+  "source_id": "record id of the source",
+  "report_kind": "intake",
+  "subject": "hydration",
+  "provider_record_id": "optional server id",
+  "reported_at": "optional UTC timestamp",
+  "input_timestamp": { "timestamp_text": "the server timestamp" },
+  "provider_reporting_periods": [],
+  "amount": {
+    "input_value": 250,
+    "input_unit": "mL",
+    "standard_value": 250,
+    "standard_unit": "mL"
+  },
+  "received_at": "when this program first stored it",
+  "received_at_basis": "provider_import",
+  "supplied_fields": {}
+}
+```
+
+`amount` is optional. When it is present, both input fields and both
+standard fields are present. It is a reported pair. It is not a measured
+`SourceValue`, and `field_basis` is absent. A day report omits
+`reported_at` and uses `open_wearables_reporting_window` for the server's
+timestamp and `period_end`. Kind `original` omits `amount` and omits
+reporting periods. `input_timestamp` is either a timestamp text or
+`timestamp_missing_reason`. The record is registered on `RecordType`, the
+current and revision unions, the package schema, `typedTables`, repair,
+and the root SQL check. It is not added to the seven measured types or to
+the point, sample, or session readers.
 
 Match keys for the new records are the writer, the sensor, the resource,
 the server id or the date or the body group, and the subject. The anchor
@@ -383,7 +452,13 @@ sets `duration_ms` to that count times 1000. The original field stays. Raw `hear
 server timestamp. Day `heart_rate`, day steps, and day speed are window
 summaries. The two Garmin day scores stay scores on their existing
 scales, with the window and without `recorded_at`. Raw points, raw
-`vo2_max`, and the two raw Garmin scores keep their kinds and keys.
+`vo2_max`, and the two raw Garmin scores keep their kinds and keys. Raw
+`heart_rate_recovery_one_minute` is the point quantity `hr_recovery`, in
+bpm. The server series name stays in `supplied_fields`. The 2.1.0 import
+key stays. A day row of that series is a window summary whose summary
+type is also `hr_recovery`. Its key adds `1day` and `period_end`, so it
+does not replace the raw point. A mapped file and a pull, in either
+order, keep one record id.
 
 `computed_by: provider` sets basis `provider`. `computed_by:
 open_wearables` sets basis `aggregator`. `computed_by: null` omits the
@@ -406,9 +481,15 @@ category or provider is not given a scale. That score is a
 `garmin_stress_level` and `garmin_body_battery` stay the existing score
 lines. They are not these health-score rows. A null value uses the same kind as a present value for
 that provider and category. Components are not extra scores. RMSSD and
-SDNN stay separate. `RecoverySummary.recovery_score`, when the number is
-present, is a provider score on scale `0-100`. When it is null, that
-child is withdrawn as section 2 says. The anchor keeps the null.
+SDNN stay separate. `RecoverySummary.recovery_score` uses the same range
+table, with category recovery and the provider copied onto the summary's
+`source`. Polar is `1-6`. WHOOP and Suunto are `0-100`. A provider that
+is missing or absent from that table does not get `0-100`. That child is
+a source report, and the number stays in the original object. The schema
+prose that says the field is WHOOP-only and 0 to 100 is not the scale.
+The number is not rescaled. A null uses the same kind as a present value
+for that provider, and the child is withdrawn as section 2 says. The
+anchor keeps the null.
 
 WHOOP recovery components can include `skin_temp_celsius`. The score
 object keeps that component. `RecoverySummary` has no skin-temperature
@@ -448,8 +529,11 @@ receipt. A null group withdraws that group's existing children. It does
 not delete them because a different request omitted the snapshot.
 
 Meal numbers, nutrient numbers, dietary series, alcoholic-beverage
-counts, and the index, age, and effort series are `source_report`
-records. They are not provider summaries and not nutrition entries. A
+counts, `hydration`, and the index, age, and effort series are
+`source_report` records. `hydration` is intake. The server's amount and
+millilitre sum are not a sample and not a day measurement. A device id
+on that row does not make them measured. They are not provider summaries
+and not nutrition entries. A
 nutrient keeps the value and unit on its leaf. Cycle codes, predicted
 lengths, booleans, text, and `pregnancy_snapshot` stay on the cycle
 anchor. A numeric cycle length is also a `source_report` child, not a
@@ -468,6 +552,53 @@ stay. D182 copies the stored `received_at` onto the new revision.
 returns on the same child. A range that does not return the object does
 not withdraw its children. A refused page rolls the withdrawals back
 with the page.
+
+A protected refusal rolls that transaction back. It does not become a
+successful pull. Two refusal reasons may then start a separate archive
+transaction: a device-targeted series row whose source has no device id,
+and a null-source row whose full match key already has a different
+payload, including two different payloads in one page. The archive runs
+only after the protected rollback, and only after the privacy scan has
+accepted the page. It is not a replay of the refused statements.
+
+The archive contains every series object on that refused page. A reported
+row is kept there as an original, not as its structured amount. A later
+clean page may store that structured report. The archive does not revise
+it. The archive source uses writer `open_wearables`, sensor `ow1:["archive"]`,
+and `source_type` `connector`. The receipt operations are not called, and
+`device_binding` is not written. Each original is one source report of
+kind `original`, with no `amount` and no reporting period. The number
+stays inside `supplied_fields`. The match key is the writer, that sensor,
+the resource, and the SHA-256 of the canonical JSON object, with keys
+sorted and no extra whitespace. That hash is not a sample id and it is
+not the measured key. The same bytes are one archive record. Different
+bytes are another record. The pull does not revise an archive into a
+measurement, and it does not revise a measurement from an archive.
+
+The outcome names `protected_write` as `committed` or `refused`, and
+`archive` as `not_attempted`, `stored`, `unchanged`, or `failed`.
+`written` stays false when only the archive changed. When the protected
+write was refused, the success sentence is not printed and the exit is
+nonzero. The text says the protected write was refused and how many
+originals were archived. A preview rolls both
+transactions back and says `would refuse` and `would archive`. It does
+not say the original was stored.
+
+These pages are not archived. A credential hit never reaches either
+transaction. A missing or invalid required UUID is not given a hash
+identity. A conflicting device id is not stored under another source,
+because that would keep the rejected device's payload. A deleted source,
+an unbound legacy history, and a workout kind change are not archived.
+Those originals are not retained. That is a safety limit: filing them
+would look like an accepted import or would invent an id.
+
+On a confirmed command, a later page sees committed measurements and
+committed archives. A repeat of the same conflicting payload refuses the
+protected write again, leaves the archive unchanged, and sets `written`
+false. A third payload adds an archive record and still does not change
+the normalized row. A page of only reported series, with no device id,
+is an ordinary source-report write. It is not an archive, and it does
+not refuse the device check.
 
 A provider summary or provider score may omit `value` only together with
 its unit. One without the other is refused. Step 5 rebuilds both typed
@@ -588,12 +719,13 @@ at `source.device_id`. A resolved mapping that points `device_hardware`
 somewhere else fails before any write, because that file cannot satisfy this
 contract. The source already stored stays unchanged.
 
-The check runs on device-source rows, including a raw or day row whose
-`source` object has no `device_id`. That row is not marked `left_out`
-before the check. A query-bucket row that is already `left_out` does not
-establish a binding and does not supply the id. Summary, event, score,
-unattributed, and personal-record rows do not enter this check. The
-call is one of these states:
+The check runs on device-targeted rows. That includes a measured raw or
+day row whose `source` object has no `device_id`. That row is not marked
+`left_out` before the check. A reported series does not enter this check.
+A query-bucket row that is already `left_out` does not establish a
+binding and does not supply the id. Summary, event, score, report,
+archive, unattributed, and personal-record rows do not enter this check.
+The call is one of these states:
 
 - The source is deleted. D190 leaves its rows out. The call does not revive
   the source and does not set a binding.
@@ -623,17 +755,19 @@ call is one of these states:
   absent and with no history. Accepted rows that are only sleep and
   workouts, and that all lack an id, are stored. The source has no
   `device_binding`. The result says the device id is unknown. An accepted
-  timeseries row with no id is refused. Accepted rows that mix a nonempty
-  id with a missing id are refused. Accepted rows that share one nonempty
+  device-targeted timeseries row with no id is refused. Accepted rows that
+  mix a nonempty id with a missing id are refused. A reported series is
+  not one of these rows. Accepted rows that share one nonempty
   `source.device_id` store that string on the source in the same
   transaction as the first accepted write. That source may be created in
   this call, or it may already exist with no receipt and no history. A call
   that accepts no rows creates no binding. A source created or first-bound
   inside a refused call is rolled back with the call.
 
-A second device is refused rather than merged. On `--yes`, an earlier
-committed page stays, the failed page makes no database changes, the range
-is not complete, and the exit is nonzero. File import rolls back the whole
+A second device is refused rather than merged. That refusal is not
+archived. On `--yes`, an earlier committed page stays, the failed page
+makes no database changes, the range is not complete, and the exit is
+nonzero. File import rolls back the whole
 call. `--json` and `--json --yes` make no database changes. Device reads
 that have `filter_by_priority` send `false`. Summary routes have no such
 switch. Section 2 states that limit.
@@ -643,7 +777,9 @@ the binding it would have stored, and an unbound source it would have
 created once that source has accepted history. A summary sensor does not
 supply a binding for the device sensor. A later preview page uses those facts, including a
 later page that adds an id after an id-less sleep page. The memory is
-discarded with the process. It does not change the estimated record counts.
+discarded with the process. It does not hold null-source payloads, so a
+preview does not use it to judge those conflicts. It does not change the
+estimated record counts.
 A second command reads the committed source inside its own `BEGIN IMMEDIATE`
 transaction.
 
@@ -706,10 +842,14 @@ built without that field. Day rows carry it, and those rows are stored.
 
 D200 is the rule. The key never enters the athlete database, the export, the
 preview, or an error line. The pull reads only the paths in section 2.
-It does not list users. The personal-record object includes `user_id`. When that field is a
-string, it must equal the selected user id. Any other string refuses the
-page. A matching string is removed before the scan below and is not stored.
-A null or absent field is not filled in. Birth date,
+It does not list users. A raw HTTP personal-record response includes `user_id`. That field must
+be a string UUID equal to the selected user id. Absence, null, a
+non-string, and any other string refuse the page before redaction and
+before mapping. A matching string is removed before the scan below and
+is not stored. The canonical import envelope is that object after the
+removal. File import of the envelope does not put `user_id` back. An
+envelope that still has `user_id` is not that envelope, and the scan
+rejects it. Birth date,
 gender, and sex are stored. They are account health data, not the API key.
 
 The process refuses a base URL that could carry the key in the URL itself.
@@ -722,9 +862,9 @@ The body is read inside that cap and parsed before any `apply_mapping` call.
 The guard is in `open_wearables.rs`. It walks every decoded object key and
 every decoded string. A value that contains the API key, the selected
 origin, or the selected user id rejects the whole page. The matching personal-record `user_id` is the only field that is dropped
-before this walk. Any other copy of the user id still rejects the page. A
-personal-record `user_id` that is not the selected user refuses the page
-before the drop. The page is not
+before this walk. Any other copy of the user id still rejects the page.
+A raw personal-record `user_id` that is absent, null, the wrong type, or
+not the selected user refuses the page before the drop. The page is not
 rewritten and it is not mapped. A Unicode escape such as `\u0073` is visible
 only after parsing, so a scan of the raw text is not enough. The raw-text
 scan still runs on a body that did not parse, and the parent still refuses
@@ -750,17 +890,48 @@ reads in section 2, no user list.
 ## 5. Version, migration, and what stays compatible
 
 The build sets `2.2.0` on the package, the record, and `ath-core`, by the
-same constants 2.1.0 moved. Migration step 5 is a new SQL file. It updates
+same constants 2.1.0 moved. Migration step 5 is a new SQL file and a narrow runner arm. It updates
 `athleticstandard_version` to `2.2.0` and `sql_schema_version` to 5. No
-column is added to an existing table. The same file creates
-`source_reports` and rebuilds `provider_summaries` and `provider_scores`
-as section 2 describes. It copies existing rows, including deleted rows.
-Record ids, revisions, import keys, and reporting-period rows stay. Step 4
-and file `004` are not edited (D165).
+column is added to an existing table. The generated contract adds
+`source_report` to the `records.record_type` check, creates
+`source_reports`, and rebuilds `provider_summaries` and
+`provider_scores` as section 2 describes. Files `001` through `004` stay
+byte-identical. The check is not removed, and ordinary store writes do
+not turn foreign keys off.
 
-A new database runs that step 5 SQL after step 4 and before the `user_version`
-pragma, inside `installInitialSchema`. `applyMigrationStep` gains an arm for
-target 5. `MIGRATION_CHAIN` in `src/db/sql-contract.ts`,
+SQLite cannot change that check in place. `records` and
+`record_revisions` reference each other. The link from a record to its
+current revision is deferred. The link from a revision back to the
+record, and the links from typed rows, import keys, deletions,
+attachments, reporting periods, and the other child tables, use
+`ON DELETE CASCADE` and are not deferred. Triggers and views name
+`records`. `PRAGMA foreign_keys` does not change inside a transaction.
+`installInitialSchema` and `withWriteTransaction` already require it to
+be on. A `DROP TABLE records` there would fail or cascade through the
+children. Step 5 does not do that.
+
+The runner arm for target 5, and the create path after step 4, open the
+work before their write transaction and set `PRAGMA foreign_keys=OFF`
+only on that connection. Inside one transaction they create
+`records_next` with the old columns and the check extended by
+`source_report`, copy every root row, drop `records`, and rename
+`records_next` back to `records`. They do the same for
+`provider_summaries` and `provider_scores`, copying deleted rows and
+keeping record ids, `data_json`, import keys, revisions, and periods,
+with value and unit nullable together. They create `source_reports` and
+its type trigger. They recreate the indexes and the triggers that were
+defined on `records`, using the text already in `001`. Views stay,
+because they name `records` and the name is restored before commit.
+Then `PRAGMA foreign_key_check` and `PRAGMA integrity_check` must be
+empty and `ok`. Only then does the transaction commit, and the
+connection turns foreign keys back on. A failed check rolls the
+transaction back and leaves the live file unchanged. The D124 backup
+still happens before this step. Device receipts stay in the copied
+source JSON. They are not rewritten.
+
+A new database runs that step 5 path after step 4 and before the
+`user_version` pragma. `applyMigrationStep` gains this arm for target 5
+and does not use `withWriteTransaction` for it. `MIGRATION_CHAIN` in `src/db/sql-contract.ts`,
 `scripts/generate-sql-contract.ts`, and `scripts/check-schema-drift.ts` gain
 the step. `package.json` exports and `tests/v1-package-exports.test.ts` point
 at `schema/2.2.0/`.
@@ -778,8 +949,9 @@ The build generates `schema/2.2.0/` and does not rewrite `schema/2.1.0/` or
 `ProviderReportingPeriodType` gains `open_wearables_reporting_window`.
 `ValueBasis` gains `aggregator`. Series quantities gain the sample series
 whose units are in the appendix table. Intake, index, age, and effort
-series do not gain quantities. The record type `source_report` is added.
-It is not a measured type. Its table has `record_id`, `source_id`,
+series do not gain quantities. The record type `source_report` is added to `RecordType`, the current
+and revision unions, the package schema, and `typedTables` in
+`src/db/check-tables.ts`. It is not a measured type. Its table has `record_id`, `source_id`,
 `report_kind`, `subject`, optional `reported_at`, optional
 `standard_value` and `standard_unit` together, optional
 `provider_record_id`, `received_at`, and `data_json`. It has no required
@@ -846,9 +1018,17 @@ absent. A half-null pair is refused. When an anchor in this response no
 longer emits a child, that child is revised to the absent pair in the same
 transaction. `src/db/records.ts`, `src/db/import-package.ts`,
 `src/db/records-view.ts`, and the repair copy from `data_json` follow that
-pair and the new table. The eight range calculations and
-`provider-period-summary` do not read `source_reports`. No other store
-behavior changes. `ath correct`,
+pair and the new table. `src/db/check-tables.ts` gains the
+`source_report` entry. The eight range calculations and
+`provider-period-summary` do not read `source_reports`. In
+`read_inputs` and `read_period`, a provider summary or provider score
+whose `standard_value` or `standard_unit` is null is excluded in the SQL,
+before the limit, the count, the grouping, and the numeric decode. A null
+is not stored as zero and is not replaced by an older revision. The
+session-summary branch of `read_period` uses the same filter on the
+extracted number and unit. Formulas and source grouping stay as they are.
+The archive insert is the separate transaction in section 2. It does not
+call the receipt operations. No other store behavior changes. `ath correct`,
 package restore, and an accepted package merge stay whole-record owner
 writes. They are named in section 3 so the binding survives a 2.2.0 round
 trip. They are not a new importer. The pull sums only `sleep_session`, `workout_session`,
@@ -937,7 +1117,9 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   `timestamp` and `period_end`. Check, export, and import keep that window
   and do not invent an instant. A step length of 70 cm is stored as 0.70 m.
   A stride of 120 cm is stored as 1.20 m. The input number and `cm` stay
-  on the record. Every row in the appendix table has one raw fixture and
+  on the record. Raw `heart_rate_recovery_one_minute` is quantity
+  `hr_recovery` in bpm. A 2.1.0 mapped file and this pull, in either
+  order, keep one record id and the old import key. Every row in the appendix table has one raw fixture and
   one day fixture. Check, export, and import keep the input pair, the
   standard pair, and the day window. Raw
   `vo2_max` stays `provider_summary.vo2_max` on its 2.1.0 key. A day
@@ -971,10 +1153,21 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   device page rolls back only that page. Two meals with one timestamp and
   different ids stay two records. Two summary fields on one date stay two
   records. A page with one bound heart-rate row and one same-triple row
-  whose `device_id` is missing refuses the page. Neither row is stored.
-  Import then pull of that pair refuses the same way. A timeseries row with
+  whose `device_id` is missing refuses the protected page. Neither row
+  is stored as a measurement. The archive stores both originals, with no
+  amount and no device receipt. A later page that has only the valid row
+  stores that measurement. The archive remains a different record. Import
+  then pull of the missing-id pair refuses the same way. A sleep id that
+  is missing, beside a valid workout, refuses the page before any write
+  and is not archived. The next page still rolls back on its own failure.
+  A timeseries row with
   `source: null` is stored on the unattributed sensor when the payload
-  matches. A different payload at that type and time refuses the call.
+  matches. A different payload with the same full key, including
+  resolution and `period_end`, refuses the protected write and archives
+  the new original. A raw midnight row and a day window that starts then
+  stay two records. A preview of those two pages does not claim the
+  conflict, because the first preview page was rolled back. A confirmed
+  second page does.
   Sensors `ow1:["summary","sleep",null]` and a colon inside a provider
   name stay different from a shifted tuple. The text `-` is not the same
   sensor as a missing part. A score whose input source changes from null
@@ -985,7 +1178,10 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   basis `provider`. A null `provider` omits the basis. Polar readiness uses
   scale `0-10`, Polar recovery uses `1-6`, and WHOOP strain uses `0-21`.
   A score with no finite range keeps its number on the anchor and does not
-  use scale `0-100`. An Oura sleep score uses `1-100`. A null value and a
+  use scale `0-100`. An Oura sleep score uses `1-100`. A Polar recovery
+  summary value of 3 and the Polar health score use scale `1-6`. A WHOOP
+  recovery summary uses `0-100`. An author missing from the range table
+  is a source report and is not given `0-100`. A null value and a
   later number revise the same record. `computed_by: null` omits the basis
   and keeps the null. A raw row that omits `computed_by` keeps
   `provider_or_aggregator`
@@ -995,14 +1191,19 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   `aggregator`. BMI's basis is omitted. The three groups can arrive
   together or alone. JSON null and a returned zero and a missing field
   stay three different results
-- a dietary series and `number_of_alcoholic_beverages` are source reports,
-  not samples, not provider summaries, and not nutrition entries. A cycle
+- a dietary series, `number_of_alcoholic_beverages`, and `hydration` are
+  source reports, not samples, not provider summaries, and not nutrition
+  entries. Raw and day hydration stay out of the eight range calculations
+  and out of `provider-period-summary`. A device id on the hydration row
+  does not create a receipt. A cycle
   code, a predicted length, and a pregnancy snapshot stay on the anchor.
   A cycle that starts in range and ends later keeps that end. A cycle that
   starts later is not stored, and the read can still complete. Birth date,
   gender, and sex are source reports. Gender is not copied into the
-  athlete profile. A matching `user_id` is not stored. A different
-  `user_id` refuses the page. The athlete profile is unchanged
+  athlete profile. A matching `user_id` is not stored. A different,
+  absent, null, or non-string `user_id` on the HTTP object refuses the
+  page. The canonical envelope without `user_id` imports. The athlete
+  profile is unchanged
 - step 5 keeps an old summary's id, number, unit, `data_json`, import key,
   revisions, and tombstone. A numeric summary can be corrected to
   numberless and back. A half-null value and unit is refused. A sample
@@ -1010,7 +1211,12 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   accept the numberless summary, the numberless score, and the sample. A
   meal nutrient that changes from a number to null, then back, keeps one
   child id. A null body group withdraws that group's children. A refused
-  page restores the withdrawn child
+  page restores the withdrawn child. A range calculation that sees a
+  numeric summary and a numberless summary uses only the numeric row.
+  The same is true for a score, on the instant reader and the period
+  reader. An all-numberless set adds no inputs and does not fail the
+  calculation. After value, then null, then value, the calculation sees
+  the current number and not the withdrawn one
 - two distinct sensor triples become two sources. Device A is stored, then
   a separate operation contains only device B at the same triple, type, and
   instant, with a different value. The operation fails. The current point,
@@ -1070,8 +1276,12 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
 - `page-sleep.json` becomes a sleep session. A manual workout and its
   automatic neighbor from one response stay two records. The automatic
   workout is a session on the device source. The manual workout is a
-  source report with the original object and no device receipt. Export and
-  import keep both. `page-raw.json` is stored.
+  source report with the original object and no device receipt. A workout
+  with `entry_source` `unknown`, null, or omitted is an `unknown_workout`
+  report. It is not a session and not a manual report. The same server id
+  arriving later as `automatic` refuses the page, and the stored report
+  stays. Export and import keep the pair that was accepted.
+  `page-raw.json` is stored.
   `page-5min.json` is left out. RMSSD and SDNN stay different quantities
 - a changed end time keeps the record id and increases the revision
 - a `__proto__` supplied field fails the page
@@ -1097,11 +1307,16 @@ Migration tests, in the build gate:
   call. `ath migrate` previews without writing. It still previews, backs up,
   and asks, as D124 requires. The target it names is `2.2.0`
 - a confirmed migrate backs up, then sets the record version to `2.2.0`,
-  SQL schema 5, and `user_version` 5. Record ids, revisions, deletions, and
-  attachments are unchanged. A second migrate does nothing
+  SQL schema 5, and `user_version` 5. Record ids, revisions, deletions,
+  attachments, import keys, reporting periods, and device receipts are
+  unchanged. `PRAGMA foreign_key_check` is empty. A deleted row and its
+  history are still there. A second migrate does nothing. After migrate,
+  a source report can be created, revised, checked, exported, restored,
+  and repaired from `data_json` without becoming a measured type
 - `ath init` creates a database that is already `2.2.0`, SQL schema 5, and
-  `user_version` 5, and `ath check` exits 0. Step 4 still writes `2.1.0` and
-  schema 4, and the create path runs step 5 after that
+  `user_version` 5, and `ath check` exits 0. The fresh database accepts a
+  source report. Step 4 still writes `2.1.0` and schema 4, and the create
+  path runs step 5 after that
 - databases at `1.0.0` and `2.0.0` still open for migrate. Packages at
   `2.0.0` and `2.1.0` still import. `spec/sql/migrations/004-version-2-1.sql`
   and the folders `schema/2.0.0/` and `schema/2.1.0/` stay byte-identical
@@ -1181,7 +1396,8 @@ is in the build pull request.
   add HTTP to them. `mapping.rs` gains the counts, the open-wearables
   binding check, and the preservation writes in section 2. `store.rs` gains the
   partial-update refusal, the three source operations in section 3, and the
-  sample and paired-null writes in section 6. Splitting the files stays out.
+  sample, source-report, withdrawal, null-filter, archive, and paired-null
+  writes in section 6. Splitting the files stays out.
 - `persist.rs` can still store a supplied field named `__proto__` if a caller
   uses `ath-core persist` directly. The pull does not use that path.
 - The mapping path rule is already one function. There is no duplicate to
@@ -1220,15 +1436,17 @@ Risks:
   is to avoid copying the key into the record.
 
 The build, after approval, is one pull request in this order. First the
-schema and step 5: the period type, the `aggregator` basis, the sample
-series quantities in the appendix table, the `source_report` type and
-table, the paired null value and unit, and the time-unknown summary. Then the store and record paths in section 6. Then the mapping
-engine and `mappings/open-wearables.md`. Then the reads, the cycle filter,
-the smaller-page split, and the tests in section 7. The laptop card and the phone proof are
+schema and step 5: the root `record_type` check, the period type, the
+`aggregator` basis, the sample series quantities in the appendix table,
+the `source_report` type and table, the paired null value and unit, and
+the time-unknown summary. Then the store, the calculation null filter,
+the archive transaction, and the record paths in section 6. Then the
+mapping engine and `mappings/open-wearables.md`. Then the reads, the
+cycle filter, the smaller-page split, and the tests in section 7. The laptop card and the phone proof are
 part of that same pull request. This plan pull request has no media.
 
 The maintainer approves or rejects this plan before any build. D198 through
-D205 are the proposal. They are not adopted. Reviews of earlier heads were
+D206 are the proposal. They are not adopted. Reviews of earlier heads were
 incorporated here. None of those reviews approves this revision. The next
 head needs re-review. An earlier review accepted a
 migration with no new column, under D152 and D184. That acceptance does not
@@ -1236,15 +1454,18 @@ adopt D198. The
 optional source key adds no column.
 
 1. One number, 2.2.0. Readable sets keep `1.0.0`. Step 5 runs on create and
-   on migrate. The device receipt adds no column. Step 5 does rebuild
-   `provider_summaries` and `provider_scores` so a numberless object can omit
-   `value` and its unit together. Existing ids and rows are copied. A
+   on migrate. The device receipt adds no column. Step 5 extends the
+   root check with `source_report` by the copy in section 5, creates
+   `source_reports`, and rebuilds `provider_summaries` and
+   `provider_scores` so a numberless object can omit `value` and its unit
+   together. Existing ids and rows are copied. Foreign keys stay on for
+   ordinary writes. A
    `2.1.0` database does not open until `ath migrate`. This release does
-   not schedule, refresh a token, backfill, or store a cursor (D198, D205).
+   not schedule, refresh a token, backfill, or store a cursor (D198, D206).
 2. Store the returned representations in section 2. Device receipts stay
    on device sources. Summaries without a device id use their own sensors.
    Null stays null. A missing response is not called provider-unavailable.
-   The omissions in section 2 are the ones with a reason (D203, D205).
+   The omissions in section 2 are the ones with a reason (D203, D206).
 3. The key, the selected origin, and the selected user id are rejected in
    decoded JSON before a page is mapped. Failure text uses a fixed sentence.
    `ath key clear` with no name still clears only the gateway keys and says
@@ -1269,4 +1490,6 @@ optional source key adds no column.
    partial-update refusal, the receipt and tombstone read, creation with
    the checked receipt, and the first bind of an existing source that has
    no history, and the sample, source-report, withdrawal, and paired-null
-   writes in section 6. Nothing else is added to either file (D202, D205).
+   writes in section 6, including the null filter in the calculation
+   readers and the archive transaction. Nothing else is added to either
+   file (D202, D206).

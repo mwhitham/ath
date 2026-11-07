@@ -115,8 +115,11 @@ series.
 Workouts, from `Workout`: `id`, `type`, `name`, `start_time`, `end_time`,
 `zone_offset`, `source`, `entry_source`, `intensity`, the distance, heart-rate,
 and elevation fields the mapping already names, plus fields it does not name.
-`entry_source` is `manual`, `automatic`, or `unknown`. The schema text says
-`manual` is a self-reported entry with no device measurement behind it.
+`entry_source` is `manual`, `automatic`, or `unknown`, and the response
+allows null. The SDK maps an unsupported method to `unknown` and a
+missing method to null. The schema text says `manual` is a self-reported
+entry with no device measurement behind it. `unknown` and null are not
+that entry, and they are not `automatic`.
 
 Timeseries, from `TimeSeriesSample`: `timestamp`, `zone_offset`, `type`,
 `value`, `unit`, `source`, `is_daily_total`, `window_seconds`, `period_end`,
@@ -198,7 +201,7 @@ route files. A limit may still exist in middleware this study did not open.
 
 The same commit, `183e8cc4f6de897dbd288c93d49a691f2cf721ae`, was read again
 for every user data route. The OpenAPI file is `docs/openapi.json`,
-`info.version` `0.11.0`. The storage rule is D205. This section records
+`info.version` `0.11.0`. The storage rule is D206. This section records
 what the source shows.
 
 `SeriesType` is the enum in `backend/app/schemas/enums/series_types.py`.
@@ -228,8 +231,12 @@ oxygen, respiration, or temperature. `SleepSummary` has
 `avg_hrv_rmssd_ms`, `avg_hrv_sdnn_ms`, `avg_spo2_percent`, and
 `recovery_score`. It has no temperature field. The SDNN field text says
 the value is null for current rows because they come from WHOOP and
-WHOOP's HRV there is RMSSD. `recovery_score` is deprecated in that class
-and documented as 0 to 100. `BodyLatest` has `skin_temperature_celsius`
+WHOOP's HRV there is RMSSD. The class prose calls `recovery_score`
+deprecated, WHOOP-only, and 0 to 100. The recovery query selects by
+category, not by WHOOP, and copies `provider` and `value` unchanged.
+Polar writes recovery scores on the 1 to 6 range. D206 uses that range
+table and the copied provider. It does not use the prose as the scale.
+`BodyLatest` has `skin_temperature_celsius`
 and `skin_temperature_measured_at`. `BodyAveraged` has `period_start`,
 `period_end`, and separate RMSSD and SDNN fields.
 
@@ -245,7 +252,7 @@ listed rows. The personal-record response fields are `birth_date`,
 ## Contract read on 7 November 2026
 
 The same commit was read again for the summary, score, meal, cycle, body,
-and personal-record contracts. D205 is the storage rule. This section
+and personal-record contracts. D206 is the storage rule. This section
 records the source facts that rule uses. `SERIES_TYPE_DEFINITIONS` has 141
 entries.
 
@@ -255,7 +262,7 @@ series are `heart_rate_variability_rmssd`, `heart_rate_variability_sdnn`,
 `oxygen_saturation`, `heart_rate_recovery_one_minute`, `vo2_max`,
 `garmin_stress_level`, and `garmin_body_battery`.
 
-The table below is the mapping for all 141 series. D205 is the storage rule.
+The table below is the mapping for all 141 series. D206 is the storage rule.
 `input_value` and the input unit are the server's number and unit.
 `standard_value` equals `input_value` except where the conversion is
 `divide by 100`. A day row uses the day record in the last column. It is
@@ -273,7 +280,7 @@ object. They are not the period of the summed fields.
 | `heart_rate` | `bpm` | measurement_sample | `heart_rate` | `bpm` | unchanged | provider_summary window |
 | `resting_heart_rate` | `bpm` | point | `resting_heart_rate` | `bpm` | unchanged | provider_summary window |
 | `heart_rate_variability_sdnn` | `ms` | point | `hrv_sdnn` | `ms` | unchanged | provider_summary window |
-| `heart_rate_recovery_one_minute` | `bpm` | point | `heart_rate_recovery_one_minute` | `bpm` | unchanged | provider_summary window |
+| `heart_rate_recovery_one_minute` | `bpm` | point | `hr_recovery` | `bpm` | unchanged | provider_summary window, summary type `hr_recovery` |
 | `walking_heart_rate` | `bpm` | point | `walking_heart_rate` | `bpm` | unchanged | provider_summary window |
 | `heart_rate_variability_rmssd` | `ms` | point | `hrv_rmssd` | `ms` | unchanged | provider_summary window |
 | `oxygen_saturation` | `percent` | point | `oxygen_saturation` | `%` | alias | provider_summary window |
@@ -410,7 +417,7 @@ object. They are not the period of the summed fields.
 | `number_of_times_fallen` | `count` | measurement_sample | `number_of_times_fallen` | `count` | unchanged | provider_summary window |
 | `number_of_alcoholic_beverages` | `count` | source_report | `number_of_alcoholic_beverages` | `count` | unchanged | source_report window |
 | `nike_fuel` | `count` | source_report | `nike_fuel` | `count` | unchanged | source_report window |
-| `hydration` | `mL` | measurement_sample | `hydration` | `mL` | unchanged | provider_summary window |
+| `hydration` | `mL` | source_report | `hydration` | `mL` | unchanged | source_report window |
 
 `get_day_rows` keeps one row per data source, series, and local day. It
 orders provider-computed rows first, then the later `period_start`.
