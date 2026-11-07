@@ -47,7 +47,10 @@ not adopted.
   for this server.
 
 File imports stay: Apple Health, WHOOP, Oura, Garmin, and Strava. `ath pull
-garmin` stays as it is. `ath import --mapping` stays as it is.
+garmin` stays as it is. Mapped import for every route other than
+`open_wearables` stays as it is. Open Wearables mapped import gains the
+shared binding refusal in the specification. It no longer accepts a second
+device id, or a refresh of history that has no established binding.
 
 Evidence: [appendix/open-wearables-api.md](appendix/open-wearables-api.md).
 
@@ -126,7 +129,7 @@ follows D182. This proposal does not keep a command-wide preview overlay.
 The proposed read order is sleep, then workouts, then raw timeseries. That
 order is part of what the maintainer approves. A failure in a later read
 leaves the earlier read's pages committed and the reads after the failure
-unattempted. The result says so. See D201.
+`not_attempted`. The result says so. See D201.
 
 The coverage table in the specification is the proposed scope. Day
 aggregates, sleep-linked physiology, recovery summaries, health scores,
@@ -181,6 +184,16 @@ Rejected alternatives:
   Rejected. Import after pull would still replace the point, and hardware
   is one mutable column. The point's revisions do not contain `device_id`
   today, because that path is removed as hardware.
+- Put the receipt in `supplied_fields`, under `device_binding` or another
+  name. Rejected. D185 keeps that object for names the source sent. A 2.1.0
+  source may already hold an arbitrary value at that name, and step 5 must
+  not turn that value into authority. The receipt is the source object's own
+  key `device_binding`.
+- Treat a nonempty string at the new key as proof no matter who wrote it,
+  or require a signature so the owner cannot change it. Rejected. The
+  automatic path writes the key only by the checked rule. `ath correct`,
+  package restore, and an accepted package merge store the whole source the
+  owner supplied. A hand-edited database file is outside this proposal.
 
 ## D200. The key, the server, and the user id stay out of the record
 
@@ -284,8 +297,12 @@ and in the text. `skipped` is the timeseries read when the mapping named no
 types. `range_complete` is true only on a `--yes` write whose reads finished
 without a failed page. The success sentence is printed only then. A retained
 count with an incomplete range is a partial pull. The message names the
-failed read, names any `not_attempted` read, gives the retained counts, and
-says to run the same command again. A preview that fails makes no database
+failed read, names any `not_attempted` read, and gives the retained counts.
+A failed read says to run the same command again. An identity refusal uses
+the sentence in the specification's section 3: a replacement id is blocked
+even at a new time, a 2.1.0 Open Wearables history cannot be refreshed until
+reconciliation, and
+a rerun cannot repair either one. A preview that fails makes no database
 changes, including for pages that had already been counted.
 
 Before `apply_mapping`, the page must be a JSON object, `data` must be an
@@ -302,7 +319,7 @@ runs the failed read again, and runs any read that was `not_attempted`.
 `has_more: false` is the only successful end of a read. A repeated cursor,
 a null cursor while `has_more` is true, the 1000-page cap, and a body over
 8 MiB fail that read. The failed page is not written. Later reads are
-`unattempted`. The success line is not printed. A cursor with the `prev_`
+`not_attempted`. The success line is not printed. A cursor with the `prev_`
 prefix is not sent.
 `limit` is 1000. One attempt is made per request. There is no retry. The
 connect timeout is 10 seconds and the read timeout is 30 seconds.
@@ -377,8 +394,12 @@ open. They do not run on a pull. This build does not change them.
 for HTTP. `mapping.rs` may add the count by record type that D199 names, and the
 open-wearables device-binding check in the specification. That check is
 shared by mapped import and pull, and it is limited to route
-`open_wearables`. Nothing else is added to `mapping.rs`. Splitting the
-files is separate work. It is not required to make the pull correct.
+`open_wearables`. Nothing else is added to `mapping.rs`. `store.rs` may
+preserve `device_binding` inside `revise` when the record is a source, and
+refuse a partial patch that contains that key. Nothing else is added to
+`store.rs`. `ath correct`, package restore, and an accepted package merge
+remain the owner's whole source record. Splitting the files is separate
+work. It is not required to make the pull correct.
 
 `check_supplied_fields` runs in `store.rs` before insert and revise (D191).
 `persist.rs` `insert_record` writes `data_json` and does not call that check.

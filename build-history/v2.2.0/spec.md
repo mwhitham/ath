@@ -90,9 +90,10 @@ then does it print `pulled openwearables from <from> through <to>`.
 If a later page fails, the child returns a typed outcome to the parent
 before the process exits nonzero. The parent renders that outcome as text,
 then uses the exit status. The text says the requested range is incomplete,
-names the failed read, names any read that is `not_attempted`, prints the
-retained counts, and says to run the same command again. It does not print
-the success sentence. The failed page makes no database changes. Records
+names the failed read, names any read that is `not_attempted`, and prints
+the retained counts. A failed read says to run the same command again. An
+identity refusal uses the sentence in section 3, which says a rerun cannot
+repair the device id. It does not print the success sentence. The failed page makes no database changes. Records
 already stored stay, including their revisions. An empty range whose reads
 finished says the range is complete. `written` is false when the confirmed
 command changed nothing. The database is unchanged. That is not a claim that
@@ -296,46 +297,102 @@ lives there, for route `open_wearables` only, inside the same transaction
 as the write and before `insert_group` changes a source device or a
 timeseries record. Other routes are not checked. A pull-only check would
 leave import-after-pull able to replace the point. The check reads every
-incoming row, not only the first.
+accepted row, including a row after the first source device.
 
-The binding is `source.supplied_fields.device_binding`, one nonempty
-string. `SourceData` already allows `supplied_fields`, so step 5 adds no
-column and does not copy hardware into this field. The binding is written
-once, with the first accepted write, and is never replaced by another id.
+The receipt is the source object's own key `device_binding`. The 2.2.0
+source schema makes it an optional nonempty string. D185 keeps
+`supplied_fields` for names the source sent, so the receipt is a sibling of
+that object, as `field_basis` is a sibling on a measured record. Step 5
+adds no column, copies no field, and rewrites no record. A source migrated
+from 2.1.0 has no `device_binding` key. A string already stored at
+`supplied_fields.device_binding` stays in `supplied_fields`. Migration does
+not treat it as the receipt. Renaming that supplied name would still leave
+an old free-form value able to authorize a write, so this proposal does not
+do that.
 
-- A new source whose accepted rows share one nonempty `device_id` stores
-  that binding with the first write.
-- The same `device_id` may repeat unchanged or revise a value under D182.
-  It may not change the binding or replace hardware with a different id.
-- A different, missing, null, or blank `device_id` refuses the whole page
-  or the whole file import before any mutation. A missing id does not clear
-  a binding and is not proof of the same device. Equal point values with a
-  different id are still a conflict. The second observation is not dropped
-  inside the call. The call is refused.
-- A source that already has records and has no binding is unbound legacy.
-  Hardware, including disagreeing older hardware revisions, is not promoted
-  into a binding. The write is refused. Existing records, revisions,
-  sources, and hardware stay. A 2.1.0 open-wearables source cannot be
-  refreshed by this pull or by this mapped import until a separate
-  reconciliation exists. That block is this safety rule. It is not the
-  coverage choice in section 2.
-- A new source whose rows have no `device_id` does not get a binding. The
-  result says device identity is unprovable. Timeseries rows with no id are
-  refused, because they share a key. Sleep and workout keys are not
-  redesigned. A later timeseries row then sees records and no binding and
-  is refused.
-- A device at a different timestamp is the same rule. Its first conflicting
-  row refuses the call before hardware changes, so a later row cannot
-  overwrite an older point after the receipt has been rewritten.
+An established binding is that source key holding a nonempty string. The
+automatic path reads only that key. The same name anywhere in a raw payload,
+a mapped file, or nested `supplied_fields` is source data. The mapping may
+keep it on the measured record. It is not copied onto the source, and it
+cannot replace or erase the source key.
 
-Preview keeps the binding it would have stored, in memory only, across
-pages that were rolled back, so the next preview page can see the conflict.
-That memory is not a second stored binding. `--json` and `--json --yes`
-make no database changes. On `--yes`, an earlier committed page stays, the
-failed page makes no database changes, the range is not complete, and the
-exit is nonzero. File import rolls back the whole call. The queries in
-D201 still ask for every device. A second device is refused rather than
-merged.
+The value the automatic path compares is the row's `source.device_id`. The
+mapping `name` does not choose it. The shipped file points `device_hardware`
+at `source.device_id`. A resolved mapping that points `device_hardware`
+somewhere else fails before any write, because that file cannot satisfy this
+contract. The source already stored stays unchanged.
+
+The check runs on accepted rows. A row the mapping has already classified
+as `left_out` does not establish a binding and does not supply the id. The
+call is one of these states:
+
+- The source is deleted. D190 leaves its rows out. The call does not revive
+  the source and does not set a binding.
+- The source has an established binding, and the incoming id equals it. The
+  row may repeat unchanged or correct the stored value under D182. The
+  binding stays. Hardware is not replaced with a different id. Other fields
+  already on the source stay.
+- The source has an established binding, and the incoming id is different,
+  missing, null, or blank. The call is refused before any mutation. Equal
+  point values with a different id are still refused. A new timestamp does
+  not make the new id acceptable. The text says the replacement device is
+  blocked, including when the sample time is new, and that running the
+  command again cannot change the id.
+- The source exists, the source key is absent, and any history exists.
+  History includes a deleted record and a deleted source device, not only
+  live rows. `same_source_records` is not this test, because it keeps
+  `is_deleted = 0`. The call is refused. Hardware is not promoted. The text
+  says this Open Wearables history cannot be refreshed until a separate
+  reconciliation exists, and that running the command again cannot create
+  the binding. This is the block for 2.1.0 history. It is not the coverage
+  choice in section 2.
+- The source key is present and is not a nonempty string. The call is
+  refused. The stored value is left as it is. The text says this command
+  cannot use that binding, and a rerun cannot repair it.
+- The source is new for this call, or it already exists with the source key
+  absent and with no history. Accepted rows that are only sleep and
+  workouts, and that all lack an id, are stored. The source has no
+  `device_binding`. The result says the device id is unknown. An accepted
+  timeseries row with no id is refused. Accepted rows that mix a nonempty
+  id with a missing id are refused. Accepted rows that share one nonempty
+  `source.device_id` store that string on the new source in the same
+  transaction as the first accepted write. A call that accepts no rows
+  creates no binding. A source created inside a refused call is rolled
+  back with the call.
+
+A second device is refused rather than merged. On `--yes`, an earlier
+committed page stays, the failed page makes no database changes, the range
+is not complete, and the exit is nonzero. File import rolls back the whole
+call. `--json` and `--json --yes` make no database changes. The queries in
+D201 still ask for every device.
+
+Preview keeps two facts in memory for this command: the binding it would
+have stored, and an unbound source it would have created once that source
+has accepted history. A later preview page uses those facts, including a
+later page that adds an id after an id-less sleep page. The memory is
+discarded with the process. It does not change the estimated record counts.
+A second command reads the committed source inside its own `BEGIN IMMEDIATE`
+transaction.
+
+Three owner operations store a whole source record and do not run this
+device-id guard. `ath correct` stores the source `data` the person
+supplied, after the schema check. Native package restore copies the
+package's records. A package merge the person accepts for a changed source
+stores that source record. A 2.2.0 record keeps `device_binding` when the
+record has it. A 2.1.0 record does not gain the key, and a supplied field
+of the same name stays a supplied field. The next mapped pull or mapped
+import then uses the source key that those operations left behind. A 2.2.0
+export and restore keeps the key and the import keys, so the same id can
+correct a point and a different id is refused. No signature is added. A
+person who replaces the database file is outside this rule.
+
+`Store::revise` on a source is a partial update. It applies the other keys
+in the patch and keeps the current `device_binding`, including when the key
+is absent. A patch that contains `device_binding` is refused, and the
+source stays unchanged. This is the one `store.rs` change. Other record
+types are unchanged. The automatic path sets the key only on the source
+object `ensure_mapped_source` already builds. It does not replace
+`detail`, `vendor`, or `supplied_fields`.
 
 `zone_offset` is not copied into `start_at`. It remains in `supplied_fields`
 when the server sends it. The timestamp text is the server's `start_time`,
@@ -409,8 +466,9 @@ would make a 1.0.0 database unloadable, so migrate could not open it.
 `2.1.0` database will not open in `ath-core` until that migrate.
 
 The build generates `schema/2.2.0/` and does not rewrite `schema/2.1.0/` or
-`schema/2.0.0/`. The JSON schema gains no field. The folder exists so the
-package version and the schema path stay aligned. The demo athlete is
+`schema/2.0.0/`. The 2.2.0 source object gains optional `device_binding`.
+No other field is added. The folder exists so the package version and the
+schema path stay aligned. The demo athlete is
 regenerated because the stored version is inside it. `examples/demo-athlete/athlete.ath.json`
 stays the legacy 0.4.3 file. `tests/fixtures/version-2-0-0/` is not
 regenerated.
@@ -439,6 +497,8 @@ interactive open can preview, back up, ask, and then migrate.
 | Flags, key, preview text, refusal if the key appears | `src/program.ts`, `src/help.ts`, `src/keyring.ts` |
 | Mapping names and field rules | the existing file `mappings/open-wearables.md` |
 | Stored records | the existing store and mapping engine |
+| Keep `device_binding` on a partial source update | `Store::revise` in `crates/ath-core/src/store.rs`, sources only |
+| Whole source record from the owner | existing `ath correct`, package restore, and an accepted package merge |
 
 `store.rs`, `persist.rs`, and `personal.rs` are not the home for this client.
 `personal.rs` remains the Garmin pull. The two clients may each call `ureq`.
@@ -448,8 +508,12 @@ A shared trait is the later connector work, and this release does not add it.
 `apply_mapping` keeps its `outcome` field and adds counts by record type.
 For route `open_wearables` only, it also runs the device-binding check in
 section 3 before it mutates a source device or a timeseries record. That
-check is the shared import and pull enforcement. It is not a new match key
-and it does not apply to any other route. The pull sums only `sleep_session`,
+check is the shared mapped-import and pull enforcement. It is not a new
+match key and it does not apply to any other route. `store.rs` changes
+`revise` for a source record only, so a partial update keeps
+`device_binding`. `ath correct`, package restore, and an accepted package
+merge stay whole-record owner writes. They are named in section 3 so the
+binding survives a 2.2.0 round trip. They are not a new importer. The pull sums only `sleep_session`,
 `workout_session`, `point_measurement`, `provider_summary`, and
 `provider_score`. A committed page adds those counts to the actual committed
 result. A rolled-back preview page adds them to `estimated`. It does not add
@@ -533,10 +597,38 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
 - the same `device_id` with the same payload is unchanged. The same
   `device_id` with a changed value revises that record and does not change
   the binding. Import then pull, and pull then import, of that one device
-  keep one record id. A missing, null, or blank id does not replace a bound
-  source. A 2.1.0 source that already has records and has no binding is
-  refused, and its rows are not rewritten. A sample keeps basis
+  keep one record id. Mapped file import of device A, then a second mapped
+  file import of only device B, fails the same way. A missing, null, or
+  blank id does not replace a bound source. A 2.1.0 source that already has
+  history and has no source key `device_binding` is refused, including when
+  the only history is a deleted record or a deleted source device, and
+  including when `supplied_fields.device_binding` is already the string for
+  device B. The same misleading field in a 2.1.0 package is still a supplied
+  field after import. Device B does not replace A's point. The supplied
+  field and the hardware stay. No source key is added. A sample keeps basis
   `provider_or_aggregator`. A provider score keeps basis `provider`
+- a raw page and a mapped file that carry `device_binding` on the row, on a
+  nested source object, and inside `supplied_fields` do not set, replace, or
+  erase the source key. A mapping whose `name` changes and whose
+  `device_hardware` stays `source.device_id` keeps the same binding. A
+  mapping whose `device_hardware` points elsewhere is refused before any
+  write
+- a new source of only id-less sleep is stored with no source key. A later
+  timeseries row with an id is refused, and the sleep row stays. One call
+  that accepts both an id and a missing id is refused. A `left_out` row does
+  not create a binding. The first preview page is id-less sleep and the
+  second preview page has an id for that same source: the preview refuses
+  and writes nothing
+- a partial source update changes `detail` and leaves `device_binding`
+  unchanged. A partial update that includes `device_binding` changes
+  nothing. `ath correct` with a complete source object replaces that object.
+  After that correction, a mapped write follows the source key the
+  correction stored
+- export a 2.2.0 database that has an established binding, import that
+  package, and the source key and the import keys are still there. The same
+  id can correct the point. A different id is refused, with no new point
+  revision, source revision, or hardware revision. A stored source key that
+  is not a nonempty string refuses the automatic write and is left unchanged
 - `page-sleep.json` becomes a sleep session. A manual workout is left out
   and its automatic neighbor is kept. `page-raw.json` is stored.
   `page-5min.json` is left out. RMSSD and SDNN stay different quantities
@@ -644,8 +736,9 @@ is in the build pull request.
   `EBUSY`. Version 2.1.0 spec section 12 left it out and named no later
   version.
 - `store.rs` and `mapping.rs` are past a thousand lines. The pull does not
-  add HTTP to them. The only `mapping.rs` change is the count by record type
-  in section 6. Splitting the files stays out.
+  add HTTP to them. `mapping.rs` gains the counts by record type and the
+  shared open-wearables binding check in section 6. `store.rs` gains the
+  source-only preserve in section 3. Splitting the files stays out.
 - `persist.rs` can still store a supplied field named `__proto__` if a caller
   uses `ath-core persist` directly. The pull does not use that path.
 - The mapping path rule is already one function. There is no duplicate to
@@ -689,10 +782,11 @@ Risks:
 
 The maintainer approves or rejects this plan before any build. D198 through
 D202 are the proposal. They are not adopted. Reviews of commit `d1fdde1`
-were incorporated here, and the re-reviews of `1124e56` are incorporated
-here. None of those reviews approves this revision. The next head needs
-their re-review. A product review accepted a migration with no new column,
-under D152 and D184. That acceptance does not adopt D198.
+were incorporated here. The re-reviews of `1124e56` and of `da006a6` are
+incorporated here. None of those reviews approves this revision. The next
+head needs their re-review. A product review accepted a migration with no
+new column, under D152 and D184. That acceptance does not adopt D198. The
+optional source key adds no column.
 
 1. One number, 2.2.0. Readable sets keep `1.0.0`. Step 5 runs on create and
    on migrate. No new column. A `2.1.0` database does not open until
@@ -715,8 +809,12 @@ under D152 and D184. That acceptance does not adopt D198.
    and whether the requested range is complete. A missing row is not deleted.
    An empty type list skips timeseries. The same sensor triple keeps one
    source. A second `device_id` does not replace or suppress the first, in
-   a later command or in a mapped file import. Unbound legacy data is
-   refused and left in place (D201).
+   a later command or in a mapped file import, including import then import.
+   The receipt is the source key `device_binding`. A 2.1.0 supplied field of
+   that name does not become the receipt. Unbound history is refused and
+   left in place. `ath correct` and a native 2.2.0 package restore are the
+   owner's whole source record (D201).
 5. The Windows cleanup and the maintainability notes stay separate.
    `mapping.rs` gains counts by record type and the open-wearables binding
-   check. It gains nothing else (D202).
+   check. `store.rs` gains the source-only preserve. Nothing else is added
+   to either file (D202).
