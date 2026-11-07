@@ -40,9 +40,14 @@ build-history/
 - [Version 2.1.0 specification](v2.1.0/spec.md)
 - [Version 2.1.0 decisions](v2.1.0/decisions.md)
 - [Version 2.1.0 progress](v2.1.0/progress.md)
+- [Version 2.2.0 plan](v2.2.0/spec.md)
+- [Version 2.2.0 decisions](v2.2.0/decisions.md)
+- [Version 2.2.0 progress](v2.2.0/progress.md)
 
 Version 2.1.0 is the software now. The program, the record, and the database
 use that number.
+
+Version 2.2.0 is a plan. It is not built.
 
 ## Why
 
