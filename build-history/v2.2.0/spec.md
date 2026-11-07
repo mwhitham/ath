@@ -4,7 +4,7 @@ Status: **plan only. The maintainer has not approved it. Not approved for build.
 
 `ath pull openwearables` reads one person's stored health data from an Open
 Wearables server they run, and writes it with the mapping this release
-ships. The proposals are D198 through D207 in
+ships. The proposals are D198 through D208 in
 [decisions.md](decisions.md). They are not adopted. The evidence is
 [appendix/open-wearables-api.md](appendix/open-wearables-api.md), checked on
 6 and 7 November 2026.
@@ -214,14 +214,15 @@ gateway commands they are today.
 
 ## 2. What this pull stores
 
-D207 is the storage rule. D203 keeps these values in this pull. D204
+D208 is the storage rule. D203 keeps these values in this pull. D204
 corrected source, time, and score direction. D205 corrects units, day
 windows, sleep bounds, identity encoding, reported records, and child
 withdrawal. D206 corrects the root record type, numberless calculation
 inputs, recovery scales, required ids, workout provenance, hydration,
 and the archive of a refused original. D207 corrects the migration
-dependencies, the command counts, archive eligibility, the archive
-capsule, and null-source report routing. An earlier draft
+dependencies, the command counts, the archive capsule, and null-source
+report routing. D208 corrects when the archive reads the database, and
+the failed-init sentence. An earlier draft
 left day values, the heart-rate stream, summaries, and workout segments for
 a later version. That draft is superseded. File imports stay. The Garmin pull stays. A Junction pull is proposed as
 2.3.0. Automatic sync, retries, token refresh, and backfill are proposed as
@@ -588,31 +589,46 @@ successful pull. The archive is pull-only. `ath import --mapping` uses
 the same protected envelopes and the same refusal, and it does not start
 the archive transaction. A refused file import keeps no original.
 
-Before either transaction, the pull reads the whole page. The order of
+Before either transaction, the pull checks the page itself. The order of
 the rows does not matter. The privacy scan is first. A hit starts
-neither transaction. The pull then classifies every row, including a row
-that would be `left_out`. One veto anywhere forbids the archive for the
-whole page. The vetoes are a conflicting device id, a deleted source, an
-unbound legacy history, a malformed or missing required UUID, a workout
-kind change, a malformed receipt, and a supplied field whose name is not
-allowed. A deleted-source row that the mapping would leave out is still
-a veto. A query-bucket `left_out` row is not a veto and is not archived.
-A timeseries row has no required UUID. Its missing device id is not that
-veto.
+neither transaction. A missing or malformed required UUID, a supplied
+field whose name is not allowed, and any other decoded-field failure are
+the same kind of check. They use the returned JSON. They do not use the
+database. One such failure starts neither transaction. A timeseries row
+has no required UUID. A query-bucket `left_out` row is not one of these
+failures, and it is not archived.
 
-The archive is allowed only when the page has no veto and it has one of
-these eligible facts: a device-targeted series row whose source has no
-device id, or a null-source series row, measured or reported, whose full
-match key has a different payload in this page or already stored. An
-eligible row does not authorize the archive when a veto is
-also on the page. The decision is this snapshot. It includes a read of
-each stored null-source match key before the protected write. The
-archive transaction does not classify the page again. Its only new check
-is that the archive source is not deleted.
+The database facts are read later, inside the protected
+`BEGIN IMMEDIATE`, before any insert, update, or delete. The read covers
+every row on the page, including a row the mapping would leave out. For
+each named source it reads the receipt, the binding, deletion, and
+history, and history includes tombstones. For each named record and
+import key it reads deletion, the current revision, and, for a workout,
+the stored kind. For each null-source full key it reads the stored
+payload. That set of facts is the safety snapshot. An unlocked read
+taken before this transaction is not the snapshot.
 
-The archive runs only after the protected rollback. It stores one capsule
-per returned series row on that page, not a query-bucket row and not a
-non-series row. A workout or a meal on that page is not a capsule. A
+One database veto anywhere in that snapshot refuses the protected page
+before any mutation. The vetoes are a conflicting device id, a deleted
+source, unbound history, a malformed receipt, a workout kind that
+differs from the stored record, and a deleted record or import key the
+page would copy. A deleted-source row that the mapping would leave out
+is still a veto. The protected transaction rolls back. The archive is
+not attempted. The veto stands even when an earlier unlocked read saw
+no veto. A missing device id on a timeseries row is not this veto.
+
+The archive is allowed only when that snapshot has no veto and it has
+one of these eligible facts: a device-targeted series row whose source
+has no device id, or a null-source series row, measured or reported,
+whose full match key has a different payload in this page or already
+stored. An eligible row does not authorize the archive when a veto is
+also on the page. A confirmed command keeps this snapshot for the
+archive transaction. It does not keep a lock after the protected
+rollback. A preview discards the snapshot with that rollback.
+
+When the archive revalidation below matches the safety snapshot, the
+archive stores one capsule per returned series row on that page, not a
+query-bucket row and not a non-series row. A workout or a meal on that page is not a capsule. A
 later page that does not refuse can store it. The capsule is:
 
 ```json
@@ -634,14 +650,28 @@ capsule is one record. A raw capsule and a day capsule are different
 even when the row bodies match. The hash is not a sample id. This plan
 does not claim that two different capsules cannot hash equal. If the key
 is already stored and the stored capsule differs, the archive transaction
-fails and does not revise the old capsule.
+fails before any insert and does not revise the old capsule.
 
 The archive source uses writer `open_wearables`, sensor `ow1:["archive"]`,
 and `source_type` `connector`. The receipt operations are not called, and
-`device_binding` is not written. If that source is deleted, the archive
-transaction fails and does not insert a new source. A later page sees the
-committed archive. It does not see a deletion that happened after the
-snapshot except for this one check.
+`device_binding` is not written.
+
+The archive transaction starts with its own `BEGIN IMMEDIATE`, after the
+protected rollback. The re-read and any archive writes are that same
+transaction, so another writer cannot commit between them. Before it
+inserts a source or a capsule, it reads
+the same safety facts again, including a `left_out` neighbor. It also
+reads the archive source and each target capsule, including a tombstone.
+It compares those facts with the safety snapshot. A new veto, a
+different binding, a new or missing history row, a source or record
+tombstone, or a different safety revision means the snapshot is stale.
+`archive` is then `not_attempted`. The transaction rolls back with no
+writes. The fetched payload is not stored under the archive source, and
+it is not given a new identity. A deleted archive source is not
+recreated. A deleted capsule is not replaced. If the pull cannot name
+this bounded set for a row, it does not archive the page. There is no
+retry. A page that committed an archive still sees that archive. A
+deletion after this archive commits is a later command.
 
 `protected_write` is `committed` or `refused`. `archive` is
 `not_attempted`, `stored`, `unchanged`, or `failed`. `committed` is the
@@ -664,8 +694,14 @@ the protected refusal remains, earlier commits remain, the success
 sentence is not printed, and the exit is nonzero. The text is `Protected
 write refused; archive failed; database unchanged; pull incomplete.`
 After an earlier change it says `database changed`. It does not print a
-partial archive count. A preview, including `--json` and `--json --yes`,
-rolls both transactions back and commits neither.
+partial archive count. When the archive is `not_attempted` after a
+protected refusal, the text is `Protected write refused; archive not
+attempted; database unchanged; pull incomplete.` After an earlier change
+it says `database changed`. That result adds no archive count. A
+preview, including `--json` and `--json --yes`, rolls the protected
+transaction back and does not start the archive transaction.
+`estimated_archive` comes from that rolled-back read and is labeled
+estimated.
 
 A page of only reported series, with no device id, is an ordinary source
 report write. It is not an archive, and it does not refuse the device
@@ -882,7 +918,8 @@ connection. A later `revise` cannot fill the receipt in, because that patch
 is refused.
 
 `store.rs` therefore gains three source operations besides the `revise`
-rule above, and the typed writes in section 6. It gains nothing beyond those:
+rule above, the typed writes in section 6, and the bounded archive
+safety read in section 2. It gains nothing beyond those:
 
 - Read the committed receipt, and whether any record or source device for
   that source exists, including a deleted row.
@@ -892,8 +929,13 @@ rule above, and the typed writes in section 6. It gains nothing beyond those:
   source device. Every other source field stays. The write uses the normal
   revision and `data_json` bookkeeping. Writer, route, sensor, import keys,
   and baselines stay.
+- Read the sources, records, import keys, and archive keys named by one
+  page, including tombstones and the current revision. This is the safety
+  read in section 2. It does not scan the database.
 
-The three operations run inside the caller's `BEGIN IMMEDIATE` transaction.
+The three receipt operations run inside the caller's `BEGIN IMMEDIATE`
+transaction. The safety read runs in that same transaction, before any
+mutation, and again at the start of the archive transaction.
 A refused call rolls them back with the call. Other routes do not call
 them. The build may extend `ensure_mapped_source` or add a narrow operation
 beside it. It does not add a table, a trait, or a file split. The automatic
@@ -1037,9 +1079,15 @@ backup is already on disk. Device receipts stay in the copied source
 JSON. They are not rewritten.
 
 A new database closes the step 4 transaction, then runs this step 5 path.
-Step 9 sets `user_version`. If step 5 fails during init, the closed step
-4 database remains, foreign keys are on, and init reports failure. The
-views are not left dropped. `applyMigrationStep` gains this arm for target 5
+Step 9 sets `user_version`. If step 5 fails during init, that transaction
+rolls back to the closed step 4 schema before the existing failed-init
+cleanup runs. Init reports failure. `createDatabase` still closes the
+database and `removePartialLocalDatabase` still deletes the new file.
+D202 leaves those paths in place, and this build does not change them.
+A file that cleanup does not delete is not left with the views dropped.
+A migrate of a database that already existed is a separate case. Its
+step 5 rollback leaves that file in place, at the old schema, with
+foreign keys on. `applyMigrationStep` gains this arm for target 5
 and does not use `withWriteTransaction` for it. `MIGRATION_CHAIN` in `src/db/sql-contract.ts`,
 `scripts/generate-sql-contract.ts`, and `scripts/check-schema-drift.ts` gain
 the step. `package.json` exports and `tests/v1-package-exports.test.ts` point
@@ -1120,7 +1168,10 @@ measurement-sample target, the reporting-window write, and the segment
 copy from section 2. HTTP stays out of `mapping.rs`. `store.rs` keeps the
 `revise` refusal and adds the three source operations in section 3: the
 receipt and tombstone read, creation with the checked receipt, and a
-first bind on an existing source that has no history. It also inserts and
+first bind on an existing source that has no history. The archive
+transaction adds a bounded read of the sources, records, import keys,
+and archive keys named by that page, including tombstones and the
+current revision. It does not scan the database. It also inserts and
 updates `measurement_sample` and `source_report`, and it accepts a provider
 summary or provider score whose `value` and unit are both present or both
 absent. A half-null pair is refused. When an anchor in this response no
@@ -1137,7 +1188,8 @@ is not stored as zero and is not replaced by an older revision. The
 session-summary branch of `read_period` uses the same filter on the
 extracted number and unit. Formulas and source grouping stay as they are.
 The archive insert is the pull-only transaction in section 2. It is not
-inside `apply_mapping`, and a mapped file import does not call it. It does
+inside `apply_mapping`, and a mapped file import does not call it. It
+revalidates the safety snapshot before any insert. It does
 not call the receipt operations. No other store behavior changes. `ath correct`,
 package restore, and an accepted package merge stay whole-record owner
 writes. They are named in section 3 so the binding survives a 2.2.0 round
@@ -1309,6 +1361,25 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   counts, and `database_changed` true. The failure text then says
   `database changed`.
   Preview and `--json --yes` commit neither transaction
+- two connections, both row orders. Before the protected `BEGIN IMMEDIATE`,
+  the other connection commits a binding of device C on source S. The page
+  has a series for S with device B and a missing-id neighbor. The
+  protected transaction refuses. `archive` is `not_attempted`. No capsule,
+  source revision, or receipt change is written. The same refusal holds
+  when the other connection commits a tombstone or history on S instead
+  of the binding. A page whose safety snapshot has no veto, then a
+  deletion of S after the protected rollback, does not archive S's
+  payload. A deletion of the normalized record or its import key between
+  the two transactions does not create a capsule. A deletion of the
+  archive source, or of an existing capsule, does not recreate it and
+  does not store a second identity. An owner correction that changes the
+  binding, the history, or the safety revision after the protected
+  rollback leaves `archive` `not_attempted` and writes nothing. An
+  already deleted neighbor, in either row order, is a protected veto and
+  is not archived. A credential on the page starts neither transaction.
+  An earlier committed sleep page keeps `written` true, its `committed`
+  counts, and `database_changed` true. The text is `Protected write
+  refused; archive not attempted; database changed; pull incomplete.`
 - sensors `ow1:["summary","sleep",null]` and a colon inside a provider
   name stay different from a shifted tuple. The text `-` is not the same
   sensor as a missing part. A score whose input source changes from null
@@ -1471,7 +1542,10 @@ Migration tests, in the build gate:
 - `ath init` creates a database that is already `2.2.0`, SQL schema 5, and
   `user_version` 5, and `ath check` exits 0. The fresh database accepts a
   source report, the same two views are queryable, and a mismatched
-  revision type is rejected. Step 4 still
+  revision type is rejected. A failed init rolls step 5 back and then the
+  existing cleanup removes the new file. A failed migrate of a populated
+  database leaves that file, the old schema, the views, and foreign-key
+  enforcement. Step 4 still
   writes `2.1.0` and schema 4, and the create path closes that
   transaction before step 5
 - databases at `1.0.0` and `2.0.0` still open for migrate. Packages at
@@ -1549,7 +1623,8 @@ is in the build pull request.
   in the same process that closed it, without the garbage collection
   `removeTemporaryDirectory` uses. On Windows that delete can fail with
   `EBUSY`. Version 2.1.0 spec section 12 left it out and named no later
-  version.
+  version. A failed step 5 rolls back before that cleanup. This build
+  does not replace the cleanup.
 - `store.rs` and `mapping.rs` are past a thousand lines. The pull does not
   add HTTP to them. `mapping.rs` gains the counts, the open-wearables
   binding check, and the preservation writes in section 2. `store.rs` gains the
@@ -1604,7 +1679,7 @@ cycle filter, the smaller-page split, and the tests in section 7. The laptop car
 part of that same pull request. This plan pull request has no media.
 
 The maintainer approves or rejects this plan before any build. D198 through
-D207 are the proposal. They are not adopted. Reviews of earlier heads were
+D208 are the proposal. They are not adopted. Reviews of earlier heads were
 incorporated here. None of those reviews approves this revision. The next
 head needs re-review. An earlier review accepted a
 migration with no new column, under D152 and D184. That acceptance does not
@@ -1623,11 +1698,11 @@ optional source key adds no column.
    connection turns them off only before its transaction and reads them
    back on after every exit. A
    `2.1.0` database does not open until `ath migrate`. This release does
-   not schedule, refresh a token, backfill, or store a cursor (D198, D207).
+   not schedule, refresh a token, backfill, or store a cursor (D198, D208).
 2. Store the returned representations in section 2. Device receipts stay
    on device sources. Summaries without a device id use their own sensors.
    Null stays null. A missing response is not called provider-unavailable.
-   The omissions in section 2 are the ones with a reason (D203, D207).
+   The omissions in section 2 are the ones with a reason (D203, D208).
 3. The key, the selected origin, and the selected user id are rejected in
    decoded JSON before a page is mapped. Failure text uses a fixed sentence.
    `ath key clear` with no name still clears only the gateway keys and says
@@ -1653,6 +1728,6 @@ optional source key adds no column.
    the checked receipt, and the first bind of an existing source that has
    no history, and the sample, source-report, withdrawal, and paired-null
    writes in section 6, including the null filter in the calculation
-   readers. The pull command owns the archive transaction and calls the
-   store. `mapping.rs` does not start it. Nothing else is added to either
-   file (D202, D207).
+   readers and the bounded archive safety read. The pull command owns the
+   archive transaction and calls the store. `mapping.rs` does not start
+   it. Failed-init cleanup stays as it is (D202, D208).

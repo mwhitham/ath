@@ -9,7 +9,7 @@ D-number.
 
 ## D198. Version 2.2.0 is one manual pull, and the program and the record share that number
 
-`ath pull openwearables` reads the stored representations D207 lists from an
+`ath pull openwearables` reads the stored representations D208 lists from an
 Open Wearables server the person runs, for one user and one range they name. The
 command is manual. The person runs it. The program does not schedule it,
 retry a failed request, or sign the person in to a device maker.
@@ -269,8 +269,8 @@ page follows D189. A committed page does not mean the pull is complete.
 The command previews unless `--yes` is present. `--json` does not write,
 with or without `--yes`, matching `ath import --mapping`. `--yes` without
 `--json` writes each protected page as that page succeeds. A refused
-page is not a success. The pull-only archive in D207 is a separate
-transaction.
+page is not a success. The pull-only archive in D208 is a separate
+transaction. It reads the safety facts again before it writes.
 
 The child returns one bounded outcome for the mode it ran. A preview,
 including public `--json`, has `written` false, protected and archive
@@ -375,7 +375,8 @@ file with `rm`). `createDatabase` still deletes a half-created file in
 path collects garbage first. `removeTemporaryDirectory` in `src/db/client.ts`
 does, and tests use it. Version 2.1.0 spec section 12 left the production
 paths out of that release and did not assign them a version. They are still
-open. They do not run on a pull. This build does not change them.
+open. They do not run on a pull. This build does not change them. D208
+rolls a failed step 5 back before this cleanup runs.
 
 `crates/ath-core/src/store.rs` is 1034 lines. `mapping.rs` is 1443.
 `persist.rs` is 1051. The pull is a new module so those files do not grow
@@ -427,7 +428,7 @@ Rejected alternatives:
 D204 supersedes the classification, source identity, time, score, endpoint,
 and size sentences in this proposal. D205 supersedes D204 where they
 disagree. The decision to keep the returned health data in this pull
-stands. Where a paragraph below disagrees with D207, D207 is the proposal.
+stands. Where a paragraph below disagrees with D208, D208 is the proposal.
 
 This supersedes the earlier draft, inside D198 and D199, that left day
 values, the heart-rate stream, sleep and recovery summaries, meals, and
@@ -562,8 +563,8 @@ timestamp alone, that leave a refused original unstored in every case,
 that map `heart_rate_recovery_one_minute` to a quantity of that same
 name, and that call `hydration` a measurement sample. The units, day
 windows, sleep bounds, and reported-record direction stay. D207
-supersedes D206 where they disagree. Where this proposal disagrees
-with D207, D207 is the proposal.
+supersedes D206 where they disagree. D208 supersedes D207 where they
+disagree. Where this proposal disagrees with D208, D208 is the proposal.
 
 This corrects D204. The returned health data stays in this pull. The
 specification's section 2 and the appendix series table are the contract.
@@ -674,8 +675,8 @@ defining `database_changed`, that archive a page from the first error,
 that hash the series row without its resolution, and that give a
 null-source reported series both the report sensor and the unattributed
 sensor. The root check, the numberless readers, and the reported-record
-direction stay. Where this proposal disagrees with D207, D207 is the
-proposal.
+direction stay. D208 supersedes D207 where they disagree. Where this
+proposal disagrees with D208, D208 is the proposal.
 
 This corrects D205. The returned health data stays in this pull. The
 specification is the contract.
@@ -721,8 +722,8 @@ id with a different kind refuses the page.
 A protected refusal rolls back. For a missing device id on a
 device-targeted series row, and for unequal null-source payloads of one
 full match key, a later archive transaction stores kind `original` with
-no amount and no device receipt. D207 is the page decision, the capsule,
-and the command counts. `written` stays false when only the archive
+no amount and no device receipt. D208 is when that transaction may
+write. D207 is the capsule and the command counts. `written` stays false when only the archive
 changed. The command
 exits nonzero. Credential failures, invalid ids, conflicting device ids,
 legacy history, and kind changes are not archived. Those originals are
@@ -755,6 +756,12 @@ Rejected alternatives:
 
 ## D207. The migration rename, the command counts, and the archive decision stay consistent
 
+D208 supersedes the sentences below that classify database facts before
+either transaction, that leave the archive with only an archive-source
+check, and that leave a failed init file in place. The migration graph,
+the command counts, the capsule, and the report routing stay. Where this
+proposal disagrees with D208, D208 is the proposal.
+
 This corrects D206. The returned health data stays in this pull. The
 specification is the contract.
 
@@ -776,12 +783,12 @@ itself back, and leaves earlier commits. The pull text for a new
 archive-only change is `Protected write refused; N originals archived;
 database changed; pull incomplete.`
 
-The pull classifies the whole page before either transaction. Any veto
-on the page forbids the archive, in either row order, including a
-`left_out` row that carries the veto. The privacy scan still comes first.
-The archive is pull-only. A mapped file import does not gain it. The
-archive transaction does not reclassify the page. It does refuse to
-revive a deleted archive source or to write a device receipt.
+D208 reads database-dependent vetoes inside the protected transaction
+and reads them again before any archive write. A veto there, including
+on a `left_out` row, forbids the archive. The privacy scan still comes
+first. The archive is pull-only. A mapped file import does not gain it.
+A deleted archive source is not recreated, and the archive writes no
+device receipt.
 
 Each archived series row is a capsule of `resource`, the response
 `resolution`, and the unchanged row. The hash is of that capsule. A raw
@@ -807,4 +814,47 @@ Rejected alternatives:
   would gain a write the import did not ask for.
 - Hash the series row and infer the resolution later. Rejected. The
   resolution is on the response, not on the row.
+
+## D208. The archive reads safety facts under the write lock
+
+This corrects D207. The returned health data stays in this pull. The
+specification is the contract.
+
+Privacy, required ids, and supplied-field names are checked on the
+returned page before either transaction. A failure starts neither
+transaction.
+
+Receipts, bindings, history, source deletion, stored records, import
+keys, tombstones, null-source payloads, and workout kinds are read
+inside the protected `BEGIN IMMEDIATE`, before any mutation. The read
+includes a row the mapping would leave out. That read is the safety
+snapshot. A veto in it refuses the protected page, and the archive is
+not attempted. An unlocked read from before that transaction is not the
+snapshot.
+
+The archive transaction then takes its own `BEGIN IMMEDIATE`. Before it
+inserts a source or a capsule, it reads those facts again, and it reads
+the archive source and the target capsules, including tombstones. A new
+veto or a safety fact that differs from the snapshot sets `archive` to
+`not_attempted` and writes nothing. A deleted source or a deleted record
+is not copied onto a new archive identity. A deleted archive source is
+not recreated. A deleted capsule is not replaced. If the page names a
+row the bounded read cannot cover, the page is not archived. There is
+no retry.
+
+A failed step 5 during init rolls back to the closed step 4 schema
+before the existing init cleanup runs. Init fails. D202's cleanup is
+unchanged. A migrate of an existing database keeps that file and the old
+schema when step 5 rolls back.
+
+Rejected alternatives:
+
+- Use an unlocked preflight as the archive decision. Rejected. Another
+  command can bind the source before the protected transaction, and the
+  protected veto would then be stored.
+- Recheck only the archive source after the protected rollback.
+  Rejected. The owner can delete the original source or record in
+  between, and the payload would be stored under a new identity.
+- Leave a failed init file at step 4. Rejected. The existing caller
+  removes that file, and this build does not change that cleanup.
 
