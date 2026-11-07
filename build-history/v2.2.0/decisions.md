@@ -9,7 +9,7 @@ D-number.
 
 ## D198. Version 2.2.0 is one manual pull, and the program and the record share that number
 
-`ath pull openwearables` reads the stored representations D206 lists from an
+`ath pull openwearables` reads the stored representations D207 lists from an
 Open Wearables server the person runs, for one user and one range they name. The
 command is manual. The person runs it. The program does not schedule it,
 retry a failed request, or sign the person in to a device maker.
@@ -18,9 +18,12 @@ The program, the record, and the database become `2.2.0` together. D152 made
 those one number. D184 kept that rule. Migration step 5 stores `2.2.0` and
 SQL schema 5. It adds no column to an existing table. It rebuilds
 `provider_summaries` and `provider_scores`, and it creates
-`source_reports`, as D205 describes. Existing rows keep their numbers. Step 4 is not edited
-(D165). A new database runs step 5 after step 4 and before `user_version` is
-set. `applyMigrationStep` handles target 5. The migration chain, the SQL
+`source_reports`, as D205 describes. D207 drops the record views and
+the two cross-table triggers around the root rename. Existing rows keep
+their numbers. Step 4 is not edited
+(D165). A new database closes the step 4 transaction, then runs step 5,
+which sets `user_version` 5. `applyMigrationStep` handles target 5
+outside `withWriteTransaction`. The migration chain, the SQL
 contract generator, and the drift check gain that step. The package exports
 point at `schema/2.2.0/`. `READABLE_DATABASE_VERSIONS` and
 `ACCEPTED_RECORD_VERSIONS` keep `1.0.0`, `2.0.0`, and `2.1.0`, and gain
@@ -265,14 +268,19 @@ page follows D189. A committed page does not mean the pull is complete.
 
 The command previews unless `--yes` is present. `--json` does not write,
 with or without `--yes`, matching `ath import --mapping`. `--yes` without
-`--json` writes each page as that page succeeds.
+`--json` writes each protected page as that page succeeds. A refused
+page is not a success. The pull-only archive in D207 is a separate
+transaction.
 
 The child returns one bounded outcome for the mode it ran. A preview,
-including public `--json`, has `written` false, committed zeros, estimated
-counts, and `range_complete` false. A confirmed `--yes` has the actual
-committed counts. `written` is true only when that command committed a new
-or revised record. A successful repeat has `written` false and
-`database_changed` false. The database is unchanged. The parent renders the
+including public `--json`, has `written` false, protected and archive
+committed zeros, estimated counts, and `range_complete` false. A
+confirmed `--yes` has the actual protected and archive counts. `written` is
+true when a protected transaction in the command created or revised a
+counted record. An archive does not make it true. `database_changed` is
+true when a protected transaction or an archive transaction committed a
+change. A successful repeat of an unchanged command has both flags false.
+The parent renders the
 confirmed outcome as text. It renders the preview outcome as public JSON.
 On a partial failure the child returns the confirmed outcome and then exits
 nonzero. The parent renders the text before it uses that status.
@@ -419,7 +427,7 @@ Rejected alternatives:
 D204 supersedes the classification, source identity, time, score, endpoint,
 and size sentences in this proposal. D205 supersedes D204 where they
 disagree. The decision to keep the returned health data in this pull
-stands. Where a paragraph below disagrees with D206, D206 is the proposal.
+stands. Where a paragraph below disagrees with D207, D207 is the proposal.
 
 This supersedes the earlier draft, inside D198 and D199, that left day
 values, the heart-rate stream, sleep and recovery summaries, meals, and
@@ -553,8 +561,9 @@ through the device check, that compare null-source rows by type and
 timestamp alone, that leave a refused original unstored in every case,
 that map `heart_rate_recovery_one_minute` to a quantity of that same
 name, and that call `hydration` a measurement sample. The units, day
-windows, sleep bounds, and reported-record direction stay. Where this
-proposal disagrees with D206, D206 is the proposal.
+windows, sleep bounds, and reported-record direction stay. D207
+supersedes D206 where they disagree. Where this proposal disagrees
+with D207, D207 is the proposal.
 
 This corrects D204. The returned health data stays in this pull. The
 specification's section 2 and the appendix series table are the contract.
@@ -659,6 +668,15 @@ Rejected alternatives:
 
 ## D206. The new record type, numberless inputs, and refused originals stay separable
 
+D207 supersedes the sentences below that leave the record views in place
+during the rename, that set `written` false for an archive without
+defining `database_changed`, that archive a page from the first error,
+that hash the series row without its resolution, and that give a
+null-source reported series both the report sensor and the unattributed
+sensor. The root check, the numberless readers, and the reported-record
+direction stay. Where this proposal disagrees with D207, D207 is the
+proposal.
+
 This corrects D205. The returned health data stays in this pull. The
 specification is the contract.
 
@@ -669,7 +687,9 @@ not edit migrations 001 through 004, and it does not drop the check.
 Ordinary writes keep foreign keys on. The migration connection may turn
 them off only before its own transaction, rebuild `records` and the two
 nullable typed tables by copy, rename, and recreate, then require
-`foreign_key_check` and `integrity_check` before commit. A drop of
+`foreign_key_check` and `integrity_check` before commit. D207 drops the
+two record views and the two cross-table triggers before that rename and
+recreates them unchanged. A drop of
 `records` inside the ordinary foreign-key transaction is not the
 procedure. Fresh init and a populated, deleted, history-bearing upgrade
 both have to accept a source report afterward.
@@ -701,7 +721,9 @@ id with a different kind refuses the page.
 A protected refusal rolls back. For a missing device id on a
 device-targeted series row, and for unequal null-source payloads of one
 full match key, a later archive transaction stores kind `original` with
-no amount and no device receipt. `written` stays false. The command
+no amount and no device receipt. D207 is the page decision, the capsule,
+and the command counts. `written` stays false when only the archive
+changed. The command
 exits nonzero. Credential failures, invalid ids, conflicting device ids,
 legacy history, and kind changes are not archived. Those originals are
 not kept, because storing them would invent an id or keep a payload the
@@ -730,4 +752,59 @@ Rejected alternatives:
   transaction. Rejected for the two reasons above. The archive is a
   second transaction with a failed protected-write status. The other
   refusal reasons stay unstored.
+
+## D207. The migration rename, the command counts, and the archive decision stay consistent
+
+This corrects D206. The returned health data stays in this pull. The
+specification is the contract.
+
+Step 5 drops `sql_v1_current_records`, `sql_v1_active_records`, and the
+two `record_revisions` triggers that read `records` before it drops
+`records`. It recreates them from the `001` text after the new root
+exists, in the same transaction. Foreign keys are turned off only before
+that transaction, on a connection ordinary writes do not reuse. After
+every exit the connection reads `foreign_keys` back as on, or it is
+closed. A failure before commit restores the old schema, the old rows,
+and the old version. `writable_schema` is not used. Files 001 through
+004 stay unchanged.
+
+`written` counts protected creates and revisions across the command. An
+archive-only change leaves it false and sets `database_changed` true.
+Archive counts are separate from protected counts. A later page does not
+clear either. A failed archive transaction keeps the refusal, rolls
+itself back, and leaves earlier commits. The pull text for a new
+archive-only change is `Protected write refused; N originals archived;
+database changed; pull incomplete.`
+
+The pull classifies the whole page before either transaction. Any veto
+on the page forbids the archive, in either row order, including a
+`left_out` row that carries the veto. The privacy scan still comes first.
+The archive is pull-only. A mapped file import does not gain it. The
+archive transaction does not reclassify the page. It does refuse to
+revive a deleted archive source or to write a device receipt.
+
+Each archived series row is a capsule of `resource`, the response
+`resolution`, and the unchanged row. The hash is of that capsule. A raw
+capsule and a day capsule are different records. A stored capsule that
+hashes equal but differs is an archive failure, not a merge.
+
+A reported series uses only the report sensor, including when `source`
+is null. A measured series with `source: null` uses only the unattributed
+sensor. Age is a source report with no `field_basis`.
+
+Rejected alternatives:
+
+- Leave the views in place until commit. Rejected. SQLite checks them
+  when the replacement table is renamed, and the missing `records` name
+  fails that check.
+- Count an archive as `written`. Rejected. The protected import failed.
+  The database change is reported by `database_changed` and the archive
+  counts.
+- Archive whichever error the mapper returns first. Rejected. A later
+  conflicting device id would then be stored.
+- Give a mapped file import the same second transaction. Rejected. The
+  file has no selected-server privacy context, and the shared mapper
+  would gain a write the import did not ask for.
+- Hash the series row and infer the resolution later. Rejected. The
+  resolution is on the response, not on the row.
 

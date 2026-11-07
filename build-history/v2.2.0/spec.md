@@ -4,7 +4,7 @@ Status: **plan only. The maintainer has not approved it. Not approved for build.
 
 `ath pull openwearables` reads one person's stored health data from an Open
 Wearables server they run, and writes it with the mapping this release
-ships. The proposals are D198 through D206 in
+ships. The proposals are D198 through D207 in
 [decisions.md](decisions.md). They are not adopted. The evidence is
 [appendix/open-wearables-api.md](appendix/open-wearables-api.md), checked on
 6 and 7 November 2026.
@@ -106,16 +106,24 @@ section 3, which says a rerun cannot
 repair the device id. It does not print the success sentence. The
 protected transaction of a refused page makes no database changes.
 Records already stored stay, including their revisions. An archive, when
-section 2 allows one, is a later transaction. It does not print the
-success sentence, and it does not set `written`. An empty ranged result
-can still store the personal record or the body snapshot. Those writes are
-counted. They are not ranged rows. `written` is false when the confirmed
-command changed nothing. The database is unchanged. That is not a claim that
-the database has no rows.
+section 2 allows one, is a later pull-only transaction. It does not print
+the success sentence. `written` is true when any protected transaction
+in this command created or revised a counted record. An archive does not
+make `written` true. `database_changed` is true when any protected
+transaction or any archive transaction in this command committed a
+change, including the first insert of the archive source. A later page
+does not reset either flag or the counts from an earlier page. An empty
+ranged result can still store the personal record or the body snapshot.
+Those writes are counted as protected rows. They are not ranged rows.
+`written` is false and `database_changed` is false when the confirmed
+command committed no protected change and no archive change. Rows stored by an earlier
+command can still be there.
 
 Public `--json`, with or without `--yes`, is only the preview outcome below.
-`written` is false. `committed` is zero. `estimated` holds the page-local
-estimates. `range_complete` is false. `reads_finished` is true only when
+`written` is false. `database_changed` is false. `committed` and
+`archive_committed` are zero. `estimated` holds the protected
+page-local estimates. `estimated_archive` holds the archive estimates.
+`range_complete` is false. `reads_finished` is true only when
 every read completed. The read status token is
 `not_attempted`, in this object and in the text. The object has no key,
 server, user id, or request path.
@@ -125,6 +133,7 @@ server, user id, or request path.
   "from": "2026-01-01",
   "to": "2026-01-07",
   "written": false,
+  "database_changed": false,
   "range_complete": false,
   "reads_finished": false,
   "reads": {
@@ -139,6 +148,12 @@ server, user id, or request path.
   "committed": {
     "sleep_session": { "new": 0, "changed": 0, "unchanged": 0 }
   },
+  "estimated_archive": {
+    "source_report": { "new": 0, "changed": 0, "unchanged": 0 }
+  },
+  "archive_committed": {
+    "source_report": { "new": 0, "changed": 0, "unchanged": 0 }
+  },
   "left_out": { "total": 0, "examples": [] }
 }
 ```
@@ -148,16 +163,25 @@ and source reports. The example above is shortened. It is the preview
 outcome. A preview does not say a snapshot was stored.
 
 The child returns a different outcome for `--yes` without `--json`. That
-outcome has the actual `committed` counts, `database_changed`,
-`range_complete`, and `snapshots_complete`. `range_complete` is true when
-the ranged reads finished. `snapshots_complete` is true when the personal
-record and the body snapshot finished. `written` is true only when that
-confirmed command committed at least one new or revised record. A
-successful repeat has `written` false, `database_changed` false, both
-flags true, and unchanged counts. A failed ranged page has
-`range_complete` false. A failed snapshot after a finished range has
-`range_complete` true and `snapshots_complete` false. The parent prints
-sentences from this outcome. It does not print the outcome as public JSON.
+outcome has the actual `committed` counts, the actual `archive_committed`
+counts, `database_changed`, `protected_write`, `archive`,
+`range_complete`, and `snapshots_complete`. `committed` counts protected
+records only. `archive_committed` counts archive records only, including
+a created archive source, counted once. A record is in one of those
+maps. `new`, `changed`, and `unchanged` are the created, revised, and
+unchanged counts in each map. `range_complete` is true when the ranged reads
+finished and no protected page in those reads was refused. `snapshots_complete`
+is true when the personal record and the body snapshot finished. `written`
+is true when any protected transaction in this command created or revised
+a counted record. A command that only repeats unchanged protected pages,
+and that commits no archive change, has `written` false,
+`database_changed` false, both completion flags true, and unchanged
+protected counts. An earlier change keeps both flags true. A failed ranged page has `range_complete` false. A
+failed snapshot after a finished range has `range_complete` true and
+`snapshots_complete` false. The parent prints sentences from this outcome.
+It does not print the outcome as public JSON. Public `--json`, with or
+without `--yes`, commits neither the protected transaction nor the
+archive transaction.
 
 `--date` stays required only for `garmin`. `--from` and `--to` are required
 only for `openwearables`, and they are flags, not environment variables.
@@ -190,12 +214,14 @@ gateway commands they are today.
 
 ## 2. What this pull stores
 
-D206 is the storage rule. D203 keeps these values in this pull. D204
+D207 is the storage rule. D203 keeps these values in this pull. D204
 corrected source, time, and score direction. D205 corrects units, day
 windows, sleep bounds, identity encoding, reported records, and child
 withdrawal. D206 corrects the root record type, numberless calculation
 inputs, recovery scales, required ids, workout provenance, hydration,
-and the archive of a refused original. An earlier draft
+and the archive of a refused original. D207 corrects the migration
+dependencies, the command counts, archive eligibility, the archive
+capsule, and null-source report routing. An earlier draft
 left day values, the heart-rate stream, summaries, and workout segments for
 a later version. That draft is superseded. File imports stay. The Garmin pull stays. A Junction pull is proposed as
 2.3.0. Automatic sync, retries, token refresh, and backfill are proposed as
@@ -315,19 +341,20 @@ The array shapes are:
 
 - Summary or body: `["summary", family, provider, device, device_type, source, device_id]`
 - Meal, cycle, manual workout, or unknown workout: `["event", family, provider, device, device_type, source, device_id]`
-- Reported series: `["report", resolution, provider, device, device_type, source, device_id]`. `resolution` is `raw` or `1day`.
+- Reported series, including a row whose `source` is null: `["report", resolution, provider, device, device_type, source, device_id]`. `resolution` is `raw` or `1day`.
 - Health score: `["score", provider]`. `provider` is the top-level author,
   or JSON `null` when that field is null. The input `source` is not in
   the array.
-- Timeseries with `source: null`: `["unattributed", "timeseries"]`
+- Measured series with `source: null`: `["unattributed", "timeseries"]`. A reported series does not use this sensor.
 - Archive originals: `["archive"]`
 - Personal record: `["personal_record"]`
 
 The writer is `source.provider` when that string is nonempty. A health
 score uses its top-level `provider` when that string is nonempty. The
-personal record, a null-provider score, and a null-source timeseries use
-the writer `open_wearables`. That word names this route. It is not a
-device maker and it is not an invented author. The vendor is omitted.
+personal record, a null-provider score, a measured series with
+`source: null`, and a reported series whose provider is missing use the
+writer `open_wearables`. That word names this route. It is not a device
+maker and it is not an invented author. The vendor is omitted.
 `source_type` is `connector`. These sensors do not establish
 `device_binding`. Their history is not history of a device source.
 
@@ -335,15 +362,17 @@ A health score never uses the unattributed timeseries sensor. A change
 of its input `source` from null to an object, or the reverse, revises
 the same score. The writer, the sensor, and the score id stay put.
 
-A null-source timeseries row has no sample id. The comparison is the full
-match key: writer, sensor, `timeseries`, resolution, series type, UTC
-timestamp, and, for a day row, `period_end`. A raw row at midnight and a
-day window that starts at that midnight are different keys. Two rows with
-one key are one normalized record only when the whole returned row is
-equal. A different value, in the same page or a later confirmed call,
-refuses the protected transaction. The stored normalized row stays. The
-text says the rows are ambiguous and a rerun cannot choose the normalized
-row. `ath correct` remains the owner's way to replace that row. Preview
+A null-source timeseries row has no sample id. A measured row uses the
+unattributed sensor. A reported row uses the report sensor and does not
+also get an unattributed record. The comparison is that one full match
+key: writer, sensor, resource, resolution, series type, UTC timestamp,
+and, for a day row, `period_end`. A raw row at midnight and a day window
+that starts at that midnight are different keys. Two rows with one key
+are one normalized record only when the whole returned row is equal. A
+different value, in the same page or a later confirmed call, refuses the
+protected transaction. The stored normalized row stays. The text says the
+rows are ambiguous and a rerun cannot choose the normalized row. `ath
+correct` remains the owner's way to replace that row. Preview
 pages roll back, and the command memory holds device-binding facts only.
 A preview therefore does not claim to see a null-source conflict from an
 earlier preview page. A confirmed `--yes` page does see an earlier
@@ -362,8 +391,8 @@ appendix table, fails before any request.
 | Unknown, null, or omitted `entry_source` | `{ "workout": data }` | `source.provider` | `ow1` event | `source_report` `unknown_workout`, server id | none. The original object is the record |
 | Measured raw series with `device_id` | timeseries object, `resolution` `raw` | `source.provider` | legacy device | the raw class in the appendix, D181 time key | none |
 | Measured raw or day series, source present, no `device_id` | timeseries object | `source.provider` | legacy device, then the protected transaction is refused | no measured row. Section 2 may archive the original | none |
-| Reported series, with or without `device_id` | timeseries object | `source.provider`, or `open_wearables` when that string is missing | `ow1` report | `source_report`, appendix subject | none. The amount is the reported pair |
-| Raw series, `source` null | timeseries object | `open_wearables` | `ow1` unattributed | the raw class, full match key | none. An unequal payload refuses the protected transaction and may be archived |
+| Reported series, source present or null | timeseries object | `source.provider`, or `open_wearables` when that string is missing | `ow1` report only | `source_report`, appendix subject | none. The amount is the reported pair |
+| Measured series, `source` null | timeseries object | `open_wearables` | `ow1` unattributed only | the raw class, full match key | none. An unequal payload refuses the protected transaction and may be archived |
 | Day series | timeseries object, `resolution` `1day` | same as the raw row | same as the raw row | window form in the appendix. Key adds `1day` and `period_end` | none |
 | Sleep, activity, or recovery summary | `{ "sleep_summary": data }`, `{ "activity_summary": data }`, or `{ "recovery_summary": data }` | `source.provider` | `ow1` summary | `source_report` subject `object`, date | one measured child per numeric field, field path in the key |
 | Body | the object | umbrella `source.provider`, or `open_wearables` when it is missing | `ow1` summary, family `body` | `source_report` subject `object` | slow-changing weight, height, fat, and muscle are time-unknown provider summaries; averaged heart rate and HRV use the server window; latest temperature and blood pressure use their own times; age and BMI are source reports |
@@ -520,7 +549,8 @@ Body is the current snapshot. It is not the requested range. The anchor
 is a `source_report`. Weight, height, fat, and muscle are provider
 summaries with `timestamp_missing_reason: not_provided_by_source`, no
 `recorded_at`, and no borrowed window. Age and BMI are `source_report`
-children. Age is calculated. BMI is not labeled measured. The averaged
+children. Age is calculated by the service. The child is a source report
+and has no `field_basis`. BMI is not labeled measured. The averaged
 heart-rate and HRV values are provider summaries on the server's
 `period_start` and `period_end`. Those bounds are not copied onto the
 slow-changing fields. Each latest field uses its own measured-at time
@@ -554,51 +584,92 @@ not withdraw its children. A refused page rolls the withdrawals back
 with the page.
 
 A protected refusal rolls that transaction back. It does not become a
-successful pull. Two refusal reasons may then start a separate archive
-transaction: a device-targeted series row whose source has no device id,
-and a null-source row whose full match key already has a different
-payload, including two different payloads in one page. The archive runs
-only after the protected rollback, and only after the privacy scan has
-accepted the page. It is not a replay of the refused statements.
+successful pull. The archive is pull-only. `ath import --mapping` uses
+the same protected envelopes and the same refusal, and it does not start
+the archive transaction. A refused file import keeps no original.
 
-The archive contains every series object on that refused page. A reported
-row is kept there as an original, not as its structured amount. A later
-clean page may store that structured report. The archive does not revise
-it. The archive source uses writer `open_wearables`, sensor `ow1:["archive"]`,
+Before either transaction, the pull reads the whole page. The order of
+the rows does not matter. The privacy scan is first. A hit starts
+neither transaction. The pull then classifies every row, including a row
+that would be `left_out`. One veto anywhere forbids the archive for the
+whole page. The vetoes are a conflicting device id, a deleted source, an
+unbound legacy history, a malformed or missing required UUID, a workout
+kind change, a malformed receipt, and a supplied field whose name is not
+allowed. A deleted-source row that the mapping would leave out is still
+a veto. A query-bucket `left_out` row is not a veto and is not archived.
+A timeseries row has no required UUID. Its missing device id is not that
+veto.
+
+The archive is allowed only when the page has no veto and it has one of
+these eligible facts: a device-targeted series row whose source has no
+device id, or a null-source series row, measured or reported, whose full
+match key has a different payload in this page or already stored. An
+eligible row does not authorize the archive when a veto is
+also on the page. The decision is this snapshot. It includes a read of
+each stored null-source match key before the protected write. The
+archive transaction does not classify the page again. Its only new check
+is that the archive source is not deleted.
+
+The archive runs only after the protected rollback. It stores one capsule
+per returned series row on that page, not a query-bucket row and not a
+non-series row. A workout or a meal on that page is not a capsule. A
+later page that does not refuse can store it. The capsule is:
+
+```json
+{
+  "resource": "timeseries",
+  "resolution": "raw",
+  "row": {}
+}
+```
+
+`resolution` is the response's `metadata.resolution`, copied. It is not
+inferred from `window_seconds` or `period_end`. `row` is the original
+series object, unchanged. The capsule is the same object for a pull and
+for a later native export and import. Kind is `original`. There is no
+`amount` and no reporting period. The number stays inside `row`. The
+match key is the writer, the archive sensor, and the SHA-256 of the
+canonical capsule, with keys sorted and no extra whitespace. The same
+capsule is one record. A raw capsule and a day capsule are different
+even when the row bodies match. The hash is not a sample id. This plan
+does not claim that two different capsules cannot hash equal. If the key
+is already stored and the stored capsule differs, the archive transaction
+fails and does not revise the old capsule.
+
+The archive source uses writer `open_wearables`, sensor `ow1:["archive"]`,
 and `source_type` `connector`. The receipt operations are not called, and
-`device_binding` is not written. Each original is one source report of
-kind `original`, with no `amount` and no reporting period. The number
-stays inside `supplied_fields`. The match key is the writer, that sensor,
-the resource, and the SHA-256 of the canonical JSON object, with keys
-sorted and no extra whitespace. That hash is not a sample id and it is
-not the measured key. The same bytes are one archive record. Different
-bytes are another record. The pull does not revise an archive into a
-measurement, and it does not revise a measurement from an archive.
+`device_binding` is not written. If that source is deleted, the archive
+transaction fails and does not insert a new source. A later page sees the
+committed archive. It does not see a deletion that happened after the
+snapshot except for this one check.
 
-The outcome names `protected_write` as `committed` or `refused`, and
-`archive` as `not_attempted`, `stored`, `unchanged`, or `failed`.
-`written` stays false when only the archive changed. When the protected
-write was refused, the success sentence is not printed and the exit is
-nonzero. The text says the protected write was refused and how many
-originals were archived. A preview rolls both
-transactions back and says `would refuse` and `would archive`. It does
-not say the original was stored.
+`protected_write` is `committed` or `refused`. `archive` is
+`not_attempted`, `stored`, `unchanged`, or `failed`. `committed` is the
+protected counts. `archive_committed` is the archive counts. A record is
+not in both. `written` follows section 1 and is not set by the archive
+alone. `database_changed` is true when this command's archive transaction
+committed a new source or a new capsule, and it stays true if an earlier
+page already changed the database. A later refusal does not clear the
+earlier counts. When the archive stores N new capsules and the command
+has no protected change, the text is `Protected write refused; N
+originals archived; database changed; pull incomplete.` A repeat that
+stores nothing says `0 originals archived` and says the database is
+unchanged only when no earlier page changed it. The unchanged text is
+`Protected write refused; 0 originals archived; database unchanged; pull
+incomplete.` After an earlier change it is `Protected write refused; 0
+originals archived; database changed; pull incomplete.` A third payload
+adds its own new count and does not replace the earlier capsule. If the
+archive transaction fails, it rolls back entirely, `archive` is `failed`,
+the protected refusal remains, earlier commits remain, the success
+sentence is not printed, and the exit is nonzero. The text is `Protected
+write refused; archive failed; database unchanged; pull incomplete.`
+After an earlier change it says `database changed`. It does not print a
+partial archive count. A preview, including `--json` and `--json --yes`,
+rolls both transactions back and commits neither.
 
-These pages are not archived. A credential hit never reaches either
-transaction. A missing or invalid required UUID is not given a hash
-identity. A conflicting device id is not stored under another source,
-because that would keep the rejected device's payload. A deleted source,
-an unbound legacy history, and a workout kind change are not archived.
-Those originals are not retained. That is a safety limit: filing them
-would look like an accepted import or would invent an id.
-
-On a confirmed command, a later page sees committed measurements and
-committed archives. A repeat of the same conflicting payload refuses the
-protected write again, leaves the archive unchanged, and sets `written`
-false. A third payload adds an archive record and still does not change
-the normalized row. A page of only reported series, with no device id,
-is an ordinary source-report write. It is not an archive, and it does
-not refuse the device check.
+A page of only reported series, with no device id, is an ordinary source
+report write. It is not an archive, and it does not refuse the device
+check. A normalized row is not revised from an archive.
 
 A provider summary or provider score may omit `value` only together with
 its unit. One without the other is refused. Step 5 rebuilds both typed
@@ -910,27 +981,65 @@ attachments, reporting periods, and the other child tables, use
 be on. A `DROP TABLE records` there would fail or cascade through the
 children. Step 5 does not do that.
 
-The runner arm for target 5, and the create path after step 4, open the
-work before their write transaction and set `PRAGMA foreign_keys=OFF`
-only on that connection. Inside one transaction they create
-`records_next` with the old columns and the check extended by
-`source_report`, copy every root row, drop `records`, and rename
-`records_next` back to `records`. They do the same for
-`provider_summaries` and `provider_scores`, copying deleted rows and
-keeping record ids, `data_json`, import keys, revisions, and periods,
-with value and unit nullable together. They create `source_reports` and
-its type trigger. They recreate the indexes and the triggers that were
-defined on `records`, using the text already in `001`. Views stay,
-because they name `records` and the name is restored before commit.
-Then `PRAGMA foreign_key_check` and `PRAGMA integrity_check` must be
-empty and `ok`. Only then does the transaction commit, and the
-connection turns foreign keys back on. A failed check rolls the
-transaction back and leaves the live file unchanged. The D124 backup
-still happens before this step. Device receipts stay in the copied
-source JSON. They are not rewritten.
+The create path finishes steps 1 through 4 and closes that transaction
+before step 5. `installInitialSchema` does not run step 5 inside the
+transaction that requires foreign keys to be on. Target 5 does not use
+`withWriteTransaction`.
 
-A new database runs that step 5 path after step 4 and before the
-`user_version` pragma. `applyMigrationStep` gains this arm for target 5
+Step 5 uses one connection that ordinary writes do not reuse. Before
+`BEGIN`, it sets `PRAGMA foreign_keys=OFF` and reads the pragma back. The
+value must be 0. Turning foreign keys off does not turn off the schema
+check SQLite runs during `ALTER TABLE`. `sql_v1_current_records` and
+`sql_v1_active_records` select from `records`. The triggers
+`record_revisions_record_type_matches_parent_insert` and
+`record_revisions_record_type_matches_parent_update` are defined on
+`record_revisions` and also read `records`. Dropping `records` does not
+drop them. A rename while they still point at a missing `records` fails.
+`writable_schema` is not used.
+
+Inside that one transaction the order is fixed.
+
+1. Drop `sql_v1_current_records` and `sql_v1_active_records`.
+2. Drop the two cross-table triggers named above.
+3. Create `records_next` with the old columns and the check extended by
+   `source_report`. Copy every root row. Drop `records`. Rename
+   `records_next` to `records`.
+4. Rebuild `provider_summaries` and `provider_scores` the same way.
+   Copy deleted rows. Keep record ids, `data_json`, import keys,
+   revisions, and periods. Value and unit may be null together.
+   Recreate `provider_summaries_lookup_idx` and
+   `provider_scores_lookup_idx` from the text in `001`. No view and no
+   trigger in `001` names those two tables. A generated object whose
+   text names one of them is dropped before that rebuild and recreated
+   from the same text afterward. There is no search of the whole schema.
+5. Recreate `records_record_type_idx` and the triggers defined on
+   `records`, from the text in `001`:
+   `records_current_revision_must_exist`,
+   `records_deleted_flag_must_match_deletion_row`,
+   `record_erasure_blocks_current_record_insert`, and
+   `record_erasure_blocks_current_record_update`.
+6. Recreate the two views and the two cross-table triggers from that
+   same text, unchanged.
+7. Create `source_reports` and its type trigger.
+8. `PRAGMA foreign_key_check` is empty and `PRAGMA integrity_check` is
+   `ok`.
+9. Set the version rows and `user_version` 5.
+
+`sql_v1_database_info`, `sql_v1_record_revisions`, and
+`sql_v1_record_deletions` do not name `records`, so they stay through the
+gap. Then the transaction commits. After commit, and after a rollback or
+a thrown error, the connection sets `PRAGMA foreign_keys=ON` and reads it
+back. The value must be 1. If that read fails, the connection is closed
+and is not reused. A later ordinary open still refuses to write while
+foreign keys are off. A failure before commit restores the views, the
+cross-table triggers, the old check, the rows, and the version. The D124
+backup is already on disk. Device receipts stay in the copied source
+JSON. They are not rewritten.
+
+A new database closes the step 4 transaction, then runs this step 5 path.
+Step 9 sets `user_version`. If step 5 fails during init, the closed step
+4 database remains, foreign keys are on, and init reports failure. The
+views are not left dropped. `applyMigrationStep` gains this arm for target 5
 and does not use `withWriteTransaction` for it. `MIGRATION_CHAIN` in `src/db/sql-contract.ts`,
 `scripts/generate-sql-contract.ts`, and `scripts/check-schema-drift.ts` gain
 the step. `package.json` exports and `tests/v1-package-exports.test.ts` point
@@ -1027,14 +1136,18 @@ before the limit, the count, the grouping, and the numeric decode. A null
 is not stored as zero and is not replaced by an older revision. The
 session-summary branch of `read_period` uses the same filter on the
 extracted number and unit. Formulas and source grouping stay as they are.
-The archive insert is the separate transaction in section 2. It does not
-call the receipt operations. No other store behavior changes. `ath correct`,
+The archive insert is the pull-only transaction in section 2. It is not
+inside `apply_mapping`, and a mapped file import does not call it. It does
+not call the receipt operations. No other store behavior changes. `ath correct`,
 package restore, and an accepted package merge stay whole-record owner
 writes. They are named in section 3 so the binding survives a 2.2.0 round
 trip. They are not a new importer. The pull sums only `sleep_session`, `workout_session`,
 `point_measurement`, `measurement_sample`, `provider_summary`,
-`provider_score`, and `source_report`. A committed page adds those counts to the actual committed
-result. A rolled-back preview page adds them to `estimated`. It does not add
+`provider_score`, and `source_report`. A committed protected page adds
+those counts to `committed`. A committed archive page adds its counts
+only to `archive_committed`. A rolled-back preview page adds its
+protected estimates to `estimated` and its archive estimates to
+`estimated_archive`. It does not add
 `outcome` across pages. `outcome` counts the source-device row in the same
 group. Filtering that row out of the totals does not make a preview equal a
 write. Each preview page is rolled back, so page two does not see page one.
@@ -1083,7 +1196,7 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
 - the same session id on two pages, changed payload: the preview estimate
   counts two new rows, and `--yes` counts one new and one changed
 - a valid page, then a failing page, under `--yes`. The failure is one of a
-  401, a 429, a repeated or null cursor, an invalid row, or a minimum page
+  401, a 429, a repeated or null cursor, a vetoed page, or a minimum page
   that is still over 8 MiB. Page 1 remains. Page 2 adds no rows and no revisions. No later read
   runs. The exit is nonzero. The success sentence is absent. The text gives
   the retained counts. The same command run again stores no second copy
@@ -1154,21 +1267,49 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   different ids stay two records. Two summary fields on one date stay two
   records. A page with one bound heart-rate row and one same-triple row
   whose `device_id` is missing refuses the protected page. Neither row
-  is stored as a measurement. The archive stores both originals, with no
-  amount and no device receipt. A later page that has only the valid row
-  stores that measurement. The archive remains a different record. Import
-  then pull of the missing-id pair refuses the same way. A sleep id that
+  is stored as a measurement. The pull archive stores both series rows
+  as capsules, with `resolution` copied from the response and no device
+  receipt. A mapped file import of that page refuses and stores no
+  capsule. A later pull page that has only the valid row stores that
+  measurement. The capsule remains a different record. Export and native
+  import keep the resolution. A raw capsule and a day capsule of the same
+  row body stay two records. A sleep id that
   is missing, beside a valid workout, refuses the page before any write
   and is not archived. The next page still rolls back on its own failure.
-  A timeseries row with
+  A measured timeseries row with
   `source: null` is stored on the unattributed sensor when the payload
-  matches. A different payload with the same full key, including
+  matches. A reported row with `source: null` uses the report sensor
+  only. A different payload with the same full key, including
   resolution and `period_end`, refuses the protected write and archives
-  the new original. A raw midnight row and a day window that starts then
+  the new original. A mapped file import of that changed payload writes
+  nothing. A raw midnight row and a day window that starts then
   stay two records. A preview of those two pages does not claim the
   conflict, because the first preview page was rolled back. A confirmed
   second page does.
-  Sensors `ow1:["summary","sleep",null]` and a colon inside a provider
+- a missing device id beside a conflicting device id, in either row order,
+  refuses the protected page and stores no capsule and no revision. The
+  same veto holds for a deleted source, an unbound legacy history, and a
+  missing workout UUID on the same page as an eligible row, including when
+  the deleted-source row would otherwise be `left_out`. A credential on a
+  neighboring object starts neither transaction. A deleted archive source
+  is not recreated. An existing device receipt is unchanged. On an empty
+  database, the first eligible archive sets
+  `written` false, `database_changed` true, `archive` `stored`, and the
+  text `Protected write refused; N originals archived; database changed;
+  pull incomplete.` A repeat on that empty database sets `archive`
+  `unchanged`, `written` false, `database_changed` false, and the text
+  `Protected write refused; 0 originals archived; database unchanged; pull
+  incomplete.` A third payload adds one archive count and
+  leaves the earlier capsule. An archive-transaction failure on that
+  empty database sets `archive` `failed`, keeps the refusal, adds no
+  archive row, leaves `written` false and `database_changed` false, and
+  uses the text `Protected write refused; archive failed; database
+  unchanged; pull incomplete.` The same four results after an earlier
+  committed sleep page keep that page's `written` true, its `committed`
+  counts, and `database_changed` true. The failure text then says
+  `database changed`.
+  Preview and `--json --yes` commit neither transaction
+- sensors `ow1:["summary","sleep",null]` and a colon inside a provider
   name stay different from a shifted tuple. The text `-` is not the same
   sensor as a missing part. A score whose input source changes from null
   to an object keeps its id. A personal record repeats. A personal record
@@ -1187,15 +1328,22 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   `provider_or_aggregator`
 - body fetched during a historical range is the current object. Weight
   with no time has no `recorded_at` and does not use the average window.
-  A latest value with a null time is stored the same way. Age has basis
-  `aggregator`. BMI's basis is omitted. The three groups can arrive
+  A latest value with a null time is stored the same way. Age is a source
+  report. The service calculates it, and the record has no `field_basis`.
+  BMI's basis is omitted. The three groups can arrive
   together or alone. JSON null and a returned zero and a missing field
   stay three different results
 - a dietary series, `number_of_alcoholic_beverages`, and `hydration` are
   source reports, not samples, not provider summaries, and not nutrition
   entries. Raw and day hydration stay out of the eight range calculations
   and out of `provider-period-summary`. A device id on the hydration row
-  does not create a receipt. A cycle
+  does not create a receipt. A null-source hydration,
+  `dietary_energy_consumed`, or index row, raw and day, uses only the
+  report sensor. File import then
+  pull, pull then file import, and a repeat keep one record and no
+  receipt. A changed payload refuses the protected write. A pull with no
+  veto archives that new capsule and leaves the stored report. A mapped
+  file import writes nothing. The row is not a calculation input. A cycle
   code, a predicted length, and a pregnancy snapshot stay on the anchor.
   A cycle that starts in range and ends later keeps that end. A cycle that
   starts later is not stored, and the read can still complete. Birth date,
@@ -1310,13 +1458,22 @@ Migration tests, in the build gate:
   SQL schema 5, and `user_version` 5. Record ids, revisions, deletions,
   attachments, import keys, reporting periods, and device receipts are
   unchanged. `PRAGMA foreign_key_check` is empty. A deleted row and its
-  history are still there. A second migrate does nothing. After migrate,
-  a source report can be created, revised, checked, exported, restored,
-  and repaired from `data_json` without becoming a measured type
+  history are still there. The upgraded database is populated, including
+  a tombstone. `sql_v1_current_records` and
+  `sql_v1_active_records` still return rows. An insert that would make a
+  revision type disagree with its record is still rejected. A second
+  migrate does nothing. A failure injected before the step 5 commit
+  leaves the old views, the two cross-table triggers, the rows, the
+  version, and `foreign_keys` read back as on. A successful migrate
+  leaves `foreign_keys` on. A source report can then be created, revised,
+  checked, exported, restored, and repaired from `data_json` without
+  becoming a measured type
 - `ath init` creates a database that is already `2.2.0`, SQL schema 5, and
   `user_version` 5, and `ath check` exits 0. The fresh database accepts a
-  source report. Step 4 still writes `2.1.0` and schema 4, and the create
-  path runs step 5 after that
+  source report, the same two views are queryable, and a mismatched
+  revision type is rejected. Step 4 still
+  writes `2.1.0` and schema 4, and the create path closes that
+  transaction before step 5
 - databases at `1.0.0` and `2.0.0` still open for migrate. Packages at
   `2.0.0` and `2.1.0` still import. `spec/sql/migrations/004-version-2-1.sql`
   and the folders `schema/2.0.0/` and `schema/2.1.0/` stay byte-identical
@@ -1338,10 +1495,11 @@ store. They cover:
   variable is still set afterward
 - `ath key --json` keeps `saved` and `environment` as gateway lists and adds
   `openwearables.saved` and `openwearables.environment`
-- a preview `--json` has `written: false`, committed zeros, `estimated`
-  counts, and `range_complete: false`
+- a preview `--json` has `written: false`, protected and archive
+  committed zeros, `estimated` counts, and `range_complete: false`
 - `--json --yes` is a preview. After a later-page failure, and after a
-  readable range, the database is unchanged
+  readable range, neither transaction commits and the database is
+  unchanged
 
 `pnpm check:public-data`, `pnpm typecheck`, `pnpm test`, and `pnpm build`
 pass, and `cargo test` passes, before the build is called done.
@@ -1446,7 +1604,7 @@ cycle filter, the smaller-page split, and the tests in section 7. The laptop car
 part of that same pull request. This plan pull request has no media.
 
 The maintainer approves or rejects this plan before any build. D198 through
-D206 are the proposal. They are not adopted. Reviews of earlier heads were
+D207 are the proposal. They are not adopted. Reviews of earlier heads were
 incorporated here. None of those reviews approves this revision. The next
 head needs re-review. An earlier review accepted a
 migration with no new column, under D152 and D184. That acceptance does not
@@ -1458,14 +1616,18 @@ optional source key adds no column.
    root check with `source_report` by the copy in section 5, creates
    `source_reports`, and rebuilds `provider_summaries` and
    `provider_scores` so a numberless object can omit `value` and its unit
-   together. Existing ids and rows are copied. Foreign keys stay on for
-   ordinary writes. A
+   together. Existing ids and rows are copied. Before the root rename,
+   step 5 drops and later recreates `sql_v1_current_records`,
+   `sql_v1_active_records`, and the two `record_revisions` triggers that
+   read `records`. Foreign keys stay on for ordinary writes. The step 5
+   connection turns them off only before its transaction and reads them
+   back on after every exit. A
    `2.1.0` database does not open until `ath migrate`. This release does
-   not schedule, refresh a token, backfill, or store a cursor (D198, D206).
+   not schedule, refresh a token, backfill, or store a cursor (D198, D207).
 2. Store the returned representations in section 2. Device receipts stay
    on device sources. Summaries without a device id use their own sensors.
    Null stays null. A missing response is not called provider-unavailable.
-   The omissions in section 2 are the ones with a reason (D203, D206).
+   The omissions in section 2 are the ones with a reason (D203, D207).
 3. The key, the selected origin, and the selected user id are rejected in
    decoded JSON before a page is mapped. Failure text uses a fixed sentence.
    `ath key clear` with no name still clears only the gateway keys and says
@@ -1491,5 +1653,6 @@ optional source key adds no column.
    the checked receipt, and the first bind of an existing source that has
    no history, and the sample, source-report, withdrawal, and paired-null
    writes in section 6, including the null filter in the calculation
-   readers and the archive transaction. Nothing else is added to either
-   file (D202, D206).
+   readers. The pull command owns the archive transaction and calls the
+   store. `mapping.rs` does not start it. Nothing else is added to either
+   file (D202, D207).

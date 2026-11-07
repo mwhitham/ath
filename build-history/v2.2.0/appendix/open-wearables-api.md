@@ -201,7 +201,7 @@ route files. A limit may still exist in middleware this study did not open.
 
 The same commit, `183e8cc4f6de897dbd288c93d49a691f2cf721ae`, was read again
 for every user data route. The OpenAPI file is `docs/openapi.json`,
-`info.version` `0.11.0`. The storage rule is D206. This section records
+`info.version` `0.11.0`. The storage rule is D207. This section records
 what the source shows.
 
 `SeriesType` is the enum in `backend/app/schemas/enums/series_types.py`.
@@ -209,7 +209,9 @@ Each entry in `SERIES_TYPE_DEFINITIONS` is an id, a name, and a unit.
 `heart_rate` is `bpm`. `latitude` and `longitude` are `degrees`. The raw
 path in `timeseries_service.py` copies `recorded_at`, `zone_offset`, the
 type, the value, and `window_seconds`. It does not set `period_end` or
-`computed_by`.
+`computed_by`. The response `metadata.resolution` is the raw or day
+label. A series row does not carry that label. The archive capsule
+copies it.
 
 `_aggregated_timeseries` handles `1min`, `5min`, `15min`, and `1hour`. It
 sets `window_seconds` from `BUCKET_SIZES` and does not set `period_end`.
@@ -252,7 +254,7 @@ listed rows. The personal-record response fields are `birth_date`,
 ## Contract read on 7 November 2026
 
 The same commit was read again for the summary, score, meal, cycle, body,
-and personal-record contracts. D206 is the storage rule. This section
+and personal-record contracts. D207 is the storage rule. This section
 records the source facts that rule uses. `SERIES_TYPE_DEFINITIONS` has 141
 entries.
 
@@ -262,7 +264,7 @@ series are `heart_rate_variability_rmssd`, `heart_rate_variability_sdnn`,
 `oxygen_saturation`, `heart_rate_recovery_one_minute`, `vo2_max`,
 `garmin_stress_level`, and `garmin_body_battery`.
 
-The table below is the mapping for all 141 series. D206 is the storage rule.
+The table below is the mapping for all 141 series. D207 is the storage rule.
 `input_value` and the input unit are the server's number and unit.
 `standard_value` equals `input_value` except where the conversion is
 `divide by 100`. A day row uses the day record in the last column. It is
