@@ -9,7 +9,7 @@ D-number.
 
 ## D198. Version 2.2.0 is one manual pull, and the program and the record share that number
 
-`ath pull openwearables` reads the stored measurements D203 lists from an
+`ath pull openwearables` reads the stored measurements D204 lists from an
 Open Wearables server the person runs, for one user and one range they name. The
 command is manual. The person runs it. The program does not schedule it,
 retry a failed request, or sign the person in to a device maker.
@@ -211,8 +211,9 @@ Garmin's key command is unchanged.
 
 The server is `--base-url` or `OPEN_WEARABLES_BASE_URL`. The user id is
 `--user` or `OPEN_WEARABLES_USER_ID`. Neither is written into the database,
-the export, a config file, or a log line. The pull never calls `GET /users`
-and never calls the personal-record route. One command reads one user.
+the export, a config file, or a log line. The pull never calls `GET /users`.
+D204 reads the personal record and drops its `user_id` before the scan.
+Birth date, gender, and sex are stored. One command reads one user.
 
 `--base-url` is an origin: scheme, host, and optional port. No user name, no
 password, no path other than empty or `/`, no query, and no fragment. `http`
@@ -256,8 +257,9 @@ Rejected alternatives:
 
 Each response page is one `apply_mapping` call. D189 still makes that call
 one transaction: a failure rolls the page back, and a preview rolls the page
-back after counting. The pull itself is a series of those calls. The proposed
-order is sleep pages, then workout pages, then timeseries pages. A committed
+back after counting. The pull itself is a series of those calls. The order and the terminal
+condition of each read are the table in the specification's section 2.
+A committed
 page follows D189. A committed page does not mean the pull is complete.
 
 The command previews unless `--yes` is present. `--json` does not write,
@@ -274,11 +276,11 @@ confirmed outcome as text. It renders the preview outcome as public JSON.
 On a partial failure the child returns the confirmed outcome and then exits
 nonzero. The parent renders the text before it uses that status.
 
-Each of `sleep`, `workouts`, and `timeseries` is `completed`, `failed`,
-`skipped`, or `not_attempted`. The token is `not_attempted` in the outcome
-and in the text. `skipped` is the timeseries read when the mapping named no
-types. `range_complete` is true only on a `--yes` write whose reads finished
-without a failed page. The success sentence is printed only then. A retained
+Each read in that table is `completed`, `failed`, or `not_attempted`. The
+token is `not_attempted` in the outcome and in the text. There is no
+`skipped` read. `range_complete` is true only on a `--yes` write whose
+ranged reads reached their terminal conditions. The success sentence also
+requires the personal record and the body snapshot to have completed. A retained
 count with an incomplete range is a partial pull. The message names the
 failed read, names any `not_attempted` read, and gives the retained counts.
 A failed read says to run the same command again. An identity refusal uses
@@ -288,10 +290,12 @@ reconciliation, and
 a rerun cannot repair either one. A preview that fails makes no database
 changes, including for pages that had already been counted.
 
-Before `apply_mapping`, the page must be a JSON object, `data` must be an
-array, `pagination` must be an object, and `has_more` must be a boolean.
-Anything else fails the page. It is not an empty success. The result keeps
-a `left_out` total and at most 20 examples.
+Before `apply_mapping`, a cursor page and an offset page must be a JSON
+object, `data` must be an array, `pagination` must be an object, and
+`has_more` must be a boolean. Anything else fails that page. It is not an
+empty success. Body may be one object or JSON `null`. `null` is a completed
+empty snapshot. The personal record is one object. The result keeps a
+`left_out` total and at most 20 examples.
 
 An empty range whose reads completed is a successful pull with
 committed counts of zero and `range_complete` true. A repeat uses the match
@@ -299,14 +303,14 @@ key from D181 and the replace from D182, so an unchanged row is not written
 again. A rerun after a partial write leaves the committed rows in place,
 runs the failed read again, and runs any read that was `not_attempted`.
 
-`has_more: false` is the only successful end of a read. A repeated cursor,
-a null cursor while `has_more` is true, and the 1000-page cap fail that
-read. A body over 8 MiB is handled by D203: the same query is sent with a
-smaller limit, and one row that is still over 8 MiB fails that read. The
-failed page is not written. Later reads are `not_attempted`. The success
-line is not printed. A cursor with the `prev_` prefix is not sent.
-`limit` starts at 1000. One attempt is made per request, except the smaller
-page D203 sends after a local size cap. A transport error is not retried.
+`has_more: false` is the successful end of a cursor read and of the offset
+read. A repeated cursor, a null cursor while `has_more` is true, and the
+1000-page cap fail that read. An offset retry uses the same offset. A body
+over 8 MiB is handled by D204. The failed page is not written. Later reads
+are `not_attempted`. The success line is not printed. A cursor with the
+`prev_` prefix is not sent. `limit` starts at 1000. One attempt is made per
+request, except the smaller page D204 sends after a local size cap. A
+transport error is not retried.
 The connect timeout is 10 seconds and the read timeout is 30 seconds.
 
 A row that this range did not return is left where it is. The pull does not
@@ -322,31 +326,12 @@ that a date-only bound is interpreted by Open Wearables, and that Athletic
 Standard did not convert it to the athlete's timezone (D88). The appendix
 records the disagreement between the docs and the 0.11.0 parser.
 
-Queries that are sent:
-
-- Sleep: `start_date`, `end_date`, `limit`, `cursor` after the first page,
-  `filter_by_priority=false`, `include=stages`. `is_nap` is omitted, so naps
-  and main sleep both return.
-- Workouts: `start_date`, `end_date`, `limit`, `cursor` after the first page,
-  `include=zones`, and `include=segments`. No priority flag, because 0.11.0
-  has none and current `main` already returns every device when the flag
-  is absent.
-- Timeseries, twice: `start_time`, `end_time`, `limit`,
-  `filter_by_priority=false`, `cursor` after the first page, and
-  `resolution=raw` on one read and `resolution=1day` on the other. `types`
-  is omitted on both.
-- Sleep summary, activity summary, and recovery summary: `start_date`,
-  `end_date`, `limit`, and `cursor` after the first page.
-- Body summary: one request. `average_period` and `latest_window_hours`
-  are omitted, so the server's defaults apply.
-- Health scores: `start_date`, `end_date`, `limit`, and `offset` until a
-  short page. This route has no cursor.
-- Meals and menstrual cycles: `start_date`, `end_date`, `limit`, and
-  `cursor` after the first page.
-
-`source_selection` is not sent. On 0.11.0 the parameter does not exist. On
-current `main`, omitting it returns every device when the priority flag is
-false.
+The queries are the table in the specification's section 2. An earlier
+draft of this proposal listed three reads and treated every page as a
+cursor envelope. D204 supersedes that draft. `source_selection` is not
+sent. On 0.11.0 the parameter does not exist. On current `main`, omitting
+it returns every device when the priority flag is false. Summary routes
+still select a source. That selection is not a client filter.
 
 Rejected alternatives:
 
@@ -399,8 +384,12 @@ create a source with the checked receipt, and write that receipt on an
 existing unbound source only when the same transaction shows no accepted
 or deleted record and no source device. Those writes keep every other
 source field and the normal revision and `data_json` bookkeeping. They
-join the caller's `BEGIN IMMEDIATE` transaction. Nothing else is added to
-`store.rs`. Other routes do not call them. `ath correct`, package restore,
+join the caller's `BEGIN IMMEDIATE` transaction. D204 also allows
+`measurement_sample` insert and update, and a null value and unit pair on
+provider summaries and provider scores. A half-null pair is refused. The
+same pair is allowed in the TypeScript projection, package import, record
+view, and repair copy. Nothing beyond that is added to `store.rs`. Other
+routes do not call the receipt operations. `ath correct`, package restore,
 and an accepted package merge remain the owner's whole source record.
 Splitting the files is separate work. It is not required to make the pull
 correct.
@@ -422,6 +411,11 @@ Rejected alternatives:
   change can take any one of them on its own.
 
 ## D203. Stored Open Wearables measurements are kept in this pull
+
+D204 supersedes the classification, source identity, time, score, endpoint,
+and size sentences in this proposal. The decision to keep the returned
+health data in this pull stands. Where a paragraph below disagrees with
+D204, D204 is the proposal.
 
 This supersedes the earlier draft, inside D198 and D199, that left day
 values, the heart-rate stream, sleep and recovery summaries, meals, and
@@ -462,14 +456,79 @@ Rejected alternatives:
   make a reporting window look like one instant (D88, D110).
 - Drop latitude, longitude, segments, or a large series to keep a
   response under 8 MiB. Rejected. The smaller page in the specification
-  stores the rows. One row larger than 8 MiB is a real limit and is
-  named.
-- Call the personal-record route, the live provider workout proxy, or
-  the totals routes so the pull can say it hit every path. Rejected.
-  The personal record is birth date, gender, and sex. The provider
-  workout routes read the vendor through the server's connection. The
-  totals routes add up rows this pull already stores.
+  stores the rows. D204 states the minimum-page limit without naming a
+  series type.
+- Call the live provider workout proxy or the totals routes so the pull
+  can say it hit every path. Rejected. Those routes are not the stored
+  measurements. D204 does read the personal record. An earlier sentence
+  in this list left it out. That sentence is superseded.
 - Invent a midnight, a zero, or an SDNN value from an RMSSD value.
-  Rejected. A null stays absent. Skin temperature is stored only from
-  a response that has the field. `RecoverySummary` at the pinned commit
-  does not have one.
+  Rejected. A null stays absent. `RecoverySummary` at the pinned commit
+  has no skin-temperature field. A health-score component can still carry
+  one. D204 says so.
+
+## D204. Returned values keep their meaning, source, and time
+
+This corrects D203. The values stay in this pull. The corrections are the
+contracts in the specification's section 2.
+
+A device source is still the 2.1.0 sensor, and its receipt rules are
+unchanged. A summary the server builds without `device_id`, a meal or
+cycle without one, a null timeseries source, and a health score use the
+separate sensors in that section. They do not borrow a device id, and
+their history does not block a later device binding. A raw or day sample
+that has a source and no device id is still refused.
+
+A number is classified before it is normalized. Existing raw points, raw
+`vo2_max`, and the two raw Garmin scores keep their kinds and keys. Dietary
+series and the named indexes, ages, and effort scores are provider
+summaries. The other raw series readings are measurement samples. Day rows
+use the same classes on the server's calendar window. That window is not
+the provider's original interval.
+
+Health-score `provider` is the author. `source` is the input and may be
+null. `provider: internal` is basis `aggregator`. A finite range in
+`constants/health_scores.py` is the scale. An unknown or unbounded range
+is not given `0-100`. The original object, including components and
+`event_record_id`, is kept.
+
+Sleep main-sleep bounds apply only to the fields section 2 names. Body is
+the server's current snapshot, not the requested range. Fields with no
+time use `not_provided_by_source` and no invented instant. Age is
+calculated. BMI is not labeled measured. The personal record's birth date,
+gender, and sex are stored. Its `user_id` is not. The athlete profile is
+not used for them, because that record cannot hold a full birth date, the
+gender values, or a source.
+
+Cursor pages, offset pages, and the two one-shot reads have the terminal
+conditions in the table. A smaller page repeats the same uncommitted
+cursor or offset. A minimum page or an unpaginated response that is still
+over 8 MiB is an incomplete read. The message names the read. It does not
+name a series type. Menstrual cycles keep an in-range start and a future
+end. A later start is not stored. The page is still followed to the end.
+
+Step 5 rebuilds `provider_summaries` and `provider_scores` so value and
+unit are both null or both present. It copies existing rows and keeps
+their ids, revisions, import keys, and tombstones. `store.rs` may insert
+and update samples and those paired-null rows. The TypeScript projection,
+package import, record view, and repair copy may do the same. Half-null
+is refused. No other store change is included.
+
+Rejected alternatives:
+
+- Put a summary with no device id on the bound device source. Rejected.
+  The summary would be refused, or the missing id would be invented.
+- Leave birth date, gender, and sex out because they are sensitive.
+  Rejected. They are health data. The user id is the part that stays out.
+- Use the athlete profile for those three fields. Rejected. The profile
+  has no source, no full birth date, and no room for every gender value.
+- Call every numeric series a measurement sample. Rejected. Intake,
+  indexes, ages, effort scores, and the existing summary and score lines
+  would change meaning or identity.
+- Treat body as a read of `--from` and `--to`, or date the undated fields
+  with the average window or the pull time. Rejected. The route has no
+  date parameters, and those times would be invented.
+- Give every health score the scale `0-100` or the basis `provider`.
+  Rejected. The pinned range table and `provider: internal` say otherwise.
+- Stop a day read at `limit` 1 and report one oversized series. Rejected.
+  That limit counts periods, and one period can hold many rows.

@@ -242,6 +242,81 @@ Sleep totals, workout totals, and activity totals describe sums of the
 listed rows. The personal-record response fields are `birth_date`,
 `gender`, and `sex`.
 
+## Contract read on 7 November 2026
+
+The same commit was read again for the summary, score, meal, cycle, body,
+and personal-record contracts. D204 is the storage rule. This section
+records the source facts that rule uses. `SERIES_TYPE_DEFINITIONS` has 141
+entries.
+
+Raw rows keep the 2.1.0 kind when the mapping already names one. Those
+series are `heart_rate_variability_rmssd`, `heart_rate_variability_sdnn`,
+`resting_heart_rate`, `respiratory_rate`, `skin_temperature`,
+`oxygen_saturation`, `heart_rate_recovery_one_minute`, `vo2_max`,
+`garmin_stress_level`, and `garmin_body_battery`.
+
+These raw series become points because one existing quantity fits each of
+them: `walking_heart_rate`, `body_temperature`, `height`, `weight`,
+`body_fat_percentage`, `lean_body_mass`, `blood_pressure_systolic`, and
+`blood_pressure_diastolic`. `weight` is stored as `body_weight`. The
+series name stays in `supplied_fields`.
+
+These raw series are provider summaries, not samples:
+`peripheral_perfusion_index`, `breathing_disturbance_index`,
+`body_mass_index`, `cardiovascular_age`, `workout_effort_score`,
+`estimated_workout_effort_score`, `garmin_fitness_age`,
+`withings_metabolic_age`, and `nike_fuel`.
+
+Reported intake is every `dietary_*` series and
+`number_of_alcoholic_beverages`. There are 42 `dietary_*` series. They are
+provider summaries.
+
+The remaining 71 raw series are measurement samples:
+
+`heart_rate`, `blood_glucose`, `sleeping_breathing_disturbances`,
+`blood_alcohol_content`, `forced_vital_capacity`,
+`forced_expiratory_volume_1`, `peak_expiratory_flow_rate`,
+`waist_circumference`, `body_fat_mass`, `skeletal_muscle_mass`,
+`skin_temperature_deviation`, `skin_temperature_trend_deviation`,
+`bone_mass`, `body_water_mass`, `six_minute_walk_test_distance`, `steps`,
+`active_energy`, `basal_energy`, `stand_time`, `exercise_time`,
+`physical_effort`, `flights_climbed`, `active_time`, `total_energy`,
+`distance_walking_running`, `distance_cycling`, `distance_swimming`,
+`distance_downhill_snow_sports`, `distance_other`, `walking_step_length`,
+`walking_speed`, `walking_double_support_percentage`,
+`walking_asymmetry_percentage`, `walking_steadiness`,
+`stair_descent_speed`, `stair_ascent_speed`, `running_power`,
+`running_speed`, `running_vertical_oscillation`,
+`running_ground_contact_time`, `running_stride_length`,
+`running_vertical_ratio`, `running_stance_time_balance`,
+`swimming_stroke_count`, `underwater_depth`, `cadence`, `power`, `speed`,
+`distance`, `elevation_gain`, `environmental_audio_exposure`,
+`headphone_audio_exposure`, `environmental_sound_reduction`,
+`time_in_daylight`, `water_temperature`, `uv_exposure`, `inhaler_usage`,
+`weather_temperature`, `weather_humidity`, `elevation`, `latitude`,
+`longitude`, `air_temperature`, `garmin_skin_temperature`,
+`withings_pulse_wave_velocity`, `electrodermal_activity`, `push_count`,
+`atrial_fibrillation_burden`, `insulin_delivery`,
+`number_of_times_fallen`, and `hydration`.
+
+`get_day_rows` keeps one row per data source, series, and local day. It
+orders provider-computed rows first, then the later `period_start`.
+`_period_timeseries` rebuilds the response bounds with `CalendarPeriod`.
+A week or month forces `computed_by` to `open_wearables`. A day page's
+`limit` counts periods. The service floors that count at 1, and one period
+can contain one row per source and series.
+
+`HEALTH_SCORE_RANGES` sets the finite scales. Polar readiness is 0 to 10.
+Polar recovery is 1 to 6. WHOOP strain is 0 to 21. Polar strain has no
+finite maximum. The route text says `provider: internal` scores were
+computed by Open Wearables and are still returned. WHOOP recovery
+components include `skin_temp_celsius` when the provider sent it.
+
+`get_menstrual_cycles` sets `end_datetime` to null. `get_body_summary`
+uses `datetime.now`, omits `device_id`, and does not put a time on
+`BodySlowChanging`. The personal-record response is `birth_date`,
+`gender`, `sex`, and `user_id`. A field that was never set is null.
+
 ## What was not checked
 
 - A running server's JSON, including the exact `start_time` text.
