@@ -4,7 +4,7 @@ Status: **plan only. The maintainer has not approved it. Not approved for build.
 
 `ath pull openwearables` reads one person's stored health data from an Open
 Wearables server they run, and writes it with the mapping this release
-ships. The proposals are D198 through D208 in
+ships. The proposals are D198 through D209 in
 [decisions.md](decisions.md). They are not adopted. The evidence is
 [appendix/open-wearables-api.md](appendix/open-wearables-api.md), checked on
 6 and 7 November 2026.
@@ -222,7 +222,8 @@ inputs, recovery scales, required ids, workout provenance, hydration,
 and the archive of a refused original. D207 corrects the migration
 dependencies, the command counts, the archive capsule, and null-source
 report routing. D208 corrects when the archive reads the database, and
-the failed-init sentence. An earlier draft
+the failed-init sentence. D209 stores a workout the person typed as a
+workout session. An earlier draft
 left day values, the heart-rate stream, summaries, and workout segments for
 a later version. That draft is superseded. File imports stay. The Garmin pull stays. A Junction pull is proposed as
 2.3.0. Automatic sync, retries, token refresh, and backfill are proposed as
@@ -313,15 +314,27 @@ copied from another row. Intake, index, age, effort, and `hydration` do
 not enter that check. A device id on those rows is original data. It is
 not a receipt and it is not evidence the value was measured.
 
-`entry_source` `automatic` is the only workout class that becomes a
-workout session. `manual` is a source report of kind `manual_workout`.
-`unknown`, JSON null, and a missing `entry_source` are source reports of
-kind `unknown_workout`. The original keeps null and absence distinct.
-Unknown is not labeled manual, and it is not labeled automatic because a
-model or a device id is present. A repeated server workout id that arrives
-as a different kind or sensor refuses the protected page. The stored
-record stays. The new interpretation is not written beside it. The text
-says the classification changed and a rerun cannot choose. `ath correct`
+`entry_source` `automatic` is a workout session on the device source, as
+the paragraph above says. `entry_source` `manual` is a workout session
+on the source whose `source_type` is `manual`. `field_basis.value` is
+`entered_by_hand`. It is not a device measurement. A `device_id` the
+server sent stays on the original object. It does not set
+`device_binding`, and the workout is not stored on the watch's source.
+The server workout id is the match key. A later pull of that same
+workout updates the session. Name, type, start, end, distance, heart
+rate, elevation, zones, and segments are stored the same way they are
+stored on an automatic workout. `field_basis.activity_type` is
+`aggregator_normalized`, because Open Wearables normalized the sport
+name. The eight range calculations and `provider-period-summary` do not
+read this session. It does not enter a device baseline. `unknown`, JSON
+null, and a missing `entry_source` are source reports of kind
+`unknown_workout`. They are not a workout session, and they are not
+manual. The original keeps null and absence distinct. Unknown is not
+labeled manual, and it is not labeled automatic because a model or a
+device id is present. A repeated server workout id that arrives as a
+different kind or sensor refuses the protected page. The stored record
+stays. The new interpretation is not written beside it. The text says
+the classification changed and a rerun cannot choose. `ath correct`
 remains the owner's way to replace the record.
 
 Sleep, workout, meal, cycle, and health-score objects need a `id` that is
@@ -341,7 +354,7 @@ escapes `:` and `\` when the sensor is placed in a match key.
 The array shapes are:
 
 - Summary or body: `["summary", family, provider, device, device_type, source, device_id]`
-- Meal, cycle, manual workout, or unknown workout: `["event", family, provider, device, device_type, source, device_id]`
+- Meal, cycle, or unknown workout: `["event", family, provider, device, device_type, source, device_id]`
 - Reported series, including a row whose `source` is null: `["report", resolution, provider, device, device_type, source, device_id]`. `resolution` is `raw` or `1day`.
 - Health score: `["score", provider]`. `provider` is the top-level author,
   or JSON `null` when that field is null. The input `source` is not in
@@ -388,7 +401,7 @@ appendix table, fails before any request.
 |---|---|---|---|---|---|
 | Sleep session | `{ "sleep": data }` | `source.provider` | legacy device | `sleep_session`, D181 id key | stage and duration fields on that session |
 | Automatic workout | `{ "workout": data }` | `source.provider` | legacy device | `workout_session`, D181 id key | existing typed fields; untyped numbers are source reports |
-| Manual workout | `{ "workout": data }` | `source.provider` | `ow1` event | `source_report` `manual_workout`, server id | none. The original object is the record |
+| Manual workout | `{ "workout": data }` | `source.provider` | not the device sensor | `workout_session` on the manual source, server id | same typed fields, zones, and segments as an automatic workout |
 | Unknown, null, or omitted `entry_source` | `{ "workout": data }` | `source.provider` | `ow1` event | `source_report` `unknown_workout`, server id | none. The original object is the record |
 | Measured raw series with `device_id` | timeseries object, `resolution` `raw` | `source.provider` | legacy device | the raw class in the appendix, D181 time key | none |
 | Measured raw or day series, source present, no `device_id` | timeseries object | `source.provider` | legacy device, then the protected transaction is refused | no measured row. Section 2 may archive the original | none |
@@ -410,7 +423,7 @@ report stores that report without making it a measurement. The eight range calcu
 `provider-period-summary` do not read it. Step 5 creates the
 `source_reports` table. Value and unit are both present or both absent.
 `report_kind` is one of `intake`, `account`, `predicted`, `code`, `text`,
-`manual_workout`, `unknown_workout`, `index`, or `original`. Gender uses
+`unknown_workout`, `index`, or `original`. Gender uses
 `account`. It is not copied into `sex` or the athlete profile. The
 receipt still adds no column.
 
@@ -571,9 +584,9 @@ anchor. A numeric cycle length is also a `source_report` child, not a
 measurement. On an automatic workout, a number that is not already a
 typed session field stays in `supplied_fields` and is a `source_report`
 child. It is not a provider summary. `intensity` stays under that name.
-Segments and zones stay under the server's names. A
-manual workout is the `source_report` in the table. It does not become a
-workout session, a point, or a device receipt.
+Segments and zones stay under the server's names. A manual workout is
+the workout session in the table. It is not a source report, a point, or
+a device receipt.
 
 The same returned object can change a child from a number to null, or
 remove a nutrient. The mapper emits that child again with value and unit
@@ -1298,7 +1311,7 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   from a series row or from body latest when that time is present. A
   recovery object does not gain a skin field. A WHOOP health-score
   component named `skin_temp_celsius` stays on that object.
-  `page-5min.json` is left out as a query bucket. A 2.1.0 raw point and a
+  A 2.1.0 raw point and a
   pull of that same raw point stay one record. A heart-rate sample from
   device B does not replace device A's sample. A negative latitude and a
   negative longitude are stored
@@ -1495,13 +1508,16 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
 - `page-sleep.json` becomes a sleep session. A manual workout and its
   automatic neighbor from one response stay two records. The automatic
   workout is a session on the device source. The manual workout is a
-  source report with the original object and no device receipt. A workout
-  with `entry_source` `unknown`, null, or omitted is an `unknown_workout`
-  report. It is not a session and not a manual report. The same server id
-  arriving later as `automatic` refuses the page, and the stored report
-  stays. Export and import keep the pair that was accepted.
+  workout session on the manual source, with `field_basis.value`
+  `entered_by_hand` and no device receipt. A `device_id` on that object
+  stays on the original. A workout with `entry_source` `unknown`, null,
+  or omitted is an `unknown_workout` report. It is not a session and not
+  a manual workout. The same server id arriving later as `automatic`
+  refuses the page, and the stored session stays. A later pull of the
+  same manual workout updates that session. Export and import keep the
+  pair that was accepted.
   `page-raw.json` is stored.
-  `page-5min.json` is left out. RMSSD and SDNN stay different quantities
+  RMSSD and SDNN stay different quantities
 - a changed end time keeps the record id and increases the revision
 - a `__proto__` supplied field fails the page
 - a literal key, a Unicode-escaped key in a nested unconsumed field, the
@@ -1679,7 +1695,7 @@ cycle filter, the smaller-page split, and the tests in section 7. The laptop car
 part of that same pull request. This plan pull request has no media.
 
 The maintainer approves or rejects this plan before any build. D198 through
-D208 are the proposal. They are not adopted. Reviews of earlier heads were
+D209 are the proposal. They are not adopted. Reviews of earlier heads were
 incorporated here. None of those reviews approves this revision. The next
 head needs re-review. An earlier review accepted a
 migration with no new column, under D152 and D184. That acceptance does not

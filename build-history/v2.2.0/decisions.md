@@ -95,8 +95,8 @@ workout rows as `{ "workout": [ ... ] }`. It passes each timeseries response
 through unchanged, so `metadata.resolution` still reaches the mapping. The
 pull does not drop one row and keep its neighbors. A credential, a reflected
 origin or user id, a same-key `device_id` collision, or a bad envelope
-rejects the whole page first. A manual workout stays the mapping's
-`left_out`, and the other rows in that page are still written.
+rejects the whole page first. A manual workout is written. D209 stores
+it as a workout session. The other rows in that page are still written.
 
 The timeseries query's `types` list is the `type.<name>` lines in the
 resolved mapping file, read when the command runs. The prefix is that
@@ -564,7 +564,9 @@ that map `heart_rate_recovery_one_minute` to a quantity of that same
 name, and that call `hydration` a measurement sample. The units, day
 windows, sleep bounds, and reported-record direction stay. D207
 supersedes D206 where they disagree. D208 supersedes D207 where they
-disagree. Where this proposal disagrees with D208, D208 is the proposal.
+disagree. Where this proposal disagrees with D208, D208 is the proposal,
+except the sentences that store a manual workout as a source report.
+D209 supersedes those sentences.
 
 This corrects D204. The returned health data stays in this pull. The
 specification's section 2 and the appendix series table are the contract.
@@ -602,11 +604,11 @@ athlete report and not a nutrition entry. It is not one of the seven
 measured types. D161 still forbids turning a personal report into a
 measured record. Dietary series, alcoholic-beverage counts, meal and
 nutrient numbers, index, age, and effort series, personal-record fields,
-predicted and coded cycle content, BMI, calculated age, an unbounded
-health score, and a manual workout use this type. The eight range
-calculations and `provider-period-summary` do not read it. A manual
-workout is not left out and is not a workout session. An automatic
-workout stays a measured session on the device source.
+predicted and coded cycle content, BMI, calculated age, and an unbounded
+health score use this type. The eight range calculations and
+`provider-period-summary` do not read it. A manual workout is a workout
+session. D209 is that rule. An automatic workout stays a measured
+session on the device source.
 
 A new sensor is `ow1:` plus a JSON array with no spaces. JSON `null`, an
 empty string, and `-` stay different. Legacy device sensors are not
@@ -615,10 +617,11 @@ top-level author. The input source is not in that array, so a change from
 null to a known input revises the same score. A null-source timeseries
 uses `["unattributed", "timeseries"]` and the writer `open_wearables`.
 Two unequal payloads at the same type and time refuse the call. The
-personal record uses `["personal_record"]` and that same writer. A meal,
-cycle, or manual workout uses the event array even when `device_id` is
-present. That id stays in the array and in the original object. It does
-not establish `device_binding`.
+personal record uses `["personal_record"]` and that same writer. A meal
+or cycle uses the event array even when `device_id` is present. That id
+stays in the array and in the original object. It does not establish
+`device_binding`. A manual workout does not use that array. D209 puts it
+on the manual source.
 
 A raw or day row whose `source` object has no `device_id` is an incoming
 device row. The whole call is refused, including a valid row on the same
@@ -660,10 +663,12 @@ Rejected alternatives:
 - Treat a second null-source payload as a correction. Rejected. There is
   no sample id, so the program cannot tell a correction from a second
   observation.
-- Call dietary intake or a manual workout a provider summary or a workout
-  session. Rejected. SPEC section 5.4 and D161 keep those measured types
-  for measured records. A source report preserves the object without
-  making it a measurement.
+- Call dietary intake a provider summary or a workout session. Rejected.
+  SPEC section 5.4 and D161 keep those measured types for measured
+  records. A source report preserves the object without making it a
+  measurement.
+- Call a manual workout a provider summary. Rejected. D209 stores it as
+  a workout session. It is not a provider summary.
 - Leave a removed nutrient current because the store compares emitted
   keys. Rejected. The same object no longer contains that number.
 
@@ -857,4 +862,35 @@ Rejected alternatives:
   between, and the payload would be stored under a new identity.
 - Leave a failed init file at step 4. Rejected. The existing caller
   removes that file, and this build does not change that cleanup.
+
+## D209. A workout the person typed is a workout session
+
+This supersedes only the sentences in D198 and D205 that store a manual
+workout as a source report or leave it out. D198 through D208 otherwise
+stay as written. The specification is the contract.
+
+`entry_source` `manual` is a `workout_session`. Its source type is
+`manual`. `field_basis.value` is `entered_by_hand`. It is not a device
+measurement. `device_id`, if the server sent one, stays on the original
+object. It does not set `device_binding`, and it does not put the
+workout on the watch's source. The server workout id is the match key,
+so a later pull updates the same workout. Name, type, start, end,
+distance, heart rate, elevation, zones, and segments are stored the same
+way they are stored on an automatic workout. `activity_type` still
+records that Open Wearables normalized the sport name. The eight range
+calculations and `provider-period-summary` do not read it. A workout the
+person typed must not enter a device baseline.
+
+`unknown`, JSON null, and a missing `entry_source` stay source reports of
+kind `unknown_workout`. They are not a workout session, and they are not
+manual.
+
+Rejected alternatives:
+
+- Store a manual workout as a source report. Rejected. The workout object
+  says a manual entry is self-reported and has no device measurement
+  behind it. The record is a workout, and the source is the person.
+- Call a manual workout a provider summary. Rejected. It is a session.
+- Treat `unknown`, JSON null, or a missing `entry_source` as manual.
+  Rejected. Those values are not the self-reported entry.
 

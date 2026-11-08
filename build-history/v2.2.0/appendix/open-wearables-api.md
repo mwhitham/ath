@@ -3,7 +3,10 @@
 This study is the evidence for the 2.2.0 plan. The rules are in
 [the specification](../spec.md) and [the decisions](../decisions.md). Provider
 software changes. A fact below is tied to the page or the file it came from.
-Nothing here was read from a live server, and no key was used.
+Nothing here was read from a live server, and no key was used. Files
+under `tests/fixtures/exports/open-wearables/` are not evidence. A claim
+about what the server sends cites the Open Wearables docs or the pinned
+0.11.0 OpenAPI file already named in this appendix.
 
 ## What the product is
 
