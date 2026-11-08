@@ -3,11 +3,12 @@
 Status: **plan only. The maintainer has not approved it. Not approved for build.**
 
 `ath pull openwearables` reads one person's stored health data from an Open
-Wearables server they run, and writes it with the mapping this release
-ships. The proposals are D198 through D209 in
+Wearables server they run, and the provider-live workout list and detail
+that server already exposes. It writes both with the mapping this release
+ships. The proposals are D198 through D213 in
 [decisions.md](decisions.md). They are not adopted. The evidence is
 [appendix/open-wearables-api.md](appendix/open-wearables-api.md), checked on
-6 and 7 November 2026.
+6, 7, and 8 November 2026.
 
 This pull request is the plan. The build after approval is one later pull
 request. This plan does not change a version number, a schema, a fixture, or
@@ -73,6 +74,8 @@ Preview text prints:
 - `reads finished` or `reads incomplete`
 - one line each for the twelve reads in section 2: `completed`, `failed`,
   or `not_attempted`
+- one line each for the provider-live workout reads: `completed`, `failed`,
+  or `not_attempted`, plus the limit that read actually has
 - for body, on a preview: `body snapshot would store` or `body snapshot
   would be empty`. On a confirmed write: `body snapshot stored`,
   `body snapshot empty`, or `body snapshot incomplete`
@@ -87,8 +90,10 @@ Preview text prints:
 `apply_mapping` transaction (D189). It is not a completed pull. The text
 prints actual committed counts for pages kept. It prints `requested range
 <from> through <to> is complete` only when every ranged read in section 2
-reached that read's terminal condition. Body is not one of those reads.
-The success sentence `pulled openwearables from <from> through <to>` is
+reached that read's terminal condition and every provider-live workout
+read reached the limit stated for that provider. Body is not one of those
+ranged reads. The success sentence does not say a vendor kept lifetime
+history. The success sentence `pulled openwearables from <from> through <to>` is
 printed only when the range is complete and body and the personal record
 also completed. A finished range with an incomplete body snapshot does not
 print that sentence. The body line still says the snapshot is incomplete.
@@ -223,7 +228,11 @@ and the archive of a refused original. D207 corrects the migration
 dependencies, the command counts, the archive capsule, and null-source
 report routing. D208 corrects when the archive reads the database, and
 the failed-init sentence. D209 stores a workout the person typed as a
-workout session. An earlier draft
+workout session. D210 keeps a body skin-temperature time unknown when the
+response does not say it is an instant. D211 keeps a finite
+`hr_recovery`, including zero and a negative number. D212 keeps the
+current manual-session calculation rule. D213 stores the provider-live
+workout list and detail as originals. An earlier draft
 left day values, the heart-rate stream, summaries, and workout segments for
 a later version. That draft is superseded. File imports stay. The Garmin pull stays. A Junction pull is proposed as
 2.3.0. Automatic sync, retries, token refresh, and backfill are proposed as
@@ -233,7 +242,10 @@ this server. It does not add a connector interface.
 This pull stores the representations Open Wearables 0.11.0 returns for one
 user. A ranged read stores that range. Body does not. A returned number
 keeps the server's unit. A returned null stays absent and is not stored as
-zero. A returned zero stays zero. A row the server did not return is not
+zero. A returned zero stays zero, except a point quantity whose rule still
+requires a positive number. `hr_recovery` is not one of those quantities.
+A finite zero and a finite negative `hr_recovery` stay. `temperature_deviation`
+stays signed. Other points stay positive. A row the server did not return is not
 labeled provider-unavailable. Priority selection, a day-row pick, and a
 rollup can omit a stored row from the response. That omission is unknown
 here. It is not a null, and it is not a refusal. `left_out` counts only a
@@ -325,8 +337,13 @@ workout updates the session. Name, type, start, end, distance, heart
 rate, elevation, zones, and segments are stored the same way they are
 stored on an automatic workout. `field_basis.activity_type` is
 `aggregator_normalized`, because Open Wearables normalized the sport
-name. The eight range calculations and `provider-period-summary` do not
-read this session. It does not enter a device baseline. `unknown`, JSON
+name. The numbers on this session do not enter the eight range
+calculations or `provider-period-summary`. `workout-drift` may use the
+session's start and end as its window when the caller names that session.
+The samples in that window still exclude `source_type` `manual`. Record
+queries omit manual sources unless `include_manual` is true. This pull
+does not change those controls. The session does not enter a device
+baseline. `unknown`, JSON
 null, and a missing `entry_source` are source reports of kind
 `unknown_workout`. They are not a workout session, and they are not
 manual. The original keeps null and absence distinct. Unknown is not
@@ -409,7 +426,7 @@ appendix table, fails before any request.
 | Measured series, `source` null | timeseries object | `open_wearables` | `ow1` unattributed only | the raw class, full match key | none. An unequal payload refuses the protected transaction and may be archived |
 | Day series | timeseries object, `resolution` `1day` | same as the raw row | same as the raw row | window form in the appendix. Key adds `1day` and `period_end` | none |
 | Sleep, activity, or recovery summary | `{ "sleep_summary": data }`, `{ "activity_summary": data }`, or `{ "recovery_summary": data }` | `source.provider` | `ow1` summary | `source_report` subject `object`, date | one measured child per numeric field, field path in the key |
-| Body | the object | umbrella `source.provider`, or `open_wearables` when it is missing | `ow1` summary, family `body` | `source_report` subject `object` | slow-changing weight, height, fat, and muscle are time-unknown provider summaries; averaged heart rate and HRV use the server window; latest temperature and blood pressure use their own times; age and BMI are source reports |
+| Body | the object | umbrella `source.provider`, or `open_wearables` when it is missing | `ow1` summary, family `body` | `source_report` subject `object` | slow-changing weight, height, fat, and muscle are time-unknown provider summaries; averaged heart rate and HRV use the server window; body temperature and blood pressure use their own times; skin temperature is time-unknown; age and BMI are source reports |
 | Health score | `{ "health_score": data }` | top-level `provider`, or `open_wearables` | `ow1` score | `provider_score` when the scale table has a finite range, otherwise `source_report` | none. Components stay on the record |
 | Meal | `{ "meal": data }` | `source.provider` | `ow1` event | `source_report` subject `object`, meal id | one `source_report` per numeric field path |
 | Cycle | `{ "cycle": data }` | `source.provider` | `ow1` event | `source_report` subject `object`, cycle id | one `source_report` per numeric reported length |
@@ -497,7 +514,10 @@ summaries. The two Garmin day scores stay scores on their existing
 scales, with the window and without `recorded_at`. Raw points, raw
 `vo2_max`, and the two raw Garmin scores keep their kinds and keys. Raw
 `heart_rate_recovery_one_minute` is the point quantity `hr_recovery`, in
-bpm. The server series name stays in `supplied_fields`. The 2.1.0 import
+bpm. A finite value stays, including zero and a negative number. The
+mapping's positive check and the v1 point check gain that exception
+beside `temperature_deviation`. `src/schema.ts` stays as it is. No table
+is rebuilt for the check. The server series name stays in `supplied_fields`. The 2.1.0 import
 key stays. A day row of that series is a window summary whose summary
 type is also `hr_recovery`. Its key adds `1day` and `period_end`, so it
 does not replace the raw point. A mapped file and a pull, in either
@@ -567,10 +587,19 @@ children. Age is calculated by the service. The child is a source report
 and has no `field_basis`. BMI is not labeled measured. The averaged
 heart-rate and HRV values are provider summaries on the server's
 `period_start` and `period_end`. Those bounds are not copied onto the
-slow-changing fields. Each latest field uses its own measured-at time
-when the server sends one. A value with a null time uses the time-unknown
-receipt. A null group withdraws that group's existing children. It does
-not delete them because a different request omitted the snapshot.
+slow-changing fields. Body temperature and blood pressure use their own
+measured-at times when the server sends those times. Skin temperature
+does not. The body service can put a day row's `period_start` into
+`skin_temperature_measured_at` when no sample is in the latest window,
+and the response has no field that says which one it did. The amount,
+the unit, and that timestamp stay on the original object. The skin-temperature
+child is time-unknown. It has no `recorded_at`. The program does not
+decide by comparing timestamps, and it does not invent a window from
+that timestamp. A raw skin-temperature sample and a day skin-temperature
+window stay the series records they already are. A null time on body
+temperature or blood pressure uses the time-unknown receipt. A null group
+withdraws that group's existing children. It does not delete them because
+a different request omitted the snapshot.
 
 Meal numbers, nutrient numbers, dietary series, alcoholic-beverage
 counts, `hydration`, and the index, age, and effort series are
@@ -737,11 +766,91 @@ The following are not requested. Each line is the reason.
 - Sleep totals, workout totals, and activity totals. They add up rows the
   lists return.
 - The data summary and the data timeline. They count stored rows.
-- The provider workout list and detail. They call the vendor through the
-  server's live connection. This pull keeps the stored workout.
 - Accounts, connections, sync, OAuth, webhooks, API keys, config, uploads,
   and every `DELETE`. They are not health readings. The API key, the
   server address, and the user id are not written into the athlete record.
+  `/sync` and `/sync/historical` are not called.
+
+The two provider-live reads are
+`GET /api/v1/providers/{provider}/users/{user_id}/workouts` and
+`GET /api/v1/providers/{provider}/users/{user_id}/workouts/{workout_id}`.
+They use the same API key as the stored reads. They do not add a vendor
+token, a scope, or a write. The route returns the provider method's
+response. It does not save that response. This pull saves it.
+
+The original is a `source_report` of kind `original`. Its subject is
+`vendor_workout`. Its source is the non-device Open Wearables source, not
+the watch's source. `provider_record_id` is the provider name plus the
+vendor workout id the save path already uses: Polar `id`, Garmin
+`activityId`, Suunto `workoutId`, Whoop `id`, Oura `id`, Strava `id`,
+Fitbit `logId`, Withings `id`, and Sensorbio `id`. A later pull of that
+same id updates that original. The original is not a second
+`workout_session`. The stored session stays matched by the Open Wearables
+workout id. The public stored workout object has no `external_id`, so
+this pull does not join the original to the session by time, distance, or
+device. A manual session stays the manual session. A device id, a device
+name, and a route inside the vendor object stay on the original. They do
+not set `device_binding`. Nested samples stay inside the original. They
+are not written again as measurement samples. The eight range
+calculations do not read the original.
+
+A list item with no vendor id refuses that provider's list page. The
+refusal follows the missing-id rule, including no archive. Detail is
+requested only after the list item has an id, and only for a provider
+whose detail method returns the vendor object. The detail replaces the
+same original when its vendor id matches. A detail with a missing or
+different id is not stored. The list original stays, and the result names
+the mismatch. A detail method that raises `NotImplementedError` is not
+called. That is not an empty workout list.
+
+The pull sends only the query parameters the route publishes. It does not
+retry a transport failure. A response over 8 MiB is handled by the same
+rule as the other reads: Suunto is asked again with a smaller `limit`,
+down to 1. A route with no `limit` fails that read and names it. Route
+coordinates are stored on the original and are not printed in the result
+text. The privacy scan still refuses a page that contains the key, the
+selected origin, or the selected user id.
+
+Each provider's list is what that method does when the route's parameters
+are all it receives, except Garmin and Suunto, whose time parameters the
+route does publish.
+
+- Polar sends `samples=true`, `zones=true`, and `route=true`. The route
+  has no date. The provider document says the exercise list is the
+  exercises available in Polar Flow. A start outside the requested range
+  is not stored and is not `left_out`. One list over 8 MiB fails the read.
+- Garmin sends `summary_start_time` and `summary_end_time` from the
+  requested range. The method puts those values in
+  `uploadStartTimeInSeconds` and `uploadEndTimeInSeconds`. The result says
+  the filter is upload time. An omitted range would be the method's last
+  24 hours, so this pull always sends the range. A range over 24 hours is
+  chunked by that method.
+- Suunto sends `since` as the requested start in Unix milliseconds,
+  `filter_by_modification_time=false`, `limit` 100, and pages `offset`
+  until a short page. False means creation time, not workout start.
+  Detail is the workout URL with no `extensions` parameter.
+- Whoop, Oura, and Strava have no date parameter on this route. Whoop is
+  one call with the method's limit of 25 and no `nextToken`. Oura is one
+  call with no date and no `next_token`. Strava is one call at page 1.
+  The method's `per_page` default is 200. Their detail methods are called
+  for ids on that page.
+- Fitbit's list method uses the last 30 days when the route sends no
+  dates. Its detail method is not implemented and is not called.
+- Withings uses `pull_sync_lookback` when set, otherwise 30 days, widens
+  each edge by one local day, and pages inside the method. Detail is not
+  implemented and is not called.
+- Sensorbio uses the route's `limit` of 50 and `last-timestamp` 0. Detail
+  is not implemented and is not called.
+- Apple, Samsung, Health Connect, Ultrahuman, Google Health, `internal`,
+  and `unknown` are not called. Apple, Samsung, Health Connect, and
+  Ultrahuman have no workout object on the strategy, and the route would
+  answer 501. Google Health does not implement the live method. Stored
+  workouts from those providers still come from `/events/workouts`.
+
+These reads run after the twelve stored reads. A completed line means that
+stated limit was reached. It does not mean the vendor's lifetime history
+was returned. A failed provider stops later provider reads, keeps earlier
+commits, and exits nonzero. The success sentence is not printed.
 
 Day rows are one selected row per source, series, and local day. The
 repository prefers `computed_by: provider`, then the later provider row.
@@ -1193,7 +1302,13 @@ transaction. `src/db/records.ts`, `src/db/import-package.ts`,
 `src/db/records-view.ts`, and the repair copy from `data_json` follow that
 pair and the new table. `src/db/check-tables.ts` gains the
 `source_report` entry. The eight range calculations and
-`provider-period-summary` do not read `source_reports`. In
+`provider-period-summary` do not read `source_reports`. `read_inputs` and
+`read_period` also exclude `source_type` `manual`, and they have no
+`include_manual` switch. `workout-drift` loads the named session first,
+including a manual session, and uses that session's start and end as the
+window. Its samples then go through `read_inputs`. A manual source's
+numbers stay out. Record queries omit manual sources unless
+`include_manual` is true. This proposal does not change that code. In
 `read_inputs` and `read_period`, a provider summary or provider score
 whose `standard_value` or `standard_unit` is null is excluded in the SQL,
 before the limit, the count, the grouping, and the numeric decode. A null
@@ -1296,7 +1411,11 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   and do not invent an instant. A step length of 70 cm is stored as 0.70 m.
   A stride of 120 cm is stored as 1.20 m. The input number and `cm` stay
   on the record. Raw `heart_rate_recovery_one_minute` is quantity
-  `hr_recovery` in bpm. A 2.1.0 mapped file and this pull, in either
+  `hr_recovery` in bpm. A finite zero and a finite negative value are
+  stored. Import, a repeat pull, and the package export and import keep
+  the quantity, the unit, the key, and the value. A heart-rate point of
+  zero is still left out. A negative `temperature_deviation` is still
+  stored. A 2.1.0 mapped file and this pull, in either
   order, keep one record id and the old import key. Every row in the appendix table has one raw fixture and
   one day fixture. Check, export, and import keep the input pair, the
   standard pair, and the day window. Raw
@@ -1412,7 +1531,13 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   `provider_or_aggregator`
 - body fetched during a historical range is the current object. Weight
   with no time has no `recorded_at` and does not use the average window.
-  A latest value with a null time is stored the same way. Age is a source
+  A latest value with a null time is stored the same way. A body object
+  whose `skin_temperature_measured_at` is a raw-looking instant, and one
+  whose timestamp is a day `period_start`, both keep the amount, the unit,
+  and the timestamp on the original. The skin-temperature child has no
+  `recorded_at`. Import, pull, and the native package roundtrip keep that
+  child out of an instant calculation. A raw skin-temperature sample and a
+  day skin-temperature window keep their own classes. Age is a source
   report. The service calculates it, and the record has no `field_basis`.
   BMI's basis is omitted. The three groups can arrive
   together or alone. JSON null and a returned zero and a missing field
@@ -1515,7 +1640,11 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   a manual workout. The same server id arriving later as `automatic`
   refuses the page, and the stored session stays. A later pull of the
   same manual workout updates that session. Export and import keep the
-  pair that was accepted.
+  pair that was accepted. `workout-drift` named on that manual session
+  uses its start and end. A wearable sample inside the window is an input.
+  A manual sample and the session's own heart rate and distance are not.
+  A record query without `include_manual` omits the manual session. The
+  same query with `include_manual` true returns it.
   `page-raw.json` is stored.
   RMSSD and SDNN stay different quantities
 - a changed end time keeps the record id and increases the revision
@@ -1535,6 +1664,15 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
 - a deleted mapped source is left out. A Garmin file import of a different
   workout remains a second source
 - `left_out` in the result is a total and at most 20 examples
+- a synthetic Polar list with samples, zones, and a route stores one
+  original. The nested samples are not measurement samples. A second pull
+  of the same vendor id updates that original and does not create a
+  session. The stored workout with a different Open Wearables id stays a
+  separate session. A device id on the vendor object does not set
+  `device_binding`. A Garmin list sends the requested upload window. A
+  Whoop list is one page. A missing vendor id refuses that list and
+  archives nothing. Preview and `--json --yes` write none of these rows.
+  The result text does not print a route coordinate
 
 Migration tests, in the build gate:
 
@@ -1688,14 +1826,18 @@ The build, after approval, is one pull request in this order. First the
 schema and step 5: the root `record_type` check, the period type, the
 `aggregator` basis, the sample series quantities in the appendix table,
 the `source_report` type and table, the paired null value and unit, and
-the time-unknown summary. Then the store, the calculation null filter,
+the time-unknown summary. The v1 point check and the mapping's positive
+check accept a finite `hr_recovery`, including zero and a negative number.
+`src/schema.ts` is not edited. No table is rebuilt for that check. Then the store, the calculation null filter,
 the archive transaction, and the record paths in section 6. Then the
 mapping engine and `mappings/open-wearables.md`. Then the reads, the
 cycle filter, the smaller-page split, and the tests in section 7. The laptop card and the phone proof are
 part of that same pull request. This plan pull request has no media.
 
 The maintainer approves or rejects this plan before any build. D198 through
-D209 are the proposal. They are not adopted. Reviews of earlier heads were
+D213 are the proposal. They are not adopted. The stored workout and the
+provider-live original stay separate records, because the public stored
+workout has no vendor id. That split is part of this proposal. Reviews of earlier heads were
 incorporated here. None of those reviews approves this revision. The next
 head needs re-review. An earlier review accepted a
 migration with no new column, under D152 and D184. That acceptance does not

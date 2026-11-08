@@ -445,9 +445,78 @@ uses `datetime.now`, omits `device_id`, and does not put a time on
 `BodySlowChanging`. The personal-record response is `birth_date`,
 `gender`, `sex`, and `user_id`. A field that was never set is null.
 
+`summaries_service.py` reads skin temperature from the latest sample
+window. When that read is empty, `latest_day_value` supplies the newest
+day value and `period_start`. The service unpacks that pair into the same
+`skin_temperature_measured_at` field. The response does not say which
+read it was. `heart_rate_recovery_one_minute` is series id 4, unit `bpm`.
+`TimeSeriesSampleBase.value` is a number with no positive minimum. The
+column is `numeric_unbounded`.
+
+## Stored workouts and the live provider routes
+
+Checked at commit `183e8cc4f6de897dbd288c93d49a691f2cf721ae` on 8 November
+2026. No server was called, and no vendor account was used.
+
+The stored workout response is the `Workout` model in
+`schemas/responses/activity/events.py`. It has the Open Wearables id and
+the normalized fields. It has no `external_id`. The database row does
+have `external_id`. The public model does not return it.
+
+The live routes are `vendor_workouts.py`. Both handlers call
+`get_workouts_from_api` or `get_workout_detail_from_api` and return that
+value. Neither handler writes a row.
+
+Polar's live methods pass `samples`, `zones`, and `route` through to
+`/v3/exercises`. The save path calls the list method without those
+arguments, so the request uses false. `ExerciseJSON` can parse samples,
+zones, and route. `_normalize_workout` copies the sport, the device, the
+times, the average and maximum heart rate, the calories, and the
+distance. It does not copy samples, zones, or route. The Polar provider
+page says the exercise list is the exercises available in Polar Flow. It
+does not say Polar keeps every past exercise.
+
+`ingest_workout_samples` defaults to false. `store_fit_files` defaults to
+false. `raw_payload_storage` defaults to `disabled`. `store_raw_payload`
+returns immediately when the backend is disabled. `store_fit_file`
+returns immediately when FIT storage is disabled. Garmin's activity-file
+branch still downloads a FIT file and can save parsed segments and zones.
+It adds FIT samples to `series_sample` only when `ingest_workout_samples`
+is true. Strava's stream save returns zero when that flag is false. Those
+are settings. This study does not know how a particular deployment set
+them. When the flags are off, the samples and the FIT bytes are not
+stored. The stored timeseries read can return samples only when a save
+path wrote them.
+
+Garmin's live list sends `uploadStartTimeInSeconds` and
+`uploadEndTimeInSeconds`. With no range, the method uses the last 24
+hours. Its `load_data` saves nothing and says activities arrive by
+webhook. Suunto's published parameters are `since`, `limit`, `offset`,
+and `filter_by_modification_time`. Whoop's start, end, and `nextToken`
+are not parameters of the route. The method then sends no start and caps
+`limit` at 25. Oura's dates and `next_token` are not on the route.
+Strava's `after` and `before` are not on the route. The method defaults
+to page 1 and `strava_events_per_page` of 200. Fitbit's detail method is
+the base method, which raises `NotImplementedError`. Its list method uses
+the last 30 days when no dates are passed. Withings uses
+`pull_sync_lookback` or 30 days and does not implement detail. Sensorbio
+uses `limit` and `last-timestamp` 0 and does not implement detail. Google
+Health does not implement the live method. Apple, Samsung, Health
+Connect, and Ultrahuman leave `workouts` unset, and the route answers
+501.
+
+A missing live payload is not the same fact as a stored row the list
+route did not include. The stored list returns what normalization saved.
+The live route returns what the provider method returns on that call. A
+flag that is off explains samples and FIT bytes that were never written.
+A route parameter that does not exist explains a provider page that
+cannot take this pull's range. A provider that has no live method is not
+an empty workout history.
+
 ## What was not checked
 
 - A running server's JSON, including the exact `start_time` text.
+- A live provider account, a sync call, or a historical-sync call.
 - Whether Docker tag `latest` matches release `0.11.0` or `main`.
 - The database timezone applied to a date-only bound.
 - Middleware rate limits.

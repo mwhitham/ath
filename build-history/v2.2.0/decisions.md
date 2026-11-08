@@ -877,9 +877,12 @@ workout on the watch's source. The server workout id is the match key,
 so a later pull updates the same workout. Name, type, start, end,
 distance, heart rate, elevation, zones, and segments are stored the same
 way they are stored on an automatic workout. `activity_type` still
-records that Open Wearables normalized the sport name. The eight range
-calculations and `provider-period-summary` do not read it. A workout the
-person typed must not enter a device baseline.
+records that Open Wearables normalized the sport name. D212 corrects the
+next rule. The numbers on this session do not enter the eight range
+calculations or `provider-period-summary`. `workout-drift` may use the
+session's start and end when the caller names that session. The samples
+in that window still exclude a manual source. The session does not enter
+a device baseline.
 
 `unknown`, JSON null, and a missing `entry_source` stay source reports of
 kind `unknown_workout`. They are not a workout session, and they are not
@@ -893,4 +896,101 @@ Rejected alternatives:
 - Call a manual workout a provider summary. Rejected. It is a session.
 - Treat `unknown`, JSON null, or a missing `entry_source` as manual.
   Rejected. Those values are not the self-reported entry.
+
+## D210. A body skin-temperature time is not an instant by itself
+
+This corrects the sentence that treats a non-null
+`skin_temperature_measured_at` as a measurement instant. The other body
+rules stay.
+
+The body service reads a skin-temperature sample in the latest window.
+When that sample is missing, it reads the newest day value and uses that
+day's `period_start` as the same timestamp. The response has no field
+that says which read it used. The amount, the unit, and the timestamp
+stay on the original object. The skin-temperature child is time-unknown.
+It has no `recorded_at`. The program does not choose by comparing
+timestamps, and it does not invent bounds. Body temperature and blood
+pressure still use their own times. A raw skin-temperature sample and a
+day skin-temperature window keep the series rules they already have.
+
+Rejected alternatives:
+
+- Treat every non-null body timestamp as an instant. Rejected. The day
+  fallback writes `period_start` into the same field.
+- Drop the timestamp. Rejected. The original object keeps what the server
+  sent.
+
+## D211. A finite heart-rate recovery stays, including zero
+
+This corrects the positive point gate for one quantity. The quantity,
+the unit, and the import key stay `hr_recovery` and `bpm`.
+
+Open Wearables stores `heart_rate_recovery_one_minute` as a number in
+bpm. The sample value has no positive minimum. The mapping and the v1
+point check currently reject a point at or below zero, except
+`temperature_deviation`. A finite `hr_recovery`, including zero and a
+negative number, passes that check. A non-finite value does not. Other
+points stay positive. `temperature_deviation` stays signed.
+`src/schema.ts` is not edited. No table is rebuilt for this check.
+
+Rejected alternatives:
+
+- Keep the positive gate and drop a recovery of zero. Rejected. The
+  server can return that number, and this pull said a returned zero stays
+  zero for this quantity.
+- Allow zero for every point. Rejected. The other positive checks stay.
+
+## D212. A manual session can set a window, and its numbers stay out
+
+This corrects the D209 sentence that says the calculations do not read a
+manual workout. It does not change the calculation code.
+
+`read_inputs` and `read_period` exclude `source_type` `manual`. They have
+no `include_manual` switch. `workout-drift` loads the session the caller
+names, including a manual session, and uses its start and end as the
+window. The samples then come from `read_inputs`, so a manual source's
+numbers are not inputs. The session's own heart rate and distance are not
+inputs. Record queries omit manual sources unless `include_manual` is
+true. A typed workout must not enter a device baseline.
+
+Rejected alternatives:
+
+- Refuse a manual session as the drift window. Rejected. The current
+  command already accepts that window and then reads the other sources'
+  samples. This proposal does not take that away.
+- Let a manual heart rate enter a baseline when `include_manual` is set.
+  Rejected. The calculation SQL has no such switch.
+
+## D213. A provider-live workout is kept as an original
+
+The stored workout list is the normalized session. The provider routes
+return the vendor object and do not save it. Defaults leave workout
+samples, FIT bytes, and raw payloads unstored unless that deployment
+turned the flag on. This pull reads the two live GET routes and stores
+the vendor object.
+
+The original is a `source_report` of kind `original`, subject
+`vendor_workout`, on the non-device Open Wearables source. The match key
+is the provider plus the vendor workout id. A later pull updates that
+original. It is not a second workout session, and it is not joined to the
+stored session by time. The public stored workout has no `external_id`.
+Device names, device ids, routes, and nested samples stay inside the
+original. They do not set `device_binding`, and they are not measurement
+samples. Calculations do not read the original.
+
+The pull uses the published query parameters, does not retry, and does
+not call sync, historical sync, or a provider whose live method is
+missing. A completed provider line means that provider's stated limit was
+reached. It does not mean the vendor returned lifetime history. The same
+API key is used. No new vendor permission is added.
+
+Rejected alternatives:
+
+- Leave the live routes unread. Rejected. The vendor object is available
+  from the server and is not the stored workout.
+- Make the live object a second workout session. Rejected. The stored
+  session already exists, and the public workout has no vendor id to join
+  them.
+- Call sync or historical sync to fill the gap. Rejected. Those routes
+  write on the server. This pull only reads.
 
