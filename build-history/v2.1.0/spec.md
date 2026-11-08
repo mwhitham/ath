@@ -1304,3 +1304,19 @@ Migration step 4 does not backfill. A record written before 2.1.0 has no `field_
 - `tests/v1-cli-writes.test.ts` asserts `entered_by_hand` on a plain-text measurement, a plain-text benchmark result, and a structured point, and that a structured point keeps a basis it already states.
 - `every_garmin_workout_states_its_basis` in `crates/ath-core/src/garmin.rs` covers JSON, GPX, and the activity type.
 - The demo athlete is regenerated. Its WHOOP-style HRV point is `provider_documented_rmssd`, its benchmark result is `entered_by_hand`, its workout states `provider_label`, and its other measured records are `provider`.
+
+## 14. Engineering verification tooling
+
+The [public PR audit](../../docs/engineering-audit.md) records five representative
+reviews. The implementation adds a repository engineering skill, scoped review
+instructions, specification and verification templates, an append-only decision
+check, and generated-schema/CLI checks in the existing CI job. Tests must show that
+recorded decisions cannot be rewritten or removed, new numbers remain continuous,
+and unmerged proposals can still be revised. Existing required checks must pass.
+
+This applies the existing history, verification, and public/private boundaries.
+It changes no record format, product architecture, decision, or release behavior.
+The [daily workflow](../../docs/engineering-workflow.md) uses built-in independent
+Codex review and states the automatic-trigger settings that cannot be inspected here.
+No automatic merge, deployment, private repository access, or new agent coordinator
+is part of the implementation. Proposed decisions in unmerged plans remain proposals.

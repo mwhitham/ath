@@ -66,6 +66,8 @@
   "scripts": {
     "build": "tsup",
     "check:public-data": "tsx scripts/check-public-data.ts",
+    "check:decision-history": "node scripts/check-decision-history.mjs",
+    "check:generated": "node scripts/check-generated.mjs",
     "prepublishOnly": "node scripts/refuse-checkout-publish.mjs",
     "test": "vitest run",
     "test:watch": "vitest",
