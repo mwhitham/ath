@@ -18,6 +18,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          persist-credentials: false
       - uses: pnpm/action-setup@v4
         with:
           version: 10.33.3
@@ -29,6 +32,12 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - run: cargo test --manifest-path crates/ath-core/Cargo.toml
       - run: pnpm check:public-data
+      - name: Preserve recorded decisions
+        if: github.event_name == 'pull_request'
+        env:
+          ATH_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: pnpm check:decision-history -- "$ATH_BASE_SHA"
+      - run: pnpm check:generated
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
