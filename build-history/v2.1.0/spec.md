@@ -1316,7 +1316,7 @@ and unmerged proposals can still be revised. Existing required checks must pass.
 
 This applies the existing history, verification, and public/private boundaries.
 It changes no record format, product architecture, decision, or release behavior.
-The [daily workflow](../../docs/engineering-workflow.md) proposes built-in independent
-Codex review and states the account-setting step that cannot be configured here.
+The [daily workflow](../../docs/engineering-workflow.md) uses built-in independent
+Codex review and states the automatic-trigger settings that cannot be inspected here.
 No automatic merge, deployment, private repository access, or new agent coordinator
 is part of the implementation. Proposed decisions in unmerged plans remain proposals.

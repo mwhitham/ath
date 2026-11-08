@@ -48,10 +48,13 @@ review, dismissal of stale approvals, approval of the last push, and seven check
 `verify (22)`, `verify (24)`, three `ath-core-binary` jobs, `package-smoke`, and
 `mapping-path`. `CODEOWNERS` covers every path. Leave those protections in place.
 
-The connected tools do not expose the Codex review setting or account entitlement.
-Automatic review is **proposed, not confirmed enabled** by this change. A maintainer
-must complete the settings step and verify it on a PR. No repository ruleset was
-changed. The existing release cross-platform jobs run on PRs but are not among the
+The existing Codex integration completed a review of this implementation on
+[`e0d872d` in PR #42](https://github.com/mwhitham/ath/pull/42#issuecomment-6726172498)
+and reported no major issues. No new reviewer service or credential was needed.
+Its summary labels the trigger "Manual request". The connected tools do not expose
+the review settings, so **All PRs and update triggers remain unverified**. Check those
+settings for coverage of GrokBot PRs; use the manual trigger if needed. No repository
+ruleset was changed. The existing release cross-platform jobs run on PRs but are not among the
 seven required contexts; inspect them before merging package changes. Making them
 required is a separate maintainer settings choice after confirming their job names.
 

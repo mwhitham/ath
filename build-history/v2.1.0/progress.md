@@ -58,5 +58,6 @@ The engineering verification work in spec section 14 adds a repository skill,
 scoped instructions, PR templates, and checks for recorded decisions and generated
 outputs. The [audit](../../docs/engineering-audit.md) separates Cursor-origin work
 from unconfirmed GrokBot attribution. The
-[workflow](../../docs/engineering-workflow.md) records review setup and its remaining
-account-setting requirement. No existing D-number is changed or added.
+[workflow](../../docs/engineering-workflow.md) records a completed independent Codex
+review and the remaining automatic-trigger settings check. No existing D-number is
+changed or added.
