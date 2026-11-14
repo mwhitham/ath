@@ -216,6 +216,12 @@ impl Staging {
     ) -> Result<()> {
         let key_parts = key_parts_json(&candidate.key.parts);
         let ordinal: Option<i64> = if candidate.key.numbered {
+            // The group is the key with its source filled in. Two writers'
+            // values at one instant are two groups, each numbered from 0.
+            let stem = match candidate.data.source_id() {
+                Some(source_id) => format!("{key_parts}\u{0}{source_id}"),
+                None => key_parts.clone(),
+            };
             Some(
                 self.connection()
                     .prepare_cached(
@@ -223,7 +229,7 @@ impl Staging {
                          ON CONFLICT (stem) DO UPDATE SET count = count + 1
                          RETURNING count - 1",
                     )?
-                    .query_row([&key_parts], |row| row.get(0))?,
+                    .query_row([&stem], |row| row.get(0))?,
             )
         } else {
             None
@@ -421,5 +427,52 @@ impl Drop for Staging {
                 let _ = Error::Io(error);
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::import::candidate::{missing_timestamp_receipt, source_value, MatchKey, Section};
+    use crate::model::*;
+
+    fn heart_rate(source_id: &str) -> Candidate {
+        let data = MeasurementSampleData {
+            source_id: source_id.to_string(),
+            provider_record_id: None,
+            provider_reporting_periods: None,
+            received_at: "2026-10-13T12:00:00.000Z".into(),
+            received_at_basis: ReceivedAtBasis::ImportTime,
+            supplied_fields: None,
+            field_basis: None,
+            quantity: SeriesQuantity::HeartRate,
+            recorded_at: "2026-08-09T15:00:00.000Z".into(),
+            input_timestamp: missing_timestamp_receipt(),
+            value: source_value(61.0, "bpm", None),
+            duration_ms: None,
+            timestamp_base_text: None,
+            timestamp_reconstruction_method: None,
+        };
+        Candidate::new(
+            RecordData::MeasurementSample(data),
+            MatchKey::measured(RecordType::MeasurementSample, "heart_rate", "2026-08-09T15:00:00.000Z"),
+            Section::Sample,
+        )
+    }
+
+    #[test]
+    fn a_collision_group_is_numbered_within_its_own_source() {
+        // Two writers' readings at one instant are two groups, each numbered
+        // from 0, because 2.1.0 numbered a key after its source was filled in.
+        let mut staging = Staging::create().unwrap();
+        staging.begin().unwrap();
+        for source in ["left", "right", "left"] {
+            let candidate = heart_rate(source);
+            staging.insert(4, &crate::ids::new_record_id(), "{}", &candidate, None).unwrap();
+        }
+        staging.commit().unwrap();
+        let ordinals: Vec<Option<i64>> =
+            staging.rows_after(None, 10).unwrap().into_iter().map(|row| row.ordinal).collect();
+        assert_eq!(ordinals, [Some(0), Some(0), Some(1)]);
     }
 }
