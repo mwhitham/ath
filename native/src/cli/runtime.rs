@@ -72,14 +72,18 @@ pub struct Services {
 
 impl Default for Services {
     fn default() -> Self {
-        Services { migrate: migration_not_connected }
+        Services { migrate: confirmed_migration }
     }
 }
 
-/// The migration seam before `store::migrate::execute_confirmed_migration`
-/// is connected.
-fn migration_not_connected(_: &mut Store, _: &MigrationPreview) -> crate::Result<PathBuf> {
-    Err(Error::other("the confirmed migration is not connected to the native library yet; nothing was migrated"))
+/// Migrate after the person confirmed the previewed backup path.
+fn confirmed_migration(store: &mut Store, preview: &MigrationPreview) -> crate::Result<PathBuf> {
+    let options = crate::store::migrate::MigrationOptions {
+        backup_path: preview.planned_backup_path.as_ref().map(PathBuf::from),
+        now_millis: None,
+    };
+    let result = crate::store::migrate::execute_confirmed_migration(store, &options)?;
+    result.backup_path.map(PathBuf::from).ok_or_else(|| Error::other("Migration backup path is missing"))
 }
 
 /// One running command: its I/O and the services it may call.

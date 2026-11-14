@@ -128,17 +128,25 @@ fn a_terminal_can_refuse_the_migration() {
         refusal("second confirmation did not exactly match the database ID; nothing was migrated")
     );
 
-    let unconnected = Session::terminal(folder.path(), &format!("y\n{DEMO_DATABASE_ID}\n")).run(&[
+    assert_eq!(std::fs::read(&path).unwrap(), before, "a refused migration leaves the file unchanged");
+
+    let confirmed = Session::terminal(folder.path(), &format!("y\n{DEMO_DATABASE_ID}\n")).run(&[
         "delete",
         RESULT,
         "--revision",
         "1",
     ]);
-    assert_eq!(
-        unconnected.stderr,
-        refusal("the confirmed migration is not connected to the native library yet; nothing was migrated")
-    );
-    assert_eq!(std::fs::read(&path).unwrap(), before, "a refused migration leaves the file unchanged");
+    let marker = "migrated SQL schema 4 to 5 with verified backup at ";
+    let after =
+        confirmed.stdout.split_once(marker).unwrap_or_else(|| panic!("no migration line in {:?}", confirmed.stdout)).1;
+    let backup = after.lines().next().unwrap();
+    assert!(std::path::Path::new(backup).exists(), "the verified backup exists");
+    let store = athleticstandard::store::Store::open(
+        &path,
+        athleticstandard::store::OpenOptions { read_only: true, ..Default::default() },
+    )
+    .unwrap();
+    assert_eq!(store.metadata().sql_schema_version, 5);
 }
 
 static MIGRATIONS: AtomicUsize = AtomicUsize::new(0);

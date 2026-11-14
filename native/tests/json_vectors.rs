@@ -38,7 +38,10 @@ fn serialization_matches_javascript() {
     // become Infinity in JavaScript and `null` when written back.
     for name in &refused_by_rust {
         assert!(
-            name.contains("surrogate") || name.contains("1e400") || name.contains("overflow") || name.contains("infinity"),
+            name.contains("surrogate")
+                || name.contains("1e400")
+                || name.contains("overflow")
+                || name.contains("infinity"),
             "unexpected refusal: {name}"
         );
     }

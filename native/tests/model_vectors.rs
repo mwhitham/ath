@@ -100,6 +100,10 @@ fn every_recorded_vector_matches() {
     eprintln!("checked {checked} cases; deliberate differences skipped: {skipped:?}");
     if !failures.is_empty() {
         let shown: Vec<&String> = failures.iter().take(40).collect();
-        panic!("{} of {checked} cases differ:\n{}", failures.len(), shown.iter().map(|s| s.as_str()).collect::<Vec<_>>().join("\n"));
+        panic!(
+            "{} of {checked} cases differ:\n{}",
+            failures.len(),
+            shown.iter().map(|s| s.as_str()).collect::<Vec<_>>().join("\n")
+        );
     }
 }

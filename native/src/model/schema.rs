@@ -294,15 +294,13 @@ impl Schema {
             (Kind::Array(items), Value::Array(elements)) => {
                 Value::Array(elements.iter().map(|element| items.output(element)).collect())
             }
-            (Kind::Record { value: value_schema, .. }, Value::Object(map)) => Value::Object(
-                map.iter().map(|(key, child)| (key.clone(), value_schema.output(child))).collect(),
-            ),
-            (Kind::Union(options), _) => {
-                match options.iter().find(|option| option.issues(value).is_empty()) {
-                    Some(option) => option.output(value),
-                    None => value.clone(),
-                }
+            (Kind::Record { value: value_schema, .. }, Value::Object(map)) => {
+                Value::Object(map.iter().map(|(key, child)| (key.clone(), value_schema.output(child))).collect())
             }
+            (Kind::Union(options), _) => match options.iter().find(|option| option.issues(value).is_empty()) {
+                Some(option) => option.output(value),
+                None => value.clone(),
+            },
             (Kind::Discriminated { key, options }, Value::Object(map)) => {
                 let tag = map.get(*key).and_then(Value::as_str);
                 match options.iter().find(|(name, _)| Some(*name) == tag) {
@@ -659,18 +657,12 @@ fn run_union(options: &[SchemaRef], value: Option<&Value>, path: &mut Vec<PathSe
 fn run_array_length_checks(schema: &'static Schema, length: usize, path: &[PathSegment], issues: &mut Vec<Issue>) {
     for check in &schema.checks {
         match check {
-            Check::MinLength(minimum) if length < *minimum => push(
-                issues,
-                path,
-                IssueCode::TooSmall,
-                format!("Too small: expected array to have >={minimum} items"),
-            ),
-            Check::MaxLength(maximum) if length > *maximum => push(
-                issues,
-                path,
-                IssueCode::TooBig,
-                format!("Too big: expected array to have <={maximum} items"),
-            ),
+            Check::MinLength(minimum) if length < *minimum => {
+                push(issues, path, IssueCode::TooSmall, format!("Too small: expected array to have >={minimum} items"))
+            }
+            Check::MaxLength(maximum) if length > *maximum => {
+                push(issues, path, IssueCode::TooBig, format!("Too big: expected array to have <={maximum} items"))
+            }
             _ => {}
         }
     }
