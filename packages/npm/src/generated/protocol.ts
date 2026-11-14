@@ -44,6 +44,12 @@ export interface OperationTypes {
     item: never;
     callbacks: Record<never, never>;
   };
+  "model.validate_many": {
+    input: { cases: ReadonlyArray<{ schema: string; json_text: string }> };
+    output: null;
+    item: { valid: boolean; issues: Array<{ path: Array<string | number>; code: string; message: string }>; output_text: string | null; error?: string };
+    callbacks: Record<never, never>;
+  };
   "model.parse": {
     input: { schema: string; value: unknown };
     output: unknown;
@@ -459,6 +465,7 @@ export type AsyncOperationName = Exclude<OperationName, SyncOperationName>;
 export const OPERATIONS = {
   "ids.uuid_v7": { kind: "sync", target: "none", streams: false, callbacks: [] },
   "model.validate": { kind: "async", target: "none", streams: false, callbacks: [] },
+  "model.validate_many": { kind: "async", target: "none", streams: true, callbacks: [] },
   "model.parse": { kind: "sync", target: "none", streams: false, callbacks: [] },
   "migration.needs_migration": { kind: "sync", target: "none", streams: false, callbacks: [] },
   "migration.preview": { kind: "sync", target: "none", streams: false, callbacks: [] },

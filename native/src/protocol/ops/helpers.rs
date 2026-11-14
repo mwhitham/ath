@@ -32,6 +32,16 @@ pub const OPERATIONS: &[Operation] = &[
         run: validate,
     },
     Operation {
+        name: "model.validate_many",
+        kind: Kind::Async,
+        target: TargetUse::None,
+        input: "{ cases: ReadonlyArray<{ schema: string; json_text: string }> }",
+        output: "null",
+        items: Some("{ valid: boolean; issues: Array<{ path: Array<string | number>; code: string; message: string }>; output_text: string | null; error?: string }"),
+        callbacks: &[],
+        run: validate_many,
+    },
+    Operation {
         name: "model.parse",
         kind: Kind::Sync,
         target: TargetUse::None,
@@ -134,9 +144,14 @@ fn uuid_v7(call: &mut Call<'_>) -> Outcome {
 fn validate(call: &mut Call<'_>) -> Outcome {
     let name = input::required_string(&call.input, "schema")?;
     let text = input::required_string(&call.input, "json_text")?;
-    let schema = crate::model::registry::shape(&name)
+    verdict(&name, &text)
+}
+
+/// The Rust validator's verdict on one JSON text.
+fn verdict(name: &str, text: &str) -> Outcome {
+    let schema = crate::model::registry::shape(name)
         .ok_or_else(|| Failure::Input(format!("no published shape named {name}")))?;
-    let value = json::parse(&text).map_err(|error| Error::other(format!("not valid JSON: {error}")))?;
+    let value = json::parse(text).map_err(|error| Error::other(format!("not valid JSON: {error}")))?;
     let issues = schema.issues(&value);
     let valid = issues.is_empty();
     let output_text = if valid { Value::String(json::to_string(&schema.output(&value))) } else { Value::Null };
@@ -145,6 +160,25 @@ fn validate(call: &mut Call<'_>) -> Outcome {
         "issues": issues.iter().map(|issue| issue.to_json()).collect::<Vec<_>>(),
         "output_text": output_text,
     }))
+}
+
+/// Many verdicts in one worker, one item per case. A text the JSON reader
+/// refuses is an invalid verdict with the reader's message.
+fn validate_many(call: &mut Call<'_>) -> Outcome {
+    let cases = input::array(&call.input, "cases")?.to_vec();
+    for case in &cases {
+        let name = case.get("schema").and_then(Value::as_str).unwrap_or_default();
+        let text = case.get("json_text").and_then(Value::as_str).unwrap_or_default();
+        let item = match verdict(name, text) {
+            Ok(item) => item,
+            Err(failure) => {
+                let error = super::super::worker::failure_json(&failure);
+                serde_json::json!({ "valid": false, "issues": [], "output_text": Value::Null, "error": error["message"] })
+            }
+        };
+        call.item(item);
+    }
+    Ok(Value::Null)
 }
 
 /// Check one argument with a published shape, as a 2.1.0 `Schema.parse` did
