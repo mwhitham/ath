@@ -1,0 +1,31 @@
+Examples:
+
+  A note, taken exactly as typed. No quotes needed:
+    $ ath log slept badly, about 5 hours
+
+  A manual measurement. Name RMSSD or SDNN rather than saying only HRV:
+    $ ath log RMSSD 61 ms
+
+  How something felt, with a rating:
+    $ ath log sore quads 4/5
+
+  A benchmark result:
+    $ ath log Fran in 4:41 rx
+
+  A photo attached to one athlete report:
+    $ ath log Meal photo --attachment ./receipt.png
+
+  A structured record from an agent. Run `ath log`, paste one record
+  object or an array, and press Ctrl-D:
+    $ ath log
+    {"record_type":"goal","data":{"authorship":{...},"title":"Fran under 4:30"}}
+    ^D
+
+Plain text creates one record. A structured JSON array creates one
+validated batch. The preview shows every stable ID and complete record
+before one transaction writes anything. `--json` returns that preview
+and never confirms a write. Pass `--yes` only after approval.
+
+--attachment accepts PNG, JPEG, WebP, or PDF files up to 25 MiB. Pass it
+more than once for several files. Exactly one athlete report or nutrition
+entry in the batch owns them. No file is copied during a JSON preview.

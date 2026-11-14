@@ -1,0 +1,19 @@
+Examples:
+
+  Find the prediction and result IDs:
+    $ ath records list --type prediction
+    $ ath records list --type benchmark_result
+
+  Preview the exact link and grade:
+    $ ath grade <prediction-id> --result <result-id> --json
+
+  Write after review:
+    $ ath grade <prediction-id> --result <result-id> --yes
+
+`ath grade` never logs a result. It grades two records that already
+exist. It creates a stable prediction-result link when needed and saves
+the deterministic arithmetic against exact revisions.
+
+A result inside the prediction's stated range is a hit. Anything else is
+a miss. A prediction error analysis is a separate authored record written
+through structured `ath log`, not through a grade flag.
