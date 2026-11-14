@@ -1,12 +1,13 @@
 //! Optional runtime services: the operating system's password store, model
-//! gateways, the saved default model, program updates, and the `share`
-//! placeholder.
+//! gateways, the saved default model, program updates, the Garmin personal
+//! connection, and the `share` placeholder.
 //!
 //! Local record operations never use this module. A network client or a
 //! password store starts only when a command that needs one constructs it.
 //! Every service takes its environment, tool paths, and base URLs as
 //! parameters, so tests never touch a real password store or a live service.
 
+pub mod garmin_pull;
 pub mod gateway;
 pub mod keyring;
 pub mod model_client;

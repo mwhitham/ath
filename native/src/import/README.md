@@ -7,8 +7,12 @@ route needs no SQL and no new command code.
 
 ## The operation
 
-`import::preview(store, path, options)` detects the export, runs its reader,
-and returns a `ProviderPreview`. `preview.apply(&mut store)` writes it.
+`import::preview(store, path, options)` detects an Apple Health, WHOOP, or
+Oura export, runs its reader, and returns a `ProviderPreview`.
+`preview.apply(&mut store)` writes it. The other routes enter the same
+operation through `import::preview_shared` (Garmin and Strava),
+`import::preview_mapped` (a JSON file read through a mapping file), and
+`import::preview_pull` (one day `runtime::garmin_pull::fetch_day` read).
 
 1. The reader sends candidates to a `CandidateSink`. The sink validates each
    one as a complete current record and stages it in a private temporary
@@ -35,9 +39,20 @@ pub trait ProviderReader {
 }
 ```
 
+A reader that holds its own input, such as a path chosen by `classify` or
+responses already fetched, implements `RouteReader` instead and returns its
+`Route`. `import::preview_route(store, reader, options)` runs it.
+
+```rust
+pub trait RouteReader {
+    fn route(&self) -> Route;
+    fn read(&self, sink: &mut CandidateSink<'_>) -> Result<()>;
+}
+```
+
 A reader may read files with the helpers in `input.rs`, `detect.rs`
-(`read_csv_bundle`), `csv.rs`, and `units.rs`. It must not open the athlete
-database, decide whether a record is new, or prompt.
+(`read_csv_bundle`), `csv.rs`, `units.rs`, and `shared.rs` (`SharedFiles`). It
+must not open the athlete database, decide whether a record is new, or prompt.
 
 The sink offers these calls:
 
@@ -51,6 +66,19 @@ The sink offers these calls:
 - `skip(reason, example)` and `skip_count(reason, count)` count an omitted row
   or object. The preview lists reasons in the 2.1.0 order with the first example.
 
+A keyed route (below) reports differently, as its 2.1.0 command did:
+
+- `route_source(writer, vendor, sensor) -> String` declares a source with no
+  detail.
+- `leave_out(line)` reports an omitted object, in input order.
+- `begin_group(label)` starts the records of one file, activity, or row. When
+  matching leaves one of them out because its stored record or its source is
+  deleted, the line starts with `label` and takes the group's place.
+- `understood(field)` and `preserved(field)` note the input fields stored as
+  typed values and the fields kept under their own names.
+  `understood_under(source, field)` and `preserved_under(source, field)` count
+  a field only when that source is not deleted.
+
 ## What a candidate contains
 
 A `Candidate` has three parts:
@@ -61,8 +89,8 @@ A `Candidate` has three parts:
   `candidate.rs` (`source_value`, `source_reported_summaries`,
   `offset_timestamp_receipt`, `missing_timestamp_receipt`, `value_basis`) so
   every route records them the same way. A measured record or device must name
-  a source from `export_source` or `manual_source`. An athlete report or
-  nutrition entry names none.
+  a source from `export_source`, `route_source`, or `manual_source`. An athlete
+  report or nutrition entry names none.
 - `key`: the `MatchKey` that finds the record again on a later import.
 - `section`: where the record sits in the plan. Sources come first, then
   `Device`, `Record`, `Summary`, `Sample`, and `Report`. Within a section,
@@ -97,11 +125,42 @@ and `received_at_basis` are removed at every depth. Any other difference makes
 the candidate a correction, stored as a new revision of the same record. A key
 that names a deleted record or another record type is a conflict.
 
+## Keyed routes
+
+A route's `policy` says how its candidates find their stored records.
+Apple Health, WHOOP, and Oura use `MatchPolicy::Provider`, described above.
+Garmin and Strava files, the Garmin pull, and mapped imports use
+`MatchPolicy::Keyed`, the rules of the 2.1.0 helper's store:
+
+- `MatchKey::literal(text)` is stored as that text: an activity ID, a file
+  name, or the escaped parts of a mapped key (D181). It has no number and no
+  collision group.
+- A source is found by writer, route, and sensor, deleted or not. A deleted
+  source leaves out every candidate under it, and no second source is made
+  (D190). A new source has no import key.
+- A key that names a deleted record leaves the candidate out (D182). A key
+  that names another record type refuses the import.
+- A candidate matches when it equals the stored record once the stored
+  `received_at` is copied onto it. `KeyedPolicy` says whether a changed
+  record replaces the stored object or is laid over it, whether it keeps its
+  first `received_at`, and which basis its revision names.
+- A later candidate with an earlier candidate's key repeats it when the data
+  agree; its record is listed again in `record_ids`. Different data refuse
+  the import.
+
+`route.report` chooses the result `report_value` builds: the provider preview,
+or the `source`, `mapping`, `record_ids`, `outcome`, `understood`,
+`preserved`, and `left_out` fields 2.1.0 printed for the keyed routes.
+
 ## Proof
 
 Each route compares its output with the 2.1.0 implementation.
-`native/tools/reference/import-golden.ts` runs the old library on synthetic
-inputs and writes golden files under `native/tests/golden/import/`. A Rust test
-replays the same steps and requires the same preview, write result, stored JSON
-for every revision, and import keys. Name golden files without provider words;
-the public-data check reads such names as health exports.
+`native/tools/reference/import-golden.ts` (WHOOP) and `route-golden.ts` (Oura,
+Garmin, Strava, the Garmin pull, and mapped imports) run the old program on
+synthetic inputs and write golden files under `native/tests/golden/`. A Rust
+test replays the same steps and requires the same preview, write result,
+stored JSON for every revision, and import keys. The keyed routes ran in the
+2.1.0 helper, which read the clock and wrote its own JSON, so their
+comparison names each normalization in `tests/route_support/keyed.rs`. Name
+golden files without provider words; the public-data check reads such names
+as health exports.

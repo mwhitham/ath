@@ -38,17 +38,27 @@ pub struct MatchKey {
     /// or more is a conflict, because the importer cannot tell which row was
     /// corrected.
     pub numbered: bool,
+    /// When true, the key is the text of its one part, not a JSON array.
+    pub literal: bool,
 }
 
 impl MatchKey {
     /// A key for records an export may repeat, such as two identical rows.
     pub fn numbered(parts: Vec<KeyPart>) -> Self {
-        MatchKey { parts, numbered: true }
+        MatchKey { parts, numbered: true, literal: false }
     }
 
     /// A key an export gives once, such as a device.
     pub fn unique(parts: Vec<KeyPart>) -> Self {
-        MatchKey { parts, numbered: false }
+        MatchKey { parts, numbered: false, literal: false }
+    }
+
+    /// A key stored as this exact text. The keyed routes used plain text keys
+    /// in 2.1.0: a Garmin activity ID or file name, a Strava activity ID, and
+    /// the escaped parts of a mapped key (D181). It has no number and no
+    /// collision group.
+    pub fn literal(key: impl Into<String>) -> Self {
+        MatchKey { parts: vec![KeyPart::Text(key.into())], numbered: false, literal: true }
     }
 
     /// `[record_type, source, discriminator, anchor]`: the key of every measured

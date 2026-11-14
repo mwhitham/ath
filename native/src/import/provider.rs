@@ -12,7 +12,15 @@
 //! its record's revision. A stale plan is refused. No write lock is held while
 //! an export is read or while a person reviews the preview.
 //!
-//! These are the rules of `src/db/provider-import.ts` in 2.1.0.
+//! A route declares how its candidates are matched (`MatchPolicy`):
+//!
+//! - `Provider`: Apple Health, WHOOP, and Oura. These are the rules of
+//!   `src/db/provider-import.ts` in 2.1.0: numbered keys, collision groups, and
+//!   a conflict for a key that names a deleted record.
+//! - `Keyed`: Garmin and Strava files, the Garmin pull, and mapped imports.
+//!   These are the rules of the 2.1.0 helper's store (`insert_record` and
+//!   `insert_group`): one plain key per record, no collision groups, and a
+//!   deleted record or source left out rather than written again (D182, D190).
 
 use std::collections::HashMap;
 use std::path::Path;
@@ -31,7 +39,7 @@ use crate::store::{self, read, Changes, Correction, ExtensionsUpdate, NewRecord,
 use super::candidate::{same_logical_data, Candidate, KeyPart, MatchKey};
 use super::collate::locale_compare;
 use super::detect::{self, DetectedExport, ExportFormat};
-use super::staging::{Action, Decision, PlannedRecord, Staging};
+use super::staging::{Action, Decision, Group, PlannedRecord, Staging};
 
 /// What identifies a provider route in previews, sources, and match keys.
 #[derive(Debug, Clone, PartialEq, Eq)]
@@ -48,6 +56,10 @@ pub struct Route {
     pub container: String,
     /// The match key method, such as `whoop_csv/v1`.
     pub match_key_method: String,
+    /// How candidates find their stored records.
+    pub policy: MatchPolicy,
+    /// The result the 2.1.0 command printed for this route.
+    pub report: ReportKind,
 }
 
 impl Route {
@@ -61,8 +73,61 @@ impl Route {
             data_route: format.data_route().to_string(),
             container: export.container_label().to_string(),
             match_key_method: format!("{}/v1", format.data_route()),
+            policy: MatchPolicy::Provider,
+            report: ReportKind::Provider,
         }
     }
+}
+
+/// How a route's candidates find their stored records.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum MatchPolicy {
+    /// Apple Health, WHOOP, and Oura (2.1.0 `src/db/provider-import.ts`).
+    ///
+    /// Keys are numbered and form collision groups. A key that names a deleted
+    /// record or another record type is a conflict. A source is found by
+    /// writer, route, and sensor among sources that are not deleted, and it
+    /// has an import key of its own.
+    Provider,
+    /// Garmin and Strava files, the Garmin pull, and mapped imports (the 2.1.0
+    /// helper's store).
+    ///
+    /// Each record has one plain key. A key that names a deleted record leaves
+    /// the candidate out with a line that says so, as does a deleted source
+    /// (D182, D190). A key that names another record type refuses the import.
+    /// A source is found by writer, route, and sensor whether or not it is
+    /// deleted, and it has no import key. A later candidate with an earlier
+    /// candidate's key repeats it when the data agree and refuses the import
+    /// when they differ.
+    Keyed(KeyedPolicy),
+}
+
+/// What a keyed route does with a stored record whose data changed.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub struct KeyedPolicy {
+    /// The new data is laid over the stored data, so a field the source left
+    /// out keeps its stored value. The 2.1.0 Garmin, Strava, and pull routes
+    /// merged this way (`revise`); mapped imports replace the whole object (D182).
+    pub merge: bool,
+    /// A changed record keeps its first `received_at` (D182).
+    pub keep_received_at: bool,
+    /// The basis of a correction's revision.
+    pub correction_basis: BecameKnownAtBasis,
+}
+
+/// The result a route reports.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum ReportKind {
+    /// `ath import <export> --json` for Apple Health, WHOOP, and Oura.
+    Provider,
+    /// Garmin and Strava files: `source`, `record_ids`, `understood`,
+    /// `preserved`, and `left_out`.
+    Shared { source: String },
+    /// The Garmin pull: `source`, `record_ids`, `understood`, and `preserved`.
+    Pull { source: String },
+    /// A mapped import: `mapping`, `record_ids`, `outcome`, `understood`,
+    /// `preserved`, and `left_out`.
+    Mapped { mapping: String },
 }
 
 /// A provider route's reader. It turns an export into candidates.
@@ -80,11 +145,22 @@ pub trait ProviderReader {
     fn read(&self, export: &DetectedExport, sink: &mut CandidateSink<'_>) -> Result<()>;
 }
 
+/// A reader that holds its own input: a Garmin or Strava path, a Garmin
+/// pull's responses, or a mapped JSON file with its mapping. It follows the
+/// same rules as a `ProviderReader`.
+pub trait RouteReader {
+    fn route(&self) -> Route;
+
+    /// Read the input. Send every source, record, and omitted object to `sink`.
+    fn read(&self, sink: &mut CandidateSink<'_>) -> Result<()>;
+}
+
 /// The reader for a detected format, when this build has one.
 pub fn reader_for(format: ExportFormat) -> Option<&'static dyn ProviderReader> {
     match format {
         ExportFormat::Whoop => Some(&super::whoop::WhoopReader),
-        ExportFormat::Apple | ExportFormat::Oura => None,
+        ExportFormat::Oura => Some(&super::oura::OuraReader),
+        ExportFormat::Apple => None,
     }
 }
 
@@ -113,6 +189,31 @@ pub struct Skipped {
 /// Skip reasons with their counts and first examples, in preview order.
 pub type SkipList = Vec<(String, Skipped)>;
 
+/// What a keyed route reports beside its records: the input fields it
+/// understood, the fields it kept under their own names, and what it left out.
+#[derive(Debug, Clone, Default, PartialEq, Eq)]
+pub struct RouteReport {
+    /// Sorted by bytes, each once.
+    pub understood: std::collections::BTreeSet<String>,
+    /// Sorted by bytes, each once.
+    pub preserved: std::collections::BTreeSet<String>,
+    /// In input order. Lines that matching adds follow their group's place.
+    left_out: Vec<(i64, String)>,
+    /// Fields read for records under a source, by field. A field counts only
+    /// when one of its sources is not deleted.
+    understood_under: std::collections::BTreeMap<String, Vec<String>>,
+    preserved_under: std::collections::BTreeMap<String, Vec<String>>,
+}
+
+impl RouteReport {
+    /// The left-out lines in input order.
+    pub fn left_out(&self) -> Vec<String> {
+        let mut lines = self.left_out.clone();
+        lines.sort_by_key(|(seq, _)| *seq);
+        lines.into_iter().map(|(_, line)| line).collect()
+    }
+}
+
 /// Where a reader sends what it found.
 pub struct CandidateSink<'a> {
     route: &'a Route,
@@ -121,12 +222,25 @@ pub struct CandidateSink<'a> {
     sources: Vec<SourceEntry>,
     skipped: SkipList,
     pending: usize,
+    report: RouteReport,
+    group: Option<Group>,
+    next_seq: i64,
 }
 
 impl<'a> CandidateSink<'a> {
     fn new(route: &'a Route, received_at: &'a str, staging: &'a mut Staging) -> Result<Self> {
         staging.begin()?;
-        Ok(CandidateSink { route, received_at, staging, sources: Vec::new(), skipped: Vec::new(), pending: 0 })
+        Ok(CandidateSink {
+            route,
+            received_at,
+            staging,
+            sources: Vec::new(),
+            skipped: Vec::new(),
+            pending: 0,
+            report: RouteReport::default(),
+            group: None,
+            next_seq: 0,
+        })
     }
 
     /// The import time to store as each measured record's `received_at`.
@@ -181,6 +295,74 @@ impl<'a> CandidateSink<'a> {
         provisional_id
     }
 
+    /// The source for a keyed route's records from one writer and sensor.
+    /// Returns the source ID to put in each record's `source_id`.
+    ///
+    /// The source names the writer, this route, the vendor, and the sensor when
+    /// there is one. It has no detail, as the 2.1.0 helper wrote none. A second
+    /// call with the same writer and sensor returns the same ID.
+    pub fn route_source(&mut self, writer: &str, vendor: &str, sensor: Option<&str>) -> String {
+        let sensor = sensor.filter(|sensor| !sensor.is_empty()).map(str::to_string);
+        if let Some(existing) = self.sources.iter().find(|entry| {
+            entry.data.source_type == SourceType::ExportFile
+                && entry.data.data_writer == writer
+                && entry.data.sensor_type == sensor
+        }) {
+            return existing.provisional_id.clone();
+        }
+        let provisional_id = crate::ids::new_record_id();
+        self.sources.push(SourceEntry {
+            provisional_id: provisional_id.clone(),
+            data: SourceData {
+                source_type: SourceType::ExportFile,
+                data_writer: writer.to_string(),
+                data_route: self.route.data_route.clone(),
+                vendor: Some(vendor.to_string()),
+                sensor_type: sensor,
+                detail: None,
+                supplied_fields: None,
+            },
+        });
+        provisional_id
+    }
+
+    /// Start a keyed route's group: the records of one source object, file, or
+    /// row. Candidates added after this call belong to it. When matching leaves
+    /// one out, the line starts with `label` and takes the group's place among
+    /// the other left-out lines.
+    pub fn begin_group(&mut self, label: impl Into<String>) {
+        self.group = Some(Group { seq: self.next_seq, label: label.into() });
+        self.next_seq += 1;
+    }
+
+    /// Report an omitted object of a keyed route, in input order.
+    pub fn leave_out(&mut self, line: impl Into<String>) {
+        self.report.left_out.push((self.next_seq, line.into()));
+        self.next_seq += 1;
+    }
+
+    /// Note an input field the route stored as a typed value.
+    pub fn understood(&mut self, field: impl Into<String>) {
+        self.report.understood.insert(field.into());
+    }
+
+    /// Note an input field the route kept under its own name.
+    pub fn preserved(&mut self, field: impl Into<String>) {
+        self.report.preserved.insert(field.into());
+    }
+
+    /// Note a field read for a record under `source_id`. It is reported only
+    /// when that source is not deleted, as 2.1.0 read no field of a row whose
+    /// source was deleted (D190).
+    pub fn understood_under(&mut self, source_id: &str, field: impl Into<String>) {
+        note_under(&mut self.report.understood_under, source_id, field.into());
+    }
+
+    /// Note a field kept under its own name in a record under `source_id`.
+    pub fn preserved_under(&mut self, source_id: &str, field: impl Into<String>) {
+        note_under(&mut self.report.preserved_under, source_id, field.into());
+    }
+
     /// The source for values a person typed in. Every route shares one manual
     /// source, and an existing one is reused without a new revision.
     pub fn manual_source(&mut self) -> String {
@@ -223,7 +405,14 @@ impl<'a> CandidateSink<'a> {
         let record_id = crate::ids::new_record_id();
         let data = candidate.data.to_value();
         check_record(&record_id, self.received_at, candidate.data.record_type(), &data)?;
-        self.staging.insert(candidate.section as i64, &record_id, &json::to_string(&data), &candidate, None)?;
+        self.staging.insert(
+            candidate.section as i64,
+            &record_id,
+            &json::to_string(&data),
+            &candidate,
+            None,
+            self.group.as_ref(),
+        )?;
         self.pending += 1;
         if self.pending >= IMPORT_BATCH_RECORDS {
             self.staging.commit()?;
@@ -255,11 +444,18 @@ impl<'a> CandidateSink<'a> {
         }
     }
 
-    fn finish(self) -> Result<(Vec<SourceEntry>, SkipList)> {
+    fn finish(self) -> Result<(Vec<SourceEntry>, SkipList, RouteReport)> {
         self.staging.commit()?;
         let mut skipped = self.skipped;
         skipped.sort_by(|(left, _), (right, _)| locale_compare(left, right));
-        Ok((self.sources, skipped))
+        Ok((self.sources, skipped, self.report))
+    }
+}
+
+fn note_under(notes: &mut std::collections::BTreeMap<String, Vec<String>>, source_id: &str, field: String) {
+    let sources = notes.entry(field).or_default();
+    if !sources.iter().any(|known| known == source_id) {
+        sources.push(source_id.to_string());
     }
 }
 
@@ -314,6 +510,10 @@ pub struct ProviderPreview {
     match_key_method: String,
     counts: [u64; 3],
     staging: Staging,
+    route: Route,
+    report: RouteReport,
+    /// A keyed route's sources that do not exist yet, with their new IDs.
+    new_sources: Vec<(String, SourceData)>,
 }
 
 impl std::fmt::Debug for ProviderPreview {
@@ -354,6 +554,20 @@ pub fn preview_export(
     export: &DetectedExport,
     options: &ImportOptions,
 ) -> Result<ProviderPreview> {
+    preview_with(store, reader.route(export), options, |sink| reader.read(export, sink))
+}
+
+/// Preview the input a route reader holds.
+pub fn preview_route(store: &Store, reader: &dyn RouteReader, options: &ImportOptions) -> Result<ProviderPreview> {
+    preview_with(store, reader.route(), options, |sink| reader.read(sink))
+}
+
+fn preview_with(
+    store: &Store,
+    route: Route,
+    options: &ImportOptions,
+    read: impl FnOnce(&mut CandidateSink<'_>) -> Result<()>,
+) -> Result<ProviderPreview> {
     let received_at = options.received_at.clone().unwrap_or_else(time::now_utc);
     if !time::is_utc_timestamp(&received_at) {
         return Err(Error::Invalid(ValidationError::single(
@@ -361,14 +575,18 @@ pub fn preview_export(
             "Invalid ISO datetime",
         )));
     }
-    let route = reader.route(export);
     let mut staging = Staging::create()?;
-    let (sources, skipped) = {
+    let (sources, skipped, mut report) = {
         let mut sink = CandidateSink::new(&route, &received_at, &mut staging)?;
-        reader.read(export, &mut sink)?;
+        read(&mut sink)?;
         sink.finish()?
     };
-    let destination_database_revision = match_plan(store, &route, &received_at, &mut staging, &sources)?;
+    let (destination_database_revision, new_sources) = match route.policy {
+        MatchPolicy::Provider => (match_plan(store, &route, &received_at, &mut staging, &sources)?, Vec::new()),
+        MatchPolicy::Keyed(policy) => {
+            match_keyed(store, &route, policy, &received_at, &mut staging, &sources, &mut report)?
+        }
+    };
     let conflicts = staging
         .conflicts()?
         .into_iter()
@@ -386,6 +604,9 @@ pub fn preview_export(
         match_key_method: route.match_key_method.clone(),
         counts: [staging.count(Action::New)?, staging.count(Action::Matching)?, staging.count(Action::Changed)?],
         staging,
+        route,
+        report,
+        new_sources,
     })
 }
 
@@ -478,7 +699,7 @@ fn match_plan(
         );
         let data = candidate.data.to_value();
         check_record(&record_id, received_at, RecordType::Source, &data)?;
-        staging.insert(0, &record_id, &json::to_string(&data), &candidate, existing.as_deref())?;
+        staging.insert(0, &record_id, &json::to_string(&data), &candidate, existing.as_deref(), None)?;
     }
     staging.commit()?;
 
@@ -525,7 +746,7 @@ fn match_plan(
             }
             let match_key = json::to_string(&Value::Array(parts));
 
-            if let Some(first) = staging.first_with_key(&match_key, row.position)? {
+            if let Some((first, _, _)) = staging.first_with_key(&match_key, row.position)? {
                 let message =
                     if same_logical_data(&json::parse(&first)?, &data) { DUPLICATE_SAME } else { DUPLICATE_DIFFERENT };
                 staging.add_conflict(&match_key, None, message)?;
@@ -606,6 +827,183 @@ fn match_plan(
     Ok(revision)
 }
 
+/// An existing source with the same writer, route, and sensor, deleted or
+/// not, as the 2.1.0 helper found it. Returns its ID and whether it is deleted.
+fn keyed_existing_source(connection: &rusqlite::Connection, data: &SourceData) -> Result<Option<(String, bool)>> {
+    Ok(connection
+        .query_row(
+            "SELECT sources.record_id, records.is_deleted FROM sources
+               JOIN records ON records.record_id = sources.record_id
+              WHERE sources.data_writer = ?1
+                AND sources.data_route = ?2
+                AND COALESCE(sources.sensor_type, '') = COALESCE(?3, '')",
+            params![data.data_writer, data.data_route, data.sensor_type],
+            |row| Ok((row.get(0)?, row.get::<_, i64>(1)? != 0)),
+        )
+        .optional()?)
+}
+
+/// `data` with the stored record's `received_at`, for comparing a keyed
+/// candidate with what is stored (D182).
+fn with_received_at(mut data: Value, stored: &Value) -> Value {
+    if let (Value::Object(map), Some(received)) = (&mut data, stored.get("received_at")) {
+        map.insert("received_at".into(), received.clone());
+    }
+    data
+}
+
+/// Decide a keyed route's candidates against the live database. Returns the
+/// database revision the decisions were read at and the sources to create.
+fn match_keyed(
+    store: &Store,
+    route: &Route,
+    policy: KeyedPolicy,
+    received_at: &str,
+    staging: &mut Staging,
+    sources: &[SourceEntry],
+    report: &mut RouteReport,
+) -> Result<(u64, Vec<(String, SourceData)>)> {
+    enum Resolved {
+        Ready(String),
+        Deleted(String),
+    }
+    let read_tx = store.connection().unchecked_transaction()?;
+    let connection: &rusqlite::Connection = &read_tx;
+    let revision = store::database_revision(connection)?;
+
+    let mut resolved: HashMap<String, Resolved> = HashMap::new();
+    let mut new_sources = Vec::new();
+    for source in sources {
+        let entry = match keyed_existing_source(connection, &source.data)? {
+            Some((record_id, false)) => Resolved::Ready(record_id),
+            Some((record_id, true)) => Resolved::Deleted(record_id),
+            None => {
+                let data = RecordData::Source(source.data.clone()).to_value();
+                check_record(&source.provisional_id, received_at, RecordType::Source, &data)?;
+                new_sources.push((source.provisional_id.clone(), source.data.clone()));
+                Resolved::Ready(source.provisional_id.clone())
+            }
+        };
+        resolved.insert(source.provisional_id.clone(), entry);
+    }
+    let live = |sources: &Vec<String>| sources.iter().any(|id| matches!(resolved.get(id), Some(Resolved::Ready(_))));
+    for (field, sources) in std::mem::take(&mut report.understood_under) {
+        if live(&sources) {
+            report.understood.insert(field);
+        }
+    }
+    for (field, sources) in std::mem::take(&mut report.preserved_under) {
+        if live(&sources) {
+            report.preserved.insert(field);
+        }
+    }
+
+    let mut deleted_source_groups = std::collections::HashSet::new();
+    let mut after = None;
+    loop {
+        let rows = staging.rows_after(after, IMPORT_BATCH_RECORDS)?;
+        let Some(last) = rows.last() else {
+            break;
+        };
+        after = Some((last.section, last.position));
+        staging.begin()?;
+        for row in rows {
+            let label = row.group_label.clone().unwrap_or_default();
+            let seq = row.group_seq.unwrap_or(-1);
+            let Value::String(match_key) = json::parse(&row.key_parts)? else {
+                return Err(Error::other("A keyed route staged a key that is not plain text"));
+            };
+            let mut decision = Decision {
+                record_id: &row.record_id,
+                data_json: &row.data_json,
+                match_key: &match_key,
+                collision_group: None,
+                action: Action::LeftOut,
+                current_revision: None,
+            };
+            let mut data = json::parse(&row.data_json)?;
+            if let Some(provisional) = &row.source_id {
+                match resolved.get(provisional) {
+                    Some(Resolved::Ready(final_id)) => {
+                        if final_id != provisional {
+                            if let Value::Object(map) = &mut data {
+                                map.insert("source_id".into(), Value::String(final_id.clone()));
+                            }
+                        }
+                    }
+                    Some(Resolved::Deleted(source_id)) => {
+                        if deleted_source_groups.insert(seq) {
+                            report.left_out.push((seq, format!("{label}: its source {source_id} is deleted")));
+                        }
+                        staging.decide(row.position, &decision)?;
+                        continue;
+                    }
+                    None => return Err(Error::other("A staged candidate names an unknown source")),
+                }
+            }
+            let data_json = json::to_string(&data);
+            decision.data_json = &data_json;
+
+            if let Some((first_data, first_id, first_action)) = staging.first_with_key(&match_key, row.position)? {
+                if !same_logical_data(&json::parse(&first_data)?, &data) {
+                    return Err(Error::refused(format!("{DUPLICATE_DIFFERENT}: {match_key}")));
+                }
+                // A repeat of a left-out candidate is left out with it.
+                decision.record_id = &first_id;
+                decision.action = if first_action == Some(Action::LeftOut) { Action::LeftOut } else { Action::Repeat };
+                staging.decide(row.position, &decision)?;
+                continue;
+            }
+
+            let Some(current) = record_by_import_key(connection, &route.match_key_method, &match_key)? else {
+                decision.action = Action::New;
+                staging.decide(row.position, &decision)?;
+                continue;
+            };
+            if current.record_type().as_str() != row.record_type {
+                return Err(Error::refused(format!(
+                    "import key {match_key} points to {}, not {}",
+                    current.record_type(),
+                    row.record_type
+                )));
+            }
+            decision.record_id = &current.record_id;
+            if current.is_deleted {
+                report.left_out.push((seq, format!("{label}: the stored record {} is deleted", current.record_id)));
+                staging.decide(row.position, &decision)?;
+                continue;
+            }
+            let stored = current.data.to_value();
+            let mut next = data;
+            if policy.merge {
+                let mut merged = stored.clone();
+                if let (Value::Object(base), Value::Object(fields)) = (&mut merged, next) {
+                    for (key, value) in fields {
+                        base.insert(key, value);
+                    }
+                }
+                next = merged;
+            }
+            if policy.keep_received_at {
+                next = with_received_at(next, &stored);
+            }
+            let unchanged =
+                json::to_sorted_string(&with_received_at(next.clone(), &stored)) == json::to_sorted_string(&stored);
+            let record_type = current.record_type();
+            let next = RecordData::decode(record_type, &next)?.to_value();
+            check_record(&current.record_id, &current.created_at, record_type, &next)?;
+            let next_json = json::to_string(&next);
+            decision.data_json = &next_json;
+            decision.action = if unchanged { Action::Matching } else { Action::Changed };
+            decision.current_revision = Some(current.current_revision);
+            staging.decide(row.position, &decision)?;
+        }
+        staging.commit()?;
+    }
+    drop(read_tx);
+    Ok((revision, new_sources))
+}
+
 struct RecordList<'a> {
     staging: &'a Staging,
     action: Action,
@@ -654,6 +1052,13 @@ fn reference(record: PlannedRecord, action: Action) -> PlannedRecordRef {
 
 impl Serialize for ProviderPreview {
     fn serialize<S: Serializer>(&self, serializer: S) -> std::result::Result<S::Ok, S::Error> {
+        if self.route.report != ReportKind::Provider {
+            let mut value = self.report_value(false).map_err(serde::ser::Error::custom)?;
+            if let Value::Object(map) = &mut value {
+                map.insert("write_confirmed".into(), Value::Bool(false));
+            }
+            return value.serialize(serializer);
+        }
         let mut out = serializer.serialize_struct("ProviderPreview", 10)?;
         out.serialize_field("provider", &self.provider)?;
         out.serialize_field("imported", &self.imported)?;
@@ -685,6 +1090,69 @@ impl ProviderPreview {
     /// The import time this plan stores.
     pub fn received_at(&self) -> &str {
         &self.received_at
+    }
+
+    /// The route this plan imports.
+    pub fn route(&self) -> &Route {
+        &self.route
+    }
+
+    /// What a keyed route understood, kept, and left out.
+    pub fn report(&self) -> &RouteReport {
+        &self.report
+    }
+
+    /// The record each written or repeated candidate names, in plan order.
+    /// A keyed route lists these as `record_ids` once its plan is written.
+    pub fn record_ids(&self) -> Result<Vec<String>> {
+        self.staging.record_ids()
+    }
+
+    /// The result 2.1.0 printed for a keyed route, without `write_confirmed`.
+    ///
+    /// Before the write, `record_ids` is empty, as the 2.1.0 preview printed
+    /// it. After a confirmed write, pass `written` to list every record the
+    /// import names: new, changed, and unchanged ones, in input order.
+    pub fn report_value(&self, written: bool) -> Result<Value> {
+        let record_ids = if written { self.record_ids()? } else { Vec::new() };
+        let ids = Value::Array(record_ids.into_iter().map(Value::String).collect());
+        let list = |items: &std::collections::BTreeSet<String>| {
+            Value::Array(items.iter().cloned().map(Value::String).collect())
+        };
+        let left_out = Value::Array(self.report.left_out().into_iter().map(Value::String).collect());
+        let mut out = json::Map::new();
+        match &self.route.report {
+            ReportKind::Provider => return Ok(json::to_value(self)),
+            ReportKind::Shared { source } => {
+                out.insert("source".into(), Value::String(source.clone()));
+                out.insert("record_ids".into(), ids);
+                out.insert("understood".into(), list(&self.report.understood));
+                out.insert("preserved".into(), list(&self.report.preserved));
+                out.insert("left_out".into(), left_out);
+            }
+            ReportKind::Pull { source } => {
+                out.insert("source".into(), Value::String(source.clone()));
+                out.insert("record_ids".into(), ids);
+                out.insert("understood".into(), list(&self.report.understood));
+                out.insert("preserved".into(), list(&self.report.preserved));
+                if !self.report.left_out.is_empty() {
+                    out.insert("left_out".into(), left_out);
+                }
+            }
+            ReportKind::Mapped { mapping } => {
+                let mut outcome = json::Map::new();
+                outcome.insert("new".into(), Value::from(self.counts[0]));
+                outcome.insert("changed".into(), Value::from(self.counts[2]));
+                outcome.insert("unchanged".into(), Value::from(self.counts[1]));
+                out.insert("mapping".into(), Value::String(mapping.clone()));
+                out.insert("record_ids".into(), ids);
+                out.insert("outcome".into(), Value::Object(outcome));
+                out.insert("understood".into(), list(&self.report.understood));
+                out.insert("preserved".into(), list(&self.report.preserved));
+                out.insert("left_out".into(), left_out);
+            }
+        }
+        Ok(Value::Object(out))
     }
 
     /// The match key method of every planned key.
@@ -729,12 +1197,32 @@ impl ProviderPreview {
         }
         let layout = store.layout();
         let changed_by = RecordActor::Tool { tool: "ath".into(), tool_version: ATHLETIC_STANDARD_VERSION.to_string() };
+        let correction_basis = match self.route.policy {
+            MatchPolicy::Provider => BecameKnownAtBasis::ProviderImport,
+            MatchPolicy::Keyed(policy) => policy.correction_basis,
+        };
         let database_revision = store.transaction(|tx| {
             let revision = store::database_revision(tx)?;
             if revision != self.destination_database_revision {
                 return Err(Error::stale("Database changed after provider import preview; preview it again"));
             }
             let mut wrote = false;
+            if !self.new_sources.is_empty() {
+                let mut changes = Changes::default();
+                for (record_id, data) in &self.new_sources {
+                    changes.creates.push(NewRecord {
+                        data: RecordData::Source(data.clone()),
+                        extensions: None,
+                        record_id: Some(record_id.clone()),
+                        created_at: Some(self.received_at.clone()),
+                        became_known_at: Some(self.received_at.clone()),
+                        became_known_at_basis: BecameKnownAtBasis::ProviderImport,
+                        changed_by: changed_by.clone(),
+                    });
+                }
+                wrote = true;
+                write::write_in(tx, layout, changes)?;
+            }
             let mut after = None;
             loop {
                 let (page, last) = self.staging.planned_page(
@@ -767,10 +1255,10 @@ impl ProviderPreview {
                             extensions: ExtensionsUpdate::Keep,
                             changed_by: changed_by.clone(),
                             became_known_at: Some(self.received_at.clone()),
-                            became_known_at_basis: BecameKnownAtBasis::ProviderImport,
+                            became_known_at_basis: correction_basis,
                             stale_style: StaleStyle::Preview,
                         }),
-                        Action::Matching | Action::Conflict => {}
+                        Action::Matching | Action::Conflict | Action::Repeat | Action::LeftOut => {}
                     }
                     let owner: Option<String> = tx
                         .prepare_cached(
