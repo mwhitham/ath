@@ -297,10 +297,11 @@ fn minimal_argv(path: &[&'static str], command: &spec::CommandSpec) -> Vec<Strin
 #[test]
 fn unconnected_commands_say_so_and_touch_nothing() {
     let folder = private_folder();
-    let connected: &[&[&str]] = &[&["init"], &["link"], &["correct"], &["delete"]];
+    let connected = athleticstandard::cli::commands::CONNECTED;
     let mut checked = Vec::new();
     for (path, command) in spec::all_commands() {
-        if !command.action || connected.contains(&path.as_slice()) {
+        // `init` runs its checks and questions before its own "not connected" refusal.
+        if !command.action || connected.contains(&path.as_slice()) || path == ["init"] {
             continue;
         }
         let argv = minimal_argv(&path, command);
