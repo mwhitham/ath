@@ -255,7 +255,7 @@ esac
         assert!(calls.contains(&format!("find-generic-password -s {SERVICE} -a vercel -w")));
         assert!(calls.contains(&format!("delete-generic-password -s {SERVICE} -a vercel")));
         let refusal = Keyring::new(&store, &NO_ENV).set(KeyAccount::Garmin, "x").unwrap_err();
-        assert_eq!(refusal.message, "Keychain refused to save the key: User interaction is not allowed..");
+        assert_eq!(refusal.message, "Keychain refused to save the key: User interaction is not allowed.");
     }
 
     #[test]

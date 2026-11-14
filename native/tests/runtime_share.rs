@@ -45,12 +45,12 @@ fn names_the_newest_report_beside_the_database_or_in_the_working_directory() {
     );
 }
 
-/// 2.1.0 writes reports named from the full timestamp, such as
-/// `backtest-2026-01-02T030405678Z.json`, but `share` looks only for
-/// `backtest-YYYY-MM-DDTHHMMSS.json`. That mismatch is kept as found.
 #[test]
-fn the_2_1_0_report_name_mismatch_is_kept() {
+fn the_name_backtest_writes_is_found() {
+    // 2.1.0 looked for a name that no version writes, so `share` never found a
+    // report. 2.1.1 finds the name `ath backtest` writes.
     let dir = tempfile::tempdir().unwrap();
-    touch(&dir.path().join("backtest-2026-01-02T030405678Z.json"), 0);
-    assert_eq!(latest_report(&dir.path().join("athlete.ath.sqlite"), dir.path()).unwrap(), None);
+    let report = dir.path().join("backtest-2026-01-02T030405678Z.json");
+    touch(&report, 0);
+    assert_eq!(latest_report(&dir.path().join("athlete.ath.sqlite"), dir.path()).unwrap(), Some(report));
 }

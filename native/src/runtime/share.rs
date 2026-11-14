@@ -21,21 +21,24 @@ pub struct ShareStatus {
     pub latest_report: Option<PathBuf>,
 }
 
-/// `backtest-YYYY-MM-DDTHHMMSS.json`, the name 2.1.0 looked for.
+/// A backtest report name. `ath backtest` writes `backtest-<date>T<HHMMSSmmm>Z.json`
+/// (the creation time without `:` and `.`). The 2.1.0 lookup expected
+/// `backtest-<date>T<HHMMSS>.json`, which no version writes, so it never found
+/// a report. Both forms are accepted.
 pub fn is_report_name(name: &str) -> bool {
     let Some(stamp) = name.strip_prefix("backtest-").and_then(|rest| rest.strip_suffix(".json")) else {
         return false;
     };
     let bytes = stamp.as_bytes();
     let digits = |range: std::ops::Range<usize>| bytes[range].iter().all(u8::is_ascii_digit);
-    bytes.len() == 17
+    let date = bytes.len() >= 17
         && digits(0..4)
         && bytes[4] == b'-'
         && digits(5..7)
         && bytes[7] == b'-'
         && digits(8..10)
-        && bytes[10] == b'T'
-        && digits(11..17)
+        && bytes[10] == b'T';
+    date && ((bytes.len() == 17 && digits(11..17)) || (bytes.len() == 21 && digits(11..20) && bytes[20] == b'Z'))
 }
 
 /// The newest report beside the athlete file or in `cwd`, by modification time.
@@ -94,7 +97,7 @@ mod tests {
     fn report_names_follow_the_2_1_0_pattern() {
         assert!(is_report_name("backtest-2026-01-02T030405.json"));
         assert!(!is_report_name("backtest-2026-01-02T030405Z.json"));
-        assert!(!is_report_name("backtest-2026-01-02T030405123Z.json"));
+        assert!(is_report_name("backtest-2026-01-02T030405123Z.json"));
         assert!(!is_report_name("backtest-2026-01-02.json"));
     }
 }

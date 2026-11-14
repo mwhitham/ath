@@ -243,6 +243,8 @@ fn run_tool(mut command: Command, input: Option<&str>) -> ToolOutput {
 
 fn tool_detail(output: &ToolOutput) -> String {
     let text = if output.stderr.is_empty() { output.stdout.trim() } else { output.stderr.trim() };
+    // The callers end the sentence with their own period.
+    let text = text.trim_end_matches('.');
     if text.is_empty() {
         "unknown error".to_string()
     } else {

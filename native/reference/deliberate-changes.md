@@ -28,6 +28,23 @@ here; an unlisted difference is a bug.
    stores it, and applies every rule to it. Reason: the two-tier wall must not
    depend on a JavaScript object quirk. Test: `model_rules.rs`.
 
+## Runtime services
+
+5. **`ath share` finds the report `ath backtest` writes.** 2.1.0 looked for
+   `backtest-<date>T<HHMMSS>.json`, but backtest writes
+   `backtest-<date>T<HHMMSSmmm>Z.json`, so share never found a report. Both
+   names are now accepted. Test: `runtime_share.rs`.
+
+6. **A password-store refusal ends with one period.** 2.1.0 printed the tool's
+   own period and then another. Test: `runtime_keyring.rs`.
+
+7. **`ath --update` hands its install plan to the npm launcher.** The native
+   program never runs a package manager itself; it returns a checked program
+   and argument list that the launcher runs after the native process exits.
+   Global npm, pnpm, and bun installs run without the launcher get the exact
+   command to run. Cargo and archive installs get precise instructions. Reason:
+   spec section 11.3. Test: `runtime_update.rs`.
+
 ## Behavior kept on purpose
 
 These look odd but stay, because changing them would change accepted data or
@@ -42,6 +59,10 @@ stored bytes:
   sleep or workout end still reports the order rule.
 - Fixed UTC offsets such as `+05:00` are accepted as a profile timezone, as the
   2.1.0 validator accepted them.
+- On macOS, `ath key set` still passes the key to the `security` tool as a
+  command argument, as 2.1.0 did. Another local process could read it while the
+  tool runs. Changing the call needs a test on a real Keychain, so it is listed
+  as an open question for the owner.
 
 ## Open work
 
