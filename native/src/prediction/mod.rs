@@ -2,17 +2,16 @@
 //! result linking, deterministic grading, and historical replay.
 //!
 //! Network calls are not made here. Prediction and backtest receive a
-//! `ModelClient`, which the runtime module implements.
+//! `runtime::model_client::ModelClient`, which the runtime gateway client
+//! implements and tests replace with a local fake.
 
 pub mod backtest;
 pub mod benchmarks;
-pub mod client;
 pub mod evidence;
 pub mod grade;
 pub mod predict;
 
 pub use backtest::{run_backtest, write_backtest_report, BacktestOptions, BacktestReplay, BacktestReport};
-pub use client::{CompleteRequest, CompleteResponse, Gateway, ModelClient};
 pub use evidence::{build_evidence, resolve_evidence_reference, EvidenceRequest, PredictionEvidence};
 pub use grade::{grade_prediction, plan_prediction_grade, GradePreview, GradeRequest, PredictionGradePlan};
 pub use predict::{request_prediction, write_prediction, PredictionPreview};

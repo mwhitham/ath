@@ -6,11 +6,10 @@ mod common;
 use athleticstandard::json::{self, Value};
 use athleticstandard::model::{EvidenceReference, RecordActor};
 use athleticstandard::prediction::backtest::{run_backtest, BacktestOptions};
-use athleticstandard::prediction::client::{CompleteRequest, CompleteResponse, Gateway};
 use athleticstandard::prediction::evidence::{build_evidence, resolve_evidence_reference, EvidenceRequest};
 use athleticstandard::prediction::grade::{grade_prediction, plan_prediction_grade, GradeRequest};
+use athleticstandard::runtime::model_client::{ModelError, ModelReply, PromptRequest};
 use athleticstandard::store::Store;
-use athleticstandard::Error;
 use common::*;
 
 fn tool() -> RecordActor {
@@ -68,15 +67,22 @@ fn prediction_call(store: &mut Store, call: &str, input: &Value) -> Value {
         }
         "backtest" => {
             let replies = input["replies"].as_object().unwrap().clone();
-            let mut requests: Vec<Value> = Vec::new();
-            let mut client = |request: &CompleteRequest| -> athleticstandard::Result<CompleteResponse> {
-                requests.push(json::to_value(request));
-                match replies.get(&request.model).and_then(Value::as_str) {
+            // The 2.1.0 request named its gateway. The native client is bound
+            // to one gateway, so the recorded request names the one used here.
+            let requests: std::cell::RefCell<Vec<Value>> = std::cell::RefCell::new(Vec::new());
+            let client = |request: &PromptRequest<'_>| -> Result<ModelReply, ModelError> {
+                requests.borrow_mut().push(object(vec![
+                    ("gateway", Value::String("vercel".into())),
+                    ("model", Value::String(request.model.into())),
+                    ("system", Value::String(request.system.into())),
+                    ("user", Value::String(request.user.into())),
+                ]));
+                match replies.get(request.model).and_then(Value::as_str) {
                     Some(reply) if !reply.starts_with("error:") => {
-                        Ok(CompleteResponse { content: reply.to_string(), model: request.model.clone() })
+                        Ok(ModelReply { content: reply.to_string(), model: request.model.to_string() })
                     }
-                    Some(reply) => Err(Error::other(&reply[6..])),
-                    None => Err(Error::other("no reply")),
+                    Some(reply) => Err(ModelError::Transport(reply[6..].to_string())),
+                    None => Err(ModelError::Transport("no reply".into())),
                 }
             };
             let options = BacktestOptions {
@@ -86,10 +92,10 @@ fn prediction_call(store: &mut Store, call: &str, input: &Value) -> Value {
                     .iter()
                     .map(|model| model.as_str().unwrap().to_string())
                     .collect(),
-                gateway: Gateway::Vercel,
                 created_at: opt_string(input, "created_at"),
             };
-            let report = run_backtest(store.connection(), &options, &mut client);
+            let report = run_backtest(store.connection(), &options, &client);
+            let requests = requests.into_inner();
             outcome(
                 report.map(|report| {
                     object(vec![("report", json::to_value(&report)), ("requests", Value::Array(requests))])

@@ -6,11 +6,11 @@
 
 use serde::Serialize;
 
-use super::client::{CompleteRequest, Gateway, ModelClient};
 use super::evidence::PredictionEvidence;
 use crate::error::{Error, Result};
 use crate::json::{self, Map, Value};
 use crate::model::*;
+use crate::runtime::model_client::{ModelClient, PromptRequest};
 use crate::store::{Changes, NewRecord, Store};
 
 /// The agent name the terminal prediction path writes under.
@@ -109,19 +109,17 @@ pub fn prediction_data(
 }
 
 /// Ask a model to predict from evidence and check its reply. Writes nothing.
+///
+/// The client is bound to one gateway; see `runtime::model_client`.
 pub fn request_prediction(
     evidence: &PredictionEvidence,
-    client: &mut dyn ModelClient,
-    gateway: Gateway,
+    client: &dyn ModelClient,
     model: &str,
     authored_at: &str,
 ) -> Result<PredictionPreview> {
-    let response = client.complete(&CompleteRequest {
-        gateway,
-        model: model.to_string(),
-        system: PREDICT_SYSTEM_PROMPT.to_string(),
-        user: evidence.model_text(),
-    })?;
+    let user = evidence.model_text();
+    let response =
+        client.complete(&PromptRequest { model, system: PREDICT_SYSTEM_PROMPT, user: &user, response_shape: None })?;
     let reply = parse_prediction_response(&response.content)?;
     let data = prediction_data(evidence, &response.model, reply, authored_at)?;
     let RecordData::BenchmarkDefinition(definition) = &evidence.benchmark.data else {
