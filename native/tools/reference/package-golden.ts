@@ -573,7 +573,57 @@ async function unrepresentable(): Promise<void> {
   }
 }
 
+// ---- erasure ----------------------------------------------------------------------------
+
+/**
+ * Erasure previews of three demo records, then one erasure with a fixed time.
+ * Attachment paths are kept relative to the database folder.
+ */
+async function erasure(): Promise<void> {
+  const directory = temporary("ath-golden-erase-");
+  const databasePath = join(directory, "athlete.ath.sqlite");
+  copyFileSync(join(root, "examples", "demo-athlete", "athlete.ath.sqlite"), databasePath);
+  mkdirSync(join(directory, "attachments"));
+  copyFileSync(
+    join(root, "examples", "demo-athlete", "attachments", DEMO_ATTACHMENT),
+    join(directory, "attachments", DEMO_ATTACHMENT),
+  );
+  const database = await db.openDatabase(databasePath, quiet);
+  const previews: Record<string, unknown> = {};
+  let attachmentPreview: unknown;
+  for (const recordId of [
+    "01890f3e-e7d3-7cc0-88c8-00000000000b",
+    "01890f3e-e7d3-7cc0-88c8-00000000000e",
+    "01890f3e-e7d3-7cc0-88c8-000000000003",
+  ]) {
+    const preview = await db.previewRecordErasure(database, recordId, 1);
+    if (recordId.endsWith("0e")) {
+      attachmentPreview = preview;
+    }
+    previews[recordId] = {
+      ...preview,
+      attachments: (preview.attachments as Array<{ path: string }>).map((attachment) => ({
+        ...attachment,
+        path: attachment.path.slice(directory.length + 1),
+      })),
+    };
+  }
+  const erased = await db.eraseRecord(database, {
+    preview: attachmentPreview,
+    reason_code: "recorded_in_error",
+    erased_at: EXPORTED_AT,
+  });
+  database.close();
+  const target = join(out, "erasure");
+  rmSync(target, { recursive: true, force: true });
+  mkdirSync(target, { recursive: true });
+  writeFileSync(join(target, "previews.json"), `${JSON.stringify(previews, null, 2)}\n`);
+  writeFileSync(join(target, "erased.json"), `${JSON.stringify(erased, null, 2)}\n`);
+  writeFileSync(join(target, "database-rows.txt"), dumpRows(databasePath));
+}
+
 mkdirSync(out, { recursive: true });
+await erasure();
 await demo();
 await version200();
 await manySamples();

@@ -197,3 +197,82 @@ pub fn assert_same_package(actual: &BTreeMap<String, Vec<u8>>, expected: &BTreeM
         }
     }
 }
+
+pub const TABLES: &[&str] = &[
+    "records",
+    "record_revisions",
+    "record_deletions",
+    "record_erasure_markers",
+    "record_import_keys",
+    "athlete_profile",
+    "sources",
+    "source_devices",
+    "point_measurements",
+    "point_measurement_calculations",
+    "point_measurement_calculation_inputs",
+    "measurement_samples",
+    "sleep_sessions",
+    "workout_sessions",
+    "workout_session_segments",
+    "workout_route_points",
+    "benchmark_results",
+    "benchmark_result_segments",
+    "provider_scores",
+    "provider_summaries",
+    "provider_reporting_periods",
+    "athlete_reports",
+    "nutrition_entries",
+    "reported_nutrition_items",
+    "attachments",
+    "record_attachment_links",
+    "benchmark_definitions",
+    "predictions",
+    "prediction_result_links",
+    "prediction_grades",
+    "prediction_error_analyses",
+    "prediction_error_causes",
+    "training_plans",
+    "planned_sessions",
+    "planned_session_blocks",
+    "coaching_notes",
+    "saved_training_reviews",
+    "goals",
+    "nutrition_model_interpretations",
+    "authored_record_evidence",
+];
+
+/// Every athlete-table row as a JSON array, sorted, as the generator dumps them.
+pub fn dump_rows(path: &Path) -> String {
+    let connection = rusqlite::Connection::open_with_flags(path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+    let mut out = String::new();
+    for table in TABLES {
+        out.push_str(&format!("## {table}\n"));
+        let mut statement = connection.prepare(&format!("SELECT * FROM {table}")).unwrap();
+        let columns = statement.column_count();
+        let mut rows: Vec<String> = statement
+            .query_map([], |row| {
+                let mut values = Vec::new();
+                for index in 0..columns {
+                    values.push(match row.get::<_, rusqlite::types::Value>(index)? {
+                        rusqlite::types::Value::Null => athleticstandard::json::Value::Null,
+                        rusqlite::types::Value::Integer(number) => athleticstandard::json::Value::from(number),
+                        rusqlite::types::Value::Real(number) => athleticstandard::json::Value::from(number),
+                        rusqlite::types::Value::Text(text) => athleticstandard::json::Value::String(text),
+                        rusqlite::types::Value::Blob(_) => {
+                            panic!("athlete tables hold no blobs")
+                        }
+                    });
+                }
+                Ok(athleticstandard::json::to_string(&athleticstandard::json::Value::Array(values)))
+            })
+            .unwrap()
+            .map(Result::unwrap)
+            .collect();
+        rows.sort_by(|left, right| athleticstandard::json::compare_utf16(left, right));
+        for row in rows {
+            out.push_str(&row);
+            out.push('\n');
+        }
+    }
+    out
+}
