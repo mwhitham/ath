@@ -1,0 +1,13 @@
+{
+  "message": "package has unknown fields or records that v1 cannot represent: records.0.current_revision: A complete package needs every revision through current_revision",
+  "source_database_id": "01890f3e-e7d3-7cc0-88c8-000000000001",
+  "source_database_revision": 3,
+  "unrepresentable_records": [
+    "records.0.current_revision: A complete package needs every revision through current_revision",
+    "records.0.current_revision: Too small: expected number to be >0",
+    "records.0.data: The current record must equal its current retained revision"
+  ],
+  "unknown_fields": [
+    "future_package_field"
+  ]
+}
