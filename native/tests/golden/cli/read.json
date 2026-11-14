@@ -7,6 +7,7 @@
     "SQL schema steps 4 and 5 in \"sql_schema_version\" are replaced with <step>; each program writes its own current step.",
     "UTC times with milliseconds, and the compact forms in backup and report names, that fall within the scenario's run are replaced with <now>.",
     "UUIDv7 values whose time falls within the scenario's run are new IDs. Each is replaced with <id-N>, numbered by first appearance in the scenario.",
+    "Package file hashes in an export manifest are replaced with <sha256>: package files name the program version. Package bytes are compared in the package golden tests.",
     "Native output only: migration step 5 (migrations/005-version-2-1-1.sql) is removed from planned steps, and a source, target, or required step 5 reads 4."
   ],
   "environment": {

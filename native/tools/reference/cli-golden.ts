@@ -56,9 +56,11 @@ const ATTACHMENTS: Partial<Record<FixtureName, string>> = {
   v200: "tests/fixtures/version-2-0-0/package/attachments",
 };
 
-/** Provider folders a scenario can copy, relative to the reference checkout. */
-const PROVIDER_FILES = {
+/** Approved synthetic files and folders a scenario can copy into its folder. */
+const COPYABLE = {
   wearable_csv: "tests/fixtures/exports/whoop",
+  package_2_0_0: "tests/fixtures/version-2-0-0/package",
+  png: "examples/demo-athlete/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png",
 } as const;
 
 interface Step {
@@ -77,8 +79,10 @@ interface Scenario {
   current?: boolean;
   /** Folders to create in the working folder first. */
   dirs?: string[];
-  /** Provider folders to copy: destination name to `PROVIDER_FILES` key. */
-  provider?: Record<string, keyof typeof PROVIDER_FILES>;
+  /** Files and folders to copy: destination name to `COPYABLE` key. */
+  copy?: Record<string, keyof typeof COPYABLE>;
+  /** Text files to write: name to contents. */
+  write_files?: Record<string, string>;
   /** Statements run on the database before the steps, with foreign keys off. */
   sql?: string[];
   steps: Step[];
@@ -90,6 +94,23 @@ const RESULT = "01890f3e-e7d3-7cc0-88c8-00000000000b";
 const PREDICTION = "01890f3e-e7d3-7cc0-88c8-000000000010";
 const WORKOUT = "01890f3e-e7d3-7cc0-88c8-00000000000a";
 const MISSING = "01890f3e-e7d3-7cc0-88c8-0000000000ff";
+const PROFILE = "01890f3e-e7d3-7cc0-88c8-000000000002";
+const NUTRITION = "01890f3e-e7d3-7cc0-88c8-00000000000f";
+const profile = (name: string) =>
+  JSON.stringify({ name, birth_year: 1990, sex: "female", display_units: "metric", default_time_zone: "America/Chicago" });
+const NUTRITION_DATA = JSON.stringify({
+  reported_at: "2026-08-09T18:00:00.000Z",
+  input_reported_at: {
+    timestamp_text: "2026-08-09T18:00:00.000Z",
+    utc_offset_text: "Z",
+    utc_offset_meaning: "documented_recording_offset",
+    timestamp_basis: "source_instant",
+  },
+  reported_via: "photo",
+  athlete_description: "Chicken, rice, and vegetables, second photo",
+  reported_items: [{ food_description: "chicken and rice bowl", amount: 1, amount_unit: "bowl" }],
+  attachment_ids: ["01890f3e-e7d3-7cc0-88c8-00000000000e"],
+});
 const KEY = { AI_GATEWAY_API_KEY: "test-vercel-key" };
 const BOTH_KEYS = { AI_GATEWAY_API_KEY: "test-vercel-key", OPENROUTER_API_KEY: "test-openrouter-key" };
 const DAMAGE = [
@@ -449,7 +470,7 @@ const GROUPS: Record<string, Scenario[]> = {
     {
       name: "provider_import_new_database",
       fixture: "none",
-      provider: { "provider-data": "wearable_csv" },
+      copy: { "provider-data": "wearable_csv" },
       steps: [
         step(["init", "--yes", "--no-skill"]),
         step(["import", "provider-data", "--json"]),
@@ -466,8 +487,106 @@ const GROUPS: Record<string, Scenario[]> = {
       name: "provider_import_existing_records",
       fixture: "demo",
       current: true,
-      provider: { "provider-data": "wearable_csv" },
+      copy: { "provider-data": "wearable_csv" },
       steps: [step(["import", "provider-data"]), step(["import", "provider-data", "--yes"]), step(["check"])],
+    },
+  ],
+  package: [
+    {
+      name: "export_and_validate",
+      fixture: "demo",
+      current: true,
+      steps: [
+        step(["export", "pkg-one"]),
+        step(["export", "pkg-one"]),
+        step(["export", "pkg-two", "--json", "--exported-at", "2026-09-01T00:00:00.000Z"]),
+        step(["export", "pkg-three", "--exported-at", "yesterday"]),
+        step(["check", "--validate-export"]),
+        step(["check", "--validate-export", "--json"]),
+        step(["import", "pkg-one"]),
+      ],
+    },
+    {
+      name: "restore_version_2_0_0_package",
+      fixture: "none",
+      copy: { "pkg-two": "package_2_0_0" },
+      steps: [
+        step(["init", "--yes", "--empty", "--no-skill"]),
+        step(["import", "pkg-two", "--json"]),
+        step(["import", "pkg-two"]),
+        step(["import", "pkg-two", "--yes", "--json"]),
+        step(["import", "pkg-two", "--yes"]),
+        step(["stats"]),
+        step(["import", "pkg-two"]),
+        step(["import", "pkg-two/athlete.ath.json", "--json"]),
+        step(["check"]),
+      ],
+    },
+    {
+      name: "package_conflicts",
+      fixture: "demo",
+      current: true,
+      steps: [
+        step(["init", "--yes", "--empty", "--no-skill", "--file", "copy.ath.sqlite"]),
+        step(["export", "base"]),
+        step(["import", "base", "--file", "copy.ath.sqlite", "--yes"]),
+        step(["correct", PROFILE, "--revision", "1", "--data", profile("Copy Name"), "--yes", "--file", "copy.ath.sqlite"]),
+        step(["export", "changed", "--file", "copy.ath.sqlite"]),
+        step(["correct", PROFILE, "--revision", "1", "--data", profile("Local Name"), "--yes"]),
+        step(["conflicts", "show"]),
+        step(["import", "changed", "--json"]),
+        step(["import", "changed"]),
+        step(["conflicts", "show"]),
+        step(["conflicts", "show", PROFILE, "--json"]),
+        step(["conflicts", "show", MISSING]),
+        step(["import", "changed", "--yes"]),
+        step(["conflicts", "resolve", PROFILE, "--choice", "bogus"]),
+        step(["conflicts", "resolve", PROFILE, "--choice", "corrected"]),
+        step(["conflicts", "resolve", PROFILE, "--choice", "local", "--data", "{}"]),
+        step(["conflicts", "resolve", PROFILE, "--choice", "imported", "--json"]),
+        step(["conflicts", "resolve", PROFILE, "--choice", "corrected", "--data", profile("Merged Name")]),
+        step(["conflicts", "show", PROFILE]),
+        step(["import", "changed", "--yes"]),
+        step(["records", "show", PROFILE, "--history"]),
+        step(["conflicts", "show"]),
+      ],
+    },
+    {
+      name: "erase",
+      fixture: "demo",
+      current: true,
+      steps: [
+        step(["erase", NUTRITION, "--revision", "1", "--json", "--yes", "--confirm-erasure", NUTRITION]),
+        step(["erase", NUTRITION, "--revision", "1"]),
+        step(["erase", NUTRITION, "--revision", "1", "--dry-run"]),
+        step(["erase", NUTRITION, "--revision", "1", "--yes"]),
+        step(["erase", NUTRITION, "--revision", "1", "--yes", "--confirm-erasure", "wrong"]),
+        step(["erase", NUTRITION, "--revision", "2", "--json"]),
+        step(["erase", NUTRITION, "--revision", "1", "--reason", "bogus"]),
+        step(["erase", NUTRITION, "--revision", "1", "--reason", "recorded_in_error", "--yes", "--confirm-erasure", NUTRITION]),
+        step(["records", "show", NUTRITION]),
+        step(["check"]),
+        step(["stats"]),
+      ],
+    },
+    {
+      name: "attachments",
+      fixture: "demo",
+      current: true,
+      copy: { "photo.png": "png" },
+      write_files: { "notes.txt": "not an image\n" },
+      steps: [
+        step(["log", "--json", "--attachment", "photo.png", "Meal", "photo"]),
+        step(["log", "--yes", "--attachment", "photo.png", "--attachment", "photo.png", "Meal", "photo"]),
+        step(["log", "--yes", "--attachment", "notes.txt", "note"]),
+        step(["log", "--yes", "--attachment", "photo.png", "RMSSD", "61", "ms"]),
+        step(["correct", NUTRITION, "--revision", "1", "--data", NUTRITION_DATA, "--attachment", "photo.png", "--json"]),
+        step(["correct", NUTRITION, "--revision", "1", "--data", NUTRITION_DATA, "--attachment", "photo.png", "--yes"]),
+        step(["correct", RESULT, "--revision", "1", "--data", "{}", "--attachment", "photo.png"]),
+        step(["correct", NUTRITION, "--revision", "2", "--data", "5", "--attachment", "photo.png"]),
+        step(["records", "show", NUTRITION, "--links", "--json"]),
+        step(["check"]),
+      ],
     },
   ],
 };
@@ -481,6 +600,7 @@ const NORMALIZATION = [
   'SQL schema steps 4 and 5 in "sql_schema_version" are replaced with <step>; each program writes its own current step.',
   "UTC times with milliseconds, and the compact forms in backup and report names, that fall within the scenario's run are replaced with <now>.",
   "UUIDv7 values whose time falls within the scenario's run are new IDs. Each is replaced with <id-N>, numbered by first appearance in the scenario.",
+  "Package file hashes in an export manifest are replaced with <sha256>: package files name the program version. Package bytes are compared in the package golden tests.",
   "Native output only: migration step 5 (migrations/005-version-2-1-1.sql) is removed from planned steps, and a source, target, or required step 5 reads 4.",
 ];
 
@@ -503,6 +623,7 @@ function normalize(text: string, work: string, window: Window): string {
   let out = text.split(work).join("<work>");
   out = out.split("2.1.0").join("<version>").split("2.1.1").join("<version>");
   out = out.replace(/"sql_schema_version": [45]\b/g, '"sql_schema_version": <step>');
+  out = out.replace(/("file": "[^"\n]*",\n\s*"sha256": ")[0-9a-f]{64}"/g, '$1<sha256>"');
   out = out.replace(ISO, (match) => (within(window, Date.parse(match)) ? "<now>" : match));
   out = out.replace(COMPACT, (match) => {
     const iso = `${match.slice(0, 4)}-${match.slice(4, 6)}-${match.slice(6, 8)}T${match.slice(9, 11)}:${match.slice(11, 13)}:${match.slice(13)}`;
@@ -628,9 +749,10 @@ async function migrateToCurrent(path: string, backupFolder: string): Promise<voi
 
 function prepare(scenario: Scenario, work: string): void {
   for (const folder of scenario.dirs ?? []) mkdirSync(join(work, folder), { recursive: true });
-  for (const [name, key] of Object.entries(scenario.provider ?? {})) {
-    cpSync(join(reference, PROVIDER_FILES[key]), join(work, name), { recursive: true });
+  for (const [name, key] of Object.entries(scenario.copy ?? {})) {
+    cpSync(join(reference, COPYABLE[key]), join(work, name), { recursive: true });
   }
+  for (const [name, text] of Object.entries(scenario.write_files ?? {})) writeFileSync(join(work, name), text);
   if (scenario.fixture === "none") return;
   // Owner-only, as `ath init` creates it, so no permission warning is printed.
   copyFileSync(join(reference, FIXTURES[scenario.fixture]), join(work, "athlete.ath.sqlite"));

@@ -1,0 +1,733 @@
+{
+  "generated_by": "native/tools/reference/cli-golden.ts",
+  "reference_version": "2.1.0",
+  "normalization": [
+    "The scenario's working folder is replaced with <work>.",
+    "The program versions 2.1.0 and 2.1.1 are replaced with <version> (D152, D208).",
+    "SQL schema steps 4 and 5 in \"sql_schema_version\" are replaced with <step>; each program writes its own current step.",
+    "UTC times with milliseconds, and the compact forms in backup and report names, that fall within the scenario's run are replaced with <now>.",
+    "UUIDv7 values whose time falls within the scenario's run are new IDs. Each is replaced with <id-N>, numbered by first appearance in the scenario.",
+    "Package file hashes in an export manifest are replaced with <sha256>: package files name the program version. Package bytes are compared in the package golden tests.",
+    "Native output only: migration step 5 (migrations/005-version-2-1-1.sql) is removed from planned steps, and a source, target, or required step 5 reads 4."
+  ],
+  "environment": {
+    "PATH": "<fake password-store tools>:/usr/bin:/bin",
+    "TZ": "America/Chicago",
+    "ATH_GATEWAY_BASE_URL": "<local test server>"
+  },
+  "scenarios": [
+    {
+      "name": "export_and_validate",
+      "fixture": "demo",
+      "current": true,
+      "steps": [
+        {
+          "argv": [
+            "export",
+            "pkg-one"
+          ],
+          "status": 0,
+          "stdout": "exported database revision 3 to <work>/pkg-one\n  athlete.ath.json\n  export-manifest.json\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "export",
+            "pkg-one"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: export directory already exists: <work>/pkg-one\n"
+        },
+        {
+          "argv": [
+            "export",
+            "pkg-two",
+            "--json",
+            "--exported-at",
+            "2026-09-01T00:00:00.000Z"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"directory\": \"<work>/pkg-two\",\n  \"database_id\": \"01890f3e-e7d3-7cc0-88c8-000000000001\",\n  \"database_revision\": 3,\n  \"manifest\": {\n    \"athleticstandard_version\": \"<version>\",\n    \"source_database_id\": \"01890f3e-e7d3-7cc0-88c8-000000000001\",\n    \"database_revision\": 3,\n    \"exported_at\": \"2026-09-01T00:00:00.000Z\",\n    \"files\": [\n      {\n        \"file\": \"athlete.ath.json\",\n        \"sha256\": \"<sha256>\",\n        \"byte_count\": 53638\n      },\n      {\n        \"file\": \"attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png\",\n        \"sha256\": \"<sha256>\",\n        \"byte_count\": 68\n      },\n      {\n        \"file\": \"series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json\",\n        \"sha256\": \"<sha256>\",\n        \"byte_count\": 2512\n      }\n    ],\n    \"record_counts\": [\n      {\n        \"record_type\": \"athlete_profile\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"source\",\n        \"current_record_count\": 2,\n        \"revision_count\": 2,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"source_device\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"point_measurement\",\n        \"current_record_count\": 1,\n        \"revision_count\": 2,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"measurement_sample\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"sleep_session\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"workout_session\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"benchmark_result\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"provider_summary\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"provider_score\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"athlete_report\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 1,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"nutrition_entry\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"attachment\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"benchmark_definition\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"prediction\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"prediction_result_link\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"prediction_grade\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"prediction_error_analysis\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"training_plan\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"planned_session\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"coaching_note\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"saved_training_review\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"goal\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      },\n      {\n        \"record_type\": \"nutrition_model_interpretation\",\n        \"current_record_count\": 1,\n        \"revision_count\": 1,\n        \"deletion_count\": 0,\n        \"import_key_count\": 0\n      }\n    ],\n    \"erasure_marker_count\": 0\n  }\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "export",
+            "pkg-three",
+            "--exported-at",
+            "yesterday"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: record: Invalid ISO datetime\n"
+        },
+        {
+          "argv": [
+            "check",
+            "--validate-export"
+          ],
+          "status": 0,
+          "stdout": "<work>/athlete.ath.sqlite: valid Athletic Standard <version> database (25 records)\nok  export: complete JSON package validated\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "check",
+            "--validate-export",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"metadata\": {\n    \"application_marker\": \"ATH1\",\n    \"sql_schema_version\": <step>,\n    \"athleticstandard_version\": \"<version>\",\n    \"database_id\": \"01890f3e-e7d3-7cc0-88c8-000000000001\",\n    \"created_at\": \"2026-08-09T12:00:00.000Z\"\n  },\n  \"valid\": true,\n  \"record_count\": 25,\n  \"issues\": [],\n  \"export_validated\": true\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "pkg-one"
+          ],
+          "status": 0,
+          "stdout": "merge preview\n  source database:      01890f3e-e7d3-7cc0-88c8-000000000001 revision 3\n  destination database: 01890f3e-e7d3-7cc0-88c8-000000000001 revision 3\n  new records:          0\n  matching records:     25\n  changed records:      0\n  conflicts:            0\n  unrepresentable:       0\n  unknown fields:        0\nnothing written; pass --yes after reviewing this preview\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "restore_version_2_0_0_package",
+      "fixture": "none",
+      "copy": {
+        "pkg-two": "package_2_0_0"
+      },
+      "steps": [
+        {
+          "argv": [
+            "init",
+            "--yes",
+            "--empty",
+            "--no-skill"
+          ],
+          "status": 0,
+          "stdout": "created <work>/athlete.ath.sqlite\n  empty database, ready for a v1 package restore\n  next: `ath import <export-file>` to load device data\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "pkg-two",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"source_database_id\": \"01890f3e-e7d3-7cc0-88c8-000000000001\",\n  \"source_database_revision\": 3,\n  \"destination_database_id\": \"<id-1>\",\n  \"destination_database_revision\": 0,\n  \"restore\": true,\n  \"new_records\": [\n    \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000003\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000004\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000005\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000006\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000007\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000008\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000009\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000a\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000b\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000c\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000d\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000e\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000f\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000010\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000011\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000012\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000013\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000014\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000015\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000016\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000017\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000018\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000019\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000001a\"\n  ],\n  \"new_record_count\": 25,\n  \"matching_records\": [],\n  \"matching_record_count\": 0,\n  \"changed_records\": [],\n  \"changed_record_count\": 0,\n  \"record_lists_truncated\": false,\n  \"conflicts\": [],\n  \"unrepresentable_records\": [],\n  \"unknown_fields\": [],\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "pkg-two"
+          ],
+          "status": 0,
+          "stdout": "restore preview\n  source database:      01890f3e-e7d3-7cc0-88c8-000000000001 revision 3\n  destination database: <id-1> revision 0\n  new records:          25\n  matching records:     0\n  changed records:      0\n  conflicts:            0\n  unrepresentable:       0\n  unknown fields:        0\nnothing written; pass --yes after reviewing this preview\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "pkg-two",
+            "--yes",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"source_database_id\": \"01890f3e-e7d3-7cc0-88c8-000000000001\",\n  \"source_database_revision\": 3,\n  \"destination_database_id\": \"<id-1>\",\n  \"destination_database_revision\": 0,\n  \"restore\": true,\n  \"new_records\": [\n    \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000003\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000004\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000005\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000006\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000007\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000008\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000009\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000a\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000b\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000c\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000d\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000e\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000f\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000010\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000011\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000012\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000013\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000014\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000015\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000016\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000017\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000018\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000019\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000001a\"\n  ],\n  \"new_record_count\": 25,\n  \"matching_records\": [],\n  \"matching_record_count\": 0,\n  \"changed_records\": [],\n  \"changed_record_count\": 0,\n  \"record_lists_truncated\": false,\n  \"conflicts\": [],\n  \"unrepresentable_records\": [],\n  \"unknown_fields\": [],\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "pkg-two",
+            "--yes"
+          ],
+          "status": 0,
+          "stdout": "restore preview\n  source database:      01890f3e-e7d3-7cc0-88c8-000000000001 revision 3\n  destination database: <id-1> revision 0\n  new records:          25\n  matching records:     0\n  changed records:      0\n  conflicts:            0\n  unrepresentable:       0\n  unknown fields:        0\nrestored package at database revision 3\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "stats"
+          ],
+          "status": 0,
+          "stdout": "Demo Athlete · Athletic Standard <version>\ndatabase revision: 3\n\ncurrent records: 24\n  athlete_profile: 1\n  attachment: 1\n  benchmark_definition: 1\n  benchmark_result: 1\n  coaching_note: 1\n  goal: 1\n  measurement_sample: 1\n  nutrition_entry: 1\n  nutrition_model_interpretation: 1\n  planned_session: 1\n  point_measurement: 1\n  prediction: 1\n  prediction_error_analysis: 1\n  prediction_grade: 1\n  prediction_result_link: 1\n  provider_score: 1\n  provider_summary: 1\n  saved_training_review: 1\n  sleep_session: 1\n  source: 2\n  source_device: 1\n  training_plan: 1\n  workout_session: 1\n\nsources: 2\n  01890f3e-e7d3-7cc0-88c8-000000000003: WHOOP via whoop_csv (wearable) — 6 records, 2026-08-09 → 2026-08-10\n  01890f3e-e7d3-7cc0-88c8-000000000004: ath via manual_entry (manual) — 1 record, 2026-08-10 → 2026-08-10\n\n90-day device baselines (each source stays separate):\n  01890f3e-e7d3-7cc0-88c8-000000000003 hrv_rmssd: 64ms (sd 0, n=1, 2026-08-09 → 2026-08-09)\n\nsample series:\n  01890f3e-e7d3-7cc0-88c8-000000000003 heart_rate: 1 samples, 2026-08-09T11:12:00.000Z → 2026-08-09T11:12:00.000Z\n\nbenchmarks defined: 1 · results recorded: 1\npredictions: 1 · grades: 1\n  ath-reference-agent running fixture-model: 1\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "pkg-two"
+          ],
+          "status": 0,
+          "stdout": "merge preview\n  source database:      01890f3e-e7d3-7cc0-88c8-000000000001 revision 3\n  destination database: 01890f3e-e7d3-7cc0-88c8-000000000001 revision 3\n  new records:          0\n  matching records:     25\n  changed records:      0\n  conflicts:            0\n  unrepresentable:       0\n  unknown fields:        0\nnothing written; pass --yes after reviewing this preview\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "pkg-two/athlete.ath.json",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"source_database_id\": \"01890f3e-e7d3-7cc0-88c8-000000000001\",\n  \"source_database_revision\": 3,\n  \"destination_database_id\": \"01890f3e-e7d3-7cc0-88c8-000000000001\",\n  \"destination_database_revision\": 3,\n  \"restore\": false,\n  \"new_records\": [],\n  \"new_record_count\": 0,\n  \"matching_records\": [\n    \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000003\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000004\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000005\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000006\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000007\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000008\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000009\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000a\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000b\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000c\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000d\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000e\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000f\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000010\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000011\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000012\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000013\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000014\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000015\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000016\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000017\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000018\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000019\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000001a\"\n  ],\n  \"matching_record_count\": 25,\n  \"changed_records\": [],\n  \"changed_record_count\": 0,\n  \"record_lists_truncated\": false,\n  \"conflicts\": [],\n  \"unrepresentable_records\": [],\n  \"unknown_fields\": [],\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "check"
+          ],
+          "status": 0,
+          "stdout": "<work>/athlete.ath.sqlite: valid Athletic Standard <version> database (25 records)\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "package_conflicts",
+      "fixture": "demo",
+      "current": true,
+      "steps": [
+        {
+          "argv": [
+            "init",
+            "--yes",
+            "--empty",
+            "--no-skill",
+            "--file",
+            "copy.ath.sqlite"
+          ],
+          "status": 0,
+          "stdout": "created <work>/copy.ath.sqlite\n  empty database, ready for a v1 package restore\n  next: `ath import <export-file>` to load device data\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "export",
+            "base"
+          ],
+          "status": 0,
+          "stdout": "exported database revision 3 to <work>/base\n  athlete.ath.json\n  export-manifest.json\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "base",
+            "--file",
+            "copy.ath.sqlite",
+            "--yes"
+          ],
+          "status": 0,
+          "stdout": "restore preview\n  source database:      01890f3e-e7d3-7cc0-88c8-000000000001 revision 3\n  destination database: <id-1> revision 0\n  new records:          25\n  matching records:     0\n  changed records:      0\n  conflicts:            0\n  unrepresentable:       0\n  unknown fields:        0\nrestored package at database revision 3\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "correct",
+            "01890f3e-e7d3-7cc0-88c8-000000000002",
+            "--revision",
+            "1",
+            "--data",
+            "{\"name\":\"Copy Name\",\"birth_year\":1990,\"sex\":\"female\",\"display_units\":\"metric\",\"default_time_zone\":\"America/Chicago\"}",
+            "--yes",
+            "--file",
+            "copy.ath.sqlite"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/copy.ath.sqlite\",\n  \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n  \"record_type\": \"athlete_profile\",\n  \"expected_revision\": 1,\n  \"current_revision\": 1,\n  \"before\": {\n    \"name\": \"Demo Athlete\",\n    \"birth_year\": 1990,\n    \"sex\": \"female\",\n    \"display_units\": \"metric\",\n    \"default_time_zone\": \"America/Chicago\"\n  },\n  \"after\": {\n    \"name\": \"Copy Name\",\n    \"birth_year\": 1990,\n    \"sex\": \"female\",\n    \"display_units\": \"metric\",\n    \"default_time_zone\": \"America/Chicago\"\n  },\n  \"attachments\": [],\n  \"write_confirmed\": false\n}\ncorrected 01890f3e-e7d3-7cc0-88c8-000000000002 to revision 2 (database revision 4)\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "export",
+            "changed",
+            "--file",
+            "copy.ath.sqlite"
+          ],
+          "status": 0,
+          "stdout": "exported database revision 4 to <work>/changed\n  athlete.ath.json\n  export-manifest.json\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "correct",
+            "01890f3e-e7d3-7cc0-88c8-000000000002",
+            "--revision",
+            "1",
+            "--data",
+            "{\"name\":\"Local Name\",\"birth_year\":1990,\"sex\":\"female\",\"display_units\":\"metric\",\"default_time_zone\":\"America/Chicago\"}",
+            "--yes"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n  \"record_type\": \"athlete_profile\",\n  \"expected_revision\": 1,\n  \"current_revision\": 1,\n  \"before\": {\n    \"name\": \"Demo Athlete\",\n    \"birth_year\": 1990,\n    \"sex\": \"female\",\n    \"display_units\": \"metric\",\n    \"default_time_zone\": \"America/Chicago\"\n  },\n  \"after\": {\n    \"name\": \"Local Name\",\n    \"birth_year\": 1990,\n    \"sex\": \"female\",\n    \"display_units\": \"metric\",\n    \"default_time_zone\": \"America/Chicago\"\n  },\n  \"attachments\": [],\n  \"write_confirmed\": false\n}\ncorrected 01890f3e-e7d3-7cc0-88c8-000000000002 to revision 2 (database revision 4)\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "conflicts",
+            "show"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: ENOENT: no such file or directory, lstat '<work>/athlete.ath.sqlite.import-conflicts.json'\n"
+        },
+        {
+          "argv": [
+            "import",
+            "changed",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"source_database_id\": \"01890f3e-e7d3-7cc0-88c8-000000000001\",\n  \"source_database_revision\": 4,\n  \"destination_database_id\": \"01890f3e-e7d3-7cc0-88c8-000000000001\",\n  \"destination_database_revision\": 4,\n  \"restore\": false,\n  \"new_records\": [],\n  \"new_record_count\": 0,\n  \"matching_records\": [\n    \"01890f3e-e7d3-7cc0-88c8-000000000003\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000004\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000005\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000006\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000007\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000008\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000009\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000a\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000b\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000c\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000d\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000e\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000000f\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000010\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000011\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000012\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000013\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000014\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000015\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000016\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000017\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000018\",\n    \"01890f3e-e7d3-7cc0-88c8-000000000019\",\n    \"01890f3e-e7d3-7cc0-88c8-00000000001a\"\n  ],\n  \"matching_record_count\": 24,\n  \"changed_records\": [],\n  \"changed_record_count\": 0,\n  \"record_lists_truncated\": false,\n  \"conflicts\": [\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n      \"message\": \"record revision history differs\"\n    }\n  ],\n  \"unrepresentable_records\": [],\n  \"unknown_fields\": [],\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "changed"
+          ],
+          "status": 0,
+          "stdout": "merge preview\n  source database:      01890f3e-e7d3-7cc0-88c8-000000000001 revision 4\n  destination database: 01890f3e-e7d3-7cc0-88c8-000000000001 revision 4\n  new records:          0\n  matching records:     24\n  changed records:      0\n  conflicts:            1\n  unrepresentable:       0\n  unknown fields:        0\n    01890f3e-e7d3-7cc0-88c8-000000000002: record revision history differs\nreview with ath conflicts show, then record each choice with ath conflicts resolve\nnothing written; pass --yes after reviewing this preview\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "conflicts",
+            "show"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"source_path\": \"<work>/changed\",\n  \"source_database_revision\": 4,\n  \"destination_database_revision\": 4,\n  \"conflicts\": [\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n      \"message\": \"record revision history differs\",\n      \"local\": {\n        \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n        \"created_at\": \"2026-08-09T12:00:00.000Z\",\n        \"current_revision\": 2,\n        \"is_deleted\": false,\n        \"record_type\": \"athlete_profile\",\n        \"data\": {\n          \"name\": \"Local Name\",\n          \"birth_year\": 1990,\n          \"sex\": \"female\",\n          \"display_units\": \"metric\",\n          \"default_time_zone\": \"America/Chicago\"\n        }\n      },\n      \"imported\": {\n        \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n        \"created_at\": \"2026-08-09T12:00:00.000Z\",\n        \"current_revision\": 2,\n        \"is_deleted\": false,\n        \"record_type\": \"athlete_profile\",\n        \"data\": {\n          \"name\": \"Copy Name\",\n          \"birth_year\": 1990,\n          \"sex\": \"female\",\n          \"display_units\": \"metric\",\n          \"default_time_zone\": \"America/Chicago\"\n        }\n      },\n      \"resolution\": null\n    }\n  ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "conflicts",
+            "show",
+            "01890f3e-e7d3-7cc0-88c8-000000000002",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"source_path\": \"<work>/changed\",\n  \"source_database_revision\": 4,\n  \"destination_database_revision\": 4,\n  \"conflicts\": [\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n      \"message\": \"record revision history differs\",\n      \"local\": {\n        \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n        \"created_at\": \"2026-08-09T12:00:00.000Z\",\n        \"current_revision\": 2,\n        \"is_deleted\": false,\n        \"record_type\": \"athlete_profile\",\n        \"data\": {\n          \"name\": \"Local Name\",\n          \"birth_year\": 1990,\n          \"sex\": \"female\",\n          \"display_units\": \"metric\",\n          \"default_time_zone\": \"America/Chicago\"\n        }\n      },\n      \"imported\": {\n        \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n        \"created_at\": \"2026-08-09T12:00:00.000Z\",\n        \"current_revision\": 2,\n        \"is_deleted\": false,\n        \"record_type\": \"athlete_profile\",\n        \"data\": {\n          \"name\": \"Copy Name\",\n          \"birth_year\": 1990,\n          \"sex\": \"female\",\n          \"display_units\": \"metric\",\n          \"default_time_zone\": \"America/Chicago\"\n        }\n      },\n      \"resolution\": null\n    }\n  ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "conflicts",
+            "show",
+            "01890f3e-e7d3-7cc0-88c8-0000000000ff"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: record is not in the temporary conflict set: 01890f3e-e7d3-7cc0-88c8-0000000000ff\nath: record is not in the temporary conflict set: 01890f3e-e7d3-7cc0-88c8-0000000000ff\n"
+        },
+        {
+          "argv": [
+            "import",
+            "changed",
+            "--yes"
+          ],
+          "status": 1,
+          "stdout": "merge preview\n  source database:      01890f3e-e7d3-7cc0-88c8-000000000001 revision 4\n  destination database: 01890f3e-e7d3-7cc0-88c8-000000000001 revision 4\n  new records:          0\n  matching records:     24\n  changed records:      0\n  conflicts:            1\n  unrepresentable:       0\n  unknown fields:        0\n    01890f3e-e7d3-7cc0-88c8-000000000002: record revision history differs\n",
+          "stderr": "ath: import has 1 unresolved conflict; use ath conflicts show and ath conflicts resolve\nath: import has 1 unresolved conflict; use ath conflicts show and ath conflicts resolve\n"
+        },
+        {
+          "argv": [
+            "conflicts",
+            "resolve",
+            "01890f3e-e7d3-7cc0-88c8-000000000002",
+            "--choice",
+            "bogus"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: --choice must be local, imported, or corrected\n"
+        },
+        {
+          "argv": [
+            "conflicts",
+            "resolve",
+            "01890f3e-e7d3-7cc0-88c8-000000000002",
+            "--choice",
+            "corrected"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: --data is required when --choice is corrected\n"
+        },
+        {
+          "argv": [
+            "conflicts",
+            "resolve",
+            "01890f3e-e7d3-7cc0-88c8-000000000002",
+            "--choice",
+            "local",
+            "--data",
+            "{}"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: --data is used only when --choice is corrected\n"
+        },
+        {
+          "argv": [
+            "conflicts",
+            "resolve",
+            "01890f3e-e7d3-7cc0-88c8-000000000002",
+            "--choice",
+            "imported",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n  \"choice\": \"imported\",\n  \"unresolved_conflicts\": 0,\n  \"athlete_data_changed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "conflicts",
+            "resolve",
+            "01890f3e-e7d3-7cc0-88c8-000000000002",
+            "--choice",
+            "corrected",
+            "--data",
+            "{\"name\":\"Merged Name\",\"birth_year\":1990,\"sex\":\"female\",\"display_units\":\"metric\",\"default_time_zone\":\"America/Chicago\"}"
+          ],
+          "status": 0,
+          "stdout": "recorded corrected for 01890f3e-e7d3-7cc0-88c8-000000000002; 0 unresolved conflicts\nnothing written to athlete data; run ath import <work>/changed --yes after all conflicts are resolved\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "conflicts",
+            "show",
+            "01890f3e-e7d3-7cc0-88c8-000000000002"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"source_path\": \"<work>/changed\",\n  \"source_database_revision\": 4,\n  \"destination_database_revision\": 4,\n  \"conflicts\": [\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n      \"message\": \"record revision history differs\",\n      \"local\": {\n        \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n        \"created_at\": \"2026-08-09T12:00:00.000Z\",\n        \"current_revision\": 2,\n        \"is_deleted\": false,\n        \"record_type\": \"athlete_profile\",\n        \"data\": {\n          \"name\": \"Local Name\",\n          \"birth_year\": 1990,\n          \"sex\": \"female\",\n          \"display_units\": \"metric\",\n          \"default_time_zone\": \"America/Chicago\"\n        }\n      },\n      \"imported\": {\n        \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n        \"created_at\": \"2026-08-09T12:00:00.000Z\",\n        \"current_revision\": 2,\n        \"is_deleted\": false,\n        \"record_type\": \"athlete_profile\",\n        \"data\": {\n          \"name\": \"Copy Name\",\n          \"birth_year\": 1990,\n          \"sex\": \"female\",\n          \"display_units\": \"metric\",\n          \"default_time_zone\": \"America/Chicago\"\n        }\n      },\n      \"resolution\": {\n        \"choice\": \"corrected\",\n        \"data\": {\n          \"name\": \"Merged Name\",\n          \"birth_year\": 1990,\n          \"sex\": \"female\",\n          \"display_units\": \"metric\",\n          \"default_time_zone\": \"America/Chicago\"\n        }\n      }\n    }\n  ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "changed",
+            "--yes"
+          ],
+          "status": 0,
+          "stdout": "merge preview\n  source database:      01890f3e-e7d3-7cc0-88c8-000000000001 revision 4\n  destination database: 01890f3e-e7d3-7cc0-88c8-000000000001 revision 4\n  new records:          0\n  matching records:     24\n  changed records:      0\n  conflicts:            1\n  unrepresentable:       0\n  unknown fields:        0\n    01890f3e-e7d3-7cc0-88c8-000000000002: record revision history differs\nimported package at database revision 5\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "records",
+            "show",
+            "01890f3e-e7d3-7cc0-88c8-000000000002",
+            "--history"
+          ],
+          "status": 0,
+          "stdout": "01890f3e-e7d3-7cc0-88c8-000000000002\ntype: athlete_profile\ncreated: 2026-08-09T12:00:00.000Z\ncurrent revision: 3\ndeleted: no\n\n{\n  \"name\": \"Merged Name\",\n  \"birth_year\": 1990,\n  \"sex\": \"female\",\n  \"display_units\": \"metric\",\n  \"default_time_zone\": \"America/Chicago\"\n}\n\nhistory:\n  revision 1 — 2026-08-09T12:00:00.000Z (local_write)\n  revision 2 — <now> (local_write)\n  revision 3 — <now> (package_merge)\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "conflicts",
+            "show"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: ENOENT: no such file or directory, lstat '<work>/athlete.ath.sqlite.import-conflicts.json'\n"
+        }
+      ]
+    },
+    {
+      "name": "erase",
+      "fixture": "demo",
+      "current": true,
+      "steps": [
+        {
+          "argv": [
+            "erase",
+            "01890f3e-e7d3-7cc0-88c8-00000000000f",
+            "--revision",
+            "1",
+            "--json",
+            "--yes",
+            "--confirm-erasure",
+            "01890f3e-e7d3-7cc0-88c8-00000000000f"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"root_record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000f\",\n  \"expected_revision\": 1,\n  \"database_revision\": 3,\n  \"permanent\": true,\n  \"records\": [\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000e\",\n      \"record_type\": \"attachment\",\n      \"current_revision\": 1\n    },\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000f\",\n      \"record_type\": \"nutrition_entry\",\n      \"current_revision\": 1\n    },\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000019\",\n      \"record_type\": \"nutrition_model_interpretation\",\n      \"current_revision\": 1\n    }\n  ],\n  \"attachments\": [\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000e\",\n      \"path\": \"<work>/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png\",\n      \"present\": true\n    }\n  ],\n  \"reason_code\": \"athlete_request\",\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "erase",
+            "01890f3e-e7d3-7cc0-88c8-00000000000f",
+            "--revision",
+            "1"
+          ],
+          "status": 1,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"root_record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000f\",\n  \"expected_revision\": 1,\n  \"database_revision\": 3,\n  \"permanent\": true,\n  \"records\": [\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000e\",\n      \"record_type\": \"attachment\",\n      \"current_revision\": 1\n    },\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000f\",\n      \"record_type\": \"nutrition_entry\",\n      \"current_revision\": 1\n    },\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000019\",\n      \"record_type\": \"nutrition_model_interpretation\",\n      \"current_revision\": 1\n    }\n  ],\n  \"attachments\": [\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000e\",\n      \"path\": \"<work>/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png\",\n      \"present\": true\n    }\n  ],\n  \"reason_code\": \"athlete_request\",\n  \"write_confirmed\": false\n}\nWARNING: this permanently removes 3 records and cannot be undone from the database.\n",
+          "stderr": "ath: there is no terminal to ask on, so nothing was written. Pass --yes after reviewing the preview.\nath: there is no terminal to ask on, so nothing was written. Pass --yes after reviewing the preview.\n"
+        },
+        {
+          "argv": [
+            "erase",
+            "01890f3e-e7d3-7cc0-88c8-00000000000f",
+            "--revision",
+            "1",
+            "--dry-run"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"root_record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000f\",\n  \"expected_revision\": 1,\n  \"database_revision\": 3,\n  \"permanent\": true,\n  \"records\": [\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000e\",\n      \"record_type\": \"attachment\",\n      \"current_revision\": 1\n    },\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000f\",\n      \"record_type\": \"nutrition_entry\",\n      \"current_revision\": 1\n    },\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000019\",\n      \"record_type\": \"nutrition_model_interpretation\",\n      \"current_revision\": 1\n    }\n  ],\n  \"attachments\": [\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000e\",\n      \"path\": \"<work>/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png\",\n      \"present\": true\n    }\n  ],\n  \"reason_code\": \"athlete_request\",\n  \"write_confirmed\": false\n}\nWARNING: this permanently removes 3 records and cannot be undone from the database.\nnothing erased (--dry-run)\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "erase",
+            "01890f3e-e7d3-7cc0-88c8-00000000000f",
+            "--revision",
+            "1",
+            "--yes"
+          ],
+          "status": 1,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"root_record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000f\",\n  \"expected_revision\": 1,\n  \"database_revision\": 3,\n  \"permanent\": true,\n  \"records\": [\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000e\",\n      \"record_type\": \"attachment\",\n      \"current_revision\": 1\n    },\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000f\",\n      \"record_type\": \"nutrition_entry\",\n      \"current_revision\": 1\n    },\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000019\",\n      \"record_type\": \"nutrition_model_interpretation\",\n      \"current_revision\": 1\n    }\n  ],\n  \"attachments\": [\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000e\",\n      \"path\": \"<work>/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png\",\n      \"present\": true\n    }\n  ],\n  \"reason_code\": \"athlete_request\",\n  \"write_confirmed\": false\n}\nWARNING: this permanently removes 3 records and cannot be undone from the database.\n",
+          "stderr": "ath: second confirmation is required in non-interactive use; pass --confirm-erasure 01890f3e-e7d3-7cc0-88c8-00000000000f\nath: second confirmation is required in non-interactive use; pass --confirm-erasure 01890f3e-e7d3-7cc0-88c8-00000000000f\n"
+        },
+        {
+          "argv": [
+            "erase",
+            "01890f3e-e7d3-7cc0-88c8-00000000000f",
+            "--revision",
+            "1",
+            "--yes",
+            "--confirm-erasure",
+            "wrong"
+          ],
+          "status": 1,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"root_record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000f\",\n  \"expected_revision\": 1,\n  \"database_revision\": 3,\n  \"permanent\": true,\n  \"records\": [\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000e\",\n      \"record_type\": \"attachment\",\n      \"current_revision\": 1\n    },\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000f\",\n      \"record_type\": \"nutrition_entry\",\n      \"current_revision\": 1\n    },\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000019\",\n      \"record_type\": \"nutrition_model_interpretation\",\n      \"current_revision\": 1\n    }\n  ],\n  \"attachments\": [\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000e\",\n      \"path\": \"<work>/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png\",\n      \"present\": true\n    }\n  ],\n  \"reason_code\": \"athlete_request\",\n  \"write_confirmed\": false\n}\nWARNING: this permanently removes 3 records and cannot be undone from the database.\n",
+          "stderr": "ath: second confirmation did not exactly match the record ID; nothing was erased\nath: second confirmation did not exactly match the record ID; nothing was erased\n"
+        },
+        {
+          "argv": [
+            "erase",
+            "01890f3e-e7d3-7cc0-88c8-00000000000f",
+            "--revision",
+            "2",
+            "--json"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: Record 01890f3e-e7d3-7cc0-88c8-00000000000f is at revision 1, not expected revision 2\n"
+        },
+        {
+          "argv": [
+            "erase",
+            "01890f3e-e7d3-7cc0-88c8-00000000000f",
+            "--revision",
+            "1",
+            "--reason",
+            "bogus"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: unknown erasure reason 'bogus'. Use athlete_request, legal_requirement, recorded_in_error, other\n"
+        },
+        {
+          "argv": [
+            "erase",
+            "01890f3e-e7d3-7cc0-88c8-00000000000f",
+            "--revision",
+            "1",
+            "--reason",
+            "recorded_in_error",
+            "--yes",
+            "--confirm-erasure",
+            "01890f3e-e7d3-7cc0-88c8-00000000000f"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"root_record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000f\",\n  \"expected_revision\": 1,\n  \"database_revision\": 3,\n  \"permanent\": true,\n  \"records\": [\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000e\",\n      \"record_type\": \"attachment\",\n      \"current_revision\": 1\n    },\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000f\",\n      \"record_type\": \"nutrition_entry\",\n      \"current_revision\": 1\n    },\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000019\",\n      \"record_type\": \"nutrition_model_interpretation\",\n      \"current_revision\": 1\n    }\n  ],\n  \"attachments\": [\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000e\",\n      \"path\": \"<work>/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png\",\n      \"present\": true\n    }\n  ],\n  \"reason_code\": \"recorded_in_error\",\n  \"write_confirmed\": false\n}\nWARNING: this permanently removes 3 records and cannot be undone from the database.\nerased 3 records and 1 attachment file at database revision 4\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "records",
+            "show",
+            "01890f3e-e7d3-7cc0-88c8-00000000000f"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: record not found: 01890f3e-e7d3-7cc0-88c8-00000000000f\nath: record not found: 01890f3e-e7d3-7cc0-88c8-00000000000f\n"
+        },
+        {
+          "argv": [
+            "check"
+          ],
+          "status": 0,
+          "stdout": "<work>/athlete.ath.sqlite: valid Athletic Standard <version> database (22 records)\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "stats"
+          ],
+          "status": 0,
+          "stdout": "Demo Athlete · Athletic Standard <version>\ndatabase revision: 4\n\ncurrent records: 21\n  athlete_profile: 1\n  benchmark_definition: 1\n  benchmark_result: 1\n  coaching_note: 1\n  goal: 1\n  measurement_sample: 1\n  planned_session: 1\n  point_measurement: 1\n  prediction: 1\n  prediction_error_analysis: 1\n  prediction_grade: 1\n  prediction_result_link: 1\n  provider_score: 1\n  provider_summary: 1\n  saved_training_review: 1\n  sleep_session: 1\n  source: 2\n  source_device: 1\n  training_plan: 1\n  workout_session: 1\n\nsources: 2\n  01890f3e-e7d3-7cc0-88c8-000000000003: WHOOP via whoop_csv (wearable) — 6 records, 2026-08-09 → 2026-08-10\n  01890f3e-e7d3-7cc0-88c8-000000000004: ath via manual_entry (manual) — 1 record, 2026-08-10 → 2026-08-10\n\n90-day device baselines (each source stays separate):\n  01890f3e-e7d3-7cc0-88c8-000000000003 hrv_rmssd: 64ms (sd 0, n=1, 2026-08-09 → 2026-08-09)\n\nsample series:\n  01890f3e-e7d3-7cc0-88c8-000000000003 heart_rate: 1 samples, 2026-08-09T11:12:00.000Z → 2026-08-09T11:12:00.000Z\n\nbenchmarks defined: 1 · results recorded: 1\npredictions: 1 · grades: 1\n  ath-reference-agent running fixture-model: 1\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "attachments",
+      "fixture": "demo",
+      "current": true,
+      "copy": {
+        "photo.png": "png"
+      },
+      "write_files": {
+        "notes.txt": "not an image\n"
+      },
+      "steps": [
+        {
+          "argv": [
+            "log",
+            "--json",
+            "--attachment",
+            "photo.png",
+            "Meal",
+            "photo"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"interpretation\": \"athlete note with 1 attachment\",\n  \"records\": [\n    {\n      \"record_id\": \"<id-1>\",\n      \"record_type\": \"attachment\",\n      \"created_at\": \"<now>\",\n      \"data\": {\n        \"file_name\": \"photo.png\",\n        \"media_type\": \"image/png\",\n        \"byte_count\": 68,\n        \"sha256\": \"d3fe8e599fb1deea9821063c744434802875c26cceeb9f2d55e8566b15a012f4\"\n      }\n    },\n    {\n      \"record_id\": \"<id-2>\",\n      \"record_type\": \"athlete_report\",\n      \"created_at\": \"<now>\",\n      \"data\": {\n        \"report_type\": \"note\",\n        \"reported_at\": \"<now>\",\n        \"input_reported_at\": {\n          \"timestamp_text\": \"<now>\",\n          \"utc_offset_text\": \"Z\",\n          \"utc_offset_meaning\": \"documented_recording_offset\",\n          \"timestamp_basis\": \"source_instant\"\n        },\n        \"reported_via\": \"text\",\n        \"note\": \"Meal photo\",\n        \"attachment_ids\": [\n          \"<id-1>\"\n        ]\n      }\n    }\n  ],\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "log",
+            "--yes",
+            "--attachment",
+            "photo.png",
+            "--attachment",
+            "photo.png",
+            "Meal",
+            "photo"
+          ],
+          "status": 0,
+          "stdout": "understood: athlete note with 2 attachments\nrecords to write: 3\n  <id-3>  attachment\n    {\n      \"file_name\": \"photo.png\",\n      \"media_type\": \"image/png\",\n      \"byte_count\": 68,\n      \"sha256\": \"d3fe8e599fb1deea9821063c744434802875c26cceeb9f2d55e8566b15a012f4\"\n    }\n  <id-4>  attachment\n    {\n      \"file_name\": \"photo.png\",\n      \"media_type\": \"image/png\",\n      \"byte_count\": 68,\n      \"sha256\": \"d3fe8e599fb1deea9821063c744434802875c26cceeb9f2d55e8566b15a012f4\"\n    }\n  <id-5>  athlete_report\n    {\n      \"report_type\": \"note\",\n      \"reported_at\": \"<now>\",\n      \"input_reported_at\": {\n        \"timestamp_text\": \"<now>\",\n        \"utc_offset_text\": \"Z\",\n        \"utc_offset_meaning\": \"documented_recording_offset\",\n        \"timestamp_basis\": \"source_instant\"\n      },\n      \"reported_via\": \"text\",\n      \"note\": \"Meal photo\",\n      \"attachment_ids\": [\n        \"<id-3>\",\n        \"<id-4>\"\n      ]\n    }\nwrote 3 records at database revision 4\n  <id-3>  attachment\n  <id-4>  attachment\n  <id-5>  athlete_report\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "log",
+            "--yes",
+            "--attachment",
+            "notes.txt",
+            "note"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: unsupported attachment type: <work>/notes.txt; use PNG, JPEG, WebP, or PDF\n"
+        },
+        {
+          "argv": [
+            "log",
+            "--yes",
+            "--attachment",
+            "photo.png",
+            "RMSSD",
+            "61",
+            "ms"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: attachments need exactly one athlete_report or nutrition_entry in the log batch\n"
+        },
+        {
+          "argv": [
+            "correct",
+            "01890f3e-e7d3-7cc0-88c8-00000000000f",
+            "--revision",
+            "1",
+            "--data",
+            "{\"reported_at\":\"2026-08-09T18:00:00.000Z\",\"input_reported_at\":{\"timestamp_text\":\"2026-08-09T18:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"reported_via\":\"photo\",\"athlete_description\":\"Chicken, rice, and vegetables, second photo\",\"reported_items\":[{\"food_description\":\"chicken and rice bowl\",\"amount\":1,\"amount_unit\":\"bowl\"}],\"attachment_ids\":[\"01890f3e-e7d3-7cc0-88c8-00000000000e\"]}",
+            "--attachment",
+            "photo.png",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000f\",\n  \"record_type\": \"nutrition_entry\",\n  \"expected_revision\": 1,\n  \"current_revision\": 1,\n  \"before\": {\n    \"reported_at\": \"2026-08-09T18:00:00.000Z\",\n    \"input_reported_at\": {\n      \"timestamp_text\": \"2026-08-09T18:00:00.000Z\",\n      \"utc_offset_text\": \"Z\",\n      \"utc_offset_meaning\": \"documented_recording_offset\",\n      \"timestamp_basis\": \"source_instant\"\n    },\n    \"reported_via\": \"photo\",\n    \"athlete_description\": \"Chicken, rice, and vegetables\",\n    \"reported_items\": [\n      {\n        \"food_description\": \"chicken and rice bowl\",\n        \"amount\": 1,\n        \"amount_unit\": \"bowl\"\n      }\n    ],\n    \"attachment_ids\": [\n      \"01890f3e-e7d3-7cc0-88c8-00000000000e\"\n    ]\n  },\n  \"after\": {\n    \"reported_at\": \"2026-08-09T18:00:00.000Z\",\n    \"input_reported_at\": {\n      \"timestamp_text\": \"2026-08-09T18:00:00.000Z\",\n      \"utc_offset_text\": \"Z\",\n      \"utc_offset_meaning\": \"documented_recording_offset\",\n      \"timestamp_basis\": \"source_instant\"\n    },\n    \"reported_via\": \"photo\",\n    \"athlete_description\": \"Chicken, rice, and vegetables, second photo\",\n    \"reported_items\": [\n      {\n        \"food_description\": \"chicken and rice bowl\",\n        \"amount\": 1,\n        \"amount_unit\": \"bowl\"\n      }\n    ],\n    \"attachment_ids\": [\n      \"01890f3e-e7d3-7cc0-88c8-00000000000e\",\n      \"<id-6>\"\n    ]\n  },\n  \"attachments\": [\n    {\n      \"record_id\": \"<id-6>\",\n      \"data\": {\n        \"file_name\": \"photo.png\",\n        \"media_type\": \"image/png\",\n        \"byte_count\": 68,\n        \"sha256\": \"d3fe8e599fb1deea9821063c744434802875c26cceeb9f2d55e8566b15a012f4\"\n      }\n    }\n  ],\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "correct",
+            "01890f3e-e7d3-7cc0-88c8-00000000000f",
+            "--revision",
+            "1",
+            "--data",
+            "{\"reported_at\":\"2026-08-09T18:00:00.000Z\",\"input_reported_at\":{\"timestamp_text\":\"2026-08-09T18:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"reported_via\":\"photo\",\"athlete_description\":\"Chicken, rice, and vegetables, second photo\",\"reported_items\":[{\"food_description\":\"chicken and rice bowl\",\"amount\":1,\"amount_unit\":\"bowl\"}],\"attachment_ids\":[\"01890f3e-e7d3-7cc0-88c8-00000000000e\"]}",
+            "--attachment",
+            "photo.png",
+            "--yes"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000f\",\n  \"record_type\": \"nutrition_entry\",\n  \"expected_revision\": 1,\n  \"current_revision\": 1,\n  \"before\": {\n    \"reported_at\": \"2026-08-09T18:00:00.000Z\",\n    \"input_reported_at\": {\n      \"timestamp_text\": \"2026-08-09T18:00:00.000Z\",\n      \"utc_offset_text\": \"Z\",\n      \"utc_offset_meaning\": \"documented_recording_offset\",\n      \"timestamp_basis\": \"source_instant\"\n    },\n    \"reported_via\": \"photo\",\n    \"athlete_description\": \"Chicken, rice, and vegetables\",\n    \"reported_items\": [\n      {\n        \"food_description\": \"chicken and rice bowl\",\n        \"amount\": 1,\n        \"amount_unit\": \"bowl\"\n      }\n    ],\n    \"attachment_ids\": [\n      \"01890f3e-e7d3-7cc0-88c8-00000000000e\"\n    ]\n  },\n  \"after\": {\n    \"reported_at\": \"2026-08-09T18:00:00.000Z\",\n    \"input_reported_at\": {\n      \"timestamp_text\": \"2026-08-09T18:00:00.000Z\",\n      \"utc_offset_text\": \"Z\",\n      \"utc_offset_meaning\": \"documented_recording_offset\",\n      \"timestamp_basis\": \"source_instant\"\n    },\n    \"reported_via\": \"photo\",\n    \"athlete_description\": \"Chicken, rice, and vegetables, second photo\",\n    \"reported_items\": [\n      {\n        \"food_description\": \"chicken and rice bowl\",\n        \"amount\": 1,\n        \"amount_unit\": \"bowl\"\n      }\n    ],\n    \"attachment_ids\": [\n      \"01890f3e-e7d3-7cc0-88c8-00000000000e\",\n      \"<id-7>\"\n    ]\n  },\n  \"attachments\": [\n    {\n      \"record_id\": \"<id-7>\",\n      \"data\": {\n        \"file_name\": \"photo.png\",\n        \"media_type\": \"image/png\",\n        \"byte_count\": 68,\n        \"sha256\": \"d3fe8e599fb1deea9821063c744434802875c26cceeb9f2d55e8566b15a012f4\"\n      }\n    }\n  ],\n  \"write_confirmed\": false\n}\ncorrected 01890f3e-e7d3-7cc0-88c8-00000000000f to revision 2 (database revision 5)\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "correct",
+            "01890f3e-e7d3-7cc0-88c8-00000000000b",
+            "--revision",
+            "1",
+            "--data",
+            "{}",
+            "--attachment",
+            "photo.png"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: --attachment can correct only an athlete_report or nutrition_entry\nath: --attachment can correct only an athlete_report or nutrition_entry\n"
+        },
+        {
+          "argv": [
+            "correct",
+            "01890f3e-e7d3-7cc0-88c8-00000000000f",
+            "--revision",
+            "2",
+            "--data",
+            "5",
+            "--attachment",
+            "photo.png"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: --data must be a complete record data object\nath: --data must be a complete record data object\n"
+        },
+        {
+          "argv": [
+            "records",
+            "show",
+            "01890f3e-e7d3-7cc0-88c8-00000000000f",
+            "--links",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"record\": {\n    \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000f\",\n    \"created_at\": \"2026-08-09T18:00:00.000Z\",\n    \"current_revision\": 2,\n    \"is_deleted\": false,\n    \"record_type\": \"nutrition_entry\",\n    \"data\": {\n      \"reported_at\": \"2026-08-09T18:00:00.000Z\",\n      \"input_reported_at\": {\n        \"timestamp_text\": \"2026-08-09T18:00:00.000Z\",\n        \"utc_offset_text\": \"Z\",\n        \"utc_offset_meaning\": \"documented_recording_offset\",\n        \"timestamp_basis\": \"source_instant\"\n      },\n      \"reported_via\": \"photo\",\n      \"athlete_description\": \"Chicken, rice, and vegetables, second photo\",\n      \"reported_items\": [\n        {\n          \"food_description\": \"chicken and rice bowl\",\n          \"amount\": 1,\n          \"amount_unit\": \"bowl\"\n        }\n      ],\n      \"attachment_ids\": [\n        \"01890f3e-e7d3-7cc0-88c8-00000000000e\",\n        \"<id-7>\"\n      ]\n    }\n  },\n  \"links\": [\n    {\n      \"direction\": \"incoming\",\n      \"relation\": \"authored_evidence\",\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000019\",\n      \"revision\": 1\n    },\n    {\n      \"direction\": \"incoming\",\n      \"relation\": \"nutrition_entry\",\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000019\"\n    },\n    {\n      \"direction\": \"outgoing\",\n      \"relation\": \"attachment\",\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000e\"\n    },\n    {\n      \"direction\": \"outgoing\",\n      \"relation\": \"attachment\",\n      \"record_id\": \"<id-7>\"\n    }\n  ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "check"
+          ],
+          "status": 0,
+          "stdout": "<work>/athlete.ath.sqlite: valid Athletic Standard <version> database (29 records)\n",
+          "stderr": ""
+        }
+      ]
+    }
+  ]
+}

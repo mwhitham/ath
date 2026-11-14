@@ -18,6 +18,8 @@
 //! - `log` lists record data in published field order (deliberate-changes.md
 //!   25), so its output lines are compared without their order.
 //! - `share` finds the report `backtest` writes (deliberate-changes.md 5).
+//! - `conflicts show` without a conflict file says how to make one
+//!   (deliberate-changes.md 32).
 //!
 //! Model calls go to a local 127.0.0.1 server through ATH_GATEWAY_BASE_URL.
 //! A fake `security` and `secret-tool` first on the path stand in for the
@@ -139,6 +141,7 @@ fn normalize(text: &str, work: &str, window: &mut Window) -> String {
         result.push_str(rest);
         out = result;
     }
+    out = manifest_hashes(&out);
     let window_ref = &*window;
     out = replace_shape(&out, "9999-99-99T99:99:99.999Z", |found| {
         window_ref.within(iso_millis(found)).then(|| "<now>".to_string())
@@ -180,6 +183,30 @@ fn normalize(text: &str, work: &str, window: &mut Window) -> String {
         index += character.len_utf8();
     }
     result
+}
+
+/// Package file hashes in an export manifest: a `"sha256"` line right after a
+/// `"file"` line. Package files name the program version, so their hashes
+/// differ by design; package bytes are compared in `package_golden.rs`.
+fn manifest_hashes(text: &str) -> String {
+    let lines: Vec<&str> = text.split('\n').collect();
+    let mut out = Vec::with_capacity(lines.len());
+    for (index, line) in lines.iter().enumerate() {
+        let trimmed = line.trim_start();
+        let after_file = index > 0 && {
+            let previous = lines[index - 1].trim_start();
+            previous.starts_with("\"file\": \"") && previous.ends_with("\",")
+        };
+        let hash = trimmed.strip_prefix("\"sha256\": \"").and_then(|rest| rest.get(..65));
+        match hash {
+            Some(hash) if after_file && hash.ends_with('"') && hash[..64].bytes().all(is_hex) => {
+                let indent = &line[..line.len() - trimmed.len()];
+                out.push(format!("{indent}\"sha256\": \"<sha256>\"{}", &trimmed[11 + 65..]));
+            }
+            _ => out.push(line.to_string()),
+        }
+    }
+    out.join("\n")
 }
 
 /// The native program writes SQL schema step 5; 2.1.0 wrote step 4.
@@ -307,10 +334,13 @@ fn fixture_path(name: &str) -> PathBuf {
     })
 }
 
-fn provider_path(name: &str) -> PathBuf {
+/// The approved synthetic files a scenario can copy.
+fn copyable_path(name: &str) -> PathBuf {
     repo().join(match name {
         "wearable_csv" => "tests/fixtures/exports/whoop",
-        other => panic!("unknown provider files {other}"),
+        "package_2_0_0" => "tests/fixtures/version-2-0-0/package",
+        "png" => "examples/demo-athlete/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png",
+        other => panic!("unknown copyable files {other}"),
     })
 }
 
@@ -336,8 +366,16 @@ fn prepare(scenario: &Value, work: &Path, home: &Path) {
     for folder in scenario["dirs"].as_array().into_iter().flatten() {
         std::fs::create_dir_all(work.join(folder.as_str().unwrap())).unwrap();
     }
-    for (name, key) in scenario["provider"].as_object().into_iter().flatten() {
-        copy_folder(&provider_path(key.as_str().unwrap()), &work.join(name));
+    for (name, key) in scenario["copy"].as_object().into_iter().flatten() {
+        let from = copyable_path(key.as_str().unwrap());
+        if from.is_dir() {
+            copy_folder(&from, &work.join(name));
+        } else {
+            std::fs::copy(&from, work.join(name)).unwrap();
+        }
+    }
+    for (name, text) in scenario["write_files"].as_object().into_iter().flatten() {
+        std::fs::write(work.join(name), text.as_str().unwrap()).unwrap();
     }
     let fixture = scenario["fixture"].as_str().unwrap();
     if fixture == "none" {
@@ -443,6 +481,12 @@ fn compare_group(group: &str) -> Vec<String> {
             if (name, argv.first().map(String::as_str)) == ("backtest", Some("share")) {
                 expected_stdout = share_finds_the_report(&expected_stdout);
             }
+            let mut expected_stderr = expected_stderr;
+            if argv.starts_with(&["conflicts".to_string(), "show".to_string()]) && expected_stderr.contains("ENOENT") {
+                // deliberate-changes.md 32: the missing file says how to make one.
+                expected_stderr =
+                    "ath: no temporary import conflicts; run ath import <package> to create a preview\n".to_string();
+            }
             let same_stdout = if argv.first().map(String::as_str) == Some("log") {
                 same_lines_in_any_order(&stdout, &expected_stdout)
             } else {
@@ -489,6 +533,11 @@ fn write_commands_match_2_1_0() {
 }
 
 #[test]
+fn package_commands_match_2_1_0() {
+    assert_group("package");
+}
+
+#[test]
 fn normalization_keeps_old_values_and_numbers_new_ones() {
     let now = now_millis();
     let mut window = Window { from: now - 1_000, to: now + 1_000, ids: HashMap::new() };
@@ -502,4 +551,11 @@ fn normalization_keeps_old_values_and_numbers_new_ones() {
         "<id-1> 01890f3e-e7d3-7cc0-88c8-000000000001 <id-1> <now> 2026-01-01T00:00:00.000Z <work>/x <version> \"sql_schema_version\": <step>"
     );
     assert_eq!(refusal_once("ath: no\nath: no\n"), "ath: no\n");
+    let hash = "ab".repeat(32);
+    let manifest =
+        format!("  {{\n    \"file\": \"a.json\",\n    \"sha256\": \"{hash}\",\n  }}\n  \"sha256\": \"{hash}\"");
+    assert_eq!(
+        manifest_hashes(&manifest),
+        format!("  {{\n    \"file\": \"a.json\",\n    \"sha256\": \"<sha256>\",\n  }}\n  \"sha256\": \"{hash}\"")
+    );
 }
