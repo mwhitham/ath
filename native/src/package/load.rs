@@ -315,22 +315,34 @@ pub(crate) struct SeriesBatch {
 
 /// Read a series file again. Its hash and counts must not have changed.
 pub(crate) fn read_series_batch(file: &LoadedSeriesFile) -> Result<SeriesBatch> {
-    let (bytes, value) = safe_read_json(&file.path)?;
+    let (bytes, mut value) = safe_read_json(&file.path)?;
     if durable::sha256_hex(&bytes) != file.reference.sha256 {
         return Err(Error::stale(format!("series hash changed after package load: {}", file.reference.file)));
     }
     drop(bytes);
     measurement_series_file_schema().validate(&value)?;
     check_series_counts(&value, &file.reference, "series counts or grouping changed after package load")?;
-    let list = |key: &str| value[key].as_array().map(Vec::as_slice).unwrap_or_default();
+    // Move each list out and release every JSON item once it is decoded, so
+    // the JSON form and the typed form of a file are not both held whole.
+    let mut take = |key: &str| match value.get_mut(key).map(Value::take) {
+        Some(Value::Array(items)) => items,
+        _ => Vec::new(),
+    };
+    let records = take("records");
+    let revisions = take("record_revisions");
+    let deletions = Value::Array(take("record_deletions"));
+    let import_keys = Value::Array(take("record_import_keys"));
     Ok(SeriesBatch {
-        records: list("records").iter().map(CurrentRecord::from_value).collect::<std::result::Result<_, _>>()?,
-        revisions: list("record_revisions")
-            .iter()
-            .map(RecordRevision::from_value)
+        records: records
+            .into_iter()
+            .map(|item| CurrentRecord::from_value(&item))
             .collect::<std::result::Result<_, _>>()?,
-        deletions: from_checked_value(&value["record_deletions"])?,
-        import_keys: from_checked_value(&value["record_import_keys"])?,
+        revisions: revisions
+            .into_iter()
+            .map(|item| RecordRevision::from_value(&item))
+            .collect::<std::result::Result<_, _>>()?,
+        deletions: from_checked_value(&deletions)?,
+        import_keys: from_checked_value(&import_keys)?,
     })
 }
 
