@@ -10,6 +10,7 @@
 
 pub mod scenario;
 
+#[allow(unused_imports)]
 pub use scenario::*;
 
 use std::collections::HashMap;

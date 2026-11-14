@@ -728,6 +728,34 @@ fn read_inputs(
     source: Option<&str>,
     window: Option<(Option<String>, Option<String>)>,
 ) -> Result<Vec<Input>> {
+    let (sql, args) = inputs_sql(request, quantity, source, window);
+    let mut statement = connection.prepare(&sql)?;
+    let rows = statement
+        .query_map(rusqlite::params_from_iter(args), |row| {
+            Ok(Input {
+                record_id: row.get(0)?,
+                revision: row.get::<_, i64>(1)? as u64,
+                source_id: row.get(2)?,
+                recorded_at: row.get(3)?,
+                value: row.get(4)?,
+                unit: row.get(5)?,
+                period: None,
+            })
+        })?
+        .collect::<std::result::Result<Vec<_>, _>>()?;
+    refuse_too_many(rows.len())?;
+    Ok(rows)
+}
+
+/// The SQL and arguments that read instant inputs. Only typed columns are
+/// read, and each union branch filters inside itself so it can use its
+/// lookup index; no stored record JSON is scanned.
+fn inputs_sql(
+    request: &Request<'_>,
+    quantity: &str,
+    source: Option<&str>,
+    window: Option<(Option<String>, Option<String>)>,
+) -> (String, Vec<Sql>) {
     let (from, to) = window.unwrap_or_else(|| (request.from.clone(), request.to.clone()));
     let bounds = (&from, &to);
     let mut args = Vec::new();
@@ -753,22 +781,7 @@ fn read_inputs(
          ORDER BY values_by_record.source_id, values_by_record.recorded_at, values_by_record.record_id
          LIMIT ?"
     );
-    let mut statement = connection.prepare(&sql)?;
-    let rows = statement
-        .query_map(rusqlite::params_from_iter(args), |row| {
-            Ok(Input {
-                record_id: row.get(0)?,
-                revision: row.get::<_, i64>(1)? as u64,
-                source_id: row.get(2)?,
-                recorded_at: row.get(3)?,
-                value: row.get(4)?,
-                unit: row.get(5)?,
-                period: None,
-            })
-        })?
-        .collect::<std::result::Result<Vec<_>, _>>()?;
-    refuse_too_many(rows.len())?;
-    Ok(rows)
+    (sql, args)
 }
 
 fn refuse_too_many(count: usize) -> Result<()> {
@@ -1145,4 +1158,63 @@ pub fn render_calculation(receipt: &CalculationReceipt) -> String {
     lines.push(format!("sources: {}", receipt.sources.join(", ")));
     lines.push(json::to_pretty(&json::to_value(&receipt.result)));
     lines.join("\n")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::store::{CreateOptions, Store};
+
+    fn query_plan(connection: &Connection, sql: &str, args: Vec<Sql>) -> Vec<String> {
+        let mut statement = connection.prepare(&format!("EXPLAIN QUERY PLAN {sql}")).unwrap();
+        statement
+            .query_map(rusqlite::params_from_iter(args), |row| row.get::<_, String>(3))
+            .unwrap()
+            .map(std::result::Result::unwrap)
+            .collect()
+    }
+
+    #[test]
+    fn bounded_inputs_use_lookup_indexes_and_never_read_stored_json() {
+        let directory = crate::files::make_temporary_directory("ath-plan-").unwrap();
+        let store = Store::create(directory.join("plan.ath.sqlite"), CreateOptions::default()).unwrap();
+        for (kind, quantity, tables) in [
+            (RecordKind::Measurement, "hrv_rmssd", vec!["point_measurements", "measurement_samples"]),
+            (RecordKind::ProviderScore, "recovery", vec!["provider_scores"]),
+            (RecordKind::ProviderSummary, "sleep_need", vec!["provider_summaries"]),
+        ] {
+            for (source, from, to) in
+                [(None, None, None), (Some("s"), Some("2026-01-01T00:00:00.000Z"), Some("2026-02-01T00:00:00.000Z"))]
+            {
+                let mut options = CalculateOptions::new(Operation::Summary, quantity);
+                options.record_kind = kind;
+                let request = Request {
+                    options: &options,
+                    from: from.map(str::to_string),
+                    to: to.map(str::to_string),
+                    time_zone: None,
+                    expected_unit: None,
+                    expected_other_unit: None,
+                    method: String::new(),
+                };
+                let (sql, args) = inputs_sql(&request, quantity, source, None);
+                let plan = query_plan(store.connection(), &sql, args);
+                let text = plan.join("\n");
+                for table in &tables {
+                    assert!(
+                        plan.iter()
+                            .any(|step| step.starts_with(&format!("SEARCH {table} USING INDEX {table}_lookup_idx"))),
+                        "{table} does not use its lookup index:\n{text}"
+                    );
+                    assert!(
+                        !plan.iter().any(|step| step.starts_with(&format!("SCAN {table}"))),
+                        "{table} is scanned:\n{text}"
+                    );
+                }
+                assert!(!text.contains("record_revisions"), "stored JSON is read:\n{text}");
+            }
+        }
+        drop(store);
+        std::fs::remove_dir_all(directory).unwrap();
+    }
 }
