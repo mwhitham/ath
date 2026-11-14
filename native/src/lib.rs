@@ -10,6 +10,7 @@ pub mod files;
 pub mod ids;
 pub mod json;
 pub mod model;
+pub mod runtime;
 pub mod store;
 
 pub use error::{Error, Result};
