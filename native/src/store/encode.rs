@@ -447,11 +447,11 @@ impl Layout {
         Layout { sql_schema_version: super::migrate::SQL_SCHEMA_VERSION }
     }
 
-    fn has_column(self, table: &str, column: &str) -> bool {
+    pub fn has_column(self, table: &str, column: &str) -> bool {
         !(self.sql_schema_version < 3 && table == "workout_sessions" && STEP_3_WORKOUT_COLUMNS.contains(&column))
     }
 
-    fn has_table(self, table: &str) -> bool {
+    pub fn has_table(self, table: &str) -> bool {
         !(self.sql_schema_version < 3 && table == "workout_route_points")
     }
 }

@@ -6,9 +6,16 @@
 //! Reading commands open the file read-only: they do not change the journal
 //! mode, the file header, or athlete data, and they do not checkpoint on close.
 
+pub mod attachment_files;
+pub mod backup;
+pub mod check;
+pub mod contract;
 pub mod encode;
 pub mod migrate;
+pub mod pending;
 pub mod read;
+pub mod repair;
+pub mod stats;
 pub mod write;
 
 use std::path::{Path, PathBuf};
@@ -166,10 +173,9 @@ fn check_header(connection: &Connection, metadata: &DatabaseMetadata) -> Result<
 }
 
 /// The default backup path for a migration: next to the database, named with
-/// the time it was planned.
+/// the time it was planned. The name format is the 2.1.0 format.
 pub fn default_migration_backup_path(path: &Path, now_millis: i64) -> PathBuf {
-    let stamp = time::format_utc_millis(now_millis).replace([':', '.'], "-");
-    files::sidecar(path, &format!(".pre-migration-{stamp}.bak"))
+    backup::default_migration_backup_path(path, now_millis)
 }
 
 impl Store {

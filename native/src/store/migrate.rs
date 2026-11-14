@@ -4,11 +4,17 @@
 //! migrations. They are embedded unchanged. New databases run the same ordered
 //! chain as upgrades, so there is no separate fresh-schema definition.
 
+use std::path::{Path, PathBuf};
+
 use rusqlite::Transaction;
 use serde::Serialize;
 
+use super::backup::{self, VerifiedBackup};
 use super::encode::{self, Layout};
+use super::{read_metadata, DatabaseMetadata, OpenOptions, Store};
 use crate::error::{Error, Result};
+use crate::files;
+use crate::model::time;
 
 /// The SQL schema step this software writes.
 pub const SQL_SCHEMA_VERSION: u32 = 5;
@@ -174,4 +180,190 @@ pub fn repair_provider_encoding_rows(tx: &Transaction<'_>) -> Result<usize> {
         encode::rebuild_from_current_revision(tx, layout, id)?;
     }
     Ok(ids.len())
+}
+
+// ---- The confirmed migration --------------------------------------------
+
+/// The `ath migrate` preview: the file, the plan, and `write_confirmed: false`.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct MigrationCommandPreview {
+    pub file: String,
+    #[serde(flatten)]
+    pub preview: MigrationPreview,
+    pub write_confirmed: bool,
+}
+
+/// Options for a confirmed migration.
+#[derive(Debug, Clone, Default)]
+pub struct MigrationOptions {
+    /// The reviewed backup path from the preview. Without it, a new default
+    /// name is planned.
+    pub backup_path: Option<PathBuf>,
+    /// The time used to name a default backup.
+    pub now_millis: Option<i64>,
+}
+
+/// The result of a confirmed migration.
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct ConfirmedMigrationResult {
+    /// The verified backup, or null when no migration was needed.
+    pub backup_path: Option<String>,
+    pub migrated: bool,
+    pub preview: MigrationPreview,
+}
+
+/// The preview for an open database. Reading it changes nothing. A backup
+/// path is planned only when a migration can run.
+pub fn migration_preview(store: &Store, now_millis: Option<i64>) -> Result<MigrationPreview> {
+    let metadata = read_metadata(store.connection())?;
+    Ok(preview_for(&metadata, store.path(), now_millis))
+}
+
+fn preview_for(metadata: &DatabaseMetadata, path: &Path, now_millis: Option<i64>) -> MigrationPreview {
+    let needed = metadata.sql_schema_version < SQL_SCHEMA_VERSION;
+    let backup = if needed && !planned_steps(metadata.sql_schema_version).is_empty() {
+        let now = now_millis.unwrap_or_else(time::now_millis);
+        Some(backup::default_migration_backup_path(path, now).display().to_string())
+    } else {
+        None
+    };
+    preview(metadata.sql_schema_version, &metadata.database_id, backup)
+}
+
+/// Inspect a database file for `ath migrate` without changing it. The file
+/// is opened read-only, so its journal mode, header, and data stay as they are.
+pub fn inspect_migration(path: &Path, now_millis: Option<i64>) -> Result<MigrationCommandPreview> {
+    let store = Store::open(path, OpenOptions { read_only: true, allow_outdated_schema: true })?;
+    let preview = migration_preview(&store, now_millis)?;
+    let file = store.path().display().to_string();
+    drop(store);
+    Ok(MigrationCommandPreview { file, preview, write_confirmed: false })
+}
+
+/// Make a verified backup, then apply every pending step in one write
+/// transaction.
+///
+/// The store must be write-capable and opened with `allow_outdated_schema`.
+/// Under the write lock, the database revision, database ID, schema step, and
+/// file identity must still match the backup. A change in between makes the
+/// backup stale, so nothing is migrated and the caller must preview again.
+/// Any other failure rolls the complete migration back and names the
+/// verified backup. On success the store's metadata is current.
+pub fn execute_confirmed_migration(store: &mut Store, options: &MigrationOptions) -> Result<ConfirmedMigrationResult> {
+    if store.is_read_only() {
+        return Err(Error::refused("This database was opened read-only"));
+    }
+    let path = store.path().to_path_buf();
+    let metadata = read_metadata(store.connection())?;
+    let preview = preview_for(&metadata, &path, options.now_millis);
+    if !preview.migration_needed {
+        return Ok(ConfirmedMigrationResult { backup_path: None, migrated: false, preview });
+    }
+    if preview.planned_steps.is_empty() {
+        return Err(Error::refused(preview.compatibility_effect.clone()));
+    }
+    let backup_path = match (&options.backup_path, &preview.planned_backup_path) {
+        (Some(path), _) => path.clone(),
+        (None, Some(planned)) => PathBuf::from(planned),
+        (None, None) => return Err(Error::other("Migration backup path is missing")),
+    };
+
+    let identity = files::identity(&path)?;
+    let verified = backup::create_verified_backup(store.connection(), &backup_path, &metadata)?;
+    files::assert_same_file(&path, identity)?;
+    apply_after_backup(store, preview, &verified, identity)
+}
+
+/// Migrate with a verified backup made earlier, for example by
+/// `Store::create_verified_backup`. The backup must still describe the
+/// database: under the write lock, its database ID, schema step, and database
+/// revision must match. Otherwise nothing is migrated.
+pub fn migrate_with_verified_backup(store: &mut Store, verified: &VerifiedBackup) -> Result<ConfirmedMigrationResult> {
+    if store.is_read_only() {
+        return Err(Error::refused("This database was opened read-only"));
+    }
+    let path = store.path().to_path_buf();
+    let identity = files::identity(&path)?;
+    let metadata = read_metadata(store.connection())?;
+    let mut preview = preview(metadata.sql_schema_version, &metadata.database_id, None);
+    if !preview.migration_needed {
+        return Ok(ConfirmedMigrationResult { backup_path: None, migrated: false, preview });
+    }
+    if preview.planned_steps.is_empty() {
+        return Err(Error::refused(preview.compatibility_effect.clone()));
+    }
+    preview.planned_backup_path = Some(verified.path.display().to_string());
+    apply_after_backup(store, preview, verified, identity)
+}
+
+fn apply_after_backup(
+    store: &mut Store,
+    preview: MigrationPreview,
+    verified: &VerifiedBackup,
+    identity: files::FileIdentity,
+) -> Result<ConfirmedMigrationResult> {
+    let path = store.path().to_path_buf();
+    let backup_text = verified.path.display().to_string();
+    let stale = format!(
+        "Database revision changed before migration could start. Nothing was migrated. The backup at {backup_text} is older than the database, so preview the migration again to make a new backup."
+    );
+    let steps: Vec<u32> = preview.planned_steps.iter().map(|step| step.target_sql_schema_version).collect();
+
+    let outcome = store.transaction(|tx| {
+        files::assert_same_file(&path, identity).map_err(|_| Error::stale(stale.clone()))?;
+        let current = read_metadata(tx)?;
+        if super::database_revision(tx)? != verified.database_revision
+            || current.database_id != verified.database_id
+            || current.sql_schema_version != verified.sql_schema_version
+        {
+            return Err(Error::stale(stale.clone()));
+        }
+        let mut repaired = 0;
+        for version in &steps {
+            repaired += apply_step(tx, *version)?.repaired_records;
+            let after = read_metadata(tx)?;
+            if after.sql_schema_version != *version {
+                return Err(Error::other(format!(
+                    "Migration to SQL schema {version} did not update database metadata"
+                )));
+            }
+            let user_version: u32 = tx.pragma_query_value(None, "user_version", |row| row.get(0))?;
+            if user_version != *version {
+                return Err(Error::other(format!(
+                    "SQLite user_version {user_version} does not match SQL schema {version} after migration"
+                )));
+            }
+        }
+        if repaired > 0 {
+            // Step 2 rebuilt typed rows, so the database changed.
+            tx.execute("UPDATE database_state SET current_revision = current_revision + 1 WHERE singleton_id = 1", [])?;
+        }
+        let last = read_metadata(tx)?;
+        if last.sql_schema_version != SQL_SCHEMA_VERSION {
+            return Err(Error::other(format!(
+                "Migration finished at SQL schema {}, expected {SQL_SCHEMA_VERSION}",
+                last.sql_schema_version
+            )));
+        }
+        Ok(())
+    });
+
+    match outcome {
+        Ok(()) => {
+            store.reload_metadata()?;
+            Ok(ConfirmedMigrationResult { backup_path: Some(backup_text), migrated: true, preview })
+        }
+        Err(Error::Stale(message)) if message == stale => Err(Error::Stale(message)),
+        Err(error) => {
+            let changed = super::database_revision(store.connection())
+                .map(|revision| revision != verified.database_revision)
+                .unwrap_or(false);
+            let detail = if changed {
+                format!("Cause: {error}. The database revision changed; restore from the verified backup.")
+            } else {
+                format!("Cause: {error}. The database revision did not change.")
+            };
+            Err(Error::other(format!("Migration failed after creating verified backup at {backup_text}. {detail}")))
+        }
+    }
 }
