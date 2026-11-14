@@ -268,6 +268,35 @@ fn a_change_after_the_backup_makes_it_stale() {
 }
 
 #[test]
+fn inspection_keeps_a_rollback_journal_database_as_it_is() {
+    let path = copy_fixture(&version_200_fixture(), "ath-migrate-inspect-delete-", false);
+    direct(&path).execute_batch("PRAGMA journal_mode = DELETE").unwrap();
+    let before = file_hash(&path);
+    let preview = inspect_migration(&path, None).unwrap();
+    assert!(preview.preview.migration_needed);
+    assert_eq!(file_hash(&path), before);
+    assert_eq!(journal_mode(&path), "delete");
+    assert_eq!(directory_names(path.parent().unwrap()), vec!["athlete.ath.sqlite"]);
+    // The JSON preview names the file, the plan, and write_confirmed: false.
+    let value = serde_json::to_value(&preview).unwrap();
+    let keys: Vec<&String> = value.as_object().unwrap().keys().collect();
+    assert_eq!(
+        keys,
+        [
+            "file",
+            "migration_needed",
+            "source_sql_schema_version",
+            "target_sql_schema_version",
+            "database_id",
+            "planned_steps",
+            "planned_backup_path",
+            "compatibility_effect",
+            "write_confirmed"
+        ]
+    );
+}
+
+#[test]
 fn migration_uses_the_reviewed_backup_path() {
     let path = copy_fixture(&version_200_fixture(), "ath-migrate-reviewed-", false);
     let reviewed = inspect_migration(&path, None).unwrap().preview.planned_backup_path.unwrap();
