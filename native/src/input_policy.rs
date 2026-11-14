@@ -43,15 +43,26 @@ pub const DETECTION_JSON_HEAD_CHARS: usize = 8000;
 /// transaction covers the complete import.
 pub const IMPORT_BATCH_RECORDS: usize = 500;
 
-// ---- Garmin, Strava, the Garmin pull, and mapped imports ----------------
+// ---- Limits by import route --------------------------------------------
 //
-// The 2.1.0 helper read these inputs whole and had no limits of its own. The
-// native readers keep the archive and folder limits above and add a limit per
-// file, because each file is read into memory to parse it.
+// - Apple Health, WHOOP, and Oura exports: the archive limits, the folder
+//   limit, and `MAX_PROVIDER_TEXT_BYTES` for each CSV read whole.
+// - Garmin and Strava files, folders, and archives: the archive limits, the
+//   folder limit, and `MAX_SHARED_FILE_BYTES` for each file read whole. The
+//   2.1.0 helper read these inputs whole with no limit of its own, and it
+//   followed links inside a folder. A link anywhere in the input is refused.
+// - The Garmin pull: `MAX_PULL_RESPONSE_BYTES` for each response.
+// - Mapped imports: `MAX_MAPPED_INPUT_BYTES` for the JSON file read whole.
+//   The mapping file itself is read whole; it is a small text file a person
+//   edits.
 
 /// Bytes of one Garmin or Strava file read whole into memory: a FIT, GPX, CSV,
 /// or JSON activity file. 256 MiB.
 pub const MAX_SHARED_FILE_BYTES: u64 = 256 * 1024 * 1024;
+
+/// Bytes of one Garmin personal connection response: 10 MiB, the limit the
+/// 2.1.0 HTTP client applied when it read a response as text.
+pub const MAX_PULL_RESPONSE_BYTES: u64 = 10 * 1024 * 1024;
 
 /// Bytes of the JSON file a mapped import reads whole into memory. 512 MiB.
 pub const MAX_MAPPED_INPUT_BYTES: u64 = 512 * 1024 * 1024;

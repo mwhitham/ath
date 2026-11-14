@@ -12,10 +12,12 @@
 //! The base URL is a parameter, so tests use a local server and never the
 //! network. These are the rules of `crates/ath-core/src/personal.rs` in 2.1.0.
 
+use std::io::Read;
 use std::time::Duration;
 
 use crate::error::{Error, Result};
 use crate::import::{self, ImportOptions, PersonalDay};
+use crate::input_policy::MAX_PULL_RESPONSE_BYTES;
 use crate::json::Value;
 use crate::store::Store;
 
@@ -58,7 +60,7 @@ fn obtain_token(agent: &ureq::Agent, base_url: &str, api_key: &str) -> std::resu
         .set("Accept", "*/*")
         .call()
         .map_err(|error| format!("Garmin token request failed: {error}"))?;
-    let token = response.into_string().map_err(|error| error.to_string())?;
+    let token = read_body(response, TOKEN_PATH)?;
     let token = token.trim();
     if token.split('.').count() < 3 {
         return Err("Garmin token response was not a JWT".into());
@@ -73,8 +75,22 @@ fn get_json(agent: &ureq::Agent, base_url: &str, path: &str, token: &str) -> std
         .set("Accept", "application/json")
         .call()
         .map_err(|error| format!("Garmin request {path} failed: {error}"))?;
-    let body = response.into_string().map_err(|error| error.to_string())?;
+    let body = read_body(response, path)?;
     serde_json::from_str(&body).map_err(|error| format!("Garmin response for {path} was not JSON: {error}"))
+}
+
+/// A response's text, refused over `MAX_PULL_RESPONSE_BYTES`.
+fn read_body(response: ureq::Response, path: &str) -> std::result::Result<String, String> {
+    let mut bytes = Vec::new();
+    response
+        .into_reader()
+        .take(MAX_PULL_RESPONSE_BYTES + 1)
+        .read_to_end(&mut bytes)
+        .map_err(|error| error.to_string())?;
+    if bytes.len() as u64 > MAX_PULL_RESPONSE_BYTES {
+        return Err(format!("Garmin response for {path} exceeds {MAX_PULL_RESPONSE_BYTES} bytes"));
+    }
+    String::from_utf8(bytes).map_err(|error| error.to_string())
 }
 
 /// Pull one day and write it. Returns what 2.1.0 printed with `--json`:

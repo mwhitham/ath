@@ -490,3 +490,15 @@ fn the_shipped_mapping_files_load() {
         .unwrap()
         .contains("average_hrv: hrv_rmssd ms ms basis hrv_mean_rmssd when-writer oura,whoop_v2,garmin,fitbit,polar"));
 }
+
+/// A mapped input over the limit is refused before it is read.
+#[test]
+fn a_mapped_input_over_the_limit_is_refused() {
+    let directory = TempDir::new();
+    let store = new_store(directory.path());
+    let input = directory.path().join("big.json");
+    std::fs::File::create(&input).unwrap().set_len(athleticstandard::input_policy::MAX_MAPPED_INPUT_BYTES + 1).unwrap();
+    let error =
+        import::preview_mapped(&store, &input, &shipped("open-wearables"), &options(&step_time(0))).unwrap_err();
+    assert_eq!(error.to_string(), format!("the input exceeds 536870912 bytes: {}", input.display()));
+}

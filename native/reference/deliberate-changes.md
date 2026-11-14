@@ -78,6 +78,83 @@ here; an unlisted difference is a bug.
 
 16. **New records name tool version 2.1.1 in `changed_by`.**
 
+### Garmin, Strava, the Garmin pull, and mapped imports
+
+These routes ran in the 2.1.0 helper, `ath-core`, which wrote through its own
+store. They now run through the one import operation (spec section 8). The
+comparison in `native/tests/route_support/keyed.rs` names each normalization
+below. Tests: `import_garmin.rs` and `import_mapping.rs`.
+
+17. **One import is one transaction and advances the database revision once.**
+    The helper wrote each Garmin, Strava, and pull record in its own
+    transaction and advanced the revision once per record. A failure partway
+    left the earlier records and the source written. A mapped import was
+    already one transaction (D189) but advanced the revision once per row and
+    once per new source. Reason: spec section 8 requires one operation whose
+    source creation, records, keys, and revision change commit together.
+
+18. **A Garmin or Strava preview reads the database and checks every record.**
+    The 2.1.0 preview read only the files, so it showed no deleted records and
+    no record the write would refuse. A record the 2.1.0 write refused, such as
+    a GPX time without an offset, now fails the preview with the same message
+    (entry 9).
+
+19. **A repeated, unchanged Garmin, Strava, or pull import matches its
+    records.** The helper compared the new record with the stored one
+    including `received_at`, so every repeat wrote a revision of every record.
+    The stored `received_at` is now copied onto the new record before the
+    compare, as D182 does for mapped imports. Reason: spec section 4.3,
+    "Repeating an unchanged import matches existing records."
+
+20. **A Garmin, Strava, or pull key that names a deleted record leaves that
+    record out.** The result's `left_out` says `<label>: the stored record <id>
+    is deleted`, as mapped imports already did (D182). 2.1.0 stopped with
+    `record <id> was not found: Query returned no rows` after writing the
+    records before it.
+
+21. **A deleted Garmin, Strava, or pull source leaves its records out**, with
+    `<label>: its source <id> is deleted`, as D190 does for mapped imports.
+    2.1.0 wrote new records under the deleted source.
+
+22. **One key twice in one Garmin, Strava, or pull input repeats or refuses.**
+    The same data names the record again in `record_ids`, as 2.1.0 did.
+    Different data refuse the import with `provider export gives one import
+    key two different records: <key>`. 2.1.0 merged the second into the first
+    as another revision. A key that names another record type also refuses
+    the import; 2.1.0 merged the data into the other record.
+
+23. **A revision from these routes keeps the record's extensions.** The helper
+    wrote every revision without extensions, so a later import dropped
+    extensions a person had added.
+
+24. **`changed_by.tool` is `ath`.** The helper named itself `ath-core`. That
+    program no longer exists.
+
+25. **Stored JSON for these routes uses the published field order and
+    JavaScript number text.** The helper wrote Rust's formatting, such as
+    `40.0`, in its own field order. Reason: one record encoder (spec section 7).
+    The comparison reads both as JSON.
+
+26. **A symbolic link inside a Garmin or Strava folder is refused, and
+    archives get the provider archive checks.** The helper followed links and
+    read archives with no checks or limits. Each file is now limited to
+    `MAX_SHARED_FILE_BYTES`, a mapped input to `MAX_MAPPED_INPUT_BYTES`, and a
+    pull response to `MAX_PULL_RESPONSE_BYTES` (the helper's HTTP client
+    already stopped at that size, with its own message). The pull now waits at
+    most 30 seconds to connect and 120 seconds to read.
+
+27. **A pull result lists `left_out` when something was left out.** 2.1.0
+    printed no `left_out` field for a pull. It appears only with entries 20
+    and 21.
+
+28. **A mapping section with more than one unknown setting names the first in
+    file order.** 2.1.0 named whichever one its hash map listed first.
+
+29. **A mapped import's preview no longer writes and rolls back.** It stages
+    the plan as every other route does. The outputs are the same; the golden
+    comparison covers the deleted-source and deleted-record cases of D189 and
+    D190.
+
 ## Behavior kept on purpose
 
 These look odd but stay, because changing them would change accepted data or
@@ -102,6 +179,20 @@ stored bytes:
   2.1.0.
 - A single CSV with a nonstandard file name imports nothing and is reported as
   an unrecognized file, as in 2.1.0.
+- An Oura bedtime that ends at exactly `T00:00:00Z` is stored as an
+  `oura_day_unspecified` day, not as an instant, even on a sleep row, as in
+  2.1.0.
+- Garmin, Strava, the Garmin pull, and mapped imports still refuse a supplied
+  field named `__proto__` or with an empty name (D191), with the 2.1.0
+  message, although entry 4 keeps such keys elsewhere.
+- A Garmin or Strava revision is merged over the stored record and names the
+  basis `local_write`, as the helper's `revise` wrote it (D182 kept that merge
+  for the built-in routes).
+- A Garmin activity's `startTimeGMT` must carry an offset. Garmin's own
+  `2026-01-02 15:00:00` form stops the import with `could not read time`, as
+  in 2.1.0.
+- A Strava export is recognized by any name ending in `activities.csv`, but
+  only a file named exactly `activities.csv` is read, as in 2.1.0.
 
 ## Open work
 

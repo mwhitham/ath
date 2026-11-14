@@ -320,3 +320,118 @@ fn a_token_that_is_not_a_jwt_stops_the_pull() {
     let error = garmin_pull::fetch_day(&base, PERSONAL_KEY, "2026-08-09").unwrap_err();
     assert_eq!(error.to_string(), "Garmin token response was not a JWT");
 }
+
+fn delete(store: &mut Store, record_id: &str, at: &str) {
+    let revision = store.get_record(record_id).unwrap().unwrap().current_revision;
+    store
+        .apply(athleticstandard::store::Changes {
+            deletions: vec![athleticstandard::store::Deletion {
+                record_id: record_id.to_string(),
+                expected_revision: revision,
+                deleted_by: athleticstandard::model::RecordActor::Athlete,
+                deleted_at: Some(at.to_string()),
+            }],
+            ..Default::default()
+        })
+        .unwrap();
+}
+
+/// D190 for the file routes: a deleted Garmin source leaves its records out,
+/// and no second source is made. 2.1.0 wrote new records under it.
+#[test]
+fn a_deleted_garmin_source_leaves_its_records_out() {
+    let directory = TempDir::new();
+    let mut store = new_store(directory.path());
+    let file = exports().join("garmin/park-loop.json");
+    import_shared(&mut store, &file, SharedImport::Garmin, &step_time(0));
+    let source: String = store.connection().query_row("SELECT record_id FROM sources", [], |row| row.get(0)).unwrap();
+    let records: Vec<String> = store
+        .connection()
+        .prepare("SELECT record_id FROM records WHERE record_type != 'source'")
+        .unwrap()
+        .query_map([], |row| row.get::<_, String>(0))
+        .unwrap()
+        .map(Result::unwrap)
+        .collect();
+    for id in records {
+        delete(&mut store, &id, &step_time(1));
+    }
+    delete(&mut store, &source, &step_time(1));
+    let records_before: i64 =
+        store.connection().query_row("SELECT COUNT(*) FROM records", [], |row| row.get(0)).unwrap();
+    let other = directory.path().join("other.json");
+    std::fs::write(&other, r#"{"activityId":"5","startTimeGMT":"2026-03-01T10:00:00Z"}"#).unwrap();
+    let report = import_shared(&mut store, &other, SharedImport::Garmin, &step_time(2));
+    assert_eq!(strings(&report, "left_out"), [format!("5: its source {source} is deleted")]);
+    assert!(ids(&report).is_empty());
+    let records_after: i64 =
+        store.connection().query_row("SELECT COUNT(*) FROM records", [], |row| row.get(0)).unwrap();
+    assert_eq!(records_after, records_before);
+}
+
+/// One key twice in one input: the same data name the record again, and
+/// different data refuse the import rather than guess.
+#[test]
+fn a_repeated_key_in_one_input_repeats_or_refuses() {
+    let directory = TempDir::new();
+    let mut store = new_store(directory.path());
+    let same = directory.path().join("same.json");
+    let activity = r#"{"activityId":"8","startTimeGMT":"2026-03-01T10:00:00Z","activityName":"Twice"}"#;
+    std::fs::write(&same, format!("[{activity},{activity}]")).unwrap();
+    let report = import_shared(&mut store, &same, SharedImport::Garmin, &step_time(0));
+    let record_ids = ids(&report);
+    assert_eq!(record_ids.len(), 2);
+    assert_eq!(record_ids[0], record_ids[1]);
+    let different = directory.path().join("different.json");
+    std::fs::write(&different, format!(r#"[{activity},{{"activityId":"8","startTimeGMT":"2026-03-01T10:00:00Z"}}]"#))
+        .unwrap();
+    let error = import::preview_shared(&store, &different, SharedImport::Garmin, &options(&step_time(1))).unwrap_err();
+    assert_eq!(error.to_string(), "provider export gives one import key two different records: 8");
+}
+
+/// A correction from a later import keeps the record's extensions. The 2.1.0
+/// helper wrote every revision without them.
+#[test]
+fn a_changed_activity_keeps_its_extensions() {
+    let directory = TempDir::new();
+    let mut store = new_store(directory.path());
+    let file = directory.path().join("loop.json");
+    let text = std::fs::read_to_string(exports().join("garmin/park-loop.json")).unwrap();
+    std::fs::write(&file, &text).unwrap();
+    let first = import_shared(&mut store, &file, SharedImport::Garmin, &step_time(0));
+    let workout = ids(&first)[0].clone();
+    let current = store.get_record(&workout).unwrap().unwrap();
+    let mut extensions = athleticstandard::json::Map::new();
+    extensions.insert("org.example/note".into(), serde_json::json!({ "felt": "good" }));
+    store
+        .apply(athleticstandard::store::Changes {
+            corrections: vec![athleticstandard::store::Correction {
+                record_id: workout.clone(),
+                expected_revision: 1,
+                data: current.data.clone(),
+                extensions: athleticstandard::store::ExtensionsUpdate::Set(Some(extensions.clone())),
+                changed_by: athleticstandard::model::RecordActor::Athlete,
+                became_known_at: Some(step_time(1)),
+                became_known_at_basis: athleticstandard::model::BecameKnownAtBasis::LocalWrite,
+                stale_style: athleticstandard::store::write::StaleStyle::Revision,
+            }],
+            ..Default::default()
+        })
+        .unwrap();
+    std::fs::write(&file, text.replace("Park Loop", "Park Loop 2")).unwrap();
+    import_shared(&mut store, &file, SharedImport::Garmin, &step_time(2));
+    let after = store.get_record(&workout).unwrap().unwrap();
+    assert_eq!(after.current_revision, 3);
+    assert_eq!(after.extensions, Some(extensions));
+}
+
+/// A file over the per-file limit is refused before it is read.
+#[test]
+fn a_shared_file_over_the_limit_is_refused() {
+    let directory = TempDir::new();
+    let store = new_store(directory.path());
+    let file = directory.path().join("big.gpx");
+    std::fs::File::create(&file).unwrap().set_len(athleticstandard::input_policy::MAX_SHARED_FILE_BYTES + 1).unwrap();
+    let error = import::preview_shared(&store, &file, SharedImport::Garmin, &options(&step_time(0))).unwrap_err();
+    assert_eq!(error.to_string(), "provider file exceeds 268435456 bytes: big.gpx");
+}
