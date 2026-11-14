@@ -8,6 +8,7 @@ copies, and that suite must keep passing while the old implementation remains.
 |---|---|
 | `spec/sql/contract.json` | `spec/sql/contract.json` (SQL schema step 5) |
 | `spec/sql/README.md` | `spec/sql/README.md` |
+| `docs/architecture.md` | `docs/architecture.md` (new; paths are the final layout) |
 
 The native library reads the copies here. The cutover moves them into place
 and points the library at the published paths.
