@@ -234,6 +234,82 @@ here; an unlisted difference is a bug.
     rename that publishes it. The published files are the same. Test:
     `package_export.rs`, `package::tests`.
 
+## npm client
+
+The JavaScript exports keep their 2.1.0 names, signatures, and result
+shapes (`packages/npm/test/public-api.generated.ts`). These are the
+differences a caller can see. They are numbered N1 onward so this list does
+not collide with the native entries.
+
+N1. **Validation errors from database exports are ZodError objects rebuilt
+    from the native issues.** Each issue has `path`, `code`, and `message`.
+    Zod's type-specific issue fields and its message wording are not
+    reproduced, so `error.message` differs. `instanceof ZodError` and the
+    issue paths still work. Reason: native writes validate in Rust only
+    (spec section 6). Test: `packages/npm/test/database.test.ts`.
+
+N2. **Each call opens and checks the database file again in its own native
+    worker.** A different database at the same path is refused: "The
+    database at <path> is not the one this handle opened". A restore through
+    `importRecords` updates the handle to the restored database ID. Reads open
+    the file read-only. Reason: spec section 11.2. Test: `protocol.test.ts`,
+    `database.test.ts`.
+
+N3. **`openDatabase` and `inspectDatabase` report security warnings after the
+    open succeeds.** When the open fails, for example because the database
+    needs migration, the warnings are not reported.
+
+N4. **`withPreparedAttachmentFiles` writes each file with the write that
+    creates its attachment record.** The file and the records commit together
+    through the native pending-file rules. 2.1.0 wrote the files before
+    calling `write` and removed them when `write` failed. A `write` that
+    creates no prepared attachment record now leaves no file behind, and an
+    existing file at the final path is never replaced. Test: `database.test.ts`.
+
+N5. **A provider preview names its export and import time, and
+    `importProviderRecords` reads the export again.** A preview this client
+    did not make, or an export or database that changed after the preview, is
+    refused. Edits a caller made to the preview object are not applied.
+    `plan.drafts` carry `record_id`, `record_type`, `data`, `match_key_method`,
+    and `match_key`; `collision_group`, `existing_record_id`, and
+    `changes[].current` are not included.
+
+N6. **Package previews, imports, and series-file reads load the package again
+    from `source_path`.** A package whose fingerprint changed is refused with
+    "the package changed after it was loaded; load it again". Edits a caller
+    made to a `LoadedPackage` in memory are not applied.
+
+N7. **Remote libSQL targets open no connection.** The 2.1.0 refusal messages
+    are kept: `URL_SCHEME_NOT_SUPPORTED` for an unsupported scheme, and
+    "SQLite foreign-key enforcement could not be enabled" for a supported one.
+    The first is a plain `Error` named `LibsqlError` with the same `code`, not
+    an instance of the libSQL client's class. An unreachable server gave a
+    network error in 2.1.0. `writeV1BacktestReport` refuses a URL instead of
+    writing under a folder named after it. See `packages/npm/REMOTE-TARGETS.md`.
+
+N8. **The render exports check the records they are given.** `renderRecord`,
+    `renderRecordList`, and raw `renderSeriesView` refuse an object that is not
+    a valid current record or revision. 2.1.0 printed whatever it was given.
+    `renderDatabaseStats` lists `by_type` in record-type name order, which is
+    the order `databaseStats` returns.
+
+N9. **Synchronous helpers run a short native process.** `createUuidV7`,
+    `buildMigrationPreview`, `calendarDateInZone`, `deterministicJson`, the
+    backup-name helpers, `conflictResolutions`, `addAttachmentsToLogPlan`, and
+    the render exports keep their synchronous signatures and results. Each
+    call costs a process start.
+
+N10. **`applyPendingDatabaseMigrations` and `migrateDatabase` apply every
+     pending step in one transaction,** as native item 17 describes.
+     `createVerifiedSqliteBackup` uses the SQLite backup API, as native
+     item 19 describes, and backs up the file at `sourcePath`.
+
+N11. **Errors from the native worker carry a non-enumerable `code`,** such as
+     `ATH_REFUSED`, `ATH_STALE`, or `ATH_CANCELLED`. Messages are unchanged.
+
+N12. **`SQL_SCHEMA_VERSION` is 5** and the JSON Schema exports describe
+     2.1.1. These are version declarations under D208.
+
 ## Behavior kept on purpose
 
 These look odd but stay, because changing them would change accepted data or
