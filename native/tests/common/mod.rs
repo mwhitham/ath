@@ -156,6 +156,13 @@ fn normalize_in(value: &Value, known: &[String], generated: &mut HashMap<String,
             if matches!(key, Some("file" | "report")) {
                 return Value::String("<path>".into());
             }
+            // A JSON parser's own message differs between JavaScript and Rust.
+            // The refusal and its prefix must still match.
+            for prefix in ["structured log is not valid JSON: ", "model did not return valid prediction JSON: "] {
+                if key == Some("error") && text.starts_with(prefix) {
+                    return Value::String(format!("{prefix}<parser message>"));
+                }
+            }
             if key == Some("rendered") {
                 return Value::String(normalize_text(text, known, generated));
             }
