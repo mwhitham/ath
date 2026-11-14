@@ -3,17 +3,41 @@
     "target": "ES2022",
     "module": "NodeNext",
     "moduleResolution": "NodeNext",
-    "lib": ["ES2022"],
+    "lib": [
+      "ES2022"
+    ],
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "exactOptionalPropertyTypes": true,
     "declaration": true,
     "skipLibCheck": true,
-    "types": ["node"],
+    "types": [
+      "node"
+    ],
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
-    "noEmit": true
+    "noEmit": true,
+    "paths": {
+      "athleticstandard": [
+        "./src/index.ts"
+      ],
+      "athleticstandard/database": [
+        "./src/database.ts"
+      ],
+      "athleticstandard/schema": [
+        "./src/schema.ts"
+      ]
+    }
   },
-  "include": ["src", "test", "scripts", "examples", "vitest.config.ts"],
-  "exclude": ["node_modules", "dist"]
+  "include": [
+    "src",
+    "test",
+    "scripts",
+    "examples",
+    "vitest.config.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }
