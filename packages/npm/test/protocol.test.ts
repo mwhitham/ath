@@ -126,7 +126,7 @@ describe("workers", () => {
         onProgress: (progress) => {
           if ((progress as { phase?: string }).phase === "write") {
             writing = true;
-            setTimeout(() => controller.abort(new Error("stop")), 20);
+            controller.abort(new Error("stop"));
           }
         },
       },
