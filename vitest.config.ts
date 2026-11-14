@@ -18,6 +18,7 @@ export default defineConfig({
     // removeTemporaryDirectory collects garbage so libsql lets go of a closed file.
     execArgv: ["--expose-gc"],
     env: { TMPDIR: temporaryRoot, TMP: temporaryRoot, TEMP: temporaryRoot },
-    exclude: [...configDefaults.exclude],
+    // The native rebuild and its npm package have their own test runners.
+    exclude: [...configDefaults.exclude, "native/**", "packages/**", ".claude/**"],
   },
 });
