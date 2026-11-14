@@ -361,8 +361,8 @@ fn write_report(call: &mut Call<'_>) -> Outcome {
     let report = input::required(&call.input, "report")?;
     let created_at = report.get("created_at").map(json::to_string).map(|text| text.trim_matches('"').to_string());
     let created_at = created_at.unwrap_or_else(|| "undefined".into());
-    let absolute = crate::files::absolute(Path::new(&database_path))?;
-    let path = crate::prediction::backtest::report_path(&absolute, &created_at);
+    // The path keeps the caller's form, as 2.1.0's `join(dirname(path), name)` did.
+    let path = crate::prediction::backtest::report_path(Path::new(&database_path), &created_at);
     let mut text = json::to_pretty(report);
     text.push('\n');
     crate::files::write_new_synced(&path, text.as_bytes())?;

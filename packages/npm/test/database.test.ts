@@ -130,6 +130,30 @@ describe("handles", () => {
     await expect(
       database.writeV1BacktestReport("libsql://example.turso.io/db", {} as never),
     ).rejects.toThrow("not a remote URL");
+
+    // Exports whose 2.1.0 code checked for a local file keep that refusal.
+    let closed = false;
+    const remote = { url: "libsql://example.turso.io", isLocal: false, close: () => (closed = true) };
+    await database.releaseLocalDatabase(remote);
+    expect(closed).toBe(true);
+    expect(() => database.packageConflictSetPath(remote)).toThrow(
+      "temporary import conflicts require a local SQLite database",
+    );
+    await expect(database.readPackageConflictSet(remote)).rejects.toThrow(
+      "temporary import conflicts require a local SQLite database",
+    );
+    await database.clearPackageConflictSet(remote);
+    expect(await database.savePackageConflictSet(remote, { conflicts: [] } as never)).toBeNull();
+    expect(await database.prepareAttachments(remote, [], athlete, day(1))).toEqual([]);
+    await expect(database.prepareAttachments(remote, ["x.png"], athlete, day(1))).rejects.toThrow(
+      "attachment ingestion requires a local SQLite database",
+    );
+    await expect(database.createVerifiedSqliteBackup(remote, "x", "y", {} as never)).rejects.toThrow(
+      "SQL schema migration backup requires a local database file",
+    );
+    await expect(database.readRecord(remote, scenario.fran.record_id)).rejects.toThrow(
+      "Athletic Standard database is closed",
+    );
   });
 
   it("makes and removes temporary folders", async () => {

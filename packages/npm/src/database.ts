@@ -656,6 +656,9 @@ export async function prepareAttachments(
   if (paths.length === 0) {
     return [];
   }
+  if (database.localPath === undefined) {
+    throw new Error("attachment ingestion requires a local SQLite database");
+  }
   const prepared = await outputOf(database, "attachments.prepare", {
     paths,
     actor,
@@ -934,6 +937,15 @@ export async function savePackageConflictSet(
   database: AthleticDatabase,
   preview: PackageImportPreview,
 ): Promise<PackageConflictSet | null> {
+  if (database.localPath === undefined) {
+    // 2.1.0 cleared nothing and returned null when there was nothing to
+    // save, and refused only when it had a file to write.
+    const savable =
+      preview.conflicts.length > 0 && preview.conflicts.every((conflict) => conflict.record_id !== undefined);
+    if (!savable) {
+      return null;
+    }
+  }
   return (
     await callAsync("conflicts.save", {
       database_path: conflictFileDatabase(database),
