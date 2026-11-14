@@ -1,8 +1,12 @@
 # Athletic Standard SQL contract
 
-Language-neutral SQLite schema for Athletic Standard v1. The TypeScript migration in
-`src/db/migrations/` is the source of truth. `pnpm generate:sql-contract` writes the
-files in this directory.
+Language-neutral SQLite schema for Athletic Standard. The ordered SQL files in
+`migrations/` are the executable migrations. The ath program embeds them unchanged,
+and a new database runs the same chain as an upgrade. `contract.json` declares what
+direct SQL clients may rely on. The native store checks a live database against it
+(`native/src/store/contract.rs`).
+
+Published migration files never change. A new SQL schema step adds a new file.
 
 ## Versions
 
@@ -69,6 +73,9 @@ Then run the record steps below and `COMMIT`. On failure, `ROLLBACK`.
 |---|---|---|
 | 1 | `migrations/001-initial.sql` | 1 |
 | 2 | `migrations/002-provider-encoding-repair.sql` | 2 |
+| 3 | `migrations/003-version-2.sql` | 3 |
+| 4 | `migrations/004-version-2-1.sql` | 4 |
+| 5 | `migrations/005-version-2-1-1.sql` | 5 |
 
 Rules:
 
@@ -82,8 +89,17 @@ Rules:
   the same write transaction using semantic equality (key-order-only mismatches from
   npm 1.0.0 provider imports). It sets `PRAGMA user_version = 2` before `COMMIT`. The
   runner bumps `database_state.current_revision` when at least one row changes.
+- Migration `005-version-2-1-1.sql` records software version 2.1.1 and creates the
+  internal table `internal_pending_file_operations`. It changes no athlete-owned table
+  or column. Records written before this step stay as they are.
 - Roll back the transaction on failure. A failed migration must leave the prior file
   usable.
+- `ath migrate` makes a verified backup with SQLite's backup API first. It then runs
+  every pending step in one write transaction. If the database changed after the
+  backup, nothing is migrated and the preview must be made again.
+- Software before 2.1.1 refuses a database at SQL schema 5. To go back, restore the
+  verified pre-migration backup and keep the newer file separately. The backup does
+  not contain work recorded after it was made.
 
 npm `athleticstandard@1.0.0` ships SQL schema version 1. npm `1.1.0` adds migration
 002 for existing databases created by `1.0.0`.
@@ -158,8 +174,17 @@ reports and nutrition entries.
 4. `UPDATE database_state SET current_revision = current_revision + 1`
 5. `COMMIT`
 
-`database_metadata` is written once at creation. `record_import_keys` and
-`record_erasure_markers` are reserved for official import and privacy-erasure flows.
+`database_metadata` is written at creation and by each migration step.
+`record_import_keys` and `record_erasure_markers` are reserved for official import and
+privacy-erasure flows.
+
+`internal_pending_file_operations` (SQL schema 5) is internal. Direct writers must not
+write it. The ath program records attachment file work there that a SQL transaction
+cannot include: a file written before its record commits, or a file an erasure must
+still remove. Rows hold operation IDs, kinds, relative paths, and times. They hold no
+health values. The table is not athlete-owned history, so a JSON package never
+includes it. `ath check` reports pending rows as warnings. `contract.json` describes
+each internal table under `internal_table_notes`.
 
 ## Enforcement
 
@@ -170,7 +195,12 @@ library is not used.
 
 ## Drift check
 
-`pnpm check:schema-drift` verifies that:
+The native tests check that `contract.json` agrees with the embedded migration
+chain, the trigger names in the SQL files, and the tables the record encoder writes.
+They also check that new and migrated databases match the contract exactly: every
+listed table, view, column, and trigger exists, and nothing unlisted does.
+
+In the 2.1.0 TypeScript build, `pnpm check:schema-drift` verified that:
 
 - Generated files match the TypeScript migration source.
 - A database from `createDatabase()` matches a database built with `sqlite3` and
