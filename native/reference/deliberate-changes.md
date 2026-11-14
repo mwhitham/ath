@@ -383,6 +383,16 @@ stored bytes:
 - Package preview lists still collect sample IDs in series-file order before
   sorting, so a shortened list holds the first 1,000 seen, as in 2.1.0.
 
+- Garmin's own `startTimeGMT` form without an offset (`2026-01-02 15:00:00`)
+  stops a Garmin import, as in 2.1.0. Reading it as UTC would accept data that
+  2.1.0 refused, so it waits for a separate decision.
+- Strava is detected by any file name ending in `activities.csv`, but only a
+  file named exactly `activities.csv` is read, as in 2.1.0.
+- An Oura bedtime that ends exactly at midnight UTC becomes a day with no time,
+  as in 2.1.0.
+- Garmin, Strava, pull, and mapped imports still refuse a supplied field named
+  `__proto__`, as D191 requires. Change 4 keeps that key everywhere else.
+
 ## Open work
 
 - The command-line changes chosen for 2.1.1 are listed in `cli-changes.md`.
