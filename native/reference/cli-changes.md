@@ -43,7 +43,60 @@ was not. The wording follows the other non-interactive refusal, `there is no
 terminal to ask on, so nothing was written. Pass --yes after reviewing the
 preview.` The answers still come from standard input, as in 2.1.0.
 
+### 3. `ATH_GATEWAY_BASE_URL` points the model gateways at a local test server
+
+`ath models`, `ath predict`, and `ath backtest` send gateway requests to the
+root named by `ATH_GATEWAY_BASE_URL` when it is set. Only an `http` root on
+`127.0.0.1`, `localhost`, or `[::1]` is accepted. Any other value is refused
+before a key is read:
+
+```text
+ath: ATH_GATEWAY_BASE_URL must name a test server on this computer, such as http://127.0.0.1:8080; nothing was sent
+```
+
+Reason: spec section 10 requires tests to use local model servers, and the
+executable-level tests run the program as a separate process. 2.1.0 had no
+way to change its gateway roots. `ath pull garmin --base-url` already served
+the same purpose for the Garmin connection. The loopback rule keeps a stray
+value from sending a key to another computer.
+
+### 4. A birth year that is not a number is refused in one line
+
+`ath init --birth-year soon` refused in 2.1.0 with the validator's JSON
+issue list inside the message. The native executable names the field and the
+reason on one line, and still keeps nothing:
+
+```text
+ath: could not create a valid v1 database: data.birth_year: Invalid input: expected number, received NaN. Nothing was kept.
+```
+
+Reason: every other validation refusal prints `<path>: <message>`. The exit
+status is still 1.
+
+### 5. `ath skill install` cannot lack its shipped skill
+
+2.1.0 refused with `the skill is not here to copy: expected it at <path>`
+when its package had no skill folder. The native executable carries the
+skill, calculation, and mapping files inside itself (spec section 11.1), so
+this refusal no longer exists.
+
+## Comparison with 2.1.0
+
+`native/tools/reference/cli-golden.ts` runs the 2.1.0 command line on
+synthetic scenarios and writes `native/tests/golden/cli/`. The test
+`native/tests/cli_golden.rs` runs the native executable on the same
+scenarios. Each golden file lists its normalization rules. The expected
+side also applies these listed differences: change 1 above, the native
+migration step 5 (see Version), and `deliberate-changes.md` entries 5, 25,
+32, 42, and 44.
+
 ## Version
 
 `--version`, `-V`, and every version shown by the command line report
 `2.1.1`. This follows D152's single version and is not a behavior change.
+
+The native program writes SQL schema step 5 (D211). `ath migrate` previews
+list step 5 and name 5 as the target, `ath check --json` reports
+`sql_schema_version` 5, and a command that needs a migration says `must be
+upgraded to 5`. A 2.1.0 database at step 4 needs `ath migrate` before a
+write-capable command runs; read-only commands open it unchanged.

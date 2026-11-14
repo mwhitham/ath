@@ -175,7 +175,7 @@ fn create_database(request: &InitRequest, created_at: &str) -> crate::Result<Opt
     } else {
         let tool = tool_actor();
         let mut creates = vec![
-            new_record(RecordType::AthleteProfile, profile_data(request), &tool, created_at)?,
+            new_record(RecordType::AthleteProfile, profile_data(request)?, &tool, created_at)?,
             new_record(RecordType::Source, manual_source_data(), &tool, created_at)?,
         ];
         creates.extend(seed_benchmark_records(created_at));
@@ -196,16 +196,21 @@ fn new_record(record_type: RecordType, data: Value, tool: &RecordActor, created_
 /// The profile 2.1.0 wrote: a name and birth year when given, a sex only
 /// when it is exactly `male` or `female`, the display units, and the
 /// default timezone when given.
-fn profile_data(request: &InitRequest) -> Value {
+fn profile_data(request: &InitRequest) -> crate::Result<Value> {
     let mut fields = Vec::new();
     if let Some(name) = request.name.as_deref().filter(|name| !name.is_empty()) {
         fields.push(("name", Value::String(name.to_string())));
     }
     if let Some(year) = request.birth_year.as_deref().filter(|year| !year.is_empty()) {
-        // `Number(<text>)`, kept as JavaScript would write it.
+        // `Number(<text>)`, kept as JavaScript would write it. JSON cannot
+        // hold NaN or Infinity, so the validator's refusal is named here.
         let number = js_number(year);
-        let value = if number.is_finite() { json::parse(&json::format_number(number)).ok() } else { None };
-        fields.push(("birth_year", value.unwrap_or(Value::Null)));
+        if !number.is_finite() {
+            let received = if number.is_nan() { "NaN" } else { "Infinity" };
+            return Err(Error::other(format!("data.birth_year: Invalid input: expected number, received {received}")));
+        }
+        let value = json::parse(&json::format_number(number))?;
+        fields.push(("birth_year", value));
     }
     if let Some(sex) = request.sex.as_deref().filter(|sex| *sex == "male" || *sex == "female") {
         fields.push(("sex", Value::String(sex.to_string())));
@@ -214,7 +219,7 @@ fn profile_data(request: &InitRequest) -> Value {
     if let Some(zone) = request.timezone.as_deref().filter(|zone| !zone.is_empty()) {
         fields.push(("default_time_zone", Value::String(zone.to_string())));
     }
-    object(fields)
+    Ok(object(fields))
 }
 
 fn manual_source_data() -> Value {
