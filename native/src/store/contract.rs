@@ -27,7 +27,7 @@ use crate::error::{Error, Result};
 use crate::model::RecordType;
 
 /// The contract file, embedded unchanged.
-pub const CONTRACT_JSON: &str = include_str!("../../../spec/sql/contract.json");
+pub const CONTRACT_JSON: &str = include_str!("../../pending-publication/spec/sql/contract.json");
 
 #[derive(Debug, Clone, Deserialize)]
 pub struct SqlContract {

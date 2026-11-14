@@ -78,6 +78,31 @@ here; an unlisted difference is a bug.
 
 16. **New records name tool version 2.1.1 in `changed_by`.**
 
+## Database maintenance
+
+17. **All migration steps run in one transaction.** A failure leaves the file
+    at its starting step, never half migrated. Test: `migration.rs`.
+
+18. **A change after the migration or repair backup is a stale refusal.**
+    2.1.0 told the person to restore the backup, which would have lost the
+    other writer's work. The new refusal asks for a new preview and backup.
+    Test: `migration.rs`.
+
+19. **A verified backup is one self-contained file.** It is switched to
+    rollback-journal mode, and verification also compares the database
+    revision. Test: `backup.rs`.
+
+20. **`ath check` reads one snapshot and reports more problems instead of
+    stopping.** Damaged extensions or unreadable JSON are issues; 2.1.0
+    stopped with an error. Foreign-key findings are sorted, because SQLite
+    versions list them in different orders. Pending attachment file work is
+    a `pending_file_operation` warning. A missing attachment reports the
+    system's own file error text. Test: `check_repair.rs`.
+
+21. **A read-only open of a WAL database in a folder SQLite cannot use is
+    refused clearly.** 2.1.0 said the metadata table was missing. The file is
+    not changed. Test: `read_policy.rs`.
+
 ## Behavior kept on purpose
 
 These look odd but stay, because changing them would change accepted data or
@@ -102,6 +127,9 @@ stored bytes:
   2.1.0.
 - A single CSV with a nonstandard file name imports nothing and is reported as
   an unrecognized file, as in 2.1.0.
+
+- A child JSON row that cannot be parsed is reported as "record_json is not
+  valid JSON", as in 2.1.0.
 
 ## Open work
 
