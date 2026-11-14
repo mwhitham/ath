@@ -1766,7 +1766,7 @@
             "severity": "error",
             "check": "attachment",
             "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000e",
-            "message": "referenced attachment is missing: /private/tmp/claude-501/ath-golden-check-zFM9tI/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png (ENOENT: no such file or directory, lstat '/private/tmp/claude-501/ath-golden-check-zFM9tI/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png')"
+            "message": "referenced attachment is missing: /private/tmp/claude-501/ath-golden-check-bgbTJ3/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png (ENOENT: no such file or directory, lstat '/private/tmp/claude-501/ath-golden-check-bgbTJ3/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png')"
           }
         ]
       },
@@ -8889,6 +8889,178 @@
         "repair_candidates": 110,
         "revision_align_candidates": 0,
         "revision_align_record_ids": []
+      },
+      "repaired": {
+        "made_backup": true,
+        "repaired_record_count": 110,
+        "revision_align_record_count": 0,
+        "database_revision": 5,
+        "tables": {
+          "records": {
+            "rows": 231,
+            "sha256": "23ea751ffe535f41c3304a47581c2688ea0191a09cb0eb116748097abd7bf8f2"
+          },
+          "record_revisions": {
+            "rows": 231,
+            "sha256": "d75a759ee0b8c440b42185601436d20120fff0357b0542e2d11485a8204c863a"
+          },
+          "record_deletions": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "record_erasure_markers": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "record_import_keys": {
+            "rows": 222,
+            "sha256": "0bd4748803ec99f0f97bccebfea99ba85c7385570f8cd87ac899e6cf3fe0fb09"
+          },
+          "athlete_profile": {
+            "rows": 1,
+            "sha256": "ebc63ce2bfc00c6113ed33b93e85cbb94b8ca9646374f64160fb5143073f061e"
+          },
+          "sources": {
+            "rows": 11,
+            "sha256": "3a410a723e4c78ec7fac7c11af4934fcd0d0872f5394319b62551446cf997479"
+          },
+          "source_devices": {
+            "rows": 1,
+            "sha256": "9b2a7fa0df224b7d37f9637e336ed3bc827cbd3880f2c8391c9163ee94da84f5"
+          },
+          "point_measurements": {
+            "rows": 33,
+            "sha256": "347657fadc06ae1276171b04def6e45f38e4b611a3809fa73429c32b03477419"
+          },
+          "point_measurement_calculations": {
+            "rows": 2,
+            "sha256": "5c8335a349c4f7c26a2fb9d6c6e58fbffd977e388959aad6eeeeb44abd210264"
+          },
+          "point_measurement_calculation_inputs": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "measurement_samples": {
+            "rows": 131,
+            "sha256": "a57de56a62a782c99d7060d96edcb66abd94a52bfaf1191d0d76f679b024ada6"
+          },
+          "sleep_sessions": {
+            "rows": 6,
+            "sha256": "bdafe477dd5f4fb9b0404ac7f2a924f4417540e130c89a63c3f544e14c0d102b"
+          },
+          "workout_sessions": {
+            "rows": 4,
+            "sha256": "2ca4567ef5726dded2302e0270917061a4dbbaff3eb47a91607f37f2ac7a047b"
+          },
+          "workout_session_segments": {
+            "rows": 5,
+            "sha256": "6d9407173adf2b8c222ab6c50af427ee1c3c061a4caaedd82b84ad4387a55dfe"
+          },
+          "workout_route_points": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "benchmark_results": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "benchmark_result_segments": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "provider_scores": {
+            "rows": 26,
+            "sha256": "9672dbb53ab8e99ac0c4ee43f176c3f7758be3fcc622f01d84c1f882f1e0b0e8"
+          },
+          "provider_summaries": {
+            "rows": 6,
+            "sha256": "9a47246efe8ee1485e027ecce2f139f976a29b3e0c4234d37db9186c7db00440"
+          },
+          "provider_reporting_periods": {
+            "rows": 56,
+            "sha256": "f1b4f8a4b971fb993433b0b3c02e5fcb48e24a09bf1d06e762c1abfa256fdb6d"
+          },
+          "athlete_reports": {
+            "rows": 3,
+            "sha256": "e84485ca4c4f5680ef2417437062cd0965e1899236e6643a776e5daf3d90acc3"
+          },
+          "nutrition_entries": {
+            "rows": 2,
+            "sha256": "91be27f2114ef984e3c2f0a209feb4732cef5debac5a7b92a82147e762f3663d"
+          },
+          "reported_nutrition_items": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "attachments": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "record_attachment_links": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "benchmark_definitions": {
+            "rows": 7,
+            "sha256": "f9c9406312f4a4139f59d43a0d47cf1b4acc709d902d1e762e80276d18d0d4ef"
+          },
+          "predictions": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "prediction_result_links": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "prediction_grades": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "prediction_error_analyses": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "prediction_error_causes": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "training_plans": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "planned_sessions": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "planned_session_blocks": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "coaching_notes": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "saved_training_reviews": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "goals": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "nutrition_model_interpretations": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "authored_record_evidence": {
+            "rows": 0,
+            "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+          },
+          "database_state": {
+            "rows": 1,
+            "sha256": "5"
+          }
+        }
       }
     },
     {

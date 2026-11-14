@@ -245,7 +245,7 @@ const SCENARIOS: Scenario[] = [
       "WITH RECURSIVE n(i) AS (SELECT 1 UNION ALL SELECT i + 1 FROM n WHERE i < 1100) INSERT INTO record_erasure_markers (record_id, erased_at, reason_code) SELECT printf('01890f3e-e7d3-7cc0-88c8-%012d', i), 'bad', 'other' FROM n",
     ],
   },
-  { name: "npm100", fixture: "npm100", sql: [] },
+  { name: "npm100", fixture: "npm100", sql: [], repair: true },
   { name: "v200", fixture: "v200", sql: [], repair: true },
 ];
 

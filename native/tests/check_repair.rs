@@ -359,3 +359,50 @@ fn a_repair_backup_uses_the_2_1_0_name() {
     assert!(result.backup_path.starts_with(&format!("{}.repair-backup.20260115T120000.123Z-", path.display())));
     assert_eq!(file_mode(Path::new(&result.backup_path)), 0o600);
 }
+
+/// `repair --from-revision` rebuilds a typed row from the retained revision
+/// without reading the damaged typed JSON. The npm 1.0.0 database is
+/// repaired, migrated, damaged, and repaired again.
+#[test]
+fn from_revision_rebuilds_without_reading_the_damaged_row() {
+    let path = copy_fixture(&npm100_fixture(), "ath-repair-from-revision-", false);
+    let mut store = Store::open(&path, OpenOptions { read_only: false, allow_outdated_schema: true }).unwrap();
+    let revision_before = store.database_revision().unwrap();
+    let repaired = execute_confirmed_repair(&mut store, &RepairOptions::default()).unwrap();
+    assert_eq!(repaired.repaired_record_count, 110);
+    assert_eq!(repaired.database_revision, revision_before + 1);
+    let migrated = execute_confirmed_migration(&mut store, &MigrationOptions::default()).unwrap();
+    assert!(migrated.migrated);
+    // Step 2 found nothing left to repair, so migration did not advance the revision.
+    assert_eq!(store.database_revision().unwrap(), revision_before + 1);
+    store.close().unwrap();
+
+    let record_id: String = inspect(&path)
+        .query_row(
+            "SELECT record_id FROM point_measurements WHERE quantity = 'hrv_rmssd' ORDER BY record_id LIMIT 1",
+            [],
+            |row| row.get(0),
+        )
+        .unwrap();
+    direct(&path)
+        .execute(
+            "UPDATE point_measurements SET data_json = '{\"x\":1}', standard_value = 999 WHERE record_id = ?1",
+            [&record_id],
+        )
+        .unwrap();
+    let store = Store::open(&path, OpenOptions::default()).unwrap();
+    let preview = repair_preview(&store).unwrap();
+    assert_eq!(preview.revision_align_record_ids, vec![record_id.clone()]);
+    assert!(!check_database(&store).unwrap().valid);
+    drop(store);
+
+    let mut store = Store::open(&path, OpenOptions::default()).unwrap();
+    let revisions_before = dump_tables(&path, &["record_revisions"]);
+    let result =
+        execute_confirmed_repair(&mut store, &RepairOptions { from_revision: true, ..RepairOptions::default() })
+            .unwrap();
+    assert_eq!(result.revision_align_record_count, 1);
+    assert_eq!(dump_tables(&path, &["record_revisions"]), revisions_before);
+    let after = check_database(&store).unwrap();
+    assert!(after.valid && after.issues.is_empty(), "{:?}", after.issues);
+}
