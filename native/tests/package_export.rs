@@ -156,6 +156,24 @@ fn finished_packages_have_no_marker_and_survive_a_later_cleanup() {
     fs::remove_dir_all(directory).unwrap();
 }
 
+/// A missing attachment file is named with its record (deliberate-changes.md,
+/// entry 38), and nothing is published.
+#[test]
+fn a_missing_attachment_file_is_named() {
+    let directory = temporary("ath-export-attachment-missing-");
+    let database = migrated_demo_copy(&directory);
+    let store = open_read_only(&database);
+    let file = directory.join("attachments").join(DEMO_ATTACHMENT);
+    fs::remove_file(&file).unwrap();
+    let error = export_package(&store, &directory.join("package"), &ExportOptions::default()).unwrap_err();
+    assert_eq!(
+        error.to_string(),
+        format!("attachment file is missing: {} (01890f3e-e7d3-7cc0-88c8-00000000000e)", file.display())
+    );
+    assert!(!directory.join("package").exists());
+    fs::remove_dir_all(directory).unwrap();
+}
+
 /// Export copies an attachment only from the file itself. A file, or the
 /// attachments folder, that is a symbolic link is refused, even when it leads
 /// to the right bytes. 2.1.0 followed the link (deliberate-changes.md,
