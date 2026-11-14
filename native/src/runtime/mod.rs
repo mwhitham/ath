@@ -1,5 +1,6 @@
-//! Optional runtime services: the operating system's password store and
-//! model gateways.
+//! Optional runtime services: the operating system's password store, model
+//! gateways, the saved default model, program updates, and the `share`
+//! placeholder.
 //!
 //! Local record operations never use this module. A network client or a
 //! password store starts only when a command that needs one constructs it.
@@ -9,6 +10,7 @@
 pub mod gateway;
 pub mod keyring;
 pub mod model_client;
+pub mod models;
 
 mod collate;
 
