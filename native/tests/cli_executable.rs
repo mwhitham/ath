@@ -107,8 +107,14 @@ fn version_guide_and_refusals_through_the_executable() {
 
     let stats = ath(folder.path(), &["stats"], b"");
     assert_eq!(
-        (stats.status, stats.stderr.as_str()),
-        (1, "ath: ath stats is not connected to the native library yet; nothing was read or written\n")
+        (stats.status, stats.stderr),
+        (
+            1,
+            format!(
+                "ath: no athlete.ath.sqlite in {} — run `ath init` to create one, or pass --file\n",
+                folder.path().display()
+            )
+        )
     );
 
     let limit = ath(folder.path(), &["records", "list", "--limit", "0x0"], b"");

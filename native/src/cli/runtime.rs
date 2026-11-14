@@ -7,10 +7,13 @@
 use std::collections::BTreeMap;
 use std::io::{BufRead, Write};
 use std::path::{Component, Path, PathBuf};
+use std::rc::Rc;
 
 use crate::error::Error;
 use crate::files;
 use crate::json::{Map, Value};
+use crate::runtime::gateway::GatewayEndpoints;
+use crate::runtime::keyring::{KeyRefusal, OsSecretStore, SecretStore};
 use crate::store::{MigrationPreview, OpenOptions, Store};
 
 use super::text::js_trim;
@@ -63,17 +66,50 @@ pub struct Io<'a> {
 /// current, and returns the verified backup path.
 pub type MigrationExecutor = fn(&mut Store, &MigrationPreview) -> crate::Result<PathBuf>;
 
-/// Library operations the command shell calls through a seam, so they can be
-/// connected as they are built and replaced with fakes in tests.
-#[derive(Clone, Copy)]
+/// Library operations and optional runtime services the command shell calls
+/// through a seam, so tests can replace them. Local record commands never
+/// construct a password store, a network client, or a package-manager plan.
+#[derive(Clone)]
 pub struct Services {
     pub migrate: MigrationExecutor,
+    /// The password store `key`, `models`, `predict`, and `backtest` read.
+    /// `None` means this system's store, built only when a key is needed.
+    pub secret_store: Option<Rc<dyn SecretStore>>,
+    /// The gateway API roots. `None` means the published roots, or the
+    /// loopback root named by [`GATEWAY_BASE_URL_VARIABLE`].
+    pub gateway_endpoints: Option<GatewayEndpoints>,
+    /// Hidden input for `ath key set`.
+    pub prompt_secret: fn(&str) -> Result<String, KeyRefusal>,
+    /// The latest published version, for `ath --update`.
+    pub latest_version: fn() -> Result<String, String>,
 }
 
 impl Default for Services {
     fn default() -> Self {
-        Services { migrate: confirmed_migration }
+        Services {
+            migrate: confirmed_migration,
+            secret_store: None,
+            gateway_endpoints: None,
+            prompt_secret: crate::runtime::keyring::prompt_secret,
+            latest_version: published_version,
+        }
     }
+}
+
+/// The environment variable that points both model gateways at a test
+/// server on this computer. Only loopback roots are accepted, so a stray
+/// value cannot send a key to another host.
+pub const GATEWAY_BASE_URL_VARIABLE: &str = "ATH_GATEWAY_BASE_URL";
+
+fn published_version() -> Result<String, String> {
+    crate::runtime::update::fetch_latest_version(crate::runtime::update::REGISTRY_LATEST_URL)
+}
+
+/// True for an `http` root on 127.0.0.1, localhost, or [::1].
+fn is_loopback_root(url: &str) -> bool {
+    ["http://127.0.0.1", "http://localhost", "http://[::1]"].iter().any(|host| {
+        url.strip_prefix(host).is_some_and(|rest| rest.is_empty() || rest.starts_with(':') || rest.starts_with('/'))
+    })
 }
 
 /// Migrate after the person confirmed the previewed backup path.
@@ -216,6 +252,14 @@ impl Context<'_> {
         }
     }
 
+    /// The write-capable open `migrate` and `repair` use: an outdated
+    /// schema is allowed and nothing is asked.
+    pub fn open_outdated_for_write(&mut self, path: &Path, json: bool) -> Result<Store, Failure> {
+        self.check_path(path)?;
+        self.warn_readable_paths(path, json);
+        Ok(Store::open(path, OpenOptions { read_only: false, allow_outdated_schema: true })?)
+    }
+
     /// `openReadOnlyOrFail`: open without changing the file, even when it
     /// needs a migration (S16).
     pub fn open_read_only(&mut self, path: &Path, json: bool) -> Result<Store, Failure> {
@@ -322,6 +366,26 @@ impl Context<'_> {
     /// An environment variable.
     pub fn env(&self, name: &str) -> Option<&str> {
         self.io.env.get(name).map(String::as_str)
+    }
+
+    /// The password store. This system's store is built on first use.
+    pub fn secret_store(&mut self) -> Rc<dyn SecretStore> {
+        self.services.secret_store.get_or_insert_with(|| Rc::new(OsSecretStore::for_this_system())).clone()
+    }
+
+    /// The gateway API roots: the injected roots, a loopback root from the
+    /// environment, or the published roots.
+    pub fn gateway_endpoints(&self) -> Result<GatewayEndpoints, Failure> {
+        if let Some(endpoints) = &self.services.gateway_endpoints {
+            return Ok(endpoints.clone());
+        }
+        match self.env(GATEWAY_BASE_URL_VARIABLE).filter(|value| !value.is_empty()) {
+            None => Ok(GatewayEndpoints::default()),
+            Some(root) if is_loopback_root(root) => Ok(GatewayEndpoints::both(root.trim_end_matches('/'))),
+            Some(_) => Err(refuse(format!(
+                "{GATEWAY_BASE_URL_VARIABLE} must name a test server on this computer, such as http://127.0.0.1:8080; nothing was sent"
+            ))),
+        }
     }
 }
 

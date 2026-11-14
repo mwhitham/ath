@@ -565,7 +565,7 @@ fn asleep_bounds(data: &Value) -> Option<(i64, i64)> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::calculate::definition::shipped_skill_file;
+    use crate::assets::shipped_calculation;
 
     fn record(data: Value) -> StoredRecord {
         StoredRecord {
@@ -578,7 +578,7 @@ mod tests {
 
     #[test]
     fn zones_match_the_worked_example() {
-        let file = CalculationFile::parse(shipped_skill_file("heart-rate-zones").unwrap()).unwrap();
+        let file = CalculationFile::parse(shipped_calculation("heart-rate-zones").unwrap()).unwrap();
         let data = json::parse(
             r#"{"maximum_heart_rate_bpm":200,"heart_rate_samples":[
                 {"offset_ms":0,"bpm":100},{"offset_ms":1000,"bpm":130},
@@ -596,7 +596,7 @@ mod tests {
 
     #[test]
     fn a_missing_maximum_is_reported_not_guessed() {
-        let file = CalculationFile::parse(shipped_skill_file("heart-rate-zones").unwrap()).unwrap();
+        let file = CalculationFile::parse(shipped_calculation("heart-rate-zones").unwrap()).unwrap();
         let result = run(&file, &record(json::parse(r#"{"heart_rate_samples":[]}"#).unwrap()), &[]);
         assert_eq!(result.missing, vec!["maximum_heart_rate_bpm".to_string()]);
         assert_eq!(json::encode(&result.result), "null");

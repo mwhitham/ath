@@ -1,49 +1,29 @@
 //! `ath link`, `ath correct`, and `ath delete`: previewed changes to one
-//! existing record, written through `Store::apply` after confirmation.
+//! existing record, written through `Store::apply` after confirmation. A
+//! correction with attachment files is written through
+//! `package::apply_with_attachments`.
 //!
 //! Each prints a preview, stops for `--json` or `--dry-run`, asks unless
 //! `--yes` is given (S18), and writes one change with the expected revision
 //! from `--revision`. A stale revision is refused.
 
-use std::path::Path;
+use std::path::PathBuf;
 
+use super::shared::{confirm_flags, object, proceed, required_argument, with_store, Open};
 use crate::cli::parse::{Args, PositiveInteger};
-use crate::cli::runtime::{refuse, CommandResult, Confirm, Context, Failure};
+use crate::cli::runtime::{refuse, CommandResult, Context, Failure};
 use crate::error::Error;
-use crate::json::{self, Map, Value};
+use crate::json::{self, Value};
 use crate::model::{
-    record_id as record_id_schema, BecameKnownAtBasis, CurrentRecord, PathSegment, RecordActor, RecordData, RecordType,
+    record_id as record_id_schema, time, BecameKnownAtBasis, CurrentRecord, PathSegment, RecordActor, RecordData,
+    RecordType,
 };
+use crate::package::{apply_with_attachments, prepare_attachments};
 use crate::store::write::StaleStyle;
 use crate::store::{Changes, Correction, Deletion, ExtensionsUpdate, Store};
 
-/// The flags every command here reads.
-fn confirm_flags(args: &Args) -> Confirm {
-    Confirm { yes: args.flag("yes"), dry_run: args.flag("dry_run"), json: args.flag("json") }
-}
-
-fn required_argument<'a>(args: &'a Args, name: &str) -> &'a str {
-    args.argument(name).unwrap_or_else(|| panic!("the parser requires <{name}>"))
-}
-
 fn expected_revision(args: &Args) -> PositiveInteger {
     args.positive_integer("revision").expect("the parser requires --revision")
-}
-
-/// Open the database for writing, run `body`, and release the database
-/// afterwards whatever happened (S31).
-fn with_store(
-    context: &mut Context<'_>,
-    args: &Args,
-    body: impl FnOnce(&mut Context<'_>, &mut Store, &Path) -> CommandResult,
-) -> CommandResult {
-    let json = args.flag("json");
-    let path = context.find_database(args.value("file"))?;
-    let mut store = context.open_for_write(&path, json)?;
-    let result = body(context, &mut store, &path);
-    let closed = store.close();
-    result?;
-    closed.map_err(Failure::from)
 }
 
 /// `readRecord`: the record ID must be a lowercase UUIDv7, as 2.1.0 checked.
@@ -82,35 +62,13 @@ fn correction(record_id: &str, expected: PositiveInteger, data: RecordData, chan
     }
 }
 
-/// An object with fields in the given order.
-fn object(fields: Vec<(&str, Value)>) -> Value {
-    let mut map = Map::new();
-    for (key, value) in fields {
-        map.insert(key.to_string(), value);
-    }
-    Value::Object(map)
-}
-
-/// The preview is shown; ask before writing. `Ok(false)` means stop.
-fn proceed(context: &mut Context<'_>, flags: Confirm, question: &str) -> Result<bool, Failure> {
-    if flags.dry_run {
-        context.say("nothing written (--dry-run)")?;
-        return Ok(false);
-    }
-    if !context.confirm(flags, question)? {
-        context.say("nothing written")?;
-        return Ok(false);
-    }
-    Ok(true)
-}
-
 /// `ath link <result-id> <session-id> --revision <n>`.
 pub fn link(context: &mut Context<'_>, args: &Args) -> CommandResult {
     let result_id = required_argument(args, "result-id").to_string();
     let session_id = required_argument(args, "session-id").to_string();
     let expected = expected_revision(args);
     let flags = confirm_flags(args);
-    with_store(context, args, |context, store, path| {
+    with_store(context, args, Open::Write, |context, store, path| {
         let result = read_record(store, &result_id)?
             .filter(|record| record.record_type() == RecordType::BenchmarkResult && !record.is_deleted)
             .ok_or_else(|| refuse(format!("{result_id} is not a current benchmark result")))?;
@@ -162,7 +120,7 @@ pub fn correct(context: &mut Context<'_>, args: &Args) -> CommandResult {
     let agent = args.value("agent").map(ToString::to_string);
     let attachments = args.values("attachment");
     let flags = confirm_flags(args);
-    with_store(context, args, |context, store, path| {
+    with_store(context, args, Open::Write, |context, store, path| {
         let current = read_record(store, &record_id)?
             .filter(|record| !record.is_deleted)
             .ok_or_else(|| refuse(format!("current record not found: {record_id}")))?;
@@ -174,14 +132,33 @@ pub fn correct(context: &mut Context<'_>, args: &Args) -> CommandResult {
             None => RecordActor::Athlete,
             Some(agent) => RecordActor::Agent { agent, agent_version: None },
         };
-        if !attachments.is_empty() {
-            // Attachment files are prepared by the attachment library, which
-            // is not connected yet.
-            return Err(Failure::NotConnected(
-                "ath correct --attachment is not connected to the native library yet; nothing was read or written"
-                    .to_string(),
-            ));
+        let paths: Vec<PathBuf> = attachments.iter().map(|path| context.resolve(path)).collect();
+        let prepared = prepare_attachments(store, &paths, &actor, &time::now_utc())?;
+        let mut data = data;
+        if !prepared.is_empty() {
+            if !matches!(current.record_type(), RecordType::AthleteReport | RecordType::NutritionEntry) {
+                return Err(refuse("--attachment can correct only an athlete_report or nutrition_entry"));
+            }
+            let Value::Object(fields) = &mut data else {
+                return Err(refuse("--data must be a complete record data object"));
+            };
+            // The new attachment IDs follow any the data already names.
+            let mut ids = match fields.get("attachment_ids") {
+                Some(Value::Array(ids)) => ids.clone(),
+                _ => Vec::new(),
+            };
+            ids.extend(prepared.iter().map(|file| Value::String(file.record_id.clone())));
+            fields.insert("attachment_ids".into(), Value::Array(ids));
         }
+        let attachment_preview = prepared
+            .iter()
+            .map(|file| {
+                object(vec![
+                    ("record_id", Value::String(file.record_id.clone())),
+                    ("data", RecordData::Attachment(file.data.clone()).to_value()),
+                ])
+            })
+            .collect();
         let preview = object(vec![
             ("file", Value::String(path.display().to_string())),
             ("record_id", Value::String(current.record_id.clone())),
@@ -190,7 +167,7 @@ pub fn correct(context: &mut Context<'_>, args: &Args) -> CommandResult {
             ("current_revision", Value::from(current.current_revision)),
             ("before", current.data.to_value()),
             ("after", data.clone()),
-            ("attachments", Value::Array(Vec::new())),
+            ("attachments", Value::Array(attachment_preview)),
             ("write_confirmed", Value::Bool(false)),
         ]);
         context.say_json(&preview)?;
@@ -200,7 +177,9 @@ pub fn correct(context: &mut Context<'_>, args: &Args) -> CommandResult {
         check_correctable(store, &current.record_id, expected)?;
         let decoded = RecordData::decode(current.record_type(), &data)
             .map_err(|error| Error::Invalid(error.under(&[PathSegment::Key("data".to_string())])))?;
-        let applied = store.apply(correction(&current.record_id, expected, decoded, actor))?;
+        let mut changes = correction(&current.record_id, expected, decoded, actor);
+        changes.creates = prepared.iter().map(|file| file.new_record()).collect();
+        let applied = apply_with_attachments(store, &prepared, changes)?;
         let revision = written_revision(&applied.records, &current.record_id)?;
         context.say(&format!(
             "corrected {} to revision {revision} (database revision {})",
@@ -214,7 +193,7 @@ pub fn delete(context: &mut Context<'_>, args: &Args) -> CommandResult {
     let record_id = required_argument(args, "record-id").to_string();
     let expected = expected_revision(args);
     let flags = confirm_flags(args);
-    with_store(context, args, |context, store, path| {
+    with_store(context, args, Open::Write, |context, store, path| {
         let current = read_record(store, &record_id)?
             .filter(|record| !record.is_deleted)
             .ok_or_else(|| refuse(format!("current record not found: {record_id}")))?;

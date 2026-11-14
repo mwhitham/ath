@@ -16,13 +16,13 @@ use std::path::{Path, PathBuf};
 use rusqlite::Connection;
 use serde::Serialize;
 
-use super::client::{CompleteRequest, Gateway, ModelClient};
 use super::evidence::{build_evidence, EvidenceRequest};
 use super::predict::strip_code_fence;
 use crate::error::{Error, Result};
 use crate::json::{self, Value};
 use crate::model::grade::js_round;
 use crate::model::{time, CurrentRecord, RecordData, Score, ATHLETIC_STANDARD_VERSION};
+use crate::runtime::model_client::{ModelClient, PromptRequest};
 use crate::store::read::current_from_row;
 
 pub const BACKTEST_SYSTEM_PROMPT: &str =
@@ -67,10 +67,10 @@ pub struct BacktestReport {
     pub summary: Vec<BacktestModelSummary>,
 }
 
+/// The models are called through one client, which is bound to one gateway.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct BacktestOptions {
     pub models: Vec<String>,
-    pub gateway: Gateway,
     /// The report time. Now by default.
     pub created_at: Option<String>,
 }
@@ -215,7 +215,7 @@ pub fn replay_targets(connection: &Connection) -> Result<(Vec<ReplayTarget>, usi
 pub fn run_backtest(
     connection: &Connection,
     options: &BacktestOptions,
-    client: &mut dyn ModelClient,
+    client: &dyn ModelClient,
 ) -> Result<BacktestReport> {
     if options.models.is_empty() {
         return Err(Error::other("backtest needs at least one model"));
@@ -231,12 +231,8 @@ pub fn run_backtest(
         let user = evidence.model_text();
         for model in &options.models {
             let outcome = client
-                .complete(&CompleteRequest {
-                    gateway: options.gateway,
-                    model: model.clone(),
-                    system: BACKTEST_SYSTEM_PROMPT.to_string(),
-                    user: user.clone(),
-                })
+                .complete(&PromptRequest { model, system: BACKTEST_SYSTEM_PROMPT, user: &user, response_shape: None })
+                .map_err(Error::from)
                 .and_then(|response| parse_model_score(&response.content, score_type));
             let base = BacktestReplay {
                 model: model.clone(),

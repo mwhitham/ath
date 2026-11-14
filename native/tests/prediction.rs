@@ -12,21 +12,28 @@ use std::collections::HashMap;
 use athleticstandard::json::{self, Value};
 use athleticstandard::model::{RecordActor, RecordData};
 use athleticstandard::prediction::backtest::{report_path, run_backtest, write_backtest_report, BacktestOptions};
-use athleticstandard::prediction::client::{CompleteRequest, CompleteResponse, Gateway, ModelClient};
 use athleticstandard::prediction::evidence::{build_evidence, EvidenceRequest};
 use athleticstandard::prediction::grade::{grade_prediction, plan_prediction_grade, GradeRequest, LinkAction};
 use athleticstandard::prediction::predict::{request_prediction, write_prediction};
 use athleticstandard::prediction::prediction_evidence;
+use athleticstandard::runtime::model_client::{ModelClient, ModelError, ModelReply, PromptRequest};
 use athleticstandard::store::Store;
-use athleticstandard::{Error, Result};
+use athleticstandard::Error;
 use common::builders::*;
 use common::*;
+
+/// One request a fake model received.
+#[derive(Debug, Clone)]
+struct Asked {
+    model: String,
+    user: String,
+}
 
 /// A model that answers from a table and remembers what it was asked.
 #[derive(Default)]
 struct FakeModel {
     replies: HashMap<String, std::result::Result<String, String>>,
-    requests: Vec<CompleteRequest>,
+    requests: std::cell::RefCell<Vec<Asked>>,
 }
 
 impl FakeModel {
@@ -37,17 +44,17 @@ impl FakeModel {
     }
 
     fn evidence(&self, index: usize) -> Value {
-        json::parse(&self.requests[index].user).unwrap()
+        json::parse(&self.requests.borrow()[index].user).unwrap()
     }
 }
 
 impl ModelClient for FakeModel {
-    fn complete(&mut self, request: &CompleteRequest) -> Result<CompleteResponse> {
-        self.requests.push(request.clone());
-        match self.replies.get(&request.model) {
-            Some(Ok(content)) => Ok(CompleteResponse { content: content.clone(), model: request.model.clone() }),
-            Some(Err(message)) => Err(Error::other(message.clone())),
-            None => Err(Error::other("no reply")),
+    fn complete(&self, request: &PromptRequest<'_>) -> std::result::Result<ModelReply, ModelError> {
+        self.requests.borrow_mut().push(Asked { model: request.model.to_string(), user: request.user.to_string() });
+        match self.replies.get(request.model) {
+            Some(Ok(content)) => Ok(ModelReply { content: content.clone(), model: request.model.to_string() }),
+            Some(Err(message)) => Err(ModelError::Transport(message.clone())),
+            None => Err(ModelError::Transport("no reply".into())),
         }
     }
 }
@@ -68,7 +75,6 @@ fn revisions(records: &Value) -> Vec<(String, u64)> {
 fn options(models: &[&str]) -> BacktestOptions {
     BacktestOptions {
         models: models.iter().map(|model| model.to_string()).collect(),
-        gateway: Gateway::Vercel,
         created_at: Some("2026-10-13T12:00:00.000Z".into()),
     }
 }
@@ -108,8 +114,8 @@ fn a_backtest_replays_a_later_result_and_writes_only_its_report() {
         )])],
     );
     let before = store.database_revision().unwrap();
-    let mut model = FakeModel::answering("test-model", REPLY_290);
-    let report = run_backtest(store.connection(), &options(&["test-model"]), &mut model).unwrap();
+    let model = FakeModel::answering("test-model", REPLY_290);
+    let report = run_backtest(store.connection(), &options(&["test-model"]), &model).unwrap();
     assert_eq!((report.replayable_result_count, report.skipped_first_result_count), (1, 1));
     let replay = &report.replays[0];
     assert_eq!((replay.predicted_value, replay.actual_value), (Some(290.0), 295.0));
@@ -146,8 +152,7 @@ fn model_failures_are_recorded_and_the_other_models_continue() {
     model.replies.insert("down".into(), Err("gateway timeout".into()));
     model.replies.insert("chatty".into(), Ok("I think about 4:50".into()));
     model.replies.insert("wrong-unit".into(), Ok(r#"{"predicted_score":{"reps":12}}"#.into()));
-    let report =
-        run_backtest(store.connection(), &options(&["good", "down", "chatty", "wrong-unit"]), &mut model).unwrap();
+    let report = run_backtest(store.connection(), &options(&["good", "down", "chatty", "wrong-unit"]), &model).unwrap();
     let errors: Vec<Option<&str>> = report.replays.iter().map(|replay| replay.error.as_deref()).collect();
     assert_eq!(errors[0], None);
     assert_eq!(errors[1], Some("gateway timeout"));
@@ -181,8 +186,8 @@ fn a_corrected_outcome_never_shows_itself_to_the_model() {
     let mut corrected = first["data"].clone();
     corrected["score"]["duration_s"] = Value::from(295);
     replay(&mut store, &[write(vec![first]), correct(&id(0xb02), 1, "2026-08-01T00:00:00.000Z", &corrected)]);
-    let mut model = FakeModel::answering("m", REPLY_290);
-    let report = run_backtest(store.connection(), &options(&["m"]), &mut model).unwrap();
+    let model = FakeModel::answering("m", REPLY_290);
+    let report = run_backtest(store.connection(), &options(&["m"]), &model).unwrap();
     assert_eq!(report.replays.len(), 1);
     assert_eq!(report.replays[0].as_of, "2026-07-01T09:59:59.999Z");
     assert_eq!(report.replays[0].actual_value, 295.0);
@@ -211,8 +216,8 @@ fn a_late_import_sees_only_what_was_known_before_the_result() {
             )]),
         ],
     );
-    let mut model = FakeModel::answering("m", REPLY_290);
-    let report = run_backtest(store.connection(), &options(&["m"]), &mut model).unwrap();
+    let model = FakeModel::answering("m", REPLY_290);
+    let report = run_backtest(store.connection(), &options(&["m"]), &model).unwrap();
     let by_result: HashMap<&str, (&str, usize)> = report
         .replays
         .iter()
@@ -244,8 +249,8 @@ fn a_changed_definition_shows_the_revision_known_at_the_cut_off() {
             correct(&id(0x901), 1, "2026-07-15T00:00:00.000Z", &changed),
         ],
     );
-    let mut model = FakeModel::answering("m", REPLY_290);
-    let report = run_backtest(store.connection(), &options(&["m"]), &mut model).unwrap();
+    let model = FakeModel::answering("m", REPLY_290);
+    let report = run_backtest(store.connection(), &options(&["m"]), &model).unwrap();
     let evidence = model.evidence(0);
     assert_eq!(evidence["benchmark"]["current_revision"], 1);
     assert_eq!(evidence["benchmark"]["data"]["definition"], "21-15-9 thrusters and pull-ups");
@@ -266,8 +271,8 @@ fn deleted_evidence_disappears_only_once_the_deletion_was_known() {
             delete(&id(0xa02), 1, "2026-07-05T00:00:00.000Z"),
         ],
     );
-    let mut model = FakeModel::answering("m", REPLY_290);
-    run_backtest(store.connection(), &options(&["m"]), &mut model).unwrap();
+    let model = FakeModel::answering("m", REPLY_290);
+    run_backtest(store.connection(), &options(&["m"]), &model).unwrap();
     // Deleted before the cut-off: hidden. Deleted after it: what was known then.
     assert_eq!(ids(&model.evidence(0)["device_measurements"]), vec![id(0xa02)]);
     let now = build_evidence(store.connection(), &EvidenceRequest::new("fran", "2026-07-06T00:00:00.000Z")).unwrap();
@@ -301,8 +306,8 @@ fn provider_period_values_never_become_dated_evidence() {
             write(vec![result(&id(0xb02), &id(0x103), &id(0x901), "2026-07-01T10:00:00.000Z", 295.0)]),
         ],
     );
-    let mut model = FakeModel::answering("m", REPLY_290);
-    run_backtest(store.connection(), &options(&["m"]), &mut model).unwrap();
+    let model = FakeModel::answering("m", REPLY_290);
+    run_backtest(store.connection(), &options(&["m"]), &model).unwrap();
     assert_eq!(ids(&model.evidence(0)["device_measurements"]), vec![id(0xa02)]);
 }
 
@@ -319,11 +324,11 @@ fn first_results_are_anchors_and_deleted_results_are_not_replayed() {
             delete(&id(0xb03), 1, "2026-08-02T00:00:00.000Z"),
         ],
     );
-    let mut model = FakeModel::answering("m", REPLY_290);
-    let report = run_backtest(store.connection(), &options(&["m"]), &mut model).unwrap();
+    let model = FakeModel::answering("m", REPLY_290);
+    let report = run_backtest(store.connection(), &options(&["m"]), &model).unwrap();
     assert_eq!((report.replayable_result_count, report.skipped_first_result_count), (1, 2));
     assert_eq!(report.replays[0].benchmark_result_id, id(0xb02));
-    assert!(run_backtest(store.connection(), &options(&[]), &mut model).is_err());
+    assert!(run_backtest(store.connection(), &options(&[]), &model).is_err());
 }
 
 #[test]
@@ -332,17 +337,15 @@ fn a_model_reply_cannot_claim_authorship_or_move_the_benchmark() {
     let evidence =
         build_evidence(store.connection(), &EvidenceRequest::new("fran", "2026-06-02T00:00:00.000Z")).unwrap();
     let claim = r#"{"authorship":{"author":{"author_type":"athlete"},"authored_at":"2026-06-02T00:00:00.000Z","evidence":[],"content_version":1,"status":"active"},"predicted_score":{"duration_s":280},"confidence":"high","reasoning":"x"}"#;
-    let mut model = FakeModel::answering("m", claim);
-    let error =
-        request_prediction(&evidence, &mut model, Gateway::Vercel, "m", "2026-06-02T00:00:00.000Z").unwrap_err();
+    let model = FakeModel::answering("m", claim);
+    let error = request_prediction(&evidence, &model, "m", "2026-06-02T00:00:00.000Z").unwrap_err();
     assert_eq!(
         error.to_string(),
         "model prediction response cannot set authorship; ath sets the authorship and benchmark"
     );
     let moved = format!(r#"{{"benchmark_definition_id":"{}","predicted_score":{{"duration_s":280}}}}"#, id(0x902));
-    let mut model = FakeModel::answering("m", &moved);
-    let error =
-        request_prediction(&evidence, &mut model, Gateway::Vercel, "m", "2026-06-02T00:00:00.000Z").unwrap_err();
+    let model = FakeModel::answering("m", &moved);
+    let error = request_prediction(&evidence, &model, "m", "2026-06-02T00:00:00.000Z").unwrap_err();
     assert!(error.to_string().contains("cannot set benchmark_definition_id"));
 }
 
@@ -354,13 +357,11 @@ fn a_failed_model_call_or_invalid_reply_writes_nothing() {
         build_evidence(store.connection(), &EvidenceRequest::new("fran", "2026-06-02T00:00:00.000Z")).unwrap();
     let mut model = FakeModel::default();
     model.replies.insert("m".into(), Err("connection reset".into()));
-    let error =
-        request_prediction(&evidence, &mut model, Gateway::OpenRouter, "m", "2026-06-02T00:00:00.000Z").unwrap_err();
+    let error = request_prediction(&evidence, &model, "m", "2026-06-02T00:00:00.000Z").unwrap_err();
     assert_eq!(error.to_string(), "connection reset");
-    assert_eq!(model.requests[0].gateway, Gateway::OpenRouter);
-    let mut model = FakeModel::answering("m", r#"{"predicted_score":{"duration_s":280}}"#);
-    let error =
-        request_prediction(&evidence, &mut model, Gateway::Vercel, "m", "2026-06-02T00:00:00.000Z").unwrap_err();
+    assert_eq!(model.requests.borrow()[0].model, "m");
+    let model = FakeModel::answering("m", r#"{"predicted_score":{"duration_s":280}}"#);
+    let error = request_prediction(&evidence, &model, "m", "2026-06-02T00:00:00.000Z").unwrap_err();
     assert!(matches!(error, Error::Invalid(_)), "{error}");
     assert_eq!(store.database_revision().unwrap(), before);
 }
@@ -371,10 +372,9 @@ fn a_checked_prediction_is_written_as_one_agent_record() {
     let evidence =
         build_evidence(store.connection(), &EvidenceRequest::new("fran", "2026-06-02T00:00:00.000Z")).unwrap();
     let reply = "```json\n{\"predicted_score\":{\"duration_s\":280},\"predicted_range\":{\"low\":{\"duration_s\":270},\"high\":{\"duration_s\":290}},\"confidence\":\"moderate\",\"reasoning\":\"Anchored on the June result.\"}\n```";
-    let mut model = FakeModel::answering("test-model", reply);
-    let preview =
-        request_prediction(&evidence, &mut model, Gateway::Vercel, "test-model", "2026-06-02T00:00:00.000Z").unwrap();
-    assert_eq!(model.requests[0].user, evidence.model_text());
+    let model = FakeModel::answering("test-model", reply);
+    let preview = request_prediction(&evidence, &model, "test-model", "2026-06-02T00:00:00.000Z").unwrap();
+    assert_eq!(model.requests.borrow()[0].user, evidence.model_text());
     assert_eq!(preview.benchmark, "fran");
     assert!(!preview.write_confirmed);
     assert_eq!(preview.data.authorship.evidence, evidence.references());

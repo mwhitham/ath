@@ -1,0 +1,384 @@
+{
+  "generated_by": "native/tools/reference/cli-golden.ts",
+  "reference_version": "2.1.0",
+  "normalization": [
+    "The scenario's working folder is replaced with <work>.",
+    "The program versions 2.1.0 and 2.1.1 are replaced with <version> (D152, D208).",
+    "SQL schema steps 4 and 5 in \"sql_schema_version\" are replaced with <step>; each program writes its own current step.",
+    "UTC times with milliseconds, and the compact forms in backup and report names, that fall within the scenario's run are replaced with <now>.",
+    "UUIDv7 values whose time falls within the scenario's run are new IDs. Each is replaced with <id-N>, numbered by first appearance in the scenario.",
+    "Package file hashes in an export manifest are replaced with <sha256>: package files name the program version. Package bytes are compared in the package golden tests.",
+    "Native output only: migration step 5 (migrations/005-version-2-1-1.sql) is removed from planned steps, and a source, target, or required step 5 reads 4."
+  ],
+  "environment": {
+    "PATH": "<fake password-store tools>:/usr/bin:/bin",
+    "TZ": "America/Chicago",
+    "ATH_GATEWAY_BASE_URL": "<local test server>"
+  },
+  "scenarios": [
+    {
+      "name": "models",
+      "fixture": "demo",
+      "current": true,
+      "steps": [
+        {
+          "argv": [
+            "models"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: A prediction needs a model, and this terminal has no gateway key.\n\nSave one:  ath key set vercel\n       or  ath key set openrouter\n\nOr set AI_GATEWAY_API_KEY or OPENROUTER_API_KEY in the environment.\n\nIn Claude Code, Cursor, or Codex the model is already there. Run\n`ath predict <benchmark> --json` for the evidence, then write the\nprediction with `ath log`. You do not need a key, and there is no\nAthletic Standard subscription.\n"
+        },
+        {
+          "argv": [
+            "models"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key"
+          },
+          "status": 0,
+          "stdout": "2 live text models that can reason, from vercel.\nOpen weights are included. Image, audio, and embedding models are out.\n\n  test/down\n  test/steady  (Steady)\n\nPick one:  ath predict fran --model <name>\nSave one:  ath models --default <name>\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "models",
+            "--json"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key"
+          },
+          "status": 0,
+          "stdout": "{\n  \"gateway\": \"vercel\",\n  \"models\": [\n    {\n      \"id\": \"test/down\"\n    },\n    {\n      \"id\": \"test/steady\",\n      \"name\": \"Steady\"\n    }\n  ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "models",
+            "--gateway",
+            "bogus"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key"
+          },
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: unknown gateway 'bogus'. Use vercel or openrouter.\n"
+        },
+        {
+          "argv": [
+            "models"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key",
+            "OPENROUTER_API_KEY": "test-openrouter-key"
+          },
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: both vercel and openrouter keys are available. Pass --gateway vercel or --gateway openrouter.\n"
+        },
+        {
+          "argv": [
+            "models",
+            "--gateway",
+            "openrouter",
+            "--json"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key",
+            "OPENROUTER_API_KEY": "test-openrouter-key"
+          },
+          "status": 0,
+          "stdout": "{\n  \"gateway\": \"openrouter\",\n  \"models\": [\n    {\n      \"id\": \"test/down\"\n    },\n    {\n      \"id\": \"test/steady\",\n      \"name\": \"Steady\"\n    }\n  ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "models",
+            "--default",
+            "nope"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key"
+          },
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: no model called 'nope' on the live list of text models that can reason. See them all with `ath models`.\n"
+        },
+        {
+          "argv": [
+            "models",
+            "--default",
+            "TEST/STEADY",
+            "--json"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key"
+          },
+          "status": 0,
+          "stdout": "{\n  \"default\": \"test/steady\",\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"gateway\": \"vercel\"\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "models",
+            "--default",
+            "test/steady"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key"
+          },
+          "status": 0,
+          "stdout": "saved test/steady as the default model next to the athlete file.\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "predict_with_a_model",
+      "fixture": "demo",
+      "current": true,
+      "steps": [
+        {
+          "argv": [
+            "predict",
+            "fran"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: A prediction needs a model, and this terminal has no gateway key.\n\nSave one:  ath key set vercel\n       or  ath key set openrouter\n\nOr set AI_GATEWAY_API_KEY or OPENROUTER_API_KEY in the environment.\n\nIn Claude Code, Cursor, or Codex the model is already there. Run\n`ath predict <benchmark> --json` for the evidence, then write the\nprediction with `ath log`. You do not need a key, and there is no\nAthletic Standard subscription.\n"
+        },
+        {
+          "argv": [
+            "predict",
+            "fran"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key"
+          },
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: No model chosen. Pick one for this run:\n\n  ath models\n  ath predict <benchmark> --model <name>\n\nOr save your usual model:\n\n  ath models --default <name>\n"
+        },
+        {
+          "argv": [
+            "predict",
+            "fran",
+            "--model",
+            "nope"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key"
+          },
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: no model called 'nope' on the live list of text models that can reason. See them all with `ath models`.\n"
+        },
+        {
+          "argv": [
+            "predict",
+            "fran",
+            "--model",
+            "test/steady",
+            "--dry-run"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key"
+          },
+          "status": 0,
+          "stdout": "{\n  \"benchmark\": \"fran\",\n  \"model\": \"test/steady\",\n  \"data\": {\n    \"authorship\": {\n      \"author\": {\n        \"author_type\": \"agent\",\n        \"agent\": \"ath-terminal\",\n        \"agent_version\": \"<version>\",\n        \"model\": \"test/steady\"\n      },\n      \"authored_at\": \"<now>\",\n      \"evidence\": [\n        {\n          \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000006\",\n          \"revision\": 1\n        },\n        {\n          \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000b\",\n          \"revision\": 1\n        }\n      ],\n      \"content_version\": 1,\n      \"status\": \"active\"\n    },\n    \"benchmark_definition_id\": \"01890f3e-e7d3-7cc0-88c8-000000000006\",\n    \"predicted_score\": {\n      \"duration_s\": 290\n    },\n    \"predicted_range\": {\n      \"low\": {\n        \"duration_s\": 280\n      },\n      \"high\": {\n        \"duration_s\": 300\n      }\n    },\n    \"confidence\": \"moderate\",\n    \"reasoning\": \"Anchored on the latest result.\"\n  },\n  \"write_confirmed\": false\n}\nnothing written (--dry-run)\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "predict",
+            "fran",
+            "--model",
+            "test/steady"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key"
+          },
+          "status": 1,
+          "stdout": "{\n  \"benchmark\": \"fran\",\n  \"model\": \"test/steady\",\n  \"data\": {\n    \"authorship\": {\n      \"author\": {\n        \"author_type\": \"agent\",\n        \"agent\": \"ath-terminal\",\n        \"agent_version\": \"<version>\",\n        \"model\": \"test/steady\"\n      },\n      \"authored_at\": \"<now>\",\n      \"evidence\": [\n        {\n          \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000006\",\n          \"revision\": 1\n        },\n        {\n          \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000b\",\n          \"revision\": 1\n        }\n      ],\n      \"content_version\": 1,\n      \"status\": \"active\"\n    },\n    \"benchmark_definition_id\": \"01890f3e-e7d3-7cc0-88c8-000000000006\",\n    \"predicted_score\": {\n      \"duration_s\": 290\n    },\n    \"predicted_range\": {\n      \"low\": {\n        \"duration_s\": 280\n      },\n      \"high\": {\n        \"duration_s\": 300\n      }\n    },\n    \"confidence\": \"moderate\",\n    \"reasoning\": \"Anchored on the latest result.\"\n  },\n  \"write_confirmed\": false\n}\n",
+          "stderr": "ath: there is no terminal to ask on, so nothing was written. Pass --yes after reviewing the preview.\nath: there is no terminal to ask on, so nothing was written. Pass --yes after reviewing the preview.\n"
+        },
+        {
+          "argv": [
+            "predict",
+            "fran",
+            "--model",
+            "test/down",
+            "--yes"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key"
+          },
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: the vercel gateway refused the call (503). the test model is down\n"
+        },
+        {
+          "argv": [
+            "predict",
+            "fran",
+            "--model",
+            "test/steady",
+            "--yes",
+            "--gateway",
+            "vercel"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key"
+          },
+          "status": 0,
+          "stdout": "{\n  \"benchmark\": \"fran\",\n  \"model\": \"test/steady\",\n  \"data\": {\n    \"authorship\": {\n      \"author\": {\n        \"author_type\": \"agent\",\n        \"agent\": \"ath-terminal\",\n        \"agent_version\": \"<version>\",\n        \"model\": \"test/steady\"\n      },\n      \"authored_at\": \"<now>\",\n      \"evidence\": [\n        {\n          \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000006\",\n          \"revision\": 1\n        },\n        {\n          \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000b\",\n          \"revision\": 1\n        }\n      ],\n      \"content_version\": 1,\n      \"status\": \"active\"\n    },\n    \"benchmark_definition_id\": \"01890f3e-e7d3-7cc0-88c8-000000000006\",\n    \"predicted_score\": {\n      \"duration_s\": 290\n    },\n    \"predicted_range\": {\n      \"low\": {\n        \"duration_s\": 280\n      },\n      \"high\": {\n        \"duration_s\": 300\n      }\n    },\n    \"confidence\": \"moderate\",\n    \"reasoning\": \"Anchored on the latest result.\"\n  },\n  \"write_confirmed\": false\n}\nsaved prediction <id-1> at database revision 4\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "records",
+            "list",
+            "--type",
+            "prediction"
+          ],
+          "status": 0,
+          "stdout": "record ID                             revision  type                         summary\n01890f3e-e7d3-7cc0-88c8-000000000010         1  prediction                   \n<id-1>         1  prediction                   \n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "backtest",
+      "fixture": "demo",
+      "current": true,
+      "steps": [
+        {
+          "argv": [
+            "backtest"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: A prediction needs a model, and this terminal has no gateway key.\n\nSave one:  ath key set vercel\n       or  ath key set openrouter\n\nOr set AI_GATEWAY_API_KEY or OPENROUTER_API_KEY in the environment.\n\nIn Claude Code, Cursor, or Codex the model is already there. Run\n`ath predict <benchmark> --json` for the evidence, then write the\nprediction with `ath log`. You do not need a key, and there is no\nAthletic Standard subscription.\n"
+        },
+        {
+          "argv": [
+            "backtest"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key"
+          },
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: No model chosen. Pick one for this run:\n\n  ath models\n  ath predict <benchmark> --model <name>\n\nOr save your usual model:\n\n  ath models --default <name>\n"
+        },
+        {
+          "argv": [
+            "log",
+            "--yes",
+            "Fran",
+            "in",
+            "4:41",
+            "rx"
+          ],
+          "status": 0,
+          "stdout": "understood: fran benchmark result\nrecords to write: 1\n  <id-1>  benchmark_result\n    {\n      \"source_id\": \"01890f3e-e7d3-7cc0-88c8-000000000004\",\n      \"received_at\": \"<now>\",\n      \"received_at_basis\": \"local_write_time\",\n      \"benchmark_definition_id\": \"01890f3e-e7d3-7cc0-88c8-000000000006\",\n      \"recorded_at\": \"<now>\",\n      \"input_timestamp\": {\n        \"timestamp_text\": \"<now>\",\n        \"utc_offset_text\": \"Z\",\n        \"utc_offset_meaning\": \"documented_recording_offset\",\n        \"timestamp_basis\": \"source_instant\"\n      },\n      \"score\": {\n        \"duration_s\": 281\n      },\n      \"input_score_text\": \"4:41\",\n      \"scaling\": \"rx\",\n      \"field_basis\": {\n        \"value\": \"entered_by_hand\"\n      }\n    }\nwrote 1 record at database revision 4\n  <id-1>  benchmark_result\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "backtest",
+            "--model",
+            "test/steady",
+            "--model",
+            "test/down"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key"
+          },
+          "status": 0,
+          "stdout": "replayed 1 results with 2 models\n  test/steady: 1 completed, 0 failed, median absolute error 3.2%\n  test/down: 0 completed, 1 failed, median absolute error —%\nwrote <work>/backtest-<now>.json\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "share"
+          ],
+          "status": 0,
+          "stdout": "ath share is not built yet.\nRun `ath backtest` first. The shareable part of a report is its summary.\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "backtest",
+            "--all"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key"
+          },
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: there is no terminal to ask on, so nothing was written. Pass --yes after reviewing the preview.\nath: there is no terminal to ask on, so nothing was written. Pass --yes after reviewing the preview.\n"
+        },
+        {
+          "argv": [
+            "backtest",
+            "--all",
+            "--json"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key"
+          },
+          "status": 0,
+          "stdout": "nothing run\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "models",
+            "--default",
+            "test/steady"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key"
+          },
+          "status": 0,
+          "stdout": "saved test/steady as the default model next to the athlete file.\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "backtest",
+            "--json"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key"
+          },
+          "status": 0,
+          "stdout": "{\n  \"report\": \"<work>/backtest-<now>.json\",\n  \"athleticstandard_version\": \"<version>\",\n  \"created_at\": \"<now>\",\n  \"models\": [\n    \"test/steady\"\n  ],\n  \"replayable_result_count\": 1,\n  \"skipped_first_result_count\": 1,\n  \"replays\": [\n    {\n      \"model\": \"test/steady\",\n      \"benchmark_result_id\": \"<id-1>\",\n      \"benchmark_key\": \"fran\",\n      \"as_of\": \"<now>\",\n      \"predicted_value\": 290,\n      \"actual_value\": 281,\n      \"absolute_error_percentage\": 3.2\n    }\n  ],\n  \"summary\": [\n    {\n      \"model\": \"test/steady\",\n      \"completed\": 1,\n      \"failed\": 0,\n      \"median_absolute_error_percentage\": 3.2\n    }\n  ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "share",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"built\": false,\n  \"latest_report\": null\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "records",
+            "list",
+            "--type",
+            "prediction"
+          ],
+          "status": 0,
+          "stdout": "record ID                             revision  type                         summary\n01890f3e-e7d3-7cc0-88c8-000000000010         1  prediction                   \n",
+          "stderr": ""
+        }
+      ]
+    }
+  ]
+}

@@ -220,9 +220,14 @@ fn correct_refuses_bad_data_only_when_writing() {
     assert_eq!(record_state(&fixture.path, id), (1, false));
     assert_eq!(database_revision(&fixture.path), fixture.database_revision);
 
+    let png = common::demo_database().with_file_name("attachments").join("01890f3e-e7d3-7cc0-88c8-00000000000e.png");
+    std::fs::copy(png, folder.path().join("a.png")).unwrap();
     let attachment = session.run(&["correct", id, "--revision", "1", "--data", "{}", "--attachment", "a.png"]);
-    assert_eq!(attachment.status, 1);
-    assert!(attachment.stderr.contains("is not connected to the native library yet"));
+    assert_eq!(
+        (attachment.status, attachment.stderr.as_str()),
+        (1, "ath: --attachment can correct only an athlete_report or nutrition_entry\n")
+    );
+    assert!(!folder.path().join("attachments").exists(), "nothing was written");
 }
 
 #[test]

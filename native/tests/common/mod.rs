@@ -31,6 +31,8 @@ pub struct Session {
     /// no controlling terminal.
     pub controlling_terminal: Option<Vec<u8>>,
     pub services: Services,
+    /// The environment the command sees.
+    pub env: BTreeMap<String, String>,
 }
 
 impl Session {
@@ -42,6 +44,7 @@ impl Session {
             stdin: Vec::new(),
             controlling_terminal: None,
             services: Services::default(),
+            env: BTreeMap::new(),
         }
     }
 
@@ -69,9 +72,9 @@ impl Session {
             terminal: self.terminal,
             open_terminal: &mut open_terminal,
             cwd: self.cwd.clone(),
-            env: BTreeMap::new(),
+            env: self.env.clone(),
         };
-        let status = cli::run(&argv, io, self.services);
+        let status = cli::run(&argv, io, self.services.clone());
         Output { status, stdout: String::from_utf8(stdout).unwrap(), stderr: String::from_utf8(stderr).unwrap() }
     }
 }
