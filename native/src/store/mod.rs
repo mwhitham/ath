@@ -8,6 +8,7 @@
 
 pub mod encode;
 pub mod migrate;
+pub mod query;
 pub mod read;
 pub mod write;
 
