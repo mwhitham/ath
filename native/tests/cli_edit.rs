@@ -5,6 +5,36 @@ mod common;
 
 use common::{database_revision, fixture, private_folder, record_state, Session};
 
+/// Spec 9.2: a command that opens the database for writing finishes file
+/// work an earlier command left pending, even when it only previews.
+#[test]
+fn a_writable_command_finishes_pending_attachment_cleanup() {
+    let folder = private_folder();
+    let fixture = fixture(folder.path());
+    let attachments = folder.path().join("attachments");
+    std::fs::create_dir(&attachments).unwrap();
+    let orphan = attachments.join("01890f3e-0000-7000-8000-0000000000aa.png");
+    std::fs::write(&orphan, b"left by an erasure").unwrap();
+    let pending = |sql: &str| -> i64 {
+        let connection = rusqlite::Connection::open(&fixture.path).unwrap();
+        connection.execute_batch(sql).unwrap();
+        connection.query_row("SELECT COUNT(*) FROM internal_pending_file_operations", [], |row| row.get(0)).unwrap()
+    };
+    let inserted = pending(
+        "INSERT INTO internal_pending_file_operations (operation_id, operation_kind, relative_path, created_at)
+         VALUES ('99999999-erasure', 'attachment_removal', 'attachments/01890f3e-0000-7000-8000-0000000000aa.png',
+                 '2026-11-14T00:00:00.000Z')",
+    );
+    assert_eq!(inserted, 1);
+    let session = Session::piped(folder.path());
+    let id = fixture.benchmark_result.as_str();
+    let preview = session.run(&["delete", id, "--revision", "1", "--json"]);
+    assert_eq!((preview.status, preview.stderr.as_str()), (0, ""));
+    assert!(!orphan.exists());
+    assert_eq!(pending(""), 0);
+    assert_eq!(record_state(&fixture.path, id), (1, false));
+}
+
 fn json_lines(lines: &[&str]) -> String {
     let mut text = lines.join("\n");
     text.push('\n');
