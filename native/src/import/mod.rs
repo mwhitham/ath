@@ -8,7 +8,7 @@
 //! - `provider` owns the one operation: stage, match, preview, and apply.
 //! - `staging` holds the plan in a private temporary SQLite file.
 //! - `csv`, `units`, `instant`, and `collate` are shared reading rules.
-//! - `whoop` is the WHOOP reader.
+//! - `whoop` is the WHOOP reader, and `oura` the Oura reader.
 
 pub mod candidate;
 pub mod collate;
@@ -16,6 +16,7 @@ pub mod csv;
 pub mod detect;
 pub mod input;
 pub mod instant;
+pub mod oura;
 pub mod provider;
 mod staging;
 pub mod units;
