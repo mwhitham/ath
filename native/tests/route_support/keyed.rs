@@ -12,6 +12,8 @@
 //!   with Rust's formatting and its own field order; the native store writes
 //!   every record through one encoder.
 //! - `changed_by.tool` is `ath`: the helper named itself `ath-core`.
+//! - A revision the helper wrote is a provider import, not a local write
+//!   (change 55 in `native/reference/deliberate-changes.md`).
 //! - The database revision advances once per import that writes, not once per
 //!   record, so only whether it advanced is compared.
 //! - On the Garmin, Strava, and pull routes, 2.1.0 wrote a revision on every
@@ -272,6 +274,9 @@ fn native_tool_name(database: &Value) -> Value {
         for revision in record["revisions"].as_array_mut().unwrap() {
             if revision["changed_by"]["tool"] == "ath-core" {
                 revision["changed_by"]["tool"] = Value::String("ath".into());
+                if revision["became_known_at_basis"] == "local_write" {
+                    revision["became_known_at_basis"] = Value::String("provider_import".into());
+                }
             }
         }
     }

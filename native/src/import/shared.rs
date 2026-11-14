@@ -27,12 +27,12 @@ use super::input::{self, ZipIndex};
 use super::provider::{KeyedPolicy, MatchPolicy};
 
 /// The policy of the Garmin, Strava, and Garmin pull routes. A changed record
-/// is laid over the stored one and its revision is a local write, as the
-/// 2.1.0 helper's `revise` wrote it.
+/// is laid over the stored one. Its revision is a provider import, because a
+/// provider supplied it. The 2.1.0 helper marked it a local write.
 pub const FILE_ROUTE_POLICY: MatchPolicy = MatchPolicy::Keyed(KeyedPolicy {
     merge: true,
     keep_received_at: false,
-    correction_basis: crate::model::BecameKnownAtBasis::LocalWrite,
+    correction_basis: crate::model::BecameKnownAtBasis::ProviderImport,
 });
 
 /// The receipt for a time the source wrote as a UTC instant.

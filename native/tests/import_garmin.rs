@@ -244,7 +244,7 @@ fn a_changed_garmin_activity_is_merged_into_one_revision() {
     let workout = &ids(&first)[0];
     let history = store.revisions(workout).unwrap();
     assert_eq!(history.len(), 2);
-    assert_eq!(history[1].became_known_at_basis.as_str(), "local_write");
+    assert_eq!(history[1].became_known_at_basis.as_str(), "provider_import");
     let RecordData::WorkoutSession(data) = &history[1].data else { panic!("not a workout") };
     assert_eq!(data.name.as_deref(), Some("Park Loop 2"));
     assert_eq!(data.description.as_deref(), Some("easy jog"));

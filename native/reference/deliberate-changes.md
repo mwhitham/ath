@@ -311,6 +311,12 @@ below. Tests: `import_garmin.rs` and `import_mapping.rs`.
     comparison covers the deleted-source and deleted-record cases of D189 and
     D190.
 
+55. **A Garmin, Strava, or pull revision is marked `provider_import`.** The
+    2.1.0 helper marked a revision from these routes `local_write`, as if the
+    athlete had made it. A provider supplied the data, so the revision's
+    `became_known_at_basis` now says so, as WHOOP, Oura, and mapped imports
+    already did. Test: `import_garmin.rs`.
+
 ## Behavior kept on purpose
 
 These look odd but stay, because changing them would change accepted data or
