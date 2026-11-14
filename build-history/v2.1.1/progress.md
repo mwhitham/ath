@@ -41,11 +41,7 @@ Remaining:
 - Performance measurements (spec section 14) and the maintainability exercises.
 - Linux and Windows runs, the cutover (spec section 15, step 8), and the
   architecture document.
-
-- Implement the complete replacement and remove the duplicated native runtime.
-- Verify all existing workflows and public contracts against the fixed reference.
-- Meet the recovery, migration, operating-system, packaging, and performance checks.
-- Record the results before creating a release.
+- Record the release evidence listed in spec section 16 before creating a release.
 
 The installed implementation remains 2.1.0 until the rebuilt 2.1.1 is complete.
 No package was published, and no release or tag was created.
