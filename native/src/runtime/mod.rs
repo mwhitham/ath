@@ -11,6 +11,7 @@ pub mod gateway;
 pub mod keyring;
 pub mod model_client;
 pub mod models;
+pub mod share;
 
 mod collate;
 
