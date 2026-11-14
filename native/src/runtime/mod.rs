@@ -12,6 +12,7 @@ pub mod keyring;
 pub mod model_client;
 pub mod models;
 pub mod share;
+pub mod update;
 
 mod collate;
 
