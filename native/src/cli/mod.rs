@@ -13,7 +13,6 @@ pub mod parse;
 pub mod progress;
 pub mod runtime;
 pub mod spec;
-pub mod text;
 
 use std::collections::BTreeMap;
 use std::io::{BufRead, BufReader, IsTerminal};

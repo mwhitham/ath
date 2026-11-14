@@ -54,6 +54,13 @@ A reader may read files with the helpers in `input.rs`, `detect.rs`
 (`read_csv_bundle`), `csv.rs`, `units.rs`, and `shared.rs` (`SharedFiles`). It
 must not open the athlete database, decide whether a record is new, or prompt.
 
+A reader sends candidates in plan order within each section. When a record
+cannot be sent as it is read, the reader keeps it in its own private
+temporary file, never in a list that grows with the export. The Apple Health
+reader does this: it streams `export.xml`, keeps samples, sleep fragments,
+and workouts in `apple/scratch.rs` until their order and route files are
+known, and then sends them.
+
 The sink offers these calls:
 
 - `export_source(writer, vendor, sensor) -> String` declares a source and
@@ -155,12 +162,12 @@ or the `source`, `mapping`, `record_ids`, `outcome`, `understood`,
 ## Proof
 
 Each route compares its output with the 2.1.0 implementation.
-`native/tools/reference/import-golden.ts` (WHOOP) and `route-golden.ts` (Oura,
-Garmin, Strava, the Garmin pull, and mapped imports) run the old program on
-synthetic inputs and write golden files under `native/tests/golden/`. A Rust
-test replays the same steps and requires the same preview, write result,
-stored JSON for every revision, and import keys. The keyed routes ran in the
-2.1.0 helper, which read the clock and wrote its own JSON, so their
-comparison names each normalization in `tests/route_support/keyed.rs`. Name
-golden files without provider words; the public-data check reads such names
-as health exports.
+`native/tools/reference/import-golden.ts` (WHOOP), `import-golden-apple.ts`
+(Apple Health), and `route-golden.ts` (Oura, Garmin, Strava, the Garmin pull,
+and mapped imports) run the old program on synthetic inputs and write golden
+files under `native/tests/golden/`. A Rust test replays the same steps and
+requires the same preview, write result, stored JSON for every revision, and
+import keys. The keyed routes ran in the 2.1.0 helper, which read the clock and
+wrote its own JSON, so their comparison names each normalization in
+`tests/route_support/keyed.rs`. Name golden files without provider words; the
+public-data check reads such names as health exports.

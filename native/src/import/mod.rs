@@ -12,7 +12,9 @@
 //! - `garmin`, `fit`, and `strava` read Garmin and Strava files and the
 //!   Garmin pull's responses. `shared` holds what they share with `mapping`,
 //!   which reads a JSON file through a mapping file.
+//! - `apple` is the Apple Health reader, with its routes, ECGs, and HRV.
 
+pub mod apple;
 pub mod candidate;
 pub mod collate;
 pub mod csv;

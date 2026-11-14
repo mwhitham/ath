@@ -9,7 +9,7 @@
 use std::path::Path;
 
 use super::spec::{CommandSpec, HELP_DESCRIPTION};
-use super::text::{is_js_whitespace, js_length, pad_end};
+use crate::text::{is_js_whitespace, js_length, pad_end};
 
 /// Commander's width for output that is not a terminal.
 pub const DEFAULT_HELP_WIDTH: usize = 80;

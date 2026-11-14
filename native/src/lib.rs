@@ -19,6 +19,7 @@ pub mod package;
 pub mod prediction;
 pub mod runtime;
 pub mod store;
+pub mod text;
 pub mod view;
 
 pub use error::{Error, Result};

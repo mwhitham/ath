@@ -8,7 +8,7 @@
 use std::io::Write;
 use std::time::{Duration, Instant};
 
-use super::text::{grouped_count, js_to_fixed, pad_end};
+use crate::text::{grouped_count, js_to_fixed, pad_end};
 
 /// How a step's amounts are shown.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

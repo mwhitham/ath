@@ -16,7 +16,7 @@ use crate::runtime::gateway::GatewayEndpoints;
 use crate::runtime::keyring::{KeyRefusal, OsSecretStore, SecretStore};
 use crate::store::{MigrationPreview, OpenOptions, Store};
 
-use super::text::js_trim;
+use crate::text::js_trim;
 
 /// The live database file suffix.
 pub const FILE_SUFFIX: &str = ".ath.sqlite";

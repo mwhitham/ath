@@ -160,7 +160,7 @@ pub fn reader_for(format: ExportFormat) -> Option<&'static dyn ProviderReader> {
     match format {
         ExportFormat::Whoop => Some(&super::whoop::WhoopReader),
         ExportFormat::Oura => Some(&super::oura::OuraReader),
-        ExportFormat::Apple => None,
+        ExportFormat::Apple => Some(&super::apple::AppleReader),
     }
 }
 

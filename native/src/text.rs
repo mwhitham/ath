@@ -1,8 +1,8 @@
-//! Text rules the 2.1.0 command line inherited from JavaScript.
+//! Text rules 2.1.0 inherited from JavaScript.
 //!
-//! The old program trimmed answers with `String.prototype.trim`, read numbers
-//! with `Number()`, and measured help columns in UTF-16 code units. These
-//! helpers reproduce those rules so the native output and refusals match.
+//! The old program trimmed text with `String.prototype.trim`, read numbers
+//! with `Number()`, and measured help columns in UTF-16 code units. Readers and
+//! the command line use these helpers so native results and refusals match.
 
 /// JavaScript's `WhiteSpace` and `LineTerminator` characters: what `\s`
 /// matches and what `trim()` removes.

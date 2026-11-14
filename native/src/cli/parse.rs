@@ -44,7 +44,7 @@ impl std::fmt::Display for PositiveInteger {
 
 /// `parsePositiveInteger`: `Number(value)` must be an integer of at least 1.
 pub fn parse_positive_integer(text: &str) -> Result<PositiveInteger, String> {
-    let parsed = super::text::js_number(text);
+    let parsed = crate::text::js_number(text);
     if !parsed.is_finite() || parsed.trunc() != parsed || parsed < 1.0 {
         return Err(format!("expected a positive whole number, not '{text}'"));
     }

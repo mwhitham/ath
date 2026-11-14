@@ -8,13 +8,13 @@ use super::shared::object;
 use crate::assets::skill;
 use crate::cli::parse::Args;
 use crate::cli::runtime::{refuse, CommandResult, Context, FILE_SUFFIX};
-use crate::cli::text::js_number;
 use crate::error::Error;
 use crate::json::{self, Value};
 use crate::model::{time, PathSegment, RecordActor, RecordData, RecordType, ATHLETIC_STANDARD_VERSION};
 use crate::prediction::benchmarks::{seed_benchmark_records, SEED_BENCHMARKS};
 use crate::prediction::grade::tool_actor;
 use crate::store::{Applied, Changes, CreateOptions, NewRecord, Store};
+use crate::text::js_number;
 
 /// The refusal when questions would be asked but standard input is not a
 /// terminal. 2.1.0 exited 0 having created nothing (deliberate change; see
