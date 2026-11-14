@@ -125,8 +125,13 @@ pub const RESULT: &str = "01890f3e-e7d3-7cc0-88c8-00000000000b";
 
 /// The current data of a demo record.
 fn demo_data(record_id: &str) -> (RecordType, json::Value) {
-    let connection =
-        rusqlite::Connection::open_with_flags(demo_database(), rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+    // `immutable` reads the committed file without creating sidecar files.
+    let uri = format!("file:{}?immutable=1", demo_database().canonicalize().unwrap().display());
+    let connection = rusqlite::Connection::open_with_flags(
+        uri,
+        rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY | rusqlite::OpenFlags::SQLITE_OPEN_URI,
+    )
+    .unwrap();
     let (record_type, record_json): (String, String) = connection
         .query_row(
             "SELECT records.record_type, record_revisions.record_json FROM records
