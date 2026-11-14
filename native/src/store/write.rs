@@ -123,6 +123,22 @@ impl Store {
 /// Apply a change inside an existing transaction. Package restore and imports
 /// call this when they own a larger transaction.
 pub fn apply_in(tx: &Transaction<'_>, layout: Layout, changes: Changes) -> Result<Applied> {
+    let records = write_in(tx, layout, changes)?;
+    let database_revision = advance_database_revision(tx)?;
+    Ok(Applied { records, database_revision })
+}
+
+/// Advance the database revision once for a complete logical change.
+pub(crate) fn advance_database_revision(tx: &Transaction<'_>) -> Result<u64> {
+    tx.execute("UPDATE database_state SET current_revision = current_revision + 1 WHERE singleton_id = 1", [])?;
+    super::database_revision(tx)
+}
+
+/// Check and write one part of a change without advancing the database
+/// revision. A provider import writes a large plan in bounded batches inside
+/// one transaction, then calls `advance_database_revision` once. Callers
+/// outside this crate use `apply_in`, which always does both.
+pub(crate) fn write_in(tx: &Transaction<'_>, layout: Layout, changes: Changes) -> Result<Vec<CurrentRecord>> {
     if let Some(expected) = changes.expected_database_revision {
         if super::database_revision(tx)? != expected {
             return Err(Error::stale("Database changed after provider import preview; preview it again"));
@@ -166,8 +182,7 @@ pub fn apply_in(tx: &Transaction<'_>, layout: Layout, changes: Changes) -> Resul
     for record in &written {
         validate_relationships(tx, &record.data)?;
     }
-    tx.execute("UPDATE database_state SET current_revision = current_revision + 1 WHERE singleton_id = 1", [])?;
-    Ok(Applied { records: written, database_revision: super::database_revision(tx)? })
+    Ok(written)
 }
 
 fn checked_timestamp(value: Option<String>, fallback: &str, name: &str) -> Result<String> {
