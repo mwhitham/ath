@@ -153,7 +153,7 @@ fn the_fixture_folder_zip_and_bare_xml_match_the_retained_baseline() {
 
 /// The retained baseline for the route-mismatch fixture read one GPX time
 /// without an offset in UTC. 2.1.1 leaves that point out of the route
-/// summary (deliberate change 17), so only that workout's splits differ.
+/// summary (a listed deliberate change), so only that workout's splits differ.
 #[test]
 fn the_route_mismatch_fixture_differs_from_the_baseline_only_in_the_offset_free_splits() {
     let directory = TempDir::new();
@@ -311,6 +311,30 @@ fn two_writers_at_one_instant_are_two_groups_numbered_from_zero() {
         .collect();
     assert_eq!(keys.len(), 2);
     assert!(keys.iter().all(|key| key[4] == 0), "{keys:?}");
+}
+
+#[test]
+fn a_sample_that_cannot_be_placed_in_time_refuses_the_preview() {
+    // 2.1.0 stored this sample at the time of the day's first sample, or
+    // stopped with "Invalid time value" when it sorted first. The change is
+    // listed in native/reference/deliberate-changes.md.
+    let directory = TempDir::new();
+    let record = |date: &str, value: u32| {
+        format!(
+            " <Record type=\"HKQuantityTypeIdentifierHeartRate\" sourceName=\"Watch\" unit=\"count/min\" startDate=\"{date}\" endDate=\"{date}\" value=\"{value}\"/>\n"
+        )
+    };
+    let xml = format!(
+        "<HealthData>\n{}{}{}</HealthData>\n",
+        record("2026-08-01 08:00:00 -0700", 61),
+        record("2026-08-01 25:00:00 -0700", 63),
+        record("2026-13-01 08:00:00 -0700", 64)
+    );
+    write_files(&directory.path().join("input"), &[("export.xml", &xml)]);
+    let store = new_store(directory.path());
+    let error = import::preview(&store, &directory.path().join("input"), &options(RECEIVED_AT)).unwrap_err();
+    assert_eq!(error.to_string(), "Provider timestamp is not an absolute instant: 2026-08-01T25:00:00-07:00");
+    assert_eq!(store.database_revision().unwrap(), 0);
 }
 
 // ---- Routes ---------------------------------------------------------------------------------
