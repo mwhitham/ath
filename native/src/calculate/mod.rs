@@ -13,7 +13,7 @@ pub mod record;
 
 use std::path::Path;
 
-pub use definition::{resolve_calculation_file, CalculationFile, CalculationFileOrigin, OneRecordCalculation};
+pub use definition::{CalculationFile, OneRecordCalculation};
 pub use range::{
     calculate, render_calculation, CalculateOptions, CalculationReceipt, CalculationResult, Group, Operation,
     RecordKind, MAX_RECEIPT_REFERENCES, MAX_RUNTIME_INPUTS,
@@ -34,7 +34,7 @@ pub fn calculate_range(store: &Store, options: &CalculateOptions) -> Result<Calc
 pub fn apply(store: &Store, calculation: &str, record_id: &str, working_directory: &Path) -> Result<ApplyResult> {
     let connection = store.connection();
     // The 2.1.0 order: choose the file, find the record, then read the file.
-    let file = resolve_calculation_file(calculation, working_directory)?;
+    let file = crate::assets::resolve_calculation(calculation, working_directory)?;
     let record = record::stored_record(connection, record_id)?;
     let parsed = CalculationFile::parse(&file.text)?;
     record::apply_to(connection, &parsed, record)

@@ -295,7 +295,7 @@ fn an_edited_calculation_file_changes_the_result_and_not_the_shipped_copy() {
     assert!(zones.missing.is_empty());
     assert_eq!(json::encode(&zones.result), r#"{"seconds":[1,1,0,1,1]}"#);
 
-    let shipped = calculate::definition::shipped_skill_file("heart-rate-zones").unwrap();
+    let shipped = athleticstandard::assets::shipped_calculation("heart-rate-zones").unwrap();
     let folder = working.join(".agents/skills/heart-rate-zones");
     std::fs::create_dir_all(&folder).unwrap();
     std::fs::write(folder.join("SKILL.md"), shipped.replace("zone: 0.60", "zone: 0.50")).unwrap();

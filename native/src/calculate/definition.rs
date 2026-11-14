@@ -5,104 +5,22 @@
 //! It is not an expression language: an unknown operation is reported, and a
 //! setting that does not read as a number keeps its documented default.
 //!
-//! `ath apply` reads `.agents/skills/<name>/SKILL.md` in the working directory
-//! when it exists, else the copy shipped with this program. `ath calculate`
-//! reads its method name from the shipped copy.
+//! The files themselves are compiled into the program once, in
+//! `crate::assets`. `ath apply` chooses its file with
+//! `assets::resolve_calculation`: `.agents/skills/<name>/SKILL.md` in the
+//! working directory when it exists, else the shipped copy. `ath calculate`
+//! reads its method name from the shipped copy only, as 2.1.0 did.
 
 use std::collections::BTreeMap;
-use std::path::{Path, PathBuf};
 
 use crate::error::{Error, Result};
-
-/// The folder an installed skill copy lives in, under the working directory.
-pub const INSTALLED_SKILLS_DIR: &str = ".agents/skills";
 
 /// Source labels that stay in `supplied_fields` and never feed a calculation (D186).
 pub const SOURCE_LABELS: &[&str] = &["supplied:intensity", "supplied:Feeling"];
 
-macro_rules! shipped {
-    ($($name:literal),* $(,)?) => {
-        /// Every shipped skill file, by folder name.
-        pub const SHIPPED_SKILL_FILES: &[(&str, &str)] = &[
-            $(($name, include_str!(concat!("../../../skills/", $name, "/SKILL.md")))),*
-        ];
-    };
-}
-
-shipped!(
-    "athletic-standard",
-    "baseline",
-    "compare-sources",
-    "correlation",
-    "coverage",
-    "heart-rate-recovery",
-    "heart-rate-zones",
-    "hrv-change",
-    "provider-period-summary",
-    "resting-heart-rate",
-    "resting-heart-rate-change",
-    "sleep-change",
-    "sleep-duration",
-    "sleep-efficiency",
-    "sleep-interruptions",
-    "sleep-regularity",
-    "sleep-stages",
-    "sleep-timing",
-    "strength-volume",
-    "summary",
-    "training-load-effort",
-    "training-load-heart-rate",
-    "trend",
-    "workout-drift",
-);
-
-/// The shipped `SKILL.md` text for a skill folder name.
-pub fn shipped_skill_file(name: &str) -> Option<&'static str> {
-    SHIPPED_SKILL_FILES.iter().find(|(shipped, _)| *shipped == name).map(|(_, text)| *text)
-}
-
-/// Where a calculation file came from.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub enum CalculationFileOrigin {
-    /// An installed copy in the working directory. It wins over the shipped copy.
-    Installed(PathBuf),
-    /// The copy shipped with this program.
-    Shipped,
-}
-
-/// A calculation file chosen for a name.
-#[derive(Debug, Clone, PartialEq, Eq)]
-pub struct CalculationFileText {
-    /// The skill folder name.
-    pub name: String,
-    pub origin: CalculationFileOrigin,
-    pub text: String,
-}
-
-/// The skill folder name in a calculation argument: the last path part,
-/// without `.md`.
-pub fn calculation_name(argument: &str) -> &str {
-    let without_suffix = argument.strip_suffix(".md").unwrap_or(argument);
-    without_suffix.rsplit(['/', '\\']).next().unwrap_or(without_suffix)
-}
-
-/// The installed calculation file in `working_directory`, or the shipped one.
-pub fn resolve_calculation_file(argument: &str, working_directory: &Path) -> Result<CalculationFileText> {
-    let name = calculation_name(argument).to_string();
-    let installed = working_directory.join(INSTALLED_SKILLS_DIR).join(&name).join("SKILL.md");
-    if installed.exists() {
-        let text = std::fs::read_to_string(&installed)?;
-        return Ok(CalculationFileText { name, origin: CalculationFileOrigin::Installed(installed), text });
-    }
-    match shipped_skill_file(&name) {
-        Some(text) => Ok(CalculationFileText { name, origin: CalculationFileOrigin::Shipped, text: text.to_string() }),
-        None => Err(Error::not_found(format!("no calculation skill named {name}"))),
-    }
-}
-
 /// The `method:` line of a shipped range calculation, or an empty string.
 pub fn shipped_method(operation: &str) -> String {
-    shipped_skill_file(operation).map(method_line).unwrap_or_default()
+    crate::assets::shipped_calculation(operation).map(method_line).unwrap_or_default()
 }
 
 /// The first `method:` line of a skill file, trimmed.
@@ -282,6 +200,7 @@ impl CalculationFile {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::assets::shipped_calculation as shipped_skill_file;
 
     #[test]
     fn shipped_files_read_into_typed_settings() {
@@ -301,10 +220,11 @@ mod tests {
         assert_eq!(sleep.calculation, OneRecordCalculation::SleepChange { field: "asleep_seconds".into() });
         let summary = CalculationFile::parse(shipped_skill_file("summary").unwrap()).unwrap();
         assert_eq!(summary.calculation, OneRecordCalculation::Unknown("count".into()));
-        for (name, text) in SHIPPED_SKILL_FILES {
-            if *name != "athletic-standard" {
-                CalculationFile::parse(text).unwrap();
-            }
+        let calculation_files = crate::assets::skill_files()
+            .iter()
+            .filter(|file| file.path.ends_with("/SKILL.md") && !file.path.starts_with("athletic-standard/"));
+        for file in calculation_files {
+            CalculationFile::parse(std::str::from_utf8(file.bytes).unwrap()).unwrap();
         }
     }
 
@@ -332,8 +252,6 @@ mod tests {
     fn methods_come_from_the_shipped_range_files() {
         assert_eq!(shipped_method("summary"), "count, minimum, maximum, mean, and sum per source");
         assert_eq!(shipped_method("heart-rate-zones"), "");
-        assert_eq!(calculation_name("skills/heart-rate-zones.md"), "heart-rate-zones");
-        assert_eq!(calculation_name("a\\b\\sleep-duration"), "sleep-duration");
     }
 
     #[test]
