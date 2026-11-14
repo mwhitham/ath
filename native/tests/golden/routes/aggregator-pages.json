@@ -1,0 +1,1204 @@
+{
+  "description": "The shipped aggregator mapping on each page fixture.",
+  "reference": "2.1.0",
+  "steps": [
+    {
+      "command": "import-mapped",
+      "database": {
+        "database_revision": 2,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:14\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_score open_wearables/v1 garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:14\\:00.000Z>",
+            "record_type": "provider_score",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:14:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "metric": "garmin_stress_level",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:14:00.000Z",
+                  "scale": "1-100",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>",
+                  "supplied_fields": {
+                    "window_seconds": 60
+                  },
+                  "value": {
+                    "input_unit": "score",
+                    "input_value": 18,
+                    "standard_unit": "score",
+                    "standard_value": 18
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source garmin open_wearables watch|invented-watch|invented-app>",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "open_wearables",
+                  "data_writer": "garmin",
+                  "sensor_type": "watch|invented-watch|invented-app",
+                  "source_type": "export_file",
+                  "vendor": "garmin"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:source_device",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<source_device open_wearables/v1 garmin:watch|invented-watch|invented-app:source_device>",
+            "record_type": "source_device",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "hardware": "watch-1",
+                  "manufacturer": "garmin",
+                  "model": "invented-watch",
+                  "name": "Invented Watch",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>"
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "kind": "file",
+        "name": "page-raw.json",
+        "text": "{\n  \"data\": [\n    { \"timestamp\": \"2026-08-09T06:14:00.000Z\", \"type\": \"garmin_stress_level\", \"value\": 18, \"unit\": \"score\", \"window_seconds\": 60, \"source\": { \"provider\": \"garmin\", \"source\": \"invented-app\", \"device\": \"invented-watch\", \"device_type\": \"watch\", \"device_id\": \"watch-1\", \"device_name\": \"Invented Watch\" } }\n  ],\n  \"pagination\": { \"has_more\": false },\n  \"metadata\": { \"resolution\": \"raw\" }\n}\n"
+      },
+      "mapping": {
+        "shipped": "open-wearables",
+        "text": "# Open Wearables\n\nSleep sessions, workouts, and timeseries samples. The provider is `source.provider`. The device is `source.device_type`, `source.device`, and `source.source`. A value's basis is `provider_or_aggregator`, because an Open Wearables object does not say whether the provider or Open Wearables computed it. Open Wearables normalizes the workout type, so its basis is `aggregator_normalized`. A provider score's basis is `provider`. Stage minutes are under `stages`. `efficiency_percent` stays under that name. A row whose `entry_source` is `manual` is a personal report, and it is left out. `intensity` stays under that name. A timeseries type is stored only when a line below names it.\n\nA page is the `data` array of an object that also has `metadata`. Its rows are timeseries samples. Only raw samples are stored: `metadata.resolution` must be `raw`. A row with `period_end` is an aggregate. A row with `window_seconds` on a page with no resolution cannot be confirmed raw.\n\n```ath-mapping\nname: open-wearables\nroute: open_wearables\nwriter_field: source.provider\nvalue_basis: provider_or_aggregator\npersonal_when: entry_source manual\npage_rows: data\npage_marker: metadata\npage_section: timeseries\npage_resolution: metadata.resolution\nraw_resolution: raw\nsensor: source.device_type, source.device, source.source\ndevice_name: source.device_name, source.device\ndevice_model: source.device\ndevice_hardware: source.device_id\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\nsleep_duration_seconds: asleep_seconds s s\ntime_in_bed_seconds: in_bed_seconds s s\nstages.awake_minutes: stage_minutes.awake min min\nstages.light_minutes: stage_minutes.light min min\nstages.deep_minutes: stage_minutes.deep min min\nstages.rem_minutes: stage_minutes.rem min min\n\n[workout]\nid_field: id\nstart_field: start_time\nend_field: end_time\ntype: activity_type basis aggregator_normalized\nname: name\ndistance_meters: source_reported_summaries.distance m m\nelevation_gain_meters: source_reported_summaries.elevation_gain m m\navg_heart_rate_bpm: provider_summary.average_heart_rate bpm bpm basis provider_or_aggregator\nmax_heart_rate_bpm: provider_summary.max_heart_rate bpm bpm basis provider_or_aggregator\n\n[timeseries]\ntime_field: timestamp\ntype_field: type\nvalue_field: value\nunit_field: unit\naggregate_field: period_end\nwindow_field: window_seconds\ntype.heart_rate_variability_rmssd: hrv_rmssd ms ms\ntype.heart_rate_variability_sdnn: hrv_sdnn ms ms\ntype.resting_heart_rate: resting_heart_rate bpm bpm\ntype.respiratory_rate: respiratory_rate brpm brpm\ntype.skin_temperature: skin_temperature celsius °C\ntype.skin_temperature: wrist_temperature_sleeping celsius °C when-writer apple\ntype.oxygen_saturation: oxygen_saturation percent %\ntype.heart_rate_recovery_one_minute: hr_recovery bpm bpm\ntype.vo2_max: provider_summary.vo2_max ml_kg_min ml/kg/min\ntype.garmin_stress_level: provider_score.garmin_stress_level score score scale 1-100\ntype.garmin_body_battery: provider_score.garmin_body_battery percent score scale 0-100\n```\n"
+      },
+      "preview": {
+        "result": {
+          "left_out": [],
+          "mapping": "open-wearables",
+          "outcome": {
+            "changed": 0,
+            "new": 2,
+            "unchanged": 0
+          },
+          "preserved": [
+            "window_seconds"
+          ],
+          "record_ids": [],
+          "understood": [
+            "type.garmin_stress_level"
+          ]
+        }
+      },
+      "pull": null,
+      "write": {
+        "result": {
+          "left_out": [],
+          "mapping": "open-wearables",
+          "outcome": {
+            "changed": 0,
+            "new": 2,
+            "unchanged": 0
+          },
+          "preserved": [
+            "window_seconds"
+          ],
+          "record_ids": [
+            "<source_device open_wearables/v1 garmin:watch|invented-watch|invented-app:source_device>",
+            "<provider_score open_wearables/v1 garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:14\\:00.000Z>"
+          ],
+          "understood": [
+            "type.garmin_stress_level"
+          ]
+        }
+      }
+    },
+    {
+      "command": "import-mapped",
+      "database": {
+        "database_revision": 2,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:14\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_score open_wearables/v1 garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:14\\:00.000Z>",
+            "record_type": "provider_score",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:14:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "metric": "garmin_stress_level",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:14:00.000Z",
+                  "scale": "1-100",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>",
+                  "supplied_fields": {
+                    "window_seconds": 60
+                  },
+                  "value": {
+                    "input_unit": "score",
+                    "input_value": 18,
+                    "standard_unit": "score",
+                    "standard_value": 18
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source garmin open_wearables watch|invented-watch|invented-app>",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "open_wearables",
+                  "data_writer": "garmin",
+                  "sensor_type": "watch|invented-watch|invented-app",
+                  "source_type": "export_file",
+                  "vendor": "garmin"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:source_device",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<source_device open_wearables/v1 garmin:watch|invented-watch|invented-app:source_device>",
+            "record_type": "source_device",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "hardware": "watch-1",
+                  "manufacturer": "garmin",
+                  "model": "invented-watch",
+                  "name": "Invented Watch",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>"
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "kind": "file",
+        "name": "page-5min.json",
+        "text": "{\n  \"data\": [\n    { \"timestamp\": \"2026-08-09T06:10:00.000Z\", \"type\": \"garmin_stress_level\", \"value\": 18, \"unit\": \"score\", \"window_seconds\": 300, \"source\": { \"provider\": \"garmin\", \"source\": \"invented-app\", \"device\": \"invented-watch\", \"device_type\": \"watch\", \"device_id\": \"watch-1\", \"device_name\": \"Invented Watch\" } }\n  ],\n  \"pagination\": { \"has_more\": false },\n  \"metadata\": { \"resolution\": \"5min\" }\n}\n"
+      },
+      "mapping": {
+        "shipped": "open-wearables",
+        "text": "# Open Wearables\n\nSleep sessions, workouts, and timeseries samples. The provider is `source.provider`. The device is `source.device_type`, `source.device`, and `source.source`. A value's basis is `provider_or_aggregator`, because an Open Wearables object does not say whether the provider or Open Wearables computed it. Open Wearables normalizes the workout type, so its basis is `aggregator_normalized`. A provider score's basis is `provider`. Stage minutes are under `stages`. `efficiency_percent` stays under that name. A row whose `entry_source` is `manual` is a personal report, and it is left out. `intensity` stays under that name. A timeseries type is stored only when a line below names it.\n\nA page is the `data` array of an object that also has `metadata`. Its rows are timeseries samples. Only raw samples are stored: `metadata.resolution` must be `raw`. A row with `period_end` is an aggregate. A row with `window_seconds` on a page with no resolution cannot be confirmed raw.\n\n```ath-mapping\nname: open-wearables\nroute: open_wearables\nwriter_field: source.provider\nvalue_basis: provider_or_aggregator\npersonal_when: entry_source manual\npage_rows: data\npage_marker: metadata\npage_section: timeseries\npage_resolution: metadata.resolution\nraw_resolution: raw\nsensor: source.device_type, source.device, source.source\ndevice_name: source.device_name, source.device\ndevice_model: source.device\ndevice_hardware: source.device_id\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\nsleep_duration_seconds: asleep_seconds s s\ntime_in_bed_seconds: in_bed_seconds s s\nstages.awake_minutes: stage_minutes.awake min min\nstages.light_minutes: stage_minutes.light min min\nstages.deep_minutes: stage_minutes.deep min min\nstages.rem_minutes: stage_minutes.rem min min\n\n[workout]\nid_field: id\nstart_field: start_time\nend_field: end_time\ntype: activity_type basis aggregator_normalized\nname: name\ndistance_meters: source_reported_summaries.distance m m\nelevation_gain_meters: source_reported_summaries.elevation_gain m m\navg_heart_rate_bpm: provider_summary.average_heart_rate bpm bpm basis provider_or_aggregator\nmax_heart_rate_bpm: provider_summary.max_heart_rate bpm bpm basis provider_or_aggregator\n\n[timeseries]\ntime_field: timestamp\ntype_field: type\nvalue_field: value\nunit_field: unit\naggregate_field: period_end\nwindow_field: window_seconds\ntype.heart_rate_variability_rmssd: hrv_rmssd ms ms\ntype.heart_rate_variability_sdnn: hrv_sdnn ms ms\ntype.resting_heart_rate: resting_heart_rate bpm bpm\ntype.respiratory_rate: respiratory_rate brpm brpm\ntype.skin_temperature: skin_temperature celsius °C\ntype.skin_temperature: wrist_temperature_sleeping celsius °C when-writer apple\ntype.oxygen_saturation: oxygen_saturation percent %\ntype.heart_rate_recovery_one_minute: hr_recovery bpm bpm\ntype.vo2_max: provider_summary.vo2_max ml_kg_min ml/kg/min\ntype.garmin_stress_level: provider_score.garmin_stress_level score score scale 1-100\ntype.garmin_body_battery: provider_score.garmin_body_battery percent score scale 0-100\n```\n"
+      },
+      "preview": {
+        "result": {
+          "left_out": [
+            "timeseries garmin_stress_level 2026-08-09T06:10:00.000Z: resolution 5min: not raw samples"
+          ],
+          "mapping": "open-wearables",
+          "outcome": {
+            "changed": 0,
+            "new": 0,
+            "unchanged": 0
+          },
+          "preserved": [],
+          "record_ids": [],
+          "understood": []
+        }
+      },
+      "pull": null,
+      "write": {
+        "result": {
+          "left_out": [
+            "timeseries garmin_stress_level 2026-08-09T06:10:00.000Z: resolution 5min: not raw samples"
+          ],
+          "mapping": "open-wearables",
+          "outcome": {
+            "changed": 0,
+            "new": 0,
+            "unchanged": 0
+          },
+          "preserved": [],
+          "record_ids": [],
+          "understood": []
+        }
+      }
+    },
+    {
+      "command": "import-mapped",
+      "database": {
+        "database_revision": 2,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:14\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_score open_wearables/v1 garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:14\\:00.000Z>",
+            "record_type": "provider_score",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:14:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "metric": "garmin_stress_level",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:14:00.000Z",
+                  "scale": "1-100",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>",
+                  "supplied_fields": {
+                    "window_seconds": 60
+                  },
+                  "value": {
+                    "input_unit": "score",
+                    "input_value": 18,
+                    "standard_unit": "score",
+                    "standard_value": 18
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source garmin open_wearables watch|invented-watch|invented-app>",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "open_wearables",
+                  "data_writer": "garmin",
+                  "sensor_type": "watch|invented-watch|invented-app",
+                  "source_type": "export_file",
+                  "vendor": "garmin"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:source_device",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<source_device open_wearables/v1 garmin:watch|invented-watch|invented-app:source_device>",
+            "record_type": "source_device",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "hardware": "watch-1",
+                  "manufacturer": "garmin",
+                  "model": "invented-watch",
+                  "name": "Invented Watch",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>"
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "kind": "file",
+        "name": "page-empty.json",
+        "text": "{\n  \"data\": [],\n  \"pagination\": { \"has_more\": false },\n  \"metadata\": { \"resolution\": \"raw\" }\n}\n"
+      },
+      "mapping": {
+        "shipped": "open-wearables",
+        "text": "# Open Wearables\n\nSleep sessions, workouts, and timeseries samples. The provider is `source.provider`. The device is `source.device_type`, `source.device`, and `source.source`. A value's basis is `provider_or_aggregator`, because an Open Wearables object does not say whether the provider or Open Wearables computed it. Open Wearables normalizes the workout type, so its basis is `aggregator_normalized`. A provider score's basis is `provider`. Stage minutes are under `stages`. `efficiency_percent` stays under that name. A row whose `entry_source` is `manual` is a personal report, and it is left out. `intensity` stays under that name. A timeseries type is stored only when a line below names it.\n\nA page is the `data` array of an object that also has `metadata`. Its rows are timeseries samples. Only raw samples are stored: `metadata.resolution` must be `raw`. A row with `period_end` is an aggregate. A row with `window_seconds` on a page with no resolution cannot be confirmed raw.\n\n```ath-mapping\nname: open-wearables\nroute: open_wearables\nwriter_field: source.provider\nvalue_basis: provider_or_aggregator\npersonal_when: entry_source manual\npage_rows: data\npage_marker: metadata\npage_section: timeseries\npage_resolution: metadata.resolution\nraw_resolution: raw\nsensor: source.device_type, source.device, source.source\ndevice_name: source.device_name, source.device\ndevice_model: source.device\ndevice_hardware: source.device_id\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\nsleep_duration_seconds: asleep_seconds s s\ntime_in_bed_seconds: in_bed_seconds s s\nstages.awake_minutes: stage_minutes.awake min min\nstages.light_minutes: stage_minutes.light min min\nstages.deep_minutes: stage_minutes.deep min min\nstages.rem_minutes: stage_minutes.rem min min\n\n[workout]\nid_field: id\nstart_field: start_time\nend_field: end_time\ntype: activity_type basis aggregator_normalized\nname: name\ndistance_meters: source_reported_summaries.distance m m\nelevation_gain_meters: source_reported_summaries.elevation_gain m m\navg_heart_rate_bpm: provider_summary.average_heart_rate bpm bpm basis provider_or_aggregator\nmax_heart_rate_bpm: provider_summary.max_heart_rate bpm bpm basis provider_or_aggregator\n\n[timeseries]\ntime_field: timestamp\ntype_field: type\nvalue_field: value\nunit_field: unit\naggregate_field: period_end\nwindow_field: window_seconds\ntype.heart_rate_variability_rmssd: hrv_rmssd ms ms\ntype.heart_rate_variability_sdnn: hrv_sdnn ms ms\ntype.resting_heart_rate: resting_heart_rate bpm bpm\ntype.respiratory_rate: respiratory_rate brpm brpm\ntype.skin_temperature: skin_temperature celsius °C\ntype.skin_temperature: wrist_temperature_sleeping celsius °C when-writer apple\ntype.oxygen_saturation: oxygen_saturation percent %\ntype.heart_rate_recovery_one_minute: hr_recovery bpm bpm\ntype.vo2_max: provider_summary.vo2_max ml_kg_min ml/kg/min\ntype.garmin_stress_level: provider_score.garmin_stress_level score score scale 1-100\ntype.garmin_body_battery: provider_score.garmin_body_battery percent score scale 0-100\n```\n"
+      },
+      "preview": {
+        "result": {
+          "left_out": [],
+          "mapping": "open-wearables",
+          "outcome": {
+            "changed": 0,
+            "new": 0,
+            "unchanged": 0
+          },
+          "preserved": [],
+          "record_ids": [],
+          "understood": []
+        }
+      },
+      "pull": null,
+      "write": {
+        "result": {
+          "left_out": [],
+          "mapping": "open-wearables",
+          "outcome": {
+            "changed": 0,
+            "new": 0,
+            "unchanged": 0
+          },
+          "preserved": [],
+          "record_ids": [],
+          "understood": []
+        }
+      }
+    },
+    {
+      "command": "import-mapped",
+      "database": {
+        "database_revision": 3,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:14\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_score open_wearables/v1 garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:14\\:00.000Z>",
+            "record_type": "provider_score",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:14:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "metric": "garmin_stress_level",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:14:00.000Z",
+                  "scale": "1-100",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>",
+                  "supplied_fields": {
+                    "window_seconds": 60
+                  },
+                  "value": {
+                    "input_unit": "score",
+                    "input_value": 18,
+                    "standard_unit": "score",
+                    "standard_value": 18
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 3>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 3>",
+                "key": "garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:17\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_score open_wearables/v1 garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:17\\:00.000Z>",
+            "record_type": "provider_score",
+            "revisions": [
+              {
+                "became_known_at": "<step 3>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:17:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "metric": "garmin_stress_level",
+                  "received_at": "<step 3>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:17:00.000Z",
+                  "scale": "1-100",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>",
+                  "value": {
+                    "input_unit": "score",
+                    "input_value": 12,
+                    "standard_unit": "score",
+                    "standard_value": 12
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source garmin open_wearables watch|invented-watch|invented-app>",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "open_wearables",
+                  "data_writer": "garmin",
+                  "sensor_type": "watch|invented-watch|invented-app",
+                  "source_type": "export_file",
+                  "vendor": "garmin"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:source_device",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<source_device open_wearables/v1 garmin:watch|invented-watch|invented-app:source_device>",
+            "record_type": "source_device",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "hardware": "watch-1",
+                  "manufacturer": "garmin",
+                  "model": "invented-watch",
+                  "name": "Invented Watch",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>"
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "kind": "file",
+        "name": "page-null-resolution.json",
+        "text": "{\n  \"data\": [\n    { \"timestamp\": \"2026-08-09T06:14:00.000Z\", \"type\": \"garmin_stress_level\", \"value\": 18, \"unit\": \"score\", \"window_seconds\": 60, \"source\": { \"provider\": \"garmin\", \"source\": \"invented-app\", \"device\": \"invented-watch\", \"device_type\": \"watch\", \"device_id\": \"watch-1\", \"device_name\": \"Invented Watch\" } },\n    { \"timestamp\": \"2026-08-09T06:17:00.000Z\", \"type\": \"garmin_stress_level\", \"value\": 12, \"unit\": \"score\", \"source\": { \"provider\": \"garmin\", \"source\": \"invented-app\", \"device\": \"invented-watch\", \"device_type\": \"watch\", \"device_id\": \"watch-1\", \"device_name\": \"Invented Watch\" } }\n  ],\n  \"pagination\": { \"has_more\": false },\n  \"metadata\": { \"resolution\": null }\n}\n"
+      },
+      "mapping": {
+        "shipped": "open-wearables",
+        "text": "# Open Wearables\n\nSleep sessions, workouts, and timeseries samples. The provider is `source.provider`. The device is `source.device_type`, `source.device`, and `source.source`. A value's basis is `provider_or_aggregator`, because an Open Wearables object does not say whether the provider or Open Wearables computed it. Open Wearables normalizes the workout type, so its basis is `aggregator_normalized`. A provider score's basis is `provider`. Stage minutes are under `stages`. `efficiency_percent` stays under that name. A row whose `entry_source` is `manual` is a personal report, and it is left out. `intensity` stays under that name. A timeseries type is stored only when a line below names it.\n\nA page is the `data` array of an object that also has `metadata`. Its rows are timeseries samples. Only raw samples are stored: `metadata.resolution` must be `raw`. A row with `period_end` is an aggregate. A row with `window_seconds` on a page with no resolution cannot be confirmed raw.\n\n```ath-mapping\nname: open-wearables\nroute: open_wearables\nwriter_field: source.provider\nvalue_basis: provider_or_aggregator\npersonal_when: entry_source manual\npage_rows: data\npage_marker: metadata\npage_section: timeseries\npage_resolution: metadata.resolution\nraw_resolution: raw\nsensor: source.device_type, source.device, source.source\ndevice_name: source.device_name, source.device\ndevice_model: source.device\ndevice_hardware: source.device_id\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\nsleep_duration_seconds: asleep_seconds s s\ntime_in_bed_seconds: in_bed_seconds s s\nstages.awake_minutes: stage_minutes.awake min min\nstages.light_minutes: stage_minutes.light min min\nstages.deep_minutes: stage_minutes.deep min min\nstages.rem_minutes: stage_minutes.rem min min\n\n[workout]\nid_field: id\nstart_field: start_time\nend_field: end_time\ntype: activity_type basis aggregator_normalized\nname: name\ndistance_meters: source_reported_summaries.distance m m\nelevation_gain_meters: source_reported_summaries.elevation_gain m m\navg_heart_rate_bpm: provider_summary.average_heart_rate bpm bpm basis provider_or_aggregator\nmax_heart_rate_bpm: provider_summary.max_heart_rate bpm bpm basis provider_or_aggregator\n\n[timeseries]\ntime_field: timestamp\ntype_field: type\nvalue_field: value\nunit_field: unit\naggregate_field: period_end\nwindow_field: window_seconds\ntype.heart_rate_variability_rmssd: hrv_rmssd ms ms\ntype.heart_rate_variability_sdnn: hrv_sdnn ms ms\ntype.resting_heart_rate: resting_heart_rate bpm bpm\ntype.respiratory_rate: respiratory_rate brpm brpm\ntype.skin_temperature: skin_temperature celsius °C\ntype.skin_temperature: wrist_temperature_sleeping celsius °C when-writer apple\ntype.oxygen_saturation: oxygen_saturation percent %\ntype.heart_rate_recovery_one_minute: hr_recovery bpm bpm\ntype.vo2_max: provider_summary.vo2_max ml_kg_min ml/kg/min\ntype.garmin_stress_level: provider_score.garmin_stress_level score score scale 1-100\ntype.garmin_body_battery: provider_score.garmin_body_battery percent score scale 0-100\n```\n"
+      },
+      "preview": {
+        "result": {
+          "left_out": [
+            "timeseries garmin_stress_level 2026-08-09T06:14:00.000Z: window_seconds present without resolution: cannot confirm raw"
+          ],
+          "mapping": "open-wearables",
+          "outcome": {
+            "changed": 0,
+            "new": 1,
+            "unchanged": 1
+          },
+          "preserved": [],
+          "record_ids": [],
+          "understood": [
+            "type.garmin_stress_level"
+          ]
+        }
+      },
+      "pull": null,
+      "write": {
+        "result": {
+          "left_out": [
+            "timeseries garmin_stress_level 2026-08-09T06:14:00.000Z: window_seconds present without resolution: cannot confirm raw"
+          ],
+          "mapping": "open-wearables",
+          "outcome": {
+            "changed": 0,
+            "new": 1,
+            "unchanged": 1
+          },
+          "preserved": [],
+          "record_ids": [
+            "<source_device open_wearables/v1 garmin:watch|invented-watch|invented-app:source_device>",
+            "<provider_score open_wearables/v1 garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:17\\:00.000Z>"
+          ],
+          "understood": [
+            "type.garmin_stress_level"
+          ]
+        }
+      }
+    },
+    {
+      "command": "import-mapped",
+      "database": {
+        "database_revision": 3,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:14\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_score open_wearables/v1 garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:14\\:00.000Z>",
+            "record_type": "provider_score",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:14:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "metric": "garmin_stress_level",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:14:00.000Z",
+                  "scale": "1-100",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>",
+                  "supplied_fields": {
+                    "window_seconds": 60
+                  },
+                  "value": {
+                    "input_unit": "score",
+                    "input_value": 18,
+                    "standard_unit": "score",
+                    "standard_value": 18
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 3>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 3>",
+                "key": "garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:17\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_score open_wearables/v1 garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:17\\:00.000Z>",
+            "record_type": "provider_score",
+            "revisions": [
+              {
+                "became_known_at": "<step 3>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:17:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "metric": "garmin_stress_level",
+                  "received_at": "<step 3>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:17:00.000Z",
+                  "scale": "1-100",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>",
+                  "value": {
+                    "input_unit": "score",
+                    "input_value": 12,
+                    "standard_unit": "score",
+                    "standard_value": 12
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source garmin open_wearables watch|invented-watch|invented-app>",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "open_wearables",
+                  "data_writer": "garmin",
+                  "sensor_type": "watch|invented-watch|invented-app",
+                  "source_type": "export_file",
+                  "vendor": "garmin"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:source_device",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<source_device open_wearables/v1 garmin:watch|invented-watch|invented-app:source_device>",
+            "record_type": "source_device",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "hardware": "watch-1",
+                  "manufacturer": "garmin",
+                  "model": "invented-watch",
+                  "name": "Invented Watch",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>"
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "kind": "file",
+        "name": "page-workouts.json",
+        "text": "{\n  \"data\": [\n    { \"id\": \"018f0000-0000-7000-8000-0000000000a1\", \"type\": \"running\", \"name\": \"Invented page loop\", \"start_time\": \"2026-08-09T15:00:00.000Z\", \"end_time\": \"2026-08-09T15:10:00.000Z\", \"source\": { \"provider\": \"garmin\", \"source\": \"invented-app\", \"device\": \"invented-watch\", \"device_type\": \"watch\", \"device_id\": \"watch-1\", \"device_name\": \"Invented Watch\" } }\n  ],\n  \"pagination\": { \"has_more\": false },\n  \"metadata\": { \"resolution\": null, \"sample_count\": 1, \"start_time\": \"2026-08-09T15:00:00.000Z\", \"end_time\": \"2026-08-09T15:10:00.000Z\" }\n}\n"
+      },
+      "mapping": {
+        "shipped": "open-wearables",
+        "text": "# Open Wearables\n\nSleep sessions, workouts, and timeseries samples. The provider is `source.provider`. The device is `source.device_type`, `source.device`, and `source.source`. A value's basis is `provider_or_aggregator`, because an Open Wearables object does not say whether the provider or Open Wearables computed it. Open Wearables normalizes the workout type, so its basis is `aggregator_normalized`. A provider score's basis is `provider`. Stage minutes are under `stages`. `efficiency_percent` stays under that name. A row whose `entry_source` is `manual` is a personal report, and it is left out. `intensity` stays under that name. A timeseries type is stored only when a line below names it.\n\nA page is the `data` array of an object that also has `metadata`. Its rows are timeseries samples. Only raw samples are stored: `metadata.resolution` must be `raw`. A row with `period_end` is an aggregate. A row with `window_seconds` on a page with no resolution cannot be confirmed raw.\n\n```ath-mapping\nname: open-wearables\nroute: open_wearables\nwriter_field: source.provider\nvalue_basis: provider_or_aggregator\npersonal_when: entry_source manual\npage_rows: data\npage_marker: metadata\npage_section: timeseries\npage_resolution: metadata.resolution\nraw_resolution: raw\nsensor: source.device_type, source.device, source.source\ndevice_name: source.device_name, source.device\ndevice_model: source.device\ndevice_hardware: source.device_id\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\nsleep_duration_seconds: asleep_seconds s s\ntime_in_bed_seconds: in_bed_seconds s s\nstages.awake_minutes: stage_minutes.awake min min\nstages.light_minutes: stage_minutes.light min min\nstages.deep_minutes: stage_minutes.deep min min\nstages.rem_minutes: stage_minutes.rem min min\n\n[workout]\nid_field: id\nstart_field: start_time\nend_field: end_time\ntype: activity_type basis aggregator_normalized\nname: name\ndistance_meters: source_reported_summaries.distance m m\nelevation_gain_meters: source_reported_summaries.elevation_gain m m\navg_heart_rate_bpm: provider_summary.average_heart_rate bpm bpm basis provider_or_aggregator\nmax_heart_rate_bpm: provider_summary.max_heart_rate bpm bpm basis provider_or_aggregator\n\n[timeseries]\ntime_field: timestamp\ntype_field: type\nvalue_field: value\nunit_field: unit\naggregate_field: period_end\nwindow_field: window_seconds\ntype.heart_rate_variability_rmssd: hrv_rmssd ms ms\ntype.heart_rate_variability_sdnn: hrv_sdnn ms ms\ntype.resting_heart_rate: resting_heart_rate bpm bpm\ntype.respiratory_rate: respiratory_rate brpm brpm\ntype.skin_temperature: skin_temperature celsius °C\ntype.skin_temperature: wrist_temperature_sleeping celsius °C when-writer apple\ntype.oxygen_saturation: oxygen_saturation percent %\ntype.heart_rate_recovery_one_minute: hr_recovery bpm bpm\ntype.vo2_max: provider_summary.vo2_max ml_kg_min ml/kg/min\ntype.garmin_stress_level: provider_score.garmin_stress_level score score scale 1-100\ntype.garmin_body_battery: provider_score.garmin_body_battery percent score scale 0-100\n```\n"
+      },
+      "preview": {
+        "result": {
+          "left_out": [
+            "envelope is not a timeseries page: pass its data array under workout or sleep"
+          ],
+          "mapping": "open-wearables",
+          "outcome": {
+            "changed": 0,
+            "new": 0,
+            "unchanged": 0
+          },
+          "preserved": [],
+          "record_ids": [],
+          "understood": []
+        }
+      },
+      "pull": null,
+      "write": {
+        "result": {
+          "left_out": [
+            "envelope is not a timeseries page: pass its data array under workout or sleep"
+          ],
+          "mapping": "open-wearables",
+          "outcome": {
+            "changed": 0,
+            "new": 0,
+            "unchanged": 0
+          },
+          "preserved": [],
+          "record_ids": [],
+          "understood": []
+        }
+      }
+    },
+    {
+      "command": "import-mapped",
+      "database": {
+        "database_revision": 3,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:14\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_score open_wearables/v1 garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:14\\:00.000Z>",
+            "record_type": "provider_score",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:14:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "metric": "garmin_stress_level",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:14:00.000Z",
+                  "scale": "1-100",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>",
+                  "supplied_fields": {
+                    "window_seconds": 60
+                  },
+                  "value": {
+                    "input_unit": "score",
+                    "input_value": 18,
+                    "standard_unit": "score",
+                    "standard_value": 18
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 3>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 3>",
+                "key": "garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:17\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_score open_wearables/v1 garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:17\\:00.000Z>",
+            "record_type": "provider_score",
+            "revisions": [
+              {
+                "became_known_at": "<step 3>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:17:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "metric": "garmin_stress_level",
+                  "received_at": "<step 3>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:17:00.000Z",
+                  "scale": "1-100",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>",
+                  "value": {
+                    "input_unit": "score",
+                    "input_value": 12,
+                    "standard_unit": "score",
+                    "standard_value": 12
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source garmin open_wearables watch|invented-watch|invented-app>",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "open_wearables",
+                  "data_writer": "garmin",
+                  "sensor_type": "watch|invented-watch|invented-app",
+                  "source_type": "export_file",
+                  "vendor": "garmin"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:source_device",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<source_device open_wearables/v1 garmin:watch|invented-watch|invented-app:source_device>",
+            "record_type": "source_device",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "hardware": "watch-1",
+                  "manufacturer": "garmin",
+                  "model": "invented-watch",
+                  "name": "Invented Watch",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>"
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "kind": "file",
+        "name": "page-sleep.json",
+        "text": "{\n  \"data\": [\n    { \"id\": \"018f0000-0000-7000-8000-0000000000b2\", \"start_time\": \"2026-08-09T06:00:00.000Z\", \"end_time\": \"2026-08-09T14:00:00.000Z\", \"duration_seconds\": 28800, \"stages\": { \"awake_minutes\": 2, \"light_minutes\": 3, \"deep_minutes\": 4 }, \"is_nap\": false, \"source\": { \"provider\": \"garmin\", \"source\": \"invented-app\", \"device\": \"invented-watch\", \"device_type\": \"watch\", \"device_id\": \"watch-1\", \"device_name\": \"Invented Watch\" } }\n  ],\n  \"pagination\": { \"has_more\": false },\n  \"metadata\": { \"resolution\": null, \"sample_count\": 1, \"start_time\": \"2026-08-09T06:00:00.000Z\", \"end_time\": \"2026-08-09T14:00:00.000Z\" }\n}\n"
+      },
+      "mapping": {
+        "shipped": "open-wearables",
+        "text": "# Open Wearables\n\nSleep sessions, workouts, and timeseries samples. The provider is `source.provider`. The device is `source.device_type`, `source.device`, and `source.source`. A value's basis is `provider_or_aggregator`, because an Open Wearables object does not say whether the provider or Open Wearables computed it. Open Wearables normalizes the workout type, so its basis is `aggregator_normalized`. A provider score's basis is `provider`. Stage minutes are under `stages`. `efficiency_percent` stays under that name. A row whose `entry_source` is `manual` is a personal report, and it is left out. `intensity` stays under that name. A timeseries type is stored only when a line below names it.\n\nA page is the `data` array of an object that also has `metadata`. Its rows are timeseries samples. Only raw samples are stored: `metadata.resolution` must be `raw`. A row with `period_end` is an aggregate. A row with `window_seconds` on a page with no resolution cannot be confirmed raw.\n\n```ath-mapping\nname: open-wearables\nroute: open_wearables\nwriter_field: source.provider\nvalue_basis: provider_or_aggregator\npersonal_when: entry_source manual\npage_rows: data\npage_marker: metadata\npage_section: timeseries\npage_resolution: metadata.resolution\nraw_resolution: raw\nsensor: source.device_type, source.device, source.source\ndevice_name: source.device_name, source.device\ndevice_model: source.device\ndevice_hardware: source.device_id\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\nsleep_duration_seconds: asleep_seconds s s\ntime_in_bed_seconds: in_bed_seconds s s\nstages.awake_minutes: stage_minutes.awake min min\nstages.light_minutes: stage_minutes.light min min\nstages.deep_minutes: stage_minutes.deep min min\nstages.rem_minutes: stage_minutes.rem min min\n\n[workout]\nid_field: id\nstart_field: start_time\nend_field: end_time\ntype: activity_type basis aggregator_normalized\nname: name\ndistance_meters: source_reported_summaries.distance m m\nelevation_gain_meters: source_reported_summaries.elevation_gain m m\navg_heart_rate_bpm: provider_summary.average_heart_rate bpm bpm basis provider_or_aggregator\nmax_heart_rate_bpm: provider_summary.max_heart_rate bpm bpm basis provider_or_aggregator\n\n[timeseries]\ntime_field: timestamp\ntype_field: type\nvalue_field: value\nunit_field: unit\naggregate_field: period_end\nwindow_field: window_seconds\ntype.heart_rate_variability_rmssd: hrv_rmssd ms ms\ntype.heart_rate_variability_sdnn: hrv_sdnn ms ms\ntype.resting_heart_rate: resting_heart_rate bpm bpm\ntype.respiratory_rate: respiratory_rate brpm brpm\ntype.skin_temperature: skin_temperature celsius °C\ntype.skin_temperature: wrist_temperature_sleeping celsius °C when-writer apple\ntype.oxygen_saturation: oxygen_saturation percent %\ntype.heart_rate_recovery_one_minute: hr_recovery bpm bpm\ntype.vo2_max: provider_summary.vo2_max ml_kg_min ml/kg/min\ntype.garmin_stress_level: provider_score.garmin_stress_level score score scale 1-100\ntype.garmin_body_battery: provider_score.garmin_body_battery percent score scale 0-100\n```\n"
+      },
+      "preview": {
+        "result": {
+          "left_out": [
+            "envelope is not a timeseries page: pass its data array under workout or sleep"
+          ],
+          "mapping": "open-wearables",
+          "outcome": {
+            "changed": 0,
+            "new": 0,
+            "unchanged": 0
+          },
+          "preserved": [],
+          "record_ids": [],
+          "understood": []
+        }
+      },
+      "pull": null,
+      "write": {
+        "result": {
+          "left_out": [
+            "envelope is not a timeseries page: pass its data array under workout or sleep"
+          ],
+          "mapping": "open-wearables",
+          "outcome": {
+            "changed": 0,
+            "new": 0,
+            "unchanged": 0
+          },
+          "preserved": [],
+          "record_ids": [],
+          "understood": []
+        }
+      }
+    }
+  ]
+}

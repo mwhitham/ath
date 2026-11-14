@@ -16,7 +16,7 @@ use crate::error::{Error, Result};
 use crate::files;
 use crate::json::{self, Value};
 
-use super::candidate::{Candidate, KeyPart};
+use super::candidate::{Candidate, KeyPart, MatchKey};
 
 /// What matching decided for one candidate.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -26,6 +26,12 @@ pub enum Action {
     Changed,
     /// Left out of the plan and reported as a conflict.
     Conflict,
+    /// A keyed route's repeat of an earlier candidate with the same key and
+    /// the same data. It names the earlier candidate's record and writes nothing.
+    Repeat,
+    /// A keyed route's candidate whose stored record or source is deleted. It
+    /// is reported as left out and writes nothing.
+    LeftOut,
 }
 
 impl Action {
@@ -35,6 +41,8 @@ impl Action {
             Action::Matching => "matching",
             Action::Changed => "changed",
             Action::Conflict => "conflict",
+            Action::Repeat => "repeat",
+            Action::LeftOut => "left_out",
         }
     }
 
@@ -44,6 +52,8 @@ impl Action {
             "matching" => Action::Matching,
             "changed" => Action::Changed,
             "conflict" => Action::Conflict,
+            "repeat" => Action::Repeat,
+            "left_out" => Action::LeftOut,
             _ => return None,
         })
     }
@@ -62,6 +72,18 @@ pub(crate) struct StagedRow {
     pub numbered: bool,
     pub ordinal: Option<i64>,
     pub existing_record_id: Option<String>,
+    /// The reader's group, for a keyed route: its order among left-out lines,
+    /// and the label those lines start with.
+    pub group_seq: Option<i64>,
+    pub group_label: Option<String>,
+}
+
+/// A keyed route's group: one source object, file, or row whose records a
+/// left-out line names together.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub(crate) struct Group {
+    pub seq: i64,
+    pub label: String,
 }
 
 /// One planned change as the preview and the write see it.
@@ -118,6 +140,8 @@ CREATE TABLE candidates (
   ordinal INTEGER,
   existing_record_id TEXT,
   route_points INTEGER NOT NULL,
+  group_seq INTEGER,
+  group_label TEXT,
   match_key TEXT,
   collision_group TEXT,
   action TEXT,
@@ -136,7 +160,7 @@ CREATE TABLE conflicts (
 
 const ROW_COLUMNS: &str =
     "position, section, record_id, record_type, data_json, source_id, key_parts, numbered, ordinal, \
-     existing_record_id";
+     existing_record_id, group_seq, group_label";
 
 fn staged_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<StagedRow> {
     Ok(StagedRow {
@@ -150,11 +174,22 @@ fn staged_row(row: &rusqlite::Row<'_>) -> rusqlite::Result<StagedRow> {
         numbered: row.get::<_, i64>(7)? != 0,
         ordinal: row.get(8)?,
         existing_record_id: row.get(9)?,
+        group_seq: row.get(10)?,
+        group_label: row.get(11)?,
     })
 }
 
-/// The JSON array of key parts; `null` marks the source ID.
-fn key_parts_json(parts: &[KeyPart]) -> String {
+/// The JSON array of key parts; `null` marks the source ID. A literal key is
+/// a JSON string.
+fn key_parts_json(key: &MatchKey) -> String {
+    if key.literal {
+        let text = match key.parts.first() {
+            Some(KeyPart::Text(text)) => text.clone(),
+            _ => String::new(),
+        };
+        return json::to_string(&Value::String(text));
+    }
+    let parts = &key.parts;
     json::to_string(&Value::Array(
         parts
             .iter()
@@ -213,8 +248,9 @@ impl Staging {
         candidate_data: &str,
         candidate: &Candidate,
         existing_record_id: Option<&str>,
+        group: Option<&Group>,
     ) -> Result<()> {
-        let key_parts = key_parts_json(&candidate.key.parts);
+        let key_parts = key_parts_json(&candidate.key);
         let ordinal: Option<i64> = if candidate.key.numbered {
             Some(
                 self.connection()
@@ -233,8 +269,8 @@ impl Staging {
         self.connection()
             .prepare_cached(
                 "INSERT INTO candidates (position, section, record_id, record_type, data_json, source_id, key_parts,
-                    numbered, ordinal, existing_record_id, route_points)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11)",
+                    numbered, ordinal, existing_record_id, route_points, group_seq, group_label)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13)",
             )?
             .execute(params![
                 position,
@@ -248,6 +284,8 @@ impl Staging {
                 ordinal,
                 existing_record_id,
                 candidate.route_points() as i64,
+                group.map(|group| group.seq),
+                group.map(|group| group.label.as_str()),
             ])?;
         Ok(())
     }
@@ -285,8 +323,9 @@ impl Staging {
         Ok(())
     }
 
-    /// The first staged row with this key, or record this row as the first.
-    pub fn first_with_key(&self, match_key: &str, position: i64) -> Result<Option<String>> {
+    /// The data, decided record ID, and action of the first staged row with
+    /// this key, or record this row as the first.
+    pub fn first_with_key(&self, match_key: &str, position: i64) -> Result<Option<(String, String, Option<Action>)>> {
         let inserted = self
             .connection()
             .prepare_cached("INSERT OR IGNORE INTO seen_keys (match_key, position) VALUES (?1, ?2)")?
@@ -297,9 +336,13 @@ impl Staging {
         Ok(self
             .connection()
             .prepare_cached(
-                "SELECT candidates.data_json FROM seen_keys JOIN candidates USING (position) WHERE seen_keys.match_key = ?1",
+                "SELECT candidates.data_json, candidates.record_id, candidates.action
+                   FROM seen_keys JOIN candidates USING (position) WHERE seen_keys.match_key = ?1",
             )?
-            .query_row([match_key], |row| row.get(0))
+            .query_row([match_key], |row| {
+                let action: Option<String> = row.get(2)?;
+                Ok((row.get(0)?, row.get(1)?, action.as_deref().and_then(Action::parse)))
+            })
             .optional()?)
     }
 
@@ -393,6 +436,18 @@ impl Staging {
             })
             .collect();
         Ok((rows, last))
+    }
+
+    /// The record each written or repeated candidate names, in plan order: what
+    /// a keyed route lists as `record_ids`. A repeat names its earlier record again.
+    pub fn record_ids(&self) -> Result<Vec<String>> {
+        let mut statement = self.connection().prepare(
+            "SELECT record_id FROM candidates
+              WHERE action IN ('new', 'matching', 'changed', 'repeat')
+              ORDER BY section, position",
+        )?;
+        let ids = statement.query_map([], |row| row.get(0))?.collect::<rusqlite::Result<Vec<String>>>()?;
+        Ok(ids)
     }
 
     /// Every planned record with one of `actions`, in plan order.

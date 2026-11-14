@@ -1,0 +1,349 @@
+{
+  "description": "Invented Garmin files that are left out or refuse the import.",
+  "reference": "2.1.0",
+  "steps": [
+    {
+      "command": "import-garmin",
+      "database": {
+        "database_revision": 5,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "3002.5:max_heart_rate",
+                "method": "garmin_account/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_summary garmin_account/v1 3002.5:max_heart_rate>",
+            "record_type": "provider_summary",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-02-02T10:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "3002.5",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-02-02T10:00:00.000Z",
+                  "source_id": "<source garmin garmin_account_export >",
+                  "summary_type": "max_heart_rate",
+                  "value": {
+                    "input_unit": "bpm",
+                    "input_value": 171.5,
+                    "standard_unit": "bpm",
+                    "standard_value": 171.5
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source garmin garmin_account_export >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "garmin_account_export",
+                  "data_writer": "garmin",
+                  "source_type": "export_file",
+                  "vendor": "garmin"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "3001",
+                "method": "garmin_account/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_account/v1 3001>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "end_at": "2026-02-01T10:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-02-01T10:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-02-01T10:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "3001",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_account_export >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-02-01T10:00:00.000Z",
+                  "supplied_fields": {
+                    "nested": {
+                      "a": [
+                        1,
+                        2
+                      ]
+                    }
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "3002.5",
+                "method": "garmin_account/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_account/v1 3002.5>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "end_at": "2026-02-02T10:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-02-02T10:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-02-02T10:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Twice",
+                  "provider_record_id": "3002.5",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_account_export >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-02-02T10:00:00.000Z"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "d-loop.gpx",
+                "method": "garmin_account/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_account/v1 d-loop.gpx>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "end_at": "2026-08-09T19:00:20.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "heart_rate_samples": [
+                    {
+                      "bpm": 91.5,
+                      "offset_ms": 0
+                    }
+                  ],
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T19:00:20.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T19:00:00.123Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Two segments",
+                  "provider_record_id": "d-loop.gpx",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "route": [
+                    {
+                      "latitude_deg": 40,
+                      "longitude_deg": -105,
+                      "recorded_at": "2026-08-09T19:00:00.123Z"
+                    },
+                    {
+                      "latitude_deg": 40.2,
+                      "longitude_deg": -105.2,
+                      "recorded_at": "2026-08-09T19:00:20.000Z"
+                    }
+                  ],
+                  "source_id": "<source garmin garmin_account_export >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T19:00:00.123Z"
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "files": {
+          "a-empty.fit": "base64:DBAAAAkAAAAuRklUQAAAFAAB/QSGAAA=",
+          "b-compressed.fit": "base64:DBAAAAQAAAAuRklUgAAAAAAA",
+          "c-short.fit": "base64:YWJj",
+          "d-loop.gpx": "<gpx><trk><name>Two segments</name><trkseg><trkpt lat=\"40.0\" lon=\"-105.0\"><time>2026-08-09T15:00:00.123456-04:00</time><hr>91.5</hr></trkpt><trkpt lat=\"40.1\" lon=\"-105.1\"><time></time></trkpt><trkpt lat=\"x\" lon=\"-105.1\"><time>2026-08-09T15:00:01Z</time></trkpt><trkpt lat=\"40.2\" lon=\"-105.2\"><time>2026-08-09T19:00:20Z</time></trkpt></trkseg></trk></gpx>",
+          "e-object.json": "{\"activityId\":3001,\"startTimeGMT\":\"2026-02-01T10:00:00.000Z\",\"duration\":\"60\",\"elapsedDuration\":90,\"description\":7,\"nested\":{\"a\":[1,2]}}",
+          "f-array.json": "[{\"activityId\":3002.5,\"startTimeGMT\":\"2026-02-02T10:00:00.000Z\",\"activityName\":\"Twice\",\"maxHR\":171.5}]"
+        },
+        "kind": "zip"
+      },
+      "mapping": null,
+      "preview": {
+        "result": {
+          "left_out": [
+            "a-empty.fit: FIT file had no record points",
+            "b-compressed.fit: compressed FIT timestamps are left unread",
+            "c-short.fit: FIT file is too short",
+            "d-loop.gpx: 1 track point had no time"
+          ],
+          "preserved": [
+            "nested"
+          ],
+          "record_ids": [],
+          "source": "garmin",
+          "understood": [
+            "end_at",
+            "heart_rate_samples",
+            "max_heart_rate",
+            "name",
+            "provider_record_id",
+            "route",
+            "start_at"
+          ]
+        }
+      },
+      "pull": null,
+      "write": {
+        "result": {
+          "left_out": [
+            "a-empty.fit: FIT file had no record points",
+            "b-compressed.fit: compressed FIT timestamps are left unread",
+            "c-short.fit: FIT file is too short",
+            "d-loop.gpx: 1 track point had no time"
+          ],
+          "preserved": [
+            "nested"
+          ],
+          "record_ids": [
+            "<workout_session garmin_account/v1 d-loop.gpx>",
+            "<workout_session garmin_account/v1 3001>",
+            "<workout_session garmin_account/v1 3002.5>",
+            "<provider_summary garmin_account/v1 3002.5:max_heart_rate>"
+          ],
+          "source": "garmin",
+          "understood": [
+            "end_at",
+            "heart_rate_samples",
+            "max_heart_rate",
+            "name",
+            "provider_record_id",
+            "route",
+            "start_at"
+          ]
+        }
+      }
+    }
+  ]
+}
