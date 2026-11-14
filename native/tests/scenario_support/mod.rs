@@ -8,6 +8,9 @@
 
 #![allow(dead_code)]
 
+#[path = "../temporary_root.rs"]
+mod temporary_root;
+
 pub mod builders;
 pub mod scenario;
 
@@ -24,7 +27,7 @@ use athleticstandard::store::{Changes, Correction, CreateOptions, Deletion, Exte
 pub const DATABASE_ID: &str = "01890f3e-e7d3-7cc0-88c8-0000000000ff";
 
 pub fn temporary_dir(prefix: &str) -> PathBuf {
-    athleticstandard::files::make_temporary_directory(prefix).unwrap()
+    temporary_root::new_dir(prefix)
 }
 
 /// A new database in a new temporary directory.

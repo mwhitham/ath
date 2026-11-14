@@ -2,6 +2,9 @@
 
 #![allow(dead_code)]
 
+#[path = "../temporary_root.rs"]
+mod temporary_root;
+
 use std::collections::BTreeMap;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -23,7 +26,7 @@ pub fn golden(case: &str) -> PathBuf {
 }
 
 pub fn temporary(prefix: &str) -> PathBuf {
-    files::make_temporary_directory(prefix).unwrap()
+    temporary_root::new_dir(prefix)
 }
 
 /// Copy the demo database and its attachment into `directory`, then apply

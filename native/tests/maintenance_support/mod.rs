@@ -2,6 +2,9 @@
 //! SQLite connections, table dumps, and file hashes.
 #![allow(dead_code)]
 
+#[path = "../temporary_root.rs"]
+mod temporary_root;
+
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 
@@ -28,7 +31,7 @@ pub fn demo_fixture() -> PathBuf {
 }
 
 pub fn temporary_dir(prefix: &str) -> PathBuf {
-    athleticstandard::files::make_temporary_directory(prefix).unwrap()
+    temporary_root::new_dir(prefix)
 }
 
 /// Copy a fixture's main file into a new private folder as
