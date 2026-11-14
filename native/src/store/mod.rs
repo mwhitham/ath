@@ -13,6 +13,7 @@ pub mod contract;
 pub mod encode;
 pub mod migrate;
 pub mod pending;
+pub mod query;
 pub mod read;
 pub mod repair;
 pub mod stats;

@@ -1,0 +1,676 @@
+{
+  "generated_by": "native/tools/reference/calculation-golden.ts",
+  "reference_commit": "c6218e88c035708bdd15b3a20888d19713e1df29",
+  "base": "demo",
+  "created_at": "",
+  "steps": [],
+  "cases": [
+    {
+      "name": "reuse the exact link",
+      "call": "grade-plan",
+      "input": {
+        "prediction_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+        "result_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+        "created_at": "2026-10-13T12:00:00.000Z"
+      },
+      "output": {
+        "file": "/private/tmp/claude-501/ath-golden-SdYMOh/athlete.ath.sqlite",
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "prediction_result_link": {
+          "action": "reuse",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "grade": {
+          "record_id": "01a1dc18-9bb2-7a53-99fe-a7a8ed893c73",
+          "data": {
+            "authorship": {
+              "author": {
+                "author_type": "tool",
+                "tool": "ath",
+                "tool_version": "2.1.0",
+                "calculation_version": "prediction-grade-v1"
+              },
+              "authored_at": "2026-10-13T12:00:00.000Z",
+              "evidence": [
+                {
+                  "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+                  "revision": 1
+                }
+              ],
+              "content_version": 1,
+              "status": "active"
+            },
+            "prediction_result_link": {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+              "revision": 1
+            },
+            "signed_error": -20,
+            "absolute_error_percentage": 6.7,
+            "result_in_predicted_range": false,
+            "predicted_score": {
+              "duration_s": 280
+            },
+            "actual_score": {
+              "duration_s": 300
+            }
+          }
+        },
+        "write_confirmed": false
+      }
+    },
+    {
+      "name": "a new calculation version",
+      "call": "grade-plan",
+      "input": {
+        "prediction_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+        "result_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+        "calculation_version": "prediction-grade-v2-test",
+        "created_at": "2026-10-13T12:00:00.000Z"
+      },
+      "output": {
+        "file": "/private/tmp/claude-501/ath-golden-SdYMOh/athlete.ath.sqlite",
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "prediction_result_link": {
+          "action": "reuse",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "grade": {
+          "record_id": "01a1dc18-9bb2-7c9e-8803-f19ce91d2e25",
+          "data": {
+            "authorship": {
+              "author": {
+                "author_type": "tool",
+                "tool": "ath",
+                "tool_version": "2.1.0",
+                "calculation_version": "prediction-grade-v2-test"
+              },
+              "authored_at": "2026-10-13T12:00:00.000Z",
+              "evidence": [
+                {
+                  "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+                  "revision": 1
+                }
+              ],
+              "content_version": 1,
+              "status": "active"
+            },
+            "prediction_result_link": {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+              "revision": 1
+            },
+            "signed_error": -20,
+            "absolute_error_percentage": 6.7,
+            "result_in_predicted_range": false,
+            "predicted_score": {
+              "duration_s": 280
+            },
+            "actual_score": {
+              "duration_s": 300
+            }
+          }
+        },
+        "write_confirmed": false
+      }
+    },
+    {
+      "name": "a prediction ID that is a result",
+      "call": "grade-plan",
+      "input": {
+        "prediction_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+        "result_id": "01890f3e-e7d3-7cc0-88c8-00000000000b"
+      },
+      "output": {
+        "error": "01890f3e-e7d3-7cc0-88c8-00000000000b is not a prediction"
+      }
+    },
+    {
+      "name": "a result ID that is a prediction",
+      "call": "grade-plan",
+      "input": {
+        "prediction_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+        "result_id": "01890f3e-e7d3-7cc0-88c8-000000000010"
+      },
+      "output": {
+        "error": "01890f3e-e7d3-7cc0-88c8-000000000010 is not a benchmark result"
+      }
+    },
+    {
+      "name": "a missing prediction",
+      "call": "grade-plan",
+      "input": {
+        "prediction_id": "01890f3e-e7d3-7cc0-88c8-000000000fff",
+        "result_id": "01890f3e-e7d3-7cc0-88c8-00000000000b"
+      },
+      "output": {
+        "error": "current record not found: 01890f3e-e7d3-7cc0-88c8-000000000fff"
+      }
+    },
+    {
+      "name": "write a reused-link grade",
+      "call": "grade-write",
+      "input": {
+        "prediction_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+        "result_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+        "created_at": "2026-10-13T12:00:00.000Z"
+      },
+      "output": {
+        "link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "current_revision": 1
+        },
+        "grade": {
+          "record_id": "01a1dc18-9bb3-7396-853b-a658591c2d32",
+          "created_at": "2026-10-13T12:00:00.000Z",
+          "current_revision": 1,
+          "is_deleted": false,
+          "record_type": "prediction_grade",
+          "data": {
+            "authorship": {
+              "author": {
+                "author_type": "tool",
+                "tool": "ath",
+                "tool_version": "2.1.0",
+                "calculation_version": "prediction-grade-v1"
+              },
+              "authored_at": "2026-10-13T12:00:00.000Z",
+              "evidence": [
+                {
+                  "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+                  "revision": 1
+                }
+              ],
+              "content_version": 1,
+              "status": "active"
+            },
+            "prediction_result_link": {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+              "revision": 1
+            },
+            "signed_error": -20,
+            "absolute_error_percentage": 6.7,
+            "result_in_predicted_range": false,
+            "predicted_score": {
+              "duration_s": 280
+            },
+            "actual_score": {
+              "duration_s": 300
+            }
+          }
+        },
+        "database_revision": 4
+      }
+    },
+    {
+      "steps": [
+        {
+          "correct": {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+            "expected_revision": 1,
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "became_known_at": "2026-10-14T00:00:00.000Z",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000004",
+              "received_at": "2026-08-10T18:00:00.000Z",
+              "received_at_basis": "local_write_time",
+              "field_basis": {
+                "value": "entered_by_hand"
+              },
+              "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+              "recorded_at": "2026-08-10T17:48:00.000Z",
+              "input_timestamp": {
+                "timestamp_text": "2026-08-10T17:48:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "score": {
+                "duration_s": 301
+              },
+              "scaling": "rx",
+              "workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "revise the link for a corrected result",
+      "call": "grade-plan",
+      "input": {
+        "prediction_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+        "result_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+        "created_at": "2026-10-14T12:00:00.000Z"
+      },
+      "output": {
+        "file": "/private/tmp/claude-501/ath-golden-SdYMOh/athlete.ath.sqlite",
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 2
+        },
+        "prediction_result_link": {
+          "action": "revise",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "current_revision": 1,
+          "new_revision": 2,
+          "data": {
+            "prediction": {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+              "revision": 1
+            },
+            "benchmark_result": {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+              "revision": 2
+            },
+            "created_by": {
+              "author_type": "tool",
+              "tool": "ath",
+              "tool_version": "2.1.0"
+            },
+            "linked_at": "2026-10-14T12:00:00.000Z",
+            "content_version": 2,
+            "status": "active"
+          }
+        },
+        "grade": {
+          "record_id": "01a1dc18-9bbf-76c3-9fb9-a1818c1bcbe4",
+          "data": {
+            "authorship": {
+              "author": {
+                "author_type": "tool",
+                "tool": "ath",
+                "tool_version": "2.1.0",
+                "calculation_version": "prediction-grade-v1"
+              },
+              "authored_at": "2026-10-14T12:00:00.000Z",
+              "evidence": [
+                {
+                  "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+                  "revision": 2
+                }
+              ],
+              "content_version": 1,
+              "status": "active"
+            },
+            "prediction_result_link": {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+              "revision": 2
+            },
+            "signed_error": -21,
+            "absolute_error_percentage": 7,
+            "result_in_predicted_range": false,
+            "predicted_score": {
+              "duration_s": 280
+            },
+            "actual_score": {
+              "duration_s": 301
+            }
+          }
+        },
+        "write_confirmed": false
+      }
+    },
+    {
+      "name": "write the revised link and grade",
+      "call": "grade-write",
+      "input": {
+        "prediction_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+        "result_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+        "created_at": "2026-10-14T12:00:00.000Z"
+      },
+      "output": {
+        "link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "current_revision": 2
+        },
+        "grade": {
+          "record_id": "01a1dc18-9bbf-7891-9e1c-3d321df6d379",
+          "created_at": "2026-10-14T12:00:00.000Z",
+          "current_revision": 1,
+          "is_deleted": false,
+          "record_type": "prediction_grade",
+          "data": {
+            "authorship": {
+              "author": {
+                "author_type": "tool",
+                "tool": "ath",
+                "tool_version": "2.1.0",
+                "calculation_version": "prediction-grade-v1"
+              },
+              "authored_at": "2026-10-14T12:00:00.000Z",
+              "evidence": [
+                {
+                  "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+                  "revision": 2
+                }
+              ],
+              "content_version": 1,
+              "status": "active"
+            },
+            "prediction_result_link": {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+              "revision": 2
+            },
+            "signed_error": -21,
+            "absolute_error_percentage": 7,
+            "result_in_predicted_range": false,
+            "predicted_score": {
+              "duration_s": 280
+            },
+            "actual_score": {
+              "duration_s": 301
+            }
+          }
+        },
+        "database_revision": 6
+      }
+    },
+    {
+      "name": "list grades after writing",
+      "call": "records-list",
+      "input": {
+        "record_type": "prediction_grade"
+      },
+      "output": {
+        "list": {
+          "file": "/private/tmp/claude-501/ath-golden-SdYMOh/athlete.ath.sqlite",
+          "records": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+              "created_at": "2026-08-10T18:00:00.000Z",
+              "current_revision": 1,
+              "is_deleted": false,
+              "record_type": "prediction_grade",
+              "data": {
+                "authorship": {
+                  "author": {
+                    "author_type": "tool",
+                    "tool": "ath",
+                    "tool_version": "1.0.0",
+                    "calculation_version": "prediction-grade-v1"
+                  },
+                  "authored_at": "2026-08-10T18:00:00.000Z",
+                  "evidence": [
+                    {
+                      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+                      "revision": 1
+                    }
+                  ],
+                  "content_version": 1,
+                  "status": "active"
+                },
+                "prediction_result_link": {
+                  "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+                  "revision": 1
+                },
+                "signed_error": -20,
+                "absolute_error_percentage": 6.7,
+                "result_in_predicted_range": false,
+                "predicted_score": {
+                  "duration_s": 280
+                },
+                "actual_score": {
+                  "duration_s": 300
+                }
+              }
+            },
+            {
+              "record_id": "01a1dc18-9bb3-7396-853b-a658591c2d32",
+              "created_at": "2026-10-13T12:00:00.000Z",
+              "current_revision": 1,
+              "is_deleted": false,
+              "record_type": "prediction_grade",
+              "data": {
+                "authorship": {
+                  "author": {
+                    "author_type": "tool",
+                    "tool": "ath",
+                    "tool_version": "2.1.0",
+                    "calculation_version": "prediction-grade-v1"
+                  },
+                  "authored_at": "2026-10-13T12:00:00.000Z",
+                  "evidence": [
+                    {
+                      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+                      "revision": 1
+                    }
+                  ],
+                  "content_version": 1,
+                  "status": "active"
+                },
+                "prediction_result_link": {
+                  "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+                  "revision": 1
+                },
+                "signed_error": -20,
+                "absolute_error_percentage": 6.7,
+                "result_in_predicted_range": false,
+                "predicted_score": {
+                  "duration_s": 280
+                },
+                "actual_score": {
+                  "duration_s": 300
+                }
+              }
+            },
+            {
+              "record_id": "01a1dc18-9bbf-7891-9e1c-3d321df6d379",
+              "created_at": "2026-10-14T12:00:00.000Z",
+              "current_revision": 1,
+              "is_deleted": false,
+              "record_type": "prediction_grade",
+              "data": {
+                "authorship": {
+                  "author": {
+                    "author_type": "tool",
+                    "tool": "ath",
+                    "tool_version": "2.1.0",
+                    "calculation_version": "prediction-grade-v1"
+                  },
+                  "authored_at": "2026-10-14T12:00:00.000Z",
+                  "evidence": [
+                    {
+                      "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+                      "revision": 2
+                    }
+                  ],
+                  "content_version": 1,
+                  "status": "active"
+                },
+                "prediction_result_link": {
+                  "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+                  "revision": 2
+                },
+                "signed_error": -21,
+                "absolute_error_percentage": 7,
+                "result_in_predicted_range": false,
+                "predicted_score": {
+                  "duration_s": 280
+                },
+                "actual_score": {
+                  "duration_s": 301
+                }
+              }
+            }
+          ]
+        },
+        "rendered": "record ID                             revision  type                         summary\n01890f3e-e7d3-7cc0-88c8-000000000012         1  prediction_grade             \n01a1dc18-9bb3-7396-853b-a658591c2d32         1  prediction_grade             \n01a1dc18-9bbf-7891-9e1c-3d321df6d379         1  prediction_grade             "
+      }
+    },
+    {
+      "name": "show the revised link",
+      "call": "records-show",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+        "history": true,
+        "links": true
+      },
+      "output": {
+        "show": {
+          "file": "/private/tmp/claude-501/ath-golden-SdYMOh/athlete.ath.sqlite",
+          "record": {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+            "created_at": "2026-08-10T18:00:00.000Z",
+            "current_revision": 2,
+            "is_deleted": false,
+            "record_type": "prediction_result_link",
+            "data": {
+              "prediction": {
+                "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+                "revision": 1
+              },
+              "benchmark_result": {
+                "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+                "revision": 2
+              },
+              "created_by": {
+                "author_type": "tool",
+                "tool": "ath",
+                "tool_version": "2.1.0"
+              },
+              "linked_at": "2026-10-14T12:00:00.000Z",
+              "content_version": 2,
+              "status": "active"
+            }
+          },
+          "history": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+              "revision": 1,
+              "previous_revision": null,
+              "became_known_at": "2026-08-10T18:00:00.000Z",
+              "became_known_at_basis": "local_write",
+              "changed_by": {
+                "author_type": "tool",
+                "tool": "ath",
+                "tool_version": "1.0.0"
+              },
+              "record_type": "prediction_result_link",
+              "data": {
+                "prediction": {
+                  "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+                  "revision": 1
+                },
+                "benchmark_result": {
+                  "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+                  "revision": 1
+                },
+                "created_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "1.0.0"
+                },
+                "linked_at": "2026-08-10T18:00:00.000Z",
+                "content_version": 1,
+                "status": "active"
+              }
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+              "revision": 2,
+              "previous_revision": 1,
+              "became_known_at": "2026-10-14T12:00:00.000Z",
+              "became_known_at_basis": "local_write",
+              "changed_by": {
+                "author_type": "tool",
+                "tool": "ath",
+                "tool_version": "2.1.0"
+              },
+              "record_type": "prediction_result_link",
+              "data": {
+                "prediction": {
+                  "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+                  "revision": 1
+                },
+                "benchmark_result": {
+                  "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+                  "revision": 2
+                },
+                "created_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "2.1.0"
+                },
+                "linked_at": "2026-10-14T12:00:00.000Z",
+                "content_version": 2,
+                "status": "active"
+              }
+            }
+          ],
+          "links": [
+            {
+              "direction": "incoming",
+              "relation": "authored_evidence",
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+              "revision": 1
+            },
+            {
+              "direction": "incoming",
+              "relation": "authored_evidence",
+              "record_id": "01a1dc18-9bb3-7396-853b-a658591c2d32",
+              "revision": 1
+            },
+            {
+              "direction": "incoming",
+              "relation": "authored_evidence",
+              "record_id": "01a1dc18-9bbf-7891-9e1c-3d321df6d379",
+              "revision": 2
+            },
+            {
+              "direction": "incoming",
+              "relation": "prediction_result_link",
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+              "revision": 1
+            },
+            {
+              "direction": "incoming",
+              "relation": "prediction_result_link",
+              "record_id": "01a1dc18-9bb3-7396-853b-a658591c2d32",
+              "revision": 1
+            },
+            {
+              "direction": "incoming",
+              "relation": "prediction_result_link",
+              "record_id": "01a1dc18-9bbf-7891-9e1c-3d321df6d379",
+              "revision": 2
+            },
+            {
+              "direction": "outgoing",
+              "relation": "benchmark_result",
+              "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+              "revision": 2
+            },
+            {
+              "direction": "outgoing",
+              "relation": "prediction",
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+              "revision": 1
+            }
+          ]
+        },
+        "rendered": "01890f3e-e7d3-7cc0-88c8-000000000011\ntype: prediction_result_link\ncreated: 2026-08-10T18:00:00.000Z\ncurrent revision: 2\ndeleted: no\n\n{\n  \"prediction\": {\n    \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000010\",\n    \"revision\": 1\n  },\n  \"benchmark_result\": {\n    \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000b\",\n    \"revision\": 2\n  },\n  \"created_by\": {\n    \"author_type\": \"tool\",\n    \"tool\": \"ath\",\n    \"tool_version\": \"2.1.0\"\n  },\n  \"linked_at\": \"2026-10-14T12:00:00.000Z\",\n  \"content_version\": 2,\n  \"status\": \"active\"\n}\n\nhistory:\n  revision 1 — 2026-08-10T18:00:00.000Z (local_write)\n  revision 2 — 2026-10-14T12:00:00.000Z (local_write)\n\nlinks:\n  incoming authored_evidence: 01890f3e-e7d3-7cc0-88c8-000000000012@1\n  incoming authored_evidence: 01a1dc18-9bb3-7396-853b-a658591c2d32@1\n  incoming authored_evidence: 01a1dc18-9bbf-7891-9e1c-3d321df6d379@2\n  incoming prediction_result_link: 01890f3e-e7d3-7cc0-88c8-000000000012@1\n  incoming prediction_result_link: 01a1dc18-9bb3-7396-853b-a658591c2d32@1\n  incoming prediction_result_link: 01a1dc18-9bbf-7891-9e1c-3d321df6d379@2\n  outgoing benchmark_result: 01890f3e-e7d3-7cc0-88c8-00000000000b@2\n  outgoing prediction: 01890f3e-e7d3-7cc0-88c8-000000000010@1"
+      }
+    }
+  ]
+}

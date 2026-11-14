@@ -103,6 +103,36 @@ here; an unlisted difference is a bug.
     refused clearly.** 2.1.0 said the metadata table was missing. The file is
     not changed. Test: `read_policy.rs`.
 
+## Prediction and backtest
+
+22. **A backtest replay cannot see the result it predicts.** 2.1.0 set the
+    cutoff one millisecond before the result's latest revision became known.
+    A corrected result then showed the model its own first revision as a prior
+    result, and a result logged late let the model see later events. The
+    cutoff is now one millisecond before the earlier of the result's event
+    time and the time the database first learned of it, for both event and
+    knowledge filters, as `predict --as-of` does. The report field
+    `replays[].as_of` changes for corrected or late-logged results. Reason:
+    spec section 10. Test: `prediction.rs` (corrected outcome, late import).
+
+23. **A model reply cannot set `authorship` or `benchmark_definition_id`.**
+    2.1.0 merged the reply over those fields, so a model could claim athlete
+    authorship or move its prediction to another benchmark. The refusal reads
+    `model prediction response cannot set <field>; ath sets the authorship and
+    benchmark`. Test: `prediction.rs`.
+
+24. **A non-numeric predicted score in a backtest is a model failure.** 2.1.0
+    converted it to a number.
+
+25. **`log --json` lists record data in published field order,** the order
+    the stored record uses. 2.1.0 used the order the planner built.
+
+26. **Text after "not valid JSON:" comes from the Rust JSON reader.** The
+    prefix and exit status are unchanged.
+
+27. **A calendar range or `--as-of` day where midnight does not exist** (for
+    example in America/Santiago) fails with the message the 2.1.0 search gave.
+
 ## Behavior kept on purpose
 
 These look odd but stay, because changing them would change accepted data or
@@ -130,6 +160,20 @@ stored bytes:
 
 - A child JSON row that cannot be parsed is reported as "record_json is not
   valid JSON", as in 2.1.0.
+
+- `hrv-change`, `resting-heart-rate-change`, and `sleep-change` describe
+  "earlier records" but average every other same-source record, including
+  later ones. Spec section 10 forbids changing a calculation method in this
+  rebuild. This needs a separate format decision.
+- `heart-rate-recovery` looks for a sample 60 seconds after the last sample,
+  so it always reports the field missing.
+- Range calculations reject a timezone name in the wrong letter case; calendar
+  views accept it.
+- `correlation` against an empty comparison source refuses with
+  "incompatible units:".
+- Measurements that have only a provider period never appear in prediction
+  evidence.
+- A backtest stops when evidence cannot be built for one replay.
 
 ## Open work
 

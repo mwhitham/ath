@@ -1,0 +1,1908 @@
+{
+  "generated_by": "native/tools/reference/calculation-golden.ts",
+  "reference_commit": "c6218e88c035708bdd15b3a20888d19713e1df29",
+  "created_at": "2026-01-01T00:00:00.000Z",
+  "steps": [
+    {
+      "write": [
+        {
+          "record_type": "source",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+          "created_at": "2026-01-01T00:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_type": "wearable",
+            "data_writer": "Device A",
+            "data_route": "test"
+          }
+        },
+        {
+          "record_type": "source",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000103",
+          "created_at": "2026-01-01T00:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_type": "manual",
+            "data_writer": "ath",
+            "data_route": "test"
+          }
+        },
+        {
+          "record_type": "benchmark_definition",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000901",
+          "created_at": "2026-01-01T00:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "authorship": {
+              "author": {
+                "author_type": "athlete"
+              },
+              "authored_at": "2026-01-01T00:00:00.000Z",
+              "evidence": [],
+              "content_version": 1,
+              "status": "active"
+            },
+            "benchmark_key": "fran",
+            "benchmark_type": "named_wod",
+            "score_type": "time",
+            "definition": "21-15-9 thrusters and pull-ups"
+          }
+        },
+        {
+          "record_type": "benchmark_definition",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000902",
+          "created_at": "2026-01-01T00:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "authorship": {
+              "author": {
+                "author_type": "athlete"
+              },
+              "authored_at": "2026-01-01T00:00:00.000Z",
+              "evidence": [],
+              "content_version": 1,
+              "status": "active"
+            },
+            "benchmark_key": "grace",
+            "benchmark_type": "named_wod",
+            "score_type": "time",
+            "definition": "grace for time"
+          }
+        }
+      ]
+    },
+    {
+      "write": [
+        {
+          "record_type": "point_measurement",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000a01",
+          "created_at": "2026-01-15T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-01-15T12:00:00.000Z",
+            "received_at_basis": "import_time",
+            "quantity": "hrv_rmssd",
+            "recorded_at": "2026-01-15T12:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-01-15T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "value": {
+              "standard_value": 50,
+              "standard_unit": "ms",
+              "input_value": 50,
+              "input_unit": "ms"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "write": [
+        {
+          "record_type": "benchmark_result",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000b01",
+          "created_at": "2026-06-01T10:00:00.000Z",
+          "changed_by": {
+            "author_type": "athlete"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000103",
+            "received_at": "2026-06-01T10:00:00.000Z",
+            "received_at_basis": "local_write_time",
+            "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000901",
+            "recorded_at": "2026-06-01T10:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-06-01T10:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "score": {
+              "duration_s": 300
+            }
+          }
+        }
+      ]
+    },
+    {
+      "write": [
+        {
+          "record_type": "point_measurement",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000a02",
+          "created_at": "2026-06-10T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-06-10T12:00:00.000Z",
+            "received_at_basis": "import_time",
+            "quantity": "hrv_rmssd",
+            "recorded_at": "2026-06-10T12:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-06-10T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "value": {
+              "standard_value": 61,
+              "standard_unit": "ms",
+              "input_value": 61,
+              "input_unit": "ms"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "write": [
+        {
+          "record_type": "point_measurement",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000a03",
+          "created_at": "2026-06-11T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000103",
+            "received_at": "2026-06-11T12:00:00.000Z",
+            "received_at_basis": "import_time",
+            "quantity": "hrv_rmssd",
+            "recorded_at": "2026-06-11T12:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-06-11T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "value": {
+              "standard_value": 999,
+              "standard_unit": "ms",
+              "input_value": 999,
+              "input_unit": "ms"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "correct": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000901",
+        "expected_revision": 1,
+        "changed_by": {
+          "author_type": "athlete"
+        },
+        "became_known_at": "2026-06-15T00:00:00.000Z",
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-01T00:00:00.000Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "benchmark_key": "fran",
+          "benchmark_type": "named_wod",
+          "score_type": "time",
+          "definition": "21-15-9 thrusters 43 kg and pull-ups"
+        }
+      }
+    },
+    {
+      "write": [
+        {
+          "record_type": "point_measurement",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000a04",
+          "created_at": "2026-06-20T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-06-20T12:00:00.000Z",
+            "received_at_basis": "import_time",
+            "quantity": "hrv_rmssd",
+            "recorded_at": "2026-06-20T12:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-06-20T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "value": {
+              "standard_value": 60,
+              "standard_unit": "ms",
+              "input_value": 60,
+              "input_unit": "ms"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "write": [
+        {
+          "record_type": "point_measurement",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000a05",
+          "created_at": "2026-06-22T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-06-22T12:00:00.000Z",
+            "received_at_basis": "import_time",
+            "quantity": "hrv_rmssd",
+            "recorded_at": "2026-06-22T12:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-06-22T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "value": {
+              "standard_value": 58,
+              "standard_unit": "ms",
+              "input_value": 58,
+              "input_unit": "ms"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "write": [
+        {
+          "record_type": "point_measurement",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000a06",
+          "created_at": "2026-06-23T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-06-23T12:00:00.000Z",
+            "received_at_basis": "import_time",
+            "provider_reporting_periods": [
+              {
+                "period_type": "oura_sleep_day",
+                "provider_date": "2026-06-23"
+              }
+            ],
+            "quantity": "hrv_rmssd",
+            "input_timestamp": {
+              "timestamp_missing_reason": "not_provided_by_source",
+              "utc_offset_missing_reason": "not_provided_by_source"
+            },
+            "value": {
+              "standard_value": 57,
+              "standard_unit": "ms",
+              "input_value": 57,
+              "input_unit": "ms"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "write": [
+        {
+          "record_type": "sleep_session",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000c01",
+          "created_at": "2026-06-24T11:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-06-24T11:00:00.000Z",
+            "received_at_basis": "import_time",
+            "start_at": "2026-06-24T04:00:00.000Z",
+            "end_at": "2026-06-24T11:00:00.000Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-06-24T04:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-06-24T11:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "source_reported_summaries": [],
+            "asleep_seconds": 24000
+          }
+        }
+      ]
+    },
+    {
+      "write": [
+        {
+          "record_type": "athlete_report",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000d01",
+          "created_at": "2026-06-26T08:00:00.000Z",
+          "changed_by": {
+            "author_type": "athlete"
+          },
+          "data": {
+            "report_type": "soreness",
+            "reported_at": "2026-06-26T08:00:00.000Z",
+            "input_reported_at": {
+              "timestamp_text": "2026-06-26T08:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "reported_via": "text",
+            "rating": 6,
+            "rating_scale": "1-10",
+            "note": "Sore legs"
+          }
+        }
+      ]
+    },
+    {
+      "write": [
+        {
+          "record_type": "workout_session",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000e01",
+          "created_at": "2026-06-28T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-06-28T13:00:00.000Z",
+            "received_at_basis": "import_time",
+            "start_at": "2026-06-28T12:00:00.000Z",
+            "end_at": "2026-06-28T13:00:00.000Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-06-28T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-06-28T13:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "activity_type": "running",
+            "source_reported_summaries": []
+          }
+        }
+      ]
+    },
+    {
+      "write": [
+        {
+          "record_type": "prediction",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000f01",
+          "created_at": "2026-06-30T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "agent",
+            "agent": "test-agent"
+          },
+          "data": {
+            "authorship": {
+              "author": {
+                "author_type": "agent",
+                "agent": "test-agent",
+                "model": "test-model"
+              },
+              "authored_at": "2026-06-30T12:00:00.000Z",
+              "evidence": [],
+              "content_version": 1,
+              "status": "active"
+            },
+            "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000901",
+            "predicted_score": {
+              "duration_s": 290
+            },
+            "predicted_range": {
+              "low": {
+                "duration_s": 280
+              },
+              "high": {
+                "duration_s": 300
+              }
+            },
+            "confidence": "moderate",
+            "reasoning": "Invented test prediction"
+          }
+        }
+      ]
+    },
+    {
+      "write": [
+        {
+          "record_type": "benchmark_result",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000b02",
+          "created_at": "2026-07-01T10:00:00.000Z",
+          "changed_by": {
+            "author_type": "athlete"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000103",
+            "received_at": "2026-07-01T10:00:00.000Z",
+            "received_at_basis": "local_write_time",
+            "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000901",
+            "recorded_at": "2026-07-01T10:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-07-01T10:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "score": {
+              "duration_s": 295
+            }
+          }
+        }
+      ]
+    },
+    {
+      "delete": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000a05",
+        "expected_revision": 1,
+        "deleted_by": {
+          "author_type": "athlete"
+        },
+        "deleted_at": "2026-07-05T00:00:00.000Z"
+      }
+    },
+    {
+      "correct": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000a04",
+        "expected_revision": 1,
+        "changed_by": {
+          "author_type": "tool",
+          "tool": "test",
+          "tool_version": "1.0.0"
+        },
+        "became_known_at": "2026-07-10T00:00:00.000Z",
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+          "received_at": "2026-06-20T12:00:00.000Z",
+          "received_at_basis": "import_time",
+          "quantity": "hrv_rmssd",
+          "recorded_at": "2026-06-20T12:00:00.000Z",
+          "input_timestamp": {
+            "timestamp_text": "2026-06-20T12:00:00.000Z",
+            "utc_offset_text": "Z",
+            "utc_offset_meaning": "documented_recording_offset",
+            "timestamp_basis": "source_instant"
+          },
+          "value": {
+            "standard_value": 65,
+            "standard_unit": "ms",
+            "input_value": 65,
+            "input_unit": "ms"
+          }
+        }
+      }
+    },
+    {
+      "write": [
+        {
+          "record_type": "benchmark_result",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000b04",
+          "created_at": "2026-07-15T10:00:00.000Z",
+          "changed_by": {
+            "author_type": "athlete"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000103",
+            "received_at": "2026-07-15T10:00:00.000Z",
+            "received_at_basis": "local_write_time",
+            "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000902",
+            "recorded_at": "2026-07-15T10:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-07-15T10:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "score": {
+              "duration_s": 200
+            }
+          }
+        }
+      ]
+    },
+    {
+      "write": [
+        {
+          "record_type": "sleep_session",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000c02",
+          "created_at": "2026-06-25T11:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-06-25T11:00:00.000Z",
+            "received_at_basis": "import_time",
+            "start_at": "2026-06-25T04:00:00.000Z",
+            "end_at": "2026-06-25T11:00:00.000Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-06-25T04:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-06-25T11:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "source_reported_summaries": [],
+            "asleep_seconds": 25000
+          },
+          "became_known_at": "2026-07-20T00:00:00.000Z"
+        }
+      ]
+    },
+    {
+      "write": [
+        {
+          "record_type": "benchmark_result",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000b03",
+          "created_at": "2026-08-01T10:00:00.000Z",
+          "changed_by": {
+            "author_type": "athlete"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000103",
+            "received_at": "2026-08-01T10:00:00.000Z",
+            "received_at_basis": "local_write_time",
+            "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000901",
+            "recorded_at": "2026-08-01T10:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-08-01T10:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "score": {
+              "duration_s": 289
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "name": "before the second result",
+      "call": "evidence",
+      "input": {
+        "benchmark": "fran",
+        "as_of": "2026-07-01T09:59:59.999Z"
+      },
+      "output": {
+        "purpose": "prediction_evidence",
+        "is_prediction": false,
+        "as_of": "2026-07-01T09:59:59.999Z",
+        "benchmark": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000901",
+          "created_at": "2026-01-01T00:00:00.000Z",
+          "current_revision": 2,
+          "is_deleted": false,
+          "record_type": "benchmark_definition",
+          "data": {
+            "authorship": {
+              "author": {
+                "author_type": "athlete"
+              },
+              "authored_at": "2026-01-01T00:00:00.000Z",
+              "evidence": [],
+              "content_version": 1,
+              "status": "active"
+            },
+            "benchmark_key": "fran",
+            "benchmark_type": "named_wod",
+            "score_type": "time",
+            "definition": "21-15-9 thrusters 43 kg and pull-ups"
+          }
+        },
+        "prior_results": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000b01",
+            "created_at": "2026-06-01T10:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "benchmark_result",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000103",
+              "received_at": "2026-06-01T10:00:00.000Z",
+              "received_at_basis": "local_write_time",
+              "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000901",
+              "recorded_at": "2026-06-01T10:00:00.000Z",
+              "input_timestamp": {
+                "timestamp_text": "2026-06-01T10:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "score": {
+                "duration_s": 300
+              }
+            }
+          }
+        ],
+        "device_measurements": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000a02",
+            "created_at": "2026-06-10T12:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "point_measurement",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "received_at": "2026-06-10T12:00:00.000Z",
+              "received_at_basis": "import_time",
+              "quantity": "hrv_rmssd",
+              "recorded_at": "2026-06-10T12:00:00.000Z",
+              "input_timestamp": {
+                "timestamp_text": "2026-06-10T12:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "ms",
+                "input_value": 61,
+                "input_unit": "ms"
+              }
+            }
+          },
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000a04",
+            "created_at": "2026-06-20T12:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "point_measurement",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "received_at": "2026-06-20T12:00:00.000Z",
+              "received_at_basis": "import_time",
+              "quantity": "hrv_rmssd",
+              "recorded_at": "2026-06-20T12:00:00.000Z",
+              "input_timestamp": {
+                "timestamp_text": "2026-06-20T12:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "value": {
+                "standard_value": 60,
+                "standard_unit": "ms",
+                "input_value": 60,
+                "input_unit": "ms"
+              }
+            }
+          },
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000a05",
+            "created_at": "2026-06-22T12:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "point_measurement",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "received_at": "2026-06-22T12:00:00.000Z",
+              "received_at_basis": "import_time",
+              "quantity": "hrv_rmssd",
+              "recorded_at": "2026-06-22T12:00:00.000Z",
+              "input_timestamp": {
+                "timestamp_text": "2026-06-22T12:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "value": {
+                "standard_value": 58,
+                "standard_unit": "ms",
+                "input_value": 58,
+                "input_unit": "ms"
+              }
+            }
+          }
+        ],
+        "athlete_reports": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000d01",
+            "created_at": "2026-06-26T08:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "athlete_report",
+            "data": {
+              "report_type": "soreness",
+              "reported_at": "2026-06-26T08:00:00.000Z",
+              "input_reported_at": {
+                "timestamp_text": "2026-06-26T08:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "reported_via": "text",
+              "rating": 6,
+              "rating_scale": "1-10",
+              "note": "Sore legs"
+            }
+          }
+        ],
+        "sleep_sessions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000c01",
+            "created_at": "2026-06-24T11:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "sleep_session",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "received_at": "2026-06-24T11:00:00.000Z",
+              "received_at_basis": "import_time",
+              "start_at": "2026-06-24T04:00:00.000Z",
+              "end_at": "2026-06-24T11:00:00.000Z",
+              "input_start_timestamp": {
+                "timestamp_text": "2026-06-24T04:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "input_end_timestamp": {
+                "timestamp_text": "2026-06-24T11:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "source_reported_summaries": [],
+              "asleep_seconds": 24000
+            }
+          }
+        ],
+        "workout_sessions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000e01",
+            "created_at": "2026-06-28T12:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "workout_session",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "received_at": "2026-06-28T13:00:00.000Z",
+              "received_at_basis": "import_time",
+              "start_at": "2026-06-28T12:00:00.000Z",
+              "end_at": "2026-06-28T13:00:00.000Z",
+              "input_start_timestamp": {
+                "timestamp_text": "2026-06-28T12:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "input_end_timestamp": {
+                "timestamp_text": "2026-06-28T13:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "activity_type": "running",
+              "source_reported_summaries": []
+            }
+          }
+        ],
+        "prior_predictions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000f01",
+            "created_at": "2026-06-30T12:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "prediction",
+            "data": {
+              "authorship": {
+                "author": {
+                  "author_type": "agent",
+                  "agent": "test-agent",
+                  "model": "test-model"
+                },
+                "authored_at": "2026-06-30T12:00:00.000Z",
+                "evidence": [],
+                "content_version": 1,
+                "status": "active"
+              },
+              "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000901",
+              "predicted_score": {
+                "duration_s": 290
+              },
+              "predicted_range": {
+                "low": {
+                  "duration_s": 280
+                },
+                "high": {
+                  "duration_s": 300
+                }
+              },
+              "confidence": "moderate",
+              "reasoning": "Invented test prediction"
+            }
+          }
+        ],
+        "gaps": []
+      }
+    },
+    {
+      "name": "after corrections, a deletion, and a late import",
+      "call": "evidence",
+      "input": {
+        "benchmark": "fran",
+        "as_of": "2026-07-21T00:00:00.000Z"
+      },
+      "output": {
+        "purpose": "prediction_evidence",
+        "is_prediction": false,
+        "as_of": "2026-07-21T00:00:00.000Z",
+        "benchmark": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000901",
+          "created_at": "2026-01-01T00:00:00.000Z",
+          "current_revision": 2,
+          "is_deleted": false,
+          "record_type": "benchmark_definition",
+          "data": {
+            "authorship": {
+              "author": {
+                "author_type": "athlete"
+              },
+              "authored_at": "2026-01-01T00:00:00.000Z",
+              "evidence": [],
+              "content_version": 1,
+              "status": "active"
+            },
+            "benchmark_key": "fran",
+            "benchmark_type": "named_wod",
+            "score_type": "time",
+            "definition": "21-15-9 thrusters 43 kg and pull-ups"
+          }
+        },
+        "prior_results": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000b01",
+            "created_at": "2026-06-01T10:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "benchmark_result",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000103",
+              "received_at": "2026-06-01T10:00:00.000Z",
+              "received_at_basis": "local_write_time",
+              "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000901",
+              "recorded_at": "2026-06-01T10:00:00.000Z",
+              "input_timestamp": {
+                "timestamp_text": "2026-06-01T10:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "score": {
+                "duration_s": 300
+              }
+            }
+          },
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000b02",
+            "created_at": "2026-07-01T10:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "benchmark_result",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000103",
+              "received_at": "2026-07-01T10:00:00.000Z",
+              "received_at_basis": "local_write_time",
+              "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000901",
+              "recorded_at": "2026-07-01T10:00:00.000Z",
+              "input_timestamp": {
+                "timestamp_text": "2026-07-01T10:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "score": {
+                "duration_s": 295
+              }
+            }
+          }
+        ],
+        "device_measurements": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000a02",
+            "created_at": "2026-06-10T12:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "point_measurement",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "received_at": "2026-06-10T12:00:00.000Z",
+              "received_at_basis": "import_time",
+              "quantity": "hrv_rmssd",
+              "recorded_at": "2026-06-10T12:00:00.000Z",
+              "input_timestamp": {
+                "timestamp_text": "2026-06-10T12:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "ms",
+                "input_value": 61,
+                "input_unit": "ms"
+              }
+            }
+          },
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000a04",
+            "created_at": "2026-06-20T12:00:00.000Z",
+            "current_revision": 2,
+            "is_deleted": false,
+            "record_type": "point_measurement",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "received_at": "2026-06-20T12:00:00.000Z",
+              "received_at_basis": "import_time",
+              "quantity": "hrv_rmssd",
+              "recorded_at": "2026-06-20T12:00:00.000Z",
+              "input_timestamp": {
+                "timestamp_text": "2026-06-20T12:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "value": {
+                "standard_value": 65,
+                "standard_unit": "ms",
+                "input_value": 65,
+                "input_unit": "ms"
+              }
+            }
+          }
+        ],
+        "athlete_reports": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000d01",
+            "created_at": "2026-06-26T08:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "athlete_report",
+            "data": {
+              "report_type": "soreness",
+              "reported_at": "2026-06-26T08:00:00.000Z",
+              "input_reported_at": {
+                "timestamp_text": "2026-06-26T08:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "reported_via": "text",
+              "rating": 6,
+              "rating_scale": "1-10",
+              "note": "Sore legs"
+            }
+          }
+        ],
+        "sleep_sessions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000c01",
+            "created_at": "2026-06-24T11:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "sleep_session",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "received_at": "2026-06-24T11:00:00.000Z",
+              "received_at_basis": "import_time",
+              "start_at": "2026-06-24T04:00:00.000Z",
+              "end_at": "2026-06-24T11:00:00.000Z",
+              "input_start_timestamp": {
+                "timestamp_text": "2026-06-24T04:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "input_end_timestamp": {
+                "timestamp_text": "2026-06-24T11:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "source_reported_summaries": [],
+              "asleep_seconds": 24000
+            }
+          },
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000c02",
+            "created_at": "2026-06-25T11:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "sleep_session",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "received_at": "2026-06-25T11:00:00.000Z",
+              "received_at_basis": "import_time",
+              "start_at": "2026-06-25T04:00:00.000Z",
+              "end_at": "2026-06-25T11:00:00.000Z",
+              "input_start_timestamp": {
+                "timestamp_text": "2026-06-25T04:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "input_end_timestamp": {
+                "timestamp_text": "2026-06-25T11:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "source_reported_summaries": [],
+              "asleep_seconds": 25000
+            }
+          }
+        ],
+        "workout_sessions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000e01",
+            "created_at": "2026-06-28T12:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "workout_session",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "received_at": "2026-06-28T13:00:00.000Z",
+              "received_at_basis": "import_time",
+              "start_at": "2026-06-28T12:00:00.000Z",
+              "end_at": "2026-06-28T13:00:00.000Z",
+              "input_start_timestamp": {
+                "timestamp_text": "2026-06-28T12:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "input_end_timestamp": {
+                "timestamp_text": "2026-06-28T13:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "activity_type": "running",
+              "source_reported_summaries": []
+            }
+          }
+        ],
+        "prior_predictions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000f01",
+            "created_at": "2026-06-30T12:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "prediction",
+            "data": {
+              "authorship": {
+                "author": {
+                  "author_type": "agent",
+                  "agent": "test-agent",
+                  "model": "test-model"
+                },
+                "authored_at": "2026-06-30T12:00:00.000Z",
+                "evidence": [],
+                "content_version": 1,
+                "status": "active"
+              },
+              "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000901",
+              "predicted_score": {
+                "duration_s": 290
+              },
+              "predicted_range": {
+                "low": {
+                  "duration_s": 280
+                },
+                "high": {
+                  "duration_s": 300
+                }
+              },
+              "confidence": "moderate",
+              "reasoning": "Invented test prediction"
+            }
+          }
+        ],
+        "gaps": []
+      }
+    },
+    {
+      "name": "by record ID",
+      "call": "evidence",
+      "input": {
+        "benchmark": "01890f3e-e7d3-7cc0-88c8-000000000901",
+        "as_of": "2026-06-14T00:00:00.000Z"
+      },
+      "output": {
+        "purpose": "prediction_evidence",
+        "is_prediction": false,
+        "as_of": "2026-06-14T00:00:00.000Z",
+        "benchmark": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000901",
+          "created_at": "2026-01-01T00:00:00.000Z",
+          "current_revision": 1,
+          "is_deleted": false,
+          "record_type": "benchmark_definition",
+          "data": {
+            "authorship": {
+              "author": {
+                "author_type": "athlete"
+              },
+              "authored_at": "2026-01-01T00:00:00.000Z",
+              "evidence": [],
+              "content_version": 1,
+              "status": "active"
+            },
+            "benchmark_key": "fran",
+            "benchmark_type": "named_wod",
+            "score_type": "time",
+            "definition": "21-15-9 thrusters and pull-ups"
+          }
+        },
+        "prior_results": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000b01",
+            "created_at": "2026-06-01T10:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "benchmark_result",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000103",
+              "received_at": "2026-06-01T10:00:00.000Z",
+              "received_at_basis": "local_write_time",
+              "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000901",
+              "recorded_at": "2026-06-01T10:00:00.000Z",
+              "input_timestamp": {
+                "timestamp_text": "2026-06-01T10:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "score": {
+                "duration_s": 300
+              }
+            }
+          }
+        ],
+        "device_measurements": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000a02",
+            "created_at": "2026-06-10T12:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "point_measurement",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "received_at": "2026-06-10T12:00:00.000Z",
+              "received_at_basis": "import_time",
+              "quantity": "hrv_rmssd",
+              "recorded_at": "2026-06-10T12:00:00.000Z",
+              "input_timestamp": {
+                "timestamp_text": "2026-06-10T12:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "ms",
+                "input_value": 61,
+                "input_unit": "ms"
+              }
+            }
+          }
+        ],
+        "athlete_reports": [],
+        "sleep_sessions": [],
+        "workout_sessions": [],
+        "prior_predictions": [],
+        "gaps": [
+          "No recorded sleep session exists in the prior 90 days."
+        ]
+      }
+    },
+    {
+      "name": "before any result",
+      "call": "evidence",
+      "input": {
+        "benchmark": "fran",
+        "as_of": "2026-05-01T00:00:00.000Z"
+      },
+      "output": {
+        "purpose": "prediction_evidence",
+        "is_prediction": false,
+        "as_of": "2026-05-01T00:00:00.000Z",
+        "benchmark": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000901",
+          "created_at": "2026-01-01T00:00:00.000Z",
+          "current_revision": 1,
+          "is_deleted": false,
+          "record_type": "benchmark_definition",
+          "data": {
+            "authorship": {
+              "author": {
+                "author_type": "athlete"
+              },
+              "authored_at": "2026-01-01T00:00:00.000Z",
+              "evidence": [],
+              "content_version": 1,
+              "status": "active"
+            },
+            "benchmark_key": "fran",
+            "benchmark_type": "named_wod",
+            "score_type": "time",
+            "definition": "21-15-9 thrusters and pull-ups"
+          }
+        },
+        "prior_results": [],
+        "device_measurements": [],
+        "athlete_reports": [],
+        "sleep_sessions": [],
+        "workout_sessions": [],
+        "prior_predictions": [],
+        "gaps": [
+          "No earlier result exists for this benchmark.",
+          "No device point measurements exist in the prior 90 days.",
+          "No recorded sleep session exists in the prior 90 days."
+        ]
+      }
+    },
+    {
+      "name": "a short window",
+      "call": "evidence",
+      "input": {
+        "benchmark": "fran",
+        "as_of": "2026-07-01T00:00:00.000Z",
+        "window_days": 10
+      },
+      "output": {
+        "purpose": "prediction_evidence",
+        "is_prediction": false,
+        "as_of": "2026-07-01T00:00:00.000Z",
+        "benchmark": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000901",
+          "created_at": "2026-01-01T00:00:00.000Z",
+          "current_revision": 2,
+          "is_deleted": false,
+          "record_type": "benchmark_definition",
+          "data": {
+            "authorship": {
+              "author": {
+                "author_type": "athlete"
+              },
+              "authored_at": "2026-01-01T00:00:00.000Z",
+              "evidence": [],
+              "content_version": 1,
+              "status": "active"
+            },
+            "benchmark_key": "fran",
+            "benchmark_type": "named_wod",
+            "score_type": "time",
+            "definition": "21-15-9 thrusters 43 kg and pull-ups"
+          }
+        },
+        "prior_results": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000b01",
+            "created_at": "2026-06-01T10:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "benchmark_result",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000103",
+              "received_at": "2026-06-01T10:00:00.000Z",
+              "received_at_basis": "local_write_time",
+              "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000901",
+              "recorded_at": "2026-06-01T10:00:00.000Z",
+              "input_timestamp": {
+                "timestamp_text": "2026-06-01T10:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "score": {
+                "duration_s": 300
+              }
+            }
+          }
+        ],
+        "device_measurements": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000a05",
+            "created_at": "2026-06-22T12:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "point_measurement",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "received_at": "2026-06-22T12:00:00.000Z",
+              "received_at_basis": "import_time",
+              "quantity": "hrv_rmssd",
+              "recorded_at": "2026-06-22T12:00:00.000Z",
+              "input_timestamp": {
+                "timestamp_text": "2026-06-22T12:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "value": {
+                "standard_value": 58,
+                "standard_unit": "ms",
+                "input_value": 58,
+                "input_unit": "ms"
+              }
+            }
+          }
+        ],
+        "athlete_reports": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000d01",
+            "created_at": "2026-06-26T08:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "athlete_report",
+            "data": {
+              "report_type": "soreness",
+              "reported_at": "2026-06-26T08:00:00.000Z",
+              "input_reported_at": {
+                "timestamp_text": "2026-06-26T08:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "reported_via": "text",
+              "rating": 6,
+              "rating_scale": "1-10",
+              "note": "Sore legs"
+            }
+          }
+        ],
+        "sleep_sessions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000c01",
+            "created_at": "2026-06-24T11:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "sleep_session",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "received_at": "2026-06-24T11:00:00.000Z",
+              "received_at_basis": "import_time",
+              "start_at": "2026-06-24T04:00:00.000Z",
+              "end_at": "2026-06-24T11:00:00.000Z",
+              "input_start_timestamp": {
+                "timestamp_text": "2026-06-24T04:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "input_end_timestamp": {
+                "timestamp_text": "2026-06-24T11:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "source_reported_summaries": [],
+              "asleep_seconds": 24000
+            }
+          }
+        ],
+        "workout_sessions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000e01",
+            "created_at": "2026-06-28T12:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "workout_session",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "received_at": "2026-06-28T13:00:00.000Z",
+              "received_at_basis": "import_time",
+              "start_at": "2026-06-28T12:00:00.000Z",
+              "end_at": "2026-06-28T13:00:00.000Z",
+              "input_start_timestamp": {
+                "timestamp_text": "2026-06-28T12:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "input_end_timestamp": {
+                "timestamp_text": "2026-06-28T13:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "activity_type": "running",
+              "source_reported_summaries": []
+            }
+          }
+        ],
+        "prior_predictions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000f01",
+            "created_at": "2026-06-30T12:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "prediction",
+            "data": {
+              "authorship": {
+                "author": {
+                  "author_type": "agent",
+                  "agent": "test-agent",
+                  "model": "test-model"
+                },
+                "authored_at": "2026-06-30T12:00:00.000Z",
+                "evidence": [],
+                "content_version": 1,
+                "status": "active"
+              },
+              "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000901",
+              "predicted_score": {
+                "duration_s": 290
+              },
+              "predicted_range": {
+                "low": {
+                  "duration_s": 280
+                },
+                "high": {
+                  "duration_s": 300
+                }
+              },
+              "confidence": "moderate",
+              "reasoning": "Invented test prediction"
+            }
+          }
+        ],
+        "gaps": []
+      }
+    },
+    {
+      "name": "a window that is too long",
+      "call": "evidence",
+      "input": {
+        "benchmark": "fran",
+        "as_of": "2026-07-01T00:00:00.000Z",
+        "window_days": 3651
+      },
+      "output": {
+        "error": "Evidence window must be between 1 and 3650 days"
+      }
+    },
+    {
+      "name": "a limit that is reached",
+      "call": "evidence",
+      "input": {
+        "benchmark": "fran",
+        "as_of": "2026-07-21T00:00:00.000Z",
+        "limit": 6
+      },
+      "output": {
+        "purpose": "prediction_evidence",
+        "is_prediction": false,
+        "as_of": "2026-07-21T00:00:00.000Z",
+        "benchmark": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000901",
+          "created_at": "2026-01-01T00:00:00.000Z",
+          "current_revision": 2,
+          "is_deleted": false,
+          "record_type": "benchmark_definition",
+          "data": {
+            "authorship": {
+              "author": {
+                "author_type": "athlete"
+              },
+              "authored_at": "2026-01-01T00:00:00.000Z",
+              "evidence": [],
+              "content_version": 1,
+              "status": "active"
+            },
+            "benchmark_key": "fran",
+            "benchmark_type": "named_wod",
+            "score_type": "time",
+            "definition": "21-15-9 thrusters 43 kg and pull-ups"
+          }
+        },
+        "prior_results": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000b01",
+            "created_at": "2026-06-01T10:00:00.000Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "benchmark_result",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000103",
+              "received_at": "2026-06-01T10:00:00.000Z",
+              "received_at_basis": "local_write_time",
+              "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000901",
+              "recorded_at": "2026-06-01T10:00:00.000Z",
+              "input_timestamp": {
+                "timestamp_text": "2026-06-01T10:00:00.000Z",
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+              },
+              "score": {
+                "duration_s": 300
+              }
+            }
+          }
+        ],
+        "device_measurements": [],
+        "athlete_reports": [],
+        "sleep_sessions": [],
+        "workout_sessions": [],
+        "prior_predictions": [],
+        "gaps": [
+          "No device point measurements exist in the prior 90 days.",
+          "No recorded sleep session exists in the prior 90 days.",
+          "Evidence reached the 6-record query limit."
+        ]
+      }
+    },
+    {
+      "name": "a benchmark not yet known",
+      "call": "evidence",
+      "input": {
+        "benchmark": "fran",
+        "as_of": "2025-12-31T00:00:00.000Z"
+      },
+      "output": {
+        "error": "no benchmark 'fran' was visible at 2025-12-31T00:00:00.000Z. Available: none"
+      }
+    },
+    {
+      "name": "an unknown benchmark",
+      "call": "evidence",
+      "input": {
+        "benchmark": "murph",
+        "as_of": "2026-07-01T00:00:00.000Z"
+      },
+      "output": {
+        "error": "no benchmark 'murph' was visible at 2026-07-01T00:00:00.000Z. Available: fran, grace"
+      }
+    },
+    {
+      "name": "a cut-off that is not a time",
+      "call": "evidence",
+      "input": {
+        "benchmark": "fran",
+        "as_of": "2026-07-01"
+      },
+      "output": {
+        "error": "record: Invalid ISO datetime"
+      }
+    },
+    {
+      "name": "a retained revision",
+      "call": "evidence-reference",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000a04",
+        "revision": 1
+      },
+      "output": {
+        "status": "available",
+        "reference": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000a04",
+          "revision": 1
+        },
+        "revision": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000a04",
+          "revision": 1,
+          "previous_revision": null,
+          "became_known_at": "2026-06-20T12:00:00.000Z",
+          "became_known_at_basis": "local_write",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "record_type": "point_measurement",
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-06-20T12:00:00.000Z",
+            "received_at_basis": "import_time",
+            "quantity": "hrv_rmssd",
+            "recorded_at": "2026-06-20T12:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-06-20T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "value": {
+              "standard_value": 60,
+              "standard_unit": "ms",
+              "input_value": 60,
+              "input_unit": "ms"
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "a revision that does not exist",
+      "call": "evidence-reference",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000a04",
+        "revision": 3
+      },
+      "output": {
+        "status": "missing",
+        "reference": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000a04",
+          "revision": 3
+        }
+      }
+    },
+    {
+      "name": "backtest with a working, a fenced, and a failing model",
+      "call": "backtest",
+      "input": {
+        "models": [
+          "model-a",
+          "model-b",
+          "model-c",
+          "model-d"
+        ],
+        "created_at": "2026-10-13T12:00:00.000Z",
+        "replies": {
+          "model-a": "{\"predicted_score\":{\"duration_s\":290},\"confidence\":\"moderate\",\"reasoning\":\"x\"}",
+          "model-b": "```json\n{\"predicted_score\":{\"duration_s\":301.5}}\n```",
+          "model-c": "error:gateway timeout",
+          "model-d": "{\"predicted_score\":{\"reps\":5}}"
+        }
+      },
+      "output": {
+        "report": {
+          "athleticstandard_version": "2.1.0",
+          "created_at": "2026-10-13T12:00:00.000Z",
+          "models": [
+            "model-a",
+            "model-b",
+            "model-c",
+            "model-d"
+          ],
+          "replayable_result_count": 2,
+          "skipped_first_result_count": 2,
+          "replays": [
+            {
+              "model": "model-a",
+              "benchmark_result_id": "01890f3e-e7d3-7cc0-88c8-000000000b02",
+              "benchmark_key": "fran",
+              "as_of": "2026-07-01T09:59:59.999Z",
+              "predicted_value": 290,
+              "actual_value": 295,
+              "absolute_error_percentage": 1.7
+            },
+            {
+              "model": "model-b",
+              "benchmark_result_id": "01890f3e-e7d3-7cc0-88c8-000000000b02",
+              "benchmark_key": "fran",
+              "as_of": "2026-07-01T09:59:59.999Z",
+              "predicted_value": 301.5,
+              "actual_value": 295,
+              "absolute_error_percentage": 2.2
+            },
+            {
+              "model": "model-c",
+              "benchmark_result_id": "01890f3e-e7d3-7cc0-88c8-000000000b02",
+              "benchmark_key": "fran",
+              "as_of": "2026-07-01T09:59:59.999Z",
+              "actual_value": 295,
+              "error": "gateway timeout"
+            },
+            {
+              "model": "model-d",
+              "benchmark_result_id": "01890f3e-e7d3-7cc0-88c8-000000000b02",
+              "benchmark_key": "fran",
+              "as_of": "2026-07-01T09:59:59.999Z",
+              "actual_value": 295,
+              "error": "score does not contain time"
+            },
+            {
+              "model": "model-a",
+              "benchmark_result_id": "01890f3e-e7d3-7cc0-88c8-000000000b03",
+              "benchmark_key": "fran",
+              "as_of": "2026-08-01T09:59:59.999Z",
+              "predicted_value": 290,
+              "actual_value": 289,
+              "absolute_error_percentage": 0.3
+            },
+            {
+              "model": "model-b",
+              "benchmark_result_id": "01890f3e-e7d3-7cc0-88c8-000000000b03",
+              "benchmark_key": "fran",
+              "as_of": "2026-08-01T09:59:59.999Z",
+              "predicted_value": 301.5,
+              "actual_value": 289,
+              "absolute_error_percentage": 4.3
+            },
+            {
+              "model": "model-c",
+              "benchmark_result_id": "01890f3e-e7d3-7cc0-88c8-000000000b03",
+              "benchmark_key": "fran",
+              "as_of": "2026-08-01T09:59:59.999Z",
+              "actual_value": 289,
+              "error": "gateway timeout"
+            },
+            {
+              "model": "model-d",
+              "benchmark_result_id": "01890f3e-e7d3-7cc0-88c8-000000000b03",
+              "benchmark_key": "fran",
+              "as_of": "2026-08-01T09:59:59.999Z",
+              "actual_value": 289,
+              "error": "score does not contain time"
+            }
+          ],
+          "summary": [
+            {
+              "model": "model-a",
+              "completed": 2,
+              "failed": 0,
+              "median_absolute_error_percentage": 1
+            },
+            {
+              "model": "model-b",
+              "completed": 2,
+              "failed": 0,
+              "median_absolute_error_percentage": 3.3
+            },
+            {
+              "model": "model-c",
+              "completed": 0,
+              "failed": 2,
+              "median_absolute_error_percentage": null
+            },
+            {
+              "model": "model-d",
+              "completed": 0,
+              "failed": 2,
+              "median_absolute_error_percentage": null
+            }
+          ]
+        },
+        "requests": [
+          {
+            "gateway": "vercel",
+            "model": "model-a",
+            "system": "Return only JSON with predicted_score, optional predicted_range, confidence, and reasoning.",
+            "user": "{\"purpose\":\"prediction_evidence\",\"is_prediction\":false,\"as_of\":\"2026-07-01T09:59:59.999Z\",\"benchmark\":{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"created_at\":\"2026-01-01T00:00:00.000Z\",\"current_revision\":2,\"is_deleted\":false,\"record_type\":\"benchmark_definition\",\"data\":{\"authorship\":{\"author\":{\"author_type\":\"athlete\"},\"authored_at\":\"2026-01-01T00:00:00.000Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"benchmark_key\":\"fran\",\"benchmark_type\":\"named_wod\",\"score_type\":\"time\",\"definition\":\"21-15-9 thrusters 43 kg and pull-ups\"}},\"prior_results\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000b01\",\"created_at\":\"2026-06-01T10:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"benchmark_result\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000103\",\"received_at\":\"2026-06-01T10:00:00.000Z\",\"received_at_basis\":\"local_write_time\",\"benchmark_definition_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"recorded_at\":\"2026-06-01T10:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-01T10:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"score\":{\"duration_s\":300}}}],\"device_measurements\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000a02\",\"created_at\":\"2026-06-10T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"point_measurement\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-10T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-06-10T12:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-10T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"value\":{\"standard_value\":61,\"standard_unit\":\"ms\",\"input_value\":61,\"input_unit\":\"ms\"}}},{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000a04\",\"created_at\":\"2026-06-20T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"point_measurement\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-20T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-06-20T12:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-20T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"value\":{\"standard_value\":60,\"standard_unit\":\"ms\",\"input_value\":60,\"input_unit\":\"ms\"}}},{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000a05\",\"created_at\":\"2026-06-22T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"point_measurement\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-22T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-06-22T12:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-22T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"value\":{\"standard_value\":58,\"standard_unit\":\"ms\",\"input_value\":58,\"input_unit\":\"ms\"}}}],\"athlete_reports\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000d01\",\"created_at\":\"2026-06-26T08:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"athlete_report\",\"data\":{\"report_type\":\"soreness\",\"reported_at\":\"2026-06-26T08:00:00.000Z\",\"input_reported_at\":{\"timestamp_text\":\"2026-06-26T08:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"reported_via\":\"text\",\"rating\":6,\"rating_scale\":\"1-10\",\"note\":\"Sore legs\"}}],\"sleep_sessions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000c01\",\"created_at\":\"2026-06-24T11:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"sleep_session\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-24T11:00:00.000Z\",\"received_at_basis\":\"import_time\",\"start_at\":\"2026-06-24T04:00:00.000Z\",\"end_at\":\"2026-06-24T11:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-24T04:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-24T11:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"source_reported_summaries\":[],\"asleep_seconds\":24000}}],\"workout_sessions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000e01\",\"created_at\":\"2026-06-28T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"workout_session\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-28T13:00:00.000Z\",\"received_at_basis\":\"import_time\",\"start_at\":\"2026-06-28T12:00:00.000Z\",\"end_at\":\"2026-06-28T13:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-28T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-28T13:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"activity_type\":\"running\",\"source_reported_summaries\":[]}}],\"prior_predictions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000f01\",\"created_at\":\"2026-06-30T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"prediction\",\"data\":{\"authorship\":{\"author\":{\"author_type\":\"agent\",\"agent\":\"test-agent\",\"model\":\"test-model\"},\"authored_at\":\"2026-06-30T12:00:00.000Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"benchmark_definition_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"predicted_score\":{\"duration_s\":290},\"predicted_range\":{\"low\":{\"duration_s\":280},\"high\":{\"duration_s\":300}},\"confidence\":\"moderate\",\"reasoning\":\"Invented test prediction\"}}],\"gaps\":[]}"
+          },
+          {
+            "gateway": "vercel",
+            "model": "model-b",
+            "system": "Return only JSON with predicted_score, optional predicted_range, confidence, and reasoning.",
+            "user": "{\"purpose\":\"prediction_evidence\",\"is_prediction\":false,\"as_of\":\"2026-07-01T09:59:59.999Z\",\"benchmark\":{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"created_at\":\"2026-01-01T00:00:00.000Z\",\"current_revision\":2,\"is_deleted\":false,\"record_type\":\"benchmark_definition\",\"data\":{\"authorship\":{\"author\":{\"author_type\":\"athlete\"},\"authored_at\":\"2026-01-01T00:00:00.000Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"benchmark_key\":\"fran\",\"benchmark_type\":\"named_wod\",\"score_type\":\"time\",\"definition\":\"21-15-9 thrusters 43 kg and pull-ups\"}},\"prior_results\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000b01\",\"created_at\":\"2026-06-01T10:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"benchmark_result\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000103\",\"received_at\":\"2026-06-01T10:00:00.000Z\",\"received_at_basis\":\"local_write_time\",\"benchmark_definition_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"recorded_at\":\"2026-06-01T10:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-01T10:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"score\":{\"duration_s\":300}}}],\"device_measurements\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000a02\",\"created_at\":\"2026-06-10T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"point_measurement\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-10T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-06-10T12:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-10T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"value\":{\"standard_value\":61,\"standard_unit\":\"ms\",\"input_value\":61,\"input_unit\":\"ms\"}}},{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000a04\",\"created_at\":\"2026-06-20T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"point_measurement\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-20T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-06-20T12:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-20T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"value\":{\"standard_value\":60,\"standard_unit\":\"ms\",\"input_value\":60,\"input_unit\":\"ms\"}}},{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000a05\",\"created_at\":\"2026-06-22T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"point_measurement\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-22T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-06-22T12:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-22T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"value\":{\"standard_value\":58,\"standard_unit\":\"ms\",\"input_value\":58,\"input_unit\":\"ms\"}}}],\"athlete_reports\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000d01\",\"created_at\":\"2026-06-26T08:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"athlete_report\",\"data\":{\"report_type\":\"soreness\",\"reported_at\":\"2026-06-26T08:00:00.000Z\",\"input_reported_at\":{\"timestamp_text\":\"2026-06-26T08:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"reported_via\":\"text\",\"rating\":6,\"rating_scale\":\"1-10\",\"note\":\"Sore legs\"}}],\"sleep_sessions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000c01\",\"created_at\":\"2026-06-24T11:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"sleep_session\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-24T11:00:00.000Z\",\"received_at_basis\":\"import_time\",\"start_at\":\"2026-06-24T04:00:00.000Z\",\"end_at\":\"2026-06-24T11:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-24T04:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-24T11:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"source_reported_summaries\":[],\"asleep_seconds\":24000}}],\"workout_sessions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000e01\",\"created_at\":\"2026-06-28T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"workout_session\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-28T13:00:00.000Z\",\"received_at_basis\":\"import_time\",\"start_at\":\"2026-06-28T12:00:00.000Z\",\"end_at\":\"2026-06-28T13:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-28T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-28T13:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"activity_type\":\"running\",\"source_reported_summaries\":[]}}],\"prior_predictions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000f01\",\"created_at\":\"2026-06-30T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"prediction\",\"data\":{\"authorship\":{\"author\":{\"author_type\":\"agent\",\"agent\":\"test-agent\",\"model\":\"test-model\"},\"authored_at\":\"2026-06-30T12:00:00.000Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"benchmark_definition_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"predicted_score\":{\"duration_s\":290},\"predicted_range\":{\"low\":{\"duration_s\":280},\"high\":{\"duration_s\":300}},\"confidence\":\"moderate\",\"reasoning\":\"Invented test prediction\"}}],\"gaps\":[]}"
+          },
+          {
+            "gateway": "vercel",
+            "model": "model-c",
+            "system": "Return only JSON with predicted_score, optional predicted_range, confidence, and reasoning.",
+            "user": "{\"purpose\":\"prediction_evidence\",\"is_prediction\":false,\"as_of\":\"2026-07-01T09:59:59.999Z\",\"benchmark\":{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"created_at\":\"2026-01-01T00:00:00.000Z\",\"current_revision\":2,\"is_deleted\":false,\"record_type\":\"benchmark_definition\",\"data\":{\"authorship\":{\"author\":{\"author_type\":\"athlete\"},\"authored_at\":\"2026-01-01T00:00:00.000Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"benchmark_key\":\"fran\",\"benchmark_type\":\"named_wod\",\"score_type\":\"time\",\"definition\":\"21-15-9 thrusters 43 kg and pull-ups\"}},\"prior_results\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000b01\",\"created_at\":\"2026-06-01T10:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"benchmark_result\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000103\",\"received_at\":\"2026-06-01T10:00:00.000Z\",\"received_at_basis\":\"local_write_time\",\"benchmark_definition_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"recorded_at\":\"2026-06-01T10:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-01T10:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"score\":{\"duration_s\":300}}}],\"device_measurements\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000a02\",\"created_at\":\"2026-06-10T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"point_measurement\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-10T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-06-10T12:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-10T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"value\":{\"standard_value\":61,\"standard_unit\":\"ms\",\"input_value\":61,\"input_unit\":\"ms\"}}},{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000a04\",\"created_at\":\"2026-06-20T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"point_measurement\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-20T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-06-20T12:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-20T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"value\":{\"standard_value\":60,\"standard_unit\":\"ms\",\"input_value\":60,\"input_unit\":\"ms\"}}},{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000a05\",\"created_at\":\"2026-06-22T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"point_measurement\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-22T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-06-22T12:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-22T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"value\":{\"standard_value\":58,\"standard_unit\":\"ms\",\"input_value\":58,\"input_unit\":\"ms\"}}}],\"athlete_reports\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000d01\",\"created_at\":\"2026-06-26T08:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"athlete_report\",\"data\":{\"report_type\":\"soreness\",\"reported_at\":\"2026-06-26T08:00:00.000Z\",\"input_reported_at\":{\"timestamp_text\":\"2026-06-26T08:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"reported_via\":\"text\",\"rating\":6,\"rating_scale\":\"1-10\",\"note\":\"Sore legs\"}}],\"sleep_sessions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000c01\",\"created_at\":\"2026-06-24T11:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"sleep_session\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-24T11:00:00.000Z\",\"received_at_basis\":\"import_time\",\"start_at\":\"2026-06-24T04:00:00.000Z\",\"end_at\":\"2026-06-24T11:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-24T04:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-24T11:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"source_reported_summaries\":[],\"asleep_seconds\":24000}}],\"workout_sessions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000e01\",\"created_at\":\"2026-06-28T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"workout_session\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-28T13:00:00.000Z\",\"received_at_basis\":\"import_time\",\"start_at\":\"2026-06-28T12:00:00.000Z\",\"end_at\":\"2026-06-28T13:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-28T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-28T13:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"activity_type\":\"running\",\"source_reported_summaries\":[]}}],\"prior_predictions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000f01\",\"created_at\":\"2026-06-30T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"prediction\",\"data\":{\"authorship\":{\"author\":{\"author_type\":\"agent\",\"agent\":\"test-agent\",\"model\":\"test-model\"},\"authored_at\":\"2026-06-30T12:00:00.000Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"benchmark_definition_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"predicted_score\":{\"duration_s\":290},\"predicted_range\":{\"low\":{\"duration_s\":280},\"high\":{\"duration_s\":300}},\"confidence\":\"moderate\",\"reasoning\":\"Invented test prediction\"}}],\"gaps\":[]}"
+          },
+          {
+            "gateway": "vercel",
+            "model": "model-d",
+            "system": "Return only JSON with predicted_score, optional predicted_range, confidence, and reasoning.",
+            "user": "{\"purpose\":\"prediction_evidence\",\"is_prediction\":false,\"as_of\":\"2026-07-01T09:59:59.999Z\",\"benchmark\":{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"created_at\":\"2026-01-01T00:00:00.000Z\",\"current_revision\":2,\"is_deleted\":false,\"record_type\":\"benchmark_definition\",\"data\":{\"authorship\":{\"author\":{\"author_type\":\"athlete\"},\"authored_at\":\"2026-01-01T00:00:00.000Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"benchmark_key\":\"fran\",\"benchmark_type\":\"named_wod\",\"score_type\":\"time\",\"definition\":\"21-15-9 thrusters 43 kg and pull-ups\"}},\"prior_results\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000b01\",\"created_at\":\"2026-06-01T10:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"benchmark_result\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000103\",\"received_at\":\"2026-06-01T10:00:00.000Z\",\"received_at_basis\":\"local_write_time\",\"benchmark_definition_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"recorded_at\":\"2026-06-01T10:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-01T10:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"score\":{\"duration_s\":300}}}],\"device_measurements\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000a02\",\"created_at\":\"2026-06-10T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"point_measurement\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-10T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-06-10T12:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-10T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"value\":{\"standard_value\":61,\"standard_unit\":\"ms\",\"input_value\":61,\"input_unit\":\"ms\"}}},{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000a04\",\"created_at\":\"2026-06-20T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"point_measurement\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-20T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-06-20T12:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-20T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"value\":{\"standard_value\":60,\"standard_unit\":\"ms\",\"input_value\":60,\"input_unit\":\"ms\"}}},{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000a05\",\"created_at\":\"2026-06-22T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"point_measurement\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-22T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-06-22T12:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-22T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"value\":{\"standard_value\":58,\"standard_unit\":\"ms\",\"input_value\":58,\"input_unit\":\"ms\"}}}],\"athlete_reports\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000d01\",\"created_at\":\"2026-06-26T08:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"athlete_report\",\"data\":{\"report_type\":\"soreness\",\"reported_at\":\"2026-06-26T08:00:00.000Z\",\"input_reported_at\":{\"timestamp_text\":\"2026-06-26T08:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"reported_via\":\"text\",\"rating\":6,\"rating_scale\":\"1-10\",\"note\":\"Sore legs\"}}],\"sleep_sessions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000c01\",\"created_at\":\"2026-06-24T11:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"sleep_session\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-24T11:00:00.000Z\",\"received_at_basis\":\"import_time\",\"start_at\":\"2026-06-24T04:00:00.000Z\",\"end_at\":\"2026-06-24T11:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-24T04:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-24T11:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"source_reported_summaries\":[],\"asleep_seconds\":24000}}],\"workout_sessions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000e01\",\"created_at\":\"2026-06-28T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"workout_session\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-28T13:00:00.000Z\",\"received_at_basis\":\"import_time\",\"start_at\":\"2026-06-28T12:00:00.000Z\",\"end_at\":\"2026-06-28T13:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-28T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-28T13:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"activity_type\":\"running\",\"source_reported_summaries\":[]}}],\"prior_predictions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000f01\",\"created_at\":\"2026-06-30T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"prediction\",\"data\":{\"authorship\":{\"author\":{\"author_type\":\"agent\",\"agent\":\"test-agent\",\"model\":\"test-model\"},\"authored_at\":\"2026-06-30T12:00:00.000Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"benchmark_definition_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"predicted_score\":{\"duration_s\":290},\"predicted_range\":{\"low\":{\"duration_s\":280},\"high\":{\"duration_s\":300}},\"confidence\":\"moderate\",\"reasoning\":\"Invented test prediction\"}}],\"gaps\":[]}"
+          },
+          {
+            "gateway": "vercel",
+            "model": "model-a",
+            "system": "Return only JSON with predicted_score, optional predicted_range, confidence, and reasoning.",
+            "user": "{\"purpose\":\"prediction_evidence\",\"is_prediction\":false,\"as_of\":\"2026-08-01T09:59:59.999Z\",\"benchmark\":{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"created_at\":\"2026-01-01T00:00:00.000Z\",\"current_revision\":2,\"is_deleted\":false,\"record_type\":\"benchmark_definition\",\"data\":{\"authorship\":{\"author\":{\"author_type\":\"athlete\"},\"authored_at\":\"2026-01-01T00:00:00.000Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"benchmark_key\":\"fran\",\"benchmark_type\":\"named_wod\",\"score_type\":\"time\",\"definition\":\"21-15-9 thrusters 43 kg and pull-ups\"}},\"prior_results\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000b01\",\"created_at\":\"2026-06-01T10:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"benchmark_result\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000103\",\"received_at\":\"2026-06-01T10:00:00.000Z\",\"received_at_basis\":\"local_write_time\",\"benchmark_definition_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"recorded_at\":\"2026-06-01T10:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-01T10:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"score\":{\"duration_s\":300}}},{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000b02\",\"created_at\":\"2026-07-01T10:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"benchmark_result\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000103\",\"received_at\":\"2026-07-01T10:00:00.000Z\",\"received_at_basis\":\"local_write_time\",\"benchmark_definition_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"recorded_at\":\"2026-07-01T10:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-07-01T10:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"score\":{\"duration_s\":295}}}],\"device_measurements\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000a02\",\"created_at\":\"2026-06-10T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"point_measurement\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-10T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-06-10T12:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-10T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"value\":{\"standard_value\":61,\"standard_unit\":\"ms\",\"input_value\":61,\"input_unit\":\"ms\"}}},{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000a04\",\"created_at\":\"2026-06-20T12:00:00.000Z\",\"current_revision\":2,\"is_deleted\":false,\"record_type\":\"point_measurement\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-20T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-06-20T12:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-20T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"value\":{\"standard_value\":65,\"standard_unit\":\"ms\",\"input_value\":65,\"input_unit\":\"ms\"}}}],\"athlete_reports\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000d01\",\"created_at\":\"2026-06-26T08:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"athlete_report\",\"data\":{\"report_type\":\"soreness\",\"reported_at\":\"2026-06-26T08:00:00.000Z\",\"input_reported_at\":{\"timestamp_text\":\"2026-06-26T08:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"reported_via\":\"text\",\"rating\":6,\"rating_scale\":\"1-10\",\"note\":\"Sore legs\"}}],\"sleep_sessions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000c01\",\"created_at\":\"2026-06-24T11:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"sleep_session\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-24T11:00:00.000Z\",\"received_at_basis\":\"import_time\",\"start_at\":\"2026-06-24T04:00:00.000Z\",\"end_at\":\"2026-06-24T11:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-24T04:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-24T11:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"source_reported_summaries\":[],\"asleep_seconds\":24000}},{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000c02\",\"created_at\":\"2026-06-25T11:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"sleep_session\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-25T11:00:00.000Z\",\"received_at_basis\":\"import_time\",\"start_at\":\"2026-06-25T04:00:00.000Z\",\"end_at\":\"2026-06-25T11:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-25T04:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-25T11:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"source_reported_summaries\":[],\"asleep_seconds\":25000}}],\"workout_sessions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000e01\",\"created_at\":\"2026-06-28T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"workout_session\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-28T13:00:00.000Z\",\"received_at_basis\":\"import_time\",\"start_at\":\"2026-06-28T12:00:00.000Z\",\"end_at\":\"2026-06-28T13:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-28T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-28T13:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"activity_type\":\"running\",\"source_reported_summaries\":[]}}],\"prior_predictions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000f01\",\"created_at\":\"2026-06-30T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"prediction\",\"data\":{\"authorship\":{\"author\":{\"author_type\":\"agent\",\"agent\":\"test-agent\",\"model\":\"test-model\"},\"authored_at\":\"2026-06-30T12:00:00.000Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"benchmark_definition_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"predicted_score\":{\"duration_s\":290},\"predicted_range\":{\"low\":{\"duration_s\":280},\"high\":{\"duration_s\":300}},\"confidence\":\"moderate\",\"reasoning\":\"Invented test prediction\"}}],\"gaps\":[]}"
+          },
+          {
+            "gateway": "vercel",
+            "model": "model-b",
+            "system": "Return only JSON with predicted_score, optional predicted_range, confidence, and reasoning.",
+            "user": "{\"purpose\":\"prediction_evidence\",\"is_prediction\":false,\"as_of\":\"2026-08-01T09:59:59.999Z\",\"benchmark\":{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"created_at\":\"2026-01-01T00:00:00.000Z\",\"current_revision\":2,\"is_deleted\":false,\"record_type\":\"benchmark_definition\",\"data\":{\"authorship\":{\"author\":{\"author_type\":\"athlete\"},\"authored_at\":\"2026-01-01T00:00:00.000Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"benchmark_key\":\"fran\",\"benchmark_type\":\"named_wod\",\"score_type\":\"time\",\"definition\":\"21-15-9 thrusters 43 kg and pull-ups\"}},\"prior_results\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000b01\",\"created_at\":\"2026-06-01T10:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"benchmark_result\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000103\",\"received_at\":\"2026-06-01T10:00:00.000Z\",\"received_at_basis\":\"local_write_time\",\"benchmark_definition_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"recorded_at\":\"2026-06-01T10:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-01T10:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"score\":{\"duration_s\":300}}},{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000b02\",\"created_at\":\"2026-07-01T10:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"benchmark_result\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000103\",\"received_at\":\"2026-07-01T10:00:00.000Z\",\"received_at_basis\":\"local_write_time\",\"benchmark_definition_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"recorded_at\":\"2026-07-01T10:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-07-01T10:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"score\":{\"duration_s\":295}}}],\"device_measurements\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000a02\",\"created_at\":\"2026-06-10T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"point_measurement\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-10T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-06-10T12:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-10T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"value\":{\"standard_value\":61,\"standard_unit\":\"ms\",\"input_value\":61,\"input_unit\":\"ms\"}}},{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000a04\",\"created_at\":\"2026-06-20T12:00:00.000Z\",\"current_revision\":2,\"is_deleted\":false,\"record_type\":\"point_measurement\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-20T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-06-20T12:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-20T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"value\":{\"standard_value\":65,\"standard_unit\":\"ms\",\"input_value\":65,\"input_unit\":\"ms\"}}}],\"athlete_reports\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000d01\",\"created_at\":\"2026-06-26T08:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"athlete_report\",\"data\":{\"report_type\":\"soreness\",\"reported_at\":\"2026-06-26T08:00:00.000Z\",\"input_reported_at\":{\"timestamp_text\":\"2026-06-26T08:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"reported_via\":\"text\",\"rating\":6,\"rating_scale\":\"1-10\",\"note\":\"Sore legs\"}}],\"sleep_sessions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000c01\",\"created_at\":\"2026-06-24T11:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"sleep_session\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-24T11:00:00.000Z\",\"received_at_basis\":\"import_time\",\"start_at\":\"2026-06-24T04:00:00.000Z\",\"end_at\":\"2026-06-24T11:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-24T04:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-24T11:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"source_reported_summaries\":[],\"asleep_seconds\":24000}},{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000c02\",\"created_at\":\"2026-06-25T11:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"sleep_session\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-25T11:00:00.000Z\",\"received_at_basis\":\"import_time\",\"start_at\":\"2026-06-25T04:00:00.000Z\",\"end_at\":\"2026-06-25T11:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-25T04:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-25T11:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"source_reported_summaries\":[],\"asleep_seconds\":25000}}],\"workout_sessions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000e01\",\"created_at\":\"2026-06-28T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"workout_session\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-28T13:00:00.000Z\",\"received_at_basis\":\"import_time\",\"start_at\":\"2026-06-28T12:00:00.000Z\",\"end_at\":\"2026-06-28T13:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-28T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-28T13:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"activity_type\":\"running\",\"source_reported_summaries\":[]}}],\"prior_predictions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000f01\",\"created_at\":\"2026-06-30T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"prediction\",\"data\":{\"authorship\":{\"author\":{\"author_type\":\"agent\",\"agent\":\"test-agent\",\"model\":\"test-model\"},\"authored_at\":\"2026-06-30T12:00:00.000Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"benchmark_definition_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"predicted_score\":{\"duration_s\":290},\"predicted_range\":{\"low\":{\"duration_s\":280},\"high\":{\"duration_s\":300}},\"confidence\":\"moderate\",\"reasoning\":\"Invented test prediction\"}}],\"gaps\":[]}"
+          },
+          {
+            "gateway": "vercel",
+            "model": "model-c",
+            "system": "Return only JSON with predicted_score, optional predicted_range, confidence, and reasoning.",
+            "user": "{\"purpose\":\"prediction_evidence\",\"is_prediction\":false,\"as_of\":\"2026-08-01T09:59:59.999Z\",\"benchmark\":{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"created_at\":\"2026-01-01T00:00:00.000Z\",\"current_revision\":2,\"is_deleted\":false,\"record_type\":\"benchmark_definition\",\"data\":{\"authorship\":{\"author\":{\"author_type\":\"athlete\"},\"authored_at\":\"2026-01-01T00:00:00.000Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"benchmark_key\":\"fran\",\"benchmark_type\":\"named_wod\",\"score_type\":\"time\",\"definition\":\"21-15-9 thrusters 43 kg and pull-ups\"}},\"prior_results\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000b01\",\"created_at\":\"2026-06-01T10:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"benchmark_result\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000103\",\"received_at\":\"2026-06-01T10:00:00.000Z\",\"received_at_basis\":\"local_write_time\",\"benchmark_definition_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"recorded_at\":\"2026-06-01T10:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-01T10:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"score\":{\"duration_s\":300}}},{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000b02\",\"created_at\":\"2026-07-01T10:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"benchmark_result\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000103\",\"received_at\":\"2026-07-01T10:00:00.000Z\",\"received_at_basis\":\"local_write_time\",\"benchmark_definition_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"recorded_at\":\"2026-07-01T10:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-07-01T10:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"score\":{\"duration_s\":295}}}],\"device_measurements\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000a02\",\"created_at\":\"2026-06-10T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"point_measurement\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-10T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-06-10T12:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-10T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"value\":{\"standard_value\":61,\"standard_unit\":\"ms\",\"input_value\":61,\"input_unit\":\"ms\"}}},{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000a04\",\"created_at\":\"2026-06-20T12:00:00.000Z\",\"current_revision\":2,\"is_deleted\":false,\"record_type\":\"point_measurement\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-20T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-06-20T12:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-20T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"value\":{\"standard_value\":65,\"standard_unit\":\"ms\",\"input_value\":65,\"input_unit\":\"ms\"}}}],\"athlete_reports\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000d01\",\"created_at\":\"2026-06-26T08:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"athlete_report\",\"data\":{\"report_type\":\"soreness\",\"reported_at\":\"2026-06-26T08:00:00.000Z\",\"input_reported_at\":{\"timestamp_text\":\"2026-06-26T08:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"reported_via\":\"text\",\"rating\":6,\"rating_scale\":\"1-10\",\"note\":\"Sore legs\"}}],\"sleep_sessions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000c01\",\"created_at\":\"2026-06-24T11:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"sleep_session\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-24T11:00:00.000Z\",\"received_at_basis\":\"import_time\",\"start_at\":\"2026-06-24T04:00:00.000Z\",\"end_at\":\"2026-06-24T11:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-24T04:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-24T11:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"source_reported_summaries\":[],\"asleep_seconds\":24000}},{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000c02\",\"created_at\":\"2026-06-25T11:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"sleep_session\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-25T11:00:00.000Z\",\"received_at_basis\":\"import_time\",\"start_at\":\"2026-06-25T04:00:00.000Z\",\"end_at\":\"2026-06-25T11:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-25T04:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-25T11:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"source_reported_summaries\":[],\"asleep_seconds\":25000}}],\"workout_sessions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000e01\",\"created_at\":\"2026-06-28T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"workout_session\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-28T13:00:00.000Z\",\"received_at_basis\":\"import_time\",\"start_at\":\"2026-06-28T12:00:00.000Z\",\"end_at\":\"2026-06-28T13:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-28T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-28T13:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"activity_type\":\"running\",\"source_reported_summaries\":[]}}],\"prior_predictions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000f01\",\"created_at\":\"2026-06-30T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"prediction\",\"data\":{\"authorship\":{\"author\":{\"author_type\":\"agent\",\"agent\":\"test-agent\",\"model\":\"test-model\"},\"authored_at\":\"2026-06-30T12:00:00.000Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"benchmark_definition_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"predicted_score\":{\"duration_s\":290},\"predicted_range\":{\"low\":{\"duration_s\":280},\"high\":{\"duration_s\":300}},\"confidence\":\"moderate\",\"reasoning\":\"Invented test prediction\"}}],\"gaps\":[]}"
+          },
+          {
+            "gateway": "vercel",
+            "model": "model-d",
+            "system": "Return only JSON with predicted_score, optional predicted_range, confidence, and reasoning.",
+            "user": "{\"purpose\":\"prediction_evidence\",\"is_prediction\":false,\"as_of\":\"2026-08-01T09:59:59.999Z\",\"benchmark\":{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"created_at\":\"2026-01-01T00:00:00.000Z\",\"current_revision\":2,\"is_deleted\":false,\"record_type\":\"benchmark_definition\",\"data\":{\"authorship\":{\"author\":{\"author_type\":\"athlete\"},\"authored_at\":\"2026-01-01T00:00:00.000Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"benchmark_key\":\"fran\",\"benchmark_type\":\"named_wod\",\"score_type\":\"time\",\"definition\":\"21-15-9 thrusters 43 kg and pull-ups\"}},\"prior_results\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000b01\",\"created_at\":\"2026-06-01T10:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"benchmark_result\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000103\",\"received_at\":\"2026-06-01T10:00:00.000Z\",\"received_at_basis\":\"local_write_time\",\"benchmark_definition_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"recorded_at\":\"2026-06-01T10:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-01T10:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"score\":{\"duration_s\":300}}},{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000b02\",\"created_at\":\"2026-07-01T10:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"benchmark_result\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000103\",\"received_at\":\"2026-07-01T10:00:00.000Z\",\"received_at_basis\":\"local_write_time\",\"benchmark_definition_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"recorded_at\":\"2026-07-01T10:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-07-01T10:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"score\":{\"duration_s\":295}}}],\"device_measurements\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000a02\",\"created_at\":\"2026-06-10T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"point_measurement\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-10T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-06-10T12:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-10T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"value\":{\"standard_value\":61,\"standard_unit\":\"ms\",\"input_value\":61,\"input_unit\":\"ms\"}}},{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000a04\",\"created_at\":\"2026-06-20T12:00:00.000Z\",\"current_revision\":2,\"is_deleted\":false,\"record_type\":\"point_measurement\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-20T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-06-20T12:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-06-20T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"value\":{\"standard_value\":65,\"standard_unit\":\"ms\",\"input_value\":65,\"input_unit\":\"ms\"}}}],\"athlete_reports\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000d01\",\"created_at\":\"2026-06-26T08:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"athlete_report\",\"data\":{\"report_type\":\"soreness\",\"reported_at\":\"2026-06-26T08:00:00.000Z\",\"input_reported_at\":{\"timestamp_text\":\"2026-06-26T08:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"reported_via\":\"text\",\"rating\":6,\"rating_scale\":\"1-10\",\"note\":\"Sore legs\"}}],\"sleep_sessions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000c01\",\"created_at\":\"2026-06-24T11:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"sleep_session\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-24T11:00:00.000Z\",\"received_at_basis\":\"import_time\",\"start_at\":\"2026-06-24T04:00:00.000Z\",\"end_at\":\"2026-06-24T11:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-24T04:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-24T11:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"source_reported_summaries\":[],\"asleep_seconds\":24000}},{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000c02\",\"created_at\":\"2026-06-25T11:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"sleep_session\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-25T11:00:00.000Z\",\"received_at_basis\":\"import_time\",\"start_at\":\"2026-06-25T04:00:00.000Z\",\"end_at\":\"2026-06-25T11:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-25T04:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-25T11:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"source_reported_summaries\":[],\"asleep_seconds\":25000}}],\"workout_sessions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000e01\",\"created_at\":\"2026-06-28T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"workout_session\",\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000101\",\"received_at\":\"2026-06-28T13:00:00.000Z\",\"received_at_basis\":\"import_time\",\"start_at\":\"2026-06-28T12:00:00.000Z\",\"end_at\":\"2026-06-28T13:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-28T12:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-28T13:00:00.000Z\",\"utc_offset_text\":\"Z\",\"utc_offset_meaning\":\"documented_recording_offset\",\"timestamp_basis\":\"source_instant\"},\"activity_type\":\"running\",\"source_reported_summaries\":[]}}],\"prior_predictions\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000f01\",\"created_at\":\"2026-06-30T12:00:00.000Z\",\"current_revision\":1,\"is_deleted\":false,\"record_type\":\"prediction\",\"data\":{\"authorship\":{\"author\":{\"author_type\":\"agent\",\"agent\":\"test-agent\",\"model\":\"test-model\"},\"authored_at\":\"2026-06-30T12:00:00.000Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"benchmark_definition_id\":\"01890f3e-e7d3-7cc0-88c8-000000000901\",\"predicted_score\":{\"duration_s\":290},\"predicted_range\":{\"low\":{\"duration_s\":280},\"high\":{\"duration_s\":300}},\"confidence\":\"moderate\",\"reasoning\":\"Invented test prediction\"}}],\"gaps\":[]}"
+          }
+        ]
+      }
+    },
+    {
+      "name": "backtest needs a model",
+      "call": "backtest",
+      "input": {
+        "models": [],
+        "created_at": "2026-10-13T12:00:00.000Z",
+        "replies": {}
+      },
+      "output": {
+        "error": "backtest needs at least one model"
+      }
+    }
+  ]
+}
