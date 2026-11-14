@@ -8,6 +8,7 @@
 
 #![allow(dead_code)]
 
+pub mod builders;
 pub mod scenario;
 
 #[allow(unused_imports)]
