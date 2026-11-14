@@ -62,3 +62,6 @@ validation-data/
 /performance/generated/
 /performance/results/local/
 
+
+# Native rebuild build output.
+native/target/
