@@ -622,7 +622,53 @@ async function erasure(): Promise<void> {
   writeFileSync(join(target, "database-rows.txt"), dumpRows(databasePath));
 }
 
+// ---- serialization vectors -----------------------------------------------------------------
+
+/**
+ * JSON texts that exercise the package serializer, with what JavaScript makes
+ * of them: `JSON.stringify(JSON.parse(text))` and the deterministic package
+ * form. A text JavaScript refuses has `accepted: false`.
+ */
+function serializationVectors(): void {
+  const inputs: Array<[string, string]> = [
+    ["utf16 key order", '{"😀":1,"ﬁ":2,"a":3,"Z":4,"é":5,"\\u0000":6,"":7}'],
+    ["integer-like keys", '{"10":1,"9":2,"01":3,"4294967295":4,"4294967294":5,"-1":6,"1.5":7,"a":8,"0":9}'],
+    ["supplementary characters", '["😀","\\ud83d\\ude00","𝄞","\\uD834\\uDD1E"]'],
+    ["escaping", '"\\u0000\\u0001\\u001f\\u007f\\u2028\\u2029\\"\\\\\\/\\b\\f\\n\\r\\t"'],
+    ["negative zero", "[-0,-0.0,0,-0e5,0e-3]"],
+    ["exponent forms", "[1e21,1e-7,1.5e300,123e-20,1E2,0.000001,1e+21,2.5E-8,1e20,999999999999999999999]"],
+    [
+      "large safe integers",
+      "[9007199254740991,9007199254740992,9007199254740993,-9007199254740991,12345678901234567890,1e308]",
+    ],
+    ["floating round trips", "[0.1,0.30000000000000004,1.7976931348623157e308,5e-324,4.35,0.000001234,100.0]"],
+    ["many digits", "[0.1000000000000000055511151231257827,3.14159265358979323846264338327950288]"],
+    ["duplicate keys", '{"a":1,"b":2,"a":3}'],
+    ["nested empties", '{"b":{},"a":[],"c":[{}],"d":{"z":[[]]}}'],
+    ["lone high surrogate", '"\\ud800"'],
+    ["lone low surrogate", '"\\udc00"'],
+    ["reversed surrogate pair", '"\\ude00\\ud83d"'],
+    ["number out of range", "[1e400]"],
+  ];
+  const vectors = inputs.map(([name, text]) => {
+    try {
+      const value = JSON.parse(text) as unknown;
+      return {
+        name,
+        text,
+        accepted: true,
+        compact: JSON.stringify(value),
+        deterministic: deterministic(value).toString("utf8"),
+      };
+    } catch {
+      return { name, text, accepted: false };
+    }
+  });
+  writeFileSync(join(out, "serialization-vectors.json"), `${JSON.stringify(vectors, null, 2)}\n`);
+}
+
 mkdirSync(out, { recursive: true });
+serializationVectors();
 await erasure();
 await demo();
 await version200();
