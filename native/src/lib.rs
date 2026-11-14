@@ -15,6 +15,7 @@ pub mod input_policy;
 pub mod json;
 pub mod log;
 pub mod model;
+pub mod package;
 pub mod prediction;
 pub mod runtime;
 pub mod store;

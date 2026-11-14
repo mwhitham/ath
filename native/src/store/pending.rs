@@ -1,10 +1,10 @@
 //! Read pending attachment file work recorded by migration 005.
 //!
 //! `internal_pending_file_operations` holds recovery state for file changes
-//! that a SQLite transaction cannot include. This module only reads it, so a
-//! read-only command can report unfinished work without changing anything.
-//! Resuming the work belongs to the writable attachment and erasure
-//! operations.
+//! that a SQLite transaction cannot include. This module is the one reader of
+//! that table. It only reads, so a read-only command can report unfinished work
+//! without changing anything. `package::resume_pending_file_operations`
+//! finishes the work; every command that opens a database for writing calls it.
 
 use rusqlite::Connection;
 use serde::Serialize;
@@ -52,15 +52,18 @@ pub fn pending_file_operations(connection: &Connection) -> Result<Vec<PendingFil
 }
 
 impl PendingFileOperation {
-    /// A sentence for `ath check`.
+    /// A sentence for `ath check`. It says what the cleanup will do: an
+    /// approved removal is finished, and a file an interrupted write left is
+    /// removed once its writer has stopped. Either way a file that an
+    /// attachment record names is kept.
     pub fn describe(&self) -> String {
         match self.operation_kind.as_str() {
             "attachment_removal" => format!(
-                "attachment file removal is not finished: {}. A write command on this database finishes it.",
+                "an erasure has not finished removing attachment file {}. The next ath command that writes to this database removes it.",
                 self.relative_path
             ),
             "attachment_write" => format!(
-                "an interrupted attachment write may have left an unreferenced file: {}. A write command on this database removes it.",
+                "an interrupted attachment write left {}, which no record names. The next ath command that writes to this database removes it once the process that wrote it has stopped.",
                 self.relative_path
             ),
             other => format!("file operation {other} is not finished: {}", self.relative_path),

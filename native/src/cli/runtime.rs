@@ -216,16 +216,39 @@ impl Context<'_> {
     pub fn open_for_write(&mut self, path: &Path, json: bool) -> Result<Store, Failure> {
         self.check_path(path)?;
         self.warn_readable_paths(path, json);
-        match Store::open(path, OpenOptions { read_only: false, allow_outdated_schema: false }) {
-            Ok(store) => Ok(store),
+        let mut store = match Store::open(path, OpenOptions { read_only: false, allow_outdated_schema: false }) {
+            Ok(store) => store,
             Err(error @ Error::MigrationRequired(_)) => {
                 if json || !self.io.terminal.stdin || !self.io.terminal.stdout {
                     return Err(error.into());
                 }
                 let Error::MigrationRequired(preview) = error else { unreachable!() };
-                self.migrate_on_open(path, *preview)
+                self.migrate_on_open(path, *preview)?
             }
-            Err(error) => Err(error.into()),
+            Err(error) => return Err(error.into()),
+        };
+        self.finish_pending_file_work(&mut store, json);
+        Ok(store)
+    }
+
+    /// Finish attachment file work an earlier command left pending (spec
+    /// 9.2): approved removals, and files an interrupted write left. Cleanup
+    /// never stops the command; what it cannot finish stays pending, `ath
+    /// check` reports it, and the next writable command tries again.
+    fn finish_pending_file_work(&mut self, store: &mut Store, json: bool) {
+        let unfinished = match crate::package::resume_pending_file_operations(store) {
+            Ok(report) => report
+                .failed_files
+                .into_iter()
+                .map(|failure| format!("{}: {}", failure.relative_path, failure.message))
+                .collect(),
+            Err(error) => vec![error.to_string()],
+        };
+        if json {
+            return;
+        }
+        for detail in unfinished {
+            self.note(&format!("ath: warning: pending attachment cleanup is not finished: {detail}"));
         }
     }
 
