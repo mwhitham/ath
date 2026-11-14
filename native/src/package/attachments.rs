@@ -309,7 +309,6 @@ pub fn apply_with_attachments(
 // ---- Owned file writes ---------------------------------------------------
 
 /// Where the bytes of a new attachment file come from.
-#[allow(dead_code)] // Package restore uses the file source.
 pub(crate) enum AttachmentSource {
     Bytes(Vec<u8>),
     /// A package file. It is read and checked again when copied.

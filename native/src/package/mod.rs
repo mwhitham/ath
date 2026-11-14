@@ -12,8 +12,11 @@
 //! database revision. Merge keeps the conflict workflow for the same database.
 
 pub mod attachments;
+pub mod conflicts;
 pub mod erase;
 pub mod export;
+pub mod load;
+pub mod restore;
 
 #[cfg(test)]
 pub(crate) mod failpoints;
@@ -34,8 +37,20 @@ pub use attachments::{
     resume_pending_file_operations, stored_attachment_name, PendingCleanupReport, PendingFileFailure,
     PendingFileOperation, PreparedAttachment,
 };
+pub use conflicts::{
+    assert_conflict_set_current, clear_conflict_set, conflict_resolutions, conflict_set_path, read_conflict_set,
+    resolve_conflict, save_conflict_set, show_conflicts, ConflictChoice, ConflictDetail, ConflictResolveResult,
+    ConflictSet, ConflictsShow, SavedConflict,
+};
 pub use erase::{erase_record, preview_erasure, ErasureAttachment, ErasurePreview, ErasureRecord, ErasureResult};
 pub use export::{export_package, ExportOptions, ExportResult};
+pub use load::{
+    load_package, load_package_checked, LoadedPackage, LoadedSeriesFile, PackageLoad, PackageRepresentation,
+};
+pub use restore::{
+    apply_package_import, imported_record, preview_loaded, preview_package_import, PackageImportApplied,
+    PackageImportConflict, PackageImportPreview, PackageImportResolution,
+};
 
 /// The main package document name.
 pub const PACKAGE_DOCUMENT: &str = "athlete.ath.json";
