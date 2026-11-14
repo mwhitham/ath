@@ -9,6 +9,7 @@ const temporaryRoot = realpathSync(tmpdir());
 export default defineConfig({
   test: {
     include: ["test/**/*.test.ts"],
+    setupFiles: ["test/support.ts"],
     // Each client call starts one native worker. Running files one at a time
     // keeps runner contention out of the timing.
     maxWorkers: 1,
