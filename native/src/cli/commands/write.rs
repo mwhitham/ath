@@ -8,9 +8,11 @@ use crate::cli::runtime::{refuse, CommandResult, Context, Failure};
 use crate::ids::new_record_id;
 use crate::import::{self, ImportOptions, ImportRoute, ProviderPreview};
 use crate::json;
-use crate::log::{apply_log_plan, plan_log_entry, render_log_plan, LogRequest};
-use crate::model::RecordActor;
+use crate::log::{add_attachments, plan_log_entry, render_log_plan, LogRecord, LogRequest};
+use crate::model::{time, RecordActor};
+use crate::package::{apply_with_attachments, prepare_attachments};
 use crate::prediction::grade::{grade_prediction, plan_prediction_grade, tool_actor, GradeRequest};
+use std::path::PathBuf;
 
 /// `ath log`: one plain-text record or one validated structured batch.
 pub fn log(context: &mut Context<'_>, args: &Args) -> CommandResult {
@@ -29,14 +31,23 @@ pub fn log(context: &mut Context<'_>, args: &Args) -> CommandResult {
             benchmark: args.value("benchmark").map(ToString::to_string),
         };
         let plan = plan_log_entry(store.connection(), &request, &mut new_record_id)?;
-        if !args.values("attachment").is_empty() {
-            // Attachment files are prepared by the package module, which is
-            // not connected to this executable yet.
-            return Err(Failure::NotConnected(
-                "ath log --attachment is not connected to the native library yet; nothing was read or written"
-                    .to_string(),
-            ));
-        }
+        // Each attachment file is read and checked now; it is written only
+        // with the records, and linked to the batch's one report or entry.
+        let paths: Vec<PathBuf> = args.values("attachment").iter().map(|path| context.resolve(path)).collect();
+        let created_at = plan.inputs.first().map_or_else(time::now_utc, |input| input.created_at.clone());
+        let prepared = prepare_attachments(store, &paths, &request.actor, &created_at)?;
+        let records = prepared
+            .iter()
+            .map(|file| {
+                LogRecord::attachment(
+                    file.record_id.clone(),
+                    file.created_at.clone(),
+                    file.changed_by.clone(),
+                    file.data.clone(),
+                )
+            })
+            .collect();
+        let plan = add_attachments(plan, records)?;
         if flags.json {
             return context.say_json(&json::to_value(&plan.preview(&path.display().to_string())));
         }
@@ -47,7 +58,7 @@ pub fn log(context: &mut Context<'_>, args: &Args) -> CommandResult {
         if !context.confirm(flags, "Write these records?")? {
             return context.say("nothing written");
         }
-        let written = apply_log_plan(store, &plan)?;
+        let written = apply_with_attachments(store, &prepared, plan.changes())?;
         let count = written.records.len();
         context.say(&format!(
             "wrote {count} record{} at database revision {}",
@@ -83,8 +94,8 @@ pub fn grade(context: &mut Context<'_>, args: &Args) -> CommandResult {
     })
 }
 
-/// `ath import <path>`. Provider exports are connected. Mapped JSON files,
-/// Garmin and Strava inputs, and packages have their own library
+/// `ath import <path>`. Provider exports and packages are connected. Mapped
+/// JSON files and Garmin and Strava inputs have their own library
 /// operations, which are not connected to this executable yet.
 pub fn import(context: &mut Context<'_>, args: &Args) -> CommandResult {
     let athlete_path = context.find_database(args.value("file"))?;
@@ -98,7 +109,11 @@ pub fn import(context: &mut Context<'_>, args: &Args) -> CommandResult {
     match route {
         ImportRoute::Mapped => return not_connected("a file with --mapping"),
         ImportRoute::Shared(shared) => return not_connected(&format!("{} data", shared.as_str())),
-        ImportRoute::Package => return not_connected("a package"),
+        ImportRoute::Package => {
+            return super::shared::with_store_at(context, &athlete_path, args.flag("json"), Open::Write, |c, s, _| {
+                super::package::import_package(c, s, &input, args)
+            })
+        }
         ImportRoute::Provider => {}
     }
     let json = args.flag("json");

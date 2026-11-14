@@ -11,11 +11,13 @@
 mod edit;
 mod init;
 mod model;
+mod package;
 mod read;
 mod setup;
 mod shared;
 mod write;
 
+pub use package::render_package_preview;
 pub use write::render_provider_preview;
 
 use super::parse::Args;
@@ -38,6 +40,10 @@ pub fn handler(path: &[&str]) -> Handler {
         ["key", "clear"] => model::key_clear,
         ["models"] => model::models,
         ["import"] => write::import,
+        ["conflicts", "show"] => package::conflicts_show,
+        ["conflicts", "resolve"] => package::conflicts_resolve,
+        ["export"] => package::export,
+        ["erase"] => package::erase,
         ["log"] => write::log,
         ["link"] => edit::link,
         ["correct"] => edit::correct,
@@ -57,10 +63,9 @@ pub fn handler(path: &[&str]) -> Handler {
     }
 }
 
-/// Command paths whose handlers are connected to the native library. Some
-/// of them still refuse one route as not connected: `import` of a package,
-/// a mapped file, or Garmin or Strava data; `check --validate-export`; and
-/// `--attachment` on `log` and `correct`.
+/// Command paths whose handlers are connected to the native library.
+/// `import` still refuses a mapped file and Garmin or Strava data as not
+/// connected.
 pub const CONNECTED: &[&[&str]] = &[
     &[],
     &["init"],
@@ -73,6 +78,10 @@ pub const CONNECTED: &[&[&str]] = &[
     &["key", "clear"],
     &["models"],
     &["import"],
+    &["conflicts", "show"],
+    &["conflicts", "resolve"],
+    &["export"],
+    &["erase"],
     &["log"],
     &["link"],
     &["correct"],

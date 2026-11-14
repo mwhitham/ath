@@ -1,9 +1,13 @@
 //! `ath link`, `ath correct`, and `ath delete`: previewed changes to one
-//! existing record, written through `Store::apply` after confirmation.
+//! existing record, written through `Store::apply` after confirmation. A
+//! correction with attachment files is written through
+//! `package::apply_with_attachments`.
 //!
 //! Each prints a preview, stops for `--json` or `--dry-run`, asks unless
 //! `--yes` is given (S18), and writes one change with the expected revision
 //! from `--revision`. A stale revision is refused.
+
+use std::path::PathBuf;
 
 use super::shared::{confirm_flags, object, proceed, required_argument, with_store, Open};
 use crate::cli::parse::{Args, PositiveInteger};
@@ -11,8 +15,10 @@ use crate::cli::runtime::{refuse, CommandResult, Context, Failure};
 use crate::error::Error;
 use crate::json::{self, Value};
 use crate::model::{
-    record_id as record_id_schema, BecameKnownAtBasis, CurrentRecord, PathSegment, RecordActor, RecordData, RecordType,
+    record_id as record_id_schema, time, BecameKnownAtBasis, CurrentRecord, PathSegment, RecordActor, RecordData,
+    RecordType,
 };
+use crate::package::{apply_with_attachments, prepare_attachments};
 use crate::store::write::StaleStyle;
 use crate::store::{Changes, Correction, Deletion, ExtensionsUpdate, Store};
 
@@ -126,14 +132,33 @@ pub fn correct(context: &mut Context<'_>, args: &Args) -> CommandResult {
             None => RecordActor::Athlete,
             Some(agent) => RecordActor::Agent { agent, agent_version: None },
         };
-        if !attachments.is_empty() {
-            // Attachment files are prepared by the attachment library, which
-            // is not connected yet.
-            return Err(Failure::NotConnected(
-                "ath correct --attachment is not connected to the native library yet; nothing was read or written"
-                    .to_string(),
-            ));
+        let paths: Vec<PathBuf> = attachments.iter().map(|path| context.resolve(path)).collect();
+        let prepared = prepare_attachments(store, &paths, &actor, &time::now_utc())?;
+        let mut data = data;
+        if !prepared.is_empty() {
+            if !matches!(current.record_type(), RecordType::AthleteReport | RecordType::NutritionEntry) {
+                return Err(refuse("--attachment can correct only an athlete_report or nutrition_entry"));
+            }
+            let Value::Object(fields) = &mut data else {
+                return Err(refuse("--data must be a complete record data object"));
+            };
+            // The new attachment IDs follow any the data already names.
+            let mut ids = match fields.get("attachment_ids") {
+                Some(Value::Array(ids)) => ids.clone(),
+                _ => Vec::new(),
+            };
+            ids.extend(prepared.iter().map(|file| Value::String(file.record_id.clone())));
+            fields.insert("attachment_ids".into(), Value::Array(ids));
         }
+        let attachment_preview = prepared
+            .iter()
+            .map(|file| {
+                object(vec![
+                    ("record_id", Value::String(file.record_id.clone())),
+                    ("data", RecordData::Attachment(file.data.clone()).to_value()),
+                ])
+            })
+            .collect();
         let preview = object(vec![
             ("file", Value::String(path.display().to_string())),
             ("record_id", Value::String(current.record_id.clone())),
@@ -142,7 +167,7 @@ pub fn correct(context: &mut Context<'_>, args: &Args) -> CommandResult {
             ("current_revision", Value::from(current.current_revision)),
             ("before", current.data.to_value()),
             ("after", data.clone()),
-            ("attachments", Value::Array(Vec::new())),
+            ("attachments", Value::Array(attachment_preview)),
             ("write_confirmed", Value::Bool(false)),
         ]);
         context.say_json(&preview)?;
@@ -152,7 +177,9 @@ pub fn correct(context: &mut Context<'_>, args: &Args) -> CommandResult {
         check_correctable(store, &current.record_id, expected)?;
         let decoded = RecordData::decode(current.record_type(), &data)
             .map_err(|error| Error::Invalid(error.under(&[PathSegment::Key("data".to_string())])))?;
-        let applied = store.apply(correction(&current.record_id, expected, decoded, actor))?;
+        let mut changes = correction(&current.record_id, expected, decoded, actor);
+        changes.creates = prepared.iter().map(|file| file.new_record()).collect();
+        let applied = apply_with_attachments(store, &prepared, changes)?;
         let revision = written_revision(&applied.records, &current.record_id)?;
         context.say(&format!(
             "corrected {} to revision {revision} (database revision {})",

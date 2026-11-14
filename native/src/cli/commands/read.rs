@@ -8,6 +8,7 @@ use crate::cli::parse::Args;
 use crate::cli::runtime::{refuse, CommandResult, Context, Failure};
 use crate::json;
 use crate::model::{ProviderReportingPeriodType, RecordType, SeriesQuantity, ATHLETIC_STANDARD_VERSION};
+use crate::package::{export_package, ExportOptions};
 use crate::store::check::{self, Severity};
 use crate::store::read::ListOptions;
 use crate::store::stats;
@@ -22,19 +23,22 @@ fn limit(args: &Args) -> u32 {
     u32::try_from(value).unwrap_or(u32::MAX)
 }
 
-/// `ath check`. `--validate-export` needs the package module.
+/// `ath check`. `--validate-export` also writes a complete package into a
+/// new temporary folder, which is removed afterwards.
 pub fn check(context: &mut Context<'_>, args: &Args) -> CommandResult {
     let json = args.flag("json");
+    let validate_export = args.flag("validate_export");
     let path = context.find_database(file_or_argument(args))?;
-    if args.flag("validate_export") {
-        return Err(Failure::NotConnected(
-            "ath check --validate-export is not connected to the native library yet; nothing was read or written"
-                .to_string(),
-        ));
-    }
     let mut valid = true;
     with_store_at(context, &path, json, Open::ReadOnly, |context, store, path| {
-        let report = check::check(store, None)?;
+        let validator = |store: &Store| -> crate::Result<()> {
+            let temporary = crate::files::make_temporary_directory("ath-check-export-")?;
+            let exported = export_package(store, &temporary.join("package"), &ExportOptions::default());
+            let _ = std::fs::remove_dir_all(&temporary);
+            exported.map(|_| ())
+        };
+        let validate: Option<check::ExportValidator<'_>> = if validate_export { Some(&validator) } else { None };
+        let report = check::check(store, validate)?;
         valid = report.result.valid;
         if json {
             return context.say_json(&json::to_value(&report));
@@ -59,6 +63,9 @@ pub fn check(context: &mut Context<'_>, args: &Args) -> CommandResult {
                 path.display(),
                 report.result.record_count
             ))?;
+            if report.export_validated {
+                context.say("ok  export: complete JSON package validated")?;
+            }
         } else {
             let errors = report.result.issues.iter().filter(|issue| issue.severity == Severity::Error).count();
             context.note(&format!("\n{}: INVALID — {errors} error(s)", path.display()));

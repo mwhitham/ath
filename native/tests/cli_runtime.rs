@@ -344,6 +344,6 @@ fn unconnected_commands_say_so_and_touch_nothing() {
         );
         checked.push(path.join(" "));
     }
-    assert_eq!(checked, ["conflicts show", "conflicts resolve", "export", "erase", "pull"]);
+    assert_eq!(checked, ["pull"]);
     assert_eq!(std::fs::read_dir(folder.path()).unwrap().count(), 0);
 }
