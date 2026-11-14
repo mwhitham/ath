@@ -42,3 +42,16 @@ pub const DETECTION_JSON_HEAD_CHARS: usize = 8000;
 /// Staged plan rows written or applied per batch. This bounds memory while one
 /// transaction covers the complete import.
 pub const IMPORT_BATCH_RECORDS: usize = 500;
+
+// ---- Garmin, Strava, the Garmin pull, and mapped imports ----------------
+//
+// The 2.1.0 helper read these inputs whole and had no limits of its own. The
+// native readers keep the archive and folder limits above and add a limit per
+// file, because each file is read into memory to parse it.
+
+/// Bytes of one Garmin or Strava file read whole into memory: a FIT, GPX, CSV,
+/// or JSON activity file. 256 MiB.
+pub const MAX_SHARED_FILE_BYTES: u64 = 256 * 1024 * 1024;
+
+/// Bytes of the JSON file a mapped import reads whole into memory. 512 MiB.
+pub const MAX_MAPPED_INPUT_BYTES: u64 = 512 * 1024 * 1024;

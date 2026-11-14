@@ -5,6 +5,8 @@
 
 #![allow(dead_code)]
 
+pub mod keyed;
+
 use std::io::Write;
 use std::path::{Path, PathBuf};
 
