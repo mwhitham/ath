@@ -45,6 +45,39 @@ here; an unlisted difference is a bug.
    command to run. Cargo and archive installs get precise instructions. Reason:
    spec section 11.3. Test: `runtime_update.rs`.
 
+## Provider imports
+
+8. **A WHOOP cycle timezone written only in letters, such as `PST`, skips the
+   row.** The 2.1.0 helper read it as UTC, which moved every time in the row by
+   hours, and it cut long digit strings such as `+12345` to `+12:34`. The rule
+   `tests/csv.test.ts` already tested is now applied: the row is skipped with
+   an example. Test: `import_whoop.rs`.
+
+9. **An invalid candidate fails the preview.** In 2.1.0 the preview succeeded
+   and the confirmed write failed. Test: `import_whoop.rs`.
+
+10. **New refusals for misuse.** A preview applied to a different database, or
+    a candidate that names a source its reader never declared, is refused.
+
+11. **Unusual characters no longer crash a reader.** A non-ASCII character at
+    a fixed time position makes the row unreadable instead of stopping the
+    program.
+
+12. **Folders are read in byte order on every system.** Node used byte order
+    on Unix but not necessarily on Windows. A stable order keeps previews the
+    same everywhere.
+
+13. **Corrupt zip archives report the Rust zip library's error text.** The
+    refusal and exit status are unchanged.
+
+14. **Garmin JSON detection reads the first 32 KB, not the whole file.** The
+    detected route is the same; large files no longer load fully to detect.
+
+15. **Skip reasons sort with JavaScript `localeCompare` rules for ASCII
+    text.** Other characters sort by code point.
+
+16. **New records name tool version 2.1.1 in `changed_by`.**
+
 ## Behavior kept on purpose
 
 These look odd but stay, because changing them would change accepted data or
@@ -63,6 +96,12 @@ stored bytes:
   command argument, as 2.1.0 did. Another local process could read it while the
   tool runs. Changing the call needs a test on a real Keychain, so it is listed
   as an open question for the owner.
+
+- Import source lookup uses `LIMIT 1` without `ORDER BY`, as in 2.1.0.
+- A WHOOP time with a space before its offset fails the whole import, as in
+  2.1.0.
+- A single CSV with a nonstandard file name imports nothing and is reported as
+  an unrecognized file, as in 2.1.0.
 
 ## Open work
 
