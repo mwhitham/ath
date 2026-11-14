@@ -4,12 +4,14 @@
 //!
 //! Module responsibilities are described in `docs/architecture.md`.
 
+pub mod assets;
 pub mod cli;
 pub mod error;
 pub mod files;
 pub mod ids;
 pub mod json;
 pub mod model;
+pub mod runtime;
 pub mod store;
 
 pub use error::{Error, Result};
