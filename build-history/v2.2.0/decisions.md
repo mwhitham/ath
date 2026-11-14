@@ -1,0 +1,1076 @@
+# Decisions — v2.2.0
+
+D-numbers continue from [v2.1.0](../v2.1.0/decisions.md). D198 follows D197.
+
+These are proposals in [spec.md](spec.md). The maintainer has not adopted
+them. This pull request does not build them. A change of mind before
+approval is an edit of the proposal. After approval, a change is a new
+D-number.
+
+## D198. Version 2.2.0 is one manual pull, and the program and the record share that number
+
+`ath pull openwearables` reads the stored representations D208 lists from an
+Open Wearables server the person runs, for one user and one range they name. The
+command is manual. The person runs it. The program does not schedule it,
+retry a failed request, or sign the person in to a device maker.
+
+The program, the record, and the database become `2.2.0` together. D152 made
+those one number. D184 kept that rule. Migration step 5 stores `2.2.0` and
+SQL schema 5. It adds no column to an existing table. It rebuilds
+`provider_summaries` and `provider_scores`, and it creates
+`source_reports`, as D205 describes. D207 drops the record views and
+the two cross-table triggers around the root rename. Existing rows keep
+their numbers. Step 4 is not edited
+(D165). A new database closes the step 4 transaction, then runs step 5,
+which sets `user_version` 5. `applyMigrationStep` handles target 5
+outside `withWriteTransaction`. The migration chain, the SQL
+contract generator, and the drift check gain that step. The package exports
+point at `schema/2.2.0/`. `READABLE_DATABASE_VERSIONS` and
+`ACCEPTED_RECORD_VERSIONS` keep `1.0.0`, `2.0.0`, and `2.1.0`, and gain
+`2.2.0`. `IMPORTABLE_PACKAGE_VERSIONS` gains `2.2.0` and keeps `2.0.0` and
+`2.1.0`. A `2.1.0` package still imports. A `2.1.0` database does not open
+until `ath migrate`.
+
+The build is one pull request after this plan is approved. It is not split
+into a version change, a client, and a mapping change.
+
+The version numbers below are proposals. They are not specs, and they are
+not adopted.
+
+- 2.2.0 is this pull. D203 says which stored measurements it keeps.
+- 2.3.0 is a proposed Junction pull. This release does not call Junction.
+- 2.4.0 is proposed automatic incremental sync, saved sign-in refresh,
+  retries, and backfill. This release has none of those. A smaller page
+  after a local 8 MiB cap, described in D203, is not that retry.
+- An earlier draft of this plan left day aggregates and the heart-rate
+  stream out and suggested 2.5.0 for them. D203 supersedes that draft.
+  D88 still forbids a fabricated instant. It does not forbid keeping a
+  bound the server sent.
+- A connector interface that every future source would implement is not
+  part of this release. This release adds one module for this server.
+
+File imports stay: Apple Health, WHOOP, Oura, Garmin, and Strava. `ath pull
+garmin` stays as it is. Mapped import for every route other than
+`open_wearables` stays as it is. Open Wearables mapped import gains the
+shared binding refusal in the specification. It no longer accepts a second
+device id, or a refresh of history that has no established binding.
+
+Evidence: [appendix/open-wearables-api.md](appendix/open-wearables-api.md).
+
+Rejected alternatives:
+
+- Leave the record at 2.1.0 while the program becomes 2.2.0. Rejected because
+  D152 and D184 already rejected a split.
+- Ship the pull as three pull requests. Rejected because the maintainer asked
+  for one versioned build.
+- Pull Junction, start sync jobs, or add a connector trait in this release.
+  Rejected because this release has to make one manual read reliable first.
+  The later version numbers are proposals, not adopted assignments.
+- Leave day aggregates and the heart-rate stream for a later version, or
+  request them while still calling that later version their home. Superseded
+  by D203. The current proposal stores them in this pull and says so.
+
+## D199. The pull fetches pages and the shipped mapping writes the records
+
+New Rust module `crates/ath-core/src/open_wearables.rs` requests the reads
+in D203 and calls `apply_mapping`. The command-line front end stays in
+TypeScript (D174). New imports stay in `ath-core` (D155). The HTTP client is
+the `ureq` 2.12 dependency the Garmin pull already uses. No new crate.
+
+The mapping file is resolved with `resolveMappingFile` in `src/skill.ts`,
+name `open-wearables`. An installed copy in `.agents/mappings/` wins, which
+is D179. Rust receives the absolute path. It does not grow a second rule for
+what a path looks like.
+
+The mapping file chooses every stored field. The pull does not rename a
+field, choose a unit, or decide that a value is RMSSD or SDNN. A field the
+file does not name stays in `supplied_fields` under the name it arrived with
+(D153, D161). `field_basis` stays whatever the file already states (D185,
+D187, D192).
+
+Sleep and workout responses are envelopes with `data` and `metadata`. The
+shipped file's page section is `timeseries`, so `apply_mapping` would leave
+that envelope out. The pull passes sleep rows as `{ "sleep": [ ... ] }` and
+workout rows as `{ "workout": [ ... ] }`. It passes each timeseries response
+through unchanged, so `metadata.resolution` still reaches the mapping. The
+pull does not drop one row and keep its neighbors. A credential, a reflected
+origin or user id, a same-key `device_id` collision, or a bad envelope
+rejects the whole page first. A manual workout is written. D209 stores
+it as a workout session. The other rows in that page are still written.
+
+The timeseries query's `types` list is the `type.<name>` lines in the
+resolved mapping file, read when the command runs. The prefix is that
+section's `type_field`. Each name is one repeated `types` query parameter.
+A name that appears twice is sent once. `skin_temperature` is that case. A
+comma-joined string is not a member of the `SeriesType` enum. This study did
+not send that request, so it does not claim a live 422. The Rust source has
+no second copy of those names.
+
+On Open Wearables 0.11.0 the route defaults `types` to an empty list, and
+the repository applies a type filter only when the list is nonempty
+(`data_point_series_repository.py`). An empty list therefore returns every
+series. D203 omits `types` on the raw read and the day read for that
+reason. A mapping that cannot store those series fails before any network
+call. A comma-joined type string is still not sent.
+
+`heart_rate` is a series quantity. D203 stores the raw stream as
+measurement samples. Workout `avg_heart_rate_bpm` and
+`max_heart_rate_bpm` stay as the file already maps them.
+
+`apply_mapping` adds counts by record type and keeps the existing `outcome`
+field. The pull adds those counts into the committed result for a page that
+committed and into `estimated` for a page that was rolled back. It does not
+add `outcome` across pages. Estimated counts are against the database before
+this command. They are not equal to the write when the same match key appears
+on two pages, or when the server changes between runs. The write still
+follows D182. This proposal does not keep a command-wide preview overlay.
+
+The read order is the order in D203. A failure in a later read
+leaves the earlier read's pages committed and the reads after the failure
+`not_attempted`. The result says so. See D201.
+
+D203 is the coverage rule. An earlier draft of this decision left the day
+rows, the summaries, and the heart-rate stream unrequested. That draft is
+superseded. D88 still forbids inventing a midnight. The period type in
+D203 stores the bound the server sent. An Open Wearables window is not
+labeled as a Whoop cycle or an Oura day.
+
+Sleep requests `include=stages`. Workouts request `include=zones` and
+`include=segments`. Stage minute totals return either way. The timeline,
+the zones, and the segments are null when the expansion is omitted, so
+omitting it would drop them before `supplied_fields` can keep them. A page
+over 8 MiB is handled as D203 says.
+
+Rejected alternatives:
+
+- Teach the pull the Open Wearables field names in Rust. Rejected because
+  D161 put those names in the mapping file so a second source does not become
+  a second record format.
+- Pass the sleep envelope straight to `apply_mapping`. Rejected because the
+  current page rule would leave the page out. The check is `page_rows` and
+  `row_fits` in `crates/ath-core/src/mapping.rs`.
+- Request every series type and let `left_out` drop the ones the mapping
+  cannot store. Rejected. D203 stores them. `left_out` remains a row the
+  server returned and this program refused for a named reason.
+- Map `heart_rate` samples as points, or map a day summary onto midnight.
+  Rejected. `heart_rate` is stored as a measurement sample. A day row is
+  stored as a reporting window (D88, D110, D203).
+- Refuse an empty `types` list in order to avoid heart rate and location.
+  Superseded by D203. Omitting `types` is how 0.11.0 returns every series,
+  and those series are stored. A comma-joined string is still not a member
+  of the enum.
+- Put `device_id` on the sensor string, and therefore on the match key, for
+  both import and pull. Not this proposal. It needs no new column, and the
+  mapping engine already joins configured sensor paths, but it changes
+  source, baseline, and key identity. Old triple-key rows would stay where
+  they are, and dedupe against them cannot be promised. A `device_id` that
+  contains `|` collides with the join unless those values are refused or
+  the join is encoded. The shared binding in the specification keeps the
+  current keys and refuses the unsafe write instead.
+- Guard the pull only, or treat `source_devices.hardware` as the binding.
+  Rejected. Import after pull would still replace the point, and hardware
+  is one mutable column. The point's revisions do not contain `device_id`
+  today, because that path is removed as hardware.
+- Put the receipt in `supplied_fields`, under `device_binding` or another
+  name. Rejected. D185 keeps that object for names the source sent. A 2.1.0
+  source may already hold an arbitrary value at that name, and step 5 must
+  not turn that value into authority. The receipt is the source object's own
+  key `device_binding`.
+- Treat a nonempty string at the new key as proof no matter who wrote it,
+  or require a signature so the owner cannot change it. Rejected. The
+  automatic path writes the key only by the checked rule. `ath correct`,
+  package restore, and an accepted package merge store the whole source the
+  owner supplied. A hand-edited database file is outside this proposal.
+
+## D200. The key, the server, and the user id stay out of the record
+
+The API key is an administrator key for every user on that deployment. The
+pull sends it only as the header `X-Open-Wearables-API-Key`. It is saved with
+`ath key set openwearables` in the operating system password store, the same
+store D75 uses. The environment name for a script is `OPEN_WEARABLES_API_KEY`.
+The child process receives it as `ATH_CORE_OPEN_WEARABLES_KEY`. The key is
+not a command argument. If the password store is missing, the command refuses
+and does not write a file.
+
+Open Wearables is not added to the gateway list. `GATEWAYS` stays `vercel`
+and `openrouter`. `ath key clear` with no name still clears only those
+gateway keys, and it still exits successfully when that is what it did.
+When a saved Open Wearables key remains, the text adds two sentences: the
+Open Wearables key remains saved, and `ath key clear openwearables` removes
+it. When no saved Open Wearables key remains, the gateway sentences stay as
+they are today. `ath key clear vercel` and `ath key clear openrouter` do not
+remove the Open Wearables key and do not gain that sentence.
+
+`ath key clear openwearables` deletes the password-store key only. It does
+not unset `OPEN_WEARABLES_API_KEY`. The text says the saved key was removed.
+When the environment variable is set, the text also says that key is still
+available and a pull can still use it. When the variable is unset, the text
+does not claim an environment key remains.
+
+`ath key` keeps its gateway lines. It adds separate lines for a saved Open
+Wearables key and for `OPEN_WEARABLES_API_KEY`, and it prints neither value.
+`ath key --json` keeps `saved` and `environment` as the gateway lists they
+are today, and adds `openwearables.saved` and `openwearables.environment`.
+Garmin's key command is unchanged.
+
+The server is `--base-url` or `OPEN_WEARABLES_BASE_URL`. The user id is
+`--user` or `OPEN_WEARABLES_USER_ID`. Neither is written into the database,
+the export, a config file, or a log line. The pull never calls `GET /users`.
+D204 reads the personal record and drops its `user_id` before the scan.
+Birth date, gender, and sex are stored. One command reads one user.
+
+`--base-url` is an origin: scheme, host, and optional port. No user name, no
+password, no path other than empty or `/`, no query, and no fragment. `http`
+is allowed only for `localhost`, `127.0.0.1`, and `::1`. Any other host
+requires `https`. The pull appends `/api/v1` itself. Redirects are not
+followed. A timeout, a non-JSON body, or an HTTP error becomes the page
+failure in D201. The printed error is a fixed sentence and the HTTP status. A problem `code`
+is printed only when it is one short token and does not contain the key,
+the origin, or the user id. Otherwise it is withheld. A transport error or
+a parser error is replaced with a fixed sentence that has no URL, no path,
+and no user id.
+
+After the body is read inside the size cap and parsed, and before
+`apply_mapping`, `open_wearables.rs` walks every object key and every string.
+A value that contains the API key, the selected origin, or the selected user
+id rejects the whole page. The row is not rewritten. A scan of the raw text
+misses a Unicode escape. The raw-text scan and the check before printing
+stay as defense in depth. They are not what keeps the key out of a committed
+page. Named clear of the saved key does not revoke it on the server.
+
+The shell history can contain the server and the user id when they are
+passed as flags. The key is not a flag. `ath key set openwearables`, or
+`OPEN_WEARABLES_API_KEY` already held by the shell, keeps the key off the
+command line. Putting the key on the same line as the command would store
+it in shell history. Do not do that.
+
+Rejected alternatives:
+
+- Store the server and the user id on the source row so the next pull can
+  omit them. Rejected because the export would carry them, and agents read
+  the export.
+- Remember them in a file beside the database. Rejected because that file is
+  easy to commit and easy to copy into a backup by mistake.
+- Accept a bearer token or a user-scoped SDK token for these reads. Rejected
+  because the 0.11.0 server does not accept the API key as a bearer token,
+  and the SDK token is limited to SDK routes. See the appendix.
+- List users and pull every user the key can see. Rejected because the key
+  sees the whole deployment, and this record is one athlete.
+
+## D201. A page is atomic, a missing row is not a deletion, and the same command is safe to repeat
+
+Each response page is one `apply_mapping` call. D189 still makes that call
+one transaction: a failure rolls the page back, and a preview rolls the page
+back after counting. The pull itself is a series of those calls. The order and the terminal
+condition of each read are the table in the specification's section 2.
+A committed
+page follows D189. A committed page does not mean the pull is complete.
+
+The command previews unless `--yes` is present. `--json` does not write,
+with or without `--yes`, matching `ath import --mapping`. `--yes` without
+`--json` writes each protected page as that page succeeds. A refused
+page is not a success. The pull-only archive in D208 is a separate
+transaction. It reads the safety facts again before it writes.
+
+The child returns one bounded outcome for the mode it ran. A preview,
+including public `--json`, has `written` false, protected and archive
+committed zeros, estimated counts, and `range_complete` false. A
+confirmed `--yes` has the actual protected and archive counts. `written` is
+true when a protected transaction in the command created or revised a
+counted record. An archive does not make it true. `database_changed` is
+true when a protected transaction or an archive transaction committed a
+change. A successful repeat of an unchanged command has both flags false.
+The parent renders the
+confirmed outcome as text. It renders the preview outcome as public JSON.
+On a partial failure the child returns the confirmed outcome and then exits
+nonzero. The parent renders the text before it uses that status.
+
+Each read in that table is `completed`, `failed`, or `not_attempted`. The
+token is `not_attempted` in the outcome and in the text. There is no
+`skipped` read. `range_complete` is true only on a `--yes` write whose
+ranged reads reached their terminal conditions. The success sentence also
+requires the personal record and the body snapshot to have completed. A retained
+count with an incomplete range is a partial pull. The message names the
+failed read, names any `not_attempted` read, and gives the retained counts.
+A failed read says to run the same command again. An identity refusal uses
+the sentence in the specification's section 3: a replacement id is blocked
+even at a new time, a 2.1.0 Open Wearables history cannot be refreshed until
+reconciliation, and
+a rerun cannot repair either one. A preview that fails makes no database
+changes, including for pages that had already been counted.
+
+Before `apply_mapping`, a cursor page and an offset page must be a JSON
+object, `data` must be an array, `pagination` must be an object, and
+`has_more` must be a boolean. Anything else fails that page. It is not an
+empty success. Body may be one object or JSON `null`. `null` is a completed
+empty snapshot. The personal record is one object. The result keeps a
+`left_out` total and at most 20 examples.
+
+An empty ranged result whose ranged reads completed has `range_complete`
+true. The personal record and the body snapshot can still be written.
+Those writes are counted. They are not ranged rows. A repeat uses the match
+key from D181 and the replace from D182, so an unchanged row is not written
+again. A rerun after a partial write leaves the committed rows in place,
+runs the failed read again, and runs any read that was `not_attempted`.
+
+`has_more: false` is the successful end of a cursor read and of the offset
+read. A repeated cursor, a null cursor while `has_more` is true, and the
+1000-page cap fail that read. An offset retry uses the same offset. A body
+over 8 MiB is handled by D204. The failed page is not written. Later reads
+are `not_attempted`. The success line is not printed. A cursor with the
+`prev_` prefix is not sent. `limit` starts at 1000. One attempt is made per
+request, except the smaller page D204 sends after a local size cap. A
+transport error is not retried.
+The connect timeout is 10 seconds and the read timeout is 30 seconds.
+
+A row that this range did not return is left where it is. The pull does not
+call `DELETE`. There is no deletion feed on these reads. Absence can be
+a short range, a failed page, or a server filter. D190 still applies: a
+source the person has deleted stays deleted, and its rows are left out. A
+record the person has deleted stays deleted, and that object is left out
+(D182).
+
+`--from` and `--to` are sent unchanged. Both are dates `YYYY-MM-DD`, or both
+are timestamps with an offset. A mix is refused. The command prints one line
+that a date-only bound is interpreted by Open Wearables, and that Athletic
+Standard did not convert it to the athlete's timezone (D88). The appendix
+records the disagreement between the docs and the 0.11.0 parser.
+
+The queries are the table in the specification's section 2. An earlier
+draft of this proposal listed three reads and treated every page as a
+cursor envelope. D204 supersedes that draft. `source_selection` is not
+sent. On 0.11.0 the parameter does not exist. On current `main`, omitting
+it returns every device when the priority flag is false. Summary routes
+still select a source. That selection is not a client filter.
+
+Rejected alternatives:
+
+- One transaction for the whole range. Rejected because a raw range can be
+  large, and a failure at the end would discard pages that had already
+  succeeded. Each page stays atomic under D189. The pull's result still says
+  the requested range is incomplete when a later read failed or was not
+  attempted.
+- Treat a committed page as a finished pull. Rejected because the person and
+  an agent would read a partial database as the whole requested range.
+- Store a resume cursor in the database. Rejected because the same command
+  finds the same rows by their match keys, so a stored cursor would be a
+  second copy of progress.
+- Delete local rows missing from the response. Rejected because the read has
+  no tombstone, and a partial range would hide history the server still has.
+- Retry, refresh a token, or start a historical sync. Rejected because those
+  are 2.4.0. A 401 or a 429 fails the page and writes nothing for it.
+- Convert a date-only bound into the athlete profile timezone. Rejected
+  because D88 forbids rewriting a source bound into a timezone the source
+  did not use.
+
+## D202. The Windows cleanup and the maintainability notes are not part of this build
+
+Checked on `main` at `8db90b42ac654767e9e9570a121bbbd4fde3348a`, which is the
+merge of pull request 39.
+
+The failed-init cleanup is still the code in `src/program.ts` (the `init`
+catch closes the database and deletes the file, the wal file, and the shm
+file with `rm`). `createDatabase` still deletes a half-created file in
+`removePartialLocalDatabase` (`src/db/migrate.ts`) by unlinking it. Neither
+path collects garbage first. `removeTemporaryDirectory` in `src/db/client.ts`
+does, and tests use it. Version 2.1.0 spec section 12 left the production
+paths out of that release and did not assign them a version. They are still
+open. They do not run on a pull. This build does not change them. D208
+rolls a failed step 5 back before this cleanup runs.
+
+`crates/ath-core/src/store.rs` is 1034 lines. `mapping.rs` is 1443.
+`persist.rs` is 1051. The pull is a new module so those files do not grow
+for HTTP. `mapping.rs` may add the count by record type that D199 names, and the
+open-wearables device-binding check in the specification. That check is
+shared by mapped import and pull, and it is limited to route
+`open_wearables`. D203 also adds the measurement-sample target, the
+reporting-window write, and the segment copy. Nothing beyond that is added
+to `mapping.rs`. `store.rs` may
+preserve `device_binding` inside `revise` when the record is a source, and
+refuse a partial patch that contains that key. `revise` cannot set, change,
+or clear the receipt. The connection is private, `ensure_mapped_source`
+has no receipt argument, and `same_source_records` omits deleted rows, so
+`store.rs` may also read the receipt and tombstone-inclusive history,
+create a source with the checked receipt, and write that receipt on an
+existing unbound source only when the same transaction shows no accepted
+or deleted record and no source device. Those writes keep every other
+source field and the normal revision and `data_json` bookkeeping. They
+join the caller's `BEGIN IMMEDIATE` transaction. D204 also allows
+`measurement_sample` insert and update, and a null value and unit pair on
+provider summaries and provider scores. A half-null pair is refused. The
+same pair is allowed in the TypeScript projection, package import, record
+view, and repair copy. D205 also allows `source_report` insert and update,
+and withdrawal of a child whose anchor is in this response. Nothing beyond
+that is added to `store.rs`. Other
+routes do not call the receipt operations. `ath correct`, package restore,
+and an accepted package merge remain the owner's whole source record.
+Splitting the files is separate work. It is not required to make the pull
+correct.
+
+`check_supplied_fields` runs in `store.rs` before insert and revise (D191).
+`persist.rs` `insert_record` writes `data_json` and does not call that check.
+The pull writes through `apply_mapping` and the store, so the check covers
+it. Closing the persist gap is separate work.
+
+`isMappingPath` exists once, in `src/skill.ts`. Rust has no copy. The pull
+uses the TypeScript function. There is no second path rule to remove.
+
+Rejected alternatives:
+
+- Fix the Windows cleanup, split the Rust files, and guard `persist.rs`
+  inside the 2.2.0 pull request. Rejected because none of them changes what
+  the pull writes, and the maintainer asked not to widen this build.
+- Block the pull on those fixes. Rejected for the same reason. A later
+  change can take any one of them on its own.
+
+## D203. Stored Open Wearables measurements are kept in this pull
+
+D204 supersedes the classification, source identity, time, score, endpoint,
+and size sentences in this proposal. D205 supersedes D204 where they
+disagree. The decision to keep the returned health data in this pull
+stands. Where a paragraph below disagrees with D208, D208 is the proposal.
+
+This supersedes the earlier draft, inside D198 and D199, that left day
+values, the heart-rate stream, sleep and recovery summaries, meals, and
+workout segments out of this pull. Those drafts are not deleted above.
+They are not the current proposal. The specification's section 2 is the
+list of reads, the storage rule, and the omissions that remain.
+
+A raw series that 2.1.0 already stores as a point stays a point, on the
+same match key. A raw `heart_rate` series is a measurement sample because
+that quantity already exists and it is not a point. Every other pinned
+series type that has no quantity yet gains one. The unit and the number
+come from the server. A row with `period_end` is a provider summary with
+period type `open_wearables_reporting_window`. `recorded_at` is unset.
+`start_at` and `end_at` are the server's `timestamp` and `period_end`.
+
+`ProviderReportingPeriodType` gains that one value. `ValueBasis` gains
+`aggregator`, used when `computed_by` is `open_wearables`. Series
+quantities gain the missing pinned types. `quantity` is already an
+unconstrained text column, so those names add no SQL column. Step 5
+rebuilds `provider_summaries` so `standard_value` and `standard_unit` can
+be null together. Existing summary rows are copied with their numbers.
+The device receipt still adds no column. The receipt, the transaction,
+the preview counts, and the public non-writing `--json` rule are
+unchanged.
+
+The mapping file `mappings/open-wearables.md` is rewritten in the build
+so a raw point, a raw sample, a day window, and a segment follow section
+2. A resolved file that does not do that fails before any request. D179
+still lets an installed file win. This check stops the 2.1.0 file from
+dropping rows the pull can store.
+
+Rejected alternatives:
+
+- Keep the earlier draft and store these values in a later version.
+  Rejected. The server already returns them, and a later version was
+  being used as a reason to leave them out.
+- Store a day row as a point at the period start. Rejected. That would
+  make a reporting window look like one instant (D88, D110).
+- Drop latitude, longitude, segments, or a large series to keep a
+  response under 8 MiB. Rejected. The smaller page in the specification
+  stores the rows. D204 states the minimum-page limit without naming a
+  series type.
+- Call the live provider workout proxy or the totals routes so the pull
+  can say it hit every path. Rejected. Those routes are not the stored
+  measurements. D204 does read the personal record. An earlier sentence
+  in this list left it out. That sentence is superseded.
+- Invent a midnight, a zero, or an SDNN value from an RMSSD value.
+  Rejected. A null stays absent. `RecoverySummary` at the pinned commit
+  has no skin-temperature field. A health-score component can still carry
+  one. D204 says so.
+
+## D204. Returned values keep their meaning, source, and time
+
+D205 supersedes the sentences below that call dietary or index series
+provider summaries, that store a day row as the same class as its raw
+sample, that build a sensor by joining parts with `:` and `-`, that put
+main-sleep bounds on a summed field, that leave a missing device id as
+`left_out`, that omit a manual workout, and that treat `received_at` as
+the time a revision was written. The values stay in this pull. The
+device-receipt rules stay. Where this proposal disagrees with D205, D205
+is the proposal.
+
+This corrects D203. The corrections that D205 does not replace are the
+contracts in the specification's section 2.
+
+A device source is still the 2.1.0 sensor, and its receipt rules are
+unchanged. A summary the server builds without `device_id`, a meal or
+cycle without one, a null timeseries source, and a health score use the
+separate sensors in that section. They do not borrow a device id, and
+their history does not block a later device binding. A raw or day sample
+that has a source and no device id is still refused.
+
+A number is classified before it is normalized. Existing raw points, raw
+`vo2_max`, and the two raw Garmin scores keep their kinds and keys. Dietary
+series and the named indexes, ages, and effort scores are provider
+summaries. The other raw series readings are measurement samples. Day rows
+use the same classes on the server's calendar window. That window is not
+the provider's original interval.
+
+Health-score `provider` is the author. `source` is the input and may be
+null. `provider: internal` is basis `aggregator`. A finite range in
+`constants/health_scores.py` is the scale. An unknown or unbounded range
+is not given `0-100`. The original object, including components and
+`event_record_id`, is kept.
+
+Sleep main-sleep bounds apply only to the fields section 2 names. Body is
+the server's current snapshot, not the requested range. Fields with no
+time use `not_provided_by_source` and no invented instant. Age is
+calculated. BMI is not labeled measured. The personal record's birth date,
+gender, and sex are stored. Its `user_id` is not. The athlete profile is
+not used for them, because that record cannot hold a full birth date, the
+gender values, or a source.
+
+Cursor pages, offset pages, and the two one-shot reads have the terminal
+conditions in the table. A smaller page repeats the same uncommitted
+cursor or offset. A minimum page or an unpaginated response that is still
+over 8 MiB is an incomplete read. The message names the read. It does not
+name a series type. Menstrual cycles keep an in-range start and a future
+end. A later start is not stored. The page is still followed to the end.
+
+Step 5 rebuilds `provider_summaries` and `provider_scores` so value and
+unit are both null or both present. It copies existing rows and keeps
+their ids, revisions, import keys, and tombstones. `store.rs` may insert
+and update samples and those paired-null rows. The TypeScript projection,
+package import, record view, and repair copy may do the same. Half-null
+is refused. No other store change is included.
+
+Rejected alternatives:
+
+- Put a summary with no device id on the bound device source. Rejected.
+  The summary would be refused, or the missing id would be invented.
+- Leave birth date, gender, and sex out because they are sensitive.
+  Rejected. They are health data. The user id is the part that stays out.
+- Use the athlete profile for those three fields. Rejected. The profile
+  has no source, no full birth date, and no room for every gender value.
+- Call every numeric series a measurement sample. Rejected. Intake,
+  indexes, ages, effort scores, and the existing summary and score lines
+  would change meaning or identity.
+- Treat body as a read of `--from` and `--to`, or date the undated fields
+  with the average window or the pull time. Rejected. The route has no
+  date parameters, and those times would be invented.
+- Give every health score the scale `0-100` or the basis `provider`.
+  Rejected. The pinned range table and `provider: internal` say otherwise.
+- Stop a day read at `limit` 1 and report one oversized series. Rejected.
+  That limit counts periods, and one period can hold many rows.
+
+## D205. Units, windows, reported records, and identities stay distinct
+
+D206 supersedes the sentences below that put every source-present series
+through the device check, that compare null-source rows by type and
+timestamp alone, that leave a refused original unstored in every case,
+that map `heart_rate_recovery_one_minute` to a quantity of that same
+name, and that call `hydration` a measurement sample. The units, day
+windows, sleep bounds, and reported-record direction stay. D207
+supersedes D206 where they disagree. D208 supersedes D207 where they
+disagree. Where this proposal disagrees with D208, D208 is the proposal,
+except the sentences that store a manual workout as a source report.
+D209 supersedes those sentences.
+
+This corrects D204. The returned health data stays in this pull. The
+specification's section 2 and the appendix series table are the contract.
+
+Every series has an input number, an input unit, a standard number, and a
+standard unit. The input pair is the server's pair. The standard number
+equals the input number except for `walking_step_length` and
+`running_stride_length`. Those quantities are metres in Athletic Standard
+and centimetres on the server, so the standard number is the input number
+divided by 100. A 70 cm step is 0.70 m. The aliases change the unit text
+and not the number: `percent` to `%`, `celsius` to `°C`, `degrees` to
+`deg`, `meters` to `m`, `m_per_s` to `m/s`, `watts` to `W`, `met` to
+`MET`, `minutes` to `min`, and `ml_kg_min` to `ml/kg/min`. A new quantity
+uses that alias, or the server unit token when it has no alias. Existing
+quantity units are not edited.
+
+A raw row keeps the class in the appendix table. A day row is never a
+measurement sample. Its `timestamp` is the start of a calendar period, and
+`window_seconds` is null. The stored period is
+`open_wearables_reporting_window`, from that timestamp to `period_end`,
+with `recorded_at` unset. The window is not called the measurement
+instant. Raw points, raw `vo2_max`, and the two raw Garmin scores keep
+their kinds and keys. Day heart rate, day steps, and day speed are window
+summaries. Day Garmin scores stay scores on the window.
+
+Sleep summary numbers cover every non-nap session in the selected source
+and date. The longest session supplies `start_time` and `end_time` on the
+original object only. Those bounds are not a period on the summed fields.
+A 360 minute total from two main sleeps stays on `provider_date`. This
+program does not re-sum the sessions and does not invent the missing
+interval.
+
+`source_report` is a new record type. It has a source, so it is not an
+athlete report and not a nutrition entry. It is not one of the seven
+measured types. D161 still forbids turning a personal report into a
+measured record. Dietary series, alcoholic-beverage counts, meal and
+nutrient numbers, index, age, and effort series, personal-record fields,
+predicted and coded cycle content, BMI, calculated age, and an unbounded
+health score use this type. The eight range calculations and
+`provider-period-summary` do not read it. A manual workout is a workout
+session. D209 is that rule. An automatic workout stays a measured
+session on the device source.
+
+A new sensor is `ow1:` plus a JSON array with no spaces. JSON `null`, an
+empty string, and `-` stay different. Legacy device sensors are not
+rewritten. A health score's sensor is `["score", provider]`, using the
+top-level author. The input source is not in that array, so a change from
+null to a known input revises the same score. A null-source timeseries
+uses `["unattributed", "timeseries"]` and the writer `open_wearables`.
+Two unequal payloads at the same type and time refuse the call. The
+personal record uses `["personal_record"]` and that same writer. A meal
+or cycle uses the event array even when `device_id` is present. That id
+stays in the array and in the original object. It does not establish
+`device_binding`. A manual workout does not use that array. D209 puts it
+on the manual source.
+
+A raw or day row whose `source` object has no `device_id` is an incoming
+device row. The whole call is refused, including a valid row on the same
+page. It is not marked `left_out` before the check. Null-source rows do
+not enter that check.
+
+The same returned object can change a child from a number to null or
+remove a nutrient. That child is revised to an absent value and unit.
+The id and the first `received_at` stay. D182 copies that `received_at`
+onto the revision. `became_known_at` is when the revision was written. A
+later number returns on the same child. A range that does not return the
+object does not withdraw its children. A refused page rolls the
+withdrawal back.
+
+A finished range with a failed body or personal-record read says the
+range is complete, names the failed snapshot, and exits nonzero. It does
+not print the success sentence. A preview says a snapshot would be
+stored. It does not say it was stored. An empty ranged result does not
+mean the command wrote nothing.
+
+`computed_by` omitted on a raw row keeps basis `provider_or_aggregator`.
+`computed_by: null` omits the basis. The raw Garmin scores keep basis
+`provider`. `provider: internal` keeps basis `aggregator`. The scale text
+comes only from `HEALTH_SCORE_RANGES`, including the `1-100` rows.
+
+Rejected alternatives:
+
+- Store a day heart-rate, step, or speed row as a measurement sample at
+  the calendar start. Rejected. That start is not a measurement instant,
+  and a sample requires `recorded_at`.
+- Add an interval-sample table so a day row can carry a duration.
+  Rejected for this release. The reporting window already holds the
+  bounds the server returned, and a day row does not carry
+  `window_seconds`.
+- Put the longest sleep's bounds on the summed duration. Rejected. The
+  sum covers every non-nap session, and the bounds cover one session.
+- Keep colon-joined sensors with `-` for a missing part. Rejected. A
+  colon in a part and a literal hyphen collide with that encoding.
+- Treat a second null-source payload as a correction. Rejected. There is
+  no sample id, so the program cannot tell a correction from a second
+  observation.
+- Call dietary intake a provider summary or a workout session. Rejected.
+  SPEC section 5.4 and D161 keep those measured types for measured
+  records. A source report preserves the object without making it a
+  measurement.
+- Call a manual workout a provider summary. Rejected. D209 stores it as
+  a workout session. It is not a provider summary.
+- Leave a removed nutrient current because the store compares emitted
+  keys. Rejected. The same object no longer contains that number.
+
+## D206. The new record type, numberless inputs, and refused originals stay separable
+
+D207 supersedes the sentences below that leave the record views in place
+during the rename, that set `written` false for an archive without
+defining `database_changed`, that archive a page from the first error,
+that hash the series row without its resolution, and that give a
+null-source reported series both the report sensor and the unattributed
+sensor. The root check, the numberless readers, and the reported-record
+direction stay. D208 supersedes D207 where they disagree. Where this
+proposal disagrees with D208, D208 is the proposal.
+
+This corrects D205. The returned health data stays in this pull. The
+specification is the contract.
+
+`records.record_type` is a closed check. `source_report` is not in it.
+Creating `source_reports` does not make a root row insertable. Step 5
+adds `source_report` to that check in the generated contract. It does
+not edit migrations 001 through 004, and it does not drop the check.
+Ordinary writes keep foreign keys on. The migration connection may turn
+them off only before its own transaction, rebuild `records` and the two
+nullable typed tables by copy, rename, and recreate, then require
+`foreign_key_check` and `integrity_check` before commit. D207 drops the
+two record views and the two cross-table triggers before that rename and
+recreates them unchanged. A drop of
+`records` inside the ordinary foreign-key transaction is not the
+procedure. Fresh init and a populated, deleted, history-bearing upgrade
+both have to accept a source report afterward.
+
+A numberless provider summary or provider score is excluded by the
+instant reader and the period reader before the limit, the count, and
+the numeric decode. It is not zero, and it is not the previous revision.
+Source reports stay out of those readers. The formulas stay.
+
+`RecoverySummary.recovery_score` takes its scale from
+`HEALTH_SCORE_RANGES` and the provider the builder copied. Polar recovery
+is 1 to 6. A provider the table does not name is a source report. The
+WHOOP-only prose is not the scale.
+
+Raw `heart_rate_recovery_one_minute` is quantity `hr_recovery`. The
+server name and the old key stay. `hydration` is a source report. A
+device id does not make that intake a sample.
+
+Sleep, workout, meal, cycle, and score ids must be UUIDs. A raw HTTP
+personal record must have a `user_id` UUID equal to the selected user
+before that field is removed. The canonical envelope does not contain
+it. A missing id refuses the protected page. It is not `left_out`, and
+it is not archived.
+
+`entry_source` `unknown`, null, and omission are `unknown_workout`
+reports. They are not sessions and not manual reports. The same server
+id with a different kind refuses the page.
+
+A protected refusal rolls back. For a missing device id on a
+device-targeted series row, and for unequal null-source payloads of one
+full match key, a later archive transaction stores kind `original` with
+no amount and no device receipt. D208 is when that transaction may
+write. D207 is the capsule and the command counts. `written` stays false when only the archive
+changed. The command
+exits nonzero. Credential failures, invalid ids, conflicting device ids,
+legacy history, and kind changes are not archived. Those originals are
+not kept, because storing them would invent an id or keep a payload the
+guard rejected. Preview does not see a cross-page null-source conflict.
+A raw midnight row and a day window that starts then are different keys.
+
+Rejected alternatives:
+
+- Rebuild `records` with `DROP TABLE` inside the foreign-key write
+  transaction. Rejected. The child links cascade or the drop fails, and
+  the history would not survive.
+- Leave foreign keys off after migrate. Rejected. Ordinary writes keep
+  the check.
+- Decode a null summary as zero or as its previous number. Rejected. The
+  current row says the number is absent.
+- Use 0 to 100 for every recovery summary because the class prose says
+  so. Rejected. Polar writes 1 to 6, and the query copies that value.
+- Add a point quantity named `heart_rate_recovery_one_minute`. Rejected.
+  `hr_recovery` is the existing quantity and the existing key.
+- Treat unknown provenance as automatic when a device id is present.
+  Rejected. The id is not a measurement label.
+- Archive every refused page, or write the archive inside the refused
+  transaction. Rejected. The first keeps rejected secrets and rejected
+  devices. The second stores the refused write.
+- Drop the originals of a missing device id so the refusal stays one
+  transaction. Rejected for the two reasons above. The archive is a
+  second transaction with a failed protected-write status. The other
+  refusal reasons stay unstored.
+
+## D207. The migration rename, the command counts, and the archive decision stay consistent
+
+D208 supersedes the sentences below that classify database facts before
+either transaction, that leave the archive with only an archive-source
+check, and that leave a failed init file in place. The migration graph,
+the command counts, the capsule, and the report routing stay. Where this
+proposal disagrees with D208, D208 is the proposal.
+
+This corrects D206. The returned health data stays in this pull. The
+specification is the contract.
+
+Step 5 drops `sql_v1_current_records`, `sql_v1_active_records`, and the
+two `record_revisions` triggers that read `records` before it drops
+`records`. It recreates them from the `001` text after the new root
+exists, in the same transaction. Foreign keys are turned off only before
+that transaction, on a connection ordinary writes do not reuse. After
+every exit the connection reads `foreign_keys` back as on, or it is
+closed. A failure before commit restores the old schema, the old rows,
+and the old version. `writable_schema` is not used. Files 001 through
+004 stay unchanged.
+
+`written` counts protected creates and revisions across the command. An
+archive-only change leaves it false and sets `database_changed` true.
+Archive counts are separate from protected counts. A later page does not
+clear either. A failed archive transaction keeps the refusal, rolls
+itself back, and leaves earlier commits. The pull text for a new
+archive-only change is `Protected write refused; N originals archived;
+database changed; pull incomplete.`
+
+D208 reads database-dependent vetoes inside the protected transaction
+and reads them again before any archive write. A veto there, including
+on a `left_out` row, forbids the archive. The privacy scan still comes
+first. The archive is pull-only. A mapped file import does not gain it.
+A deleted archive source is not recreated, and the archive writes no
+device receipt.
+
+Each archived series row is a capsule of `resource`, the response
+`resolution`, and the unchanged row. The hash is of that capsule. A raw
+capsule and a day capsule are different records. A stored capsule that
+hashes equal but differs is an archive failure, not a merge.
+
+A reported series uses only the report sensor, including when `source`
+is null. A measured series with `source: null` uses only the unattributed
+sensor. Age is a source report with no `field_basis`.
+
+Rejected alternatives:
+
+- Leave the views in place until commit. Rejected. SQLite checks them
+  when the replacement table is renamed, and the missing `records` name
+  fails that check.
+- Count an archive as `written`. Rejected. The protected import failed.
+  The database change is reported by `database_changed` and the archive
+  counts.
+- Archive whichever error the mapper returns first. Rejected. A later
+  conflicting device id would then be stored.
+- Give a mapped file import the same second transaction. Rejected. The
+  file has no selected-server privacy context, and the shared mapper
+  would gain a write the import did not ask for.
+- Hash the series row and infer the resolution later. Rejected. The
+  resolution is on the response, not on the row.
+
+## D208. The archive reads safety facts under the write lock
+
+This corrects D207. The returned health data stays in this pull. The
+specification is the contract.
+
+Privacy, required ids, and supplied-field names are checked on the
+returned page before either transaction. A failure starts neither
+transaction.
+
+Receipts, bindings, history, source deletion, stored records, import
+keys, tombstones, null-source payloads, and workout kinds are read
+inside the protected `BEGIN IMMEDIATE`, before any mutation. The read
+includes a row the mapping would leave out. That read is the safety
+snapshot. A veto in it refuses the protected page, and the archive is
+not attempted. An unlocked read from before that transaction is not the
+snapshot.
+
+The archive transaction then takes its own `BEGIN IMMEDIATE`. Before it
+inserts a source or a capsule, it reads those facts again, and it reads
+the archive source and the target capsules, including tombstones. A new
+veto or a safety fact that differs from the snapshot sets `archive` to
+`not_attempted` and writes nothing. A deleted source or a deleted record
+is not copied onto a new archive identity. A deleted archive source is
+not recreated. A deleted capsule is not replaced. If the page names a
+row the bounded read cannot cover, the page is not archived. There is
+no retry.
+
+A failed step 5 during init rolls back to the closed step 4 schema
+before the existing init cleanup runs. Init fails. D202's cleanup is
+unchanged. A migrate of an existing database keeps that file and the old
+schema when step 5 rolls back.
+
+Rejected alternatives:
+
+- Use an unlocked preflight as the archive decision. Rejected. Another
+  command can bind the source before the protected transaction, and the
+  protected veto would then be stored.
+- Recheck only the archive source after the protected rollback.
+  Rejected. The owner can delete the original source or record in
+  between, and the payload would be stored under a new identity.
+- Leave a failed init file at step 4. Rejected. The existing caller
+  removes that file, and this build does not change that cleanup.
+
+## D209. A workout the person typed is a workout session
+
+This supersedes only the sentences in D198 and D205 that store a manual
+workout as a source report or leave it out. D198 through D208 otherwise
+stay as written. The specification is the contract.
+
+`entry_source` `manual` is a `workout_session`. Its source type is
+`manual`. `field_basis.value` is `entered_by_hand`. It is not a device
+measurement. `device_id`, if the server sent one, stays on the original
+object. It does not set `device_binding`, and it does not put the
+workout on the watch's source. The server workout id is the match key,
+so a later pull updates the same workout. Name, type, start, end,
+distance, heart rate, elevation, zones, and segments are stored the same
+way they are stored on an automatic workout. `activity_type` still
+records that Open Wearables normalized the sport name. D212 corrects the
+next rule. The numbers on this session do not enter the eight range
+calculations or `provider-period-summary`. `workout-drift` may use the
+session's start and end when the caller names that session. The samples
+in that window still exclude a manual source. The session does not enter
+a device baseline.
+
+`unknown`, JSON null, and a missing `entry_source` stay source reports of
+kind `unknown_workout`. They are not a workout session, and they are not
+manual.
+
+Rejected alternatives:
+
+- Store a manual workout as a source report. Rejected. The workout object
+  says a manual entry is self-reported and has no device measurement
+  behind it. The record is a workout, and the source is the person.
+- Call a manual workout a provider summary. Rejected. It is a session.
+- Treat `unknown`, JSON null, or a missing `entry_source` as manual.
+  Rejected. Those values are not the self-reported entry.
+
+## D210. A body skin-temperature time is not an instant by itself
+
+This corrects the sentence that treats a non-null
+`skin_temperature_measured_at` as a measurement instant. The other body
+rules stay.
+
+The body service reads a skin-temperature sample in the latest window.
+When that sample is missing, it reads the newest day value and uses that
+day's `period_start` as the same timestamp. The response has no field
+that says which read it used. The amount, the unit, and the timestamp
+stay on the original object. The skin-temperature child is time-unknown.
+It has no `recorded_at`. The program does not choose by comparing
+timestamps, and it does not invent bounds. Body temperature and blood
+pressure still use their own times. A raw skin-temperature sample and a
+day skin-temperature window keep the series rules they already have.
+
+Rejected alternatives:
+
+- Treat every non-null body timestamp as an instant. Rejected. The day
+  fallback writes `period_start` into the same field.
+- Drop the timestamp. Rejected. The original object keeps what the server
+  sent.
+
+## D211. A finite heart-rate recovery stays, including zero
+
+This corrects the positive point gate for one quantity. The quantity,
+the unit, and the import key stay `hr_recovery` and `bpm`.
+
+Open Wearables stores `heart_rate_recovery_one_minute` as a number in
+bpm. The sample value has no positive minimum. The mapping and the v1
+point check currently reject a point at or below zero, except
+`temperature_deviation`. A finite `hr_recovery`, including zero and a
+negative number, passes that check. A non-finite value does not. Other
+points stay positive. `temperature_deviation` stays signed.
+`src/schema.ts` is not edited. No table is rebuilt for this check.
+
+Rejected alternatives:
+
+- Keep the positive gate and drop a recovery of zero. Rejected. The
+  server can return that number, and this pull said a returned zero stays
+  zero for this quantity.
+- Allow zero for every point. Rejected. The other positive checks stay.
+
+## D212. A manual session can set a window, and its numbers stay out
+
+This corrects the D209 sentence that says the calculations do not read a
+manual workout. It does not change the calculation code.
+
+`read_inputs` and `read_period` exclude `source_type` `manual`. They have
+no `include_manual` switch. `workout-drift` loads the session the caller
+names, including a manual session, and uses its start and end as the
+window. The samples then come from `read_inputs`, so a manual source's
+numbers are not inputs. The session's own heart rate and distance are not
+inputs. `queryMeasurements`, `querySeries`, and `querySessions` omit
+manual sources unless `include_manual` is true. A generic record listing
+is not those three functions. A typed workout must not enter a device
+baseline.
+
+Rejected alternatives:
+
+- Refuse a manual session as the drift window. Rejected. The current
+  command already accepts that window and then reads the other sources'
+  samples. This proposal does not take that away.
+- Let a manual heart rate enter a baseline when `include_manual` is set.
+  Rejected. The calculation SQL has no such switch.
+
+## D213. A provider-live workout is kept as an original
+
+D214 is the live-read procedure. D215 is the privacy choice. Where this
+proposal disagrees with either, those decisions are the proposal.
+
+The stored workout list is the normalized session. The provider route
+handlers return the vendor object and do not insert a workout row.
+Defaults leave workout samples, FIT bytes, and raw payloads unstored
+unless that deployment turned the flag on. This pull can store the vendor
+object when the person passes `--vendor-workouts`.
+
+The original is a `source_report` of kind `original`, subject
+`vendor_workout`, writer `open_wearables`, sensor
+`ow1:["vendor_workout", provider]`. The match key is the provider plus
+the vendor workout id. It is not a second workout session, and it is not
+joined to the stored session by time. The public stored workout has no
+`external_id`. Device names, device ids, routes, and nested samples stay
+inside the original. They do not set `device_binding`, and they are not
+measurement samples. Calculations do not read the original.
+
+The pull uses the published query parameters and does not add its own
+retry. It does not call sync or historical sync. A completed provider
+line means that provider's stated limit was reached. It does not mean the
+vendor returned lifetime history. The same API key is used. No new vendor
+permission is added.
+
+Rejected alternatives:
+
+- Leave the live routes unread. Rejected. The vendor object is available
+  from the server and is not the stored workout.
+- Make the live object a second workout session. Rejected. The stored
+  session already exists, and the public workout has no vendor id to join
+  them.
+- Call sync or historical sync to fill the gap. Rejected. Those routes
+  are writes this pull does not call.
+
+## D214. A live vendor read is opt-in, and one failure stays on that provider
+
+This supersedes the D213 sentences that said a live GET does not write on
+the server, that a failed provider stops the later providers, that Polar's
+list asks for samples, zones, and route, that a start outside the range
+is dropped, and that the server splits a Garmin range.
+
+`--vendor-workouts` is off unless the person passes it. Off, preview and
+`--json` call neither the connections route nor a live workout route.
+On, those calls run for a preview too. The preview writes nothing in this
+database and prints `vendor requests were made`.
+
+The server, while answering the GET, can save a refreshed vendor token,
+revoke a connection, emit `connection.revoked`, write `token_refresh_lock`
+and `provider_auth_failing_since`, and on HTTP 429 sleep 15, then 30,
+then 60 seconds, up to three retries. This program does not add a retry
+of its own.
+
+The pull reads `GET /users/{id}/connections` and calls only a connected
+provider that has a live list method. The order is Garmin, Polar, Suunto,
+Whoop, Fitbit, Oura, Strava, Withings, Sensorbio. A provider that is not
+connected, and a connected provider with no live list method, is
+`not_attempted`. One failure leaves that line `incomplete`. The others
+still run.
+
+Garmin is split by this program into windows of 24 hours or less, one
+call each, with a 120 second read timeout. Any failed window makes Garmin
+`incomplete`. Polar's list omits samples, zones, and route. Detail asks
+for all three. One combined object is written once per command. A second
+identical pull changes no row. A thinner object does not replace a richer
+stored original. A failed detail keeps the list object.
+
+Every returned original is stored, including a start outside `--from` and
+`--to`. The count is `vendor workout originals`. `range_complete` uses
+only the stored ranged reads. Each line says whether its limit covers the
+requested range and whether more data exists. Strava detail stops at 20
+calls per command. Later ids are deferred. Their list objects are stored.
+
+The unwrap, the id, and the start field for each provider are the table
+in the spec. File import uses the same envelope. The provider logic lives
+in `crates/ath-core/src/vendor_workouts.rs`, driven by one table.
+`open_wearables.rs` calls that module.
+
+Rejected alternatives:
+
+- Leave live reads on by default. Rejected. The server can change a token
+  and revoke a connection while answering the GET.
+- Stop the later providers after one failure. Rejected. A person connected
+  only to Garmin must still finish when another provider is absent, and a
+  failed provider must not hide a finished one.
+- Let the server split a Garmin range. Rejected. A failed window must be
+  visible as incomplete.
+- Drop an original whose start is outside the requested range. Rejected.
+  The live methods do not filter by workout start, so a drop would hide a
+  returned object.
+
+## D215. Vendor originals stay whole. The maintainer can change this
+
+This is a labeled choice. The default in this proposal is to keep each
+vendor object whole, including account ids, Polar user URLs, and full GPS
+routes. The reason is a complete, portable copy of what the vendor
+returned. The output and the spec say those fields are included.
+
+The scan still refuses the API key, the selected origin, and the selected
+user id. It also refuses an object key whose letters, after dropping `_`
+and `-` and ignoring case, are `useraccesstoken`, `accesstoken`,
+`refreshtoken`, `apikey`, `authorization`, `password`, `secret`, or
+`clientsecret`. `polar_user` and a coordinate are not those keys.
+
+Rejected alternatives:
+
+- Strip account ids, user URLs, and routes before storage. Not chosen.
+  The stored object would no longer be the object the vendor returned.
+  The maintainer can replace this decision before approval.
+
