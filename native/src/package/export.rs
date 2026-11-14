@@ -636,10 +636,18 @@ fn write_attachments(
         };
         let name = stored_attachment_name(&record_id, &data);
         let source: PathBuf = source_directory.join(&name);
+        let missing = || Error::not_found(format!("attachment file is missing: {} ({record_id})", source.display()));
+        // A package copies only the attachment file itself: never one reached
+        // through a symbolic link, which could name any file on the computer.
+        match files::refuse_symbolic_link_components(&source, false) {
+            Err(Error::Io(error)) if error.kind() == std::io::ErrorKind::NotFound => return Err(missing()),
+            other => other?,
+        }
+        if !fs::symlink_metadata(&source)?.is_file() {
+            return Err(Error::refused(format!("attachment path is not a regular file: {}", source.display())));
+        }
         let bytes = fs::read(&source).map_err(|error| match error.kind() {
-            std::io::ErrorKind::NotFound => {
-                Error::not_found(format!("attachment file is missing: {} ({record_id})", source.display()))
-            }
+            std::io::ErrorKind::NotFound => missing(),
             _ => error.into(),
         })?;
         check_attachment_bytes(&record_id, &data, &bytes)?;

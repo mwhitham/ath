@@ -35,132 +35,11 @@ use crate::input_policy::MAX_ATTACHMENT_BYTES;
 use crate::model::*;
 use crate::store::{self, Applied, Changes, NewRecord, Store};
 
-/// The folder next to the database that holds attachment files.
-pub const ATTACHMENT_DIRECTORY: &str = "attachments";
-
-/// The attachment folder for a database file.
-pub fn attachment_directory(database_path: &Path) -> PathBuf {
-    durable::parent_of(database_path).join(ATTACHMENT_DIRECTORY)
-}
-
-/// The media type that a file's leading bytes show: PNG, JPEG, WebP, or PDF.
-pub fn sniff_media_type(bytes: &[u8]) -> Option<&'static str> {
-    if bytes.starts_with(&[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]) {
-        return Some("image/png");
-    }
-    if bytes.starts_with(&[0xff, 0xd8, 0xff]) {
-        return Some("image/jpeg");
-    }
-    if is_webp(bytes) {
-        return Some("image/webp");
-    }
-    if bytes.starts_with(b"%PDF-") {
-        return Some("application/pdf");
-    }
-    None
-}
-
-fn is_webp(bytes: &[u8]) -> bool {
-    bytes.get(0..4) == Some(b"RIFF".as_slice()) && bytes.get(8..12) == Some(b"WEBP".as_slice())
-}
-
-/// Refuse bytes that do not match the record's media type. PNG, JPEG, WebP,
-/// and PDF must start with their signature. Any other image type is refused.
-/// A non-image type other than PDF is accepted as stated.
-pub fn check_attachment_bytes(record_id: &str, data: &AttachmentData, bytes: &[u8]) -> Result<()> {
-    let media_type = data.media_type.to_lowercase();
-    let matches = match media_type.as_str() {
-        "image/png" => bytes.starts_with(&[0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]),
-        "image/jpeg" => bytes.starts_with(&[0xff, 0xd8, 0xff]),
-        "image/webp" => is_webp(bytes),
-        "application/pdf" => bytes.starts_with(b"%PDF-"),
-        other => !other.starts_with("image/"),
-    };
-    if !matches {
-        return Err(Error::refused(format!(
-            "attachment bytes do not match supported media type {}: {record_id}",
-            data.media_type
-        )));
-    }
-    Ok(())
-}
-
-/// The stored file name: the record ID plus an extension. A known media type
-/// sets the extension. Otherwise a short alphanumeric extension of the
-/// original file name is kept in lowercase, and any other extension is dropped.
-pub fn stored_attachment_name(record_id: &str, data: &AttachmentData) -> String {
-    let known = match data.media_type.as_str() {
-        "image/jpeg" => Some(".jpg"),
-        "image/png" => Some(".png"),
-        "image/webp" => Some(".webp"),
-        "application/pdf" => Some(".pdf"),
-        _ => None,
-    };
-    let extension = match known {
-        Some(extension) => extension.to_string(),
-        None => {
-            let input = posix_extname(&data.file_name);
-            let tail = input.strip_prefix('.').unwrap_or_default();
-            if input.starts_with('.')
-                && (1..=10).contains(&tail.len())
-                && tail.bytes().all(|b| b.is_ascii_alphanumeric())
-            {
-                input.to_ascii_lowercase()
-            } else {
-                String::new()
-            }
-        }
-    };
-    format!("{record_id}{extension}")
-}
-
-/// `path.posix.extname`: the last `.` and what follows it in the last path
-/// segment, except for a segment that starts with its only dot. Slashes and
-/// dots are ASCII, so working on UTF-8 bytes gives the same split as UTF-16.
-fn posix_extname(path: &str) -> &str {
-    let bytes = path.as_bytes();
-    let mut start_dot: Option<usize> = None;
-    let mut start_part = 0usize;
-    let mut end: Option<usize> = None;
-    let mut matched_slash = true;
-    // 0: dot is the first character of the segment; 1: another dot follows; -1: other text.
-    let mut pre_dot_state = 0i8;
-    for index in (0..bytes.len()).rev() {
-        let byte = bytes[index];
-        if byte == b'/' {
-            if !matched_slash {
-                start_part = index + 1;
-                break;
-            }
-            continue;
-        }
-        if end.is_none() {
-            matched_slash = false;
-            end = Some(index + 1);
-        }
-        if byte == b'.' {
-            if start_dot.is_none() {
-                start_dot = Some(index);
-            } else if pre_dot_state != 1 {
-                pre_dot_state = 1;
-            }
-        } else if start_dot.is_some() {
-            pre_dot_state = -1;
-        }
-    }
-    let (Some(start_dot), Some(end)) = (start_dot, end) else {
-        return "";
-    };
-    if pre_dot_state == 0 || (pre_dot_state == 1 && start_dot == end - 1 && start_dot == start_part + 1) {
-        return "";
-    }
-    &path[start_dot..end]
-}
-
-/// `attachments/<stored name>`.
-pub fn relative_attachment_path(stored_name: &str) -> String {
-    format!("{ATTACHMENT_DIRECTORY}/{stored_name}")
-}
+pub use crate::files::attachments::{
+    attachment_directory, bytes_match_media_type, check_attachment_bytes, relative_attachment_path, sniff_media_type,
+    stored_attachment_name, ATTACHMENT_DIRECTORY,
+};
+pub use crate::store::pending::{pending_file_operations, PendingFileOperation};
 
 // ---- Ingestion for ath log and ath correct ------------------------------
 
@@ -507,48 +386,6 @@ impl AttachmentFileBatch {
 
 // ---- Pending operations: report and resume --------------------------------
 
-/// One pending file change.
-#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
-pub struct PendingFileOperation {
-    pub operation_id: String,
-    pub operation_kind: String,
-    pub relative_path: String,
-    pub created_at: String,
-}
-
-/// Pending file changes in a database, oldest first. A database before SQL
-/// schema 5 has none. This read changes nothing.
-pub fn pending_file_operations(connection: &Connection) -> Result<Vec<PendingFileOperation>> {
-    if !has_pending_table(connection)? {
-        return Ok(Vec::new());
-    }
-    let mut statement = connection.prepare(
-        "SELECT operation_id, operation_kind, relative_path, created_at
-         FROM internal_pending_file_operations
-         ORDER BY created_at, operation_id, relative_path",
-    )?;
-    let rows = statement.query_map([], |row| {
-        Ok(PendingFileOperation {
-            operation_id: row.get(0)?,
-            operation_kind: row.get(1)?,
-            relative_path: row.get(2)?,
-            created_at: row.get(3)?,
-        })
-    })?;
-    Ok(rows.collect::<std::result::Result<_, _>>()?)
-}
-
-fn has_pending_table(connection: &Connection) -> Result<bool> {
-    Ok(connection
-        .query_row(
-            "SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = 'internal_pending_file_operations'",
-            [],
-            |_| Ok(()),
-        )
-        .optional()?
-        .is_some())
-}
-
 /// What a cleanup pass did.
 #[derive(Debug, Clone, Default, PartialEq, Eq, Serialize)]
 pub struct PendingCleanupReport {
@@ -580,10 +417,7 @@ impl PendingCleanupReport {
 /// recorded. Files a record references are kept. Operations whose owner is
 /// still running are left alone. Call this at the start of a writable command.
 pub fn resume_pending_file_operations(store: &mut Store) -> Result<PendingCleanupReport> {
-    if store.is_read_only() || !has_pending_table(store.connection())? {
-        return Ok(PendingCleanupReport::default());
-    }
-    if pending_file_operations(store.connection())?.is_empty() {
+    if store.is_read_only() || pending_file_operations(store.connection())?.is_empty() {
         return Ok(PendingCleanupReport::default());
     }
     let directory = attachment_directory(store.path());
@@ -682,69 +516,6 @@ fn settle_entry(tx: &Transaction<'_>, directory: &Path, entry: &PendingFileOpera
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    fn data(file_name: &str, media_type: &str) -> AttachmentData {
-        AttachmentData {
-            file_name: file_name.into(),
-            media_type: media_type.into(),
-            byte_count: 0,
-            sha256: "0".repeat(64),
-            description: None,
-        }
-    }
-
-    #[test]
-    fn extname_follows_node_posix_rules() {
-        for (input, expected) in [
-            ("index.html", ".html"),
-            ("index.coffee.md", ".md"),
-            ("index.", "."),
-            ("index", ""),
-            (".index", ""),
-            (".index.md", ".md"),
-            ("..", ""),
-            ("a/b.c/d", ""),
-            ("a/.b", ""),
-            ("a.png/", ".png"),
-            ("..png", ".png"),
-            ("ä.Tiff", ".Tiff"),
-        ] {
-            assert_eq!(posix_extname(input), expected, "{input}");
-        }
-    }
-
-    #[test]
-    fn stored_names_use_known_or_short_extensions() {
-        let id = "01890f3e-e7d3-7cc0-88c8-00000000000e";
-        assert_eq!(stored_attachment_name(id, &data("x.PNG", "image/png")), format!("{id}.png"));
-        assert_eq!(stored_attachment_name(id, &data("x.HEIC", "image/heic")), format!("{id}.heic"));
-        assert_eq!(stored_attachment_name(id, &data("x.12345678901", "text/plain")), id);
-        assert_eq!(stored_attachment_name(id, &data("x.t-t", "text/plain")), id);
-        assert_eq!(stored_attachment_name(id, &data("notes", "text/plain")), id);
-        assert_eq!(stored_attachment_name(id, &data("x.jpeg", "IMAGE/JPEG")), format!("{id}.jpeg"));
-    }
-
-    #[test]
-    fn media_types_are_sniffed_and_checked() {
-        let png = [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a, 0];
-        assert_eq!(sniff_media_type(&png), Some("image/png"));
-        assert_eq!(sniff_media_type(&[0xff, 0xd8, 0xff, 0]), Some("image/jpeg"));
-        assert_eq!(sniff_media_type(b"RIFF\0\0\0\0WEBPVP8 "), Some("image/webp"));
-        assert_eq!(sniff_media_type(b"%PDF-1.7"), Some("application/pdf"));
-        assert_eq!(sniff_media_type(b"GIF89a"), None);
-        assert_eq!(sniff_media_type(b"RIFF"), None);
-        let id = "01890f3e-e7d3-7cc0-88c8-00000000000e";
-        assert!(check_attachment_bytes(id, &data("a.png", "image/png"), &png).is_ok());
-        assert!(check_attachment_bytes(id, &data("a.png", "Image/PNG"), &png).is_ok());
-        assert!(check_attachment_bytes(id, &data("a.jpg", "image/jpeg"), &png).is_err());
-        assert!(check_attachment_bytes(id, &data("a.gif", "image/gif"), b"GIF89a").is_err());
-        assert!(check_attachment_bytes(id, &data("a.txt", "text/plain"), b"hello").is_ok());
-        let error = check_attachment_bytes(id, &data("a.pdf", "application/pdf"), b"nope").unwrap_err();
-        assert_eq!(
-            error.to_string(),
-            format!("attachment bytes do not match supported media type application/pdf: {id}")
-        );
-    }
 
     #[test]
     fn pending_paths_must_name_one_attachment_file() {

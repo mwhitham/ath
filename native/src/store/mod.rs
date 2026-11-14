@@ -6,7 +6,6 @@
 //! Reading commands open the file read-only: they do not change the journal
 //! mode, the file header, or athlete data, and they do not checkpoint on close.
 
-pub mod attachment_files;
 pub mod backup;
 pub mod check;
 pub mod contract;

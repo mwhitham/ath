@@ -18,13 +18,12 @@ use rusqlite::types::Value as Sql;
 use rusqlite::{Connection, OptionalExtension, Row};
 use serde::Serialize;
 
-use super::attachment_files;
 use super::encode::{self, Layout};
 use super::pending;
 use super::write::validate_relationships;
 use super::{read_metadata, DatabaseMetadata, Store, SQLITE_APPLICATION_ID, SQL_SCHEMA_VERSION};
 use crate::error::Result;
-use crate::files;
+use crate::files::{self, attachments as attachment_files};
 use crate::json::{self, Map, Value};
 use crate::model::schema::decode;
 use crate::model::*;
@@ -265,7 +264,7 @@ fn check_snapshot(connection: &Connection, store: &Store) -> Result<DatabaseChec
     let context = RecordContext {
         connection,
         layout: store.layout(),
-        attachments: attachment_files::attachments_directory(store.path()),
+        attachments: attachment_files::attachment_directory(store.path()),
     };
     merge_records_and_revisions(&context, &mut findings)?;
     check_deletions(connection, &mut findings.deletion)?;

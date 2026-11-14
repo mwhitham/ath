@@ -6,6 +6,7 @@
 //! them, exclusive creation instead of overwriting, and synchronized writes
 //! before a final rename.
 
+pub mod attachments;
 pub mod durable;
 pub mod process;
 pub mod staging;
