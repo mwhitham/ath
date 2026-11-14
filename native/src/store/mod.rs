@@ -6,9 +6,16 @@
 //! Reading commands open the file read-only: they do not change the journal
 //! mode, the file header, or athlete data, and they do not checkpoint on close.
 
+pub mod attachment_files;
+pub mod backup;
+pub mod check;
+pub mod contract;
 pub mod encode;
 pub mod migrate;
+pub mod pending;
 pub mod read;
+pub mod repair;
+pub mod stats;
 pub mod write;
 
 use std::path::{Path, PathBuf};
@@ -77,7 +84,13 @@ impl std::fmt::Debug for Store {
     }
 }
 
+/// Prepared statements kept per connection. The encoder and the check use
+/// one statement per typed table and child table, about 70 in all. The
+/// default of 16 made SQLite prepare most of them again for every record.
+pub const PREPARED_STATEMENT_CACHE: usize = 256;
+
 fn configure(connection: &Connection) -> Result<()> {
+    connection.set_prepared_statement_cache_capacity(PREPARED_STATEMENT_CACHE);
     connection.busy_timeout(SQLITE_BUSY_TIMEOUT)?;
     connection.pragma_update(None, "foreign_keys", "ON")?;
     let enabled: i64 = connection.pragma_query_value(None, "foreign_keys", |row| row.get(0))?;
@@ -87,6 +100,14 @@ fn configure(connection: &Connection) -> Result<()> {
     Ok(())
 }
 
+/// SQLite could not open the file, or could not create the files a WAL
+/// database needs beside it.
+fn cannot_open_wal(failure: &rusqlite::ffi::Error) -> bool {
+    failure.code == rusqlite::ErrorCode::CannotOpen
+        || failure.extended_code == rusqlite::ffi::SQLITE_READONLY_CANTINIT
+        || failure.extended_code == rusqlite::ffi::SQLITE_READONLY_DIRECTORY
+}
+
 /// Read and check `database_metadata`.
 pub fn read_metadata(connection: &Connection) -> Result<DatabaseMetadata> {
     let mut statement = connection
@@ -94,7 +115,11 @@ pub fn read_metadata(connection: &Connection) -> Result<DatabaseMetadata> {
             "SELECT application_marker, sql_schema_version, athleticstandard_version, database_id, created_at
              FROM database_metadata WHERE singleton_id = 1",
         )
-        .map_err(|_| Error::refused("File is not an Athletic Standard database: metadata table is missing"))?;
+        .map_err(|error| match error {
+            // The file could not be opened at all; that is not a missing table.
+            rusqlite::Error::SqliteFailure(failure, _) if cannot_open_wal(&failure) => Error::Database(error),
+            _ => Error::refused("File is not an Athletic Standard database: metadata table is missing"),
+        })?;
     let rows: Vec<(
         rusqlite::types::Value,
         rusqlite::types::Value,
@@ -166,10 +191,9 @@ fn check_header(connection: &Connection, metadata: &DatabaseMetadata) -> Result<
 }
 
 /// The default backup path for a migration: next to the database, named with
-/// the time it was planned.
+/// the time it was planned. The name format is the 2.1.0 format.
 pub fn default_migration_backup_path(path: &Path, now_millis: i64) -> PathBuf {
-    let stamp = time::format_utc_millis(now_millis).replace([':', '.'], "-");
-    files::sidecar(path, &format!(".pre-migration-{stamp}.bak"))
+    backup::default_migration_backup_path(path, now_millis)
 }
 
 impl Store {
@@ -191,7 +215,15 @@ impl Store {
         let connection = Connection::open_with_flags(&path, flags)?;
         files::assert_same_file(&path, identity)?;
         configure(&connection)?;
-        let metadata = read_metadata(&connection)?;
+        let metadata = read_metadata(&connection).map_err(|error| match error {
+            Error::Database(rusqlite::Error::SqliteFailure(failure, _)) if options.read_only && cannot_open_wal(&failure) => {
+                Error::refused(format!(
+                    "Cannot read {} read-only. A WAL database needs its -wal and -shm files, and this folder does not allow creating them. Nothing was changed.",
+                    path.display()
+                ))
+            }
+            other => other,
+        })?;
         check_header(&connection, &metadata)?;
         if metadata.sql_schema_version < SQL_SCHEMA_VERSION && !options.allow_outdated_schema {
             let backup = default_migration_backup_path(&path, time::now_millis());

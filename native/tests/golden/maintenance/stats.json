@@ -1,0 +1,830 @@
+{
+  "generated_by": "native/tools/reference/maintenance-golden.ts",
+  "reference": "2.1.0 TypeScript implementation (databaseStats, renderDatabaseStats)",
+  "demo": {
+    "stats": {
+      "athleticstandard_version": "2.1.0",
+      "database_id": "01890f3e-e7d3-7cc0-88c8-000000000001",
+      "database_revision": 3,
+      "athlete": {
+        "name": "Demo Athlete",
+        "birth_year": 1990,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "current_records": {
+        "total": 24,
+        "by_type": {
+          "athlete_profile": 1,
+          "attachment": 1,
+          "benchmark_definition": 1,
+          "benchmark_result": 1,
+          "coaching_note": 1,
+          "goal": 1,
+          "measurement_sample": 1,
+          "nutrition_entry": 1,
+          "nutrition_model_interpretation": 1,
+          "planned_session": 1,
+          "point_measurement": 1,
+          "prediction": 1,
+          "prediction_error_analysis": 1,
+          "prediction_grade": 1,
+          "prediction_result_link": 1,
+          "provider_score": 1,
+          "provider_summary": 1,
+          "saved_training_review": 1,
+          "sleep_session": 1,
+          "source": 2,
+          "source_device": 1,
+          "training_plan": 1,
+          "workout_session": 1
+        }
+      },
+      "sources": [
+        {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "source_type": "wearable",
+          "data_writer": "WHOOP",
+          "data_route": "whoop_csv",
+          "vendor": "whoop",
+          "sensor_type": "optical",
+          "current_record_count": 6,
+          "first_recorded_at": "2026-08-09T03:30:00.000Z",
+          "last_recorded_at": "2026-08-10T17:25:00.000Z"
+        },
+        {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000004",
+          "source_type": "manual",
+          "data_writer": "ath",
+          "data_route": "manual_entry",
+          "vendor": null,
+          "sensor_type": null,
+          "current_record_count": 1,
+          "first_recorded_at": "2026-08-10T17:48:00.000Z",
+          "last_recorded_at": "2026-08-10T17:48:00.000Z"
+        }
+      ],
+      "baselines": [
+        {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "quantity": "hrv_rmssd",
+          "unit": "ms",
+          "mean": 64,
+          "standard_deviation": 0,
+          "observation_count": 1,
+          "from": "2026-08-09T11:12:00.000Z",
+          "to": "2026-08-09T11:12:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        }
+      ],
+      "series": [
+        {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "quantity": "heart_rate",
+          "unit": "bpm",
+          "sample_count": 1,
+          "from": "2026-08-09T11:12:00.000Z",
+          "to": "2026-08-09T11:12:00.000Z"
+        }
+      ],
+      "benchmarks": {
+        "defined": 1,
+        "results": 1
+      },
+      "predictions": {
+        "total": 1,
+        "graded": 1,
+        "by_author": [
+          {
+            "author": "ath-reference-agent running fixture-model",
+            "predictions": 1
+          }
+        ]
+      }
+    },
+    "text": "Demo Athlete · Athletic Standard 2.1.0\ndatabase revision: 3\n\ncurrent records: 24\n  athlete_profile: 1\n  attachment: 1\n  benchmark_definition: 1\n  benchmark_result: 1\n  coaching_note: 1\n  goal: 1\n  measurement_sample: 1\n  nutrition_entry: 1\n  nutrition_model_interpretation: 1\n  planned_session: 1\n  point_measurement: 1\n  prediction: 1\n  prediction_error_analysis: 1\n  prediction_grade: 1\n  prediction_result_link: 1\n  provider_score: 1\n  provider_summary: 1\n  saved_training_review: 1\n  sleep_session: 1\n  source: 2\n  source_device: 1\n  training_plan: 1\n  workout_session: 1\n\nsources: 2\n  01890f3e-e7d3-7cc0-88c8-000000000003: WHOOP via whoop_csv (wearable) — 6 records, 2026-08-09 → 2026-08-10\n  01890f3e-e7d3-7cc0-88c8-000000000004: ath via manual_entry (manual) — 1 record, 2026-08-10 → 2026-08-10\n\n90-day device baselines (each source stays separate):\n  01890f3e-e7d3-7cc0-88c8-000000000003 hrv_rmssd: 64ms (sd 0, n=1, 2026-08-09 → 2026-08-09)\n\nsample series:\n  01890f3e-e7d3-7cc0-88c8-000000000003 heart_rate: 1 samples, 2026-08-09T11:12:00.000Z → 2026-08-09T11:12:00.000Z\n\nbenchmarks defined: 1 · results recorded: 1\npredictions: 1 · grades: 1\n  ath-reference-agent running fixture-model: 1"
+  },
+  "npm100": {
+    "stats": {
+      "athleticstandard_version": "1.0.0",
+      "database_id": "01a1672e-255a-765a-970c-e28eef8e8080",
+      "database_revision": 4,
+      "athlete": {
+        "display_units": "metric"
+      },
+      "current_records": {
+        "total": 231,
+        "by_type": {
+          "athlete_profile": 1,
+          "athlete_report": 3,
+          "benchmark_definition": 7,
+          "measurement_sample": 131,
+          "nutrition_entry": 2,
+          "point_measurement": 33,
+          "provider_score": 26,
+          "provider_summary": 6,
+          "sleep_session": 6,
+          "source": 11,
+          "source_device": 1,
+          "workout_session": 4
+        }
+      },
+      "sources": [
+        {
+          "record_id": "01a1672e-2b80-712e-b451-ffccd40e162e",
+          "source_type": "export_file",
+          "data_writer": "Apple Health",
+          "data_route": "apple_health",
+          "vendor": "apple",
+          "sensor_type": null,
+          "current_record_count": 6,
+          "first_recorded_at": null,
+          "last_recorded_at": null
+        },
+        {
+          "record_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "source_type": "export_file",
+          "data_writer": "Apple Watch",
+          "data_route": "apple_health",
+          "vendor": "apple",
+          "sensor_type": null,
+          "current_record_count": 100,
+          "first_recorded_at": "2026-08-09T05:15:00.000Z",
+          "last_recorded_at": "2026-08-10T05:30:02.900Z"
+        },
+        {
+          "record_id": "01a1672e-2b80-7d21-9226-cce1929ad7f7",
+          "source_type": "export_file",
+          "data_writer": "Apple Watch",
+          "data_route": "apple_health",
+          "vendor": "apple",
+          "sensor_type": "ecg",
+          "current_record_count": 33,
+          "first_recorded_at": "2026-08-09T14:20:11.000Z",
+          "last_recorded_at": "2026-08-09T14:20:40.291Z"
+        },
+        {
+          "record_id": "01a1672e-2b80-7c49-b624-da1aab78c4ed",
+          "source_type": "export_file",
+          "data_writer": "Omron",
+          "data_route": "apple_health",
+          "vendor": "omron",
+          "sensor_type": null,
+          "current_record_count": 2,
+          "first_recorded_at": "2026-08-09T14:10:00.000Z",
+          "last_recorded_at": "2026-08-09T14:10:00.000Z"
+        },
+        {
+          "record_id": "01a1672e-2b80-7aad-a901-e5e2743ab361",
+          "source_type": "export_file",
+          "data_writer": "Oura",
+          "data_route": "apple_health",
+          "vendor": "oura",
+          "sensor_type": null,
+          "current_record_count": 3,
+          "first_recorded_at": "2026-08-09T05:20:00.000Z",
+          "last_recorded_at": "2026-08-10T01:31:00.000Z"
+        },
+        {
+          "record_id": "01a1672e-2968-7efc-9f74-54565ec11db3",
+          "source_type": "export_file",
+          "data_writer": "Oura",
+          "data_route": "oura_csv",
+          "vendor": "oura",
+          "sensor_type": null,
+          "current_record_count": 30,
+          "first_recorded_at": "2026-08-09T05:18:00.000Z",
+          "last_recorded_at": "2026-08-10T13:22:00.000Z"
+        },
+        {
+          "record_id": "01a1672e-2b80-7ee5-936a-70231da0adef",
+          "source_type": "export_file",
+          "data_writer": "WHOOP",
+          "data_route": "apple_health",
+          "vendor": "whoop",
+          "sensor_type": null,
+          "current_record_count": 1,
+          "first_recorded_at": "2026-08-09T13:20:00.000Z",
+          "last_recorded_at": "2026-08-09T13:20:00.000Z"
+        },
+        {
+          "record_id": "01a1672e-2767-7433-849b-2fb5c1ae44e0",
+          "source_type": "export_file",
+          "data_writer": "WHOOP",
+          "data_route": "whoop_csv",
+          "vendor": "whoop",
+          "sensor_type": null,
+          "current_record_count": 20,
+          "first_recorded_at": "2026-08-09T05:15:00.000Z",
+          "last_recorded_at": "2026-08-10T14:15:00.000Z"
+        },
+        {
+          "record_id": "01a1672e-2b80-7d20-9cfb-fcd46b37af02",
+          "source_type": "export_file",
+          "data_writer": "Withings",
+          "data_route": "apple_health",
+          "vendor": "withings",
+          "sensor_type": null,
+          "current_record_count": 3,
+          "first_recorded_at": "2026-08-09T14:02:00.000Z",
+          "last_recorded_at": "2026-08-09T14:02:00.000Z"
+        },
+        {
+          "record_id": "01a1672e-2574-7635-8061-1872425d4568",
+          "source_type": "manual",
+          "data_writer": "ath",
+          "data_route": "manual_entry",
+          "vendor": null,
+          "sensor_type": null,
+          "current_record_count": 2,
+          "first_recorded_at": "2026-08-09T14:00:00.000Z",
+          "last_recorded_at": "2026-08-09T15:00:00.000Z"
+        },
+        {
+          "record_id": "01a1672e-2b80-7e26-8a8c-2ca351deb6b6",
+          "source_type": "export_file",
+          "data_writer": "iPhone",
+          "data_route": "apple_health",
+          "vendor": "apple",
+          "sensor_type": null,
+          "current_record_count": 6,
+          "first_recorded_at": "2026-08-09T16:00:00.000Z",
+          "last_recorded_at": "2026-08-09T19:00:00.000Z"
+        }
+      ],
+      "baselines": [
+        {
+          "source_id": "01a1672e-2767-7433-849b-2fb5c1ae44e0",
+          "quantity": "hrv_rmssd",
+          "unit": "ms",
+          "mean": 71.3,
+          "standard_deviation": 4,
+          "observation_count": 2,
+          "from": "2026-08-09T13:05:00.000Z",
+          "to": "2026-08-10T13:25:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        },
+        {
+          "source_id": "01a1672e-2767-7433-849b-2fb5c1ae44e0",
+          "quantity": "oxygen_saturation",
+          "unit": "%",
+          "mean": 96.8,
+          "standard_deviation": 0.4,
+          "observation_count": 2,
+          "from": "2026-08-09T13:05:00.000Z",
+          "to": "2026-08-10T13:25:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        },
+        {
+          "source_id": "01a1672e-2767-7433-849b-2fb5c1ae44e0",
+          "quantity": "respiratory_rate",
+          "unit": "brpm",
+          "mean": 14.5,
+          "standard_deviation": 0.4,
+          "observation_count": 2,
+          "from": "2026-08-09T13:05:00.000Z",
+          "to": "2026-08-10T13:25:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        },
+        {
+          "source_id": "01a1672e-2767-7433-849b-2fb5c1ae44e0",
+          "quantity": "resting_heart_rate",
+          "unit": "bpm",
+          "mean": 50.5,
+          "standard_deviation": 2.1,
+          "observation_count": 2,
+          "from": "2026-08-09T13:05:00.000Z",
+          "to": "2026-08-10T13:25:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        },
+        {
+          "source_id": "01a1672e-2767-7433-849b-2fb5c1ae44e0",
+          "quantity": "skin_temperature",
+          "unit": "°C",
+          "mean": 33.1,
+          "standard_deviation": 0.1,
+          "observation_count": 2,
+          "from": "2026-08-09T13:05:00.000Z",
+          "to": "2026-08-10T13:25:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        },
+        {
+          "source_id": "01a1672e-2968-7efc-9f74-54565ec11db3",
+          "quantity": "hrv_rmssd",
+          "unit": "ms",
+          "mean": 67,
+          "standard_deviation": 5.7,
+          "observation_count": 2,
+          "from": "2026-08-09T13:08:00.000Z",
+          "to": "2026-08-10T13:22:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        },
+        {
+          "source_id": "01a1672e-2968-7efc-9f74-54565ec11db3",
+          "quantity": "respiratory_rate",
+          "unit": "brpm",
+          "mean": 14.4,
+          "standard_deviation": 0.4,
+          "observation_count": 2,
+          "from": "2026-08-09T13:08:00.000Z",
+          "to": "2026-08-10T13:22:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        },
+        {
+          "source_id": "01a1672e-2968-7efc-9f74-54565ec11db3",
+          "quantity": "resting_heart_rate",
+          "unit": "bpm",
+          "mean": 47,
+          "standard_deviation": 1.4,
+          "observation_count": 2,
+          "from": "2026-08-09T13:08:00.000Z",
+          "to": "2026-08-10T13:22:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "hr_recovery",
+          "unit": "bpm",
+          "mean": 34,
+          "standard_deviation": 0,
+          "observation_count": 1,
+          "from": "2026-08-10T01:45:00.000Z",
+          "to": "2026-08-10T01:45:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "hrv_rmssd",
+          "unit": "ms",
+          "mean": 50.6,
+          "standard_deviation": 0,
+          "observation_count": 1,
+          "from": "2026-08-09T13:12:00.000Z",
+          "to": "2026-08-09T13:12:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "resting_heart_rate",
+          "unit": "bpm",
+          "mean": 51,
+          "standard_deviation": 0,
+          "observation_count": 1,
+          "from": "2026-08-09T13:14:00.000Z",
+          "to": "2026-08-09T13:14:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "vo2_max",
+          "unit": "ml/kg/min",
+          "mean": 52.1,
+          "standard_deviation": 0,
+          "observation_count": 1,
+          "from": "2026-08-10T01:50:00.000Z",
+          "to": "2026-08-10T01:50:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "walking_heart_rate",
+          "unit": "bpm",
+          "mean": 94,
+          "standard_deviation": 0,
+          "observation_count": 1,
+          "from": "2026-08-09T19:00:00.000Z",
+          "to": "2026-08-09T19:00:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "wrist_temperature_sleeping",
+          "unit": "°C",
+          "mean": 33.4,
+          "standard_deviation": 0,
+          "observation_count": 1,
+          "from": "2026-08-09T10:00:00.000Z",
+          "to": "2026-08-09T10:00:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        },
+        {
+          "source_id": "01a1672e-2b80-7c49-b624-da1aab78c4ed",
+          "quantity": "blood_pressure_diastolic",
+          "unit": "mmHg",
+          "mean": 74,
+          "standard_deviation": 0,
+          "observation_count": 1,
+          "from": "2026-08-09T14:10:00.000Z",
+          "to": "2026-08-09T14:10:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        },
+        {
+          "source_id": "01a1672e-2b80-7c49-b624-da1aab78c4ed",
+          "quantity": "blood_pressure_systolic",
+          "unit": "mmHg",
+          "mean": 118,
+          "standard_deviation": 0,
+          "observation_count": 1,
+          "from": "2026-08-09T14:10:00.000Z",
+          "to": "2026-08-09T14:10:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        },
+        {
+          "source_id": "01a1672e-2b80-7d20-9cfb-fcd46b37af02",
+          "quantity": "body_fat_percentage",
+          "unit": "%",
+          "mean": 18.2,
+          "standard_deviation": 0,
+          "observation_count": 1,
+          "from": "2026-08-09T14:02:00.000Z",
+          "to": "2026-08-09T14:02:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        },
+        {
+          "source_id": "01a1672e-2b80-7d20-9cfb-fcd46b37af02",
+          "quantity": "body_weight",
+          "unit": "kg",
+          "mean": 82.3,
+          "standard_deviation": 0,
+          "observation_count": 1,
+          "from": "2026-08-09T14:02:00.000Z",
+          "to": "2026-08-09T14:02:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        },
+        {
+          "source_id": "01a1672e-2b80-7d20-9cfb-fcd46b37af02",
+          "quantity": "lean_body_mass",
+          "unit": "kg",
+          "mean": 67.2,
+          "standard_deviation": 0,
+          "observation_count": 1,
+          "from": "2026-08-09T14:02:00.000Z",
+          "to": "2026-08-09T14:02:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        },
+        {
+          "source_id": "01a1672e-2b80-7d21-9226-cce1929ad7f7",
+          "quantity": "hrv_rmssd",
+          "unit": "ms",
+          "mean": 41.4,
+          "standard_deviation": 0,
+          "observation_count": 1,
+          "from": "2026-08-09T14:20:11.000Z",
+          "to": "2026-08-09T14:20:11.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        },
+        {
+          "source_id": "01a1672e-2b80-7ee5-936a-70231da0adef",
+          "quantity": "resting_heart_rate",
+          "unit": "bpm",
+          "mean": 49,
+          "standard_deviation": 0,
+          "observation_count": 1,
+          "from": "2026-08-09T13:20:00.000Z",
+          "to": "2026-08-09T13:20:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        }
+      ],
+      "series": [
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "active_energy",
+          "unit": "kcal",
+          "sample_count": 1,
+          "from": "2026-08-10T01:30:00.000Z",
+          "to": "2026-08-10T01:30:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "basal_energy",
+          "unit": "kcal",
+          "sample_count": 1,
+          "from": "2026-08-09T15:00:00.000Z",
+          "to": "2026-08-09T15:00:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "distance_cycling",
+          "unit": "m",
+          "sample_count": 1,
+          "from": "2026-08-10T00:00:00.000Z",
+          "to": "2026-08-10T00:00:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "distance_swimming",
+          "unit": "m",
+          "sample_count": 1,
+          "from": "2026-08-09T23:00:00.000Z",
+          "to": "2026-08-09T23:00:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "distance_walking_running",
+          "unit": "m",
+          "sample_count": 1,
+          "from": "2026-08-10T01:30:00.000Z",
+          "to": "2026-08-10T01:30:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "exercise_time",
+          "unit": "min",
+          "sample_count": 1,
+          "from": "2026-08-10T01:30:00.000Z",
+          "to": "2026-08-10T01:30:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "heart_rate",
+          "unit": "bpm",
+          "sample_count": 4,
+          "from": "2026-08-09T15:00:00.000Z",
+          "to": "2026-08-10T01:30:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "hrv_beats",
+          "unit": "ms",
+          "sample_count": 69,
+          "from": "2026-08-09T13:12:00.220Z",
+          "to": "2026-08-10T05:30:02.900Z"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "hrv_sdnn",
+          "unit": "ms",
+          "sample_count": 2,
+          "from": "2026-08-09T13:12:00.000Z",
+          "to": "2026-08-10T05:30:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "oxygen_saturation",
+          "unit": "%",
+          "sample_count": 1,
+          "from": "2026-08-09T11:00:00.000Z",
+          "to": "2026-08-09T11:00:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "physical_effort",
+          "unit": "MET",
+          "sample_count": 1,
+          "from": "2026-08-10T01:31:00.000Z",
+          "to": "2026-08-10T01:31:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "respiratory_rate",
+          "unit": "brpm",
+          "sample_count": 1,
+          "from": "2026-08-09T13:10:00.000Z",
+          "to": "2026-08-09T13:10:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "running_ground_contact_time",
+          "unit": "ms",
+          "sample_count": 1,
+          "from": "2026-08-10T01:31:00.000Z",
+          "to": "2026-08-10T01:31:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "running_power",
+          "unit": "W",
+          "sample_count": 1,
+          "from": "2026-08-10T01:31:00.000Z",
+          "to": "2026-08-10T01:31:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "running_speed",
+          "unit": "m/s",
+          "sample_count": 2,
+          "from": "2026-08-10T01:31:00.000Z",
+          "to": "2026-08-10T01:32:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "running_stride_length",
+          "unit": "m",
+          "sample_count": 1,
+          "from": "2026-08-10T01:31:00.000Z",
+          "to": "2026-08-10T01:31:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "running_vertical_oscillation",
+          "unit": "cm",
+          "sample_count": 1,
+          "from": "2026-08-10T01:31:00.000Z",
+          "to": "2026-08-10T01:31:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b7f-7032-84d2-ef678389a5df",
+          "quantity": "time_in_daylight",
+          "unit": "min",
+          "sample_count": 1,
+          "from": "2026-08-09T19:00:00.000Z",
+          "to": "2026-08-09T19:00:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b80-7aad-a901-e5e2743ab361",
+          "quantity": "active_energy",
+          "unit": "kcal",
+          "sample_count": 2,
+          "from": "2026-08-10T01:30:00.000Z",
+          "to": "2026-08-10T01:31:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b80-7d21-9226-cce1929ad7f7",
+          "quantity": "ecg_beats",
+          "unit": "ms",
+          "sample_count": 32,
+          "from": "2026-08-09T14:20:12.409Z",
+          "to": "2026-08-09T14:20:40.291Z"
+        },
+        {
+          "source_id": "01a1672e-2b80-7e26-8a8c-2ca351deb6b6",
+          "quantity": "flights_climbed",
+          "unit": "count",
+          "sample_count": 1,
+          "from": "2026-08-09T19:00:00.000Z",
+          "to": "2026-08-09T19:00:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b80-7e26-8a8c-2ca351deb6b6",
+          "quantity": "steps",
+          "unit": "count",
+          "sample_count": 2,
+          "from": "2026-08-09T16:00:00.000Z",
+          "to": "2026-08-09T16:05:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b80-7e26-8a8c-2ca351deb6b6",
+          "quantity": "walking_asymmetry_percentage",
+          "unit": "%",
+          "sample_count": 1,
+          "from": "2026-08-09T19:00:00.000Z",
+          "to": "2026-08-09T19:00:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b80-7e26-8a8c-2ca351deb6b6",
+          "quantity": "walking_speed",
+          "unit": "m/s",
+          "sample_count": 1,
+          "from": "2026-08-09T19:00:00.000Z",
+          "to": "2026-08-09T19:00:00.000Z"
+        },
+        {
+          "source_id": "01a1672e-2b80-7e26-8a8c-2ca351deb6b6",
+          "quantity": "walking_step_length",
+          "unit": "m",
+          "sample_count": 1,
+          "from": "2026-08-09T19:00:00.000Z",
+          "to": "2026-08-09T19:00:00.000Z"
+        }
+      ],
+      "benchmarks": {
+        "defined": 7,
+        "results": 0
+      },
+      "predictions": {
+        "total": 0,
+        "graded": 0,
+        "by_author": []
+      }
+    },
+    "text": "unnamed athlete · Athletic Standard 1.0.0\ndatabase revision: 4\n\ncurrent records: 231\n  athlete_profile: 1\n  athlete_report: 3\n  benchmark_definition: 7\n  measurement_sample: 131\n  nutrition_entry: 2\n  point_measurement: 33\n  provider_score: 26\n  provider_summary: 6\n  sleep_session: 6\n  source: 11\n  source_device: 1\n  workout_session: 4\n\nsources: 11\n  01a1672e-2b80-712e-b451-ffccd40e162e: Apple Health via apple_health (export_file) — 6 records\n  01a1672e-2b7f-7032-84d2-ef678389a5df: Apple Watch via apple_health (export_file) — 100 records, 2026-08-09 → 2026-08-10\n  01a1672e-2b80-7d21-9226-cce1929ad7f7: Apple Watch via apple_health (export_file) — 33 records, 2026-08-09 → 2026-08-09\n  01a1672e-2b80-7c49-b624-da1aab78c4ed: Omron via apple_health (export_file) — 2 records, 2026-08-09 → 2026-08-09\n  01a1672e-2b80-7aad-a901-e5e2743ab361: Oura via apple_health (export_file) — 3 records, 2026-08-09 → 2026-08-10\n  01a1672e-2968-7efc-9f74-54565ec11db3: Oura via oura_csv (export_file) — 30 records, 2026-08-09 → 2026-08-10\n  01a1672e-2b80-7ee5-936a-70231da0adef: WHOOP via apple_health (export_file) — 1 record, 2026-08-09 → 2026-08-09\n  01a1672e-2767-7433-849b-2fb5c1ae44e0: WHOOP via whoop_csv (export_file) — 20 records, 2026-08-09 → 2026-08-10\n  01a1672e-2b80-7d20-9cfb-fcd46b37af02: Withings via apple_health (export_file) — 3 records, 2026-08-09 → 2026-08-09\n  01a1672e-2574-7635-8061-1872425d4568: ath via manual_entry (manual) — 2 records, 2026-08-09 → 2026-08-09\n  01a1672e-2b80-7e26-8a8c-2ca351deb6b6: iPhone via apple_health (export_file) — 6 records, 2026-08-09 → 2026-08-09\n\n90-day device baselines (each source stays separate):\n  01a1672e-2767-7433-849b-2fb5c1ae44e0 hrv_rmssd: 71.3ms (sd 4, n=2, 2026-08-09 → 2026-08-10)\n  01a1672e-2767-7433-849b-2fb5c1ae44e0 oxygen_saturation: 96.8% (sd 0.4, n=2, 2026-08-09 → 2026-08-10)\n  01a1672e-2767-7433-849b-2fb5c1ae44e0 respiratory_rate: 14.5brpm (sd 0.4, n=2, 2026-08-09 → 2026-08-10)\n  01a1672e-2767-7433-849b-2fb5c1ae44e0 resting_heart_rate: 50.5bpm (sd 2.1, n=2, 2026-08-09 → 2026-08-10)\n  01a1672e-2767-7433-849b-2fb5c1ae44e0 skin_temperature: 33.1°C (sd 0.1, n=2, 2026-08-09 → 2026-08-10)\n  01a1672e-2968-7efc-9f74-54565ec11db3 hrv_rmssd: 67ms (sd 5.7, n=2, 2026-08-09 → 2026-08-10)\n  01a1672e-2968-7efc-9f74-54565ec11db3 respiratory_rate: 14.4brpm (sd 0.4, n=2, 2026-08-09 → 2026-08-10)\n  01a1672e-2968-7efc-9f74-54565ec11db3 resting_heart_rate: 47bpm (sd 1.4, n=2, 2026-08-09 → 2026-08-10)\n  01a1672e-2b7f-7032-84d2-ef678389a5df hr_recovery: 34bpm (sd 0, n=1, 2026-08-10 → 2026-08-10)\n  01a1672e-2b7f-7032-84d2-ef678389a5df hrv_rmssd: 50.6ms (sd 0, n=1, 2026-08-09 → 2026-08-09)\n  01a1672e-2b7f-7032-84d2-ef678389a5df resting_heart_rate: 51bpm (sd 0, n=1, 2026-08-09 → 2026-08-09)\n  01a1672e-2b7f-7032-84d2-ef678389a5df vo2_max: 52.1ml/kg/min (sd 0, n=1, 2026-08-10 → 2026-08-10)\n  01a1672e-2b7f-7032-84d2-ef678389a5df walking_heart_rate: 94bpm (sd 0, n=1, 2026-08-09 → 2026-08-09)\n  01a1672e-2b7f-7032-84d2-ef678389a5df wrist_temperature_sleeping: 33.4°C (sd 0, n=1, 2026-08-09 → 2026-08-09)\n  01a1672e-2b80-7c49-b624-da1aab78c4ed blood_pressure_diastolic: 74mmHg (sd 0, n=1, 2026-08-09 → 2026-08-09)\n  01a1672e-2b80-7c49-b624-da1aab78c4ed blood_pressure_systolic: 118mmHg (sd 0, n=1, 2026-08-09 → 2026-08-09)\n  01a1672e-2b80-7d20-9cfb-fcd46b37af02 body_fat_percentage: 18.2% (sd 0, n=1, 2026-08-09 → 2026-08-09)\n  01a1672e-2b80-7d20-9cfb-fcd46b37af02 body_weight: 82.3kg (sd 0, n=1, 2026-08-09 → 2026-08-09)\n  01a1672e-2b80-7d20-9cfb-fcd46b37af02 lean_body_mass: 67.2kg (sd 0, n=1, 2026-08-09 → 2026-08-09)\n  01a1672e-2b80-7d21-9226-cce1929ad7f7 hrv_rmssd: 41.4ms (sd 0, n=1, 2026-08-09 → 2026-08-09)\n  01a1672e-2b80-7ee5-936a-70231da0adef resting_heart_rate: 49bpm (sd 0, n=1, 2026-08-09 → 2026-08-09)\n\nsample series:\n  01a1672e-2b7f-7032-84d2-ef678389a5df active_energy: 1 samples, 2026-08-10T01:30:00.000Z → 2026-08-10T01:30:00.000Z\n  01a1672e-2b7f-7032-84d2-ef678389a5df basal_energy: 1 samples, 2026-08-09T15:00:00.000Z → 2026-08-09T15:00:00.000Z\n  01a1672e-2b7f-7032-84d2-ef678389a5df distance_cycling: 1 samples, 2026-08-10T00:00:00.000Z → 2026-08-10T00:00:00.000Z\n  01a1672e-2b7f-7032-84d2-ef678389a5df distance_swimming: 1 samples, 2026-08-09T23:00:00.000Z → 2026-08-09T23:00:00.000Z\n  01a1672e-2b7f-7032-84d2-ef678389a5df distance_walking_running: 1 samples, 2026-08-10T01:30:00.000Z → 2026-08-10T01:30:00.000Z\n  01a1672e-2b7f-7032-84d2-ef678389a5df exercise_time: 1 samples, 2026-08-10T01:30:00.000Z → 2026-08-10T01:30:00.000Z\n  01a1672e-2b7f-7032-84d2-ef678389a5df heart_rate: 4 samples, 2026-08-09T15:00:00.000Z → 2026-08-10T01:30:00.000Z\n  01a1672e-2b7f-7032-84d2-ef678389a5df hrv_beats: 69 samples, 2026-08-09T13:12:00.220Z → 2026-08-10T05:30:02.900Z\n  01a1672e-2b7f-7032-84d2-ef678389a5df hrv_sdnn: 2 samples, 2026-08-09T13:12:00.000Z → 2026-08-10T05:30:00.000Z\n  01a1672e-2b7f-7032-84d2-ef678389a5df oxygen_saturation: 1 samples, 2026-08-09T11:00:00.000Z → 2026-08-09T11:00:00.000Z\n  01a1672e-2b7f-7032-84d2-ef678389a5df physical_effort: 1 samples, 2026-08-10T01:31:00.000Z → 2026-08-10T01:31:00.000Z\n  01a1672e-2b7f-7032-84d2-ef678389a5df respiratory_rate: 1 samples, 2026-08-09T13:10:00.000Z → 2026-08-09T13:10:00.000Z\n  01a1672e-2b7f-7032-84d2-ef678389a5df running_ground_contact_time: 1 samples, 2026-08-10T01:31:00.000Z → 2026-08-10T01:31:00.000Z\n  01a1672e-2b7f-7032-84d2-ef678389a5df running_power: 1 samples, 2026-08-10T01:31:00.000Z → 2026-08-10T01:31:00.000Z\n  01a1672e-2b7f-7032-84d2-ef678389a5df running_speed: 2 samples, 2026-08-10T01:31:00.000Z → 2026-08-10T01:32:00.000Z\n  01a1672e-2b7f-7032-84d2-ef678389a5df running_stride_length: 1 samples, 2026-08-10T01:31:00.000Z → 2026-08-10T01:31:00.000Z\n  01a1672e-2b7f-7032-84d2-ef678389a5df running_vertical_oscillation: 1 samples, 2026-08-10T01:31:00.000Z → 2026-08-10T01:31:00.000Z\n  01a1672e-2b7f-7032-84d2-ef678389a5df time_in_daylight: 1 samples, 2026-08-09T19:00:00.000Z → 2026-08-09T19:00:00.000Z\n  01a1672e-2b80-7aad-a901-e5e2743ab361 active_energy: 2 samples, 2026-08-10T01:30:00.000Z → 2026-08-10T01:31:00.000Z\n  01a1672e-2b80-7d21-9226-cce1929ad7f7 ecg_beats: 32 samples, 2026-08-09T14:20:12.409Z → 2026-08-09T14:20:40.291Z\n  01a1672e-2b80-7e26-8a8c-2ca351deb6b6 flights_climbed: 1 samples, 2026-08-09T19:00:00.000Z → 2026-08-09T19:00:00.000Z\n  01a1672e-2b80-7e26-8a8c-2ca351deb6b6 steps: 2 samples, 2026-08-09T16:00:00.000Z → 2026-08-09T16:05:00.000Z\n  01a1672e-2b80-7e26-8a8c-2ca351deb6b6 walking_asymmetry_percentage: 1 samples, 2026-08-09T19:00:00.000Z → 2026-08-09T19:00:00.000Z\n  01a1672e-2b80-7e26-8a8c-2ca351deb6b6 walking_speed: 1 samples, 2026-08-09T19:00:00.000Z → 2026-08-09T19:00:00.000Z\n  01a1672e-2b80-7e26-8a8c-2ca351deb6b6 walking_step_length: 1 samples, 2026-08-09T19:00:00.000Z → 2026-08-09T19:00:00.000Z\n\nbenchmarks defined: 7 · results recorded: 0\npredictions: 0 · grades: 0"
+  },
+  "v200": {
+    "stats": {
+      "athleticstandard_version": "2.0.0",
+      "database_id": "01890f3e-e7d3-7cc0-88c8-000000000001",
+      "database_revision": 3,
+      "athlete": {
+        "name": "Demo Athlete",
+        "birth_year": 1990,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "current_records": {
+        "total": 24,
+        "by_type": {
+          "athlete_profile": 1,
+          "attachment": 1,
+          "benchmark_definition": 1,
+          "benchmark_result": 1,
+          "coaching_note": 1,
+          "goal": 1,
+          "measurement_sample": 1,
+          "nutrition_entry": 1,
+          "nutrition_model_interpretation": 1,
+          "planned_session": 1,
+          "point_measurement": 1,
+          "prediction": 1,
+          "prediction_error_analysis": 1,
+          "prediction_grade": 1,
+          "prediction_result_link": 1,
+          "provider_score": 1,
+          "provider_summary": 1,
+          "saved_training_review": 1,
+          "sleep_session": 1,
+          "source": 2,
+          "source_device": 1,
+          "training_plan": 1,
+          "workout_session": 1
+        }
+      },
+      "sources": [
+        {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "source_type": "wearable",
+          "data_writer": "WHOOP",
+          "data_route": "whoop_csv",
+          "vendor": "whoop",
+          "sensor_type": "optical",
+          "current_record_count": 6,
+          "first_recorded_at": "2026-08-09T03:30:00.000Z",
+          "last_recorded_at": "2026-08-10T17:25:00.000Z"
+        },
+        {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000004",
+          "source_type": "manual",
+          "data_writer": "ath",
+          "data_route": "manual_entry",
+          "vendor": null,
+          "sensor_type": null,
+          "current_record_count": 1,
+          "first_recorded_at": "2026-08-10T17:48:00.000Z",
+          "last_recorded_at": "2026-08-10T17:48:00.000Z"
+        }
+      ],
+      "baselines": [
+        {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "quantity": "hrv_rmssd",
+          "unit": "ms",
+          "mean": 64,
+          "standard_deviation": 0,
+          "observation_count": 1,
+          "from": "2026-08-09T11:12:00.000Z",
+          "to": "2026-08-09T11:12:00.000Z",
+          "window_days": 90,
+          "method": "sample_mean_and_standard_deviation"
+        }
+      ],
+      "series": [
+        {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "quantity": "heart_rate",
+          "unit": "bpm",
+          "sample_count": 1,
+          "from": "2026-08-09T11:12:00.000Z",
+          "to": "2026-08-09T11:12:00.000Z"
+        }
+      ],
+      "benchmarks": {
+        "defined": 1,
+        "results": 1
+      },
+      "predictions": {
+        "total": 1,
+        "graded": 1,
+        "by_author": [
+          {
+            "author": "ath-reference-agent running fixture-model",
+            "predictions": 1
+          }
+        ]
+      }
+    },
+    "text": "Demo Athlete · Athletic Standard 2.0.0\ndatabase revision: 3\n\ncurrent records: 24\n  athlete_profile: 1\n  attachment: 1\n  benchmark_definition: 1\n  benchmark_result: 1\n  coaching_note: 1\n  goal: 1\n  measurement_sample: 1\n  nutrition_entry: 1\n  nutrition_model_interpretation: 1\n  planned_session: 1\n  point_measurement: 1\n  prediction: 1\n  prediction_error_analysis: 1\n  prediction_grade: 1\n  prediction_result_link: 1\n  provider_score: 1\n  provider_summary: 1\n  saved_training_review: 1\n  sleep_session: 1\n  source: 2\n  source_device: 1\n  training_plan: 1\n  workout_session: 1\n\nsources: 2\n  01890f3e-e7d3-7cc0-88c8-000000000003: WHOOP via whoop_csv (wearable) — 6 records, 2026-08-09 → 2026-08-10\n  01890f3e-e7d3-7cc0-88c8-000000000004: ath via manual_entry (manual) — 1 record, 2026-08-10 → 2026-08-10\n\n90-day device baselines (each source stays separate):\n  01890f3e-e7d3-7cc0-88c8-000000000003 hrv_rmssd: 64ms (sd 0, n=1, 2026-08-09 → 2026-08-09)\n\nsample series:\n  01890f3e-e7d3-7cc0-88c8-000000000003 heart_rate: 1 samples, 2026-08-09T11:12:00.000Z → 2026-08-09T11:12:00.000Z\n\nbenchmarks defined: 1 · results recorded: 1\npredictions: 1 · grades: 1\n  ath-reference-agent running fixture-model: 1"
+  }
+}
