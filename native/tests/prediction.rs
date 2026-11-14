@@ -432,3 +432,46 @@ fn grading_creates_a_link_then_reuses_it_and_refuses_a_stale_plan() {
     assert!(matches!(error, Error::Stale(_)), "{error}");
     assert_eq!(store.database_revision().unwrap(), before);
 }
+
+#[test]
+fn an_erased_evidence_reference_resolves_to_its_value_free_marker() {
+    use athleticstandard::model::EvidenceReference;
+    use athleticstandard::prediction::evidence::resolve_evidence_reference;
+    let (_directory, mut store) = replay_database();
+    store
+        .transaction(|tx| {
+            tx.execute(
+                "INSERT INTO record_erasure_markers (record_id, erased_at, reason_code) VALUES (?1, ?2, 'athlete_request')",
+                [id(0xa09), "2026-07-01T00:00:00.000Z".to_string()],
+            )?;
+            Ok(())
+        })
+        .unwrap();
+    let erased =
+        resolve_evidence_reference(store.connection(), &EvidenceReference { record_id: id(0xa09), revision: 1 })
+            .unwrap();
+    assert_eq!(
+        json::encode(&erased),
+        format!(
+            r#"{{"status":"erased","reference":{{"record_id":"{0}","revision":1}},"erasure_marker":{{"record_id":"{0}","erased_at":"2026-07-01T00:00:00.000Z","reason_code":"athlete_request"}}}}"#,
+            id(0xa09)
+        )
+    );
+    let available =
+        resolve_evidence_reference(store.connection(), &EvidenceReference { record_id: id(0xb01), revision: 1 })
+            .unwrap();
+    assert_eq!(json::to_value(&available)["status"], "available");
+}
+
+#[test]
+fn an_as_of_query_takes_one_type_or_a_list() {
+    use athleticstandard::model::RecordType;
+    use athleticstandard::store::query::AsOfQuery;
+    let as_of = || "2026-07-01T00:00:00.000Z".to_string();
+    let both = AsOfQuery::from_parts(as_of(), Some(RecordType::Source), Some(vec![RecordType::Source]), None);
+    assert_eq!(both.unwrap_err().to_string(), "Use record_type or record_types, not both");
+    let empty = AsOfQuery::from_parts(as_of(), None, Some(Vec::new()), None);
+    assert_eq!(empty.unwrap_err().to_string(), "record_types must contain at least one record type");
+    let one = AsOfQuery::from_parts(as_of(), Some(RecordType::Source), None, None).unwrap();
+    assert_eq!(one.record_types, vec![RecordType::Source]);
+}

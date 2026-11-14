@@ -101,6 +101,28 @@ pub struct AsOfQuery {
     pub limit: Option<u32>,
 }
 
+impl AsOfQuery {
+    /// The 2.1.0 request shape: one `record_type` or a non-empty
+    /// `record_types` list, never both.
+    pub fn from_parts(
+        as_of: String,
+        record_type: Option<RecordType>,
+        record_types: Option<Vec<RecordType>>,
+        limit: Option<u32>,
+    ) -> Result<AsOfQuery> {
+        let record_types = match (record_type, record_types) {
+            (Some(_), Some(_)) => return Err(Error::other("Use record_type or record_types, not both")),
+            (_, Some(types)) if types.is_empty() => {
+                return Err(Error::other("record_types must contain at least one record type"))
+            }
+            (_, Some(types)) => types,
+            (Some(record_type), None) => vec![record_type],
+            (None, None) => Vec::new(),
+        };
+        Ok(AsOfQuery { as_of, record_types, limit })
+    }
+}
+
 /// `UtcTimestamp.parse`: the stored UTC form, or a validation error.
 pub fn parse_utc_timestamp(text: &str) -> Result<String> {
     utc_timestamp().validate(&Value::String(text.to_string()))?;
