@@ -74,3 +74,8 @@ native/target/
 !native/tests/vectors/model/AthleteReportRevision.json
 !native/tests/vectors/model/AthleteReportType.json
 !native/tests/vectors/model/ExportManifest.json
+
+# The npm package build copies these in; pack.mjs removes them after packing.
+packages/npm/native/
+packages/npm/skills/
+packages/npm/pack-output/
