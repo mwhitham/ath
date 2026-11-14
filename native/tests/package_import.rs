@@ -59,6 +59,10 @@ fn restored_copy(package: &Path, directory: &Path, name: &str) -> PathBuf {
 }
 
 fn rename_profile(path: &Path, name: &str) {
+    correct_profile(path, name, ExtensionsUpdate::Keep);
+}
+
+fn correct_profile(path: &Path, name: &str, extensions: ExtensionsUpdate) {
     let mut store = open(path);
     let current = store.get_record(PROFILE_ID).unwrap().unwrap();
     let mut data = current.data.to_value();
@@ -69,7 +73,7 @@ fn rename_profile(path: &Path, name: &str) {
                 record_id: PROFILE_ID.into(),
                 expected_revision: current.current_revision,
                 data: RecordData::decode(RecordType::AthleteProfile, &data).unwrap(),
-                extensions: ExtensionsUpdate::Keep,
+                extensions,
                 changed_by: RecordActor::Athlete,
                 became_known_at: None,
                 became_known_at_basis: BecameKnownAtBasis::LocalWrite,
@@ -234,6 +238,47 @@ fn package_conflicts_are_shown_resolved_and_refused_when_stale() {
     assert_eq!(history[2].became_known_at_basis, BecameKnownAtBasis::PackageMerge);
     assert_eq!(history[2].changed_by, RecordActor::Athlete);
     assert!(!conflict_set_path(&store).exists());
+    fs::remove_dir_all(directory).unwrap();
+}
+
+/// A resolved revision keeps the extensions of the chosen side: the imported
+/// value brings the package's, a corrected value keeps the local ones. 2.1.0
+/// dropped them (deliberate-changes.md, packages entry 4).
+#[test]
+fn a_resolved_conflict_keeps_the_chosen_side_s_extensions() {
+    let directory = temporary("ath-conflict-extensions-");
+    let base = materialize_golden_package("demo", &directory);
+    let local = restored_copy(&base, &directory, "local");
+    let imported = restored_copy(&base, &directory, "imported");
+    let side = |name: &str| json!({ "example.com/side": { "from": name } }).as_object().cloned();
+    correct_profile(&local, "Local name", ExtensionsUpdate::Set(side("local")));
+    correct_profile(&imported, "Imported name", ExtensionsUpdate::Set(side("imported")));
+    let incoming = directory.join("incoming");
+    export(&imported, &incoming);
+
+    for choice in ["imported", "corrected"] {
+        let copy = directory.join(format!("choice-{choice}"));
+        fs::create_dir(&copy).unwrap();
+        let path = copy.join("destination.ath.sqlite");
+        fs::copy(&local, &path).unwrap();
+        let mut store = open(&path);
+        import_preview(&store, &incoming);
+        let chosen = if choice == "imported" {
+            ConflictChoice::Imported
+        } else {
+            let mut data = store.get_record(PROFILE_ID).unwrap().unwrap().data.to_value();
+            data["name"] = Value::String("Agreed name".into());
+            ConflictChoice::Corrected { data }
+        };
+        resolve_conflict(&store, PROFILE_ID, chosen).unwrap();
+        import_confirmed(&mut store, &incoming).unwrap();
+        let expected = side(if choice == "imported" { "imported" } else { "local" });
+        let profile = store.get_record(PROFILE_ID).unwrap().unwrap();
+        assert_eq!(profile.current_revision, 3, "{choice}");
+        assert_eq!(profile.extensions, expected, "{choice}");
+        assert_eq!(store.revision(PROFILE_ID, 3).unwrap().unwrap().extensions, expected, "{choice}");
+        store.close().unwrap();
+    }
     fs::remove_dir_all(directory).unwrap();
 }
 
@@ -441,50 +486,135 @@ fn source_package(directory: &Path, name: &str, sources: &[(&str, &str, bool, Va
 const SOURCE_A: &str = "01890f3e-0000-7000-8000-00000000000a";
 const SOURCE_B: &str = "01890f3e-0000-7000-8000-00000000000b";
 
-/// 2.1.0 compares records as JSON text, so supplied fields in another key
-/// order are a conflict even when the values are the same. Kept as 2.1.0
-/// behaves; see the report for the open question.
+/// Every stored JSON text of a record, to show a merge left it unchanged.
+fn stored_texts(store: &Store, record_id: &str) -> Vec<String> {
+    let connection = store.connection();
+    let mut texts: Vec<String> = connection
+        .prepare("SELECT record_json FROM record_revisions WHERE record_id = ?1 ORDER BY revision")
+        .unwrap()
+        .query_map([record_id], |row| row.get(0))
+        .unwrap()
+        .map(Result::unwrap)
+        .collect();
+    let typed: Option<String> =
+        connection.query_row("SELECT data_json FROM sources WHERE record_id = ?1", [record_id], |row| row.get(0)).ok();
+    texts.extend(typed);
+    texts
+}
+
+/// Merge compares records by logical value. 2.1.0 compared JSON text, so
+/// supplied fields in another key order were reported as "record revision
+/// history differs" (deliberate-changes.md, packages entry 2).
 #[test]
-fn reordered_supplied_fields_conflict_as_in_2_1_0() {
+fn reordered_supplied_fields_match_and_keep_the_local_bytes() {
     let directory = temporary("ath-merge-order-");
-    let base = source_package(&directory, "base", &[(SOURCE_A, "r-a", false, json!({ "zeta": 1, "alpha": 2 }))]);
+    let base = source_package(&directory, "base", &[(SOURCE_A, "r-a", false, json!({ "zeta": 1, "alpha": 2.0 }))]);
     let reordered =
         source_package(&directory, "reordered", &[(SOURCE_A, "r-a", false, json!({ "alpha": 2, "zeta": 1 }))]);
     let database = empty_destination(&directory);
     let mut store = open(&database);
     import_confirmed(&mut store, &base).unwrap();
-    let same = preview_package_import(&store, &base).unwrap();
-    assert_eq!(same.matching_record_count, 1);
+    let before = stored_texts(&store, SOURCE_A);
+    assert!(before[0].contains("\"zeta\":1,\"alpha\":2"), "{before:?}");
     let preview = preview_package_import(&store, &reordered).unwrap();
-    assert_eq!(preview.matching_record_count, 0);
-    assert_eq!(
-        json::to_value(&preview.conflicts),
-        json!([{ "record_id": SOURCE_A, "message": "record revision history differs" }])
-    );
+    assert_eq!(preview.matching_record_count, 1);
+    assert!(preview.conflicts.is_empty());
+    apply_package_import(&mut store, &preview, &[]).unwrap();
+    assert_eq!(stored_texts(&store, SOURCE_A), before);
     fs::remove_dir_all(directory).unwrap();
 }
 
-/// 2.1.0 sets a new record's deleted flag before inserting its deletion, so
-/// the database refuses a merge that adds a deleted record. Kept as 2.1.0
-/// behaves; see the report for the open question. Nothing is written.
+/// Re-importing a database's own export reports no conflicts, even though
+/// the package sorts keys that the database stored in another order.
 #[test]
-fn a_merge_that_adds_a_deleted_record_is_refused_as_in_2_1_0() {
+fn a_database_s_own_export_imports_without_conflicts() {
+    let directory = temporary("ath-merge-own-");
+    let database = empty_destination(&directory);
+    let mut store = open(&database);
+    let data = RecordData::decode(
+        RecordType::Source,
+        &json!({ "source_type": "wearable", "data_writer": "S", "data_route": "r-own",
+                 "supplied_fields": { "zeta": { "y": 1, "x": [2.50, -0.0] }, "alpha": "a", "10": 1, "9": 2 } }),
+    )
+    .unwrap();
+    let mut create = NewRecord::new(data, RecordActor::Athlete);
+    create.extensions = json!({ "example.com/zz": { "b": 1, "a": 2 }, "example.com/aa": 1 }).as_object().cloned();
+    let written = store.apply(Changes { creates: vec![create], ..Changes::default() }).unwrap();
+    let id = written.records[0].record_id.clone();
+    let before = stored_texts(&store, &id);
+    let package = directory.join("own");
+    export_package(&store, &package, &ExportOptions::default()).unwrap();
+    let exported = fs::read_to_string(package.join("athlete.ath.json")).unwrap();
+    assert!(exported.find("\"alpha\"").unwrap() < exported.find("\"zeta\"").unwrap(), "the package sorts keys");
+    let preview = preview_package_import(&store, &package).unwrap();
+    assert!(preview.conflicts.is_empty(), "{:?}", preview.conflicts);
+    assert_eq!(preview.matching_record_count, 1);
+    apply_package_import(&mut store, &preview, &[]).unwrap();
+    assert_eq!(stored_texts(&store, &id), before);
+    fs::remove_dir_all(directory).unwrap();
+}
+
+/// A merge that adds a deleted record, or deletes a record, succeeds: the
+/// deletion row is written before the deleted flag. 2.1.0 failed with
+/// "records.is_deleted must match record_deletions" (deliberate-changes.md,
+/// packages entry 1).
+#[test]
+fn a_merge_adds_deleted_records_and_deletions() {
     let directory = temporary("ath-merge-deleted-");
     let base = source_package(&directory, "base", &[(SOURCE_A, "r-a", false, Value::Null)]);
-    let more = source_package(
-        &directory,
-        "more",
-        &[(SOURCE_A, "r-a", false, Value::Null), (SOURCE_B, "r-b", true, Value::Null)],
-    );
     let database = empty_destination(&directory);
     let mut store = open(&database);
     import_confirmed(&mut store, &base).unwrap();
+
+    // The package adds a deleted record B, and revises and deletes record A.
+    let more = directory.join("more");
+    fs::create_dir(&more).unwrap();
+    let source = |route: &str, vendor: Option<&str>| {
+        let mut data = json!({ "source_type": "wearable", "data_writer": "S", "data_route": route });
+        if let Some(vendor) = vendor {
+            data["vendor"] = Value::String(vendor.into());
+        }
+        data
+    };
+    let revision = |id: &str, number: u64, data: &Value| {
+        json!({ "record_id": id, "revision": number, "previous_revision": if number == 1 { Value::Null } else { Value::from(number - 1) },
+                "became_known_at": "2026-01-01T00:00:00.000Z", "became_known_at_basis": "local_write",
+                "changed_by": { "author_type": "athlete" }, "record_type": "source", "data": data })
+    };
+    let deletion = |id: &str, number: u64| {
+        json!({ "record_id": id, "record_revision": number, "deleted_at": "2026-01-02T00:00:00.000Z",
+                "deleted_by": { "author_type": "athlete" } })
+    };
+    let a1 = source("r-a", None);
+    let a2 = source("r-a", Some("v"));
+    let b1 = source("r-b", None);
+    let document = json!({
+        "athleticstandard_version": "2.1.0", "database_id": "01890f3e-0000-7000-8000-000000000001", "database_revision": 9,
+        "records": [
+            { "record_id": SOURCE_A, "created_at": "2026-01-01T00:00:00.000Z", "current_revision": 2, "is_deleted": true, "record_type": "source", "data": a2 },
+            { "record_id": SOURCE_B, "created_at": "2026-01-01T00:00:00.000Z", "current_revision": 1, "is_deleted": true, "record_type": "source", "data": b1 },
+        ],
+        "record_revisions": [revision(SOURCE_A, 1, &a1), revision(SOURCE_A, 2, &a2), revision(SOURCE_B, 1, &b1)],
+        "record_deletions": [deletion(SOURCE_A, 2), deletion(SOURCE_B, 1)],
+        "record_erasure_markers": [], "record_import_keys": [], "measurement_series_files": [],
+    });
+    fs::write(more.join("athlete.ath.json"), json::to_string(&document)).unwrap();
     let preview = preview_package_import(&store, &more).unwrap();
-    assert_eq!(preview.new_record_count, 1);
-    let error = apply_package_import(&mut store, &preview, &[]).unwrap_err();
-    assert!(error.to_string().contains("records.is_deleted must match record_deletions"), "{error}");
-    assert!(store.get_record(SOURCE_B).unwrap().is_none());
-    assert_eq!(store.database_revision().unwrap(), 5);
+    assert_eq!(preview.new_records, [SOURCE_B]);
+    assert_eq!(preview.changed_records, [SOURCE_A]);
+    apply_package_import(&mut store, &preview, &[]).unwrap();
+    for (id, revision) in [(SOURCE_A, 2), (SOURCE_B, 1)] {
+        let record = store.get_record(id).unwrap().unwrap();
+        assert!(record.is_deleted, "{id}");
+        assert_eq!(record.current_revision, revision, "{id}");
+        let deleted_revision: i64 = store
+            .connection()
+            .query_row("SELECT record_revision FROM record_deletions WHERE record_id = ?1", [id], |row| row.get(0))
+            .unwrap();
+        assert_eq!(deleted_revision, revision as i64, "{id}");
+    }
+    // The database is still valid and exports again.
+    export_package(&store, &directory.join("after"), &ExportOptions::default()).unwrap();
     fs::remove_dir_all(directory).unwrap();
 }
 

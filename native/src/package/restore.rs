@@ -265,14 +265,16 @@ struct Classification {
     conflicts: Vec<PackageImportConflict>,
 }
 
-/// JSON text in published field order. Equal text means the same record
-/// and the same key order inside supplied maps, as version 2.1.0 compared.
-fn record_text(record: &CurrentRecord) -> String {
-    json::to_string(&record.to_value())
+/// Two records hold the same logical value: the same fields and values, with
+/// key order inside maps ignored and numbers compared as JavaScript numbers.
+/// 2.1.0 compared JSON text, so supplied fields stored in another key order
+/// looked like a conflict, and a database's own export conflicted with it.
+fn same_record(left: &CurrentRecord, right: &CurrentRecord) -> bool {
+    json::semantic_eq(&left.to_value(), &right.to_value())
 }
 
-fn revision_text(revision: &RecordRevision) -> String {
-    json::to_string(&revision.to_value())
+fn same_revision(left: &RecordRevision, right: &RecordRevision) -> bool {
+    json::semantic_eq(&left.to_value(), &right.to_value())
 }
 
 fn classify(connection: &rusqlite::Connection, batch: &Batch<'_>) -> Result<Classification> {
@@ -298,8 +300,8 @@ fn classify(connection: &rusqlite::Connection, batch: &Batch<'_>) -> Result<Clas
         let local_revisions = read::revisions(connection, &imported.record_id)?;
         let incoming_revisions = incoming.get(imported.record_id.as_str()).map(Vec::as_slice).unwrap_or_default();
         let overlap = local_revisions.len().min(incoming_revisions.len());
-        let prefix_matches = (0..overlap)
-            .all(|index| revision_text(&local_revisions[index]) == revision_text(incoming_revisions[index]));
+        let prefix_matches =
+            (0..overlap).all(|index| same_revision(&local_revisions[index], incoming_revisions[index]));
         if !prefix_matches || incoming_revisions.len() < local_revisions.len() {
             out.conflicts.push(PackageImportConflict {
                 record_id: Some(imported.record_id.clone()),
@@ -307,7 +309,7 @@ fn classify(connection: &rusqlite::Connection, batch: &Batch<'_>) -> Result<Clas
             });
             continue;
         }
-        if incoming_revisions.len() == local_revisions.len() && record_text(&local) == record_text(imported) {
+        if incoming_revisions.len() == local_revisions.len() && same_record(&local, imported) {
             out.matching_ids.push(imported.record_id.clone());
             continue;
         }
@@ -647,14 +649,10 @@ fn merge_in(
                 }
             }
         }
-        for record in batch.records {
-            if generic_new.contains(&record.record_id) || changed_ids.contains(&record.record_id) {
-                write_current(tx, layout, record)?;
-                tx.prepare_cached("UPDATE records SET current_revision = ?1, is_deleted = ?2 WHERE record_id = ?3")?
-                    .execute(params![record.current_revision as i64, i64::from(record.is_deleted), record.record_id])?;
-                to_validate.push(record.data.clone());
-            }
-        }
+        // Deletion rows go in before the deleted flag is set: the database
+        // refuses a deleted flag without its deletion row. 2.1.0 set the flag
+        // first, so a merge that added a deleted record, or deleted one,
+        // failed with "records.is_deleted must match record_deletions".
         for deletion in batch.deletions {
             if new_samples.contains(&deletion.record_id) || resolutions.contains_key(deletion.record_id.as_str()) {
                 continue;
@@ -664,6 +662,14 @@ fn merge_in(
                 .exists([&deletion.record_id])?;
             if !present {
                 insert_deletion(tx, deletion)?;
+            }
+        }
+        for record in batch.records {
+            if generic_new.contains(&record.record_id) || changed_ids.contains(&record.record_id) {
+                write_current(tx, layout, record)?;
+                tx.prepare_cached("UPDATE records SET current_revision = ?1, is_deleted = ?2 WHERE record_id = ?3")?
+                    .execute(params![record.current_revision as i64, i64::from(record.is_deleted), record.record_id])?;
+                to_validate.push(record.data.clone());
             }
         }
         for key in batch.import_keys {
@@ -756,9 +762,17 @@ fn resolve_in(
     if time::parse_utc_timestamp(resolution_time) < time::parse_utc_timestamp(&became_known_at) {
         return Err(Error::refused(format!("conflict resolution time precedes the current revision: {id}")));
     }
-    let data_value = match &resolution.choice {
-        ConflictChoice::Corrected { data } => data.clone(),
-        _ => imported.data.to_value(),
+    // The new revision keeps the extensions of the chosen side. An imported
+    // value brings the package record's extensions. A corrected value is a
+    // data object only and cannot carry extensions, so it keeps the current
+    // local extensions, as `ath correct` does. 2.1.0 dropped them in both cases.
+    let (data_value, extensions) = match &resolution.choice {
+        ConflictChoice::Corrected { data } => {
+            let local = read::get_record(tx, id)?
+                .ok_or_else(|| Error::stale(format!("local conflict record is missing: {id}")))?;
+            (data.clone(), local.extensions)
+        }
+        _ => (imported.data.to_value(), imported.extensions.clone()),
     };
     let next = current_revision as u64 + 1;
     let mut record_value = json::Map::new();
@@ -767,6 +781,9 @@ fn resolve_in(
     record_value.insert("created_at".into(), Value::String(created_at));
     record_value.insert("current_revision".into(), Value::from(next));
     record_value.insert("is_deleted".into(), Value::Bool(false));
+    if let Some(extensions) = &extensions {
+        record_value.insert("extensions".into(), Value::Object(extensions.clone()));
+    }
     record_value.insert("data".into(), data_value);
     let record = CurrentRecord::from_value(&Value::Object(record_value))?;
     let revision = RecordRevision {
@@ -777,7 +794,7 @@ fn resolve_in(
         became_known_at_basis: BecameKnownAtBasis::PackageMerge,
         changed_by: RecordActor::Athlete,
         data: record.data.clone(),
-        extensions: None,
+        extensions: record.extensions.clone(),
     };
     RecordRevision::from_value(&revision.to_value())?;
     insert_revision(tx, &revision)?;
