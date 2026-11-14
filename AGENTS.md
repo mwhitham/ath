@@ -39,6 +39,12 @@ describe released 0.x behavior.
 - **Chat:** talking to a person follows [`.cursor/rules/plain-english.mdc`](.cursor/rules/plain-english.mdc). One idea per sentence, the point before the reason, no shop talk, one numbered question at a time.
 - **SDNN and RMSSD are different statistics** (`hrv_sdnn` vs `hrv_rmssd`); never combine them in one baseline.
 
+## Roadmap
+
+Roadmap ideas are GitHub issues labeled `roadmap` on `mwhitham/ath`. File one by following [`.cursor/skills/roadmap/SKILL.md`](.cursor/skills/roadmap/SKILL.md). Stop when the issue is open. Do not move an issue to Up next.
+
+Build from Up next on the public project titled Roadmap: <https://github.com/users/mwhitham/projects>. Take one item. Set it to Now. Open a pull request that closes the issue. Closing the issue moves it to Done. Do not start from Backlog.
+
 ## Verification
 
 `pnpm check:public-data && pnpm typecheck && pnpm test && pnpm build` must pass before any commit. The fixture (`examples/demo-athlete/`) is deterministic — regenerate, don't hand-edit.

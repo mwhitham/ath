@@ -1,0 +1,37 @@
+name: Roadmap idea
+description: Something Athletic Standard should build. It starts in Backlog.
+labels:
+  - roadmap
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Write a few plain sentences. Leave out real health numbers, dates, and places.
+  - type: textarea
+    id: what
+    attributes:
+      label: What to build
+      description: A few plain sentences.
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why
+      description: Why this is worth building.
+    validations:
+      required: true
+  - type: textarea
+    id: done
+    attributes:
+      label: Done when
+      description: How we will know this is finished.
+    validations:
+      required: true
+  - type: textarea
+    id: example
+    attributes:
+      label: Example
+      description: Optional. A picture or a simple diagram, only if the words need it.
+    validations:
+      required: false

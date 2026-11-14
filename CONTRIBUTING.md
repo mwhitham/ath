@@ -2,6 +2,14 @@
 
 Use a feature branch and open a pull request against `main`. Keep each commit to one logical change.
 
+## Roadmap
+
+Use the Roadmap idea issue form for something to build. The issue is labeled `roadmap` and starts in Backlog. The repository owner moves work to Up next. Build from Up next.
+
+The public board is the project titled Roadmap: <https://github.com/users/mwhitham/projects>.
+
+Do not put real health numbers, dates, or places in an issue. Describe the request. A public issue keeps whatever you write.
+
 ## Protect health data
 
 Never commit a real health export or athlete file. This rule applies to public and private repositories because clones, logs, and old commits retain deleted data.
