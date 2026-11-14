@@ -28,7 +28,7 @@ use std::net::TcpListener;
 use std::path::Path;
 
 use athleticstandard::import::{self, mapping, ImportOptions, ProviderPreview, SharedImport};
-use athleticstandard::json::{self, Map, Value};
+use athleticstandard::json::{self, Value};
 use athleticstandard::model::RecordActor;
 use athleticstandard::runtime::garmin_pull;
 use athleticstandard::store::{Changes, Deletion, Store};
@@ -498,9 +498,4 @@ fn with_revision(records: &Value) -> Value {
 
 fn canonical(value: &Value) -> Value {
     json::parse(&json::to_sorted_string(value)).unwrap()
-}
-
-/// A JSON object from text, for building test inputs.
-pub fn object(text: &str) -> Map<String, Value> {
-    json::parse(text).unwrap().as_object().unwrap().clone()
 }
