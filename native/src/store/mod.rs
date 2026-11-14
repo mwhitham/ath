@@ -84,7 +84,13 @@ impl std::fmt::Debug for Store {
     }
 }
 
+/// Prepared statements kept per connection. The encoder and the check use
+/// one statement per typed table and child table, about 70 in all. The
+/// default of 16 made SQLite prepare most of them again for every record.
+pub const PREPARED_STATEMENT_CACHE: usize = 256;
+
 fn configure(connection: &Connection) -> Result<()> {
+    connection.set_prepared_statement_cache_capacity(PREPARED_STATEMENT_CACHE);
     connection.busy_timeout(SQLITE_BUSY_TIMEOUT)?;
     connection.pragma_update(None, "foreign_keys", "ON")?;
     let enabled: i64 = connection.pragma_query_value(None, "foreign_keys", |row| row.get(0))?;

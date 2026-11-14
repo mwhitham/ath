@@ -385,10 +385,13 @@ struct RevisionRow {
     extensions_json: Option<String>,
 }
 
-const RECORDS_IN_ORDER: &str =
+/// The ordered pass over records. Each statement here and below is listed by
+/// `check_statements` so its query plan can be inspected.
+pub const RECORDS_IN_ORDER: &str =
     "SELECT record_id, record_type, current_revision, created_at, is_deleted FROM records ORDER BY record_id";
 
-const REVISIONS_IN_ORDER: &str = "SELECT record_id, record_type, revision, previous_revision, became_known_at,
+/// The ordered pass over every retained revision.
+pub const REVISIONS_IN_ORDER: &str = "SELECT record_id, record_type, revision, previous_revision, became_known_at,
         became_known_at_basis, changed_by_json, record_json, extensions_json
    FROM record_revisions ORDER BY record_id, revision";
 
@@ -501,7 +504,14 @@ fn check_revision(revision: &RevisionRow, bucket: &mut Bucket) -> Option<Value> 
         payload.insert("extensions".into(), extensions);
     }
     let payload = Value::Object(payload);
-    if let Err(error) = record_revision_schema().validate(&payload) {
+    // `RecordRevision` is a plain union, so checking it tries up to 24
+    // variants. The variant for the stored type decides validity on its own;
+    // the union runs only to word a failure exactly as 2.1.0 did.
+    let valid = RecordType::parse(&revision.record_type)
+        .is_some_and(|record_type| revision_variant(record_type).validate(&payload).is_ok());
+    if valid {
+        // Valid without the union.
+    } else if let Err(error) = record_revision_schema().validate(&payload) {
         fail(bucket, error.to_string());
     }
     match payload {
@@ -754,7 +764,7 @@ impl TypedRow {
 }
 
 fn read_typed_row(connection: &Connection, table: &str, record_id: &str) -> Result<Option<TypedRow>> {
-    let mut statement = connection.prepare_cached(&format!("SELECT * FROM {table} WHERE record_id = ?1"))?;
+    let mut statement = connection.prepare_cached(&typed_row_query(table))?;
     let names: Vec<String> = statement.column_names().map(str::to_string).collect();
     Ok(statement
         .query_row([record_id], |row| {
@@ -772,6 +782,36 @@ fn read_typed_row(connection: &Connection, table: &str, record_id: &str) -> Resu
             });
             TypedRow { data_json, columns }
         }))
+}
+
+fn typed_row_query(table: &str) -> String {
+    format!("SELECT * FROM {table} WHERE record_id = ?1")
+}
+
+fn child_query(child: &encode::ChildRows) -> String {
+    let order: Vec<&str> = child.columns.iter().copied().filter(|column| column.ends_with("_order")).collect();
+    format!(
+        "SELECT {} FROM {} WHERE {} = ?1 ORDER BY {}",
+        child.columns.join(", "),
+        child.table,
+        child.owner_column,
+        order.join(", ")
+    )
+}
+
+/// The statements the check runs: the two ordered passes, then the lookups
+/// it makes for one record with this data. Each lookup reads by key.
+pub fn check_statements(data: &RecordData) -> Vec<String> {
+    let mut statements = vec![RECORDS_IN_ORDER.to_string(), REVISIONS_IN_ORDER.to_string()];
+    statements.push(typed_row_query(encode::table_for(data.record_type())));
+    let authored = data.authorship().is_some();
+    for child in encode::child_rows(data) {
+        if child.table == "authored_record_evidence" && !authored {
+            continue;
+        }
+        statements.push(child_query(&child));
+    }
+    statements
 }
 
 enum TypedOutcome {
@@ -808,15 +848,7 @@ fn typed_mismatch(
             }
             return Ok(TypedOutcome::Different);
         }
-        let order: Vec<&str> = child.columns.iter().copied().filter(|column| column.ends_with("_order")).collect();
-        let sql = format!(
-            "SELECT {} FROM {} WHERE {} = ?1 ORDER BY {}",
-            child.columns.join(", "),
-            child.table,
-            child.owner_column,
-            order.join(", ")
-        );
-        let mut statement = context.connection.prepare_cached(&sql)?;
+        let mut statement = context.connection.prepare_cached(&child_query(&child))?;
         let mut rows = statement.query([record_id])?;
         let mut expected_rows = child.rows.iter();
         while let Some(stored) = rows.next()? {
