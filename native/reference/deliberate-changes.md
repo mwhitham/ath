@@ -133,6 +133,107 @@ here; an unlisted difference is a bug.
 27. **A calendar range or `--as-of` day where midnight does not exist** (for
     example in America/Santiago) fails with the message the 2.1.0 search gave.
 
+## Packages and attachments
+
+28. **A merge can add a deleted record or delete a record.** 2.1.0 set a
+    record's deleted flag before it inserted the deletion row, so the
+    database rule refused the merge with "records.is_deleted must match
+    record_deletions" and nothing was imported. The deletion row is now
+    written first, in the same transaction. Test: `package_import.rs`
+    (`a_merge_adds_deleted_records_and_deletions`).
+
+29. **Merge compares records by logical value.** Key order inside supplied
+    fields, extensions, and other JSON maps is ignored, and numbers compare as
+    JavaScript numbers. 2.1.0 compared JSON text. A package sorts its keys and
+    the database keeps the order a record was written in, so importing a
+    database's own export reported "record revision history differs" for
+    such records. A matching record is not written, so its stored bytes stay
+    as they were. Test: `package_import.rs`
+    (`reordered_supplied_fields_match_and_keep_the_local_bytes`,
+    `a_database_s_own_export_imports_without_conflicts`).
+
+30. **Export refuses an attachment reached through a symbolic link.** The
+    file, or a folder on its path, may not be a link, and the path must be a
+    regular file. 2.1.0 followed the link and copied whatever it named when
+    the size and hash happened to match. Reason: spec section 9.2 file
+    safety, as the other attachment operations already required. Test:
+    `package_export.rs` (`an_attachment_reached_through_a_symbolic_link_is_refused`).
+
+31. **A resolved conflict keeps the chosen side's extensions.** An imported
+    choice writes the package record's extensions. A corrected choice keeps
+    the current local extensions, because `--data` holds the data object only
+    and cannot carry extensions; this matches `ath correct`, which also keeps
+    extensions. A local choice writes nothing. 2.1.0 dropped extensions from
+    every resolved revision. Test: `package_import.rs`
+    (`a_resolved_conflict_keeps_the_chosen_side_s_extensions`).
+
+32. **`conflicts show` without a conflict file says how to make one:** `no
+    temporary import conflicts; run ath import <package> to create a
+    preview`. 2.1.0 printed a raw ENOENT message (the quirk listed in
+    `command-behavior.md`). Test: `package_import.rs`
+    (`a_missing_conflict_file_says_how_to_create_one`).
+
+33. **An invalid conflict file names the first problem in a short phrase**
+    after `temporary import conflict file is invalid:`. 2.1.0 printed the
+    validator's JSON issue list there. The file is refused in the same cases.
+    Test: `package::conflicts` unit test.
+
+34. **Package JSON that is not UTF-8 is refused.** 2.1.0 replaced invalid
+    bytes with U+FFFD and imported the result. Lone surrogates and numbers
+    beyond the double range are refused as entries 2 and 3 describe. Text
+    after `package JSON is invalid: <path>:` comes from the Rust JSON reader.
+    Reason: a replacement would change supplied data silently. Test:
+    `package_import.rs` (`malformed_deep_oversized_and_linked_documents_are_refused`),
+    `serialization_vectors.rs`.
+
+35. **Attachment files are recoverable across a stopped process.** New
+    attachment files (`log`, `correct`, and package import) are recorded as
+    pending, written, and synchronized before their records commit, and the
+    commit clears the pending entries. A process that stops first leaves only
+    files no record names. Every command that opens a database for writing
+    removes them once the process that wrote them has stopped, and keeps any
+    file a record names. 2.1.0 removed files only on an error it saw. Reason:
+    spec section 9.2. Test: `package::tests` (failure injection),
+    `package_attachments.rs`, `cli_edit.rs`.
+
+36. **Package import copies attachment files before its transaction.**
+    2.1.0 renamed them into place inside the transaction. The files are now
+    in place, recorded as pending, before the records commit, and are removed
+    if the import fails. Each file's hash and size are checked again when it
+    is copied, and an existing file is never replaced. Test:
+    `package_import.rs`, `package::tests`.
+
+37. **Erasure removes attachment files after its commit and reports any it
+    could not remove.** 2.1.0 renamed the files aside before the transaction
+    and deleted them after it. Now the erasure records each removal as
+    pending in the same transaction that erases the records, then removes the
+    files and synchronizes the folder. A file that cannot be removed makes the
+    command fail with a message that says the records are erased and the
+    removal stays pending; `ath check` reports it and the next writable
+    command finishes it. `erased_attachment_count` counts the files actually
+    removed. Test: `package_erase.rs`, `package::tests`.
+
+38. **A missing attachment during export is named:** `attachment file is
+    missing: <path> (<record ID>)`, instead of the operating system's error
+    text. Test: `package_export.rs`.
+
+39. **Stored attachment names follow the POSIX extension rule on every
+    system.** 2.1.0 used the platform's path rules, so on Windows a
+    backslash in a file name split the name. Reason: a stored name must not
+    depend on where the record was written. Test: `files::attachments` unit
+    tests.
+
+40. **Series files are read in an order that follows `localeCompare` for
+    ASCII text** (IDs, quantity names, timestamps, and paths). Text outside
+    ASCII sorts by code point. The order sets only which sample IDs fill a
+    shortened preview list and which problem is reported first. Test:
+    `package::load` unit test.
+
+41. **Export writes each file in its private staging folder once,** without
+    a second temporary name, and synchronizes the folder before the one
+    rename that publishes it. The published files are the same. Test:
+    `package_export.rs`, `package::tests`.
+
 ## Behavior kept on purpose
 
 These look odd but stay, because changing them would change accepted data or
@@ -174,6 +275,16 @@ stored bytes:
 - Measurements that have only a provider period never appear in prediction
   evidence.
 - A backtest stops when evidence cannot be built for one replay.
+
+- A package merge advances the database revision by one even when every
+  record already matches and nothing else is written, as in 2.1.0. Test:
+  `package_import.rs` (`a_restore_preview_writes_nothing_then_the_restore_keeps_everything`).
+- A merge that adds revisions to a record deleted here, when the package does
+  not delete it, is refused by the database rule that a deleted flag needs its
+  deletion row, as in 2.1.0. Nothing is written. Undeleting a record through a
+  merge needs its own decision.
+- Package preview lists still collect sample IDs in series-file order before
+  sorting, so a shortened list holds the first 1,000 seen, as in 2.1.0.
 
 ## Open work
 
