@@ -4,6 +4,7 @@
 //!
 //! Module responsibilities are described in `docs/architecture.md`.
 
+pub mod assets;
 pub mod error;
 pub mod files;
 pub mod ids;
