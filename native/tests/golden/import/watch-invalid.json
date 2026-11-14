@@ -1,0 +1,170 @@
+{
+  "description": "Records 2.1.0 planned but could not write: an empty unit text and an RMSSD of zero.",
+  "reference": "2.1.0",
+  "steps": [
+    {
+      "apply": {
+        "error": "[\n  {\n    \"origin\": \"string\",\n    \"code\": \"too_small\",\n    \"minimum\": 1,\n    \"inclusive\": true,\n    \"path\": [\n      \"data\",\n      \"value\",\n      \"input_unit\"\n    ],\n    \"message\": \"Too small: expected string to have >=1 characters\"\n  }\n]"
+      },
+      "database": {
+        "database_revision": 0,
+        "records": []
+      },
+      "delete_before": null,
+      "input": {
+        "files": {
+          "export.xml": "<HealthData>\n <Record type=\"HKQuantityTypeIdentifierRestingHeartRate\" sourceName=\"Watch\" unit=\"count/min\" startDate=\"2026-03-01 06:00:00 -0700\" endDate=\"2026-03-01 06:00:00 -0700\" value=\"50\"/>\n <Record type=\"HKQuantityTypeIdentifierOxygenSaturation\" sourceName=\"Watch\" unit=\"\" startDate=\"2026-03-01 04:10:00 -0700\" endDate=\"2026-03-01 04:10:00 -0700\" value=\"0.97\"/>\n</HealthData>\n"
+        },
+        "kind": "directory"
+      },
+      "preview": {
+        "changed_records": [],
+        "conflicts": [],
+        "destination_database_revision": 0,
+        "imported": "Apple Health export",
+        "matching_records": [],
+        "new_records": [
+          {
+            "record_id": "<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>",
+            "record_type": "source"
+          },
+          {
+            "record_id": "<point_measurement apple_health/v1 [\"point_measurement\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"resting_heart_rate\",\"2026-03-01T13:00:00.000Z\",0]>",
+            "record_type": "point_measurement"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"oxygen_saturation\",\"2026-03-01T11:10:00.000Z\",0]>",
+            "record_type": "measurement_sample"
+          }
+        ],
+        "provider": "apple",
+        "route_points_stored": 0,
+        "skipped": {},
+        "write_confirmed": false
+      },
+      "received_at": "2026-10-13T12:00:00.000Z"
+    },
+    {
+      "apply": {
+        "error": "[\n  {\n    \"code\": \"custom\",\n    \"path\": [\n      \"data\",\n      \"value\",\n      \"standard_value\"\n    ],\n    \"message\": \"hrv_rmssd must be positive\"\n  }\n]"
+      },
+      "database": {
+        "database_revision": 0,
+        "records": []
+      },
+      "delete_before": null,
+      "input": {
+        "files": {
+          "export.xml": "<HealthData>\n <Record type=\"HKQuantityTypeIdentifierHeartRateVariabilitySDNN\" sourceName=\"Watch\" unit=\"ms\" startDate=\"2026-03-01 06:12:00 -0700\" endDate=\"2026-03-01 06:13:01 -0700\" value=\"30\">\n  <HeartRateVariabilityMetadataList>\n   <InstantaneousBeatsPerMinute bpm=\"60\" time=\"6:12:00.20\"/>\n   <InstantaneousBeatsPerMinute bpm=\"60\" time=\"6:12:01.15\"/>\n   <InstantaneousBeatsPerMinute bpm=\"60\" time=\"6:12:02.10\"/>\n   <InstantaneousBeatsPerMinute bpm=\"60\" time=\"6:12:03.05\"/>\n   <InstantaneousBeatsPerMinute bpm=\"60\" time=\"6:12:04.00\"/>\n   <InstantaneousBeatsPerMinute bpm=\"60\" time=\"6:12:04.95\"/>\n   <InstantaneousBeatsPerMinute bpm=\"60\" time=\"6:12:05.90\"/>\n   <InstantaneousBeatsPerMinute bpm=\"60\" time=\"6:12:06.85\"/>\n   <InstantaneousBeatsPerMinute bpm=\"60\" time=\"6:12:07.80\"/>\n   <InstantaneousBeatsPerMinute bpm=\"60\" time=\"6:12:08.75\"/>\n   <InstantaneousBeatsPerMinute bpm=\"60\" time=\"6:12:09.70\"/>\n   <InstantaneousBeatsPerMinute bpm=\"60\" time=\"6:12:10.65\"/>\n   <InstantaneousBeatsPerMinute bpm=\"60\" time=\"6:12:11.60\"/>\n   <InstantaneousBeatsPerMinute bpm=\"60\" time=\"6:12:12.55\"/>\n   <InstantaneousBeatsPerMinute bpm=\"60\" time=\"6:12:13.50\"/>\n   <InstantaneousBeatsPerMinute bpm=\"60\" time=\"6:12:14.45\"/>\n   <InstantaneousBeatsPerMinute bpm=\"60\" time=\"6:12:15.40\"/>\n   <InstantaneousBeatsPerMinute bpm=\"60\" time=\"6:12:16.35\"/>\n   <InstantaneousBeatsPerMinute bpm=\"60\" time=\"6:12:17.30\"/>\n   <InstantaneousBeatsPerMinute bpm=\"60\" time=\"6:12:18.25\"/>\n  </HeartRateVariabilityMetadataList>\n </Record>\n</HealthData>\n"
+        },
+        "kind": "directory"
+      },
+      "preview": {
+        "changed_records": [],
+        "conflicts": [],
+        "destination_database_revision": 0,
+        "imported": "Apple Health export",
+        "matching_records": [],
+        "new_records": [
+          {
+            "record_id": "<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>",
+            "record_type": "source"
+          },
+          {
+            "record_id": "<point_measurement apple_health/v1 [\"point_measurement\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_rmssd\",\"2026-03-01T13:12:00.000Z\",0]>",
+            "record_type": "point_measurement"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_beats\",\"2026-03-01T13:12:00.200Z\",0]>",
+            "record_type": "measurement_sample"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_beats\",\"2026-03-01T13:12:01.150Z\",0]>",
+            "record_type": "measurement_sample"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_beats\",\"2026-03-01T13:12:02.100Z\",0]>",
+            "record_type": "measurement_sample"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_beats\",\"2026-03-01T13:12:03.050Z\",0]>",
+            "record_type": "measurement_sample"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_beats\",\"2026-03-01T13:12:04.000Z\",0]>",
+            "record_type": "measurement_sample"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_beats\",\"2026-03-01T13:12:04.950Z\",0]>",
+            "record_type": "measurement_sample"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_beats\",\"2026-03-01T13:12:05.900Z\",0]>",
+            "record_type": "measurement_sample"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_beats\",\"2026-03-01T13:12:06.850Z\",0]>",
+            "record_type": "measurement_sample"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_beats\",\"2026-03-01T13:12:07.800Z\",0]>",
+            "record_type": "measurement_sample"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_beats\",\"2026-03-01T13:12:08.750Z\",0]>",
+            "record_type": "measurement_sample"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_beats\",\"2026-03-01T13:12:09.700Z\",0]>",
+            "record_type": "measurement_sample"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_beats\",\"2026-03-01T13:12:10.650Z\",0]>",
+            "record_type": "measurement_sample"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_beats\",\"2026-03-01T13:12:11.600Z\",0]>",
+            "record_type": "measurement_sample"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_beats\",\"2026-03-01T13:12:12.550Z\",0]>",
+            "record_type": "measurement_sample"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_beats\",\"2026-03-01T13:12:13.500Z\",0]>",
+            "record_type": "measurement_sample"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_beats\",\"2026-03-01T13:12:14.450Z\",0]>",
+            "record_type": "measurement_sample"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_beats\",\"2026-03-01T13:12:15.400Z\",0]>",
+            "record_type": "measurement_sample"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_beats\",\"2026-03-01T13:12:16.350Z\",0]>",
+            "record_type": "measurement_sample"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_beats\",\"2026-03-01T13:12:17.300Z\",0]>",
+            "record_type": "measurement_sample"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_beats\",\"2026-03-01T13:12:18.250Z\",0]>",
+            "record_type": "measurement_sample"
+          },
+          {
+            "record_id": "<measurement_sample apple_health/v1 [\"measurement_sample\",\"<source apple_health/v1 [\"source\",\"Watch\",\"apple_health\",\"\"]>\",\"hrv_sdnn\",\"2026-03-01T13:12:00.000Z\",0]>",
+            "record_type": "measurement_sample"
+          }
+        ],
+        "provider": "apple",
+        "route_points_stored": 0,
+        "skipped": {},
+        "write_confirmed": false
+      },
+      "received_at": "2026-10-14T12:00:00.000Z"
+    }
+  ]
+}

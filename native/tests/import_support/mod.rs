@@ -5,6 +5,7 @@
 
 #![allow(dead_code)]
 
+pub mod apple;
 pub mod baseline;
 
 use std::collections::HashMap;
