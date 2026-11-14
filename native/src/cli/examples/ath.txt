@@ -1,0 +1,10 @@
+Every command has examples of its own: `ath <command> --help`.
+
+The database is yours and it is local. SQLite is the live record. JSON exports
+are portable snapshots and do not stay synchronized. Device measurements and
+things you reported yourself are kept apart on purpose.
+
+A prediction needs a model. In a harness the model is already there.
+There is no Athletic Standard subscription.
+
+Not an app, not a coach, not medical advice.

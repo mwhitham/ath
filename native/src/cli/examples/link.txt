@@ -1,0 +1,15 @@
+Examples:
+
+  Find the stable IDs and current result revision:
+    $ ath records list --type benchmark_result
+    $ ath records list --type workout_session
+
+  Preview the link:
+    $ ath link <result-id> <session-id> --revision 1 --json
+
+  Write it after review:
+    $ ath link <result-id> <session-id> --revision 1 --yes
+
+The benchmark result owns this link. Linking creates a new revision of
+that result. A stale --revision is refused rather than overwriting a
+correction made after the preview.
