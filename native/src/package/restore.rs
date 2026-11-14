@@ -392,6 +392,7 @@ pub fn apply_package_import(
             if let Some(batch) = batch.take() {
                 batch.committed();
             }
+            failpoint!("restore.after_commit");
             Ok(PackageImportApplied { database_revision, restored: preview.restore })
         }
         Err(error) => {

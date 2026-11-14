@@ -297,6 +297,7 @@ pub fn apply_with_attachments(
     match result {
         Ok(applied) => {
             batch.committed();
+            failpoint!("attachments.after_commit");
             Ok(applied)
         }
         Err(error) => {

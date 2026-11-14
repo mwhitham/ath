@@ -21,6 +21,9 @@ pub mod restore;
 #[cfg(test)]
 pub(crate) mod failpoints;
 
+#[cfg(test)]
+mod tests;
+
 /// Fail or stop here when a unit test armed this point. Expands to nothing
 /// outside unit tests, so release builds have no failure points.
 macro_rules! failpoint {
