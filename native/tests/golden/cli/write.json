@@ -212,6 +212,207 @@
       ]
     },
     {
+      "name": "correct_link_and_delete",
+      "fixture": "demo",
+      "current": true,
+      "steps": [
+        {
+          "argv": [
+            "correct",
+            "01890f3e-e7d3-7cc0-88c8-000000000002",
+            "--revision",
+            "1",
+            "--data",
+            "{\"name\":\"Renamed\",\"birth_year\":1990,\"sex\":\"female\",\"display_units\":\"metric\",\"default_time_zone\":\"America/Chicago\"}",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n  \"record_type\": \"athlete_profile\",\n  \"expected_revision\": 1,\n  \"current_revision\": 1,\n  \"before\": {\n    \"name\": \"Demo Athlete\",\n    \"birth_year\": 1990,\n    \"sex\": \"female\",\n    \"display_units\": \"metric\",\n    \"default_time_zone\": \"America/Chicago\"\n  },\n  \"after\": {\n    \"name\": \"Renamed\",\n    \"birth_year\": 1990,\n    \"sex\": \"female\",\n    \"display_units\": \"metric\",\n    \"default_time_zone\": \"America/Chicago\"\n  },\n  \"attachments\": [],\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "correct",
+            "01890f3e-e7d3-7cc0-88c8-000000000002",
+            "--revision",
+            "1",
+            "--data",
+            "{\"name\":\"Renamed\",\"birth_year\":1990,\"sex\":\"female\",\"display_units\":\"metric\",\"default_time_zone\":\"America/Chicago\"}"
+          ],
+          "status": 1,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n  \"record_type\": \"athlete_profile\",\n  \"expected_revision\": 1,\n  \"current_revision\": 1,\n  \"before\": {\n    \"name\": \"Demo Athlete\",\n    \"birth_year\": 1990,\n    \"sex\": \"female\",\n    \"display_units\": \"metric\",\n    \"default_time_zone\": \"America/Chicago\"\n  },\n  \"after\": {\n    \"name\": \"Renamed\",\n    \"birth_year\": 1990,\n    \"sex\": \"female\",\n    \"display_units\": \"metric\",\n    \"default_time_zone\": \"America/Chicago\"\n  },\n  \"attachments\": [],\n  \"write_confirmed\": false\n}\n",
+          "stderr": "ath: there is no terminal to ask on, so nothing was written. Pass --yes after reviewing the preview.\nath: there is no terminal to ask on, so nothing was written. Pass --yes after reviewing the preview.\n"
+        },
+        {
+          "argv": [
+            "correct",
+            "01890f3e-e7d3-7cc0-88c8-000000000002",
+            "--revision",
+            "1",
+            "--data",
+            "{\"name\":\"Renamed\",\"birth_year\":1990,\"sex\":\"female\",\"display_units\":\"metric\",\"default_time_zone\":\"America/Chicago\"}",
+            "--dry-run"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n  \"record_type\": \"athlete_profile\",\n  \"expected_revision\": 1,\n  \"current_revision\": 1,\n  \"before\": {\n    \"name\": \"Demo Athlete\",\n    \"birth_year\": 1990,\n    \"sex\": \"female\",\n    \"display_units\": \"metric\",\n    \"default_time_zone\": \"America/Chicago\"\n  },\n  \"after\": {\n    \"name\": \"Renamed\",\n    \"birth_year\": 1990,\n    \"sex\": \"female\",\n    \"display_units\": \"metric\",\n    \"default_time_zone\": \"America/Chicago\"\n  },\n  \"attachments\": [],\n  \"write_confirmed\": false\n}\nnothing written (--dry-run)\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "correct",
+            "01890f3e-e7d3-7cc0-88c8-000000000002",
+            "--revision",
+            "2",
+            "--data",
+            "{\"name\":\"Renamed\",\"birth_year\":1990,\"sex\":\"female\",\"display_units\":\"metric\",\"default_time_zone\":\"America/Chicago\"}",
+            "--yes"
+          ],
+          "status": 1,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n  \"record_type\": \"athlete_profile\",\n  \"expected_revision\": 2,\n  \"current_revision\": 1,\n  \"before\": {\n    \"name\": \"Demo Athlete\",\n    \"birth_year\": 1990,\n    \"sex\": \"female\",\n    \"display_units\": \"metric\",\n    \"default_time_zone\": \"America/Chicago\"\n  },\n  \"after\": {\n    \"name\": \"Renamed\",\n    \"birth_year\": 1990,\n    \"sex\": \"female\",\n    \"display_units\": \"metric\",\n    \"default_time_zone\": \"America/Chicago\"\n  },\n  \"attachments\": [],\n  \"write_confirmed\": false\n}\n",
+          "stderr": "ath: Record 01890f3e-e7d3-7cc0-88c8-000000000002 is at revision 1, not expected revision 2\n"
+        },
+        {
+          "argv": [
+            "correct",
+            "01890f3e-e7d3-7cc0-88c8-000000000002",
+            "--revision",
+            "1",
+            "--data",
+            "{\"name\":5}",
+            "--yes"
+          ],
+          "status": 1,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n  \"record_type\": \"athlete_profile\",\n  \"expected_revision\": 1,\n  \"current_revision\": 1,\n  \"before\": {\n    \"name\": \"Demo Athlete\",\n    \"birth_year\": 1990,\n    \"sex\": \"female\",\n    \"display_units\": \"metric\",\n    \"default_time_zone\": \"America/Chicago\"\n  },\n  \"after\": {\n    \"name\": 5\n  },\n  \"attachments\": [],\n  \"write_confirmed\": false\n}\n",
+          "stderr": "ath: data.name: Invalid input: expected string, received number\n"
+        },
+        {
+          "argv": [
+            "correct",
+            "01890f3e-e7d3-7cc0-88c8-000000000002",
+            "--revision",
+            "1",
+            "--data",
+            "{\"name\":\"Renamed\",\"birth_year\":1990,\"sex\":\"female\",\"display_units\":\"metric\",\"default_time_zone\":\"America/Chicago\"}",
+            "--agent",
+            "coach-bot",
+            "--yes"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n  \"record_type\": \"athlete_profile\",\n  \"expected_revision\": 1,\n  \"current_revision\": 1,\n  \"before\": {\n    \"name\": \"Demo Athlete\",\n    \"birth_year\": 1990,\n    \"sex\": \"female\",\n    \"display_units\": \"metric\",\n    \"default_time_zone\": \"America/Chicago\"\n  },\n  \"after\": {\n    \"name\": \"Renamed\",\n    \"birth_year\": 1990,\n    \"sex\": \"female\",\n    \"display_units\": \"metric\",\n    \"default_time_zone\": \"America/Chicago\"\n  },\n  \"attachments\": [],\n  \"write_confirmed\": false\n}\ncorrected 01890f3e-e7d3-7cc0-88c8-000000000002 to revision 2 (database revision 4)\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "link",
+            "01890f3e-e7d3-7cc0-88c8-00000000000b",
+            "01890f3e-e7d3-7cc0-88c8-00000000000a",
+            "--revision",
+            "1",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000b\",\n  \"expected_revision\": 1,\n  \"current_revision\": 1,\n  \"old_workout_session_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000a\",\n  \"new_workout_session_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000a\",\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "link",
+            "01890f3e-e7d3-7cc0-88c8-00000000000b",
+            "01890f3e-e7d3-7cc0-88c8-00000000000a",
+            "--revision",
+            "1",
+            "--yes"
+          ],
+          "status": 0,
+          "stdout": "result 01890f3e-e7d3-7cc0-88c8-00000000000b revision 1\n  workout session: 01890f3e-e7d3-7cc0-88c8-00000000000a → 01890f3e-e7d3-7cc0-88c8-00000000000a\nlinked 01890f3e-e7d3-7cc0-88c8-00000000000b to 01890f3e-e7d3-7cc0-88c8-00000000000a at revision 2\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "link",
+            "01890f3e-e7d3-7cc0-88c8-00000000000a",
+            "01890f3e-e7d3-7cc0-88c8-00000000000b",
+            "--revision",
+            "1"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: 01890f3e-e7d3-7cc0-88c8-00000000000a is not a current benchmark result\nath: 01890f3e-e7d3-7cc0-88c8-00000000000a is not a current benchmark result\n"
+        },
+        {
+          "argv": [
+            "delete",
+            "01890f3e-e7d3-7cc0-88c8-00000000000b",
+            "--revision",
+            "2",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000b\",\n  \"record_type\": \"benchmark_result\",\n  \"expected_revision\": 2,\n  \"current_revision\": 2,\n  \"retained_history\": true,\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "delete",
+            "01890f3e-e7d3-7cc0-88c8-00000000000b",
+            "--revision",
+            "2"
+          ],
+          "status": 1,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000b\",\n  \"record_type\": \"benchmark_result\",\n  \"expected_revision\": 2,\n  \"current_revision\": 2,\n  \"retained_history\": true,\n  \"write_confirmed\": false\n}\n",
+          "stderr": "ath: there is no terminal to ask on, so nothing was written. Pass --yes after reviewing the preview.\nath: there is no terminal to ask on, so nothing was written. Pass --yes after reviewing the preview.\n"
+        },
+        {
+          "argv": [
+            "delete",
+            "01890f3e-e7d3-7cc0-88c8-00000000000b",
+            "--revision",
+            "2",
+            "--yes"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"record_id\": \"01890f3e-e7d3-7cc0-88c8-00000000000b\",\n  \"record_type\": \"benchmark_result\",\n  \"expected_revision\": 2,\n  \"current_revision\": 2,\n  \"retained_history\": true,\n  \"write_confirmed\": false\n}\ndeleted 01890f3e-e7d3-7cc0-88c8-00000000000b at database revision 6; history retained\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "delete",
+            "01890f3e-e7d3-7cc0-88c8-00000000000b",
+            "--revision",
+            "2",
+            "--yes"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: current record not found: 01890f3e-e7d3-7cc0-88c8-00000000000b\nath: current record not found: 01890f3e-e7d3-7cc0-88c8-00000000000b\n"
+        },
+        {
+          "argv": [
+            "records",
+            "list",
+            "--type",
+            "benchmark_result",
+            "--include-deleted"
+          ],
+          "status": 0,
+          "stdout": "record ID                             revision  type                         summary\n01890f3e-e7d3-7cc0-88c8-00000000000b         2  benchmark_result             [deleted] \n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "records",
+            "show",
+            "01890f3e-e7d3-7cc0-88c8-000000000002",
+            "--history",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"record\": {\n    \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n    \"created_at\": \"2026-08-09T12:00:00.000Z\",\n    \"current_revision\": 2,\n    \"is_deleted\": false,\n    \"record_type\": \"athlete_profile\",\n    \"data\": {\n      \"name\": \"Renamed\",\n      \"birth_year\": 1990,\n      \"sex\": \"female\",\n      \"display_units\": \"metric\",\n      \"default_time_zone\": \"America/Chicago\"\n    }\n  },\n  \"history\": [\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n      \"revision\": 1,\n      \"previous_revision\": null,\n      \"became_known_at\": \"2026-08-09T12:00:00.000Z\",\n      \"became_known_at_basis\": \"local_write\",\n      \"changed_by\": {\n        \"author_type\": \"tool\",\n        \"tool\": \"ath\",\n        \"tool_version\": \"1.0.0\"\n      },\n      \"record_type\": \"athlete_profile\",\n      \"data\": {\n        \"name\": \"Demo Athlete\",\n        \"birth_year\": 1990,\n        \"sex\": \"female\",\n        \"display_units\": \"metric\",\n        \"default_time_zone\": \"America/Chicago\"\n      }\n    },\n    {\n      \"record_id\": \"01890f3e-e7d3-7cc0-88c8-000000000002\",\n      \"revision\": 2,\n      \"previous_revision\": 1,\n      \"became_known_at\": \"<now>\",\n      \"became_known_at_basis\": \"local_write\",\n      \"changed_by\": {\n        \"author_type\": \"agent\",\n        \"agent\": \"coach-bot\"\n      },\n      \"record_type\": \"athlete_profile\",\n      \"data\": {\n        \"name\": \"Renamed\",\n        \"birth_year\": 1990,\n        \"sex\": \"female\",\n        \"display_units\": \"metric\",\n        \"default_time_zone\": \"America/Chicago\"\n      }\n    }\n  ]\n}\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
       "name": "grade",
       "fixture": "demo",
       "current": true,
