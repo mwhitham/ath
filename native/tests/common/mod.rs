@@ -71,7 +71,7 @@ impl Session {
             cwd: self.cwd.clone(),
             env: BTreeMap::new(),
         };
-        let status = cli::run(&argv, io, self.services);
+        let status = cli::run(&argv, io, self.services.clone());
         Output { status, stdout: String::from_utf8(stdout).unwrap(), stderr: String::from_utf8(stderr).unwrap() }
     }
 }

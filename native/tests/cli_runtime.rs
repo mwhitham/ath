@@ -162,7 +162,7 @@ fn a_confirmed_migration_continues_the_command() {
     let folder = private_folder();
     copy_demo(folder.path());
     let mut session = Session::terminal(folder.path(), &format!("y\n {DEMO_DATABASE_ID} \n"));
-    session.services = Services { migrate: fake_migration };
+    session.services = Services { migrate: fake_migration, ..Services::default() };
     let output = session.run(&["delete", RESULT, "--revision", "1", "--dry-run"]);
     assert_eq!(output.status, 0, "{}", output.stderr);
     assert_eq!(MIGRATIONS.load(Ordering::SeqCst), 1);
@@ -219,16 +219,21 @@ fn init_refuses_questions_without_a_terminal() {
 #[test]
 fn init_asks_each_missing_profile_question() {
     let folder = private_folder();
-    let not_connected = "ath: ath init is not connected to the native library yet; nothing was created\n";
-    let all = Session::terminal(folder.path(), "Sam\n1990\n\nAmerica/Chicago\n").run(&["init"]);
-    assert_eq!(
-        all.stdout,
-        "Name (optional): Birth year (optional): Sex, male/female (optional): Default timezone, such as America/Chicago (optional): "
-    );
-    assert_eq!(all.stderr, not_connected);
+    let questions = "Name (optional): Birth year (optional): Sex, male/female (optional): Default timezone, such as America/Chicago (optional): ";
+    let all = Session::terminal(folder.path(), "Sam\n1990\n\nAmerica/Chicago\n").run(&[
+        "init",
+        "--no-skill",
+        "--file",
+        "a.ath.sqlite",
+    ]);
+    assert_eq!(all.status, 0, "{}", all.stderr);
+    assert!(all.stdout.starts_with(&format!("{questions}created {}/a.ath.sqlite\n", folder.path().display())));
 
     let some = Session::terminal(folder.path(), "1990\n").run(&[
         "init",
+        "--no-skill",
+        "--file",
+        "b.ath.sqlite",
         "--name",
         "Sam",
         "--sex",
@@ -236,20 +241,30 @@ fn init_asks_each_missing_profile_question() {
         "--timezone",
         "UTC",
     ]);
-    assert_eq!(some.stdout, "Birth year (optional): ");
-    assert_eq!(some.stderr, not_connected);
+    assert!(some.stdout.starts_with("Birth year (optional): created "), "{}", some.stdout);
 
-    let ended = Session::terminal(folder.path(), "Sam\n").run(&["init"]);
+    let ended = Session::terminal(folder.path(), "Sam\n").run(&["init", "--file", "c.ath.sqlite"]);
     assert_eq!(ended.stdout, "Name (optional): Birth year (optional): ");
     assert_eq!(
         ended.stderr,
         "ath: the questions were not answered, so nothing was created. Pass --yes to skip the questions.\n"
     );
+    assert!(!folder.path().join("c.ath.sqlite").exists());
 
-    for flags in [&["init", "-y"][..], &["init", "--json"][..]] {
-        let output = Session::piped(folder.path()).run(flags);
-        assert_eq!((output.stdout.as_str(), output.stderr.as_str()), ("", not_connected));
-    }
+    let profile = Session::piped(folder.path()).run(&[
+        "records",
+        "list",
+        "--type",
+        "athlete_profile",
+        "--json",
+        "--file",
+        "a.ath.sqlite",
+    ]);
+    assert!(
+        profile.stdout.contains("\"name\": \"Sam\",\n        \"birth_year\": 1990,\n        \"display_units\": \"metric\",\n        \"default_time_zone\": \"America/Chicago\""),
+        "{}",
+        profile.stdout
+    );
 }
 
 #[test]
@@ -286,7 +301,7 @@ fn bare_ath_prints_the_guide() {
 
     let update = Session::piped(folder.path()).run(&["--update"]);
     assert_eq!(update.status, 1);
-    assert_eq!(update.stderr, "ath: ath --update is not connected to the native library yet; nothing was changed\n");
+    assert_eq!(update.stderr, "ath: This ath was not installed globally, so nothing was changed.\n");
 }
 
 /// The smallest words that reach a command's handler.
@@ -329,6 +344,6 @@ fn unconnected_commands_say_so_and_touch_nothing() {
         );
         checked.push(path.join(" "));
     }
-    assert_eq!(checked.len(), 26, "{checked:?}");
+    assert_eq!(checked, ["conflicts show", "conflicts resolve", "export", "erase", "pull"]);
     assert_eq!(std::fs::read_dir(folder.path()).unwrap().count(), 0);
 }
