@@ -233,13 +233,21 @@ fn check_snapshot(connection: &Connection, store: &Store) -> Result<DatabaseChec
         }
     }
     {
+        // SQLite lists violations in its own schema order, which differs
+        // between SQLite versions. Sorting keeps the report stable.
         let mut statement = connection.prepare("PRAGMA foreign_key_check")?;
         let mut rows = statement.query([])?;
+        let mut violations = Vec::new();
         while let Some(row) = rows.next()? {
             let table = sql_text(&row.get::<_, Sql>(0)?);
-            let rowid = sql_text(&row.get::<_, Sql>(1)?);
+            let rowid: Option<i64> = row.get(1)?;
             let parent = sql_text(&row.get::<_, Sql>(2)?);
-            let fkid = sql_text(&row.get::<_, Sql>(3)?);
+            let fkid: i64 = row.get(3)?;
+            violations.push((table, rowid, parent, fkid));
+        }
+        violations.sort();
+        for (table, rowid, parent, fkid) in violations {
+            let rowid = rowid.map_or("null".to_string(), |rowid| rowid.to_string());
             findings.header.error(
                 "foreign_key",
                 None,

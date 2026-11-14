@@ -403,3 +403,48 @@ fn the_2_1_0_program_refuses_a_migrated_database() {
     assert_eq!(code, Some(0), "{output}");
     assert!(output.contains("\"athleticstandard_version\": \"2.1.0\""), "{output}");
 }
+
+/// The migrated athlete tables equal what the 2.1.0 migration wrote, row for
+/// row. 2.1.1 adds step 5, which changes no athlete row.
+#[test]
+fn migrated_tables_match_the_2_1_0_migration() {
+    let golden = golden("migration.json");
+    for expected in golden["fixtures"].as_array().unwrap() {
+        let name = expected["fixture"].as_str().unwrap();
+        let fixture = match name {
+            "npm100" => npm100_fixture(),
+            "v200" => version_200_fixture(),
+            "demo" => demo_fixture(),
+            other => panic!("unknown fixture {other}"),
+        };
+        let path = copy_fixture(&fixture, "ath-migrate-golden-", false);
+        let preview = inspect_migration(&path, None).unwrap().preview;
+        let old_preview = &expected["preview"];
+        assert_eq!(preview.database_id, old_preview["database_id"].as_str().unwrap());
+        assert_eq!(
+            serde_json::Value::from(preview.source_sql_schema_version),
+            old_preview["source_sql_schema_version"]
+        );
+        // 2.1.0 planned the same steps, ending one step earlier.
+        let old_steps = old_preview["planned_steps"].as_array().unwrap();
+        for (ours, theirs) in preview.planned_steps.iter().zip(old_steps) {
+            assert_eq!(serde_json::to_value(ours).unwrap(), *theirs, "{name}");
+        }
+        assert_eq!(preview.planned_steps.len(), old_steps.len() + 1, "{name}");
+        assert_eq!(preview.planned_steps.last().unwrap().migration_file, "migrations/005-version-2-1-1.sql");
+
+        let mut store = open_for_migration(&path);
+        execute_confirmed_migration(&mut store, &MigrationOptions::default()).unwrap();
+        store.close().unwrap();
+        let tables = dump_tables(&path, ATHLETE_TABLES);
+        for (table, rows) in &tables {
+            let old = &expected["tables"][table];
+            assert_eq!(serde_json::Value::from(rows.len()), old["rows"], "{name}: {table} row count");
+            assert_eq!(serde_json::Value::from(table_hash(rows)), old["sha256"], "{name}: {table} rows differ");
+        }
+        assert_eq!(
+            database_revision(&path).to_string(),
+            expected["tables"]["database_state"]["sha256"].as_str().unwrap()
+        );
+    }
+}
