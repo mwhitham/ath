@@ -427,7 +427,7 @@ fn fingerprint_line(name: &str, bytes: &[u8]) -> String {
 }
 
 /// A directory names its `athlete.ath.json`; a file names itself.
-fn package_document_path(input: &Path) -> Result<(PathBuf, PathBuf)> {
+pub(crate) fn package_document_path(input: &Path) -> Result<(PathBuf, PathBuf)> {
     let absolute = files::absolute(input)?;
     files::refuse_symbolic_link_components(&absolute, false)?;
     let metadata = fs::symlink_metadata(&absolute)?;

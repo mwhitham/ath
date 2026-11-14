@@ -72,6 +72,33 @@ impl PreparedAttachment {
     pub fn stored_name(&self) -> String {
         stored_attachment_name(&self.record_id, &self.data)
     }
+
+    /// The file's bytes as read by `prepare_attachments`.
+    pub fn bytes(&self) -> &[u8] {
+        &self.bytes
+    }
+
+    /// An attachment prepared earlier and passed back by the JavaScript
+    /// client. The bytes are checked again against the record's size,
+    /// SHA-256, and media type, and the stored name is the one the record
+    /// implies.
+    pub fn from_parts(
+        store: &Store,
+        record_id: String,
+        created_at: String,
+        changed_by: RecordActor,
+        data: AttachmentData,
+        bytes: Vec<u8>,
+    ) -> Result<PreparedAttachment> {
+        if bytes.len() as u64 != data.byte_count || durable::sha256_hex(&bytes) != data.sha256 {
+            return Err(Error::refused(format!(
+                "attachment bytes do not match the record's size and SHA-256: {record_id}"
+            )));
+        }
+        check_attachment_bytes(&record_id, &data, &bytes)?;
+        let final_path = attachment_directory(store.path()).join(stored_attachment_name(&record_id, &data));
+        Ok(PreparedAttachment { record_id, created_at, changed_by, data, final_path, bytes })
+    }
 }
 
 /// Read and check attachment files for a later write. Each file must be a

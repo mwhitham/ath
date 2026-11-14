@@ -83,7 +83,14 @@ pub struct ConflictSet {
 
 /// `<database>.import-conflicts.json`.
 pub fn conflict_set_path(store: &Store) -> PathBuf {
-    files::sidecar(store.path(), ".import-conflicts.json")
+    conflict_set_path_for(store.path())
+}
+
+/// `<database>.import-conflicts.json` for a database path. The conflict file
+/// needs no open database, so the JavaScript client can read, save, and clear
+/// it as 2.1.0 did.
+pub fn conflict_set_path_for(database: &Path) -> PathBuf {
+    files::sidecar(database, ".import-conflicts.json")
 }
 
 /// The stale-preview refusal.
@@ -92,6 +99,11 @@ const STALE: &str = "the package or database changed after the conflict preview;
 /// Save the conflicts of a preview, without choices. A preview without
 /// conflicts, or with a conflict that names no record, clears the file instead.
 pub fn save_conflict_set(store: &Store, preview: &PackageImportPreview) -> Result<Option<ConflictSet>> {
+    save_conflict_set_at(store.path(), preview)
+}
+
+/// [`save_conflict_set`] for a database path.
+pub fn save_conflict_set_at(database: &Path, preview: &PackageImportPreview) -> Result<Option<ConflictSet>> {
     let conflicts: Vec<SavedConflict> = preview
         .conflicts
         .iter()
@@ -104,11 +116,11 @@ pub fn save_conflict_set(store: &Store, preview: &PackageImportPreview) -> Resul
         })
         .collect();
     let Some(loaded) = preview.loaded.as_deref() else {
-        clear_conflict_set(store)?;
+        clear_conflict_set_at(database)?;
         return Ok(None);
     };
     if conflicts.len() != preview.conflicts.len() || conflicts.is_empty() {
-        clear_conflict_set(store)?;
+        clear_conflict_set_at(database)?;
         return Ok(None);
     }
     let state = ConflictSet {
@@ -121,12 +133,17 @@ pub fn save_conflict_set(store: &Store, preview: &PackageImportPreview) -> Resul
         destination_database_revision: preview.destination_database_revision,
         conflicts,
     };
-    write_conflict_set(store, &state)?;
+    write_conflict_set_at(database, &state)?;
     Ok(Some(state))
 }
 
-fn write_conflict_set(store: &Store, state: &ConflictSet) -> Result<()> {
-    let path = conflict_set_path(store);
+pub(crate) fn write_conflict_set(store: &Store, state: &ConflictSet) -> Result<()> {
+    write_conflict_set_at(store.path(), state)
+}
+
+/// Replace the conflict file for a database path.
+pub(crate) fn write_conflict_set_at(database: &Path, state: &ConflictSet) -> Result<()> {
+    let path = conflict_set_path_for(database);
     files::refuse_symbolic_link_components(&path, true)?;
     let temporary = files::sidecar(&path, &format!(".tmp-{}", std::process::id()));
     let text = format!("{}\n", json::to_pretty(&json::to_value(state)));
@@ -146,7 +163,12 @@ fn write_conflict_set(store: &Store, state: &ConflictSet) -> Result<()> {
 
 /// Read the conflict file.
 pub fn read_conflict_set(store: &Store) -> Result<ConflictSet> {
-    let path = conflict_set_path(store);
+    read_conflict_set_at(store.path())
+}
+
+/// [`read_conflict_set`] for a database path.
+pub fn read_conflict_set_at(database: &Path) -> Result<ConflictSet> {
+    let path = conflict_set_path_for(database);
     let missing = || Error::not_found("no temporary import conflicts; run ath import <package> to create a preview");
     match files::refuse_symbolic_link_components(&path, false) {
         Err(Error::Io(error)) if error.kind() == std::io::ErrorKind::NotFound => return Err(missing()),
@@ -160,7 +182,7 @@ pub fn read_conflict_set(store: &Store) -> Result<ConflictSet> {
         .map_err(|detail| Error::refused(format!("temporary import conflict file is invalid: {detail}")))
 }
 
-fn parse_conflict_set(text: &str) -> std::result::Result<ConflictSet, String> {
+pub(crate) fn parse_conflict_set(text: &str) -> std::result::Result<ConflictSet, String> {
     let value = json::parse(text).map_err(|error| error.message)?;
     let object = value.as_object().ok_or("expected an object")?;
     only_keys(
@@ -262,7 +284,12 @@ fn whole(object: &Map<String, Value>, key: &str) -> std::result::Result<u64, Str
 
 /// Remove the conflict file when it exists.
 pub fn clear_conflict_set(store: &Store) -> Result<()> {
-    let path = conflict_set_path(store);
+    clear_conflict_set_at(store.path())
+}
+
+/// [`clear_conflict_set`] for a database path.
+pub fn clear_conflict_set_at(database: &Path) -> Result<()> {
+    let path = conflict_set_path_for(database);
     files::refuse_symbolic_link_components(&path, true)?;
     durable::remove_file_if_present(&path)?;
     Ok(())

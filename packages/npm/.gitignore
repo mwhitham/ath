@@ -1,0 +1,7 @@
+# Build output and packed files. The packing script fills native/, skills/,
+# and dist/ from tested binaries and the shipped skill; they are not source.
+dist/
+native/
+skills/
+*.tgz
+node_modules/

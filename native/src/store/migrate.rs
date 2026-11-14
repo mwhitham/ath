@@ -296,6 +296,58 @@ pub fn migrate_with_verified_backup(store: &mut Store, verified: &VerifiedBackup
     apply_after_backup(store, preview, verified, identity)
 }
 
+/// Apply the given steps in order inside the caller's write transaction and
+/// check that each one reached its schema step.
+fn apply_steps(tx: &Transaction<'_>, steps: &[u32]) -> Result<()> {
+    let mut repaired = 0;
+    for version in steps {
+        repaired += apply_step(tx, *version)?.repaired_records;
+        let after = read_metadata(tx)?;
+        if after.sql_schema_version != *version {
+            return Err(Error::other(format!("Migration to SQL schema {version} did not update database metadata")));
+        }
+        let user_version: u32 = tx.pragma_query_value(None, "user_version", |row| row.get(0))?;
+        if user_version != *version {
+            return Err(Error::other(format!(
+                "SQLite user_version {user_version} does not match SQL schema {version} after migration"
+            )));
+        }
+    }
+    if repaired > 0 {
+        // Step 2 rebuilt typed rows, so the database changed.
+        tx.execute("UPDATE database_state SET current_revision = current_revision + 1 WHERE singleton_id = 1", [])?;
+    }
+    let last = read_metadata(tx)?;
+    if last.sql_schema_version != SQL_SCHEMA_VERSION {
+        return Err(Error::other(format!(
+            "Migration finished at SQL schema {}, expected {SQL_SCHEMA_VERSION}",
+            last.sql_schema_version
+        )));
+    }
+    Ok(())
+}
+
+/// Apply every pending step in one write transaction without making a
+/// backup. This is the 2.1.0 `applyPendingDatabaseMigrations` export for
+/// callers that made their own backup; `ath migrate` always uses
+/// [`execute_confirmed_migration`].
+pub fn apply_pending_without_backup(store: &mut Store) -> Result<()> {
+    let metadata = read_metadata(store.connection())?;
+    if metadata.sql_schema_version >= SQL_SCHEMA_VERSION {
+        return Ok(());
+    }
+    let steps: Vec<u32> =
+        planned_steps(metadata.sql_schema_version).iter().map(|step| step.target_sql_schema_version).collect();
+    if steps.is_empty() {
+        return Err(Error::other(format!(
+            "No migration is available from SQL schema {} to {SQL_SCHEMA_VERSION}",
+            metadata.sql_schema_version
+        )));
+    }
+    store.transaction(|tx| apply_steps(tx, &steps))?;
+    store.reload_metadata()
+}
+
 fn apply_after_backup(
     store: &mut Store,
     preview: MigrationPreview,
@@ -318,34 +370,7 @@ fn apply_after_backup(
         {
             return Err(Error::stale(stale.clone()));
         }
-        let mut repaired = 0;
-        for version in &steps {
-            repaired += apply_step(tx, *version)?.repaired_records;
-            let after = read_metadata(tx)?;
-            if after.sql_schema_version != *version {
-                return Err(Error::other(format!(
-                    "Migration to SQL schema {version} did not update database metadata"
-                )));
-            }
-            let user_version: u32 = tx.pragma_query_value(None, "user_version", |row| row.get(0))?;
-            if user_version != *version {
-                return Err(Error::other(format!(
-                    "SQLite user_version {user_version} does not match SQL schema {version} after migration"
-                )));
-            }
-        }
-        if repaired > 0 {
-            // Step 2 rebuilt typed rows, so the database changed.
-            tx.execute("UPDATE database_state SET current_revision = current_revision + 1 WHERE singleton_id = 1", [])?;
-        }
-        let last = read_metadata(tx)?;
-        if last.sql_schema_version != SQL_SCHEMA_VERSION {
-            return Err(Error::other(format!(
-                "Migration finished at SQL schema {}, expected {SQL_SCHEMA_VERSION}",
-                last.sql_schema_version
-            )));
-        }
-        Ok(())
+        apply_steps(tx, &steps)
     });
 
     match outcome {

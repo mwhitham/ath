@@ -306,6 +306,15 @@ impl Store {
         database_revision(&self.connection)
     }
 
+    /// Switch a read-write connection to WAL now instead of at the first
+    /// write. The JavaScript `openDatabase` did this when it opened a file.
+    pub fn enable_wal(&self) -> Result<()> {
+        if self.read_only {
+            return Err(Error::refused("This database was opened read-only"));
+        }
+        enable_wal(&self.connection)
+    }
+
     /// Re-read metadata after a migration.
     pub fn reload_metadata(&mut self) -> Result<()> {
         self.metadata = read_metadata(&self.connection)?;
