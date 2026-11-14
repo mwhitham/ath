@@ -435,3 +435,20 @@ fn a_shared_file_over_the_limit_is_refused() {
     let error = import::preview_shared(&store, &file, SharedImport::Garmin, &options(&step_time(0))).unwrap_err();
     assert_eq!(error.to_string(), "provider file exceeds 268435456 bytes: big.gpx");
 }
+
+/// A repeat of a candidate whose stored record is deleted is left out with it.
+#[test]
+fn a_repeat_of_a_deleted_record_is_left_out_with_it() {
+    let directory = TempDir::new();
+    let mut store = new_store(directory.path());
+    let file = directory.path().join("twice.json");
+    let activity = r#"{"activityId":"9","startTimeGMT":"2026-03-01T10:00:00Z"}"#;
+    std::fs::write(&file, activity).unwrap();
+    let first = import_shared(&mut store, &file, SharedImport::Garmin, &step_time(0));
+    let workout = ids(&first)[0].clone();
+    delete(&mut store, &workout, &step_time(1));
+    std::fs::write(&file, format!("[{activity},{activity}]")).unwrap();
+    let report = import_shared(&mut store, &file, SharedImport::Garmin, &step_time(2));
+    assert!(ids(&report).is_empty());
+    assert_eq!(strings(&report, "left_out"), [format!("9: the stored record {workout} is deleted")]);
+}

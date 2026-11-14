@@ -746,7 +746,7 @@ fn match_plan(
             }
             let match_key = json::to_string(&Value::Array(parts));
 
-            if let Some((first, _)) = staging.first_with_key(&match_key, row.position)? {
+            if let Some((first, _, _)) = staging.first_with_key(&match_key, row.position)? {
                 let message =
                     if same_logical_data(&json::parse(&first)?, &data) { DUPLICATE_SAME } else { DUPLICATE_DIFFERENT };
                 staging.add_conflict(&match_key, None, message)?;
@@ -944,12 +944,13 @@ fn match_keyed(
             let data_json = json::to_string(&data);
             decision.data_json = &data_json;
 
-            if let Some((first_data, first_id)) = staging.first_with_key(&match_key, row.position)? {
+            if let Some((first_data, first_id, first_action)) = staging.first_with_key(&match_key, row.position)? {
                 if !same_logical_data(&json::parse(&first_data)?, &data) {
                     return Err(Error::refused(format!("{DUPLICATE_DIFFERENT}: {match_key}")));
                 }
+                // A repeat of a left-out candidate is left out with it.
                 decision.record_id = &first_id;
-                decision.action = Action::Repeat;
+                decision.action = if first_action == Some(Action::LeftOut) { Action::LeftOut } else { Action::Repeat };
                 staging.decide(row.position, &decision)?;
                 continue;
             }

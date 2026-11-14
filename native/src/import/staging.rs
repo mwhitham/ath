@@ -323,9 +323,9 @@ impl Staging {
         Ok(())
     }
 
-    /// The data and decided record ID of the first staged row with this key,
-    /// or record this row as the first.
-    pub fn first_with_key(&self, match_key: &str, position: i64) -> Result<Option<(String, String)>> {
+    /// The data, decided record ID, and action of the first staged row with
+    /// this key, or record this row as the first.
+    pub fn first_with_key(&self, match_key: &str, position: i64) -> Result<Option<(String, String, Option<Action>)>> {
         let inserted = self
             .connection()
             .prepare_cached("INSERT OR IGNORE INTO seen_keys (match_key, position) VALUES (?1, ?2)")?
@@ -336,10 +336,13 @@ impl Staging {
         Ok(self
             .connection()
             .prepare_cached(
-                "SELECT candidates.data_json, candidates.record_id
+                "SELECT candidates.data_json, candidates.record_id, candidates.action
                    FROM seen_keys JOIN candidates USING (position) WHERE seen_keys.match_key = ?1",
             )?
-            .query_row([match_key], |row| Ok((row.get(0)?, row.get(1)?)))
+            .query_row([match_key], |row| {
+                let action: Option<String> = row.get(2)?;
+                Ok((row.get(0)?, row.get(1)?, action.as_deref().and_then(Action::parse)))
+            })
             .optional()?)
     }
 
