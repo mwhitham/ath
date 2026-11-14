@@ -3,12 +3,13 @@
 Status: **plan only. The maintainer has not approved it. Not approved for build.**
 
 `ath pull openwearables` reads one person's stored health data from an Open
-Wearables server they run, and the provider-live workout list and detail
-that server already exposes. It writes both with the mapping this release
-ships. The proposals are D198 through D213 in
+Wearables server they run. When `--vendor-workouts` is passed, it also
+reads the live workout list and detail. It writes the stored reads with
+the mapping this release ships. It writes a live original only when that
+flag is on and the person confirms the write. The proposals are D198 through D215 in
 [decisions.md](decisions.md). They are not adopted. The evidence is
 [appendix/open-wearables-api.md](appendix/open-wearables-api.md), checked on
-6, 7, and 8 November 2026.
+6, 7, 8, and 14 November 2026.
 
 This pull request is the plan. The build after approval is one later pull
 request. This plan does not change a version number, a schema, a fixture, or
@@ -47,6 +48,10 @@ The same three values may come from `OPEN_WEARABLES_BASE_URL`,
 `OPEN_WEARABLES_USER_ID`, and the key variable above. A flag wins over the
 environment when both are set.
 
+`--vendor-workouts` is off unless the person passes it. Without it, the
+command does not call the connections route or either live workout route.
+With it, those calls run, including on a preview and on `--json`.
+
 The first run writes nothing. `--json` writes nothing, including when
 `--yes` is also present. That is the same rule as `ath import --mapping`.
 `ath pull garmin --json` still writes. `--file` chooses a database, as on
@@ -74,8 +79,17 @@ Preview text prints:
 - `reads finished` or `reads incomplete`
 - one line each for the twelve reads in section 2: `completed`, `failed`,
   or `not_attempted`
-- one line each for the provider-live workout reads: `completed`, `failed`,
-  or `not_attempted`, plus the limit that read actually has
+- one line each for the live workout providers: `completed`, `incomplete`,
+  or `not_attempted`, whether that limit covers the requested range, and
+  whether more data exists
+- when `--vendor-workouts` is on: `vendor requests were made`
+- when `--vendor-workouts` is on: `vendor workout originals` with new,
+  changed, and unchanged counts
+- when `--vendor-workouts` is on, this sentence: a workout can appear twice,
+  once as the vendor original and once as the stored session. The original
+  is the source report whose subject is `vendor_workout`. It is never a
+  session and never a calculation input
+- when `--vendor-workouts` is on: `These originals keep the vendor's account ids, user URLs, and full routes.`
 - for body, on a preview: `body snapshot would store` or `body snapshot
   would be empty`. On a confirmed write: `body snapshot stored`,
   `body snapshot empty`, or `body snapshot incomplete`
@@ -89,13 +103,15 @@ Preview text prints:
 `--yes` without `--json` commits each successful page. That commit is one
 `apply_mapping` transaction (D189). It is not a completed pull. The text
 prints actual committed counts for pages kept. It prints `requested range
-<from> through <to> is complete` only when every ranged read in section 2
-reached that read's terminal condition and every provider-live workout
-read reached the limit stated for that provider. Body is not one of those
-ranged reads. The success sentence does not say a vendor kept lifetime
-history. The success sentence `pulled openwearables from <from> through <to>` is
-printed only when the range is complete and body and the personal record
-also completed. A finished range with an incomplete body snapshot does not
+<from> through <to> is complete` only when every stored ranged read in
+section 2 reached that read's terminal condition. A live workout line does
+not change that sentence. Body is not one of those ranged reads. The
+success sentence `pulled openwearables from <from> through <to>` is
+printed only when that range is complete, body and the personal record
+completed, and every live provider is `completed` or `not_attempted`.
+An `incomplete` live provider prints `vendor workouts incomplete:` and the
+provider name. The exit is then nonzero. The success sentence is not
+printed. The stored range sentence can still say the range is complete. A finished range with an incomplete body snapshot does not
 print that sentence. The body line still says the snapshot is incomplete.
 
 If a later page fails, the child returns a typed outcome to the parent
@@ -129,9 +145,10 @@ Public `--json`, with or without `--yes`, is only the preview outcome below.
 `archive_committed` are zero. `estimated` holds the protected
 page-local estimates. `estimated_archive` holds the archive estimates.
 `range_complete` is false. `reads_finished` is true only when
-every read completed. The read status token is
-`not_attempted`, in this object and in the text. The object has no key,
-server, user id, or request path.
+every stored read completed. `range_complete` ignores the live workout
+lines. The read status token is `not_attempted`, in this object and in
+the text. The object has no key, server, user id, or request path.
+`vendor_workouts` is always present.
 
 ```json
 {
@@ -159,12 +176,28 @@ server, user id, or request path.
   "archive_committed": {
     "source_report": { "new": 0, "changed": 0, "unchanged": 0 }
   },
-  "left_out": { "total": 0, "examples": [] }
+  "left_out": { "total": 0, "examples": [] },
+  "vendor_workouts": {
+    "requested": false,
+    "requests_made": false,
+    "originals": { "new": 0, "changed": 0, "unchanged": 0 },
+    "providers": {
+      "garmin": {
+        "status": "not_attempted",
+        "covers_requested_range": false,
+        "more": false,
+        "deferred": 0,
+        "limit": "not requested"
+      }
+    }
+  }
 }
 ```
 
 The same record types are present for workouts, points, summaries, scores,
-and source reports. The example above is shortened. It is the preview
+and source reports. The example above is shortened. Polar, Suunto, Whoop,
+Fitbit, Oura, Strava, Withings, and Sensorbio use the same fields as
+`garmin`. Those names are the public `--json` keys. It is the preview
 outcome. A preview does not say a snapshot was stored.
 
 The child returns a different outcome for `--yes` without `--json`. That
@@ -174,8 +207,9 @@ counts, `database_changed`, `protected_write`, `archive`,
 records only. `archive_committed` counts archive records only, including
 a created archive source, counted once. A record is in one of those
 maps. `new`, `changed`, and `unchanged` are the created, revised, and
-unchanged counts in each map. `range_complete` is true when the ranged reads
-finished and no protected page in those reads was refused. `snapshots_complete`
+unchanged counts in each map. `range_complete` is true when the stored ranged reads
+finished and no protected page in those reads was refused. A live workout
+line does not change it. `snapshots_complete`
 is true when the personal record and the body snapshot finished. `written`
 is true when any protected transaction in this command created or revised
 a counted record. A command that only repeats unchanged protected pages,
@@ -231,12 +265,15 @@ the failed-init sentence. D209 stores a workout the person typed as a
 workout session. D210 keeps a body skin-temperature time unknown when the
 response does not say it is an instant. D211 keeps a finite
 `hr_recovery`, including zero and a negative number. D212 keeps the
-current manual-session calculation rule. D213 stores the provider-live
-workout list and detail as originals. An earlier draft
+current manual-session calculation rule. D213 stores the live
+workout list and detail as originals. D214 is the live-read procedure.
+D215 keeps each vendor object whole. An earlier draft
 left day values, the heart-rate stream, summaries, and workout segments for
 a later version. That draft is superseded. File imports stay. The Garmin pull stays. A Junction pull is proposed as
 2.3.0. Automatic sync, retries, token refresh, and backfill are proposed as
-2.4.0. None of those numbers is adopted. This release adds one module for
+2.4.0. None of those numbers is adopted. This release does not add its
+own token refresh. A live read can still make the server refresh one, as
+section 2 says. This release adds one module for
 this server. It does not add a connector interface.
 
 This pull stores the representations Open Wearables 0.11.0 returns for one
@@ -340,9 +377,10 @@ stored on an automatic workout. `field_basis.activity_type` is
 name. The numbers on this session do not enter the eight range
 calculations or `provider-period-summary`. `workout-drift` may use the
 session's start and end as its window when the caller names that session.
-The samples in that window still exclude `source_type` `manual`. Record
-queries omit manual sources unless `include_manual` is true. This pull
-does not change those controls. The session does not enter a device
+The samples in that window still exclude `source_type` `manual`.
+`queryMeasurements`, `querySeries`, and `querySessions` omit manual
+sources unless `include_manual` is true. This pull does not change those
+three functions. Other record listings are not that switch. The session does not enter a device
 baseline. `unknown`, JSON
 null, and a missing `entry_source` are source reports of kind
 `unknown_workout`. They are not a workout session, and they are not
@@ -431,6 +469,7 @@ appendix table, fails before any request.
 | Meal | `{ "meal": data }` | `source.provider` | `ow1` event | `source_report` subject `object`, meal id | one `source_report` per numeric field path |
 | Cycle | `{ "cycle": data }` | `source.provider` | `ow1` event | `source_report` subject `object`, cycle id | one `source_report` per numeric reported length |
 | Personal record | the object after `user_id` is removed | `open_wearables` | `ow1` personal | `source_report` subject `personal_record` | none |
+| Vendor workout | one combined list and detail object | `open_wearables` | `ow1:["vendor_workout", provider]` | `source_report` subject `vendor_workout`, key is provider plus vendor id | none. The whole vendor object is the record |
 
 `source_report` is not one of the seven measured record types in SPEC
 section 5.4. It has a source, so it is not an athlete report and it is
@@ -766,91 +805,121 @@ The following are not requested. Each line is the reason.
 - Sleep totals, workout totals, and activity totals. They add up rows the
   lists return.
 - The data summary and the data timeline. They count stored rows.
-- Accounts, connections, sync, OAuth, webhooks, API keys, config, uploads,
-  and every `DELETE`. They are not health readings. The API key, the
-  server address, and the user id are not written into the athlete record.
-  `/sync` and `/sync/historical` are not called.
+- Accounts, sync, OAuth, webhooks, API keys, config, uploads, and every
+  `DELETE`. They are not health readings. The API key, the server address,
+  and the user id are not written into the athlete record. `/sync` and
+  `/sync/historical` are not called. The connections list is called only
+  when `--vendor-workouts` is on.
 
-The two provider-live reads are
+`--vendor-workouts` is off by default. Off, the command makes no request
+to `/api/v1/users/{user_id}/connections` and no request to either live
+workout route. Preview and `--json` without the flag make those zero
+requests. On, the same preview and `--json` do make them, write nothing
+in this database, and print `vendor requests were made`.
+
+A live call can change the server. `api_client.py` at
+the pinned commit can refresh a vendor token and save it, revoke a
+connection when refresh is missing or auth has failed for a day, and emit
+`connection.revoked`. It writes the Redis keys `token_refresh_lock` and
+`provider_auth_failing_since`. On HTTP 429 it sleeps 15, then 30, then 60
+seconds, up to three retries. This pull does not add its own retry. It
+does not add a vendor token or a new scope. The server may still do the
+work above while answering the GET.
+
+With the flag on, the pull reads connections first. It then calls only a
+connected provider whose live list method exists. The order is fixed:
+Garmin, Polar, Suunto, Whoop, Fitbit, Oura, Strava, Withings, Sensorbio.
+A provider that is not connected, and a connected provider with no live
+list method, is `not_attempted`. That is not a failure. One provider's
+failure leaves its line `incomplete` and the other providers still run.
+Apple, Samsung, Health Connect, Ultrahuman, and Google Health have no
+live list method. Their stored workouts still come from `/events/workouts`.
+
+The list and the detail for one vendor id are combined in memory. The
+command writes that one original once. A second pull of the same object
+reports the original unchanged and does not change the database for that
+row. A failed detail keeps the list object, marks that detail incomplete,
+and still writes the list object when no richer original is already
+stored. A later payload that lacks a samples, zones, or route array the
+stored original already has is not written. The richer original stays.
+
+Every returned original is stored, including one whose start is outside
+`--from` and `--to`. The same rule is used for every provider. The count
+is `vendor workout originals`. `range_complete` uses only the stored
+ranged reads. Each live line names its limit, says whether that limit
+covers the requested range, and sets `more` when the response shows
+another page. Whoop sets `more` when `next_token` is present. Oura sets
+`more` when `next_token` is present. Sensorbio sets `more` when
+`links.next` is present. Strava sets `more` when the page length equals
+`per_page`. Those tokens are not followed. The published route does not
+accept them as the next request. `covers_requested_range` is false for
+every provider in this pin. None of the live methods filter by the
+workout's start inside `--from` and `--to`.
+
+The routes are
 `GET /api/v1/providers/{provider}/users/{user_id}/workouts` and
 `GET /api/v1/providers/{provider}/users/{user_id}/workouts/{workout_id}`.
-They use the same API key as the stored reads. They do not add a vendor
-token, a scope, or a write. The route returns the provider method's
-response. It does not save that response. This pull saves it.
+The original is a `source_report` of kind `original`, subject
+`vendor_workout`, writer `open_wearables`, sensor
+`ow1:["vendor_workout", provider]`. The key is the provider name plus the
+vendor id. The start field is stored and is not a filter. A missing id
+refuses that one object and does not archive it. The other objects from
+that provider are still stored. The original is not a workout session.
+The stored session stays matched by the Open Wearables workout id. The
+public stored workout has no `external_id`, so the two records are not
+joined by time, distance, or device. A device id inside the vendor object
+does not set `device_binding`. Nested samples stay inside the original.
+The eight range calculations do not read it.
 
-The original is a `source_report` of kind `original`. Its subject is
-`vendor_workout`. Its source is the non-device Open Wearables source, not
-the watch's source. `provider_record_id` is the provider name plus the
-vendor workout id the save path already uses: Polar `id`, Garmin
-`activityId`, Suunto `workoutId`, Whoop `id`, Oura `id`, Strava `id`,
-Fitbit `logId`, Withings `id`, and Sensorbio `id`. A later pull of that
-same id updates that original. The original is not a second
-`workout_session`. The stored session stays matched by the Open Wearables
-workout id. The public stored workout object has no `external_id`, so
-this pull does not join the original to the session by time, distance, or
-device. A manual session stays the manual session. A device id, a device
-name, and a route inside the vendor object stay on the original. They do
-not set `device_binding`. Nested samples stay inside the original. They
-are not written again as measurement samples. The eight range
-calculations do not read the original.
+| Provider | List unwrap | Id | Start field |
+|---|---|---|---|
+| Polar | the JSON array | `id` | `start_time` |
+| Garmin | the JSON array | `activityId` | `startTimeInSeconds` |
+| Suunto | `payload` | `workoutId` on the list. Detail may name the same value `workoutKey`. A different `workoutKey` is a mismatch and that detail is not stored | `startTime` |
+| Whoop | `records` | `id` | `start` |
+| Oura | `data` | `id` | `start_datetime` |
+| Strava | the JSON array | `id` | `start_date` |
+| Fitbit | the JSON array. The method reads `activities` and returns the rows | `logId` | `startTime` |
+| Withings | the JSON array. The method reads `series` and returns the rows | `id` | `startdate` |
+| Sensorbio | `data[].activities[]` | `id` on the nested activity | `start_time` |
 
-A list item with no vendor id refuses that provider's list page. The
-refusal follows the missing-id rule, including no archive. Detail is
-requested only after the list item has an id, and only for a provider
-whose detail method returns the vendor object. The detail replaces the
-same original when its vendor id matches. A detail with a missing or
-different id is not stored. The list original stays, and the result names
-the mismatch. A detail method that raises `NotImplementedError` is not
-called. That is not an empty workout list.
-
-The pull sends only the query parameters the route publishes. It does not
-retry a transport failure. A response over 8 MiB is handled by the same
-rule as the other reads: Suunto is asked again with a smaller `limit`,
-down to 1. A route with no `limit` fails that read and names it. Route
-coordinates are stored on the original and are not printed in the result
-text. The privacy scan still refuses a page that contains the key, the
-selected origin, or the selected user id.
-
-Each provider's list is what that method does when the route's parameters
-are all it receives, except Garmin and Suunto, whose time parameters the
-route does publish.
-
-- Polar sends `samples=true`, `zones=true`, and `route=true`. The route
-  has no date. The provider document says the exercise list is the
-  exercises available in Polar Flow. A start outside the requested range
-  is not stored and is not `left_out`. One list over 8 MiB fails the read.
-- Garmin sends `summary_start_time` and `summary_end_time` from the
-  requested range. The method puts those values in
-  `uploadStartTimeInSeconds` and `uploadEndTimeInSeconds`. The result says
-  the filter is upload time. An omitted range would be the method's last
-  24 hours, so this pull always sends the range. A range over 24 hours is
-  chunked by that method.
+- Polar's list omits `samples`, `zones`, and `route`, so the route sends
+  false and the list stays under the 8 MiB cap when it can. Detail sends
+  all three true, one call per exercise id. A list over 8 MiB fails that
+  list. Detail is also called for Suunto, Whoop, and Oura. It is not
+  called for Fitbit, Withings, or Sensorbio. A provider with no detail
+  stores the list object alone.
+- Garmin is split by this program into windows of 24 hours or less, one
+  call each. A longer window is not sent. Each call sends
+  `summary_start_time` and `summary_end_time`. The server puts those
+  values in `uploadStartTimeInSeconds` and `uploadEndTimeInSeconds`. The
+  read timeout for each window is 120 seconds. Any failed window makes
+  Garmin `incomplete`. A later window still runs. The server's own
+  provider timeout is a separate setting. Its default is 30 seconds.
+  Detail is called for each stored id.
 - Suunto sends `since` as the requested start in Unix milliseconds,
   `filter_by_modification_time=false`, `limit` 100, and pages `offset`
-  until a short page. False means creation time, not workout start.
-  Detail is the workout URL with no `extensions` parameter.
-- Whoop, Oura, and Strava have no date parameter on this route. Whoop is
-  one call with the method's limit of 25 and no `nextToken`. Oura is one
-  call with no date and no `next_token`. Strava is one call at page 1.
-  The method's `per_page` default is 200. Their detail methods are called
-  for ids on that page.
-- Fitbit's list method uses the last 30 days when the route sends no
-  dates. Its detail method is not implemented and is not called.
-- Withings uses `pull_sync_lookback` when set, otherwise 30 days, widens
-  each edge by one local day, and pages inside the method. Detail is not
-  implemented and is not called.
-- Sensorbio uses the route's `limit` of 50 and `last-timestamp` 0. Detail
-  is not implemented and is not called.
-- Apple, Samsung, Health Connect, Ultrahuman, Google Health, `internal`,
-  and `unknown` are not called. Apple, Samsung, Health Connect, and
-  Ultrahuman have no workout object on the strategy, and the route would
-  answer 501. Google Health does not implement the live method. Stored
-  workouts from those providers still come from `/events/workouts`.
+  until a short page. False means creation time. Detail sends no
+  `extensions` parameter. A page over 8 MiB is asked again with a smaller
+  `limit`, down to 1.
+- Whoop is one call. The method caps `limit` at 25 and sends no
+  `nextToken`. Oura is one call with no date and no `next_token`. Strava
+  is one list call at page 1. The method's `per_page` default is 200.
+- Strava detail calls stop at 20 per command. The server can retry one
+  call three times, so 20 calls can become 80 provider requests. That
+  stays under 100 per 15 minutes, and under the 200 per 15 minutes on the
+  pinned Strava page. Ids past the budget are `deferred`. Their list
+  objects are stored. The detail is not called.
+- Fitbit's list uses the last 30 days when the route sends no dates.
+  Detail is not implemented and is not called. Withings uses
+  `pull_sync_lookback` or 30 days, widens each edge by one local day, and
+  pages inside the method. Detail is not called. Sensorbio uses `limit`
+  50 and `last-timestamp` 0. Detail is not called.
 
-These reads run after the twelve stored reads. A completed line means that
-stated limit was reached. It does not mean the vendor's lifetime history
-was returned. A failed provider stops later provider reads, keeps earlier
-commits, and exits nonzero. The success sentence is not printed.
+A saved file imports the same envelope. Export and import keep one
+original id. The per-provider unwrap lives in
+`crates/ath-core/src/vendor_workouts.rs`, driven by one provider table.
+`open_wearables.rs` calls that module. It does not grow a provider branch.
 
 Day rows are one selected row per source, series, and local day. The
 repository prefers `computed_by: provider`, then the later provider row.
@@ -881,7 +950,9 @@ replace on change (D182), source and device (D183), one transaction per call
 are empty or `__proto__` (D191). A Garmin file import remains a different
 `data_route`, so both copies of one workout stay (D161). A second pull of the
 same Open Wearables object, or an `ath import --mapping open-wearables` of a
-saved copy of that object, updates the same rows.
+saved copy of that object, keeps the same rows. An identical vendor
+original changes no row. A changed object replaces the stored one, except
+a thinner vendor workout, which section 2 refuses.
 
 On a device source, the writer is `source.provider`. The sensor string is
 `source.device_type`, `source.device`, and `source.source`. Section 2's
@@ -1076,7 +1147,8 @@ built without that field. Day rows carry it, and those rows are stored.
 ## 4. Credentials, privacy, and the network
 
 D200 is the rule. The key never enters the athlete database, the export, the
-preview, or an error line. The pull reads only the paths in section 2.
+preview, or an error line. The pull reads the paths in section 2. Connections and the two live
+workout routes are included only when `--vendor-workouts` is on.
 It does not list users. A raw HTTP personal-record response includes `user_id`. That field must
 be a string UUID equal to the selected user id. Absence, null, a
 non-string, and any other string refuse the page before redaction and
@@ -1090,13 +1162,20 @@ gender, and sex are stored. They are account health data, not the API key.
 The process refuses a base URL that could carry the key in the URL itself.
 It refuses plain `http` except to loopback. It does not follow a redirect, so
 the key cannot be sent to a second host. One attempt, then stop. Timeouts are
-10 seconds to connect and 30 seconds to read. One response may be at most
+10 seconds to connect and 30 seconds to read. A Garmin live window may
+take 120 seconds to read. One response may be at most
 8 MiB. One read may be at most 1000 pages.
 
 The body is read inside that cap and parsed before any `apply_mapping` call.
 The guard is in `open_wearables.rs`. It walks every decoded object key and
 every decoded string. A value that contains the API key, the selected
-origin, or the selected user id rejects the whole page. The matching personal-record `user_id` is the only field that is dropped
+origin, or the selected user id rejects the whole page. A key whose
+letters, after dropping `_` and `-` and ignoring case, are
+`useraccesstoken`, `accesstoken`, `refreshtoken`, `apikey`,
+`authorization`, `password`, `secret`, or `clientsecret` also rejects
+the page. `polar_user` and a route coordinate are not those keys. D215
+keeps the rest of the vendor object, including account ids, Polar user
+URLs, and full routes. The matching personal-record `user_id` is the only field that is dropped
 before this walk. Any other copy of the user id still rejects the page.
 A raw personal-record `user_id` that is absent, null, the wrong type, or
 not the selected user refuses the page before the drop. The page is not
@@ -1266,6 +1345,7 @@ interactive open can preview, back up, ask, and then migrate.
 | Piece | Place |
 |---|---|
 | HTTP, page loop, envelope split, call `apply_mapping` | `crates/ath-core/src/open_wearables.rs` |
+| Live provider table, unwrap, windows, and detail budget | `crates/ath-core/src/vendor_workouts.rs` |
 | Command `pull-openwearables` | `crates/ath-core/src/main.rs` |
 | Flags, key, preview text, refusal if the key appears | `src/program.ts`, `src/help.ts`, `src/keyring.ts` |
 | Mapping names and field rules | the existing file `mappings/open-wearables.md` |
@@ -1307,8 +1387,10 @@ pair and the new table. `src/db/check-tables.ts` gains the
 `include_manual` switch. `workout-drift` loads the named session first,
 including a manual session, and uses that session's start and end as the
 window. Its samples then go through `read_inputs`. A manual source's
-numbers stay out. Record queries omit manual sources unless
-`include_manual` is true. This proposal does not change that code. In
+numbers stay out. `queryMeasurements`, `querySeries`, and
+`querySessions` omit manual sources unless `include_manual` is true.
+This proposal does not change that code. A generic record listing is
+not those three functions. In
 `read_inputs` and `read_period`, a provider summary or provider score
 whose `standard_value` or `standard_unit` is null is excluded in the SQL,
 before the limit, the count, the grouping, and the numeric decode. A null
@@ -1643,8 +1725,9 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   pair that was accepted. `workout-drift` named on that manual session
   uses its start and end. A wearable sample inside the window is an input.
   A manual sample and the session's own heart rate and distance are not.
-  A record query without `include_manual` omits the manual session. The
-  same query with `include_manual` true returns it.
+  `queryMeasurements`, `querySeries`, and `querySessions` omit the manual
+  session unless `include_manual` is true. That switch is not claimed for
+  every record listing.
   `page-raw.json` is stored.
   RMSSD and SDNN stay different quantities
 - a changed end time keeps the record id and increases the revision
@@ -1664,15 +1747,42 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
 - a deleted mapped source is left out. A Garmin file import of a different
   workout remains a second source
 - `left_out` in the result is a total and at most 20 examples
-- a synthetic Polar list with samples, zones, and a route stores one
-  original. The nested samples are not measurement samples. A second pull
-  of the same vendor id updates that original and does not create a
-  session. The stored workout with a different Open Wearables id stays a
-  separate session. A device id on the vendor object does not set
-  `device_binding`. A Garmin list sends the requested upload window. A
-  Whoop list is one page. A missing vendor id refuses that list and
-  archives nothing. Preview and `--json --yes` write none of these rows.
-  The result text does not print a route coordinate
+- a synthetic Polar list without samples, zones, and route, then one
+  detail with all three true, stores one original. The nested samples are
+  not measurement samples. A second identical pull changes no row and
+  reports no database change for that original. A thinner detail does not
+  replace a stored original that already has samples, zones, or a route.
+  A failed detail keeps the list object and marks that detail incomplete.
+  The stored workout with a different Open Wearables id stays a separate
+  session. A device id on the vendor object does not set `device_binding`.
+  The result text does not print a route coordinate. It does say the
+  originals keep account ids, user URLs, and full routes
+- without `--vendor-workouts`, preview and `--json` make zero requests to
+  the connections route and to both workout routes. `requests_made` is
+  false and every live line is `not_attempted`. With the flag, preview
+  and `--json` still write nothing, `requests_made` is true, and the text
+  says vendor requests were made
+- a connections list with only Garmin completes Garmin and marks Polar,
+  Suunto, Whoop, Fitbit, Oura, Strava, Withings, and Sensorbio
+  `not_attempted`. A failed Polar list does not stop Garmin
+- one failed Garmin window makes Garmin `incomplete` and never
+  `completed`. A later window still runs
+- a Sensorbio body stores `data[].activities[].id`. A missing id refuses
+  that object and keeps the others. File import of the saved original,
+  then export, keeps one record id
+- a Polar exercise whose start is outside `--from` and `--to` is stored
+  and counted under `vendor workout originals`. `range_complete` still
+  follows the stored ranged reads
+- Whoop `next_token`, Oura `next_token`, Sensorbio `links.next`, and a
+  Strava page whose length equals `per_page` set `more` true.
+  `covers_requested_range` is false. The 21st Strava detail id is
+  `deferred`. Its list object is stored
+- `--json` includes `vendor_workouts.requested`, `requests_made`,
+  `originals`, and each provider's `status`, `covers_requested_range`,
+  `more`, `deferred`, and `limit`
+- a page whose key is `userAccessToken`, `access_token`, `refresh-token`,
+  `apiKey`, `authorization`, `password`, `secret`, or `client_secret` is
+  refused. A `polar_user` URL and a route coordinate are stored
 
 Migration tests, in the build gate:
 
@@ -1735,7 +1845,9 @@ pass, and `cargo test` passes, before the build is called done.
 ## 8. You test this (Laptop)
 
 The card uses the fixture server the tests use. It does not use a real
-account or a real export. The build starts that server on `127.0.0.1` and an
+account or a real export. The fixture user has a Garmin connection and no
+other connection. The card does not pass `--vendor-workouts`, so it makes
+no live vendor request. The build starts that server on `127.0.0.1` and an
 ephemeral port, prints the port, and uses the fixture key and the fixture
 user id. The range is `--from 2026-01-01 --to 2026-01-07`. The person pastes
 the fixture key once into `ath key set openwearables`.
@@ -1745,11 +1857,13 @@ the fixture key once into `ath key set openwearables`.
    init fails, or the key is printed.
 2. Preview. Success: the pull without `--yes` says nothing is stored, shows
    estimated counts that include a heart-rate sample and a day summary, shows
-   a body snapshot line, and `ath check` still passes. Failure: a row is
-   written, or the key appears.
+   a body snapshot line, makes no vendor request, and `ath check` still
+   passes. Failure: a row is written, a vendor request is made, or the key
+   appears.
 3. Write. Success: the same command with `--yes` says the requested range is
    complete, shows the body snapshot line, shows committed counts, and
-   `ath check` exits 0. Failure: the success sentence appears while the
+   `ath check` exits 0. The stored range can be complete with only Garmin
+   connected. Failure: the success sentence appears while the
    range or the body snapshot is incomplete, or `ath check` fails.
 4. Repeat. Success: `--yes` again reports the stored rows unchanged.
    Failure: a second copy of a sleep session or a point appears.
@@ -1835,9 +1949,10 @@ cycle filter, the smaller-page split, and the tests in section 7. The laptop car
 part of that same pull request. This plan pull request has no media.
 
 The maintainer approves or rejects this plan before any build. D198 through
-D213 are the proposal. They are not adopted. The stored workout and the
-provider-live original stay separate records, because the public stored
-workout has no vendor id. That split is part of this proposal. Reviews of earlier heads were
+D215 are the proposal. They are not adopted. The stored workout and the
+live original stay separate records, because the public stored
+workout has no vendor id. That split is part of this proposal. D215 is the
+privacy choice, and the maintainer can change it before approval. Reviews of earlier heads were
 incorporated here. None of those reviews approves this revision. The next
 head needs re-review. An earlier review accepted a
 migration with no new column, under D152 and D184. That acceptance does not
@@ -1856,7 +1971,9 @@ optional source key adds no column.
    connection turns them off only before its transaction and reads them
    back on after every exit. A
    `2.1.0` database does not open until `ath migrate`. This release does
-   not schedule, refresh a token, backfill, or store a cursor (D198, D208).
+   not schedule a pull, add its own token refresh, backfill, or store a
+   cursor (D198, D208). A live read can still make the server refresh a
+   vendor token (D214).
 2. Store the returned representations in section 2. Device receipts stay
    on device sources. Summaries without a device id use their own sensors.
    Null stays null. A missing response is not called provider-unavailable.

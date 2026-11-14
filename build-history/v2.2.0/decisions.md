@@ -950,8 +950,10 @@ no `include_manual` switch. `workout-drift` loads the session the caller
 names, including a manual session, and uses its start and end as the
 window. The samples then come from `read_inputs`, so a manual source's
 numbers are not inputs. The session's own heart rate and distance are not
-inputs. Record queries omit manual sources unless `include_manual` is
-true. A typed workout must not enter a device baseline.
+inputs. `queryMeasurements`, `querySeries`, and `querySessions` omit
+manual sources unless `include_manual` is true. A generic record listing
+is not those three functions. A typed workout must not enter a device
+baseline.
 
 Rejected alternatives:
 
@@ -963,26 +965,29 @@ Rejected alternatives:
 
 ## D213. A provider-live workout is kept as an original
 
-The stored workout list is the normalized session. The provider routes
-return the vendor object and do not save it. Defaults leave workout
-samples, FIT bytes, and raw payloads unstored unless that deployment
-turned the flag on. This pull reads the two live GET routes and stores
-the vendor object.
+D214 is the live-read procedure. D215 is the privacy choice. Where this
+proposal disagrees with either, those decisions are the proposal.
+
+The stored workout list is the normalized session. The provider route
+handlers return the vendor object and do not insert a workout row.
+Defaults leave workout samples, FIT bytes, and raw payloads unstored
+unless that deployment turned the flag on. This pull can store the vendor
+object when the person passes `--vendor-workouts`.
 
 The original is a `source_report` of kind `original`, subject
-`vendor_workout`, on the non-device Open Wearables source. The match key
-is the provider plus the vendor workout id. A later pull updates that
-original. It is not a second workout session, and it is not joined to the
-stored session by time. The public stored workout has no `external_id`.
-Device names, device ids, routes, and nested samples stay inside the
-original. They do not set `device_binding`, and they are not measurement
-samples. Calculations do not read the original.
+`vendor_workout`, writer `open_wearables`, sensor
+`ow1:["vendor_workout", provider]`. The match key is the provider plus
+the vendor workout id. It is not a second workout session, and it is not
+joined to the stored session by time. The public stored workout has no
+`external_id`. Device names, device ids, routes, and nested samples stay
+inside the original. They do not set `device_binding`, and they are not
+measurement samples. Calculations do not read the original.
 
-The pull uses the published query parameters, does not retry, and does
-not call sync, historical sync, or a provider whose live method is
-missing. A completed provider line means that provider's stated limit was
-reached. It does not mean the vendor returned lifetime history. The same
-API key is used. No new vendor permission is added.
+The pull uses the published query parameters and does not add its own
+retry. It does not call sync or historical sync. A completed provider
+line means that provider's stated limit was reached. It does not mean the
+vendor returned lifetime history. The same API key is used. No new vendor
+permission is added.
 
 Rejected alternatives:
 
@@ -992,5 +997,80 @@ Rejected alternatives:
   session already exists, and the public workout has no vendor id to join
   them.
 - Call sync or historical sync to fill the gap. Rejected. Those routes
-  write on the server. This pull only reads.
+  are writes this pull does not call.
+
+## D214. A live vendor read is opt-in, and one failure stays on that provider
+
+This supersedes the D213 sentences that said a live GET does not write on
+the server, that a failed provider stops the later providers, that Polar's
+list asks for samples, zones, and route, that a start outside the range
+is dropped, and that the server splits a Garmin range.
+
+`--vendor-workouts` is off unless the person passes it. Off, preview and
+`--json` call neither the connections route nor a live workout route.
+On, those calls run for a preview too. The preview writes nothing in this
+database and prints `vendor requests were made`.
+
+The server, while answering the GET, can save a refreshed vendor token,
+revoke a connection, emit `connection.revoked`, write `token_refresh_lock`
+and `provider_auth_failing_since`, and on HTTP 429 sleep 15, then 30,
+then 60 seconds, up to three retries. This program does not add a retry
+of its own.
+
+The pull reads `GET /users/{id}/connections` and calls only a connected
+provider that has a live list method. The order is Garmin, Polar, Suunto,
+Whoop, Fitbit, Oura, Strava, Withings, Sensorbio. A provider that is not
+connected, and a connected provider with no live list method, is
+`not_attempted`. One failure leaves that line `incomplete`. The others
+still run.
+
+Garmin is split by this program into windows of 24 hours or less, one
+call each, with a 120 second read timeout. Any failed window makes Garmin
+`incomplete`. Polar's list omits samples, zones, and route. Detail asks
+for all three. One combined object is written once per command. A second
+identical pull changes no row. A thinner object does not replace a richer
+stored original. A failed detail keeps the list object.
+
+Every returned original is stored, including a start outside `--from` and
+`--to`. The count is `vendor workout originals`. `range_complete` uses
+only the stored ranged reads. Each line says whether its limit covers the
+requested range and whether more data exists. Strava detail stops at 20
+calls per command. Later ids are deferred. Their list objects are stored.
+
+The unwrap, the id, and the start field for each provider are the table
+in the spec. File import uses the same envelope. The provider logic lives
+in `crates/ath-core/src/vendor_workouts.rs`, driven by one table.
+`open_wearables.rs` calls that module.
+
+Rejected alternatives:
+
+- Leave live reads on by default. Rejected. The server can change a token
+  and revoke a connection while answering the GET.
+- Stop the later providers after one failure. Rejected. A person connected
+  only to Garmin must still finish when another provider is absent, and a
+  failed provider must not hide a finished one.
+- Let the server split a Garmin range. Rejected. A failed window must be
+  visible as incomplete.
+- Drop an original whose start is outside the requested range. Rejected.
+  The live methods do not filter by workout start, so a drop would hide a
+  returned object.
+
+## D215. Vendor originals stay whole. The maintainer can change this
+
+This is a labeled choice. The default in this proposal is to keep each
+vendor object whole, including account ids, Polar user URLs, and full GPS
+routes. The reason is a complete, portable copy of what the vendor
+returned. The output and the spec say those fields are included.
+
+The scan still refuses the API key, the selected origin, and the selected
+user id. It also refuses an object key whose letters, after dropping `_`
+and `-` and ignoring case, are `useraccesstoken`, `accesstoken`,
+`refreshtoken`, `apikey`, `authorization`, `password`, `secret`, or
+`clientsecret`. `polar_user` and a coordinate are not those keys.
+
+Rejected alternatives:
+
+- Strip account ids, user URLs, and routes before storage. Not chosen.
+  The stored object would no longer be the object the vendor returned.
+  The maintainer can replace this decision before approval.
 

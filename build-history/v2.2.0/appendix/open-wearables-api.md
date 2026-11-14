@@ -465,7 +465,24 @@ have `external_id`. The public model does not return it.
 
 The live routes are `vendor_workouts.py`. Both handlers call
 `get_workouts_from_api` or `get_workout_detail_from_api` and return that
-value. Neither handler writes a row.
+value. Neither handler inserts a workout row.
+
+The authenticated client can still change the server. Checked in the same
+commit on 14 November 2026. `refresh_access_token` calls
+`update_tokens` and saves the new vendor token. `revoke_connection` marks
+the connection revoked and calls `on_connection_revoked`, which emits
+`connection.revoked`. Revoke runs when refresh is missing, when refresh
+is rejected, and after auth has failed for `DEAD_GRANT_AFTER` of one day.
+The client writes Redis keys `token_refresh_lock` and
+`provider_auth_failing_since`. On HTTP 429, `RETRY_BASE_DELAY` is 15
+seconds and `MAX_RETRIES` is 3, so the waits are 15, 30, and 60 seconds.
+A nearby comment says 1, 2, and 4 seconds. The constant is 15.
+
+`GET /api/v1/users/{user_id}/connections` returns the user's connections.
+The pinned Strava page lists 200 requests per 15 minutes for the standard
+tier and 400 for extended access. Garmin's live method accepts upload
+start and end. A range the method itself splits can hide a failed chunk.
+This plan has the client send windows of 24 hours or less instead.
 
 Polar's live methods pass `samples`, `zones`, and `route` through to
 `/v3/exercises`. The save path calls the list method without those
