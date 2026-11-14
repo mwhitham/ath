@@ -1067,7 +1067,9 @@ fn one_unit(inputs: &[Input], expected: Option<&str>) -> Result<String> {
     units.sort_unstable();
     units.dedup();
     if units.len() != 1 {
-        return Err(Error::refused(format!("Calculation matched incompatible units: {}", units.join(", "))));
+        // With no units the 2.1.0 message ended at the colon.
+        let message = format!("Calculation matched incompatible units: {}", units.join(", "));
+        return Err(Error::refused(message.trim_end()));
     }
     if let Some(expected) = expected {
         if units[0] != expected {
