@@ -185,12 +185,12 @@ fn previews_and_an_erasure_match_2_1_0() {
             let path = attachment["path"].as_str().unwrap().strip_prefix(&prefix).unwrap().to_string();
             attachment["path"] = Value::String(path);
         }
-        assert_eq!(&actual, expected_preview, "{record_id}");
+        assert_eq!(json::to_pretty(&actual), json::to_pretty(expected_preview), "{record_id}");
     }
     let preview = preview_erasure(&store, ATTACHMENT_ID, 1).unwrap();
     let erased = erase_record(&mut store, &preview, ErasureReasonCode::RecordedInError, Some(EXPORTED_AT)).unwrap();
-    let expected_result = json::parse(&fs::read_to_string(golden("erasure").join("erased.json")).unwrap()).unwrap();
-    assert_eq!(json::to_value(&erased), expected_result);
+    let expected_result = fs::read_to_string(golden("erasure").join("erased.json")).unwrap();
+    assert_eq!(format!("{}\n", json::to_pretty(&json::to_value(&erased))), expected_result);
     store.close().unwrap();
     let expected_rows = fs::read_to_string(golden("erasure").join("database-rows.txt")).unwrap();
     assert_eq!(dump_rows(&database), expected_rows);

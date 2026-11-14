@@ -36,6 +36,12 @@ fn restore(package: &Path, directory: &Path) -> (std::path::PathBuf, Value) {
     (path, preview_json)
 }
 
+/// The value printed as `JSON.stringify(value, null, 2)` equals the file,
+/// including key order.
+fn assert_same_json_text(value: &Value, path: &Path) {
+    assert_eq!(format!("{}\n", json::to_pretty(value)), fs::read_to_string(path).unwrap(), "{}", path.display());
+}
+
 fn golden_json(path: &Path) -> Value {
     json::parse(&fs::read_to_string(path).unwrap()).unwrap()
 }
@@ -45,7 +51,7 @@ fn the_demo_package_restores_and_exports_to_the_same_bytes() {
     let directory = temporary("ath-golden-demo-");
     let package = materialize_golden_package("demo", &directory);
     let (database, preview) = restore(&package, &directory);
-    assert_eq!(preview, golden_json(&golden("demo").join("restore-preview.json")));
+    assert_same_json_text(&preview, &golden("demo").join("restore-preview.json"));
     let store = open_read_only(&database);
     let output = directory.join("exported");
     export_package(&store, &output, &timed()).unwrap();
@@ -62,7 +68,7 @@ fn the_version_2_0_0_package_restores_every_row_as_2_1_0_did() {
     let directory = temporary("ath-golden-200-");
     let package = repository().join("tests/fixtures/version-2-0-0/package");
     let (database, preview) = restore(&package, &directory);
-    assert_eq!(preview, golden_json(&golden("version-2-0-0").join("restore-preview.json")));
+    assert_same_json_text(&preview, &golden("version-2-0-0").join("restore-preview.json"));
     let expected_rows = fs::read_to_string(golden("version-2-0-0").join("database-rows.txt")).unwrap();
     let actual_rows = dump_rows(&database);
     for (index, (actual, expected)) in actual_rows.lines().zip(expected_rows.lines()).enumerate() {
@@ -332,7 +338,7 @@ fn a_package_with_more_samples_than_one_series_file_round_trips_like_2_1_0() {
     assert_eq!(json::to_value(&hashes), expected_hashes, "the synthetic input differs from the generator's");
 
     let (database, preview) = restore(&input, &directory);
-    assert_eq!(preview, golden_json(&golden("many-samples").join("restore-preview.json")));
+    assert_same_json_text(&preview, &golden("many-samples").join("restore-preview.json"));
     let store = open_read_only(&database);
     let output = directory.join("exported");
     export_package(&store, &output, &timed()).unwrap();
