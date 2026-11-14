@@ -8,13 +8,13 @@
 //! other normalization is the tool version in `changed_by`, which names the
 //! program version that wrote the revision.
 
-mod common;
+mod import_support;
 
 use athleticstandard::import::{self, collate, instant, ImportOptions};
 use athleticstandard::json::{self, Value};
 use athleticstandard::model::RecordActor;
 use athleticstandard::store::{Changes, Deletion};
-use common::{assert_same_json, golden, materialize, new_store, snapshot, KeyFact, Labels, TempDir};
+use import_support::{assert_same_json, golden, materialize, new_store, snapshot, KeyFact, Labels, TempDir};
 
 fn run_scenario(name: &str) {
     let golden = golden(&format!("{name}.json"));
@@ -153,15 +153,15 @@ fn detection_refusals_match_2_1_0() {
                 root.join("notes.txt")
             }
             "unknown_zip" => {
-                common::write_zip(&root.join("data.zip"), &[("a.csv".into(), "a,b\n".into())]);
+                import_support::write_zip(&root.join("data.zip"), &[("a.csv".into(), "a,b\n".into())]);
                 root.join("data.zip")
             }
             "privacy_portal_zip" => {
-                common::write_zip(&root.join("data.zip"), &[("health/sleeps.csv".into(), "a\n".into())]);
+                import_support::write_zip(&root.join("data.zip"), &[("health/sleeps.csv".into(), "a\n".into())]);
                 root.join("data.zip")
             }
             "symbolic_link" => {
-                common::write_directory(&root.join("real"), &common::fixture_files());
+                import_support::write_directory(&root.join("real"), &import_support::fixture_files());
                 symlink(root.join("real"), root.join("link")).unwrap();
                 root.join("link")
             }

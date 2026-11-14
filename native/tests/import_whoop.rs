@@ -2,7 +2,7 @@
 //! `tests/v1-provider-import.test.ts`, and `tests/csv.test.ts`, plus the
 //! operation's stale-plan and validation rules.
 
-mod common;
+mod import_support;
 
 use athleticstandard::error::Error;
 use athleticstandard::import::candidate::{source_value, MatchKey, Section};
@@ -13,7 +13,7 @@ use athleticstandard::json::{self, Value};
 use athleticstandard::model::*;
 use athleticstandard::store::read::{self, ListOptions};
 use athleticstandard::store::{Changes, NewRecord, Store};
-use common::{baseline, fixture_files, new_store, write_directory, TempDir};
+use import_support::{baseline, fixture_files, new_store, write_directory, TempDir};
 
 const RECEIVED_AT: &str = "2026-10-13T12:00:00.000Z";
 
@@ -89,16 +89,17 @@ fn assert_database_valid(store: &Store) {
 fn the_fixture_matches_the_retained_import_baseline() {
     let directory = TempDir::new();
     let mut store = new_store(directory.path());
-    import_fixture(&mut store, &common::whoop_fixture(), RECEIVED_AT);
+    import_fixture(&mut store, &import_support::whoop_fixture(), RECEIVED_AT);
     let snapshot = baseline::read_snapshot(store.connection());
-    let expected =
-        std::fs::read_to_string(common::repository_root().join("tests/fixtures/import-baseline/05-cycles.json"))
-            .unwrap();
+    let expected = std::fs::read_to_string(
+        import_support::repository_root().join("tests/fixtures/import-baseline/05-cycles.json"),
+    )
+    .unwrap();
     let text = baseline::comparison_string(&snapshot, Some("field_basis"));
     assert!(!text.contains(&directory.path().display().to_string()));
     assert_eq!(text, expected);
     let basis = std::fs::read_to_string(
-        common::repository_root().join("tests/fixtures/import-baseline/field-basis/05-cycles.json"),
+        import_support::repository_root().join("tests/fixtures/import-baseline/field-basis/05-cycles.json"),
     )
     .unwrap();
     assert_eq!(baseline::field_basis_string(&snapshot), basis);
@@ -116,7 +117,7 @@ fn the_fixture_matches_the_retained_import_baseline() {
 fn imports_matches_a_repeat_and_revisions_a_correction() {
     let directory = TempDir::new();
     let mut store = new_store(directory.path());
-    let preview = import::preview(&store, &common::whoop_fixture(), &options(RECEIVED_AT)).unwrap();
+    let preview = import::preview(&store, &import_support::whoop_fixture(), &options(RECEIVED_AT)).unwrap();
     assert_eq!(preview.provider, "whoop");
     assert_eq!(preview.imported, "WHOOP export");
     assert!(preview.conflicts.is_empty());
@@ -164,7 +165,8 @@ fn imports_matches_a_repeat_and_revisions_a_correction() {
     assert!(metrics.contains(&("strain".into(), 14.2, "0-21".into())));
     assert!(metrics.contains(&("activity_strain".into(), 11.4, "0-21".into())));
 
-    let repeat = import::preview(&store, &common::whoop_fixture(), &options("2026-10-14T12:00:00.000Z")).unwrap();
+    let repeat =
+        import::preview(&store, &import_support::whoop_fixture(), &options("2026-10-14T12:00:00.000Z")).unwrap();
     assert!(repeat.conflicts.is_empty());
     assert_eq!(repeat.new_record_count(), 0);
     assert_eq!(repeat.changed_record_count(), 0);
@@ -206,7 +208,7 @@ fn imports_matches_a_repeat_and_revisions_a_correction() {
 fn journal_answers_are_athlete_reports_without_a_source() {
     let directory = TempDir::new();
     let mut store = new_store(directory.path());
-    import_fixture(&mut store, &common::whoop_fixture(), RECEIVED_AT);
+    import_fixture(&mut store, &import_support::whoop_fixture(), RECEIVED_AT);
     let reports = all_records(&store, RecordType::AthleteReport);
     let nutrition = all_records(&store, RecordType::NutritionEntry);
     assert_eq!(reports.len() + nutrition.len(), 5);
@@ -259,7 +261,7 @@ fn restore_into(source: &Store, target: &mut Store) {
 fn uses_restored_provider_keys_for_a_later_correction() {
     let directory = TempDir::new();
     let mut original = new_store(directory.path());
-    import_fixture(&mut original, &common::whoop_fixture(), RECEIVED_AT);
+    import_fixture(&mut original, &import_support::whoop_fixture(), RECEIVED_AT);
     let original_hrv = hrv_record(&original, 68.4);
 
     let restored_directory = TempDir::new();
@@ -330,7 +332,7 @@ fn duplicate_rows_keep_stable_ordinals_and_ambiguous_corrections_are_refused() {
 fn a_plan_is_refused_when_the_database_changed_after_the_preview() {
     let directory = TempDir::new();
     let mut store = new_store(directory.path());
-    let preview = import::preview(&store, &common::whoop_fixture(), &options(RECEIVED_AT)).unwrap();
+    let preview = import::preview(&store, &import_support::whoop_fixture(), &options(RECEIVED_AT)).unwrap();
     let mut other = Store::open(store.path(), Default::default()).unwrap();
     other
         .apply(Changes {
@@ -357,7 +359,7 @@ fn a_plan_is_refused_when_the_database_changed_after_the_preview() {
 fn a_correction_is_refused_when_its_record_changed_after_the_preview() {
     let directory = TempDir::new();
     let mut store = new_store(directory.path());
-    import_fixture(&mut store, &common::whoop_fixture(), RECEIVED_AT);
+    import_fixture(&mut store, &import_support::whoop_fixture(), RECEIVED_AT);
     let hrv = hrv_record(&store, 68.4);
     let corrected = corrected_copy(directory.path());
     let correction = import::preview(&store, &corrected, &options("2026-10-15T12:00:00.000Z")).unwrap();
@@ -394,17 +396,17 @@ fn a_plan_is_refused_by_another_database() {
     let second = TempDir::new();
     let store = new_store(first.path());
     let mut other = new_store(second.path());
-    let preview = import::preview(&store, &common::whoop_fixture(), &options(RECEIVED_AT)).unwrap();
+    let preview = import::preview(&store, &import_support::whoop_fixture(), &options(RECEIVED_AT)).unwrap();
     let error = preview.apply(&mut other).unwrap_err();
     assert!(matches!(error, Error::Stale(_)), "{error}");
 }
 
 #[test]
 fn skip_reasons_are_listed_in_the_2_1_0_order() {
-    let golden = common::golden("cycles-edges.json");
+    let golden = import_support::golden("cycles-edges.json");
     let directory = TempDir::new();
     let store = new_store(directory.path());
-    let path = common::materialize(&golden["steps"][0]["input"], directory.path());
+    let path = import_support::materialize(&golden["steps"][0]["input"], directory.path());
     let preview = import::preview(&store, &path, &options(RECEIVED_AT)).unwrap();
     let reasons: Vec<&str> = preview.skipped.iter().map(|(reason, _)| reason.as_str()).collect();
     assert_eq!(
@@ -580,7 +582,8 @@ fn a_measured_candidate_must_name_a_declared_source() {
 fn received_at_must_be_a_stored_utc_timestamp() {
     let directory = TempDir::new();
     let store = new_store(directory.path());
-    let error = import::preview(&store, &common::whoop_fixture(), &options("2026-10-13T12:00:00Z")).unwrap_err();
+    let error =
+        import::preview(&store, &import_support::whoop_fixture(), &options("2026-10-13T12:00:00Z")).unwrap_err();
     assert!(matches!(error, Error::Invalid(_)), "{error}");
 }
 
@@ -588,7 +591,7 @@ fn received_at_must_be_a_stored_utc_timestamp() {
 fn the_preview_serializes_with_the_2_1_0_field_order() {
     let directory = TempDir::new();
     let store = new_store(directory.path());
-    let preview = import::preview(&store, &common::whoop_fixture(), &options(RECEIVED_AT)).unwrap();
+    let preview = import::preview(&store, &import_support::whoop_fixture(), &options(RECEIVED_AT)).unwrap();
     let value = json::to_value(&preview);
     let keys: Vec<&str> = value.as_object().unwrap().keys().map(String::as_str).collect();
     assert_eq!(

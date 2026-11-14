@@ -4,13 +4,13 @@
 //! The attachment media-type check in that file belongs to attachment import,
 //! not provider import, and is not covered here.
 
-mod common;
+mod import_support;
 
 use std::io::Write;
 use std::os::unix::fs::symlink;
 
 use athleticstandard::import::{self, input, ImportOptions, ImportRoute, SharedImport};
-use common::{new_store, TempDir};
+use import_support::{new_store, TempDir};
 
 fn replace_every(bytes: &[u8], before: &str, after: &str) -> Vec<u8> {
     assert_eq!(before.len(), after.len());
@@ -127,7 +127,7 @@ fn routes_follow_the_2_1_0_order() {
     let directory = TempDir::new();
     let root = directory.path();
     let whoop = root.join("whoop");
-    common::write_directory(&whoop, &common::fixture_files());
+    import_support::write_directory(&whoop, &import_support::fixture_files());
     assert_eq!(import::classify(&whoop, false).unwrap(), ImportRoute::Provider);
     assert_eq!(import::classify(&whoop, true).unwrap(), ImportRoute::Mapped);
 
