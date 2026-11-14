@@ -192,6 +192,42 @@ const approvedSyntheticFixtures = new Map<string, string>([
     "tests/fixtures/version-2-0-0/package/series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
     "2099f0bf78f680ddd168b2bd1a5a30e1fea3758e6699a12075c1ef712b985924",
   ],
+  [
+    "native/tests/vectors/model/AthleteActor.json",
+    "bfaba24cedbcefaf8c476d94a1d0ebb75062ccb96f8218d64ff8053a61aa7442",
+  ],
+  [
+    "native/tests/vectors/model/AthleteProfileData.json",
+    "2ae57b2317f83a027faff5801a41cc24a33b5810266c9085ec28487bf846be72",
+  ],
+  [
+    "native/tests/vectors/model/AthleteProfileRecord.json",
+    "1758ddfbab762d99196deb8c3361fff24114c193e5690a1fd6bb9a023c14bdfd",
+  ],
+  [
+    "native/tests/vectors/model/AthleteProfileRevision.json",
+    "f726414d7a6d07f3648c6b8d87be2062cd56f4296c545e5cb41b239a8380f430",
+  ],
+  [
+    "native/tests/vectors/model/AthleteReportData.json",
+    "7f65e729742c6740ae9a73ffdce20d3fa65de070b66088c01d05f3010d8b9033",
+  ],
+  [
+    "native/tests/vectors/model/AthleteReportRecord.json",
+    "8077b5ae17a5e7265d64fe734a1f5f999886444435ab738a172c46e11060fb80",
+  ],
+  [
+    "native/tests/vectors/model/AthleteReportRevision.json",
+    "ed864b537f3dba20013a774667ad83d127542f5abd761e163a7fa5c1503a78d6",
+  ],
+  [
+    "native/tests/vectors/model/AthleteReportType.json",
+    "c1ccdeed66434b92a74e86841891d92074f061b842d2887d516e6501b21859e5",
+  ],
+  [
+    "native/tests/vectors/model/ExportManifest.json",
+    "b5924cfb50f77300ba95b55712973ad115957885462e6f70dd5f82ad6551c598",
+  ],
 ]);
 
 const requiredIgnoreRules = [

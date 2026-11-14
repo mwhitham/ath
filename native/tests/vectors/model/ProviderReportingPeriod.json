@@ -1,0 +1,2215 @@
+{
+  "schema": "ProviderReportingPeriod",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "period_type": "oura_sleep_day",
+        "provider_date": "2026-01-02"
+      },
+      "valid": true,
+      "output": {
+        "period_type": "oura_sleep_day",
+        "provider_date": "2026-01-02"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": true,
+      "output": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:offset_missing",
+      "input": {
+        "period_type": "oura_activity_day",
+        "provider_date": "2026-01-02",
+        "timezone_offset_missing_reason": "not_provided_by_source"
+      },
+      "valid": true,
+      "output": {
+        "period_type": "oura_activity_day",
+        "provider_date": "2026-01-02",
+        "timezone_offset_missing_reason": "not_provided_by_source"
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "period_type:missing",
+      "input": {
+        "provider_date": "2026-01-02"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "period_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"whoop_physiological_cycle\"|\"oura_activity_day\"|\"oura_sleep_day\"|\"oura_calendar_day\"|\"oura_day_unspecified\"|\"apple_activity_summary_day\"",
+          "values": [
+            "whoop_physiological_cycle",
+            "oura_activity_day",
+            "oura_sleep_day",
+            "oura_calendar_day",
+            "oura_day_unspecified",
+            "apple_activity_summary_day"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "period_type:null",
+      "input": {
+        "period_type": null,
+        "provider_date": "2026-01-02"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "period_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"whoop_physiological_cycle\"|\"oura_activity_day\"|\"oura_sleep_day\"|\"oura_calendar_day\"|\"oura_day_unspecified\"|\"apple_activity_summary_day\"",
+          "values": [
+            "whoop_physiological_cycle",
+            "oura_activity_day",
+            "oura_sleep_day",
+            "oura_calendar_day",
+            "oura_day_unspecified",
+            "apple_activity_summary_day"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "period_type:wrong_type=number",
+      "input": {
+        "period_type": 1,
+        "provider_date": "2026-01-02"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "period_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"whoop_physiological_cycle\"|\"oura_activity_day\"|\"oura_sleep_day\"|\"oura_calendar_day\"|\"oura_day_unspecified\"|\"apple_activity_summary_day\"",
+          "values": [
+            "whoop_physiological_cycle",
+            "oura_activity_day",
+            "oura_sleep_day",
+            "oura_calendar_day",
+            "oura_day_unspecified",
+            "apple_activity_summary_day"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "period_type:enum_invalid",
+      "input": {
+        "period_type": "__not_an_option__",
+        "provider_date": "2026-01-02"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "period_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"whoop_physiological_cycle\"|\"oura_activity_day\"|\"oura_sleep_day\"|\"oura_calendar_day\"|\"oura_day_unspecified\"|\"apple_activity_summary_day\"",
+          "values": [
+            "whoop_physiological_cycle",
+            "oura_activity_day",
+            "oura_sleep_day",
+            "oura_calendar_day",
+            "oura_day_unspecified",
+            "apple_activity_summary_day"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "period_type:empty_string",
+      "input": {
+        "period_type": "",
+        "provider_date": "2026-01-02"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "period_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"whoop_physiological_cycle\"|\"oura_activity_day\"|\"oura_sleep_day\"|\"oura_calendar_day\"|\"oura_day_unspecified\"|\"apple_activity_summary_day\"",
+          "values": [
+            "whoop_physiological_cycle",
+            "oura_activity_day",
+            "oura_sleep_day",
+            "oura_calendar_day",
+            "oura_day_unspecified",
+            "apple_activity_summary_day"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "period_type:enum_uppercase",
+      "input": {
+        "period_type": "WHOOP_PHYSIOLOGICAL_CYCLE",
+        "provider_date": "2026-01-02"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "period_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"whoop_physiological_cycle\"|\"oura_activity_day\"|\"oura_sleep_day\"|\"oura_calendar_day\"|\"oura_day_unspecified\"|\"apple_activity_summary_day\"",
+          "values": [
+            "whoop_physiological_cycle",
+            "oura_activity_day",
+            "oura_sleep_day",
+            "oura_calendar_day",
+            "oura_day_unspecified",
+            "apple_activity_summary_day"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "provider_period_id:null",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": null,
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "provider_period_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "provider_period_id:wrong_type=number",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": 1,
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "provider_period_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "provider_period_id:empty_string",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "provider_period_id"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "provider_date:null",
+      "input": {
+        "period_type": "oura_sleep_day",
+        "provider_date": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "provider_date"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "provider_date:wrong_type=number",
+      "input": {
+        "period_type": "oura_sleep_day",
+        "provider_date": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "provider_date"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "provider_date:empty_string",
+      "input": {
+        "period_type": "oura_sleep_day",
+        "provider_date": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "provider_date"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "provider_date:format=february_30",
+      "input": {
+        "period_type": "oura_sleep_day",
+        "provider_date": "2026-02-30"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "provider_date"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "provider_date:format=datetime",
+      "input": {
+        "period_type": "oura_sleep_day",
+        "provider_date": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "provider_date"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "start_at:null",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": null,
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "start_at:wrong_type=number",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": 1,
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "start_at:empty_string",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "start_at:format=no_milliseconds",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "start_at:format=offset",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678+00:00",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "end_at:null",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": null,
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "end_at:wrong_type=number",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": 1,
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "end_at:empty_string",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "end_at:format=no_milliseconds",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T03:04:05Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        },
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "custom",
+          "message": "Provider reporting period end cannot precede its start"
+        }
+      ]
+    },
+    {
+      "name": "end_at:format=offset",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T03:04:05.678+00:00",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "input_start_timestamp:null",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": null,
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_start_timestamp"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_start_timestamp:wrong_type=array",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": [],
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_start_timestamp"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_start_timestamp:wrong_type=string",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": "x",
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_start_timestamp"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_start_timestamp:empty_object",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {},
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_start_timestamp",
+            "timestamp_missing_reason"
+          ],
+          "code": "custom",
+          "message": "A missing input timestamp needs a reason"
+        },
+        {
+          "path": [
+            "input_start_timestamp",
+            "utc_offset_missing_reason"
+          ],
+          "code": "custom",
+          "message": "A missing input UTC offset needs a reason"
+        }
+      ]
+    },
+    {
+      "name": "input_start_timestamp:nested_unknown_key",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp",
+          "unknown_nested": true
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_start_timestamp"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input_end_timestamp:null",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": null,
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_end_timestamp"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_end_timestamp:wrong_type=array",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": [],
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_end_timestamp"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_end_timestamp:wrong_type=string",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": "x",
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_end_timestamp"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_end_timestamp:empty_object",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {},
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_end_timestamp",
+            "timestamp_missing_reason"
+          ],
+          "code": "custom",
+          "message": "A missing input timestamp needs a reason"
+        },
+        {
+          "path": [
+            "input_end_timestamp",
+            "utc_offset_missing_reason"
+          ],
+          "code": "custom",
+          "message": "A missing input UTC offset needs a reason"
+        }
+      ]
+    },
+    {
+      "name": "input_end_timestamp:nested_unknown_key",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp",
+          "unknown_nested": true
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_end_timestamp"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "timezone_offset_text:null",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": null,
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timezone_offset_text"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "timezone_offset_text:wrong_type=number",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": 1,
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timezone_offset_text"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "timezone_offset_text:empty_string",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "",
+        "timezone_offset_meaning": "provider_cycle_offset"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timezone_offset_text"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "timezone_offset_meaning:null",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timezone_offset_meaning"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"documented_recording_offset\"|\"provider_cycle_offset\"|\"route_rendering_offset\"|\"meaning_not_documented\"",
+          "values": [
+            "documented_recording_offset",
+            "provider_cycle_offset",
+            "route_rendering_offset",
+            "meaning_not_documented"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "timezone_offset_meaning:wrong_type=number",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timezone_offset_meaning"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"documented_recording_offset\"|\"provider_cycle_offset\"|\"route_rendering_offset\"|\"meaning_not_documented\"",
+          "values": [
+            "documented_recording_offset",
+            "provider_cycle_offset",
+            "route_rendering_offset",
+            "meaning_not_documented"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "timezone_offset_meaning:enum_invalid",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "__not_an_option__"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timezone_offset_meaning"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"documented_recording_offset\"|\"provider_cycle_offset\"|\"route_rendering_offset\"|\"meaning_not_documented\"",
+          "values": [
+            "documented_recording_offset",
+            "provider_cycle_offset",
+            "route_rendering_offset",
+            "meaning_not_documented"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "timezone_offset_meaning:empty_string",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timezone_offset_meaning"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"documented_recording_offset\"|\"provider_cycle_offset\"|\"route_rendering_offset\"|\"meaning_not_documented\"",
+          "values": [
+            "documented_recording_offset",
+            "provider_cycle_offset",
+            "route_rendering_offset",
+            "meaning_not_documented"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "timezone_offset_meaning:enum_uppercase",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "cycle-0001",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "input_start_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "input_end_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "timezone_offset_text": "-06:00",
+        "timezone_offset_meaning": "DOCUMENTED_RECORDING_OFFSET"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timezone_offset_meaning"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"documented_recording_offset\"|\"provider_cycle_offset\"|\"route_rendering_offset\"|\"meaning_not_documented\"",
+          "values": [
+            "documented_recording_offset",
+            "provider_cycle_offset",
+            "route_rendering_offset",
+            "meaning_not_documented"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "timezone_offset_missing_reason:null",
+      "input": {
+        "period_type": "oura_activity_day",
+        "provider_date": "2026-01-02",
+        "timezone_offset_missing_reason": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timezone_offset_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "timezone_offset_missing_reason:wrong_type=number",
+      "input": {
+        "period_type": "oura_activity_day",
+        "provider_date": "2026-01-02",
+        "timezone_offset_missing_reason": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timezone_offset_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "timezone_offset_missing_reason:enum_invalid",
+      "input": {
+        "period_type": "oura_activity_day",
+        "provider_date": "2026-01-02",
+        "timezone_offset_missing_reason": "__not_an_option__"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timezone_offset_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "timezone_offset_missing_reason:empty_string",
+      "input": {
+        "period_type": "oura_activity_day",
+        "provider_date": "2026-01-02",
+        "timezone_offset_missing_reason": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timezone_offset_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "timezone_offset_missing_reason:enum_uppercase",
+      "input": {
+        "period_type": "oura_activity_day",
+        "provider_date": "2026-01-02",
+        "timezone_offset_missing_reason": "NOT_PROVIDED_BY_SOURCE"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timezone_offset_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rule:no_identifier",
+      "input": {
+        "period_type": "oura_sleep_day"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "custom",
+          "message": "A provider reporting period needs an ID, date, or start instant"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R9",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:id_only",
+      "input": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "c-1"
+      },
+      "valid": true,
+      "output": {
+        "period_type": "whoop_physiological_cycle",
+        "provider_period_id": "c-1"
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R9",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:date_only",
+      "input": {
+        "period_type": "oura_sleep_day",
+        "provider_date": "2026-01-02"
+      },
+      "valid": true,
+      "output": {
+        "period_type": "oura_sleep_day",
+        "provider_date": "2026-01-02"
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R9",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:start_only",
+      "input": {
+        "period_type": "oura_day_unspecified",
+        "start_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": true,
+      "output": {
+        "period_type": "oura_day_unspecified",
+        "start_at": "2026-01-02T03:04:05.678Z"
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R9",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:end_only_is_not_an_identifier",
+      "input": {
+        "period_type": "oura_day_unspecified",
+        "end_at": "2026-01-02T04:04:05.678Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "custom",
+          "message": "A provider reporting period needs an ID, date, or start instant"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R9",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:invalid_start_counts_as_present",
+      "input": {
+        "period_type": "oura_day_unspecified",
+        "start_at": "2026-01-02T03:04:05Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R9",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:end_before_start",
+      "input": {
+        "period_type": "oura_sleep_day",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T04:04:05.678Z",
+        "end_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "custom",
+          "message": "Provider reporting period end cannot precede its start"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R10",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:end_one_ms_before_start",
+      "input": {
+        "period_type": "oura_sleep_day",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T03:04:05.677Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "custom",
+          "message": "Provider reporting period end cannot precede its start"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R10",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:end_equals_start",
+      "input": {
+        "period_type": "oura_sleep_day",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": true,
+      "output": {
+        "period_type": "oura_sleep_day",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T03:04:05.678Z"
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R10",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:end_without_start",
+      "input": {
+        "period_type": "oura_sleep_day",
+        "provider_date": "2026-01-02",
+        "end_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": true,
+      "output": {
+        "period_type": "oura_sleep_day",
+        "provider_date": "2026-01-02",
+        "end_at": "2026-01-02T03:04:05.678Z"
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R10",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "date_parse:unparseable_end_passes",
+      "input": {
+        "period_type": "oura_sleep_day",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T04:04:05.678Z",
+        "end_at": "not a date"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R10",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "date_parse:date_only_end_before_start",
+      "input": {
+        "period_type": "oura_sleep_day",
+        "provider_date": "2026-01-02",
+        "start_at": "2026-01-02T04:04:05.678Z",
+        "end_at": "2026-01-01"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        },
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "custom",
+          "message": "Provider reporting period end cannot precede its start"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R10",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:offset_without_meaning",
+      "input": {
+        "period_type": "oura_sleep_day",
+        "provider_date": "2026-01-02",
+        "timezone_offset_text": "+09:00"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timezone_offset_meaning"
+          ],
+          "code": "custom",
+          "message": "A provider UTC offset needs its documented meaning"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R11",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:meaning_without_offset",
+      "input": {
+        "period_type": "oura_sleep_day",
+        "provider_date": "2026-01-02",
+        "timezone_offset_meaning": "route_rendering_offset"
+      },
+      "valid": true,
+      "output": {
+        "period_type": "oura_sleep_day",
+        "provider_date": "2026-01-02",
+        "timezone_offset_meaning": "route_rendering_offset"
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R11",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:offset_and_missing_reason",
+      "input": {
+        "period_type": "oura_sleep_day",
+        "provider_date": "2026-01-02",
+        "timezone_offset_text": "+09:00",
+        "timezone_offset_meaning": "provider_cycle_offset",
+        "timezone_offset_missing_reason": "not_applicable"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timezone_offset_missing_reason"
+          ],
+          "code": "custom",
+          "message": "An available provider UTC offset cannot also be marked missing"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R12",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:offset_neither_text_nor_reason",
+      "input": {
+        "period_type": "oura_sleep_day",
+        "provider_date": "2026-01-02"
+      },
+      "valid": true,
+      "output": {
+        "period_type": "oura_sleep_day",
+        "provider_date": "2026-01-02"
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R11",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R12",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:every_conflict",
+      "input": {
+        "period_type": "oura_calendar_day",
+        "end_at": "2026-01-02T03:04:05.678Z",
+        "timezone_offset_text": "x",
+        "timezone_offset_missing_reason": "not_applicable"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "custom",
+          "message": "A provider reporting period needs an ID, date, or start instant"
+        },
+        {
+          "path": [
+            "timezone_offset_meaning"
+          ],
+          "code": "custom",
+          "message": "A provider UTC offset needs its documented meaning"
+        },
+        {
+          "path": [
+            "timezone_offset_missing_reason"
+          ],
+          "code": "custom",
+          "message": "An available provider UTC offset cannot also be marked missing"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R9",
+          "expect": "trigger"
+        },
+        {
+          "rule": "R11",
+          "expect": "trigger"
+        },
+        {
+          "rule": "R12",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "order:nested_receipt_issue_still_runs_refinements",
+      "input": {
+        "period_type": "oura_sleep_day",
+        "input_start_timestamp": {}
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_start_timestamp",
+            "timestamp_missing_reason"
+          ],
+          "code": "custom",
+          "message": "A missing input timestamp needs a reason"
+        },
+        {
+          "path": [
+            "input_start_timestamp",
+            "utc_offset_missing_reason"
+          ],
+          "code": "custom",
+          "message": "A missing input UTC offset needs a reason"
+        },
+        {
+          "path": [],
+          "code": "custom",
+          "message": "A provider reporting period needs an ID, date, or start instant"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R1",
+          "expect": "trigger"
+        },
+        {
+          "rule": "R4",
+          "expect": "trigger"
+        },
+        {
+          "rule": "R9",
+          "expect": "trigger"
+        }
+      ]
+    }
+  ]
+}

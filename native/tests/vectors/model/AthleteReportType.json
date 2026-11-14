@@ -1,0 +1,229 @@
+{
+  "schema": "AthleteReportType",
+  "cases": [
+    {
+      "name": "valid:sleep_quality",
+      "input": "sleep_quality",
+      "valid": true,
+      "output": "sleep_quality",
+      "issues": []
+    },
+    {
+      "name": "valid:soreness",
+      "input": "soreness",
+      "valid": true,
+      "output": "soreness",
+      "issues": []
+    },
+    {
+      "name": "valid:stress",
+      "input": "stress",
+      "valid": true,
+      "output": "stress",
+      "issues": []
+    },
+    {
+      "name": "valid:mood",
+      "input": "mood",
+      "valid": true,
+      "output": "mood",
+      "issues": []
+    },
+    {
+      "name": "valid:energy",
+      "input": "energy",
+      "valid": true,
+      "output": "energy",
+      "issues": []
+    },
+    {
+      "name": "valid:note",
+      "input": "note",
+      "valid": true,
+      "output": "note",
+      "issues": []
+    },
+    {
+      "name": "invalid:unknown",
+      "input": "__not_an_option__",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"sleep_quality\"|\"soreness\"|\"stress\"|\"mood\"|\"energy\"|\"note\"",
+          "values": [
+            "sleep_quality",
+            "soreness",
+            "stress",
+            "mood",
+            "energy",
+            "note"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:empty",
+      "input": "",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"sleep_quality\"|\"soreness\"|\"stress\"|\"mood\"|\"energy\"|\"note\"",
+          "values": [
+            "sleep_quality",
+            "soreness",
+            "stress",
+            "mood",
+            "energy",
+            "note"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:uppercase",
+      "input": "SLEEP_QUALITY",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"sleep_quality\"|\"soreness\"|\"stress\"|\"mood\"|\"energy\"|\"note\"",
+          "values": [
+            "sleep_quality",
+            "soreness",
+            "stress",
+            "mood",
+            "energy",
+            "note"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:leading_space",
+      "input": " sleep_quality",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"sleep_quality\"|\"soreness\"|\"stress\"|\"mood\"|\"energy\"|\"note\"",
+          "values": [
+            "sleep_quality",
+            "soreness",
+            "stress",
+            "mood",
+            "energy",
+            "note"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:trailing_space",
+      "input": "sleep_quality ",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"sleep_quality\"|\"soreness\"|\"stress\"|\"mood\"|\"energy\"|\"note\"",
+          "values": [
+            "sleep_quality",
+            "soreness",
+            "stress",
+            "mood",
+            "energy",
+            "note"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:number",
+      "input": 1,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"sleep_quality\"|\"soreness\"|\"stress\"|\"mood\"|\"energy\"|\"note\"",
+          "values": [
+            "sleep_quality",
+            "soreness",
+            "stress",
+            "mood",
+            "energy",
+            "note"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"sleep_quality\"|\"soreness\"|\"stress\"|\"mood\"|\"energy\"|\"note\"",
+          "values": [
+            "sleep_quality",
+            "soreness",
+            "stress",
+            "mood",
+            "energy",
+            "note"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:array",
+      "input": [
+        "sleep_quality"
+      ],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"sleep_quality\"|\"soreness\"|\"stress\"|\"mood\"|\"energy\"|\"note\"",
+          "values": [
+            "sleep_quality",
+            "soreness",
+            "stress",
+            "mood",
+            "energy",
+            "note"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:object",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"sleep_quality\"|\"soreness\"|\"stress\"|\"mood\"|\"energy\"|\"note\"",
+          "values": [
+            "sleep_quality",
+            "soreness",
+            "stress",
+            "mood",
+            "energy",
+            "note"
+          ]
+        }
+      ]
+    }
+  ]
+}

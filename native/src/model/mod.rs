@@ -11,6 +11,7 @@ pub mod grade;
 pub mod json_schema;
 pub mod package;
 pub mod record;
+pub mod registry;
 pub mod schema;
 pub mod time;
 

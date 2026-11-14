@@ -1,0 +1,315 @@
+{
+  "schema": "ExtensionId",
+  "cases": [
+    {
+      "name": "valid:two_part_owner",
+      "input": "org.example/vectors",
+      "valid": true,
+      "output": "org.example/vectors",
+      "issues": []
+    },
+    {
+      "name": "valid:three_part_owner",
+      "input": "org.example.team/vectors",
+      "valid": true,
+      "output": "org.example.team/vectors",
+      "issues": []
+    },
+    {
+      "name": "valid:digits",
+      "input": "org2.example3/v1",
+      "valid": true,
+      "output": "org2.example3/v1",
+      "issues": []
+    },
+    {
+      "name": "valid:name_punctuation",
+      "input": "org.example/vectors.v2_x-y",
+      "valid": true,
+      "output": "org.example/vectors.v2_x-y",
+      "issues": []
+    },
+    {
+      "name": "valid:length_200",
+      "input": "org.example/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "valid": true,
+      "output": "org.example/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "issues": []
+    },
+    {
+      "name": "invalid:no_dot_in_owner",
+      "input": "example/vectors",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "namespaced extension id",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9]*)+\\/[a-z][a-z0-9][a-z0-9._-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:uppercase",
+      "input": "Org.example/vectors",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "namespaced extension id",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9]*)+\\/[a-z][a-z0-9][a-z0-9._-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:one_char_name",
+      "input": "org.example/v",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "namespaced extension id",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9]*)+\\/[a-z][a-z0-9][a-z0-9._-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:second_slash",
+      "input": "org.example/demo/widget",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "namespaced extension id",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9]*)+\\/[a-z][a-z0-9][a-z0-9._-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:hyphen_in_owner",
+      "input": "org.ex-ample/vectors",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "namespaced extension id",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9]*)+\\/[a-z][a-z0-9][a-z0-9._-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:digit_first_owner",
+      "input": "1org.example/vectors",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "namespaced extension id",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9]*)+\\/[a-z][a-z0-9][a-z0-9._-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:digit_after_dot",
+      "input": "org.1example/vectors",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "namespaced extension id",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9]*)+\\/[a-z][a-z0-9][a-z0-9._-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:name_starts_with_digit",
+      "input": "org.example/1v",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "namespaced extension id",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9]*)+\\/[a-z][a-z0-9][a-z0-9._-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:name_second_char_punctuation",
+      "input": "org.example/v.x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "namespaced extension id",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9]*)+\\/[a-z][a-z0-9][a-z0-9._-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:trailing_dot_owner",
+      "input": "org.example./vectors",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "namespaced extension id",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9]*)+\\/[a-z][a-z0-9][a-z0-9._-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:length_201",
+      "input": "org.example/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "too_big",
+          "message": "Too big: expected string to have <=200 characters",
+          "inclusive": true,
+          "maximum": 200,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "invalid:source_id",
+      "input": "source_id",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "namespaced extension id",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9]*)+\\/[a-z][a-z0-9][a-z0-9._-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:trailing_newline",
+      "input": "org.example/vectors\n",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "namespaced extension id",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9]*)+\\/[a-z][a-z0-9][a-z0-9._-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:empty",
+      "input": "",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "namespaced extension id",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z][a-z0-9]*(?:\\.[a-z][a-z0-9]*)+\\/[a-z][a-z0-9][a-z0-9._-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:number",
+      "input": 1,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:boolean",
+      "input": true,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received boolean",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received array",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:object",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received object",
+          "expected": "string"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,389 @@
+{
+  "schema": "FieldBasis",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {},
+      "valid": true,
+      "output": {},
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "activity_type": "provider_label",
+        "value": "provider",
+        "route_summaries": "calculated_on_import"
+      },
+      "valid": true,
+      "output": {
+        "activity_type": "provider_label",
+        "value": "provider",
+        "route_summaries": "calculated_on_import"
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "activity_type": "provider_label",
+        "value": "provider",
+        "route_summaries": "calculated_on_import",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "activity_type:null",
+      "input": {
+        "activity_type": null,
+        "value": "provider",
+        "route_summaries": "calculated_on_import"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "activity_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"aggregator_normalized\"|\"provider_label\"",
+          "values": [
+            "aggregator_normalized",
+            "provider_label"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "activity_type:wrong_type=number",
+      "input": {
+        "activity_type": 1,
+        "value": "provider",
+        "route_summaries": "calculated_on_import"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "activity_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"aggregator_normalized\"|\"provider_label\"",
+          "values": [
+            "aggregator_normalized",
+            "provider_label"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "activity_type:enum_invalid",
+      "input": {
+        "activity_type": "__not_an_option__",
+        "value": "provider",
+        "route_summaries": "calculated_on_import"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "activity_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"aggregator_normalized\"|\"provider_label\"",
+          "values": [
+            "aggregator_normalized",
+            "provider_label"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "activity_type:empty_string",
+      "input": {
+        "activity_type": "",
+        "value": "provider",
+        "route_summaries": "calculated_on_import"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "activity_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"aggregator_normalized\"|\"provider_label\"",
+          "values": [
+            "aggregator_normalized",
+            "provider_label"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "activity_type:enum_uppercase",
+      "input": {
+        "activity_type": "AGGREGATOR_NORMALIZED",
+        "value": "provider",
+        "route_summaries": "calculated_on_import"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "activity_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"aggregator_normalized\"|\"provider_label\"",
+          "values": [
+            "aggregator_normalized",
+            "provider_label"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "value:null",
+      "input": {
+        "activity_type": "provider_label",
+        "value": null,
+        "route_summaries": "calculated_on_import"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "value"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_or_aggregator\"|\"provider\"|\"hrv_mean_rmssd\"|\"provider_documented_rmssd\"|\"calculated_on_import\"|\"entered_by_hand\"",
+          "values": [
+            "provider_or_aggregator",
+            "provider",
+            "hrv_mean_rmssd",
+            "provider_documented_rmssd",
+            "calculated_on_import",
+            "entered_by_hand"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "value:wrong_type=number",
+      "input": {
+        "activity_type": "provider_label",
+        "value": 1,
+        "route_summaries": "calculated_on_import"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "value"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_or_aggregator\"|\"provider\"|\"hrv_mean_rmssd\"|\"provider_documented_rmssd\"|\"calculated_on_import\"|\"entered_by_hand\"",
+          "values": [
+            "provider_or_aggregator",
+            "provider",
+            "hrv_mean_rmssd",
+            "provider_documented_rmssd",
+            "calculated_on_import",
+            "entered_by_hand"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "value:enum_invalid",
+      "input": {
+        "activity_type": "provider_label",
+        "value": "__not_an_option__",
+        "route_summaries": "calculated_on_import"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "value"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_or_aggregator\"|\"provider\"|\"hrv_mean_rmssd\"|\"provider_documented_rmssd\"|\"calculated_on_import\"|\"entered_by_hand\"",
+          "values": [
+            "provider_or_aggregator",
+            "provider",
+            "hrv_mean_rmssd",
+            "provider_documented_rmssd",
+            "calculated_on_import",
+            "entered_by_hand"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "value:empty_string",
+      "input": {
+        "activity_type": "provider_label",
+        "value": "",
+        "route_summaries": "calculated_on_import"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "value"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_or_aggregator\"|\"provider\"|\"hrv_mean_rmssd\"|\"provider_documented_rmssd\"|\"calculated_on_import\"|\"entered_by_hand\"",
+          "values": [
+            "provider_or_aggregator",
+            "provider",
+            "hrv_mean_rmssd",
+            "provider_documented_rmssd",
+            "calculated_on_import",
+            "entered_by_hand"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "value:enum_uppercase",
+      "input": {
+        "activity_type": "provider_label",
+        "value": "PROVIDER_OR_AGGREGATOR",
+        "route_summaries": "calculated_on_import"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "value"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_or_aggregator\"|\"provider\"|\"hrv_mean_rmssd\"|\"provider_documented_rmssd\"|\"calculated_on_import\"|\"entered_by_hand\"",
+          "values": [
+            "provider_or_aggregator",
+            "provider",
+            "hrv_mean_rmssd",
+            "provider_documented_rmssd",
+            "calculated_on_import",
+            "entered_by_hand"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "route_summaries:null",
+      "input": {
+        "activity_type": "provider_label",
+        "value": "provider",
+        "route_summaries": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "route_summaries"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"calculated_on_import\"",
+          "values": [
+            "calculated_on_import"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "route_summaries:literal_other",
+      "input": {
+        "activity_type": "provider_label",
+        "value": "provider",
+        "route_summaries": "__other__"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "route_summaries"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"calculated_on_import\"",
+          "values": [
+            "calculated_on_import"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "route_summaries:wrong_type=number",
+      "input": {
+        "activity_type": "provider_label",
+        "value": "provider",
+        "route_summaries": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "route_summaries"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"calculated_on_import\"",
+          "values": [
+            "calculated_on_import"
+          ]
+        }
+      ]
+    }
+  ]
+}

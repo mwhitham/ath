@@ -1,0 +1,357 @@
+{
+  "schema": "PackageRelativePath",
+  "cases": [
+    {
+      "name": "valid:single",
+      "input": "a",
+      "valid": true,
+      "output": "a",
+      "issues": []
+    },
+    {
+      "name": "valid:nested",
+      "input": "series/a.ath-series.json",
+      "valid": true,
+      "output": "series/a.ath-series.json",
+      "issues": []
+    },
+    {
+      "name": "valid:dot_segment",
+      "input": "./a",
+      "valid": true,
+      "output": "./a",
+      "issues": []
+    },
+    {
+      "name": "valid:inner_dot_segment",
+      "input": "a/./b",
+      "valid": true,
+      "output": "a/./b",
+      "issues": []
+    },
+    {
+      "name": "valid:double_slash",
+      "input": "a//b",
+      "valid": true,
+      "output": "a//b",
+      "issues": []
+    },
+    {
+      "name": "valid:dotdot_prefix_name",
+      "input": "..a",
+      "valid": true,
+      "output": "..a",
+      "issues": []
+    },
+    {
+      "name": "valid:dotdot_suffix_name",
+      "input": "a..",
+      "valid": true,
+      "output": "a..",
+      "issues": []
+    },
+    {
+      "name": "valid:three_dots",
+      "input": "...",
+      "valid": true,
+      "output": "...",
+      "issues": []
+    },
+    {
+      "name": "valid:dotdot_inside_name",
+      "input": "a/..b/c",
+      "valid": true,
+      "output": "a/..b/c",
+      "issues": []
+    },
+    {
+      "name": "valid:encoded_dotdot",
+      "input": "%2e%2e/a",
+      "valid": true,
+      "output": "%2e%2e/a",
+      "issues": []
+    },
+    {
+      "name": "valid:drive_letter",
+      "input": "C:/x",
+      "valid": true,
+      "output": "C:/x",
+      "issues": []
+    },
+    {
+      "name": "valid:space",
+      "input": " ",
+      "valid": true,
+      "output": " ",
+      "issues": []
+    },
+    {
+      "name": "valid:unicode",
+      "input": "séries/😀.json",
+      "valid": true,
+      "output": "séries/😀.json",
+      "issues": []
+    },
+    {
+      "name": "invalid:absolute",
+      "input": "/a",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "Package path must be relative and cannot traverse parent directories",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^(?!\\/)(?!.*\\\\)(?!.*(?:^|\\/)\\.\\.(?:\\/|$)).+$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:backslash",
+      "input": "a\\b",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "Package path must be relative and cannot traverse parent directories",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^(?!\\/)(?!.*\\\\)(?!.*(?:^|\\/)\\.\\.(?:\\/|$)).+$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:windows_absolute",
+      "input": "C:\\x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "Package path must be relative and cannot traverse parent directories",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^(?!\\/)(?!.*\\\\)(?!.*(?:^|\\/)\\.\\.(?:\\/|$)).+$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:parent",
+      "input": "..",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "Package path must be relative and cannot traverse parent directories",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^(?!\\/)(?!.*\\\\)(?!.*(?:^|\\/)\\.\\.(?:\\/|$)).+$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:parent_prefix",
+      "input": "../a",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "Package path must be relative and cannot traverse parent directories",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^(?!\\/)(?!.*\\\\)(?!.*(?:^|\\/)\\.\\.(?:\\/|$)).+$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:parent_inner",
+      "input": "a/../b",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "Package path must be relative and cannot traverse parent directories",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^(?!\\/)(?!.*\\\\)(?!.*(?:^|\\/)\\.\\.(?:\\/|$)).+$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:parent_suffix",
+      "input": "a/..",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "Package path must be relative and cannot traverse parent directories",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^(?!\\/)(?!.*\\\\)(?!.*(?:^|\\/)\\.\\.(?:\\/|$)).+$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:newline",
+      "input": "a\nb",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "Package path must be relative and cannot traverse parent directories",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^(?!\\/)(?!.*\\\\)(?!.*(?:^|\\/)\\.\\.(?:\\/|$)).+$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:carriage_return",
+      "input": "a\rb",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "Package path must be relative and cannot traverse parent directories",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^(?!\\/)(?!.*\\\\)(?!.*(?:^|\\/)\\.\\.(?:\\/|$)).+$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:line_separator",
+      "input": "a b",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "Package path must be relative and cannot traverse parent directories",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^(?!\\/)(?!.*\\\\)(?!.*(?:^|\\/)\\.\\.(?:\\/|$)).+$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:paragraph_separator",
+      "input": "a b",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "Package path must be relative and cannot traverse parent directories",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^(?!\\/)(?!.*\\\\)(?!.*(?:^|\\/)\\.\\.(?:\\/|$)).+$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:empty",
+      "input": "",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        },
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "Package path must be relative and cannot traverse parent directories",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^(?!\\/)(?!.*\\\\)(?!.*(?:^|\\/)\\.\\.(?:\\/|$)).+$/"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:number",
+      "input": 1,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:boolean",
+      "input": true,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received boolean",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received array",
+          "expected": "string"
+        },
+        {
+          "path": [],
+          "code": "too_small",
+          "message": "Too small: expected array to have >=1 items",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "array"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:object",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received object",
+          "expected": "string"
+        }
+      ]
+    }
+  ]
+}

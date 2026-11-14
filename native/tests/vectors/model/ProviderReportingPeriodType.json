@@ -1,0 +1,229 @@
+{
+  "schema": "ProviderReportingPeriodType",
+  "cases": [
+    {
+      "name": "valid:whoop_physiological_cycle",
+      "input": "whoop_physiological_cycle",
+      "valid": true,
+      "output": "whoop_physiological_cycle",
+      "issues": []
+    },
+    {
+      "name": "valid:oura_activity_day",
+      "input": "oura_activity_day",
+      "valid": true,
+      "output": "oura_activity_day",
+      "issues": []
+    },
+    {
+      "name": "valid:oura_sleep_day",
+      "input": "oura_sleep_day",
+      "valid": true,
+      "output": "oura_sleep_day",
+      "issues": []
+    },
+    {
+      "name": "valid:oura_calendar_day",
+      "input": "oura_calendar_day",
+      "valid": true,
+      "output": "oura_calendar_day",
+      "issues": []
+    },
+    {
+      "name": "valid:oura_day_unspecified",
+      "input": "oura_day_unspecified",
+      "valid": true,
+      "output": "oura_day_unspecified",
+      "issues": []
+    },
+    {
+      "name": "valid:apple_activity_summary_day",
+      "input": "apple_activity_summary_day",
+      "valid": true,
+      "output": "apple_activity_summary_day",
+      "issues": []
+    },
+    {
+      "name": "invalid:unknown",
+      "input": "__not_an_option__",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"whoop_physiological_cycle\"|\"oura_activity_day\"|\"oura_sleep_day\"|\"oura_calendar_day\"|\"oura_day_unspecified\"|\"apple_activity_summary_day\"",
+          "values": [
+            "whoop_physiological_cycle",
+            "oura_activity_day",
+            "oura_sleep_day",
+            "oura_calendar_day",
+            "oura_day_unspecified",
+            "apple_activity_summary_day"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:empty",
+      "input": "",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"whoop_physiological_cycle\"|\"oura_activity_day\"|\"oura_sleep_day\"|\"oura_calendar_day\"|\"oura_day_unspecified\"|\"apple_activity_summary_day\"",
+          "values": [
+            "whoop_physiological_cycle",
+            "oura_activity_day",
+            "oura_sleep_day",
+            "oura_calendar_day",
+            "oura_day_unspecified",
+            "apple_activity_summary_day"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:uppercase",
+      "input": "WHOOP_PHYSIOLOGICAL_CYCLE",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"whoop_physiological_cycle\"|\"oura_activity_day\"|\"oura_sleep_day\"|\"oura_calendar_day\"|\"oura_day_unspecified\"|\"apple_activity_summary_day\"",
+          "values": [
+            "whoop_physiological_cycle",
+            "oura_activity_day",
+            "oura_sleep_day",
+            "oura_calendar_day",
+            "oura_day_unspecified",
+            "apple_activity_summary_day"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:leading_space",
+      "input": " whoop_physiological_cycle",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"whoop_physiological_cycle\"|\"oura_activity_day\"|\"oura_sleep_day\"|\"oura_calendar_day\"|\"oura_day_unspecified\"|\"apple_activity_summary_day\"",
+          "values": [
+            "whoop_physiological_cycle",
+            "oura_activity_day",
+            "oura_sleep_day",
+            "oura_calendar_day",
+            "oura_day_unspecified",
+            "apple_activity_summary_day"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:trailing_space",
+      "input": "whoop_physiological_cycle ",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"whoop_physiological_cycle\"|\"oura_activity_day\"|\"oura_sleep_day\"|\"oura_calendar_day\"|\"oura_day_unspecified\"|\"apple_activity_summary_day\"",
+          "values": [
+            "whoop_physiological_cycle",
+            "oura_activity_day",
+            "oura_sleep_day",
+            "oura_calendar_day",
+            "oura_day_unspecified",
+            "apple_activity_summary_day"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:number",
+      "input": 1,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"whoop_physiological_cycle\"|\"oura_activity_day\"|\"oura_sleep_day\"|\"oura_calendar_day\"|\"oura_day_unspecified\"|\"apple_activity_summary_day\"",
+          "values": [
+            "whoop_physiological_cycle",
+            "oura_activity_day",
+            "oura_sleep_day",
+            "oura_calendar_day",
+            "oura_day_unspecified",
+            "apple_activity_summary_day"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"whoop_physiological_cycle\"|\"oura_activity_day\"|\"oura_sleep_day\"|\"oura_calendar_day\"|\"oura_day_unspecified\"|\"apple_activity_summary_day\"",
+          "values": [
+            "whoop_physiological_cycle",
+            "oura_activity_day",
+            "oura_sleep_day",
+            "oura_calendar_day",
+            "oura_day_unspecified",
+            "apple_activity_summary_day"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:array",
+      "input": [
+        "whoop_physiological_cycle"
+      ],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"whoop_physiological_cycle\"|\"oura_activity_day\"|\"oura_sleep_day\"|\"oura_calendar_day\"|\"oura_day_unspecified\"|\"apple_activity_summary_day\"",
+          "values": [
+            "whoop_physiological_cycle",
+            "oura_activity_day",
+            "oura_sleep_day",
+            "oura_calendar_day",
+            "oura_day_unspecified",
+            "apple_activity_summary_day"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:object",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"whoop_physiological_cycle\"|\"oura_activity_day\"|\"oura_sleep_day\"|\"oura_calendar_day\"|\"oura_day_unspecified\"|\"apple_activity_summary_day\"",
+          "values": [
+            "whoop_physiological_cycle",
+            "oura_activity_day",
+            "oura_sleep_day",
+            "oura_calendar_day",
+            "oura_day_unspecified",
+            "apple_activity_summary_day"
+          ]
+        }
+      ]
+    }
+  ]
+}

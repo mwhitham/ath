@@ -277,6 +277,44 @@ impl Schema {
         issues
     }
 
+    /// The value a successful parse returns: object keys in published field
+    /// order, record keys in input order, and nothing else changed. Call it
+    /// only on a value that passed validation.
+    pub fn output(&'static self, value: &Value) -> Value {
+        match (&self.kind, value) {
+            (Kind::Object { fields }, Value::Object(map)) => {
+                let mut out = json::Map::new();
+                for field in fields {
+                    if let Some(child) = map.get(field.name) {
+                        out.insert(field.name.to_string(), field.schema.output(child));
+                    }
+                }
+                Value::Object(out)
+            }
+            (Kind::Array(items), Value::Array(elements)) => {
+                Value::Array(elements.iter().map(|element| items.output(element)).collect())
+            }
+            (Kind::Record { value: value_schema, .. }, Value::Object(map)) => Value::Object(
+                map.iter().map(|(key, child)| (key.clone(), value_schema.output(child))).collect(),
+            ),
+            (Kind::Union(options), _) => {
+                match options.iter().find(|option| option.issues(value).is_empty()) {
+                    Some(option) => option.output(value),
+                    None => value.clone(),
+                }
+            }
+            (Kind::Discriminated { key, options }, Value::Object(map)) => {
+                let tag = map.get(*key).and_then(Value::as_str);
+                match options.iter().find(|(name, _)| Some(*name) == tag) {
+                    Some((_, option)) => option.output(value),
+                    None => value.clone(),
+                }
+            }
+            (Kind::Nullable(inner), _) if !value.is_null() => inner.output(value),
+            _ => value.clone(),
+        }
+    }
+
     pub fn validate(&'static self, value: &Value) -> Result<(), ValidationError> {
         let issues = self.issues(value);
         if issues.is_empty() {
@@ -396,6 +434,11 @@ fn run(schema: &'static Schema, value: Option<&Value>, path: &mut Vec<PathSegmen
         Kind::String => {
             let Some(Value::String(text)) = value else {
                 invalid_type(issues, path, "string", value);
+                // Length checks also run on any value with a length, so an
+                // array reports its own length problem.
+                if let Some(Value::Array(items)) = value {
+                    run_array_length_checks(schema, items.len(), path, issues);
+                }
                 return;
             };
             run_string_checks(schema, text, path, issues);
@@ -556,16 +599,7 @@ fn run(schema: &'static Schema, value: Option<&Value>, path: &mut Vec<PathSegmen
                 }
             }
         }
-        Kind::Union(options) => {
-            for option in options {
-                let mut attempt = Vec::new();
-                run(option, value, path, &mut attempt);
-                if attempt.is_empty() {
-                    return;
-                }
-            }
-            push(issues, path, IssueCode::InvalidUnion, "Invalid input".into());
-        }
+        Kind::Union(options) => run_union(options, value, path, issues),
         Kind::Discriminated { key, options } => {
             let Some(Value::Object(map)) = value else {
                 invalid_type(issues, path, "object", value);
@@ -597,10 +631,47 @@ fn run(schema: &'static Schema, value: Option<&Value>, path: &mut Vec<PathSegmen
                 push(issues, path, IssueCode::InvalidUnion, "Invalid input".into());
             }
         }
-        Kind::ExtensionValue => {
-            if !crate::model::extensions::is_extension_value(value) {
-                push(issues, path, IssueCode::InvalidUnion, "Invalid input".into());
-            }
+        Kind::ExtensionValue => run_union(crate::model::extensions::extension_value_options(), value, path, issues),
+    }
+}
+
+/// A union passes when any option passes. When every option fails and exactly
+/// one failed only with non-aborting issues, that option's issues are reported.
+/// Otherwise the union reports one `invalid_union` issue.
+fn run_union(options: &[SchemaRef], value: Option<&Value>, path: &mut Vec<PathSegment>, issues: &mut Vec<Issue>) {
+    let mut attempts = Vec::with_capacity(options.len());
+    for option in options {
+        let mut attempt = Vec::new();
+        run(option, value, path, &mut attempt);
+        if attempt.is_empty() {
+            return;
+        }
+        attempts.push(attempt);
+    }
+    let mut continuable = attempts.into_iter().filter(|attempt| !aborted(attempt, 0));
+    if let (Some(only), None) = (continuable.next(), continuable.next()) {
+        issues.extend(only);
+        return;
+    }
+    push(issues, path, IssueCode::InvalidUnion, "Invalid input".into());
+}
+
+fn run_array_length_checks(schema: &'static Schema, length: usize, path: &[PathSegment], issues: &mut Vec<Issue>) {
+    for check in &schema.checks {
+        match check {
+            Check::MinLength(minimum) if length < *minimum => push(
+                issues,
+                path,
+                IssueCode::TooSmall,
+                format!("Too small: expected array to have >={minimum} items"),
+            ),
+            Check::MaxLength(maximum) if length > *maximum => push(
+                issues,
+                path,
+                IssueCode::TooBig,
+                format!("Too big: expected array to have <={maximum} items"),
+            ),
+            _ => {}
         }
     }
 }
@@ -610,7 +681,7 @@ fn run_string_checks(schema: &'static Schema, text: &str, path: &[PathSegment], 
     for check in &schema.checks {
         match check {
             Check::MinLength(minimum) => {
-                if json::utf16_len(text) < *minimum {
+                if text.chars().count() < *minimum {
                     push(
                         issues,
                         path,
@@ -620,7 +691,7 @@ fn run_string_checks(schema: &'static Schema, text: &str, path: &[PathSegment], 
                 }
             }
             Check::MaxLength(maximum) => {
-                if json::utf16_len(text) > *maximum {
+                if text.chars().count() > *maximum {
                     push(
                         issues,
                         path,

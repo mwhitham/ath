@@ -86,9 +86,31 @@ pub fn is_package_relative_path(text: &str) -> bool {
         && !text.contains(['\n', '\r', '\u{2028}', '\u{2029}'])
 }
 
-/// An IANA timezone name, matched without regard to case.
+/// A timezone the published validator accepts: an IANA name matched without
+/// regard to case, or a fixed UTC offset such as `+05:00`, `+0530`, or `-08`.
 pub fn is_iana_time_zone(text: &str) -> bool {
-    resolve_time_zone(text).is_some()
+    resolve_time_zone(text).is_some() || fixed_offset_minutes(text).is_some()
+}
+
+/// Minutes east of UTC for a fixed offset written `+HH`, `+HHMM`, or `+HH:MM`.
+pub fn fixed_offset_minutes(text: &str) -> Option<i32> {
+    let bytes = text.as_bytes();
+    let sign = match bytes.first()? {
+        b'+' => 1,
+        b'-' => -1,
+        _ => return None,
+    };
+    let digits = |range: std::ops::Range<usize>| -> Option<i32> {
+        let part = text.get(range)?;
+        (part.len() == 2 && part.bytes().all(|b| b.is_ascii_digit())).then(|| part.parse().ok()).flatten()
+    };
+    let (hours, minutes) = match bytes.len() {
+        3 => (digits(1..3)?, 0),
+        5 => (digits(1..3)?, digits(3..5)?),
+        6 if bytes[3] == b':' => (digits(1..3)?, digits(4..6)?),
+        _ => return None,
+    };
+    (hours <= 23 && minutes <= 59).then_some(sign * (hours * 60 + minutes))
 }
 
 /// The timezone for an IANA name, matched without regard to case.
@@ -129,6 +151,17 @@ schema_fn!(
         .describe("Normalized ISO 8601 timestamp in UTC with millisecond precision")
 );
 schema_fn!(calendar_date, string().check(Check::Format(StringFormat::Date)).describe("ISO 8601 calendar date"));
+schema_fn!(
+    /// A namespaced extension ID such as `org.example/widget`.
+    extension_id,
+    string()
+        .check(Check::Pattern {
+            source: super::extensions::EXTENSION_ID_PATTERN,
+            test: super::extensions::is_extension_id_pattern,
+            message: "namespaced extension id",
+        })
+        .check(Check::MaxLength(200))
+);
 schema_fn!(
     semver,
     string().check(Check::Pattern { source: SEMVER_PATTERN, test: is_semver, message: "semantic version" })
@@ -404,16 +437,54 @@ fn tool_actor_fields() -> Vec<Field> {
     ]
 }
 
+/// The athlete actor shape.
+pub fn athlete_actor() -> SchemaRef {
+    static SCHEMA: LazyLock<&'static Schema> =
+        LazyLock::new(|| leak(Schema::new(Kind::Object { fields: athlete_actor_fields() })));
+    &SCHEMA
+}
+
+/// The agent actor shape.
+pub fn agent_actor() -> SchemaRef {
+    static SCHEMA: LazyLock<&'static Schema> =
+        LazyLock::new(|| leak(Schema::new(Kind::Object { fields: agent_actor_fields() })));
+    &SCHEMA
+}
+
+/// The tool actor shape.
+pub fn tool_actor() -> SchemaRef {
+    static SCHEMA: LazyLock<&'static Schema> =
+        LazyLock::new(|| leak(Schema::new(Kind::Object { fields: tool_actor_fields() })));
+    &SCHEMA
+}
+
+/// The agent author shape: an agent actor with its model.
+pub fn agent_author() -> SchemaRef {
+    static SCHEMA: LazyLock<&'static Schema> = LazyLock::new(|| {
+        let mut fields = agent_actor_fields();
+        fields.push(field("model", text(), false));
+        fields.push(field("model_version", text(), true));
+        leak(Schema::new(Kind::Object { fields }))
+    });
+    &SCHEMA
+}
+
+/// The tool author shape: a tool actor with its calculation version.
+pub fn tool_author() -> SchemaRef {
+    static SCHEMA: LazyLock<&'static Schema> = LazyLock::new(|| {
+        let mut fields = tool_actor_fields();
+        fields.push(field("calculation_version", text(), false));
+        leak(Schema::new(Kind::Object { fields }))
+    });
+    &SCHEMA
+}
+
 impl Shape for RecordActor {
     fn schema() -> SchemaRef {
         static SCHEMA: LazyLock<Schema> = LazyLock::new(|| {
             Schema::new(Kind::Discriminated {
                 key: "author_type",
-                options: vec![
-                    ("athlete", leak(Schema::new(Kind::Object { fields: athlete_actor_fields() }))),
-                    ("agent", leak(Schema::new(Kind::Object { fields: agent_actor_fields() }))),
-                    ("tool", leak(Schema::new(Kind::Object { fields: tool_actor_fields() }))),
-                ],
+                options: vec![("athlete", athlete_actor()), ("agent", agent_actor()), ("tool", tool_actor())],
             })
         });
         &SCHEMA
@@ -423,18 +494,9 @@ impl Shape for RecordActor {
 impl Shape for AuthoredRecordAuthor {
     fn schema() -> SchemaRef {
         static SCHEMA: LazyLock<Schema> = LazyLock::new(|| {
-            let mut agent = agent_actor_fields();
-            agent.push(field("model", text(), false));
-            agent.push(field("model_version", text(), true));
-            let mut tool = tool_actor_fields();
-            tool.push(field("calculation_version", text(), false));
             Schema::new(Kind::Discriminated {
                 key: "author_type",
-                options: vec![
-                    ("athlete", leak(Schema::new(Kind::Object { fields: athlete_actor_fields() }))),
-                    ("agent", leak(Schema::new(Kind::Object { fields: agent }))),
-                    ("tool", leak(Schema::new(Kind::Object { fields: tool }))),
-                ],
+                options: vec![("athlete", athlete_actor()), ("agent", agent_author()), ("tool", tool_author())],
             })
         });
         &SCHEMA

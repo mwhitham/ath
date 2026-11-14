@@ -1,0 +1,3284 @@
+{
+  "schema": "ProviderSummaryData",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": true,
+      "output": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-0001",
+            "provider_date": "2026-01-02",
+            "start_at": "2026-01-02T03:04:05.678Z",
+            "end_at": "2026-01-02T04:04:05.678Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "timezone_offset_text": "-06:00",
+            "timezone_offset_meaning": "provider_cycle_offset"
+          }
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        },
+        "field_basis": {
+          "activity_type": "provider_label",
+          "value": "provider",
+          "route_summaries": "calculated_on_import"
+        },
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "valid": true,
+      "output": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-0001",
+            "provider_date": "2026-01-02",
+            "start_at": "2026-01-02T03:04:05.678Z",
+            "end_at": "2026-01-02T04:04:05.678Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "timezone_offset_text": "-06:00",
+            "timezone_offset_meaning": "provider_cycle_offset"
+          }
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        },
+        "field_basis": {
+          "activity_type": "provider_label",
+          "value": "provider",
+          "route_summaries": "calculated_on_import"
+        },
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:period_without_instant",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-01-02"
+          }
+        ],
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": true,
+      "output": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-01-02"
+          }
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-0001",
+            "provider_date": "2026-01-02",
+            "start_at": "2026-01-02T03:04:05.678Z",
+            "end_at": "2026-01-02T04:04:05.678Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "timezone_offset_text": "-06:00",
+            "timezone_offset_meaning": "provider_cycle_offset"
+          }
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        },
+        "field_basis": {
+          "activity_type": "provider_label",
+          "value": "provider",
+          "route_summaries": "calculated_on_import"
+        },
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "source_id:missing",
+      "input": {
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "source_id:null",
+      "input": {
+        "source_id": null,
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "source_id:wrong_type=number",
+      "input": {
+        "source_id": 1,
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "source_id:empty_string",
+      "input": {
+        "source_id": "",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "source_id:format=not_valid",
+      "input": {
+        "source_id": "not valid",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "source_id:format=uppercase",
+      "input": {
+        "source_id": "01890F3E-E7D3-7CC0-88C8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "provider_record_id:null",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": null,
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-0001",
+            "provider_date": "2026-01-02",
+            "start_at": "2026-01-02T03:04:05.678Z",
+            "end_at": "2026-01-02T04:04:05.678Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "timezone_offset_text": "-06:00",
+            "timezone_offset_meaning": "provider_cycle_offset"
+          }
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        },
+        "field_basis": {
+          "activity_type": "provider_label",
+          "value": "provider",
+          "route_summaries": "calculated_on_import"
+        },
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "provider_record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "provider_record_id:wrong_type=number",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": 1,
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-0001",
+            "provider_date": "2026-01-02",
+            "start_at": "2026-01-02T03:04:05.678Z",
+            "end_at": "2026-01-02T04:04:05.678Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "timezone_offset_text": "-06:00",
+            "timezone_offset_meaning": "provider_cycle_offset"
+          }
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        },
+        "field_basis": {
+          "activity_type": "provider_label",
+          "value": "provider",
+          "route_summaries": "calculated_on_import"
+        },
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "provider_record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "provider_record_id:empty_string",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "",
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-0001",
+            "provider_date": "2026-01-02",
+            "start_at": "2026-01-02T03:04:05.678Z",
+            "end_at": "2026-01-02T04:04:05.678Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "timezone_offset_text": "-06:00",
+            "timezone_offset_meaning": "provider_cycle_offset"
+          }
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        },
+        "field_basis": {
+          "activity_type": "provider_label",
+          "value": "provider",
+          "route_summaries": "calculated_on_import"
+        },
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "provider_record_id"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "provider_reporting_periods:null",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": null,
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        },
+        "field_basis": {
+          "activity_type": "provider_label",
+          "value": "provider",
+          "route_summaries": "calculated_on_import"
+        },
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "provider_reporting_periods"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received null",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "provider_reporting_periods:wrong_type=object",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": {},
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        },
+        "field_basis": {
+          "activity_type": "provider_label",
+          "value": "provider",
+          "route_summaries": "calculated_on_import"
+        },
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "provider_reporting_periods"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received object",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "provider_reporting_periods:empty_array",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": [],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        },
+        "field_basis": {
+          "activity_type": "provider_label",
+          "value": "provider",
+          "route_summaries": "calculated_on_import"
+        },
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "valid": true,
+      "output": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": [],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        },
+        "field_basis": {
+          "activity_type": "provider_label",
+          "value": "provider",
+          "route_summaries": "calculated_on_import"
+        },
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "provider_reporting_periods:element[0]:wrong_type=array",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": [
+          []
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        },
+        "field_basis": {
+          "activity_type": "provider_label",
+          "value": "provider",
+          "route_summaries": "calculated_on_import"
+        },
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "provider_reporting_periods",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "provider_reporting_periods:element[0]:wrong_type=string",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": [
+          "x"
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        },
+        "field_basis": {
+          "activity_type": "provider_label",
+          "value": "provider",
+          "route_summaries": "calculated_on_import"
+        },
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "provider_reporting_periods",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "provider_reporting_periods:element[1]:wrong_type=array",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-0001",
+            "provider_date": "2026-01-02",
+            "start_at": "2026-01-02T03:04:05.678Z",
+            "end_at": "2026-01-02T04:04:05.678Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "timezone_offset_text": "-06:00",
+            "timezone_offset_meaning": "provider_cycle_offset"
+          },
+          []
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        },
+        "field_basis": {
+          "activity_type": "provider_label",
+          "value": "provider",
+          "route_summaries": "calculated_on_import"
+        },
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "provider_reporting_periods",
+            1
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "received_at:missing",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "received_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "received_at:null",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": null,
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "received_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "received_at:wrong_type=number",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": 1,
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "received_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "received_at:empty_string",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "received_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "received_at:format=no_milliseconds",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "received_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "received_at:format=offset",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678+00:00",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "received_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "received_at_basis:missing",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "received_at_basis"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_supplied\"|\"connector_received_time\"|\"file_modified_time\"|\"import_time\"|\"local_write_time\"",
+          "values": [
+            "provider_supplied",
+            "connector_received_time",
+            "file_modified_time",
+            "import_time",
+            "local_write_time"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "received_at_basis:null",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": null,
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "received_at_basis"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_supplied\"|\"connector_received_time\"|\"file_modified_time\"|\"import_time\"|\"local_write_time\"",
+          "values": [
+            "provider_supplied",
+            "connector_received_time",
+            "file_modified_time",
+            "import_time",
+            "local_write_time"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "received_at_basis:wrong_type=number",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": 1,
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "received_at_basis"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_supplied\"|\"connector_received_time\"|\"file_modified_time\"|\"import_time\"|\"local_write_time\"",
+          "values": [
+            "provider_supplied",
+            "connector_received_time",
+            "file_modified_time",
+            "import_time",
+            "local_write_time"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "received_at_basis:enum_invalid",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "__not_an_option__",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "received_at_basis"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_supplied\"|\"connector_received_time\"|\"file_modified_time\"|\"import_time\"|\"local_write_time\"",
+          "values": [
+            "provider_supplied",
+            "connector_received_time",
+            "file_modified_time",
+            "import_time",
+            "local_write_time"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "received_at_basis:empty_string",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "received_at_basis"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_supplied\"|\"connector_received_time\"|\"file_modified_time\"|\"import_time\"|\"local_write_time\"",
+          "values": [
+            "provider_supplied",
+            "connector_received_time",
+            "file_modified_time",
+            "import_time",
+            "local_write_time"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "received_at_basis:enum_uppercase",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "PROVIDER_SUPPLIED",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "received_at_basis"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_supplied\"|\"connector_received_time\"|\"file_modified_time\"|\"import_time\"|\"local_write_time\"",
+          "values": [
+            "provider_supplied",
+            "connector_received_time",
+            "file_modified_time",
+            "import_time",
+            "local_write_time"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "supplied_fields:null",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-0001",
+            "provider_date": "2026-01-02",
+            "start_at": "2026-01-02T03:04:05.678Z",
+            "end_at": "2026-01-02T04:04:05.678Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "timezone_offset_text": "-06:00",
+            "timezone_offset_meaning": "provider_cycle_offset"
+          }
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": null,
+        "field_basis": {
+          "activity_type": "provider_label",
+          "value": "provider",
+          "route_summaries": "calculated_on_import"
+        },
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "supplied_fields"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected record, received null",
+          "expected": "record"
+        }
+      ]
+    },
+    {
+      "name": "supplied_fields:wrong_type=array",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-0001",
+            "provider_date": "2026-01-02",
+            "start_at": "2026-01-02T03:04:05.678Z",
+            "end_at": "2026-01-02T04:04:05.678Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "timezone_offset_text": "-06:00",
+            "timezone_offset_meaning": "provider_cycle_offset"
+          }
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": [],
+        "field_basis": {
+          "activity_type": "provider_label",
+          "value": "provider",
+          "route_summaries": "calculated_on_import"
+        },
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "supplied_fields"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected record, received array",
+          "expected": "record"
+        }
+      ]
+    },
+    {
+      "name": "supplied_fields:wrong_type=string",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-0001",
+            "provider_date": "2026-01-02",
+            "start_at": "2026-01-02T03:04:05.678Z",
+            "end_at": "2026-01-02T04:04:05.678Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "timezone_offset_text": "-06:00",
+            "timezone_offset_meaning": "provider_cycle_offset"
+          }
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": "x",
+        "field_basis": {
+          "activity_type": "provider_label",
+          "value": "provider",
+          "route_summaries": "calculated_on_import"
+        },
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "supplied_fields"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected record, received string",
+          "expected": "record"
+        }
+      ]
+    },
+    {
+      "name": "supplied_fields:empty_object",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-0001",
+            "provider_date": "2026-01-02",
+            "start_at": "2026-01-02T03:04:05.678Z",
+            "end_at": "2026-01-02T04:04:05.678Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "timezone_offset_text": "-06:00",
+            "timezone_offset_meaning": "provider_cycle_offset"
+          }
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {},
+        "field_basis": {
+          "activity_type": "provider_label",
+          "value": "provider",
+          "route_summaries": "calculated_on_import"
+        },
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "valid": true,
+      "output": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-0001",
+            "provider_date": "2026-01-02",
+            "start_at": "2026-01-02T03:04:05.678Z",
+            "end_at": "2026-01-02T04:04:05.678Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "timezone_offset_text": "-06:00",
+            "timezone_offset_meaning": "provider_cycle_offset"
+          }
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {},
+        "field_basis": {
+          "activity_type": "provider_label",
+          "value": "provider",
+          "route_summaries": "calculated_on_import"
+        },
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "supplied_fields:empty_key",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-0001",
+            "provider_date": "2026-01-02",
+            "start_at": "2026-01-02T03:04:05.678Z",
+            "end_at": "2026-01-02T04:04:05.678Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "timezone_offset_text": "-06:00",
+            "timezone_offset_meaning": "provider_cycle_offset"
+          }
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {
+          "": "72"
+        },
+        "field_basis": {
+          "activity_type": "provider_label",
+          "value": "provider",
+          "route_summaries": "calculated_on_import"
+        },
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "supplied_fields",
+            ""
+          ],
+          "code": "invalid_key",
+          "message": "Invalid key in record",
+          "issues": [
+            {
+              "path": [],
+              "code": "too_small",
+              "message": "Too small: expected string to have >=1 characters",
+              "inclusive": true,
+              "minimum": 1,
+              "origin": "string"
+            }
+          ],
+          "origin": "record"
+        }
+      ]
+    },
+    {
+      "name": "field_basis:null",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-0001",
+            "provider_date": "2026-01-02",
+            "start_at": "2026-01-02T03:04:05.678Z",
+            "end_at": "2026-01-02T04:04:05.678Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "timezone_offset_text": "-06:00",
+            "timezone_offset_meaning": "provider_cycle_offset"
+          }
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        },
+        "field_basis": null,
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "field_basis"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "field_basis:wrong_type=array",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-0001",
+            "provider_date": "2026-01-02",
+            "start_at": "2026-01-02T03:04:05.678Z",
+            "end_at": "2026-01-02T04:04:05.678Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "timezone_offset_text": "-06:00",
+            "timezone_offset_meaning": "provider_cycle_offset"
+          }
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        },
+        "field_basis": [],
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "field_basis"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "field_basis:wrong_type=string",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-0001",
+            "provider_date": "2026-01-02",
+            "start_at": "2026-01-02T03:04:05.678Z",
+            "end_at": "2026-01-02T04:04:05.678Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "timezone_offset_text": "-06:00",
+            "timezone_offset_meaning": "provider_cycle_offset"
+          }
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        },
+        "field_basis": "x",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "field_basis"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "field_basis:empty_object",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-0001",
+            "provider_date": "2026-01-02",
+            "start_at": "2026-01-02T03:04:05.678Z",
+            "end_at": "2026-01-02T04:04:05.678Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "timezone_offset_text": "-06:00",
+            "timezone_offset_meaning": "provider_cycle_offset"
+          }
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        },
+        "field_basis": {},
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "valid": true,
+      "output": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-0001",
+            "provider_date": "2026-01-02",
+            "start_at": "2026-01-02T03:04:05.678Z",
+            "end_at": "2026-01-02T04:04:05.678Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "timezone_offset_text": "-06:00",
+            "timezone_offset_meaning": "provider_cycle_offset"
+          }
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        },
+        "field_basis": {},
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "field_basis:nested_unknown_key",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_record_id": "provider-0001",
+        "provider_reporting_periods": [
+          {
+            "period_type": "whoop_physiological_cycle",
+            "provider_period_id": "cycle-0001",
+            "provider_date": "2026-01-02",
+            "start_at": "2026-01-02T03:04:05.678Z",
+            "end_at": "2026-01-02T04:04:05.678Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+              "utc_offset_text": "-06:00",
+              "utc_offset_meaning": "documented_recording_offset",
+              "source_time_zone": "America/Chicago",
+              "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+              "timestamp_basis": "source_offset_timestamp"
+            },
+            "timezone_offset_text": "-06:00",
+            "timezone_offset_meaning": "provider_cycle_offset"
+          }
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "provider_supplied",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        },
+        "field_basis": {
+          "activity_type": "provider_label",
+          "value": "provider",
+          "route_summaries": "calculated_on_import",
+          "unknown_nested": true
+        },
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value": 8000,
+          "input_unit": "steps"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "field_basis"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "summary_type:missing",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "summary_type"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "summary_type:null",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": null,
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "summary_type"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "summary_type:wrong_type=number",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": 1,
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "summary_type"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "summary_type:empty_string",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "summary_type"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "value:missing",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "value"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "value:null",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": null,
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "value"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "value:wrong_type=array",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": [],
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "value"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "value:wrong_type=string",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": "x",
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "value"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "value:empty_object",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {},
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "value",
+            "standard_value"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        },
+        {
+          "path": [
+            "value",
+            "standard_unit"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "value:nested_unknown_key",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source",
+          "unknown_nested": true
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "value"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "recorded_at:null",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": null,
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "recorded_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "recorded_at:wrong_type=number",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": 1,
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "recorded_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "recorded_at:empty_string",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "recorded_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "recorded_at:format=no_milliseconds",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "recorded_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "recorded_at:format=offset",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678+00:00",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "recorded_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "input_timestamp:missing",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_timestamp"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_timestamp:null",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_timestamp"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_timestamp:wrong_type=array",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_timestamp"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_timestamp:wrong_type=string",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": "x"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_timestamp"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_timestamp:empty_object",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {}
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_timestamp",
+            "timestamp_missing_reason"
+          ],
+          "code": "custom",
+          "message": "A missing input timestamp needs a reason"
+        },
+        {
+          "path": [
+            "input_timestamp",
+            "utc_offset_missing_reason"
+          ],
+          "code": "custom",
+          "message": "A missing input UTC offset needs a reason"
+        }
+      ]
+    },
+    {
+      "name": "input_timestamp:nested_unknown_key",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source",
+          "unknown_nested": true
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_timestamp"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rule:no_instant_no_period",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "provider_reporting_periods"
+          ],
+          "code": "custom",
+          "message": "A provider summary needs an instant or a provider reporting period"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R23",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:empty_period_list",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "provider_reporting_periods": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "provider_reporting_periods"
+          ],
+          "code": "custom",
+          "message": "A provider summary needs an instant or a provider reporting period"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R23",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:period_without_instant",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-01-02"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day",
+            "provider_date": "2026-01-02"
+          }
+        ],
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R23",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:instant_without_period",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": true,
+      "output": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R23",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:invalid_period_counts_as_present",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "received_at": "2026-01-02T03:04:05.678Z",
+        "received_at_basis": "import_time",
+        "summary_type": "daily_steps",
+        "value": {
+          "standard_value": 8000,
+          "standard_unit": "count",
+          "input_value_missing_reason": "not_provided_by_source",
+          "input_unit_missing_reason": "not_provided_by_source"
+        },
+        "input_timestamp": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "provider_reporting_periods": [
+          {
+            "period_type": "oura_sleep_day"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "provider_reporting_periods",
+            0
+          ],
+          "code": "custom",
+          "message": "A provider reporting period needs an ID, date, or start instant"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R9",
+          "expect": "trigger"
+        },
+        {
+          "rule": "R23",
+          "expect": "satisfy"
+        }
+      ]
+    }
+  ]
+}

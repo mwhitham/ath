@@ -65,3 +65,12 @@ validation-data/
 
 # Native rebuild build output.
 native/target/
+!native/tests/vectors/model/AthleteActor.json
+!native/tests/vectors/model/AthleteProfileData.json
+!native/tests/vectors/model/AthleteProfileRecord.json
+!native/tests/vectors/model/AthleteProfileRevision.json
+!native/tests/vectors/model/AthleteReportData.json
+!native/tests/vectors/model/AthleteReportRecord.json
+!native/tests/vectors/model/AthleteReportRevision.json
+!native/tests/vectors/model/AthleteReportType.json
+!native/tests/vectors/model/ExportManifest.json

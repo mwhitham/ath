@@ -1,0 +1,517 @@
+{
+  "schema": "SeriesQuantitySchema",
+  "cases": [
+    {
+      "name": "valid:heart_rate",
+      "input": "heart_rate",
+      "valid": true,
+      "output": "heart_rate",
+      "issues": []
+    },
+    {
+      "name": "valid:hrv_beats",
+      "input": "hrv_beats",
+      "valid": true,
+      "output": "hrv_beats",
+      "issues": []
+    },
+    {
+      "name": "valid:ecg_beats",
+      "input": "ecg_beats",
+      "valid": true,
+      "output": "ecg_beats",
+      "issues": []
+    },
+    {
+      "name": "valid:hrv_sdnn",
+      "input": "hrv_sdnn",
+      "valid": true,
+      "output": "hrv_sdnn",
+      "issues": []
+    },
+    {
+      "name": "valid:respiratory_rate",
+      "input": "respiratory_rate",
+      "valid": true,
+      "output": "respiratory_rate",
+      "issues": []
+    },
+    {
+      "name": "valid:oxygen_saturation",
+      "input": "oxygen_saturation",
+      "valid": true,
+      "output": "oxygen_saturation",
+      "issues": []
+    },
+    {
+      "name": "valid:steps",
+      "input": "steps",
+      "valid": true,
+      "output": "steps",
+      "issues": []
+    },
+    {
+      "name": "valid:active_energy",
+      "input": "active_energy",
+      "valid": true,
+      "output": "active_energy",
+      "issues": []
+    },
+    {
+      "name": "valid:distance_walking_running",
+      "input": "distance_walking_running",
+      "valid": true,
+      "output": "distance_walking_running",
+      "issues": []
+    },
+    {
+      "name": "valid:distance_cycling",
+      "input": "distance_cycling",
+      "valid": true,
+      "output": "distance_cycling",
+      "issues": []
+    },
+    {
+      "name": "valid:distance_swimming",
+      "input": "distance_swimming",
+      "valid": true,
+      "output": "distance_swimming",
+      "issues": []
+    },
+    {
+      "name": "valid:running_speed",
+      "input": "running_speed",
+      "valid": true,
+      "output": "running_speed",
+      "issues": []
+    },
+    {
+      "name": "valid:running_power",
+      "input": "running_power",
+      "valid": true,
+      "output": "running_power",
+      "issues": []
+    },
+    {
+      "name": "valid:running_stride_length",
+      "input": "running_stride_length",
+      "valid": true,
+      "output": "running_stride_length",
+      "issues": []
+    },
+    {
+      "name": "valid:running_vertical_oscillation",
+      "input": "running_vertical_oscillation",
+      "valid": true,
+      "output": "running_vertical_oscillation",
+      "issues": []
+    },
+    {
+      "name": "valid:running_ground_contact_time",
+      "input": "running_ground_contact_time",
+      "valid": true,
+      "output": "running_ground_contact_time",
+      "issues": []
+    },
+    {
+      "name": "valid:physical_effort",
+      "input": "physical_effort",
+      "valid": true,
+      "output": "physical_effort",
+      "issues": []
+    },
+    {
+      "name": "valid:basal_energy",
+      "input": "basal_energy",
+      "valid": true,
+      "output": "basal_energy",
+      "issues": []
+    },
+    {
+      "name": "valid:exercise_time",
+      "input": "exercise_time",
+      "valid": true,
+      "output": "exercise_time",
+      "issues": []
+    },
+    {
+      "name": "valid:flights_climbed",
+      "input": "flights_climbed",
+      "valid": true,
+      "output": "flights_climbed",
+      "issues": []
+    },
+    {
+      "name": "valid:walking_speed",
+      "input": "walking_speed",
+      "valid": true,
+      "output": "walking_speed",
+      "issues": []
+    },
+    {
+      "name": "valid:walking_step_length",
+      "input": "walking_step_length",
+      "valid": true,
+      "output": "walking_step_length",
+      "issues": []
+    },
+    {
+      "name": "valid:walking_asymmetry_percentage",
+      "input": "walking_asymmetry_percentage",
+      "valid": true,
+      "output": "walking_asymmetry_percentage",
+      "issues": []
+    },
+    {
+      "name": "valid:time_in_daylight",
+      "input": "time_in_daylight",
+      "valid": true,
+      "output": "time_in_daylight",
+      "issues": []
+    },
+    {
+      "name": "invalid:unknown",
+      "input": "__not_an_option__",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:empty",
+      "input": "",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:uppercase",
+      "input": "HEART_RATE",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:leading_space",
+      "input": " heart_rate",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:trailing_space",
+      "input": "heart_rate ",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:number",
+      "input": 1,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:array",
+      "input": [
+        "heart_rate"
+      ],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:object",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        }
+      ]
+    }
+  ]
+}

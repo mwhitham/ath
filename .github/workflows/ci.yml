@@ -93,3 +93,22 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm exec vitest run tests/mapping-path.test.ts
+
+  # The native rebuild (build-history/v2.1.1/spec.md). It runs beside the 2.1.0
+  # checks until the cutover replaces them.
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: native
+    steps:
+      - uses: actions/checkout@v5
+      # rust-toolchain.toml in native/ pins the compiler; rustup installs it on first use.
+      - run: rustup show active-toolchain || rustup toolchain install
+      - run: cargo fmt --check
+      - run: cargo clippy --locked --all-targets -- -D warnings
+      - run: cargo test --locked

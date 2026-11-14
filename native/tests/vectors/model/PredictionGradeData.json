@@ -1,0 +1,2377 @@
+{
+  "schema": "PredictionGradeData",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "tool",
+            "tool": "ath",
+            "tool_version": "2.1.0",
+            "calculation_version": "1"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": 12.5,
+        "absolute_error_percentage": 0,
+        "result_in_predicted_range": false,
+        "predicted_score": {
+          "duration_s": 300.5,
+          "reps": 21,
+          "weight_kg": 43
+        },
+        "actual_score": {
+          "duration_s": 300.5,
+          "reps": 21,
+          "weight_kg": 43
+        }
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "tool",
+            "tool": "ath",
+            "tool_version": "2.1.0",
+            "calculation_version": "1"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": 12.5,
+        "absolute_error_percentage": 0,
+        "result_in_predicted_range": false,
+        "predicted_score": {
+          "duration_s": 300.5,
+          "reps": 21,
+          "weight_kg": 43
+        },
+        "actual_score": {
+          "duration_s": 300.5,
+          "reps": 21,
+          "weight_kg": 43
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "tool",
+            "tool": "ath",
+            "tool_version": "2.1.0",
+            "calculation_version": "1"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": 12.5,
+        "absolute_error_percentage": 0,
+        "result_in_predicted_range": false,
+        "predicted_score": {
+          "duration_s": 300.5,
+          "reps": 21,
+          "weight_kg": 43
+        },
+        "actual_score": {
+          "duration_s": 300.5,
+          "reps": 21,
+          "weight_kg": 43
+        },
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "authorship:missing",
+      "input": {
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:null",
+      "input": {
+        "authorship": null,
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:wrong_type=array",
+      "input": {
+        "authorship": [],
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:wrong_type=string",
+      "input": {
+        "authorship": "x",
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:empty_object",
+      "input": {
+        "authorship": {},
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship",
+            "author"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        },
+        {
+          "path": [
+            "authorship",
+            "authored_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "authorship",
+            "evidence"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received undefined",
+          "expected": "array"
+        },
+        {
+          "path": [
+            "authorship",
+            "content_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        },
+        {
+          "path": [
+            "authorship",
+            "status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"draft\"|\"active\"|\"completed\"|\"superseded\"|\"cancelled\"",
+          "values": [
+            "draft",
+            "active",
+            "completed",
+            "superseded",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "authorship:nested_unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active",
+          "unknown_nested": true
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "prediction_result_link:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "prediction_result_link"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "prediction_result_link:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": null,
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "prediction_result_link"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "prediction_result_link:wrong_type=array",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": [],
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "prediction_result_link"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "prediction_result_link:wrong_type=string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": "x",
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "prediction_result_link"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "prediction_result_link:empty_object",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {},
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "prediction_result_link",
+            "record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "prediction_result_link",
+            "revision"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "prediction_result_link:nested_unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1,
+          "unknown_nested": true
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "prediction_result_link"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "signed_error:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "signed_error"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "signed_error:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": null,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "signed_error"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "signed_error:wrong_type=string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": "1",
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "signed_error"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "signed_error:number=1e+308",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": 1e+308,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": 1e+308,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "signed_error:number=-1e+308",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -1e+308,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -1e+308,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "signed_error:number=-1.5",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -1.5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -1.5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "signed_error:number=0",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": 0,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": 0,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "signed_error:number=5e-324",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": 5e-324,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": 5e-324,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "signed_error:number_text=-0",
+      "input_text": "{\"authorship\":{\"author\":{\"author_type\":\"athlete\"},\"authored_at\":\"2026-01-02T03:04:05.678Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"prediction_result_link\":{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000011\",\"revision\":1},\"signed_error\":-0,\"absolute_error_percentage\":1.6,\"result_in_predicted_range\":true,\"predicted_score\":{\"duration_s\":300},\"actual_score\":{\"duration_s\":295}}",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": 0,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": 0,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "signed_error:number_text=1e400",
+      "input_text": "{\"authorship\":{\"author\":{\"author_type\":\"athlete\"},\"authored_at\":\"2026-01-02T03:04:05.678Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"prediction_result_link\":{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000011\",\"revision\":1},\"signed_error\":1e400,\"absolute_error_percentage\":1.6,\"result_in_predicted_range\":true,\"predicted_score\":{\"duration_s\":300},\"actual_score\":{\"duration_s\":295}}",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": null,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "signed_error"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "absolute_error_percentage:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "absolute_error_percentage"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "absolute_error_percentage:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": null,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "absolute_error_percentage"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "absolute_error_percentage:wrong_type=string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": "1",
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "absolute_error_percentage"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "absolute_error_percentage:number=-1",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": -1,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "absolute_error_percentage"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "absolute_error_percentage:number=0",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 0,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 0,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "absolute_error_percentage:number=1",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "absolute_error_percentage:number=-0.5",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": -0.5,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "absolute_error_percentage"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "absolute_error_percentage:number=0.5",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 0.5,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 0.5,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "absolute_error_percentage:number=5e-324",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 5e-324,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 5e-324,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "absolute_error_percentage:number=-5e-324",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": -5e-324,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "absolute_error_percentage"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "absolute_error_percentage:number=1e+308",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1e+308,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1e+308,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "absolute_error_percentage:number_text=-0",
+      "input_text": "{\"authorship\":{\"author\":{\"author_type\":\"athlete\"},\"authored_at\":\"2026-01-02T03:04:05.678Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"prediction_result_link\":{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000011\",\"revision\":1},\"signed_error\":-5,\"absolute_error_percentage\":-0,\"result_in_predicted_range\":true,\"predicted_score\":{\"duration_s\":300},\"actual_score\":{\"duration_s\":295}}",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 0,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 0,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "absolute_error_percentage:number_text=1e400",
+      "input_text": "{\"authorship\":{\"author\":{\"author_type\":\"athlete\"},\"authored_at\":\"2026-01-02T03:04:05.678Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"prediction_result_link\":{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000011\",\"revision\":1},\"signed_error\":-5,\"absolute_error_percentage\":1e400,\"result_in_predicted_range\":true,\"predicted_score\":{\"duration_s\":300},\"actual_score\":{\"duration_s\":295}}",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": null,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "absolute_error_percentage"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "result_in_predicted_range:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "result_in_predicted_range"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected boolean, received undefined",
+          "expected": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "result_in_predicted_range:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": null,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "result_in_predicted_range"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected boolean, received null",
+          "expected": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "result_in_predicted_range:wrong_type=string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": "true",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "result_in_predicted_range"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected boolean, received string",
+          "expected": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "result_in_predicted_range:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": 0,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "result_in_predicted_range"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected boolean, received number",
+          "expected": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "predicted_score:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "predicted_score"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "predicted_score:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": null,
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "predicted_score"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "predicted_score:wrong_type=array",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": [],
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "predicted_score"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "predicted_score:wrong_type=string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": "x",
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "predicted_score"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "predicted_score:empty_object",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {},
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "predicted_score"
+          ],
+          "code": "custom",
+          "message": "A score needs duration_s, reps, or weight_kg"
+        }
+      ]
+    },
+    {
+      "name": "predicted_score:nested_unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300,
+          "unknown_nested": true
+        },
+        "actual_score": {
+          "duration_s": 295
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "predicted_score"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "actual_score:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "actual_score"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "actual_score:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "actual_score"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "actual_score:wrong_type=array",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "actual_score"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "actual_score:wrong_type=string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": "x"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "actual_score"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "actual_score:empty_object",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {}
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "actual_score"
+          ],
+          "code": "custom",
+          "message": "A score needs duration_s, reps, or weight_kg"
+        }
+      ]
+    },
+    {
+      "name": "actual_score:nested_unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {
+          "duration_s": 295,
+          "unknown_nested": true
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "actual_score"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rule:empty_actual_score",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_result_link": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+          "revision": 1
+        },
+        "signed_error": -5,
+        "absolute_error_percentage": 1.6,
+        "result_in_predicted_range": true,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "actual_score": {}
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "actual_score"
+          ],
+          "code": "custom",
+          "message": "A score needs duration_s, reps, or weight_kg"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R22",
+          "expect": "trigger"
+        }
+      ]
+    }
+  ]
+}

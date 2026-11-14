@@ -32,11 +32,13 @@ pub const ATHLETE_REPORTED_RECORD_TYPES: &[&str] =
 /// The published extension ID pattern: owner segments, slash, name.
 pub const EXTENSION_ID_PATTERN: &str = r"^[a-z][a-z0-9]*(?:\.[a-z][a-z0-9]*)+\/[a-z][a-z0-9][a-z0-9._-]*$";
 
-/// `ath.fit/demo/widget`: dotted lowercase owner, slash, lowercase name.
+/// A valid extension key: the published pattern and at most 200 characters.
 pub fn is_extension_id(text: &str) -> bool {
-    if text.encode_utf16().count() > 200 {
-        return false;
-    }
+    text.chars().count() <= 200 && is_extension_id_pattern(text)
+}
+
+/// The published extension ID pattern: dotted lowercase owner, slash, name.
+pub fn is_extension_id_pattern(text: &str) -> bool {
     let Some(slash) = text.find('/') else {
         return false;
     };
@@ -61,19 +63,23 @@ fn is_owner_segment(segment: &str) -> bool {
         && bytes[1..].iter().all(|byte| byte.is_ascii_lowercase() || byte.is_ascii_digit())
 }
 
-/// True when a value matches the extension value union: a bounded string, a
-/// number, a boolean, null, a bounded array of extension values, or an object
-/// of extension values.
-pub fn is_extension_value(value: Option<&Value>) -> bool {
-    match value {
-        None => false,
-        Some(Value::String(text)) => json::utf16_len(text) <= EXTENSION_STRING_MAX_LENGTH,
-        Some(Value::Number(_) | Value::Bool(_) | Value::Null) => true,
-        Some(Value::Array(items)) => {
-            items.len() <= EXTENSION_ARRAY_MAX_LENGTH && items.iter().all(|item| is_extension_value(Some(item)))
-        }
-        Some(Value::Object(map)) => map.values().all(|item| is_extension_value(Some(item))),
-    }
+/// The options of the extension value union, in published order: a string of
+/// at most 4,096 characters, a number, a boolean, null, an array of at most 256
+/// extension values, or an object of extension values.
+pub fn extension_value_options() -> &'static [SchemaRef] {
+    static OPTIONS: LazyLock<Vec<SchemaRef>> = LazyLock::new(|| {
+        let value = leak(Schema::new(Kind::ExtensionValue));
+        let key = leak(Schema::new(Kind::String));
+        vec![
+            leak(Schema::new(Kind::String).check(Check::MaxLength(EXTENSION_STRING_MAX_LENGTH))),
+            leak(Schema::new(Kind::Number { integer: false })),
+            leak(Schema::new(Kind::Boolean)),
+            leak(Schema::new(Kind::Null)),
+            leak(Schema::new(Kind::Array(value)).check(Check::MaxItems(EXTENSION_ARRAY_MAX_LENGTH))),
+            leak(Schema::new(Kind::Record { key, value })),
+        ]
+    });
+    &OPTIONS
 }
 
 /// The shape of a record's `extensions` object.

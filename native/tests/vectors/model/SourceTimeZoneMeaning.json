@@ -1,0 +1,149 @@
+{
+  "schema": "SourceTimeZoneMeaning",
+  "cases": [
+    {
+      "name": "valid:apple_health_object_creation_time_zone",
+      "input": "apple_health_object_creation_time_zone",
+      "valid": true,
+      "output": "apple_health_object_creation_time_zone",
+      "issues": []
+    },
+    {
+      "name": "invalid:unknown",
+      "input": "__not_an_option__",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"apple_health_object_creation_time_zone\"",
+          "values": [
+            "apple_health_object_creation_time_zone"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:empty",
+      "input": "",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"apple_health_object_creation_time_zone\"",
+          "values": [
+            "apple_health_object_creation_time_zone"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:uppercase",
+      "input": "APPLE_HEALTH_OBJECT_CREATION_TIME_ZONE",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"apple_health_object_creation_time_zone\"",
+          "values": [
+            "apple_health_object_creation_time_zone"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:leading_space",
+      "input": " apple_health_object_creation_time_zone",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"apple_health_object_creation_time_zone\"",
+          "values": [
+            "apple_health_object_creation_time_zone"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:trailing_space",
+      "input": "apple_health_object_creation_time_zone ",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"apple_health_object_creation_time_zone\"",
+          "values": [
+            "apple_health_object_creation_time_zone"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:number",
+      "input": 1,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"apple_health_object_creation_time_zone\"",
+          "values": [
+            "apple_health_object_creation_time_zone"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"apple_health_object_creation_time_zone\"",
+          "values": [
+            "apple_health_object_creation_time_zone"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:array",
+      "input": [
+        "apple_health_object_creation_time_zone"
+      ],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"apple_health_object_creation_time_zone\"",
+          "values": [
+            "apple_health_object_creation_time_zone"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:object",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"apple_health_object_creation_time_zone\"",
+          "values": [
+            "apple_health_object_creation_time_zone"
+          ]
+        }
+      ]
+    }
+  ]
+}

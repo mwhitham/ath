@@ -1,0 +1,197 @@
+{
+  "schema": "ErasureReasonCode",
+  "cases": [
+    {
+      "name": "valid:athlete_request",
+      "input": "athlete_request",
+      "valid": true,
+      "output": "athlete_request",
+      "issues": []
+    },
+    {
+      "name": "valid:legal_requirement",
+      "input": "legal_requirement",
+      "valid": true,
+      "output": "legal_requirement",
+      "issues": []
+    },
+    {
+      "name": "valid:recorded_in_error",
+      "input": "recorded_in_error",
+      "valid": true,
+      "output": "recorded_in_error",
+      "issues": []
+    },
+    {
+      "name": "valid:other",
+      "input": "other",
+      "valid": true,
+      "output": "other",
+      "issues": []
+    },
+    {
+      "name": "invalid:unknown",
+      "input": "__not_an_option__",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_request\"|\"legal_requirement\"|\"recorded_in_error\"|\"other\"",
+          "values": [
+            "athlete_request",
+            "legal_requirement",
+            "recorded_in_error",
+            "other"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:empty",
+      "input": "",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_request\"|\"legal_requirement\"|\"recorded_in_error\"|\"other\"",
+          "values": [
+            "athlete_request",
+            "legal_requirement",
+            "recorded_in_error",
+            "other"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:uppercase",
+      "input": "ATHLETE_REQUEST",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_request\"|\"legal_requirement\"|\"recorded_in_error\"|\"other\"",
+          "values": [
+            "athlete_request",
+            "legal_requirement",
+            "recorded_in_error",
+            "other"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:leading_space",
+      "input": " athlete_request",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_request\"|\"legal_requirement\"|\"recorded_in_error\"|\"other\"",
+          "values": [
+            "athlete_request",
+            "legal_requirement",
+            "recorded_in_error",
+            "other"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:trailing_space",
+      "input": "athlete_request ",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_request\"|\"legal_requirement\"|\"recorded_in_error\"|\"other\"",
+          "values": [
+            "athlete_request",
+            "legal_requirement",
+            "recorded_in_error",
+            "other"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:number",
+      "input": 1,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_request\"|\"legal_requirement\"|\"recorded_in_error\"|\"other\"",
+          "values": [
+            "athlete_request",
+            "legal_requirement",
+            "recorded_in_error",
+            "other"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_request\"|\"legal_requirement\"|\"recorded_in_error\"|\"other\"",
+          "values": [
+            "athlete_request",
+            "legal_requirement",
+            "recorded_in_error",
+            "other"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:array",
+      "input": [
+        "athlete_request"
+      ],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_request\"|\"legal_requirement\"|\"recorded_in_error\"|\"other\"",
+          "values": [
+            "athlete_request",
+            "legal_requirement",
+            "recorded_in_error",
+            "other"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:object",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_request\"|\"legal_requirement\"|\"recorded_in_error\"|\"other\"",
+          "values": [
+            "athlete_request",
+            "legal_requirement",
+            "recorded_in_error",
+            "other"
+          ]
+        }
+      ]
+    }
+  ]
+}

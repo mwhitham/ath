@@ -1,0 +1,1539 @@
+{
+  "schema": "NonSampleRecord",
+  "cases": [
+    {
+      "name": "valid:athlete_profile",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "athlete_profile",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {}
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "athlete_profile",
+        "data": {}
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:source",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_type": "wearable",
+          "data_writer": "Example Band",
+          "data_route": "provider_export"
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "source",
+        "data": {
+          "source_type": "wearable",
+          "data_writer": "Example Band",
+          "data_route": "provider_export"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:source_device",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "source_device",
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:point_measurement",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "point_measurement",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "received_at": "2026-01-02T03:04:05.678Z",
+          "received_at_basis": "import_time",
+          "quantity": "hrv_rmssd",
+          "input_timestamp": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          },
+          "value": {
+            "standard_value": 42,
+            "standard_unit": "ms",
+            "input_value_missing_reason": "not_provided_by_source",
+            "input_unit_missing_reason": "not_provided_by_source"
+          }
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "point_measurement",
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "received_at": "2026-01-02T03:04:05.678Z",
+          "received_at_basis": "import_time",
+          "quantity": "hrv_rmssd",
+          "input_timestamp": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          },
+          "value": {
+            "standard_value": 42,
+            "standard_unit": "ms",
+            "input_value_missing_reason": "not_provided_by_source",
+            "input_unit_missing_reason": "not_provided_by_source"
+          }
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:sleep_session",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "sleep_session",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "received_at": "2026-01-02T03:04:05.678Z",
+          "received_at_basis": "import_time",
+          "start_at": "2026-01-02T03:04:05.678Z",
+          "end_at": "2026-01-02T04:04:05.678Z",
+          "input_start_timestamp": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          },
+          "input_end_timestamp": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          },
+          "source_reported_summaries": []
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "sleep_session",
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "received_at": "2026-01-02T03:04:05.678Z",
+          "received_at_basis": "import_time",
+          "start_at": "2026-01-02T03:04:05.678Z",
+          "end_at": "2026-01-02T04:04:05.678Z",
+          "input_start_timestamp": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          },
+          "input_end_timestamp": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          },
+          "source_reported_summaries": []
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:workout_session",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "workout_session",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "received_at": "2026-01-02T03:04:05.678Z",
+          "received_at_basis": "import_time",
+          "start_at": "2026-01-02T03:04:05.678Z",
+          "end_at": "2026-01-02T04:04:05.678Z",
+          "input_start_timestamp": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          },
+          "input_end_timestamp": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          },
+          "source_reported_summaries": []
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "workout_session",
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "received_at": "2026-01-02T03:04:05.678Z",
+          "received_at_basis": "import_time",
+          "start_at": "2026-01-02T03:04:05.678Z",
+          "end_at": "2026-01-02T04:04:05.678Z",
+          "input_start_timestamp": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          },
+          "input_end_timestamp": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          },
+          "source_reported_summaries": []
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:benchmark_result",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "benchmark_result",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "received_at": "2026-01-02T03:04:05.678Z",
+          "received_at_basis": "import_time",
+          "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+          "recorded_at": "2026-01-02T03:04:05.678Z",
+          "input_timestamp": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          },
+          "score": {
+            "duration_s": 300
+          }
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "benchmark_result",
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "received_at": "2026-01-02T03:04:05.678Z",
+          "received_at_basis": "import_time",
+          "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+          "recorded_at": "2026-01-02T03:04:05.678Z",
+          "input_timestamp": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          },
+          "score": {
+            "duration_s": 300
+          }
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:provider_summary",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "provider_summary",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "received_at": "2026-01-02T03:04:05.678Z",
+          "received_at_basis": "import_time",
+          "summary_type": "daily_steps",
+          "value": {
+            "standard_value": 8000,
+            "standard_unit": "count",
+            "input_value_missing_reason": "not_provided_by_source",
+            "input_unit_missing_reason": "not_provided_by_source"
+          },
+          "recorded_at": "2026-01-02T03:04:05.678Z",
+          "input_timestamp": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          }
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "provider_summary",
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "received_at": "2026-01-02T03:04:05.678Z",
+          "received_at_basis": "import_time",
+          "summary_type": "daily_steps",
+          "value": {
+            "standard_value": 8000,
+            "standard_unit": "count",
+            "input_value_missing_reason": "not_provided_by_source",
+            "input_unit_missing_reason": "not_provided_by_source"
+          },
+          "recorded_at": "2026-01-02T03:04:05.678Z",
+          "input_timestamp": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          }
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:provider_score",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "provider_score",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "received_at": "2026-01-02T03:04:05.678Z",
+          "received_at_basis": "import_time",
+          "metric": "recovery",
+          "value": {
+            "standard_value": 66,
+            "standard_unit": "%",
+            "input_value_missing_reason": "not_provided_by_source",
+            "input_unit_missing_reason": "not_provided_by_source"
+          },
+          "scale": "0-100",
+          "recorded_at": "2026-01-02T03:04:05.678Z",
+          "input_timestamp": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          }
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "provider_score",
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "received_at": "2026-01-02T03:04:05.678Z",
+          "received_at_basis": "import_time",
+          "metric": "recovery",
+          "value": {
+            "standard_value": 66,
+            "standard_unit": "%",
+            "input_value_missing_reason": "not_provided_by_source",
+            "input_unit_missing_reason": "not_provided_by_source"
+          },
+          "scale": "0-100",
+          "recorded_at": "2026-01-02T03:04:05.678Z",
+          "input_timestamp": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          }
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:athlete_report",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "athlete_report",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "report_type": "note",
+          "reported_at": "2026-01-02T03:04:05.678Z",
+          "input_reported_at": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          },
+          "reported_via": "text"
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "athlete_report",
+        "data": {
+          "report_type": "note",
+          "reported_at": "2026-01-02T03:04:05.678Z",
+          "input_reported_at": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          },
+          "reported_via": "text"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:nutrition_entry",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "nutrition_entry",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "reported_at": "2026-01-02T03:04:05.678Z",
+          "input_reported_at": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          },
+          "reported_via": "text",
+          "athlete_description": "Oatmeal with berries",
+          "reported_items": []
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "nutrition_entry",
+        "data": {
+          "reported_at": "2026-01-02T03:04:05.678Z",
+          "input_reported_at": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          },
+          "reported_via": "text",
+          "athlete_description": "Oatmeal with berries",
+          "reported_items": []
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:attachment",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "attachment",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "file_name": "meal.png",
+          "media_type": "image/png",
+          "byte_count": 1024,
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "attachment",
+        "data": {
+          "file_name": "meal.png",
+          "media_type": "image/png",
+          "byte_count": 1024,
+          "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:benchmark_definition",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "benchmark_definition",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "benchmark_key": "fran",
+          "benchmark_type": "named_wod",
+          "score_type": "time",
+          "definition": "21-15-9 thrusters and pull-ups"
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "benchmark_definition",
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "benchmark_key": "fran",
+          "benchmark_type": "named_wod",
+          "score_type": "time",
+          "definition": "21-15-9 thrusters and pull-ups"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:prediction",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "prediction",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+          "predicted_score": {
+            "duration_s": 300
+          },
+          "confidence": "moderate",
+          "reasoning": "Recent intervals trend faster."
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "prediction",
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+          "predicted_score": {
+            "duration_s": 300
+          },
+          "confidence": "moderate",
+          "reasoning": "Recent intervals trend faster."
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:prediction_result_link",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "prediction_result_link",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "prediction": {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+            "revision": 1
+          },
+          "benchmark_result": {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+            "revision": 1
+          },
+          "created_by": {
+            "author_type": "tool",
+            "tool": "ath",
+            "tool_version": "2.1.0"
+          },
+          "linked_at": "2026-01-02T03:04:05.678Z",
+          "content_version": 1,
+          "status": "active"
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "prediction_result_link",
+        "data": {
+          "prediction": {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+            "revision": 1
+          },
+          "benchmark_result": {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+            "revision": 1
+          },
+          "created_by": {
+            "author_type": "tool",
+            "tool": "ath",
+            "tool_version": "2.1.0"
+          },
+          "linked_at": "2026-01-02T03:04:05.678Z",
+          "content_version": 1,
+          "status": "active"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:prediction_grade",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "prediction_grade",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "prediction_result_link": {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+            "revision": 1
+          },
+          "signed_error": -5,
+          "absolute_error_percentage": 1.6,
+          "result_in_predicted_range": true,
+          "predicted_score": {
+            "duration_s": 300
+          },
+          "actual_score": {
+            "duration_s": 295
+          }
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "prediction_grade",
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "prediction_result_link": {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+            "revision": 1
+          },
+          "signed_error": -5,
+          "absolute_error_percentage": 1.6,
+          "result_in_predicted_range": true,
+          "predicted_score": {
+            "duration_s": 300
+          },
+          "actual_score": {
+            "duration_s": 295
+          }
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:prediction_error_analysis",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "prediction_error_analysis",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "prediction_grade": {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+            "revision": 1
+          },
+          "error_direction": "faster",
+          "error_severity": "minor",
+          "causes": [],
+          "unexplained": true
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "prediction_error_analysis",
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "prediction_grade": {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+            "revision": 1
+          },
+          "error_direction": "faster",
+          "error_severity": "minor",
+          "causes": [],
+          "unexplained": true
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:training_plan",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "training_plan",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "title": "Base block"
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "training_plan",
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "title": "Base block"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:planned_session",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "planned_session",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "title": "Intervals",
+          "scheduled_date": "2026-01-02",
+          "blocks": [],
+          "completion_status": "planned"
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "planned_session",
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "title": "Intervals",
+          "scheduled_date": "2026-01-02",
+          "blocks": [],
+          "completion_status": "planned"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:coaching_note",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "coaching_note",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "note": "Keep easy days easy."
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "coaching_note",
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "note": "Keep easy days easy."
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:saved_training_review",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "saved_training_review",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "period_start": "2026-01-01",
+          "period_end": "2026-01-07",
+          "summary": "Consistent week."
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "saved_training_review",
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "period_start": "2026-01-01",
+          "period_end": "2026-01-07",
+          "summary": "Consistent week."
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:goal",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "goal",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "title": "Sub-5 Fran"
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "goal",
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "title": "Sub-5 Fran"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:nutrition_model_interpretation",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "nutrition_model_interpretation",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+          "confidence": 0.5,
+          "interpreted_items": []
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "nutrition_model_interpretation",
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+          "confidence": 0.5,
+          "interpreted_items": []
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "invalid:measurement_sample",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "measurement_sample",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "received_at": "2026-01-02T03:04:05.678Z",
+          "received_at_basis": "import_time",
+          "quantity": "heart_rate",
+          "recorded_at": "2026-01-02T03:04:05.678Z",
+          "input_timestamp": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          },
+          "value": {
+            "standard_value": 61,
+            "standard_unit": "bpm",
+            "input_value_missing_reason": "not_provided_by_source",
+            "input_unit_missing_reason": "not_provided_by_source"
+          }
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_type"
+          ],
+          "code": "invalid_union",
+          "message": "Invalid discriminator value. Expected 'athlete_profile' | 'source' | 'source_device' | 'point_measurement' | 'sleep_session' | 'workout_session' | 'benchmark_result' | 'provider_summary' | 'provider_score' | 'athlete_report' | 'nutrition_entry' | 'attachment' | 'benchmark_definition' | 'prediction' | 'prediction_result_link' | 'prediction_grade' | 'prediction_error_analysis' | 'training_plan' | 'planned_session' | 'coaching_note' | 'saved_training_review' | 'goal' | 'nutrition_model_interpretation'",
+          "discriminator": "record_type",
+          "errors": [],
+          "note": "No matching discriminator",
+          "options": [
+            "athlete_profile",
+            "source",
+            "source_device",
+            "point_measurement",
+            "sleep_session",
+            "workout_session",
+            "benchmark_result",
+            "provider_summary",
+            "provider_score",
+            "athlete_report",
+            "nutrition_entry",
+            "attachment",
+            "benchmark_definition",
+            "prediction",
+            "prediction_result_link",
+            "prediction_grade",
+            "prediction_error_analysis",
+            "training_plan",
+            "planned_session",
+            "coaching_note",
+            "saved_training_review",
+            "goal",
+            "nutrition_model_interpretation"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:unknown_record_type",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "workout",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "title": "Sub-5 Fran"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_type"
+          ],
+          "code": "invalid_union",
+          "message": "Invalid discriminator value. Expected 'athlete_profile' | 'source' | 'source_device' | 'point_measurement' | 'sleep_session' | 'workout_session' | 'benchmark_result' | 'provider_summary' | 'provider_score' | 'athlete_report' | 'nutrition_entry' | 'attachment' | 'benchmark_definition' | 'prediction' | 'prediction_result_link' | 'prediction_grade' | 'prediction_error_analysis' | 'training_plan' | 'planned_session' | 'coaching_note' | 'saved_training_review' | 'goal' | 'nutrition_model_interpretation'",
+          "discriminator": "record_type",
+          "errors": [],
+          "note": "No matching discriminator",
+          "options": [
+            "athlete_profile",
+            "source",
+            "source_device",
+            "point_measurement",
+            "sleep_session",
+            "workout_session",
+            "benchmark_result",
+            "provider_summary",
+            "provider_score",
+            "athlete_report",
+            "nutrition_entry",
+            "attachment",
+            "benchmark_definition",
+            "prediction",
+            "prediction_result_link",
+            "prediction_grade",
+            "prediction_error_analysis",
+            "training_plan",
+            "planned_session",
+            "coaching_note",
+            "saved_training_review",
+            "goal",
+            "nutrition_model_interpretation"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:missing_record_type",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "title": "Sub-5 Fran"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_type"
+          ],
+          "code": "invalid_union",
+          "message": "Invalid discriminator value. Expected 'athlete_profile' | 'source' | 'source_device' | 'point_measurement' | 'sleep_session' | 'workout_session' | 'benchmark_result' | 'provider_summary' | 'provider_score' | 'athlete_report' | 'nutrition_entry' | 'attachment' | 'benchmark_definition' | 'prediction' | 'prediction_result_link' | 'prediction_grade' | 'prediction_error_analysis' | 'training_plan' | 'planned_session' | 'coaching_note' | 'saved_training_review' | 'goal' | 'nutrition_model_interpretation'",
+          "discriminator": "record_type",
+          "errors": [],
+          "note": "No matching discriminator",
+          "options": [
+            "athlete_profile",
+            "source",
+            "source_device",
+            "point_measurement",
+            "sleep_session",
+            "workout_session",
+            "benchmark_result",
+            "provider_summary",
+            "provider_score",
+            "athlete_report",
+            "nutrition_entry",
+            "attachment",
+            "benchmark_definition",
+            "prediction",
+            "prediction_result_link",
+            "prediction_grade",
+            "prediction_error_analysis",
+            "training_plan",
+            "planned_session",
+            "coaching_note",
+            "saved_training_review",
+            "goal",
+            "nutrition_model_interpretation"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:record_type_null",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": null,
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "title": "Sub-5 Fran"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_type"
+          ],
+          "code": "invalid_union",
+          "message": "Invalid discriminator value. Expected 'athlete_profile' | 'source' | 'source_device' | 'point_measurement' | 'sleep_session' | 'workout_session' | 'benchmark_result' | 'provider_summary' | 'provider_score' | 'athlete_report' | 'nutrition_entry' | 'attachment' | 'benchmark_definition' | 'prediction' | 'prediction_result_link' | 'prediction_grade' | 'prediction_error_analysis' | 'training_plan' | 'planned_session' | 'coaching_note' | 'saved_training_review' | 'goal' | 'nutrition_model_interpretation'",
+          "discriminator": "record_type",
+          "errors": [],
+          "note": "No matching discriminator",
+          "options": [
+            "athlete_profile",
+            "source",
+            "source_device",
+            "point_measurement",
+            "sleep_session",
+            "workout_session",
+            "benchmark_result",
+            "provider_summary",
+            "provider_score",
+            "athlete_report",
+            "nutrition_entry",
+            "attachment",
+            "benchmark_definition",
+            "prediction",
+            "prediction_result_link",
+            "prediction_grade",
+            "prediction_error_analysis",
+            "training_plan",
+            "planned_session",
+            "coaching_note",
+            "saved_training_review",
+            "goal",
+            "nutrition_model_interpretation"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:record_type_number",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": 1,
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "title": "Sub-5 Fran"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_type"
+          ],
+          "code": "invalid_union",
+          "message": "Invalid discriminator value. Expected 'athlete_profile' | 'source' | 'source_device' | 'point_measurement' | 'sleep_session' | 'workout_session' | 'benchmark_result' | 'provider_summary' | 'provider_score' | 'athlete_report' | 'nutrition_entry' | 'attachment' | 'benchmark_definition' | 'prediction' | 'prediction_result_link' | 'prediction_grade' | 'prediction_error_analysis' | 'training_plan' | 'planned_session' | 'coaching_note' | 'saved_training_review' | 'goal' | 'nutrition_model_interpretation'",
+          "discriminator": "record_type",
+          "errors": [],
+          "note": "No matching discriminator",
+          "options": [
+            "athlete_profile",
+            "source",
+            "source_device",
+            "point_measurement",
+            "sleep_session",
+            "workout_session",
+            "benchmark_result",
+            "provider_summary",
+            "provider_score",
+            "athlete_report",
+            "nutrition_entry",
+            "attachment",
+            "benchmark_definition",
+            "prediction",
+            "prediction_result_link",
+            "prediction_grade",
+            "prediction_error_analysis",
+            "training_plan",
+            "planned_session",
+            "coaching_note",
+            "saved_training_review",
+            "goal",
+            "nutrition_model_interpretation"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:data_for_other_type",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "goal",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "received_at": "2026-01-02T03:04:05.678Z",
+          "received_at_basis": "import_time",
+          "start_at": "2026-01-02T03:04:05.678Z",
+          "end_at": "2026-01-02T04:04:05.678Z",
+          "input_start_timestamp": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          },
+          "input_end_timestamp": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          },
+          "source_reported_summaries": []
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "data",
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        },
+        {
+          "path": [
+            "data",
+            "title"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "data"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized keys: \"source_id\", \"received_at\", \"received_at_basis\", \"start_at\", \"end_at\", \"input_start_timestamp\", \"input_end_timestamp\", \"source_reported_summaries\"",
+          "keys": [
+            "source_id",
+            "received_at",
+            "received_at_basis",
+            "start_at",
+            "end_at",
+            "input_start_timestamp",
+            "input_end_timestamp",
+            "source_reported_summaries"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:soft_issue_only",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "goal",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "title": ""
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "data",
+            "title"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "invalid:missing_data",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "goal",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "data"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "invalid:athlete_extension_source_id",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "athlete_report",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "report_type": "note",
+          "reported_at": "2026-01-02T03:04:05.678Z",
+          "input_reported_at": {
+            "timestamp_missing_reason": "not_provided_by_source",
+            "utc_offset_missing_reason": "not_provided_by_source"
+          },
+          "reported_via": "text"
+        },
+        "extensions": {
+          "org.example/vectors": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+          }
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "extensions"
+          ],
+          "code": "custom",
+          "message": "extensions cannot contain source_id"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R29",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1735 @@
+{
+  "schema": "PredictionErrorAnalysisData",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "slower",
+        "error_severity": "significant",
+        "causes": [
+          {
+            "evidence": {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+              "revision": 1
+            },
+            "explanation": "Slept longer than usual."
+          }
+        ],
+        "unexplained": false,
+        "lesson": "Weight sleep more."
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "slower",
+        "error_severity": "significant",
+        "causes": [
+          {
+            "evidence": {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+              "revision": 1
+            },
+            "explanation": "Slept longer than usual."
+          }
+        ],
+        "unexplained": false,
+        "lesson": "Weight sleep more."
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "slower",
+        "error_severity": "significant",
+        "causes": [
+          {
+            "evidence": {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+              "revision": 1
+            },
+            "explanation": "Slept longer than usual."
+          }
+        ],
+        "unexplained": false,
+        "lesson": "Weight sleep more.",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "authorship:missing",
+      "input": {
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:null",
+      "input": {
+        "authorship": null,
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:wrong_type=array",
+      "input": {
+        "authorship": [],
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:wrong_type=string",
+      "input": {
+        "authorship": "x",
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:empty_object",
+      "input": {
+        "authorship": {},
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship",
+            "author"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        },
+        {
+          "path": [
+            "authorship",
+            "authored_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "authorship",
+            "evidence"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received undefined",
+          "expected": "array"
+        },
+        {
+          "path": [
+            "authorship",
+            "content_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        },
+        {
+          "path": [
+            "authorship",
+            "status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"draft\"|\"active\"|\"completed\"|\"superseded\"|\"cancelled\"",
+          "values": [
+            "draft",
+            "active",
+            "completed",
+            "superseded",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "authorship:nested_unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active",
+          "unknown_nested": true
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "prediction_grade:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "prediction_grade"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "prediction_grade:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": null,
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "prediction_grade"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "prediction_grade:wrong_type=array",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": [],
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "prediction_grade"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "prediction_grade:wrong_type=string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": "x",
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "prediction_grade"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "prediction_grade:empty_object",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {},
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "prediction_grade",
+            "record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "prediction_grade",
+            "revision"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "prediction_grade:nested_unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1,
+          "unknown_nested": true
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "prediction_grade"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "error_direction:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "error_direction"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"faster\"|\"slower\"|\"higher\"|\"lower\"",
+          "values": [
+            "faster",
+            "slower",
+            "higher",
+            "lower"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "error_direction:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": null,
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "error_direction"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"faster\"|\"slower\"|\"higher\"|\"lower\"",
+          "values": [
+            "faster",
+            "slower",
+            "higher",
+            "lower"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "error_direction:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": 1,
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "error_direction"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"faster\"|\"slower\"|\"higher\"|\"lower\"",
+          "values": [
+            "faster",
+            "slower",
+            "higher",
+            "lower"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "error_direction:enum_invalid",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "__not_an_option__",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "error_direction"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"faster\"|\"slower\"|\"higher\"|\"lower\"",
+          "values": [
+            "faster",
+            "slower",
+            "higher",
+            "lower"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "error_direction:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "error_direction"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"faster\"|\"slower\"|\"higher\"|\"lower\"",
+          "values": [
+            "faster",
+            "slower",
+            "higher",
+            "lower"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "error_direction:enum_uppercase",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "FASTER",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "error_direction"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"faster\"|\"slower\"|\"higher\"|\"lower\"",
+          "values": [
+            "faster",
+            "slower",
+            "higher",
+            "lower"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "error_severity:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "error_severity"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"minor\"|\"significant\"|\"severe\"",
+          "values": [
+            "minor",
+            "significant",
+            "severe"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "error_severity:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": null,
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "error_severity"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"minor\"|\"significant\"|\"severe\"",
+          "values": [
+            "minor",
+            "significant",
+            "severe"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "error_severity:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": 1,
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "error_severity"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"minor\"|\"significant\"|\"severe\"",
+          "values": [
+            "minor",
+            "significant",
+            "severe"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "error_severity:enum_invalid",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "__not_an_option__",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "error_severity"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"minor\"|\"significant\"|\"severe\"",
+          "values": [
+            "minor",
+            "significant",
+            "severe"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "error_severity:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "error_severity"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"minor\"|\"significant\"|\"severe\"",
+          "values": [
+            "minor",
+            "significant",
+            "severe"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "error_severity:enum_uppercase",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "MINOR",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "error_severity"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"minor\"|\"significant\"|\"severe\"",
+          "values": [
+            "minor",
+            "significant",
+            "severe"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "causes:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "causes"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received undefined",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "causes:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": null,
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "causes"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received null",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "causes:wrong_type=object",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": {},
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "causes"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received object",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "causes:empty_array",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "issues": []
+    },
+    {
+      "name": "causes:element[0]:wrong_type=array",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [
+          []
+        ],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "causes",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "causes:element[0]:wrong_type=string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [
+          "x"
+        ],
+        "unexplained": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "causes",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unexplained:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "unexplained"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected boolean, received undefined",
+          "expected": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "unexplained:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "unexplained"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected boolean, received null",
+          "expected": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "unexplained:wrong_type=string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": "true"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "unexplained"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected boolean, received string",
+          "expected": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "unexplained:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "unexplained"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected boolean, received number",
+          "expected": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "lesson:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "slower",
+        "error_severity": "significant",
+        "causes": [
+          {
+            "evidence": {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+              "revision": 1
+            },
+            "explanation": "Slept longer than usual."
+          }
+        ],
+        "unexplained": false,
+        "lesson": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "lesson"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "lesson:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "slower",
+        "error_severity": "significant",
+        "causes": [
+          {
+            "evidence": {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+              "revision": 1
+            },
+            "explanation": "Slept longer than usual."
+          }
+        ],
+        "unexplained": false,
+        "lesson": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "lesson"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "lesson:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "slower",
+        "error_severity": "significant",
+        "causes": [
+          {
+            "evidence": {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+              "revision": 1
+            },
+            "explanation": "Slept longer than usual."
+          }
+        ],
+        "unexplained": false,
+        "lesson": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "lesson"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "rule:no_causes_not_unexplained",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": false
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "unexplained"
+          ],
+          "code": "custom",
+          "message": "An analysis without causes must mark the error unexplained"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R26",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:no_causes_unexplained",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "faster",
+        "error_severity": "minor",
+        "causes": [],
+        "unexplained": true
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R26",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:causes_and_unexplained",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "slower",
+        "error_severity": "significant",
+        "causes": [
+          {
+            "evidence": {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+              "revision": 1
+            },
+            "explanation": "Slept longer than usual."
+          }
+        ],
+        "unexplained": true,
+        "lesson": "Weight sleep more."
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "prediction_grade": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+          "revision": 1
+        },
+        "error_direction": "slower",
+        "error_severity": "significant",
+        "causes": [
+          {
+            "evidence": {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+              "revision": 1
+            },
+            "explanation": "Slept longer than usual."
+          }
+        ],
+        "unexplained": true,
+        "lesson": "Weight sleep more."
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R26",
+          "expect": "satisfy"
+        }
+      ]
+    }
+  ]
+}

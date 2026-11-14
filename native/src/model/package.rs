@@ -250,12 +250,13 @@ fn validate_complete_record_history(value: &Value, issues: &mut Vec<Issue>) {
         }
         if let Some(latest) = group.last() {
             let same_revision = int(latest, "revision") == Some(current);
-            let same_data = match (latest.get("data"), record.get("data")) {
-                (Some(left), Some(right)) => {
-                    json::to_string(left) == json::to_string(right) || json::semantic_eq(left, right)
-                }
-                _ => false,
+            // Compare parsed values as text, as the published check does: key
+            // order inside supplied fields is part of the value.
+            let parsed = |value: &Value| {
+                let shape = RecordType::parse(text(value, "record_type")).map(data_schema)?;
+                Some(json::to_string(&shape.output(value.get("data")?)))
             };
+            let same_data = matches!((parsed(latest), parsed(record)), (Some(left), Some(right)) if left == right);
             if !same_revision || !same_data {
                 issue(
                     issues,
@@ -287,7 +288,9 @@ fn validate_complete_record_history(value: &Value, issues: &mut Vec<Issue>) {
         }
     }
 
-    let mut owners: HashMap<(String, String), &str> = HashMap::new();
+    // The published check joins method and key with U+0000, so two pairs that
+    // join to the same text count as the same key.
+    let mut owners: HashMap<String, &str> = HashMap::new();
     for (index, key) in import_keys.iter().enumerate() {
         let id = text(key, "record_id");
         if !records_by_id.contains_key(id) {
@@ -297,7 +300,7 @@ fn validate_complete_record_history(value: &Value, issues: &mut Vec<Issue>) {
                 "A provider import key needs its current record",
             );
         }
-        let pair = (text(key, "match_key_method").to_string(), text(key, "match_key").to_string());
+        let pair = format!("{}\u{0}{}", text(key, "match_key_method"), text(key, "match_key"));
         if let Some(existing) = owners.get(&pair) {
             if *existing != id {
                 issue(

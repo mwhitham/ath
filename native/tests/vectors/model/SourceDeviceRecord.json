@@ -1,0 +1,1736 @@
+{
+  "schema": "SourceDeviceRecord",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "source_device",
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 3,
+        "is_deleted": true,
+        "extensions": {
+          "org.example/vectors": {
+            "label": "invented",
+            "count": 2,
+            "flags": [
+              true,
+              false
+            ],
+            "nested": {
+              "value": null
+            }
+          }
+        },
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "name": "Example Band 2",
+          "manufacturer": "Example Vendor",
+          "model": "EB-2",
+          "hardware": "rev-b",
+          "serial_number": "SN-0000",
+          "coverage_start_date": "2026-01-01",
+          "coverage_end_date": "2026-01-31",
+          "accepted_record_count": 10
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 3,
+        "is_deleted": true,
+        "extensions": {
+          "org.example/vectors": {
+            "label": "invented",
+            "count": 2,
+            "flags": [
+              true,
+              false
+            ],
+            "nested": {
+              "value": null
+            }
+          }
+        },
+        "record_type": "source_device",
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "name": "Example Band 2",
+          "manufacturer": "Example Vendor",
+          "model": "EB-2",
+          "hardware": "rev-b",
+          "serial_number": "SN-0000",
+          "coverage_start_date": "2026-01-01",
+          "coverage_end_date": "2026-01-31",
+          "accepted_record_count": 10
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 3,
+        "is_deleted": true,
+        "extensions": {
+          "org.example/vectors": {
+            "label": "invented",
+            "count": 2,
+            "flags": [
+              true,
+              false
+            ],
+            "nested": {
+              "value": null
+            }
+          }
+        },
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "name": "Example Band 2",
+          "manufacturer": "Example Vendor",
+          "model": "EB-2",
+          "hardware": "rev-b",
+          "serial_number": "SN-0000",
+          "coverage_start_date": "2026-01-01",
+          "coverage_end_date": "2026-01-31",
+          "accepted_record_count": 10
+        },
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "record_id:missing",
+      "input": {
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "record_id:null",
+      "input": {
+        "record_id": null,
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "record_id:wrong_type=number",
+      "input": {
+        "record_id": 1,
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "record_id:empty_string",
+      "input": {
+        "record_id": "",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "record_id:format=not_valid",
+      "input": {
+        "record_id": "not valid",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "record_id:format=uppercase",
+      "input": {
+        "record_id": "01890F3E-E7D3-7CC0-88C8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "created_at:missing",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "created_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "created_at:null",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": null,
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "created_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "created_at:wrong_type=number",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": 1,
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "created_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "created_at:empty_string",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "created_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "created_at:format=no_milliseconds",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "created_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "created_at:format=offset",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678+00:00",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "created_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "current_revision:missing",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "current_revision"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "current_revision:null",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": null,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "current_revision"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "current_revision:wrong_type=string",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": "1",
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "current_revision"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "current_revision:number=-1",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": -1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "current_revision"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "current_revision:number=0",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 0,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "current_revision"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "current_revision:number=1",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "source_device",
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "current_revision:number=1.5",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1.5,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "current_revision"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "current_revision:number=9007199254740991",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 9007199254740991,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 9007199254740991,
+        "is_deleted": false,
+        "record_type": "source_device",
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "current_revision:number=9007199254740992",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 9007199254740992,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "current_revision"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "current_revision:number=-9007199254740991",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": -9007199254740991,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "current_revision"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "current_revision:number=-9007199254740992",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": -9007199254740992,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "current_revision"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected int to be >=-9007199254740991",
+          "inclusive": true,
+          "minimum": -9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "current_revision"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "current_revision:number=1e+21",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1e+21,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "current_revision"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "current_revision:number_text=-0",
+      "input_text": "{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000064\",\"record_type\":\"source_device\",\"created_at\":\"2026-01-02T03:04:05.678Z\",\"current_revision\":-0,\"is_deleted\":false,\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\"}}",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 0,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "current_revision"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "current_revision:number_text=1.0",
+      "input_text": "{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000064\",\"record_type\":\"source_device\",\"created_at\":\"2026-01-02T03:04:05.678Z\",\"current_revision\":1.0,\"is_deleted\":false,\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\"}}",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "source_device",
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "current_revision:number_text=1E0",
+      "input_text": "{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000064\",\"record_type\":\"source_device\",\"created_at\":\"2026-01-02T03:04:05.678Z\",\"current_revision\":1E0,\"is_deleted\":false,\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\"}}",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "record_type": "source_device",
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "current_revision:number_text=9007199254740993",
+      "input_text": "{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000064\",\"record_type\":\"source_device\",\"created_at\":\"2026-01-02T03:04:05.678Z\",\"current_revision\":9007199254740993,\"is_deleted\":false,\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\"}}",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 9007199254740992,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "current_revision"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "is_deleted:missing",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "is_deleted"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected boolean, received undefined",
+          "expected": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "is_deleted:null",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": null,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "is_deleted"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected boolean, received null",
+          "expected": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "is_deleted:wrong_type=string",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": "true",
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "is_deleted"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected boolean, received string",
+          "expected": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "is_deleted:wrong_type=number",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": 0,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "is_deleted"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected boolean, received number",
+          "expected": "boolean"
+        }
+      ]
+    },
+    {
+      "name": "extensions:null",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 3,
+        "is_deleted": true,
+        "extensions": null,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "name": "Example Band 2",
+          "manufacturer": "Example Vendor",
+          "model": "EB-2",
+          "hardware": "rev-b",
+          "serial_number": "SN-0000",
+          "coverage_start_date": "2026-01-01",
+          "coverage_end_date": "2026-01-31",
+          "accepted_record_count": 10
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "extensions"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected record, received null",
+          "expected": "record"
+        }
+      ]
+    },
+    {
+      "name": "extensions:wrong_type=array",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 3,
+        "is_deleted": true,
+        "extensions": [],
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "name": "Example Band 2",
+          "manufacturer": "Example Vendor",
+          "model": "EB-2",
+          "hardware": "rev-b",
+          "serial_number": "SN-0000",
+          "coverage_start_date": "2026-01-01",
+          "coverage_end_date": "2026-01-31",
+          "accepted_record_count": 10
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "extensions"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected record, received array",
+          "expected": "record"
+        }
+      ]
+    },
+    {
+      "name": "extensions:wrong_type=string",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 3,
+        "is_deleted": true,
+        "extensions": "x",
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "name": "Example Band 2",
+          "manufacturer": "Example Vendor",
+          "model": "EB-2",
+          "hardware": "rev-b",
+          "serial_number": "SN-0000",
+          "coverage_start_date": "2026-01-01",
+          "coverage_end_date": "2026-01-31",
+          "accepted_record_count": 10
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "extensions"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected record, received string",
+          "expected": "record"
+        }
+      ]
+    },
+    {
+      "name": "extensions:empty_object",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 3,
+        "is_deleted": true,
+        "extensions": {},
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "name": "Example Band 2",
+          "manufacturer": "Example Vendor",
+          "model": "EB-2",
+          "hardware": "rev-b",
+          "serial_number": "SN-0000",
+          "coverage_start_date": "2026-01-01",
+          "coverage_end_date": "2026-01-31",
+          "accepted_record_count": 10
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 3,
+        "is_deleted": true,
+        "extensions": {},
+        "record_type": "source_device",
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "name": "Example Band 2",
+          "manufacturer": "Example Vendor",
+          "model": "EB-2",
+          "hardware": "rev-b",
+          "serial_number": "SN-0000",
+          "coverage_start_date": "2026-01-01",
+          "coverage_end_date": "2026-01-31",
+          "accepted_record_count": 10
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "record_type:missing",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"source_device\"",
+          "values": [
+            "source_device"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "record_type:null",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": null,
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"source_device\"",
+          "values": [
+            "source_device"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "record_type:literal_other",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "__other__",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"source_device\"",
+          "values": [
+            "source_device"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "record_type:wrong_type=number",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": 1,
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"source_device\"",
+          "values": [
+            "source_device"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "data:missing",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "data"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "data:null",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "data"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "data:wrong_type=array",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "data"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "data:wrong_type=string",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": "x"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "data"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "data:empty_object",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {}
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "data",
+            "source_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "data:nested_unknown_key",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "unknown_nested": true
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "data"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "data:unknown_key",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+          "unknown_data_key": 1
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "data"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_data_key\"",
+          "keys": [
+            "unknown_data_key"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "data:other_record_type_data",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "authorship": {
+            "author": {
+              "author_type": "athlete"
+            },
+            "authored_at": "2026-01-02T03:04:05.678Z",
+            "evidence": [],
+            "content_version": 1,
+            "status": "active"
+          },
+          "title": "Sub-5 Fran"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "data",
+            "source_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "data"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized keys: \"authorship\", \"title\"",
+          "keys": [
+            "authorship",
+            "title"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "record_type:other_valid_type",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "goal",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"source_device\"",
+          "values": [
+            "source_device"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "two_tier:extension_nested_source_id",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        },
+        "extensions": {
+          "org.example/vectors": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+          }
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "extensions": {
+          "org.example/vectors": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+          }
+        },
+        "record_type": "source_device",
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R29",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "two_tier:extension_deep_source_id_in_array",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        },
+        "extensions": {
+          "org.example/vectors": {
+            "items": [
+              {
+                "ok": 1
+              },
+              {
+                "nested": {
+                  "source_id": 1
+                }
+              }
+            ]
+          }
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "extensions": {
+          "org.example/vectors": {
+            "items": [
+              {
+                "ok": 1
+              },
+              {
+                "nested": {
+                  "source_id": 1
+                }
+              }
+            ]
+          }
+        },
+        "record_type": "source_device",
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R29",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "two_tier:extension_source_id_as_value_only",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        },
+        "extensions": {
+          "org.example/vectors": {
+            "note": "source_id",
+            "list": [
+              "source_id"
+            ]
+          }
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "extensions": {
+          "org.example/vectors": {
+            "note": "source_id",
+            "list": [
+              "source_id"
+            ]
+          }
+        },
+        "record_type": "source_device",
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R29",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "two_tier:extension_source_id_as_extension_key",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        },
+        "extensions": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "extensions",
+            "source_id"
+          ],
+          "code": "custom",
+          "message": "extension key must be a namespaced extension id"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R30",
+          "expect": "trigger"
+        },
+        {
+          "rule": "R29",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "two_tier:extension_source_id_hidden_under_proto",
+      "input_text": "{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000064\",\"record_type\":\"source_device\",\"created_at\":\"2026-01-02T03:04:05.678Z\",\"current_revision\":1,\"is_deleted\":false,\"data\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\"},\"extensions\":{\"org.example/vectors\":{\"__proto__\":{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\"}}}}",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        },
+        "extensions": {
+          "org.example/vectors": {
+            "__proto__": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+            }
+          }
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "extensions": {
+          "org.example/vectors": {}
+        },
+        "record_type": "source_device",
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        }
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R29",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "extensions:bad_key",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+        "record_type": "source_device",
+        "created_at": "2026-01-02T03:04:05.678Z",
+        "current_revision": 1,
+        "is_deleted": false,
+        "data": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+        },
+        "extensions": {
+          "Bad Key": 1
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "extensions",
+            "Bad Key"
+          ],
+          "code": "custom",
+          "message": "extension key must be a namespaced extension id"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R30",
+          "expect": "trigger"
+        }
+      ]
+    }
+  ]
+}
