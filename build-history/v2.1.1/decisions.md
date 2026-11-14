@@ -99,3 +99,99 @@ Rejected alternatives:
   metadata and internal storage changes still need a verified backup.
 - Redesign athlete-owned fields during the rebuild. Rejected because the selected
   work is an implementation replacement with compatible public behavior.
+
+## D212. Each record shape is declared once and matches the published validator
+
+Each record type, part, and enum is declared once in `native/src/model/`. That
+one declaration produces the Rust type, the structural validator, and the JSON
+Schema. Refinements that JSON Schema cannot express run as checks attached to
+the same declaration. Validation reports every issue with the path, code, and
+wording the 2.1.0 validator used, in the same order.
+
+Errors are part of what a person and an agent read. Matching them means a
+correction that worked against 2.1.0 still works. The 7,399 recorded 2.1.0
+validation cases are the test: all 7,285 comparable cases match exactly. The
+generated JSON Schema files match the published 2.1.0 files byte for byte apart
+from the version list and schema IDs, which shows the structure is unchanged.
+
+Rejected alternatives:
+
+- Derive validation from Serde alone. Rejected because Serde stops at the first
+  error, accepts `null` for optional fields, and words errors differently.
+- Generate JSON Schema with Schemars. Rejected because its layout differs from the
+  published files, so agreement could only be argued, not compared byte for byte.
+- Keep a separate hand-written schema next to the Rust types. Rejected because
+  it repeats every field in two places (spec section 3, item 1).
+
+## D213. Stored and exported JSON follows JavaScript's rules
+
+The library writes JSON the way JavaScript's `JSON.stringify` does. Numbers
+print as `Number.prototype.toString` prints them. Keys that look like array
+indexes come first. Deterministic package files sort the other keys by UTF-16
+code units. Replaying the demo history through the native writer reproduces
+every row in all 40 athlete tables byte for byte.
+
+Stored record JSON and package files were written by 2.1.0. Keeping the same
+bytes keeps package hashes, direct-SQL comparisons, and conflict detection
+stable across the rebuild.
+
+Rejected alternatives:
+
+- Use the Rust JSON library's own writer. Rejected because it prints `100.0`
+  for 100 and keeps insertion order for index-like keys, which changes bytes.
+
+## D214. A `__proto__` key is kept and checked
+
+The native reader keeps a `__proto__` key in supplied fields and extensions like
+any other key, and every rule applies to it. The 2.1.0 validator dropped such a
+key and everything under it. That hid a nested `source_id` from the rule that
+athlete-reported records cannot claim a source (the two-tier wall).
+
+Rejected alternatives:
+
+- Drop the key as 2.1.0 did. Rejected because a JavaScript object quirk must not
+  open a gap in the two-tier wall.
+
+## D215. Backtest replays cut off before the result was first known
+
+A backtest replay now stops one millisecond before the earlier of the result's
+event time and the time the database first learned of it. The same cutoff
+filters event times and knowledge times. In 2.1.0 the cutoff followed the
+result's latest revision, so a corrected result could show the model its own
+first revision, and a result logged late let the model see later events.
+
+This is the rule spec section 10 states. Regressions cover a corrected outcome
+and a late import.
+
+Rejected alternatives:
+
+- Keep the 2.1.0 cutoff to match old reports. Rejected because a replay that
+  can see its answer does not measure prediction.
+
+## D216. The step-5 SQL contract waits until the cutover
+
+The updated `spec/sql/contract.json` and `spec/sql/README.md` for SQL schema step
+5 live in `native/pending-publication/` until the cutover. The 2.1.0 test suite
+compares the published contract with its own generator. That suite must pass
+on every commit while the old implementation remains (AGENTS.md). Migration
+`005-version-2-1-1.sql` is new and does not disturb that comparison, so it is
+in `spec/sql/migrations/` already.
+
+Rejected alternatives:
+
+- Update the published contract now and let one old test fail. Rejected because
+  every commit must pass the existing checks.
+- Teach the 2.1.0 generator about step 5. Rejected because the 2.1.0 program
+  cannot run step 5.
+
+## D217. The rebuild runs as parallel tracks merged into one branch
+
+Each part of the rebuild was built on its own branch from the shared model and
+store, then merged into `build/native-2-1-1`. Every merge runs the full native
+suite and the 2.1.0 suite. Behavior differences are listed one by one in
+`native/reference/deliberate-changes.md` with the test that proves each.
+
+Rejected alternatives:
+
+- Build every part in one working tree. Rejected because one part that does not
+  compile would stop work on every other part.
