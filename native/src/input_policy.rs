@@ -39,6 +39,29 @@ pub const DETECTION_HEADER_BYTES: usize = 8192;
 /// UTF-16 code units of a `.json` file inspected to recognize a Garmin activity.
 pub const DETECTION_JSON_HEAD_CHARS: usize = 8000;
 
+// ---- Apple Health exports (import) ---------------------------------------
+//
+// These carry forward the 2.1.0 limits in `src/import/apple.ts`. The 2.1.0
+// helper also returned its whole result through a 64 MiB output buffer, so a
+// large export failed outright. The native reader has no such limit: it
+// streams `export.xml`, and records that must wait for later files (samples
+// sorted by day, sleep fragments joined into nights, workouts waiting for
+// their route files) wait in a private temporary SQLite file, not in memory.
+//
+// - `export.xml` in a folder, or as a zip entry measured while it expands, is
+//   refused over `MAX_APPLE_XML_BYTES`.
+// - Each GPX route file and ECG CSV is read whole, so each is refused over
+//   `MAX_PROVIDER_TEXT_BYTES` in a folder or `MAX_ZIP_MEMORY_ENTRY_BYTES` in a
+//   zip. Only one is held at a time.
+// - A folder export lists at most `MAX_PROVIDER_FILES` files, and a zip at most
+//   `MAX_ZIP_ENTRIES` entries.
+// - A route file is read only from `workout-routes/` beside `export.xml`, and a
+//   bare `export.xml` reads only its `workout-routes/` and
+//   `electrocardiograms/` folders. A symbolic link refuses the export.
+
+/// Bytes of one Apple Health `export.xml`: 16 GiB.
+pub const MAX_APPLE_XML_BYTES: u64 = MAX_ZIP_ENTRY_BYTES;
+
 /// Staged plan rows written or applied per batch. This bounds memory while one
 /// transaction covers the complete import.
 pub const IMPORT_BATCH_RECORDS: usize = 500;

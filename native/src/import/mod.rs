@@ -9,7 +9,9 @@
 //! - `staging` holds the plan in a private temporary SQLite file.
 //! - `csv`, `units`, `instant`, and `collate` are shared reading rules.
 //! - `whoop` is the WHOOP reader.
+//! - `apple` is the Apple Health reader, with its routes, ECGs, and HRV.
 
+pub mod apple;
 pub mod candidate;
 pub mod collate;
 pub mod csv;

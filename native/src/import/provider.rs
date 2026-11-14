@@ -84,7 +84,8 @@ pub trait ProviderReader {
 pub fn reader_for(format: ExportFormat) -> Option<&'static dyn ProviderReader> {
     match format {
         ExportFormat::Whoop => Some(&super::whoop::WhoopReader),
-        ExportFormat::Apple | ExportFormat::Oura => None,
+        ExportFormat::Apple => Some(&super::apple::AppleReader),
+        ExportFormat::Oura => None,
     }
 }
 

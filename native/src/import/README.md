@@ -39,6 +39,13 @@ A reader may read files with the helpers in `input.rs`, `detect.rs`
 (`read_csv_bundle`), `csv.rs`, and `units.rs`. It must not open the athlete
 database, decide whether a record is new, or prompt.
 
+A reader sends candidates in plan order within each section. When a record
+cannot be sent as it is read, the reader keeps it in its own private
+temporary file, never in a list that grows with the export. The Apple Health
+reader does this: it streams `export.xml`, keeps samples, sleep fragments,
+and workouts in `apple/scratch.rs` until their order and route files are
+known, and then sends them.
+
 The sink offers these calls:
 
 - `export_source(writer, vendor, sensor) -> String` declares a source and
@@ -100,8 +107,9 @@ that names a deleted record or another record type is a conflict.
 ## Proof
 
 Each route compares its output with the 2.1.0 implementation.
-`native/tools/reference/import-golden.ts` runs the old library on synthetic
-inputs and writes golden files under `native/tests/golden/import/`. A Rust test
+`native/tools/reference/import-golden.ts` (WHOOP) and
+`import-golden-apple.ts` (Apple Health) run the old library on synthetic
+inputs and write golden files under `native/tests/golden/import/`. A Rust test
 replays the same steps and requires the same preview, write result, stored JSON
 for every revision, and import keys. Name golden files without provider words;
 the public-data check reads such names as health exports.
