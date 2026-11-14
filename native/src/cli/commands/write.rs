@@ -4,7 +4,7 @@
 
 use super::shared::{confirm_flags, proceed, required_argument, with_store, Open};
 use crate::cli::parse::Args;
-use crate::cli::runtime::{refuse, CommandResult, Context, Failure};
+use crate::cli::runtime::{refuse, CommandResult, Context};
 use crate::ids::new_record_id;
 use crate::import::{self, ImportOptions, ImportRoute, ProviderPreview};
 use crate::json;
@@ -94,21 +94,15 @@ pub fn grade(context: &mut Context<'_>, args: &Args) -> CommandResult {
     })
 }
 
-/// `ath import <path>`. Provider exports and packages are connected. Mapped
-/// JSON files and Garmin and Strava inputs have their own library
-/// operations, which are not connected to this executable yet.
+/// `ath import <path>`, in the 2.1.0 route order: a file read through
+/// `--mapping`, Garmin and Strava data, a provider export, or a package.
 pub fn import(context: &mut Context<'_>, args: &Args) -> CommandResult {
     let athlete_path = context.find_database(args.value("file"))?;
     let input = context.resolve(required_argument(args, "path"));
     let route = import::classify(&input, args.value("mapping").is_some())?;
-    let not_connected = |what: &str| {
-        Err(Failure::NotConnected(format!(
-            "ath import of {what} is not connected to the native library yet; nothing was read or written"
-        )))
-    };
     match route {
-        ImportRoute::Mapped => return not_connected("a file with --mapping"),
-        ImportRoute::Shared(shared) => return not_connected(&format!("{} data", shared.as_str())),
+        ImportRoute::Mapped => return super::routes::import_mapped(context, args, &athlete_path, &input),
+        ImportRoute::Shared(kind) => return super::routes::import_shared(context, args, &athlete_path, &input, kind),
         ImportRoute::Package => {
             return super::shared::with_store_at(context, &athlete_path, args.flag("json"), Open::Write, |c, s, _| {
                 super::package::import_package(c, s, &input, args)

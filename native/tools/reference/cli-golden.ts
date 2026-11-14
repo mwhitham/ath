@@ -61,9 +61,18 @@ const COPYABLE = {
   wearable_csv: "tests/fixtures/exports/whoop",
   package_2_0_0: "tests/fixtures/version-2-0-0/package",
   png: "examples/demo-athlete/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png",
+  mapped_summaries: "tests/fixtures/exports/open-wearables/summaries.json",
+  junction_summaries: "tests/fixtures/exports/junction/summaries.json",
+  rmssd_mapping: "tests/fixtures/mappings/last-night-rmssd.md",
+  activity_json: "tests/fixtures/exports/garmin/park-loop.json",
+  gpx_track: "tests/fixtures/exports/garmin/namespaced-hr.gpx",
+  fit_file: "tests/fixtures/exports/garmin/synthetic-position.fit",
+  ride_folder: "tests/fixtures/exports/strava",
+  ring_csv: "tests/fixtures/exports/oura",
 } as const;
 
 interface Step {
+  /** `<server>` stands for the local test server's root. */
   argv: string[];
   stdin?: string;
   env?: Record<string, string>;
@@ -112,6 +121,7 @@ const NUTRITION_DATA = JSON.stringify({
   attachment_ids: ["01890f3e-e7d3-7cc0-88c8-00000000000e"],
 });
 const KEY = { AI_GATEWAY_API_KEY: "test-vercel-key" };
+const GARMIN_KEY = { GARMIN_PERSONAL_API_KEY: "test-personal-key" };
 const BOTH_KEYS = { AI_GATEWAY_API_KEY: "test-vercel-key", OPENROUTER_API_KEY: "test-openrouter-key" };
 const DAMAGE = [
   "UPDATE point_measurements SET standard_value = standard_value + 1 WHERE record_id = (SELECT record_id FROM point_measurements ORDER BY record_id LIMIT 1)",
@@ -589,6 +599,94 @@ const GROUPS: Record<string, Scenario[]> = {
       ],
     },
   ],
+  routes: [
+    {
+      name: "mapped_file",
+      fixture: "none",
+      copy: { "summaries.json": "mapped_summaries", "rmssd.md": "rmssd_mapping" },
+      steps: [
+        step(["init", "--yes", "--no-skill"]),
+        step(["import", "summaries.json", "--mapping", "open-wearables"]),
+        step(["import", "summaries.json", "--mapping", "open-wearables", "--json"]),
+        step(["import", "summaries.json", "--mapping", "open-wearables", "--yes", "--json"]),
+        step(["import", "summaries.json", "--mapping", "open-wearables", "--yes"]),
+        step(["import", "summaries.json", "--mapping", "open-wearables", "--yes"]),
+        step(["import", "summaries.json", "--mapping", "open-wearables", "--json"]),
+        step(["import", "summaries.json", "--mapping", "missing"]),
+        step(["import", "summaries.json", "--mapping", "./missing.md"]),
+        step(["import", "summaries.json", "--mapping", "./rmssd.md", "--yes"]),
+        step(["check"]),
+      ],
+    },
+    {
+      name: "mapped_file_second_mapping_and_installed_copy",
+      fixture: "none",
+      dirs: [".agents/mappings"],
+      copy: {
+        "summaries.json": "mapped_summaries",
+        "junction.json": "junction_summaries",
+        ".agents/mappings/open-wearables.md": "rmssd_mapping",
+      },
+      steps: [
+        step(["init", "--yes", "--no-skill"]),
+        step(["import", "junction.json", "--mapping", "junction", "--yes"]),
+        step(["import", "summaries.json", "--mapping", "open-wearables", "--yes"]),
+        step(["stats"]),
+      ],
+    },
+    {
+      name: "activity_files",
+      fixture: "none",
+      copy: {
+        "loop.json": "activity_json",
+        "track.gpx": "gpx_track",
+        "ride.fit": "fit_file",
+        "rides": "ride_folder",
+      },
+      steps: [
+        step(["init", "--yes", "--no-skill"]),
+        step(["import", "loop.json"]),
+        step(["import", "loop.json", "--json"]),
+        step(["import", "loop.json", "--yes"]),
+        step(["import", "loop.json", "--yes"]),
+        step(["import", "track.gpx", "--yes", "--json"]),
+        step(["import", "track.gpx", "--yes"]),
+        step(["import", "ride.fit"]),
+        step(["import", "ride.fit", "--yes"]),
+        step(["import", "rides"]),
+        step(["import", "rides", "--yes"]),
+        step(["stats"]),
+        step(["check"]),
+      ],
+    },
+    {
+      name: "ring_csv",
+      fixture: "none",
+      copy: { ring: "ring_csv" },
+      steps: [
+        step(["init", "--yes", "--no-skill"]),
+        step(["import", "ring", "--json"]),
+        step(["import", "ring"]),
+        step(["import", "ring", "--yes"]),
+        step(["import", "ring"]),
+        step(["stats"]),
+      ],
+    },
+    {
+      name: "personal_connection",
+      fixture: "none",
+      steps: [
+        step(["init", "--yes", "--no-skill"]),
+        step(["pull", "garmin", "--date", "2026-08-09", "--base-url", "<server>/personal"]),
+        step(["pull", "strava", "--date", "2026-08-09"]),
+        step(["pull", "garmin", "--date", "2026-08-09", "--base-url", "<server>/personal"], { env: GARMIN_KEY }),
+        step(["pull", "garmin", "--date", "2026-08-09", "--base-url", "<server>/personal", "--json"], { env: GARMIN_KEY }),
+        step(["pull", "garmin", "--date", "2026-08-10", "--base-url", "<server>/personal", "--json"], { env: GARMIN_KEY }),
+        step(["records", "list", "--type", "workout_session"]),
+        step(["key", "set", "garmin"]),
+      ],
+    },
+  ],
 };
 
 // ---------------------------------------------------------------------------
@@ -669,10 +767,40 @@ function respond(response: ServerResponse, status: number, body: unknown): void 
   response.end(JSON.stringify(body));
 }
 
+/** What the local server answers for the Garmin personal connection. */
+const PERSONAL_ACTIVITIES = [
+  {
+    activityId: 7001,
+    activityName: "Invented personal loop",
+    startTimeGMT: "2026-08-09T15:00:00.000Z",
+    duration: 600,
+    activityType: { typeKey: "running" },
+  },
+  { summaryOnly: true, distance: 5 },
+];
+const PERSONAL_HRV = { LastNightAvg: 41, weeklyAvg: 44, status: "BALANCED" };
+
+function personal(path: string, method: string, response: ServerResponse): boolean {
+  if (!path.startsWith("/personal/")) return false;
+  const rest = path.slice("/personal".length);
+  if (method === "POST" && rest.endsWith("/personal-api-key/token")) {
+    response.writeHead(200, { "content-type": "text/plain" });
+    response.end("aaa.bbb.ccc");
+  } else if (rest.startsWith("/activitylist-service/activities/search/activities")) {
+    respond(response, 200, PERSONAL_ACTIVITIES);
+  } else if (rest === "/hrv-service/hrv/2026-08-09") {
+    respond(response, 200, PERSONAL_HRV);
+  } else {
+    respond(response, 404, { error: "not found" });
+  }
+  return true;
+}
+
 function handle(request: IncomingMessage, response: ServerResponse): void {
   const chunks: Buffer[] = [];
   request.on("data", (chunk: Buffer) => chunks.push(chunk));
   request.on("end", () => {
+    if (personal(request.url ?? "", request.method ?? "", response)) return;
     if (request.method === "GET" && request.url === "/models") return respond(response, 200, CATALOG);
     if (request.method === "POST" && request.url === "/chat/completions") {
       const body = JSON.parse(Buffer.concat(chunks).toString("utf8")) as { model: string };
@@ -809,7 +937,8 @@ async function main(): Promise<void> {
             ATH_GATEWAY_BASE_URL: gateway,
             ...(item.env ?? {}),
           };
-          runs.push(await runOld(item.argv, work, env, item.stdin ?? "", preload));
+          const argv = item.argv.map((word) => word.split("<server>").join(gateway));
+          runs.push(await runOld(argv, work, env, item.stdin ?? "", preload));
         }
         window.to = Date.now() + 5_000;
         scenario.steps.forEach((item, index) => {

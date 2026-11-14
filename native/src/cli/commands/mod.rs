@@ -13,6 +13,7 @@ mod init;
 mod model;
 mod package;
 mod read;
+mod routes;
 mod setup;
 mod shared;
 mod write;
@@ -44,6 +45,7 @@ pub fn handler(path: &[&str]) -> Handler {
         ["conflicts", "resolve"] => package::conflicts_resolve,
         ["export"] => package::export,
         ["erase"] => package::erase,
+        ["pull"] => routes::pull,
         ["log"] => write::log,
         ["link"] => edit::link,
         ["correct"] => edit::correct,
@@ -63,9 +65,9 @@ pub fn handler(path: &[&str]) -> Handler {
     }
 }
 
-/// Command paths whose handlers are connected to the native library.
-/// `import` still refuses a mapped file and Garmin or Strava data as not
-/// connected.
+/// Command paths whose handlers are connected to the native library. An
+/// Apple Health export is refused by the import library until its reader is
+/// added.
 pub const CONNECTED: &[&[&str]] = &[
     &[],
     &["init"],
@@ -82,6 +84,7 @@ pub const CONNECTED: &[&[&str]] = &[
     &["conflicts", "resolve"],
     &["export"],
     &["erase"],
+    &["pull"],
     &["log"],
     &["link"],
     &["correct"],

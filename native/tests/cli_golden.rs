@@ -20,6 +20,9 @@
 //! - `share` finds the report `backtest` writes (deliberate-changes.md 5).
 //! - `conflicts show` without a conflict file says how to make one
 //!   (deliberate-changes.md 32).
+//! - A keyed import (Garmin, Strava, mapped, pull) advances the database
+//!   revision once and matches an unchanged repeat (deliberate-changes.md 42
+//!   and 44), so later revision numbers in those scenarios read `<n>`.
 //!
 //! Model calls go to a local 127.0.0.1 server through ATH_GATEWAY_BASE_URL.
 //! A fake `security` and `secret-tool` first on the path stand in for the
@@ -249,6 +252,38 @@ fn share_finds_the_report(expected: &str) -> String {
         .replace("\"latest_report\": null", &format!("\"latest_report\": \"{report}\""))
 }
 
+/// Scenarios whose later output shows the revisions a keyed import wrote.
+/// The 2.1.0 helper advanced the database revision once per record and
+/// wrote a revision of every record on an unchanged repeat; the native import
+/// advances it once per import and matches an unchanged repeat
+/// (deliberate-changes.md 42 and 44). There, revision numbers in `stats` and
+/// `records list` are compared as `<n>`.
+const KEYED_REVISION_SCENARIOS: &[&str] =
+    &["mapped_file_second_mapping_and_installed_copy", "activity_files", "personal_connection"];
+
+fn keyed_revisions(text: &str) -> String {
+    let mut out = Vec::new();
+    for line in text.split('\n') {
+        if line.starts_with("database revision: ") {
+            out.push("database revision: <n>".to_string());
+            continue;
+        }
+        let mut words = line.splitn(2, ' ');
+        let first = words.next().unwrap_or("");
+        let rest = words.next().unwrap_or("");
+        let trimmed = rest.trim_start();
+        let number_end = trimmed.find(' ').unwrap_or(trimmed.len());
+        let is_record_row = first.starts_with("<id-") || first.len() == 36;
+        if is_record_row && number_end > 0 && trimmed[..number_end].bytes().all(|byte| byte.is_ascii_digit()) {
+            let padding = &rest[..rest.len() - trimmed.len()];
+            out.push(format!("{first} {padding}<n>{}", &trimmed[number_end..]));
+        } else {
+            out.push(line.to_string());
+        }
+    }
+    out.join("\n")
+}
+
 /// 2.1.0 printed some refusals twice (S4). The native program prints one.
 fn refusal_once(stderr: &str) -> String {
     let mut lines: Vec<&str> = Vec::new();
@@ -266,6 +301,22 @@ fn refusal_once(stderr: &str) -> String {
 
 const CATALOG: &str = r#"{"data":[{"id":"test/steady","name":"Steady","reasoning":true},{"id":"test/down","reasoning":true},{"id":"test/embedder","type":"embedding","reasoning":true}]}"#;
 const STEADY_REPLY: &str = r#"{"predicted_score":{"duration_s":290},"predicted_range":{"low":{"duration_s":280},"high":{"duration_s":300}},"confidence":"moderate","reasoning":"Anchored on the latest result."}"#;
+
+const PERSONAL_ACTIVITIES: &str = r#"[{"activityId":7001,"activityName":"Invented personal loop","startTimeGMT":"2026-08-09T15:00:00.000Z","duration":600,"activityType":{"typeKey":"running"}},{"summaryOnly":true,"distance":5}]"#;
+const PERSONAL_HRV: &str = r#"{"LastNightAvg":41,"weeklyAvg":44,"status":"BALANCED"}"#;
+
+/// The Garmin personal connection's three requests.
+fn personal(post: bool, path: &str) -> (u16, String) {
+    if post && path.ends_with("/personal-api-key/token") {
+        (200, "aaa.bbb.ccc".to_string())
+    } else if path.starts_with("/activitylist-service/activities/search/activities") {
+        (200, PERSONAL_ACTIVITIES.to_string())
+    } else if path == "/hrv-service/hrv/2026-08-09" {
+        (200, PERSONAL_HRV.to_string())
+    } else {
+        (404, r#"{"error":"not found"}"#.to_string())
+    }
+}
 
 fn serve_model_requests() -> String {
     let listener = TcpListener::bind("127.0.0.1:0").unwrap();
@@ -292,7 +343,10 @@ fn serve_model_requests() -> String {
             }
             let mut body = vec![0; length];
             let _ = reader.read_exact(&mut body);
-            let (status, reply) = if request_line.starts_with("GET /models ") {
+            let path = request_line.split(' ').nth(1).unwrap_or("");
+            let (status, reply) = if let Some(rest) = path.strip_prefix("/personal") {
+                personal(request_line.starts_with("POST "), rest)
+            } else if request_line.starts_with("GET /models ") {
                 (200, CATALOG.to_string())
             } else if request_line.starts_with("POST /chat/completions ") {
                 let request: Value = serde_json::from_slice(&body).unwrap_or(Value::Null);
@@ -340,6 +394,14 @@ fn copyable_path(name: &str) -> PathBuf {
         "wearable_csv" => "tests/fixtures/exports/whoop",
         "package_2_0_0" => "tests/fixtures/version-2-0-0/package",
         "png" => "examples/demo-athlete/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png",
+        "mapped_summaries" => "tests/fixtures/exports/open-wearables/summaries.json",
+        "junction_summaries" => "tests/fixtures/exports/junction/summaries.json",
+        "rmssd_mapping" => "tests/fixtures/mappings/last-night-rmssd.md",
+        "activity_json" => "tests/fixtures/exports/garmin/park-loop.json",
+        "gpx_track" => "tests/fixtures/exports/garmin/namespaced-hr.gpx",
+        "fit_file" => "tests/fixtures/exports/garmin/synthetic-position.fit",
+        "ride_folder" => "tests/fixtures/exports/strava",
+        "ring_csv" => "tests/fixtures/exports/oura",
         other => panic!("unknown copyable files {other}"),
     })
 }
@@ -456,8 +518,12 @@ fn compare_group(group: &str) -> Vec<String> {
         prepare(scenario, &work, &home);
         let mut runs = Vec::new();
         for step in scenario["steps"].as_array().unwrap() {
-            let argv: Vec<String> =
-                step["argv"].as_array().unwrap().iter().map(|word| word.as_str().unwrap().to_string()).collect();
+            let argv: Vec<String> = step["argv"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(|word| word.as_str().unwrap().replace("<server>", &gateway))
+                .collect();
             let mut env = vec![
                 ("PATH".to_string(), format!("{}:/usr/bin:/bin", bin.display())),
                 ("HOME".to_string(), home.display().to_string()),
@@ -486,6 +552,13 @@ fn compare_group(group: &str) -> Vec<String> {
                 // deliberate-changes.md 32: the missing file says how to make one.
                 expected_stderr =
                     "ath: no temporary import conflicts; run ath import <package> to create a preview\n".to_string();
+            }
+            let mut stdout = stdout;
+            if KEYED_REVISION_SCENARIOS.contains(&name)
+                && matches!(argv.first().map(String::as_str), Some("stats" | "records"))
+            {
+                stdout = keyed_revisions(&stdout);
+                expected_stdout = keyed_revisions(&expected_stdout);
             }
             let same_stdout = if argv.first().map(String::as_str) == Some("log") {
                 same_lines_in_any_order(&stdout, &expected_stdout)
@@ -535,6 +608,11 @@ fn write_commands_match_2_1_0() {
 #[test]
 fn package_commands_match_2_1_0() {
     assert_group("package");
+}
+
+#[test]
+fn keyed_import_routes_and_the_personal_connection_match_2_1_0() {
+    assert_group("routes");
 }
 
 #[test]

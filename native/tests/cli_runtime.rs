@@ -304,46 +304,18 @@ fn bare_ath_prints_the_guide() {
     assert_eq!(update.stderr, "ath: This ath was not installed globally, so nothing was changed.\n");
 }
 
-/// The smallest words that reach a command's handler.
-fn minimal_argv(path: &[&'static str], command: &spec::CommandSpec) -> Vec<String> {
-    let mut argv: Vec<String> = path.iter().map(ToString::to_string).collect();
-    for argument in command.arguments.iter().filter(|argument| argument.required) {
-        argv.push(format!("{}-value", argument.name));
-    }
-    for option in command.options.iter().filter(|option| option.mandatory) {
-        argv.push(option.long().to_string());
-        argv.push("1".to_string());
-    }
-    argv
-}
-
 #[test]
-fn unconnected_commands_say_so_and_touch_nothing() {
-    let folder = private_folder();
+fn every_command_is_connected() {
     let connected = athleticstandard::cli::commands::CONNECTED;
-    let mut checked = Vec::new();
-    for (path, command) in spec::all_commands() {
-        // `init` runs its checks and questions before its own "not connected" refusal.
-        if !command.action || connected.contains(&path.as_slice()) || path == ["init"] {
-            continue;
-        }
-        let argv = minimal_argv(&path, command);
-        let words: Vec<&str> = argv.iter().map(String::as_str).collect();
-        let output = Session::piped(folder.path()).run(&words);
-        assert_eq!(
-            (output.status, output.stdout.as_str(), output.stderr),
-            (
-                1,
-                "",
-                format!(
-                    "ath: ath {} is not connected to the native library yet; nothing was read or written\n",
-                    path.join(" ")
-                )
-            ),
-            "{argv:?}"
-        );
-        checked.push(path.join(" "));
+    let missing: Vec<String> = spec::all_commands()
+        .into_iter()
+        .filter(|(path, command)| command.action && !connected.contains(&path.as_slice()))
+        .map(|(path, _)| path.join(" "))
+        .collect();
+    assert!(missing.is_empty(), "{missing:?}");
+    for path in connected {
+        let handler = athleticstandard::cli::commands::handler(path);
+        let not_connected: athleticstandard::cli::commands::Handler = athleticstandard::cli::commands::not_connected;
+        assert!(!std::ptr::fn_addr_eq(handler, not_connected), "{path:?} routes to not_connected");
     }
-    assert_eq!(checked, ["pull"]);
-    assert_eq!(std::fs::read_dir(folder.path()).unwrap().count(), 0);
 }
