@@ -1142,21 +1142,42 @@ fn round4(value: f64) -> f64 {
 
 /// The human text `ath calculate` printed.
 pub fn render_calculation(receipt: &CalculationReceipt) -> String {
-    let mut lines = vec![format!(
-        "{}: {} {} ({})",
-        receipt.operation.as_str(),
-        receipt.record_kind.as_str(),
-        receipt.quantity,
-        receipt.unit
-    )];
-    if let Some(period_type) = receipt.provider_period_type {
-        lines.push(format!("provider period: {}", period_type.as_str()));
+    render_calculation_value(&json::to_value(receipt))
+}
+
+/// The same text from a receipt's JSON form, which is what the JavaScript
+/// `renderCalculation` receives. A missing field prints as JavaScript
+/// template text does.
+pub fn render_calculation_value(receipt: &Value) -> String {
+    fn text(value: Option<&Value>) -> String {
+        match value {
+            None => "undefined".to_string(),
+            Some(Value::String(text)) => text.clone(),
+            Some(Value::Number(number)) => json::format_number(json::number_as_f64(number)),
+            Some(Value::Array(items)) => items.iter().map(|item| text(Some(item))).collect::<Vec<_>>().join(","),
+            Some(Value::Object(_)) => "[object Object]".to_string(),
+            Some(other) => json::to_string(other),
+        }
     }
-    lines.push(format!("method: {}", receipt.method));
-    let count = receipt.input.record_count;
-    lines.push(format!("inputs: {count} record{}", if count == 1 { "" } else { "s" }));
-    lines.push(format!("sources: {}", receipt.sources.join(", ")));
-    lines.push(json::to_pretty(&json::to_value(&receipt.result)));
+    let field = |key: &str| text(receipt.get(key));
+    let mut lines =
+        vec![format!("{}: {} {} ({})", field("operation"), field("record_kind"), field("quantity"), field("unit"))];
+    if let Some(period_type) = receipt.get("provider_period_type") {
+        lines.push(format!("provider period: {}", text(Some(period_type))));
+    }
+    lines.push(format!("method: {}", field("method")));
+    let count = receipt.get("input").and_then(|input| input.get("record_count"));
+    let plural = if count.and_then(Value::as_f64) == Some(1.0) { "" } else { "s" };
+    lines.push(format!("inputs: {} record{plural}", text(count)));
+    let sources = match receipt.get("sources") {
+        Some(Value::Array(items)) => items.iter().map(|item| text(Some(item))).collect::<Vec<_>>().join(", "),
+        other => text(other),
+    };
+    lines.push(format!("sources: {sources}"));
+    lines.push(match receipt.get("result") {
+        Some(result) => json::to_pretty(result),
+        None => "undefined".to_string(),
+    });
     lines.join("\n")
 }
 

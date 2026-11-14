@@ -35,11 +35,25 @@ pub fn format_migration_backup_timestamp(now_millis: i64) -> String {
     format!("{}Z", iso.replacen('Z', "", 1))
 }
 
+/// The same stamp from a JavaScript `Date.toISOString()` text, which can name
+/// years outside 0–9999.
+pub fn format_iso_backup_timestamp(iso: &str) -> String {
+    let compact: String = iso.chars().filter(|c| *c != '-' && *c != ':').collect();
+    format!("{}Z", compact.replacen('Z', "", 1))
+}
+
 /// `<database>.migration-backup.<time>-<n>.sqlite`. The counter makes two
 /// names planned in the same millisecond differ.
 pub fn default_migration_backup_path(database_path: &Path, now_millis: i64) -> PathBuf {
     let stamp = format_migration_backup_timestamp(now_millis);
     files::sidecar(database_path, &format!(".migration-backup.{stamp}-{}.sqlite", next_sequence()))
+}
+
+/// The migration backup name for an ISO time and a counter value the caller
+/// keeps. The JavaScript client keeps the counter across worker processes.
+pub fn migration_backup_path(database_path: &Path, iso: &str, sequence: u32) -> PathBuf {
+    let stamp = format_iso_backup_timestamp(iso);
+    files::sidecar(database_path, &format!(".migration-backup.{stamp}-{sequence}.sqlite"))
 }
 
 /// `<database>.repair-backup.<time>-<n>.sqlite`.

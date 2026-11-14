@@ -17,6 +17,7 @@ pub mod log;
 pub mod model;
 pub mod package;
 pub mod prediction;
+pub mod protocol;
 pub mod runtime;
 pub mod store;
 pub mod view;
