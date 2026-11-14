@@ -44,6 +44,15 @@ build-history/
 Version 2.1.0 is the software now. The program, the record, and the database
 use that number.
 
+The selected next build is the complete native rebuild for version 2.1.1:
+
+- [Version 2.1.1 specification](v2.1.1/spec.md)
+- [Version 2.1.1 decisions](v2.1.1/decisions.md)
+- [Version 2.1.1 progress](v2.1.1/progress.md)
+
+The unapproved [3.0.0 draft](v3.0.0/spec.md) remains as history. Its proposed
+public API removals are not part of the selected 2.1.1 build.
+
 ## Why
 
 Specs written in chat threads and planning sessions evaporate. Six months from now, "why is there no MCP server?" or "why TypeScript?" should be answerable by reading this folder, not by archaeology. Each version's `decisions.md` records the alternatives that were considered and rejected, because the rejected options are the part everyone forgets. Each version's `appendix/` holds the long-form research those decisions rest on.
