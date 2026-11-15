@@ -613,7 +613,8 @@ async function bulk(kind = "bulk"): Promise<void> {
   const facts = readFacts();
   const work = privateDirectory(join(dataset, "work"));
   const kept: Partial<Record<Implementation, string>> = {};
-  for (let runNumber = 1; runNumber <= runs; runNumber++) {
+  const firstRun = number("first-run", 1);
+  for (let runNumber = firstRun; runNumber < firstRun + runs; runNumber++) {
     if (operations.has("export")) {
       for (const implementation of orderFor(runNumber)) {
         const destination = join(work, `export-${implementation}-${runNumber}`);
@@ -879,7 +880,7 @@ async function library(): Promise<void> {
           String(repetitions),
           "--bulk-repetitions",
           "1",
-          ...(runNumber === 1 ? ["--plans"] : []),
+          ...(runNumber === 1 && !args.flags.has("no-plans") ? ["--plans"] : []),
         ]);
         rmSync(runWork, { recursive: true, force: true });
       }
