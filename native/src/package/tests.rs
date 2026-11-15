@@ -455,6 +455,17 @@ fn assert_empty(database: &Path, point: &str) {
     assert!(records.is_empty(), "{point}");
 }
 
+/// A restore into an empty database runs in a rollback journal. Afterwards
+/// the file is in WAL mode, as every database is, and no journal is left.
+fn assert_wal_without_journal(database: &Path, point: &str) {
+    let mode: String = rusqlite::Connection::open(database)
+        .unwrap()
+        .pragma_query_value(None, "journal_mode", |row| row.get(0))
+        .unwrap();
+    assert_eq!(mode, "wal", "{point}");
+    assert!(!files::sidecar(database, "-journal").exists(), "{point}");
+}
+
 #[test]
 fn a_failed_restore_writes_nothing() {
     for point in RESTORE_POINTS {
@@ -462,6 +473,7 @@ fn a_failed_restore_writes_nothing() {
         let database = empty_database(&directory);
         demo_package(&directory);
         assert!(armed(point, || restore_demo(&directory)).is_err(), "{point}");
+        assert_wal_without_journal(&database, point);
         assert_empty(&database, point);
         assert!(files_in(&directory.join("attachments")).is_empty(), "{point}");
         assert!(pending(&database).is_empty(), "{point}");
@@ -483,6 +495,7 @@ fn a_stopped_restore_is_not_partial_and_can_run_again() {
         drop(store);
         let applied = restore_demo(&directory).unwrap();
         assert!(applied.restored, "{point}");
+        assert_wal_without_journal(&database, point);
         assert_no_missing_attachment_files(&database);
         assert!(pending(&database).is_empty(), "{point}");
         fs::remove_dir_all(directory).unwrap();
@@ -495,6 +508,7 @@ fn a_restore_stopped_after_commit_is_complete() {
     let database = empty_database(&directory);
     demo_package(&directory);
     stop_child_at("package::tests::child_restore", "restore.after_commit", &directory);
+    assert_wal_without_journal(&database, "restore.after_commit");
     assert_eq!(open(&database).database_revision().unwrap(), 3);
     assert!(pending(&database).is_empty());
     assert_no_missing_attachment_files(&database);
@@ -552,5 +566,50 @@ fn a_series_file_changed_after_load_is_refused() {
     fs::write(&file.path, crate::json::to_deterministic_pretty(&value)).unwrap();
     assert!(load::read_series_batch(file).is_err());
     assert!(matches!(load_package_checked(&package), Err(_) | Ok(PackageLoad::Unrepresentable(_))));
+    fs::remove_dir_all(directory).unwrap();
+}
+
+// ---- Streamed restore ----------------------------------------------------------
+
+/// The demo package with a second series file that repeats the first file's
+/// sample under another source. Loading accepts it: the files belong to
+/// different groups. Writing it fails on the repeated record ID.
+fn package_with_a_repeated_sample(directory: &Path) -> PathBuf {
+    let package = demo_package(directory);
+    fs::remove_file(package.join(MANIFEST_DOCUMENT)).unwrap();
+    let first = fs::read_dir(package.join("series")).unwrap().next().unwrap().unwrap().path();
+    let text = fs::read_to_string(&first).unwrap();
+    let source = "01890f3e-e7d3-7cc0-88c8-000000000003";
+    let other = "01890f3e-e7d3-7cc0-88c8-000000000004";
+    let copy = text.replace(source, other);
+    let name = format!("series/{other}-heart_rate-000001.ath-series.json");
+    fs::write(package.join(&name), &copy).unwrap();
+    let mut document = crate::json::parse(&fs::read_to_string(package.join(PACKAGE_DOCUMENT)).unwrap()).unwrap();
+    let mut reference = document["measurement_series_files"][0].clone();
+    reference["file"] = serde_json::Value::String(name);
+    reference["source_id"] = serde_json::Value::String(other.into());
+    reference["sha256"] = serde_json::Value::String(files::durable::sha256_hex(copy.as_bytes()));
+    document["measurement_series_files"].as_array_mut().unwrap().push(reference);
+    fs::write(package.join(PACKAGE_DOCUMENT), crate::json::to_deterministic_pretty(&document)).unwrap();
+    package
+}
+
+/// When a streamed restore fails part way, it is rolled back and run again
+/// reading each file whole, so the refusal is the one the whole reading
+/// gives: here the repeated record ID on `records`, not on `record_revisions`,
+/// which the streamed order would reach first.
+#[test]
+fn a_failed_streamed_restore_reports_the_whole_reading_error() {
+    let directory = temporary("ath-streamed-restore-failure-");
+    let database = empty_database(&directory);
+    let package = package_with_a_repeated_sample(&directory);
+    let mut store = open(&database);
+    let preview = preview_package_import(&store, &package).unwrap();
+    assert!(preview.restore && preview.conflicts.is_empty());
+    let error = apply_package_import(&mut store, &preview, &[]).unwrap_err().to_string();
+    assert!(error.contains("UNIQUE constraint failed: records.record_id"), "{error}");
+    drop(store);
+    assert_wal_without_journal(&database, "streamed failure");
+    assert_empty(&database, "streamed failure");
     fs::remove_dir_all(directory).unwrap();
 }

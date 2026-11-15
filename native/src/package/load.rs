@@ -18,7 +18,7 @@ use serde::Serialize;
 use sha2::{Digest, Sha256};
 
 use super::attachments::{check_attachment_bytes, relative_attachment_path, stored_attachment_name};
-use super::series::{read_series, CheckedSeries, SeriesRead};
+use super::series::{read_series, stream_series, CheckedSeries, SeriesRead};
 use super::{MANIFEST_DOCUMENT, PACKAGE_DOCUMENT};
 use crate::error::{Error, Result};
 use crate::files::{self, durable};
@@ -177,11 +177,17 @@ pub fn load_package_checked(input: &Path) -> Result<PackageLoad> {
     let mut boundaries: HashMap<(String, SeriesQuantity), (String, HashSet<String>)> = HashMap::new();
     for reference in ordered {
         let path = resolve_package_file(&source_directory, &reference.file)?;
-        let bytes = safe_read_bytes(&path)?;
-        let read = read_series(&bytes, &path, false)?;
-        let hash = durable::sha256_hex(&bytes);
-        fingerprint.push(fingerprint_line(&reference.file, &bytes));
-        drop(bytes);
+        // The file is read from disk one item at a time. A file with any
+        // problem is read whole, which reports it in the 2.1.0 order.
+        let (read, hash, byte_count) = match stream_series(&path, None)? {
+            Some(streamed) => (SeriesRead::Valid(Box::new(streamed.checked)), streamed.sha256, streamed.byte_count),
+            None => {
+                let bytes = safe_read_bytes(&path)?;
+                let read = read_series(&bytes, &path, false)?;
+                (read, durable::sha256_hex(&bytes), bytes.len() as u64)
+            }
+        };
+        fingerprint.push(fingerprint_parts(&reference.file, byte_count, &hash));
         if hash != reference.sha256 {
             return Err(Error::refused(format!("series hash does not match package reference: {}", reference.file)));
         }
@@ -340,7 +346,7 @@ pub(crate) fn read_series_batch(file: &LoadedSeriesFile) -> Result<SeriesBatch> 
     Ok(SeriesBatch { records, revisions, deletions, import_keys })
 }
 
-fn check_series_counts(
+pub(crate) fn check_series_counts(
     series: &CheckedSeries,
     reference: &MeasurementSeriesFileReference,
     message: &str,
@@ -421,7 +427,11 @@ fn hash_file(path: &Path) -> Result<(String, u64)> {
 }
 
 fn fingerprint_line(name: &str, bytes: &[u8]) -> String {
-    format!("{name}\u{0}{}\u{0}{}", bytes.len(), durable::sha256_hex(bytes))
+    fingerprint_parts(name, bytes.len() as u64, &durable::sha256_hex(bytes))
+}
+
+fn fingerprint_parts(name: &str, byte_count: u64, sha256: &str) -> String {
+    format!("{name}\u{0}{byte_count}\u{0}{sha256}")
 }
 
 /// A directory names its `athlete.ath.json`; a file names itself.

@@ -13,7 +13,16 @@
 //! Both write through the shared record encoder. Apply runs under the write
 //! lock and refuses a plan that is stale: the database or package changed
 //! after the preview.
+//!
+//! A restore reads each measurement-series file one item at a time and writes
+//! the items as they pass their checks, so memory does not grow with the size
+//! of a file. The file's whole checks still decide before anything commits.
+//! When a file fails part way, the restore is rolled back and run again
+//! reading each file whole, which reports the problem exactly as 2.1.0 did.
+//! A restore runs in a rollback journal, so each page is written once
+//! (`Store::fresh_restore_transaction`); the file ends in WAL mode.
 
+use std::cell::Cell;
 use std::collections::{HashMap, HashSet};
 use std::fs;
 use std::path::Path;
@@ -26,10 +35,13 @@ use super::attachments::{
 };
 use super::conflicts::ConflictChoice;
 use super::failpoint;
-use super::load::{self, read_series_batch, LoadedPackage, PackageLoad, SeriesBatch};
+use super::load::{
+    self, check_series_counts, read_series_batch, LoadedPackage, LoadedSeriesFile, PackageLoad, SeriesBatch,
+};
+use super::series::{stream_series, ItemSink};
 use crate::error::{Error, Result};
 use crate::files::{self, durable};
-use crate::input_policy::MAX_PREVIEW_RECORD_IDS;
+use crate::input_policy::{IMPORT_BATCH_RECORDS, MAX_PREVIEW_RECORD_IDS};
 use crate::json::{self, Value};
 use crate::model::*;
 use crate::store::{self, encode, read, write, Layout, Store};
@@ -378,23 +390,38 @@ pub fn apply_package_import(
     let mut batch = if files.is_empty() { None } else { Some(AttachmentFileBatch::begin(store, files)?) };
     let resolution_time = time::now_utc();
     let layout = store.layout();
-    let result = store.bulk_transaction(|tx| {
-        if store::database_revision(tx)? != preview.destination_database_revision
-            || store::read_metadata(tx)?.database_id != preview.destination_database_id
-        {
-            return Err(Error::stale("destination database changed after preview"));
-        }
+    let read_whole = Cell::new(false);
+    let attempt = |store: &mut Store, reading: SeriesReading| {
+        let change = |tx: &Transaction<'_>| {
+            if store::database_revision(tx)? != preview.destination_database_revision
+                || store::read_metadata(tx)?.database_id != preview.destination_database_id
+            {
+                return Err(Error::stale("destination database changed after preview"));
+            }
+            if preview.restore {
+                restore_in(tx, layout, loaded, reading, &read_whole)?;
+            } else {
+                merge_in(tx, layout, preview, loaded, &by_id, &resolution_time)?;
+            }
+            if let Some(batch) = &batch {
+                batch.finish_in(tx)?;
+            }
+            failpoint!("restore.before_commit");
+            store::database_revision(tx)
+        };
         if preview.restore {
-            restore_in(tx, layout, loaded)?;
+            store.fresh_restore_transaction(change)
         } else {
-            merge_in(tx, layout, preview, loaded, &by_id, &resolution_time)?;
+            store.bulk_transaction(change)
         }
-        if let Some(batch) = &batch {
-            batch.finish_in(tx)?;
-        }
-        failpoint!("restore.before_commit");
-        store::database_revision(tx)
-    });
+    };
+    let mut result = attempt(store, SeriesReading::Streamed);
+    if result.is_err() && read_whole.get() {
+        // A series file could not be taken item by item. The restore was
+        // rolled back; run it again reading each file whole, which reports
+        // any problem exactly as 2.1.0 did.
+        result = attempt(store, SeriesReading::Whole);
+    }
     match result {
         Ok(database_revision) => {
             if let Some(batch) = batch.take() {
@@ -560,8 +587,27 @@ fn insert_new_samples(
     Ok(())
 }
 
-/// Restore into an empty database.
-fn restore_in(tx: &Transaction<'_>, layout: Layout, loaded: &LoadedPackage) -> Result<()> {
+/// How a restore reads its measurement-series files.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum SeriesReading {
+    /// One item at a time. Each record and revision is written as soon as
+    /// it is checked, so memory does not grow with the size of a file.
+    Streamed,
+    /// Each file whole, then its items. Used after a streamed restore failed,
+    /// so a problem is reported exactly as 2.1.0 reported it.
+    Whole,
+}
+
+/// Restore into an empty database. A streamed restore that cannot take a
+/// series file sets `read_whole` and fails; the caller rolls it back and runs
+/// it again with `SeriesReading::Whole`.
+fn restore_in(
+    tx: &Transaction<'_>,
+    layout: Layout,
+    loaded: &LoadedPackage,
+    reading: SeriesReading,
+    read_whole: &Cell<bool>,
+) -> Result<()> {
     for record in &loaded.records {
         insert_parent(tx, record)?;
     }
@@ -578,8 +624,18 @@ fn restore_in(tx: &Transaction<'_>, layout: Layout, loaded: &LoadedPackage) -> R
         insert_import_key(tx, key)?;
     }
     for file in &loaded.series_files {
-        let series = read_series_batch(file)?;
-        insert_new_samples(tx, layout, &Batch::of_series(&series), None)?;
+        match reading {
+            SeriesReading::Whole => {
+                let series = read_series_batch(file)?;
+                insert_new_samples(tx, layout, &Batch::of_series(&series), None)?;
+            }
+            SeriesReading::Streamed => {
+                if let Err(error) = restore_series_streamed(tx, layout, file) {
+                    read_whole.set(true);
+                    return Err(error);
+                }
+            }
+        }
         failpoint!("restore.after_series_file");
     }
     for record in &loaded.records {
@@ -594,6 +650,73 @@ fn restore_in(tx: &Transaction<'_>, layout: Layout, loaded: &LoadedPackage) -> R
         [loaded.database_revision as i64],
     )?;
     Ok(())
+}
+
+/// Restore one series file read one item at a time. The file passes the same
+/// checks as when it is read whole: every item's shape, the declared fields,
+/// the history and series rules, the counts, and the hash the package names.
+/// Items are written as they pass their own shape check: records with their
+/// typed rows, a batch at a time, then revisions. The whole-file checks
+/// decide at the end of the file, before anything commits.
+fn restore_series_streamed(tx: &Transaction<'_>, layout: Layout, file: &LoadedSeriesFile) -> Result<()> {
+    let mut sink = RestoreSink { tx, layout, records: Vec::with_capacity(IMPORT_BATCH_RECORDS) };
+    let streamed = stream_series(&file.path, Some(&mut sink))?;
+    sink.flush()?;
+    let Some(streamed) = streamed else {
+        return Err(Error::refused(format!("series file needs to be read whole: {}", file.reference.file)));
+    };
+    if streamed.sha256 != file.reference.sha256 {
+        return Err(Error::stale(format!("series hash changed after package load: {}", file.reference.file)));
+    }
+    let series = streamed.checked;
+    check_series_counts(&series, &file.reference, "series counts or grouping changed after package load")?;
+    for deletion in series.deletions()? {
+        insert_deletion(tx, &deletion)?;
+    }
+    for key in series.import_keys()? {
+        insert_import_key(tx, &key)?;
+    }
+    Ok(())
+}
+
+/// Writes restored samples and revisions as they are read, a bounded batch
+/// at a time.
+struct RestoreSink<'a, 'b> {
+    tx: &'a Transaction<'b>,
+    layout: Layout,
+    records: Vec<CurrentRecord>,
+}
+
+impl RestoreSink<'_, '_> {
+    /// Write the batch: parents, then typed rows, as a whole-file restore
+    /// writes a file, so each pass works on one table's pages.
+    fn flush(&mut self) -> Result<()> {
+        for record in &self.records {
+            insert_parent(self.tx, record)?;
+        }
+        for record in &self.records {
+            write_current(self.tx, self.layout, record)?;
+        }
+        self.records.clear();
+        Ok(())
+    }
+}
+
+impl ItemSink for RestoreSink<'_, '_> {
+    fn record(&mut self, record: CurrentRecord) -> Result<()> {
+        if record.record_type() != RecordType::MeasurementSample {
+            return Err(Error::refused("measurement-series file contains a non-sample record"));
+        }
+        self.records.push(record);
+        if self.records.len() >= IMPORT_BATCH_RECORDS {
+            self.flush()?;
+        }
+        Ok(())
+    }
+
+    fn revision(&mut self, revision: RecordRevision) -> Result<()> {
+        insert_revision(self.tx, &revision)
+    }
 }
 
 /// Merge a package from the same database, in the order version 2.1.0 used.
