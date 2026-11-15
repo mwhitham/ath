@@ -4,7 +4,7 @@
  * worker that exits without answering.
  */
 import { spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync, renameSync, rmSync } from "node:fs";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { athlete, nativeExecutable, noteData, removeFolder, temporaryFolder } from "./support.js";
@@ -139,6 +139,41 @@ describe("workers", () => {
     expect(stats.current_records.total).toBe(0);
     expect(stats.database_revision).toBe(0);
     expect((await database.checkDatabase(handle)).valid).toBe(true);
+    handle.close();
+  });
+
+  it("refuses a handle whose path now holds another database", async () => {
+    const path = join(folder, "replaced.ath.sqlite");
+    const handle = await database.createDatabase(path);
+    const opened = await database.readDatabaseMetadata(handle);
+    const otherPath = join(folder, "other.ath.sqlite");
+    const other = await database.createDatabase(otherPath);
+    const otherId = (await database.readDatabaseMetadata(other)).database_id;
+    other.close();
+    expect(otherId).not.toBe(opened.database_id);
+
+    // Put the other database's file at the handle's path.
+    for (const suffix of ["-wal", "-shm"]) {
+      rmSync(`${path}${suffix}`, { force: true });
+      rmSync(`${otherPath}${suffix}`, { force: true });
+    }
+    renameSync(otherPath, path);
+    const before = readFileSync(path);
+    const refusal = `is not the one this handle opened: database ID ${otherId} differs from ${opened.database_id}`;
+    await expect(database.databaseStats(handle)).rejects.toThrow(refusal);
+    const writeError = await database
+      .writeRecord(handle, { record_type: "athlete_report", data: noteData(), changed_by: athlete } as never)
+      .then(
+        () => undefined,
+        (caught: unknown) => caught as Error & { code?: string },
+      );
+    expect(writeError?.message).toContain(refusal);
+    expect(writeError?.code).toBe("ATH_REFUSED");
+    expect(readFileSync(path).equals(before)).toBe(true);
+    // A new handle opens the file that is there now.
+    const reopened = await database.openDatabase(path);
+    expect((await database.readDatabaseMetadata(reopened)).database_id).toBe(otherId);
+    reopened.close();
     handle.close();
   });
 

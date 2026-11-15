@@ -497,3 +497,298 @@ fn the_internal_table_is_not_a_stable_writable_table() {
         .unwrap();
     assert_eq!(foreign, 0);
 }
+
+// ---- Further rules from the published constraints and triggers ----------
+
+const NUTRITION_ID: &str = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e60";
+const ATTACHMENT_ID: &str = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e61";
+const PROFILE_ID: &str = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e62";
+const SECOND_ID: &str = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e63";
+const THIRD_ID: &str = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e64";
+const ATTACHMENT_JSON: &str = r#"{"file_name":"meal-photo.png","media_type":"image/png","byte_count":68,"sha256":"d3fe8e599fb1deea9821063c744434802875c26cceeb9f2d55e8566b15a012f4","description":"Meal photo"}"#;
+const PROFILE_JSON: &str = r#"{"display_units":"metric","default_time_zone":"America/Chicago"}"#;
+const PLAIN_EXTENSIONS: &str = r#"{"ath.fit/demo-widget":{"note":"kept"}}"#;
+
+fn nutrition_json(extra: &str) -> String {
+    format!(
+        r#"{{"reported_at":"{CREATED_AT}","input_reported_at":{{"timestamp_text":"2026-08-09T07:00:00-05:00","utc_offset_text":"-05:00","utc_offset_meaning":"documented_recording_offset","timestamp_basis":"source_offset_timestamp"}},"reported_via":"text","athlete_description":"Rice and beans","reported_items":[]{extra}}}"#
+    )
+}
+
+fn benchmark_json(key: &str) -> String {
+    format!(
+        r#"{{"authorship":{{"author":{{"author_type":"athlete"}},"authored_at":"{CREATED_AT}","evidence":[],"content_version":1,"status":"active"}},"benchmark_key":"{key}","benchmark_type":"named_wod","score_type":"time","definition":"For time"}}"#
+    )
+}
+
+/// The recipe's first rows for a new record: its records row and its first
+/// revision. Returns SQLite's refusal of the revision, if any.
+fn insert_first_revision(
+    connection: &Connection,
+    record_id: &str,
+    record_type: &str,
+    record_json: &str,
+    extensions_json: Option<&str>,
+) -> Result<(), String> {
+    connection
+        .execute(
+            "INSERT INTO records (record_id, record_type, current_revision, created_at, is_deleted) VALUES (?1, ?2, 1, ?3, 0)",
+            params![record_id, record_type, CREATED_AT],
+        )
+        .unwrap();
+    connection
+        .execute(
+            "INSERT INTO record_revisions (record_id, revision, record_type, record_json, extensions_json, became_known_at, became_known_at_basis, changed_by_json, previous_revision)
+             VALUES (?1, 1, ?2, ?3, ?4, ?5, 'local_write', ?6, NULL)",
+            params![record_id, record_type, record_json, extensions_json, CREATED_AT, TOOL_ACTOR],
+        )
+        .map(|_| ())
+        .map_err(|error| error.to_string())
+}
+
+fn next_database_revision(connection: &Connection) {
+    connection
+        .execute("UPDATE database_state SET current_revision = current_revision + 1 WHERE singleton_id = 1", [])
+        .unwrap();
+}
+
+/// The library reads the file and `ath check` finds nothing wrong.
+fn assert_checked(path: &std::path::Path) {
+    let store = Store::open(path, OpenOptions { read_only: true, allow_outdated_schema: false }).unwrap();
+    let result = check_database(&store).unwrap();
+    assert!(result.valid && result.issues.is_empty(), "{:?}", result.issues);
+}
+
+#[test]
+fn nutrition_entries_attachments_and_profiles_cannot_claim_a_source() {
+    let path = seeded_database();
+    let connection = recipe_connection(&path);
+    let claim = format!(r#"{{"ath.fit/demo-widget":{{"nested":[{{"source_id":"{SOURCE_ID}"}}]}}}}"#);
+    let nutrition = nutrition_json("");
+    let cases = [
+        (NUTRITION_ID, "nutrition_entry", nutrition.as_str()),
+        (ATTACHMENT_ID, "attachment", ATTACHMENT_JSON),
+        (PROFILE_ID, "athlete_profile", PROFILE_JSON),
+    ];
+    for (record_id, record_type, record_json) in cases {
+        // Extensions that name a source at any depth are refused.
+        begin(&connection);
+        let error = insert_first_revision(&connection, record_id, record_type, record_json, Some(&claim)).unwrap_err();
+        assert!(
+            error.contains("athlete-reported record extensions cannot contain source_id"),
+            "{record_type}: {error}"
+        );
+        connection.execute_batch("ROLLBACK").unwrap();
+
+        // The same revision without the claim is accepted. Changing its
+        // extensions to add the claim is refused.
+        begin(&connection);
+        insert_first_revision(&connection, record_id, record_type, record_json, Some(PLAIN_EXTENSIONS)).unwrap();
+        let error = refusal(
+            &connection,
+            "UPDATE record_revisions SET extensions_json = ?1 WHERE record_id = ?2",
+            params![claim, record_id],
+        );
+        assert!(
+            error.contains("athlete-reported record extensions cannot contain source_id"),
+            "{record_type}: {error}"
+        );
+        connection.execute_batch("ROLLBACK").unwrap();
+    }
+
+    // A nutrition entry's own data cannot name a source either.
+    begin(&connection);
+    let claimed = nutrition_json(&format!(r#","source_id":"{SOURCE_ID}""#));
+    let error = insert_first_revision(&connection, NUTRITION_ID, "nutrition_entry", &claimed, None).unwrap_err();
+    assert!(error.contains("athlete-reported record data cannot contain source_id"), "{error}");
+    connection.execute_batch("ROLLBACK").unwrap();
+    begin(&connection);
+    insert_first_revision(&connection, NUTRITION_ID, "nutrition_entry", &nutrition, None).unwrap();
+    let error = refusal(
+        &connection,
+        "UPDATE record_revisions SET record_json = json_set(record_json, '$.source_id', ?1) WHERE record_id = ?2",
+        params![SOURCE_ID, NUTRITION_ID],
+    );
+    assert!(error.contains("athlete-reported record data cannot contain source_id"), "{error}");
+    connection.execute_batch("ROLLBACK").unwrap();
+
+    // Complete direct writes without a claim commit and pass the check.
+    begin(&connection);
+    insert_first_revision(&connection, NUTRITION_ID, "nutrition_entry", &nutrition, Some(PLAIN_EXTENSIONS)).unwrap();
+    connection
+        .execute(
+            "INSERT INTO nutrition_entries (record_id, record_type, reported_at, athlete_description, data_json)
+             VALUES (?1, 'nutrition_entry', ?2, 'Rice and beans', ?3)",
+            params![NUTRITION_ID, CREATED_AT, nutrition],
+        )
+        .unwrap();
+    insert_first_revision(&connection, PROFILE_ID, "athlete_profile", PROFILE_JSON, Some(PLAIN_EXTENSIONS)).unwrap();
+    connection
+        .execute(
+            "INSERT INTO athlete_profile (record_id, record_type, default_time_zone, data_json)
+             VALUES (?1, 'athlete_profile', 'America/Chicago', ?2)",
+            params![PROFILE_ID, PROFILE_JSON],
+        )
+        .unwrap();
+    next_database_revision(&connection);
+    connection.execute_batch("COMMIT").unwrap();
+    drop(connection);
+    assert_checked(&path);
+}
+
+#[test]
+fn one_profile_one_source_per_route_one_benchmark_per_key_and_one_record_per_import_key() {
+    let path = seeded_database();
+    let connection = recipe_connection(&path);
+    let insert_profile = "INSERT INTO athlete_profile (record_id, record_type, default_time_zone, data_json)
+                          VALUES (?1, 'athlete_profile', 'America/Chicago', ?2)";
+    let insert_benchmark = "INSERT INTO benchmark_definitions (record_id, record_type, benchmark_key, benchmark_type, score_type, definition, data_json)
+                            VALUES (?1, 'benchmark_definition', ?2, 'named_wod', 'time', 'For time', ?3)";
+    let insert_import_key =
+        "INSERT INTO record_import_keys (record_id, match_key_method, match_key, imported_at) VALUES (?1, ?2, ?3, ?4)";
+    let source_key = r#"["source","WHOOP","whoop_csv",""]"#;
+
+    // The first profile, the first benchmark with its key, and the source's
+    // import key commit.
+    begin(&connection);
+    insert_first_revision(&connection, PROFILE_ID, "athlete_profile", PROFILE_JSON, None).unwrap();
+    connection.execute(insert_profile, params![PROFILE_ID, PROFILE_JSON]).unwrap();
+    insert_first_revision(&connection, THIRD_ID, "benchmark_definition", &benchmark_json("fran"), None).unwrap();
+    connection.execute(insert_benchmark, params![THIRD_ID, "fran", benchmark_json("fran")]).unwrap();
+    connection.execute(insert_import_key, params![SOURCE_ID, "whoop_csv/v1", source_key, CREATED_AT]).unwrap();
+    next_database_revision(&connection);
+    connection.execute_batch("COMMIT").unwrap();
+
+    // A second profile row is refused.
+    begin(&connection);
+    insert_first_revision(&connection, SECOND_ID, "athlete_profile", PROFILE_JSON, None).unwrap();
+    let error = refusal(&connection, insert_profile, params![SECOND_ID, PROFILE_JSON]);
+    assert!(error.contains("UNIQUE constraint failed: index 'athlete_profile_single_record_idx'"), "{error}");
+    connection.execute_batch("ROLLBACK").unwrap();
+
+    // A second source with the same writer, route, and no sensor type is
+    // refused. The same writer and route with a sensor type is another source.
+    begin(&connection);
+    insert_first_revision(&connection, SECOND_ID, "source", SOURCE_JSON, None).unwrap();
+    let error = refusal(
+        &connection,
+        "INSERT INTO sources (record_id, record_type, source_type, data_writer, data_route, vendor, sensor_type, data_json)
+         VALUES (?1, 'source', 'wearable', 'WHOOP', 'whoop_csv', 'whoop', NULL, ?2)",
+        params![SECOND_ID, SOURCE_JSON],
+    );
+    assert!(error.contains("UNIQUE constraint failed: index 'sources_writer_route_sensor_idx'"), "{error}");
+    connection.execute_batch("ROLLBACK").unwrap();
+    let sensor_json = r#"{"source_type":"wearable","data_writer":"WHOOP","data_route":"whoop_csv","vendor":"whoop","sensor_type":"ppg"}"#;
+    begin(&connection);
+    insert_first_revision(&connection, SECOND_ID, "source", sensor_json, None).unwrap();
+    connection
+        .execute(
+            "INSERT INTO sources (record_id, record_type, source_type, data_writer, data_route, vendor, sensor_type, data_json)
+             VALUES (?1, 'source', 'wearable', 'WHOOP', 'whoop_csv', 'whoop', 'ppg', ?2)",
+            params![SECOND_ID, sensor_json],
+        )
+        .unwrap();
+    next_database_revision(&connection);
+    connection.execute_batch("COMMIT").unwrap();
+
+    // A second benchmark with the same key is refused; another key is not.
+    let grace_id = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1e65";
+    begin(&connection);
+    insert_first_revision(&connection, grace_id, "benchmark_definition", &benchmark_json("fran"), None).unwrap();
+    let error = refusal(&connection, insert_benchmark, params![grace_id, "fran", benchmark_json("fran")]);
+    assert!(error.contains("UNIQUE constraint failed: benchmark_definitions.benchmark_key"), "{error}");
+    connection.execute_batch("ROLLBACK").unwrap();
+    begin(&connection);
+    insert_first_revision(&connection, grace_id, "benchmark_definition", &benchmark_json("grace"), None).unwrap();
+    connection.execute(insert_benchmark, params![grace_id, "grace", benchmark_json("grace")]).unwrap();
+    next_database_revision(&connection);
+    connection.execute_batch("COMMIT").unwrap();
+
+    // One import key names one record. The same key under another method,
+    // and another key for the same record, are accepted.
+    let error = refusal(&connection, insert_import_key, params![SECOND_ID, "whoop_csv/v1", source_key, CREATED_AT]);
+    assert!(
+        error.contains("UNIQUE constraint failed: record_import_keys.match_key_method, record_import_keys.match_key"),
+        "{error}"
+    );
+    begin(&connection);
+    connection.execute(insert_import_key, params![SECOND_ID, "oura_csv/v1", source_key, CREATED_AT]).unwrap();
+    let sensor_key = r#"["source","WHOOP","whoop_csv","ppg"]"#;
+    connection.execute(insert_import_key, params![SECOND_ID, "whoop_csv/v1", sensor_key, CREATED_AT]).unwrap();
+    connection.execute_batch("COMMIT").unwrap();
+    drop(connection);
+    assert_checked(&path);
+}
+
+#[test]
+fn sleep_and_workout_sessions_cannot_end_before_they_start() {
+    let path = seeded_database();
+    let connection = recipe_connection(&path);
+    let start = "2026-08-09T03:30:00.000Z";
+    let before_start = "2026-08-09T03:29:59.999Z";
+    let sleep = "INSERT INTO sleep_sessions (record_id, record_type, source_id, start_at, end_at, provider_record_id, received_at, data_json)
+                 VALUES (?1, 'sleep_session', ?2, ?3, ?4, NULL, ?5, '{}')";
+    let workout = "INSERT INTO workout_sessions (record_id, record_type, source_id, start_at, end_at, activity_type, provider_record_id, received_at, data_json)
+                   VALUES (?1, 'workout_session', ?2, ?3, ?4, 'running', NULL, ?5, '{}')";
+    // Foreign keys wait for the commit, and these transactions roll back, so
+    // only the typed rows' own checks run.
+    for (table, sql) in [("sleep_sessions", sleep), ("workout_sessions", workout)] {
+        begin(&connection);
+        let error = refusal(&connection, sql, params![SECOND_ID, SOURCE_ID, start, before_start, CREATED_AT]);
+        assert!(error.contains("CHECK constraint failed: end_at >= start_at"), "{table}: {error}");
+        // A session that ends when it starts, and one that ends later, are accepted.
+        connection.execute(sql, params![SECOND_ID, SOURCE_ID, start, start, CREATED_AT]).unwrap();
+        connection.execute(sql, params![THIRD_ID, SOURCE_ID, start, "2026-08-09T11:00:00.000Z", CREATED_AT]).unwrap();
+        connection.execute_batch("ROLLBACK").unwrap();
+    }
+}
+
+#[test]
+fn revision_extensions_are_limited_to_65536_characters() {
+    let path = seeded_database();
+    let connection = recipe_connection(&path);
+    let extensions = |length: usize| {
+        let prefix = r#"{"ath.fit/demo-widget":{"note":""#;
+        let suffix = r#""}}"#;
+        let text = format!("{prefix}{}{suffix}", "x".repeat(length - prefix.len() - suffix.len()));
+        assert_eq!(text.len(), length);
+        text
+    };
+    let insert = "INSERT INTO record_revisions (record_id, revision, record_type, record_json, extensions_json, became_known_at, became_known_at_basis, changed_by_json, previous_revision)
+                  VALUES (?1, 2, 'source', ?2, ?3, ?4, 'local_write', ?5, 1)";
+    begin(&connection);
+    let error =
+        refusal(&connection, insert, params![SOURCE_ID, SOURCE_JSON, extensions(65_537), CREATED_AT, TOOL_ACTOR]);
+    assert!(error.contains("CHECK constraint failed") && error.contains("length(extensions_json) <= 65536"), "{error}");
+    connection.execute(insert, params![SOURCE_ID, SOURCE_JSON, extensions(65_536), CREATED_AT, TOOL_ACTOR]).unwrap();
+    connection.execute_batch("ROLLBACK").unwrap();
+}
+
+#[test]
+fn an_owner_links_an_attachment_once() {
+    let path = seeded_database();
+    let connection = recipe_connection(&path);
+    let link = "INSERT INTO record_attachment_links (owner_record_id, attachment_order, attachment_record_id) VALUES (?1, ?2, ?3)";
+    // Foreign keys wait for the commit, and this transaction rolls back, so
+    // only the link table's own keys run.
+    begin(&connection);
+    connection.execute(link, params![NUTRITION_ID, 0, ATTACHMENT_ID]).unwrap();
+    let error = refusal(&connection, link, params![NUTRITION_ID, 1, ATTACHMENT_ID]);
+    assert!(
+        error.contains(
+            "UNIQUE constraint failed: record_attachment_links.owner_record_id, record_attachment_links.attachment_record_id"
+        ),
+        "{error}"
+    );
+    // One position holds one attachment.
+    let error = refusal(&connection, link, params![NUTRITION_ID, 0, SECOND_ID]);
+    assert!(
+        error.contains(
+            "UNIQUE constraint failed: record_attachment_links.owner_record_id, record_attachment_links.attachment_order"
+        ),
+        "{error}"
+    );
+    // A second attachment in the next position is accepted.
+    connection.execute(link, params![NUTRITION_ID, 1, SECOND_ID]).unwrap();
+    connection.execute_batch("ROLLBACK").unwrap();
+}

@@ -304,3 +304,98 @@ fn an_edited_calculation_file_changes_the_result_and_not_the_shipped_copy() {
     assert!(shipped.contains("zone: 0.60"));
     std::fs::remove_dir_all(&working).unwrap();
 }
+
+/// Every range calculation and a one-record calculation run on a writable
+/// connection. Reading a calculation never writes: the database revision and
+/// the file's bytes stay the same.
+#[test]
+fn calculations_write_nothing() {
+    let (_directory, mut store) = calculation_database();
+    let workout_id = "01890f3e-e7d3-7cc0-88c8-000000000501";
+    let mut record = workout(workout_id, "2026-10-02T12:00:00.000Z", "2026-10-02T12:20:00.000Z");
+    record["data"]["maximum_heart_rate_bpm"] = json!(200);
+    record["data"]["heart_rate_samples"] = json!([{ "offset_ms": 0, "bpm": 120 }, { "offset_ms": 1000, "bpm": 150 }]);
+    let score = json!({
+        "record_type": "provider_score",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000504",
+        "created_at": "2026-10-02T00:00:00.000Z",
+        "changed_by": tool(),
+        "data": {
+            "source_id": SOURCE_A,
+            "received_at": "2026-10-02T00:00:00.000Z",
+            "received_at_basis": "import_time",
+            "metric": "recovery",
+            "value": { "standard_value": 78, "standard_unit": "score", "input_value": 78, "input_unit": "score" },
+            "scale": "0-100",
+            "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source",
+            },
+            "provider_reporting_periods": [
+                { "period_type": "whoop_physiological_cycle", "provider_period_id": "cycle-2026-10-02" },
+            ],
+        },
+    });
+    replay(
+        &mut store,
+        &[json!({ "write": [
+            record,
+            heart_rate(0x502, "2026-10-02T12:05:00.000Z", 120.0),
+            heart_rate(0x503, "2026-10-02T12:15:00.000Z", 140.0),
+            score,
+        ]})],
+    );
+    let path = store.path().to_path_buf();
+    let revision = store.database_revision().unwrap();
+    store.close().unwrap();
+    let before = std::fs::read(&path).unwrap();
+
+    let store = Store::open(&path, athleticstandard::store::OpenOptions::default()).unwrap();
+    for operation in [
+        Operation::Summary,
+        Operation::Baseline,
+        Operation::Trend,
+        Operation::Coverage,
+        Operation::CompareSources,
+        Operation::Correlation,
+        Operation::WorkoutDrift,
+        Operation::ProviderPeriodSummary,
+    ] {
+        let mut options = CalculateOptions::new(operation, "hrv_rmssd");
+        options.source_id = Some(SOURCE_A.into());
+        match operation {
+            Operation::Coverage => {
+                options.time_zone = Some("UTC".into());
+                options.from = Some("2026-10-01".into());
+                options.to = Some("2026-10-02".into());
+            }
+            Operation::Correlation => {
+                options.time_zone = Some("UTC".into());
+                options.other_quantity = Some("heart_rate".into());
+            }
+            Operation::CompareSources => options.compare_source_id = Some(SOURCE_B.into()),
+            Operation::WorkoutDrift => {
+                options.quantity = "heart_rate".into();
+                options.workout_session_id = Some(workout_id.into());
+            }
+            Operation::ProviderPeriodSummary => {
+                options.quantity = "recovery".into();
+                options.record_kind = calculate::RecordKind::ProviderScore;
+                options.provider_period_type =
+                    Some(athleticstandard::model::ProviderReportingPeriodType::WhoopPhysiologicalCycle);
+            }
+            _ => {}
+        }
+        let receipt = calculate::calculate_range(&store, &options);
+        let count = receipt.as_ref().map(|receipt| receipt.input.record_count);
+        assert!(count.as_ref().is_ok_and(|count| *count > 0), "{operation:?}: {count:?}");
+        assert_eq!(store.database_revision().unwrap(), revision, "{operation:?}");
+    }
+    let working = temporary_dir("ath-apply-");
+    let zones = calculate::apply(&store, "heart-rate-zones", workout_id, &working).unwrap();
+    assert!(zones.missing.is_empty(), "{:?}", zones.missing);
+    assert_eq!(store.database_revision().unwrap(), revision);
+    store.close().unwrap();
+    assert_eq!(std::fs::read(&path).unwrap(), before);
+    std::fs::remove_dir_all(&working).unwrap();
+}

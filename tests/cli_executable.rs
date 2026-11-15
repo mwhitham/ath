@@ -342,3 +342,57 @@ fn a_corrupt_database_is_refused_without_sidecars_or_changes() {
         }
     }
 }
+
+/// Text a progress bar draws: a carriage return, a terminal escape, or the
+/// bar's blocks.
+fn has_progress_text(text: &str) -> bool {
+    text.contains('\r') || text.contains('\u{1b}') || text.contains('█') || text.contains('░')
+}
+
+/// Progress goes to standard error, and only when standard error is a
+/// terminal. Standard output holds the result alone, so `--json` output is
+/// one JSON document. The long commands run here through the executable,
+/// with pipes for every stream.
+#[test]
+fn progress_never_reaches_standard_output() {
+    let folder = private_folder();
+    let created = ath(folder.path(), &["init", "-y", "--empty", "--no-skill"], b"");
+    assert_eq!(created.status, 0, "{created:?}");
+    let whoop = Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/exports/whoop");
+    let whoop = whoop.to_str().unwrap();
+    let temporary = private_folder();
+    let runs: [&[&str]; 8] = [
+        &["import", whoop, "--json"],
+        &["import", whoop, "--yes"],
+        &["import", whoop],
+        &["check", "--json"],
+        &["check", "--validate-export", "--json"],
+        &["stats", "--json"],
+        &["export", "package", "--json"],
+        &["records", "list", "--json", "--limit", "500"],
+    ];
+    for argv in runs {
+        let output = ath_in(folder.path(), argv, b"", Some(temporary.path()));
+        assert_eq!(output.status, 0, "{argv:?}: {output:?}");
+        assert!(!has_progress_text(&output.stdout), "{argv:?} stdout: {:?}", output.stdout);
+        assert!(!has_progress_text(&output.stderr), "{argv:?} stderr: {:?}", output.stderr);
+        if argv.contains(&"--json") {
+            assert_eq!(output.stderr, "", "{argv:?}");
+            let parsed = serde_json::from_str::<serde_json::Value>(&output.stdout);
+            assert!(parsed.is_ok(), "{argv:?} printed more than one JSON document: {:?}", output.stdout);
+        }
+    }
+
+    // In process, standard error can claim to be a terminal while standard
+    // output is a pipe. That is the one case where a bar draws, and it must
+    // still stay off standard output.
+    let mut session = common::Session::piped(folder.path());
+    session.terminal.stderr = true;
+    session.terminal.stderr_columns = Some(80);
+    for argv in [&["import", whoop, "--json"][..], &["check", "--validate-export", "--json"]] {
+        let output = session.run(argv);
+        assert_eq!(output.status, 0, "{argv:?}: {output:?}");
+        assert!(!has_progress_text(&output.stdout), "{argv:?} stdout: {:?}", output.stdout);
+        assert!(serde_json::from_str::<serde_json::Value>(&output.stdout).is_ok(), "{argv:?}: {:?}", output.stdout);
+    }
+}
