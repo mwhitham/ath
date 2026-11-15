@@ -84,6 +84,14 @@ impl std::fmt::Debug for Store {
     }
 }
 
+/// How much a restore grows the database file at a time. Growing a large
+/// file 4 KiB page by page left the 3-million-record restore waiting on the
+/// file system; 8 MiB at a time removed most of that wait. The file can end
+/// less than one chunk longer than the database: zeros past the last page,
+/// which SQLite does not read. Later writes use that space first, and
+/// `VACUUM` removes it.
+pub const RESTORE_FILE_CHUNK_BYTES: i32 = 8 * 1024 * 1024;
+
 /// Prepared statements kept per connection. The encoder and the check use
 /// one statement per typed table and child table, about 70 in all. The
 /// default of 16 made SQLite prepare most of them again for every record.
@@ -329,17 +337,7 @@ impl Store {
         }
         let journal_before: String = self.connection.pragma_query_value(None, "journal_mode", |row| row.get(0))?;
         enable_wal(&self.connection)?;
-        let result = (|| {
-            let tx = self.connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
-            let enabled: i64 = tx.pragma_query_value(None, "foreign_keys", |row| row.get(0))?;
-            if enabled != 1 {
-                return Err(Error::other("SQLite foreign-key enforcement is disabled in write transaction"));
-            }
-            tx.pragma_update(None, "defer_foreign_keys", "ON")?;
-            let value = operation(&tx)?;
-            tx.commit()?;
-            Ok(value)
-        })();
+        let result = self.write_transaction(operation);
         if result.is_err() && !journal_before.eq_ignore_ascii_case("wal") {
             // Return a file that started in rollback-journal mode to that mode.
             let _ = self.connection.pragma_update(None, "journal_mode", "DELETE");
@@ -366,6 +364,96 @@ impl Store {
         let restored = self.connection.pragma_update(None, "temp_store", previous);
         let value = result?;
         restored?;
+        Ok(value)
+    }
+
+    /// `bulk_transaction` for a restore into a new, empty database. The
+    /// transaction uses a rollback journal instead of the write-ahead log, so
+    /// each page is written to the database file once. In WAL mode every page
+    /// went to the log and then again to the file at the checkpoint. Pages
+    /// added to an empty file need no copy in the journal, so the journal
+    /// stays small. The file grows `RESTORE_FILE_CHUNK_BYTES` at a time.
+    ///
+    /// The change is still one atomic transaction. A failure rolls it back,
+    /// and a process stopped part way leaves a journal that the next writable
+    /// open rolls back, so the database is empty again. The file returns to
+    /// WAL mode before this returns. When SQLite cannot leave WAL mode, for
+    /// example because another connection has the file open, the restore
+    /// runs in WAL mode, as `bulk_transaction`.
+    ///
+    /// The caller must check, inside the transaction, that the database is
+    /// still the empty one it previewed.
+    pub fn fresh_restore_transaction<T>(
+        &mut self,
+        operation: impl FnOnce(&rusqlite::Transaction<'_>) -> Result<T>,
+    ) -> Result<T> {
+        if self.read_only {
+            return Err(Error::refused("This database was opened read-only"));
+        }
+        let journal_before: String = self.connection.pragma_query_value(None, "journal_mode", |row| row.get(0))?;
+        if !journal_before.eq_ignore_ascii_case("wal") {
+            return self.bulk_transaction(operation);
+        }
+        let switched: std::result::Result<String, _> =
+            self.connection.pragma_update_and_check(None, "journal_mode", "DELETE", |row| row.get(0));
+        if !switched.is_ok_and(|mode| mode.eq_ignore_ascii_case("delete")) {
+            return self.bulk_transaction(operation);
+        }
+        let previous: Result<i64> =
+            self.connection.pragma_query_value(None, "temp_store", |row| row.get(0)).map_err(Error::from);
+        let result = previous.and_then(|previous| {
+            self.connection.pragma_update(None, "temp_store", "MEMORY")?;
+            self.set_file_chunk(RESTORE_FILE_CHUNK_BYTES);
+            let result = self.write_transaction(operation);
+            self.set_file_chunk(0);
+            let restored = self.connection.pragma_update(None, "temp_store", previous);
+            let value = result?;
+            restored?;
+            Ok(value)
+        });
+        // Back to WAL mode whatever happened. The journal is gone by now:
+        // a commit or a rollback removed it.
+        let wal = enable_wal(&self.connection);
+        let value = result?;
+        if let Err(error) = wal {
+            return Err(Error::other(format!(
+                "The change was committed, but the file could not return to WAL mode: {error}. The next write returns it to WAL mode."
+            )));
+        }
+        files::set_owner_only_database(&self.path)?;
+        Ok(value)
+    }
+
+    /// Grow the database file `bytes` at a time; 0 grows it page by page, as
+    /// SQLite does by default. A chunk is allocated when the first page in it
+    /// is written. The setting belongs to this connection's open file. A
+    /// failure only leaves the default in place, so it is not an error.
+    fn set_file_chunk(&self, bytes: i32) {
+        let mut size: std::ffi::c_int = bytes;
+        // SAFETY: the handle belongs to this open connection, "main" is a
+        // NUL-terminated name, and SQLite reads one C int through the pointer
+        // during the call.
+        unsafe {
+            rusqlite::ffi::sqlite3_file_control(
+                self.connection.handle(),
+                c"main".as_ptr(),
+                rusqlite::ffi::SQLITE_FCNTL_CHUNK_SIZE,
+                (&mut size as *mut std::ffi::c_int).cast(),
+            );
+        }
+    }
+
+    /// One write transaction with foreign keys deferred to commit, so related
+    /// rows can be written in any order.
+    fn write_transaction<T>(&mut self, operation: impl FnOnce(&rusqlite::Transaction<'_>) -> Result<T>) -> Result<T> {
+        let tx = self.connection.transaction_with_behavior(TransactionBehavior::Immediate)?;
+        let enabled: i64 = tx.pragma_query_value(None, "foreign_keys", |row| row.get(0))?;
+        if enabled != 1 {
+            return Err(Error::other("SQLite foreign-key enforcement is disabled in write transaction"));
+        }
+        tx.pragma_update(None, "defer_foreign_keys", "ON")?;
+        let value = operation(&tx)?;
+        tx.commit()?;
         Ok(value)
     }
 
@@ -456,6 +544,129 @@ mod tests {
         assert!(failed.is_err());
         assert_eq!(temp_store(&store), 0);
         assert_eq!(store.database_revision().unwrap(), 0);
+        store.close().unwrap();
+        std::fs::remove_dir_all(directory).unwrap();
+    }
+
+    fn journal_mode(connection: &Connection) -> String {
+        connection.pragma_query_value(None, "journal_mode", |row| row.get(0)).unwrap()
+    }
+
+    fn mode_inside(tx: &rusqlite::Transaction<'_>) -> Result<String> {
+        Ok(tx.pragma_query_value(None, "journal_mode", |row| row.get(0))?)
+    }
+
+    #[test]
+    fn a_fresh_restore_uses_a_rollback_journal_and_ends_in_wal_mode() {
+        let directory = files::make_temporary_directory("ath-fresh-restore-").unwrap();
+        let path = directory.join("fresh.ath.sqlite");
+        let mut store = Store::create(&path, CreateOptions::default()).unwrap();
+        assert_eq!(journal_mode(store.connection()), "wal");
+        let inside = store
+            .fresh_restore_transaction(|tx| {
+                tx.execute("UPDATE database_state SET current_revision = 3 WHERE singleton_id = 1", [])?;
+                mode_inside(tx)
+            })
+            .unwrap();
+        assert_eq!(inside, "delete");
+        assert_eq!(journal_mode(store.connection()), "wal");
+        assert_eq!(temp_store(&store), 0);
+        assert_eq!(store.database_revision().unwrap(), 3);
+        assert!(!files::sidecar(&path, "-journal").exists());
+        store.close().unwrap();
+
+        // A new connection reads the committed change and finds WAL mode.
+        let reopened = Store::open(&path, OpenOptions::default()).unwrap();
+        assert_eq!(reopened.database_revision().unwrap(), 3);
+        assert_eq!(journal_mode(reopened.connection()), "wal");
+        drop(reopened);
+        std::fs::remove_dir_all(directory).unwrap();
+    }
+
+    fn database_bytes(store: &Store) -> u64 {
+        let pages: i64 = store.connection().pragma_query_value(None, "page_count", |row| row.get(0)).unwrap();
+        let size: i64 = store.connection().pragma_query_value(None, "page_size", |row| row.get(0)).unwrap();
+        (pages * size) as u64
+    }
+
+    /// The file grows a chunk at a time during a restore. It ends less than
+    /// one chunk longer than the database, and later writes and checks treat
+    /// it as any other database.
+    #[test]
+    fn a_fresh_restore_grows_the_file_in_chunks() {
+        let directory = files::make_temporary_directory("ath-fresh-restore-chunk-").unwrap();
+        let path = directory.join("fresh.ath.sqlite");
+        let mut store = Store::create(&path, CreateOptions::default()).unwrap();
+        store
+            .fresh_restore_transaction(|tx| {
+                tx.execute_batch(
+                    "CREATE TEMP TABLE numbers(n);
+                     WITH RECURSIVE sequence(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM sequence WHERE n < 300)
+                     INSERT INTO numbers SELECT n FROM sequence;
+                     CREATE TABLE filler(data BLOB);
+                     INSERT INTO filler SELECT zeroblob(10000) FROM numbers;",
+                )?;
+                Ok(())
+            })
+            .unwrap();
+        let file = std::fs::metadata(&path).unwrap().len();
+        let database = database_bytes(&store);
+        assert!(database > 3_000_000, "{database}");
+        assert_eq!(file % RESTORE_FILE_CHUNK_BYTES as u64, 0, "{file}");
+        assert!(file >= database && file - database < RESTORE_FILE_CHUNK_BYTES as u64, "{file} {database}");
+
+        store.transaction(|tx| Ok(tx.execute("UPDATE database_state SET current_revision = 1", [])?)).unwrap();
+        let integrity: String = store.connection().query_row("PRAGMA integrity_check", [], |row| row.get(0)).unwrap();
+        assert_eq!(integrity, "ok");
+        assert_eq!(journal_mode(store.connection()), "wal");
+        store.close().unwrap();
+        assert_eq!(Store::open(&path, OpenOptions::default()).unwrap().database_revision().unwrap(), 1);
+        std::fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
+    fn a_failed_fresh_restore_leaves_the_empty_database_as_it_was() {
+        let directory = files::make_temporary_directory("ath-fresh-restore-fail-").unwrap();
+        let path = directory.join("fresh.ath.sqlite");
+        let mut store = Store::create(&path, CreateOptions::default()).unwrap();
+        let before = read_metadata(store.connection()).unwrap();
+        let failed = store.fresh_restore_transaction(|tx| {
+            tx.execute("UPDATE database_state SET current_revision = 9 WHERE singleton_id = 1", [])?;
+            tx.execute(
+                "UPDATE database_metadata SET database_id = ?1 WHERE singleton_id = 1",
+                [crate::ids::new_record_id()],
+            )?;
+            Err::<(), _>(Error::other("stop"))
+        });
+        assert!(failed.is_err());
+        assert_eq!(store.database_revision().unwrap(), 0);
+        assert_eq!(read_metadata(store.connection()).unwrap(), before);
+        assert_eq!(journal_mode(store.connection()), "wal");
+        assert_eq!(temp_store(&store), 0);
+        assert!(!files::sidecar(&path, "-journal").exists());
+        store.close().unwrap();
+        std::fs::remove_dir_all(directory).unwrap();
+    }
+
+    #[test]
+    fn a_fresh_restore_keeps_wal_mode_while_another_connection_has_the_file_open() {
+        let directory = files::make_temporary_directory("ath-fresh-restore-shared-").unwrap();
+        let path = directory.join("fresh.ath.sqlite");
+        let mut store = Store::create(&path, CreateOptions::default()).unwrap();
+        store.connection().busy_timeout(Duration::from_millis(50)).unwrap();
+        let other = Connection::open(&path).unwrap();
+        let _: i64 = other.query_row("SELECT current_revision FROM database_state", [], |row| row.get(0)).unwrap();
+        let inside = store
+            .fresh_restore_transaction(|tx| {
+                tx.execute("UPDATE database_state SET current_revision = 2 WHERE singleton_id = 1", [])?;
+                mode_inside(tx)
+            })
+            .unwrap();
+        assert_eq!(inside, "wal");
+        assert_eq!(journal_mode(store.connection()), "wal");
+        let seen: i64 = other.query_row("SELECT current_revision FROM database_state", [], |row| row.get(0)).unwrap();
+        assert_eq!(seen, 2);
+        drop(other);
         store.close().unwrap();
         std::fs::remove_dir_all(directory).unwrap();
     }
