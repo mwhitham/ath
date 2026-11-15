@@ -350,6 +350,25 @@ impl Store {
         result
     }
 
+    /// `transaction` for one large change made of many small statements,
+    /// such as a package restore. SQLite keeps each statement's journal in
+    /// memory rather than in a temporary file. A statement journal holds only
+    /// the pages that one statement changed, and SQLite empties it when the
+    /// statement ends, so memory stays small. In a file, each inserted row
+    /// cost several write calls. The earlier setting returns afterwards.
+    pub fn bulk_transaction<T>(
+        &mut self,
+        operation: impl FnOnce(&rusqlite::Transaction<'_>) -> Result<T>,
+    ) -> Result<T> {
+        let previous: i64 = self.connection.pragma_query_value(None, "temp_store", |row| row.get(0))?;
+        self.connection.pragma_update(None, "temp_store", "MEMORY")?;
+        let result = self.transaction(operation);
+        let restored = self.connection.pragma_update(None, "temp_store", previous);
+        let value = result?;
+        restored?;
+        Ok(value)
+    }
+
     /// Checkpoint and truncate the WAL after writes, then close.
     pub fn close(self) -> Result<()> {
         if !self.read_only {
@@ -407,5 +426,37 @@ fn remove_partial_database(path: &Path, identity: files::FileIdentity) {
     }
     for candidate in [path.to_path_buf(), files::sidecar(path, "-wal"), files::sidecar(path, "-shm")] {
         let _ = std::fs::remove_file(candidate);
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn temp_store(store: &Store) -> i64 {
+        store.connection().pragma_query_value(None, "temp_store", |row| row.get(0)).unwrap()
+    }
+
+    #[test]
+    fn a_bulk_transaction_keeps_statement_journals_in_memory_and_restores_the_setting() {
+        let directory = files::make_temporary_directory("ath-bulk-transaction-").unwrap();
+        let mut store = Store::create(directory.join("bulk.ath.sqlite"), CreateOptions::default()).unwrap();
+        assert_eq!(temp_store(&store), 0);
+        let inside = store
+            .bulk_transaction(|tx| Ok(tx.pragma_query_value(None, "temp_store", |row| row.get::<_, i64>(0))?))
+            .unwrap();
+        assert_eq!(inside, 2);
+        assert_eq!(temp_store(&store), 0);
+
+        // A failed change rolls back and still restores the setting.
+        let failed = store.bulk_transaction(|tx| {
+            tx.execute("UPDATE database_state SET current_revision = 7 WHERE singleton_id = 1", [])?;
+            Err::<(), _>(Error::other("stop"))
+        });
+        assert!(failed.is_err());
+        assert_eq!(temp_store(&store), 0);
+        assert_eq!(store.database_revision().unwrap(), 0);
+        store.close().unwrap();
+        std::fs::remove_dir_all(directory).unwrap();
     }
 }

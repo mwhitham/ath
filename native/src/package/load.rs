@@ -18,6 +18,7 @@ use serde::Serialize;
 use sha2::{Digest, Sha256};
 
 use super::attachments::{check_attachment_bytes, relative_attachment_path, stored_attachment_name};
+use super::series::{read_series, CheckedSeries, SeriesRead};
 use super::{MANIFEST_DOCUMENT, PACKAGE_DOCUMENT};
 use crate::error::{Error, Result};
 use crate::files::{self, durable};
@@ -176,61 +177,61 @@ pub fn load_package_checked(input: &Path) -> Result<PackageLoad> {
     let mut boundaries: HashMap<(String, SeriesQuantity), (String, HashSet<String>)> = HashMap::new();
     for reference in ordered {
         let path = resolve_package_file(&source_directory, &reference.file)?;
-        let (bytes, value) = safe_read_json(&path)?;
+        let bytes = safe_read_bytes(&path)?;
+        let read = read_series(&bytes, &path, false)?;
         let hash = durable::sha256_hex(&bytes);
         fingerprint.push(fingerprint_line(&reference.file, &bytes));
         drop(bytes);
         if hash != reference.sha256 {
             return Err(Error::refused(format!("series hash does not match package reference: {}", reference.file)));
         }
-        let issues = measurement_series_file_schema().issues(&value);
-        if !issues.is_empty() {
-            return Ok(PackageLoad::Unrepresentable(representation(
-                &value,
-                &issues,
-                Some(&reference.file),
-                Some(database_id.clone()),
-                Some(database_revision),
-            )));
-        }
-        check_series_counts(&value, &reference, "series counts or grouping do not match")?;
-        let start_at = value["start_at"].as_str().unwrap_or_default().to_string();
-        let end_at = value["end_at"].as_str().unwrap_or_default().to_string();
-        let records = value["records"].as_array().map(Vec::as_slice).unwrap_or_default();
+        let series = match read {
+            SeriesRead::Valid(series) => series,
+            SeriesRead::Invalid { value, issues } => {
+                return Ok(PackageLoad::Unrepresentable(representation(
+                    &value,
+                    &issues,
+                    Some(&reference.file),
+                    Some(database_id.clone()),
+                    Some(database_revision),
+                )));
+            }
+        };
+        check_series_counts(&series, &reference, "series counts or grouping do not match")?;
+        let start_at = series.text("start_at").to_string();
+        let end_at = series.text("end_at").to_string();
+        let records = &series.facts.records;
         let group = (reference.source_id.clone(), reference.quantity);
         if let Some((previous_end, ids_at_end)) = boundaries.get(&group) {
             if start_at.as_str() < previous_end.as_str() {
                 return Err(Error::refused(format!("measurement-series time ranges overlap: {}", reference.file)));
             }
             if &start_at == previous_end {
-                let repeated = records.iter().find(|record| {
-                    record["data"]["recorded_at"].as_str() == Some(start_at.as_str())
-                        && ids_at_end.contains(record["record_id"].as_str().unwrap_or_default())
-                });
+                let repeated = records
+                    .iter()
+                    .find(|record| record.data_recorded_at == start_at && ids_at_end.contains(&record.record_id));
                 if let Some(repeated) = repeated {
                     return Err(Error::refused(format!(
                         "package repeats record ID across series files: {}",
-                        repeated["record_id"].as_str().unwrap_or_default()
+                        repeated.record_id
                     )));
                 }
             }
         }
         let ids_at_end: HashSet<String> = records
             .iter()
-            .filter(|record| record["data"]["recorded_at"].as_str() == Some(end_at.as_str()))
-            .filter_map(|record| record["record_id"].as_str().map(str::to_string))
+            .filter(|record| record.data_recorded_at == end_at)
+            .map(|record| record.record_id.clone())
             .collect();
         boundaries.insert(group, (end_at, ids_at_end));
         for record in records {
             if examples.len() >= MAX_PREVIEW_RECORD_IDS {
                 break;
             }
-            examples.push(record["record_id"].as_str().unwrap_or_default().to_string());
+            examples.push(record.record_id.clone());
         }
-        object_count += ["records", "record_revisions", "record_deletions", "record_import_keys"]
-            .iter()
-            .map(|key| value[*key].as_array().map_or(0, Vec::len) as u64)
-            .sum::<u64>();
+        object_count +=
+            (series.record_count + series.revision_count + series.deletion_count() + series.import_key_count()) as u64;
         if object_count > MAX_PACKAGE_RECORD_OBJECTS {
             return Err(Error::refused(format!(
                 "package has more than {MAX_PACKAGE_RECORD_OBJECTS} record and history objects"
@@ -244,19 +245,21 @@ pub fn load_package_checked(input: &Path) -> Result<PackageLoad> {
         )));
     }
 
+    // `package_schema` has checked every record and revision against the
+    // non-sample shapes, so they are decoded without a second check.
     let records: Vec<CurrentRecord> = document["records"]
         .as_array()
         .map(Vec::as_slice)
         .unwrap_or_default()
         .iter()
-        .map(CurrentRecord::from_value_non_sample)
+        .map(CurrentRecord::from_checked)
         .collect::<std::result::Result<_, _>>()?;
     let revisions: Vec<RecordRevision> = document["record_revisions"]
         .as_array()
         .map(Vec::as_slice)
         .unwrap_or_default()
         .iter()
-        .map(RecordRevision::from_value_non_sample)
+        .map(RecordRevision::from_checked)
         .collect::<std::result::Result<_, _>>()?;
     let deletions: Vec<RecordDeletion> = from_checked_value(&document["record_deletions"])?;
     let erasure_markers: Vec<RecordErasureMarker> = from_checked_value(&document["record_erasure_markers"])?;
@@ -315,45 +318,40 @@ pub(crate) struct SeriesBatch {
 
 /// Read a series file again. Its hash and counts must not have changed.
 pub(crate) fn read_series_batch(file: &LoadedSeriesFile) -> Result<SeriesBatch> {
-    let (bytes, mut value) = safe_read_json(&file.path)?;
+    // The file is read one item at a time, so the JSON form and the typed
+    // form of a file are not both held whole (see `series.rs`).
+    let bytes = safe_read_bytes(&file.path)?;
+    let read = read_series(&bytes, &file.path, true)?;
     if durable::sha256_hex(&bytes) != file.reference.sha256 {
         return Err(Error::stale(format!("series hash changed after package load: {}", file.reference.file)));
     }
     drop(bytes);
-    measurement_series_file_schema().validate(&value)?;
-    check_series_counts(&value, &file.reference, "series counts or grouping changed after package load")?;
-    // Move each list out and release every JSON item once it is decoded, so
-    // the JSON form and the typed form of a file are not both held whole.
-    let mut take = |key: &str| match value.get_mut(key).map(Value::take) {
-        Some(Value::Array(items)) => items,
-        _ => Vec::new(),
+    let series = match read {
+        SeriesRead::Valid(series) => series,
+        SeriesRead::Invalid { value, .. } => {
+            measurement_series_file_schema().validate(&value)?;
+            unreachable!("a file with issues does not validate")
+        }
     };
-    let records = take("records");
-    let revisions = take("record_revisions");
-    let deletions = Value::Array(take("record_deletions"));
-    let import_keys = Value::Array(take("record_import_keys"));
-    Ok(SeriesBatch {
-        records: records
-            .into_iter()
-            .map(|item| CurrentRecord::from_value(&item))
-            .collect::<std::result::Result<_, _>>()?,
-        revisions: revisions
-            .into_iter()
-            .map(|item| RecordRevision::from_value(&item))
-            .collect::<std::result::Result<_, _>>()?,
-        deletions: from_checked_value(&deletions)?,
-        import_keys: from_checked_value(&import_keys)?,
-    })
+    check_series_counts(&series, &file.reference, "series counts or grouping changed after package load")?;
+    let deletions = series.deletions()?;
+    let import_keys = series.import_keys()?;
+    let CheckedSeries { records, revisions, .. } = *series;
+    Ok(SeriesBatch { records, revisions, deletions, import_keys })
 }
 
-fn check_series_counts(value: &Value, reference: &MeasurementSeriesFileReference, message: &str) -> Result<()> {
-    let count = |key: &str| value[key].as_array().map_or(0, Vec::len) as u64;
-    if value["source_id"].as_str() != Some(reference.source_id.as_str())
-        || value["quantity"].as_str() != Some(reference.quantity.as_str())
-        || count("records") != reference.sample_count
-        || count("record_revisions") != reference.revision_count
-        || count("record_deletions") != reference.deletion_count
-        || count("record_import_keys") != reference.import_key_count
+fn check_series_counts(
+    series: &CheckedSeries,
+    reference: &MeasurementSeriesFileReference,
+    message: &str,
+) -> Result<()> {
+    let declared = |key: &str| series.shell.get(key).and_then(Value::as_str);
+    if declared("source_id") != Some(reference.source_id.as_str())
+        || declared("quantity") != Some(reference.quantity.as_str())
+        || series.record_count as u64 != reference.sample_count
+        || series.revision_count as u64 != reference.revision_count
+        || series.deletion_count() as u64 != reference.deletion_count
+        || series.import_key_count() as u64 != reference.import_key_count
     {
         return Err(Error::refused(format!("{message}: {}", reference.file)));
     }
@@ -456,6 +454,19 @@ pub(crate) fn resolve_package_file(source_directory: &Path, file: &str) -> Resul
 
 /// Read a package JSON file within the size and nesting limits.
 pub(crate) fn safe_read_json(path: &Path) -> Result<(Vec<u8>, Value)> {
+    let bytes = safe_read_bytes(path)?;
+    let value = parse_package_json(&bytes, path)?;
+    Ok((bytes, value))
+}
+
+/// Read JSON bytes, refusing them as `safe_read_json` does.
+pub(crate) fn parse_package_json(bytes: &[u8], path: &Path) -> Result<Value> {
+    json::parse_bytes(bytes)
+        .map_err(|error| Error::refused(format!("package JSON is invalid: {}: {}", path.display(), error.message)))
+}
+
+/// Read a package file within the size and nesting limits, without parsing it.
+pub(crate) fn safe_read_bytes(path: &Path) -> Result<Vec<u8>> {
     files::refuse_symbolic_link_components(path, false)?;
     let metadata = fs::symlink_metadata(path)?;
     if !metadata.is_file() {
@@ -469,9 +480,7 @@ pub(crate) fn safe_read_json(path: &Path) -> Result<(Vec<u8>, Value)> {
     }
     let bytes = fs::read(path)?;
     check_nesting(&bytes, path)?;
-    let value = json::parse_bytes(&bytes)
-        .map_err(|error| Error::refused(format!("package JSON is invalid: {}: {}", path.display(), error.message)))?;
-    Ok((bytes, value))
+    Ok(bytes)
 }
 
 /// Refuse nesting deeper than the limit before parsing.

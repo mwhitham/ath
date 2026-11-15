@@ -100,7 +100,7 @@ pub fn preview_package_import(store: &Store, input: &Path) -> Result<PackageImpo
             Ok(PackageImportPreview {
                 source_database_id: representation.source_database_id.unwrap_or_else(|| "unavailable".into()),
                 source_database_revision: representation.source_database_revision.unwrap_or(0),
-                restore: destination.revision == 0 && destination.record_count == 0,
+                restore: destination.takes_restore(),
                 destination_database_id: destination.database_id,
                 destination_database_revision: destination.revision,
                 new_records: Vec::new(),
@@ -123,24 +123,30 @@ pub fn preview_package_import(store: &Store, input: &Path) -> Result<PackageImpo
 struct Destination {
     database_id: String,
     revision: u64,
-    record_count: u64,
+    /// True when `records` has no row, deleted or not.
+    is_empty: bool,
+}
+
+impl Destination {
+    /// An empty database at revision 0 adopts the package history.
+    fn takes_restore(&self) -> bool {
+        self.revision == 0 && self.is_empty
+    }
 }
 
 fn destination_state(connection: &rusqlite::Connection) -> Result<Destination> {
     let metadata = store::read_metadata(connection)?;
-    let record_count: i64 = connection.query_row("SELECT COUNT(*) FROM records", [], |row| row.get(0))?;
-    Ok(Destination {
-        database_id: metadata.database_id,
-        revision: store::database_revision(connection)?,
-        record_count: record_count as u64,
-    })
+    // Only emptiness matters. Counting every row read the whole records
+    // index, which was most of a one-record merge into a large database.
+    let is_empty: bool = connection.query_row("SELECT NOT EXISTS (SELECT 1 FROM records)", [], |row| row.get(0))?;
+    Ok(Destination { database_id: metadata.database_id, revision: store::database_revision(connection)?, is_empty })
 }
 
 /// Preview a loaded package.
 pub fn preview_loaded(store: &Store, loaded: LoadedPackage) -> Result<PackageImportPreview> {
     let connection = store.connection();
     let destination = destination_state(connection)?;
-    let restore = destination.revision == 0 && destination.record_count == 0;
+    let restore = destination.takes_restore();
     let mut conflicts = Vec::new();
     if !restore && destination.database_id != loaded.database_id {
         conflicts.push(PackageImportConflict {
@@ -372,7 +378,7 @@ pub fn apply_package_import(
     let mut batch = if files.is_empty() { None } else { Some(AttachmentFileBatch::begin(store, files)?) };
     let resolution_time = time::now_utc();
     let layout = store.layout();
-    let result = store.transaction(|tx| {
+    let result = store.bulk_transaction(|tx| {
         if store::database_revision(tx)? != preview.destination_database_revision
             || store::read_metadata(tx)?.database_id != preview.destination_database_id
         {
@@ -801,4 +807,47 @@ fn resolve_in(
     write_current(tx, layout, &record)?;
     tx.execute("UPDATE records SET current_revision = ?1 WHERE record_id = ?2", params![next as i64, id])?;
     Ok(record.data)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::store::{Changes, CreateOptions, NewRecord};
+
+    /// Only an empty database at revision 0 takes a restore. A deleted record
+    /// still counts as a record.
+    #[test]
+    fn only_an_empty_database_takes_a_restore() {
+        let directory = files::make_temporary_directory("ath-destination-").unwrap();
+        let mut store = Store::create(directory.join("d.ath.sqlite"), CreateOptions::default()).unwrap();
+        let empty = destination_state(store.connection()).unwrap();
+        assert!(empty.is_empty && empty.takes_restore());
+
+        let data = RecordData::decode(
+            RecordType::AthleteReport,
+            &serde_json::json!({
+                "report_type": "note",
+                "reported_at": "2026-11-14T08:00:00.000Z",
+                "input_reported_at": { "timestamp_missing_reason": "not_applicable", "utc_offset_missing_reason": "not_applicable" },
+                "reported_via": "text",
+                "note": "one",
+            }),
+        )
+        .unwrap();
+        store
+            .apply(Changes { creates: vec![NewRecord::new(data, RecordActor::Athlete)], ..Changes::default() })
+            .unwrap();
+        let written = destination_state(store.connection()).unwrap();
+        assert!(!written.is_empty && !written.takes_restore());
+
+        // A record row at revision 0 still blocks a restore.
+        store
+            .connection()
+            .execute("UPDATE database_state SET current_revision = 0 WHERE singleton_id = 1", [])
+            .unwrap();
+        let rewound = destination_state(store.connection()).unwrap();
+        assert!(rewound.revision == 0 && !rewound.takes_restore());
+        drop(store);
+        std::fs::remove_dir_all(directory).unwrap();
+    }
 }
