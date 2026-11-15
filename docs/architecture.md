@@ -32,6 +32,9 @@ Rules that keep this table true:
 
 - `src/model/` has no database, terminal, network, or process dependency.
 - `src/store/` never prompts and never calls a model.
+- `src/store/` keeps its SQLite connection and transactions private (D223).
+  Public operations take a `Store`. Code outside the library that needs SQL
+  opens its own connection to the database file, as a direct-SQL client does.
 - Readers in `src/import/` produce typed candidates. They never write SQL.
 - `src/cli/` holds no record-to-table mapping, matching rule, grading
   arithmetic, or history rule. It parses, calls one library operation, and

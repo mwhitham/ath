@@ -337,3 +337,47 @@ Rejected alternatives:
 - Read the file as immutable and ignore the journal. Rejected because it would
   read half-written pages as if they were committed.
 - Keep the old message. Rejected because it named the wrong problem.
+
+## D223. The library keeps its SQLite connection private
+
+`Store` keeps its SQLite connection and its transactions inside the library.
+`Store::connection`, `Store::transaction`, `Store::bulk_transaction`, and
+`Store::fresh_restore_transaction` are crate-private. No public function takes
+or returns a rusqlite `Connection` or `Transaction`, or takes a closure over
+one. Public reads and calculations take a `Store`. Examples are
+`prediction::build_evidence`, `prediction::run_backtest`,
+`log::plan_log_entry`, `view::calendar::resolve_calendar_range`, and
+`store::contract::verify_live_schema`. `Store::pending_file_operations` is the
+public way to read pending file work. Helpers that run inside a write
+transaction, such as `store::write::apply_in` and `store::migrate::apply_step`,
+are crate-private. Where one calculation reads through the same connection
+several times, a crate-private `_in` form takes that connection, such as
+`view::calendar::resolve_calendar_range_in`. The command line and the protocol
+worker are part of the library, so they may use crate-private items.
+
+Code outside the library that checks stored rows opens its own SQLite
+connection to the database file, as a direct-SQL client does. The tests do
+this through small helpers in their support modules. The performance runner
+traces the statements an operation runs. It learns the handle of the store's
+connection from a SQLite auto-extension when SQLite opens it, and it reads
+counts and query plans through its own read-only connection.
+
+A `compile_fail` doc test on `Store` calls each of the four methods from
+outside the library. `cargo test` fails if any of them becomes public again.
+
+The reason is spec sections 5 and 7. The store owns the connection and
+transaction lifecycle, and public methods describe domain operations without
+arbitrary SQL callbacks. A public connection let any caller run any SQL,
+including a write that skips record validation, the revision rules, and the
+database revision. SQL clients have the published direct-SQL contract in
+`spec/sql/`, which applies to their own connection. This change alters
+signatures and visibility only. Outputs and stored rows are the same.
+
+Rejected alternatives:
+
+- A `test-support` Cargo feature that re-exports the raw connection to tests.
+  Rejected because any caller can turn on a feature, so the access would stay
+  public in practice. Tests can open their own connection instead.
+- Leave the methods public and document that callers should not use them.
+  Rejected because a comment does not stop a write that skips the store's
+  checks, and the spec asks for no such access.
