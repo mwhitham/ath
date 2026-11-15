@@ -6,7 +6,6 @@
 //! settings and chooses the installed or shipped copy. Reading a calculation
 //! never writes an athlete record.
 
-pub mod coverage;
 pub mod definition;
 pub mod range;
 pub mod record;
