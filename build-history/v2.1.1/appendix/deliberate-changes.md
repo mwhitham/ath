@@ -440,6 +440,36 @@ not collide with the native entries.
 73. **`SQL_SCHEMA_VERSION` is 5** and the JSON Schema exports describe
      2.1.1. These are version declarations under D208.
 
+## Speed work and file locking
+
+74. **A restore into a new, empty database writes through a rollback
+    journal,** grows the file 8 MiB at a time, and returns the file to WAL
+    mode before the command ends (D221). The finished file can be up to one
+    chunk longer than its pages; the extra bytes are zeros. 2.1.0 restored in
+    WAL mode. Tests: `store::tests`
+    (`a_fresh_restore_uses_a_rollback_journal_and_ends_in_wal_mode`,
+    `a_fresh_restore_grows_the_file_in_chunks`,
+    `a_failed_fresh_restore_leaves_the_empty_database_as_it_was`,
+    `a_fresh_restore_keeps_wal_mode_while_another_connection_has_the_file_open`).
+
+75. **A reader during that restore waits and then reports "database is
+    locked".** The wait is the 5 s busy timeout. In 2.1.0 a reader saw the
+    empty database. Test: `store::tests`
+    (`a_read_only_open_during_a_rollback_journal_write_reports_the_lock`).
+
+76. **A read-only open undoes a rollback-journal write that stopped
+    partway** and returns the file to WAL mode (D222). This needs write access
+    to the file and its folder; without it the open is refused with a message
+    that names the stopped write. 2.1.0 could not meet this case, because it
+    never wrote through a rollback journal. Test: `package::tests`
+    (`a_stopped_rollback_journal_write_reads_as_before`).
+
+77. **A write command's last checkpoint tries once.** When another
+    connection is reading the file, the command exits at once and the WAL
+    keeps the committed write until a later checkpoint. 2.1.0 waited up to the
+    5 s busy timeout for the reader before it exited. Test: `store::tests`
+    (`closing_after_a_write_does_not_wait_for_a_reader`).
+
 ## Behavior kept on purpose
 
 These look odd but stay, because changing them would change accepted data or

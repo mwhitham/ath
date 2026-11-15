@@ -264,3 +264,76 @@ Rejected alternatives:
   Rust package, and a Node workspace there would serve one folder.
 - Use pnpm inside the package. Rejected because npm ships with Node, and the
   release jobs already use it to pack and install the tarball.
+
+## D221. A restore into a new database writes through a rollback journal
+
+A restore into a new, empty database runs its one transaction with a rollback
+journal (`journal_mode` DELETE). The file grows 8 MiB at a time during the
+restore. Before the command ends, the file returns to WAL mode. A merge into a
+database that has records, and a restore while another connection has the file
+open, stay in WAL mode, because SQLite cannot leave WAL mode then.
+
+The reason is speed and disk use. In WAL mode every new page is written to the
+WAL, and the checkpoint reads it back and writes it again into the database. A
+rollback journal saves only the old content of pages that already existed, and
+a new database has almost none. At 3 million records the restore took 400.2
+and 401.2 s with a rollback journal, against 452.3 and 490.8 s in WAL mode, and
+peak disk fell from about twice the database to its size. Without this change
+the 3-million-record import missed the spec section 14 target of half the
+2.1.0 time. The measurements are in
+[performance/report-2.1.1.md](../../performance/report-2.1.1.md).
+
+The restore is still one atomic transaction with `synchronous` FULL. A failed
+restore rolls back and leaves the empty database in WAL mode. A stopped
+restore is undone the next time the file is opened (D222).
+
+The cost is for readers. While the restore writes, no other connection can
+read the file. A reader waits for the busy timeout of 5 s and then reports
+"database is locked". In 2.1.0 a reader saw the empty database. This is
+accepted because the database is new and empty: a reader learns nothing from
+it during the restore, and the restore is usually run by the same person.
+The finished file can also be up to one chunk longer than its pages. The extra
+bytes are zeros that SQLite does not read; later writes use them, and `VACUUM`
+removes them.
+
+Rejected alternatives:
+
+- Keep WAL mode and add the 8 MiB file growth. Rejected because it was slower
+  in every paired run and used twice the disk.
+- A larger page cache for the restore. Rejected because 64, 128, and 256 MiB
+  caches were no faster in paired runs.
+- `journal_mode` OFF or MEMORY. Rejected because a stopped process could then
+  leave a half-written database.
+- `synchronous` OFF or NORMAL for the restore. Rejected because a power loss
+  could then lose or damage a restore that reported success.
+
+## D222. A read-only open undoes a write that stopped partway
+
+When a read-only open finds the journal of a rollback-journal write that
+stopped partway, it opens the file for writing once. SQLite undoes the stopped
+write, the file returns to WAL mode, and the read-only open continues on the
+file as it was before the write. Undoing needs write access to the file and
+its folder. Without it, the open is refused with a message that says why, and
+nothing is changed.
+
+This is an exception to the spec section 7 rule that read-only operations do
+not change file state. The reason is that a journal left by a stopped write
+can only be read by undoing it. A read-only SQLite connection cannot undo it,
+and without this step `ath stats` and `ath check` called the file "not an
+Athletic Standard database". The undo changes no committed data. It removes
+only pages that were never committed, which is what the next write would do
+anyway. A database in WAL mode never leaves such a journal. In 2.1.1 the
+usual cause is a stopped restore into a new database (D221). A file kept in
+rollback-journal mode, such as a verified backup, can leave one when another
+program's write to it stops. Such a file is also left in WAL mode, as any
+2.1.1 write leaves it.
+
+Rejected alternatives:
+
+- Refuse the read and ask the person to run a write command first. Rejected
+  because the read cannot succeed until the write is undone, the undo has one
+  correct result, and `ath check` is the command a person runs to find out
+  what is wrong.
+- Read the file as immutable and ignore the journal. Rejected because it would
+  read half-written pages as if they were committed.
+- Keep the old message. Rejected because it named the wrong problem.

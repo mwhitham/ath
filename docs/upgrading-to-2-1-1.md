@@ -37,6 +37,12 @@ separately. The backup does not contain work recorded after it was made. Version
 Databases from 1.0.0 and 2.0.0 upgrade the same way. Packages from 2.0.0 and 2.1.0
 still import.
 
+Restoring a package into a new, empty database is faster and uses about half the disk.
+While that restore runs, other commands cannot read the file. They wait up to 5 seconds,
+then report `database is locked`. Run them again when the import finishes. If a restore
+is stopped partway, the next command that opens the file undoes it, and the database is
+empty again.
+
 ## Command line
 
 Commands, arguments, flags, defaults, confirmations, exit statuses, and JSON fields
