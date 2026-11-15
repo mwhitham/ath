@@ -35,6 +35,12 @@ jobs:
       - run: cargo clippy --locked --all-targets -- -D warnings
       # Report every failing test program, not only the first.
       - run: cargo test --locked --no-fail-fast
+      # The real Credential Manager, under a test service name. The test is
+      # ignored elsewhere because it writes to the password store of whoever
+      # runs it; this runner is discarded after the job.
+      - name: Credential Manager on the Windows runner
+        if: runner.os == 'Windows'
+        run: cargo test --locked --test runtime_keyring -- --ignored credential_manager_saves_reads_and_clears_a_key_on_windows
 
   native-release:
     name: release build (${{ matrix.target }})
