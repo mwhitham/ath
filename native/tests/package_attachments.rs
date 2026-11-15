@@ -157,15 +157,17 @@ fn cleanup_removes_only_unreferenced_files_of_stopped_operations() {
     pend(&store, "99999999-stopped", "attachment_write", "attachments/01890f3e-0000-7000-8000-0000000000aa.png");
     pend(&store, "99999999-stopped", "attachment_write", "attachments/01890f3e-0000-7000-8000-0000000000aa.png.tmp-x");
     pend(&store, "99999999-stopped", "attachment_write", &format!("attachments/{DEMO_ATTACHMENT}"));
-    // A write whose owner is still running (process 1 always runs).
-    pend(&store, "1-running", "attachment_write", "attachments/01890f3e-0000-7000-8000-0000000000bb.png");
+    // A write whose owner is still running. Process 1 always runs on Unix;
+    // Windows has no process 1, and its System process, 4, always runs.
+    let running = if cfg!(windows) { "4-running" } else { "1-running" };
+    pend(&store, running, "attachment_write", "attachments/01890f3e-0000-7000-8000-0000000000bb.png");
     // A path outside the attachment folder is never acted on.
     pend(&store, "99999999-odd", "attachment_removal", "attachments/../athlete.ath.sqlite");
 
     let report = resume_pending_file_operations(&mut store).unwrap();
     assert_eq!(report.removed_files, ["attachments/01890f3e-0000-7000-8000-0000000000aa.png"]);
     assert_eq!(report.retained_files, [format!("attachments/{DEMO_ATTACHMENT}")]);
-    assert_eq!(report.active_operations, ["1-running"]);
+    assert_eq!(report.active_operations, [running]);
     assert_eq!(report.failed_files.len(), 1);
     assert!(!report.is_complete());
     assert!(attachments.join(DEMO_ATTACHMENT).exists());
@@ -174,6 +176,6 @@ fn cleanup_removes_only_unreferenced_files_of_stopped_operations() {
     assert!(database.exists());
     let left: Vec<String> =
         pending_file_operations(store.connection()).unwrap().into_iter().map(|entry| entry.operation_id).collect();
-    assert_eq!(left, ["1-running", "99999999-odd"]);
+    assert_eq!(left, [running, "99999999-odd"]);
     common::remove_dir(&directory);
 }

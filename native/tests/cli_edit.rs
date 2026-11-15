@@ -50,7 +50,8 @@ fn delete_previews_and_writes_only_after_yes() {
     let folder = private_folder();
     let fixture = fixture(folder.path());
     let id = fixture.benchmark_result.as_str();
-    let file = fixture.path.display().to_string();
+    // JSON text writes each backslash in a Windows path twice.
+    let file = fixture.path.display().to_string().replace('\\', "\\\\");
     let preview = json_lines(&[
         "{",
         &format!("  \"file\": \"{file}\","),
@@ -245,7 +246,7 @@ fn link_moves_a_result_to_another_session() {
         preview.stdout,
         json_lines(&[
             "{",
-            &format!("  \"file\": \"{}\",", fixture.path.display()),
+            &format!("  \"file\": \"{}\",", fixture.path.display().to_string().replace('\\', "\\\\")),
             &format!("  \"record_id\": \"{result}\","),
             "  \"expected_revision\": 1,",
             "  \"current_revision\": 1,",

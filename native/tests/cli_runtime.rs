@@ -64,12 +64,16 @@ fn discovery_uses_only_the_default_name() {
     std::fs::write(folder.path().join("notes.txt"), b"").unwrap();
     assert_eq!(
         delete(&["--file", "./sub/../notes.txt"]).stderr,
-        refusal(&format!("the live athlete record must be a .ath.sqlite SQLite file, not {cwd}/notes.txt"))
+        refusal(&format!(
+            "the live athlete record must be a .ath.sqlite SQLite file, not {}",
+            Path::new(&cwd).join("notes.txt").display()
+        ))
     );
     assert_eq!(
         delete(&["--file", "old.ath.json"]).stderr,
         refusal(&format!(
-            "Athletic Standard prerelease JSON files are not supported by v1. Keep {cwd}/old.ath.json unchanged and run `ath init` to create a v1 SQLite database."
+            "Athletic Standard prerelease JSON files are not supported by v1. Keep {} unchanged and run `ath init` to create a v1 SQLite database.",
+            Path::new(&cwd).join("old.ath.json").display()
         ))
     );
 }
@@ -285,7 +289,10 @@ fn init_refuses_a_bad_target() {
     let existing = session.run(&["init", "-y"]);
     assert_eq!(
         existing.stderr,
-        refusal(&format!("{cwd}/athlete.ath.sqlite already exists, and overwriting it would lose whatever is in it. Read it with `ath stats`, or start a second file with `--file <name>.ath.sqlite`."))
+        refusal(&format!(
+            "{} already exists, and overwriting it would lose whatever is in it. Read it with `ath stats`, or start a second file with `--file <name>.ath.sqlite`.",
+            Path::new(&cwd).join("athlete.ath.sqlite").display()
+        ))
     );
 }
 
