@@ -16,10 +16,12 @@ name = "ath"
 path = "src/main.rs"
 
 # Native library latency for the release performance report. See
-# performance/README.md.
+# performance/README.md. `cargo test` also runs its test, which measures every
+# operation once on a small database.
 [[example]]
 name = "performance-library"
 path = "tools/performance/library.rs"
+test = true
 
 [dependencies]
 chrono = { version = "0.4.45", default-features = false, features = ["clock", "std"] }

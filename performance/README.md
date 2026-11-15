@@ -49,7 +49,10 @@ release gate.
 - `tools/performance/library.rs` is the native counterpart of
   `scripts/performance/run-benchmarks.ts`. It calls the library directly and
   reports library latency without process startup. With `--plans`, it records the
-  query plan of every distinct read statement each operation runs.
+  query plan of every distinct read statement each operation runs. `cargo test`
+  runs its own test, which measures all nine operations once on the demo
+  database with invented series and requires the evidence request to read
+  records through `records_record_type_idx`.
 - The 2.1.0 library latency comes from the unchanged
   `scripts/performance/run-benchmarks.ts` in the reference checkout.
 
@@ -76,6 +79,10 @@ The generated data passes the native check with no issue at every size, and the
 2.1.0 check at 100,000 records. At 3 million records the 2.1.0 check stops at
 Node's default heap limit; with a 16 GiB heap it also reports no issue. So no
 corrected copy of the generator was needed.
+
+`prepare` refuses a generated database that does not hold all 24 record types,
+corrections, deletions, and samples from three sources, or whose migrated copy
+the native check rejects. These are the checks the 2.1.0 generator test made.
 
 ### Requirements
 

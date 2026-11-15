@@ -527,6 +527,32 @@ async function prepare(): Promise<void> {
     if (name.includes(".migration-backup.")) rmSync(join(nativeDirectory, name), { force: true });
   }
 
+  // What the 2.1.0 generator test (tests/v1-performance-generator.test.ts)
+  // required of a generated database: every record type, corrections,
+  // deletions, and samples from three sources. The migrated copy must also
+  // pass the native check with no issue.
+  const shape = sql(
+    oldDatabase,
+    `SELECT (SELECT COUNT(DISTINCT record_type) FROM records),
+            (SELECT COUNT(*) FROM record_revisions WHERE revision > 1),
+            (SELECT COUNT(*) FROM record_deletions),
+            (SELECT COUNT(DISTINCT source_id) FROM measurement_samples)`,
+  )
+    .split("|")
+    .map(Number);
+  if (shape[0] !== 24 || shape[1] === 0 || shape[2] === 0 || shape[3] !== 3) {
+    throw new Error(
+      `the generated database has ${shape[0]} record types, ${shape[1]} corrections, ${shape[2]} deletions, ` +
+        `and ${shape[3]} sample sources; expected 24 types, some corrections and deletions, and 3 sources`,
+    );
+  }
+  const checked = JSON.parse(
+    run(nativeBinary, ["check", "--file", databasePath("native"), "--json"], { cwd: nativeDirectory }),
+  ) as { valid: boolean; issues: unknown[] };
+  if (!checked.valid || checked.issues.length > 0) {
+    throw new Error(`the native check found ${checked.issues.length} issue(s) in the generated database`);
+  }
+
   const inputPackage = join(dataset, "input-package");
   rmSync(inputPackage, { recursive: true, force: true });
   console.log("exporting the shared import input with the 2.1.0 command");

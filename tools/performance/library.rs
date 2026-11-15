@@ -274,6 +274,13 @@ fn remove_database(path: &Path) {
 
 fn main() -> Result<(), Failure> {
     let options = options()?;
+    let report = run(&options)?;
+    std::fs::write(&options.output, format!("{}\n", serde_json::to_string_pretty(&report)?))?;
+    Ok(())
+}
+
+/// Run every measurement and return the report.
+fn run(options: &Options) -> Result<Value, Failure> {
     std::fs::create_dir_all(&options.work)?;
     let store = Store::open(&options.database, OpenOptions { read_only: true, allow_outdated_schema: false })?;
     let connection = store.connection();
@@ -500,7 +507,121 @@ fn main() -> Result<(), Failure> {
         "query_plans": Value::Object(plans),
         "process_peak_rss_bytes": peak_rss_bytes(),
     });
-    std::fs::write(&options.output, format!("{}\n", serde_json::to_string_pretty(&report)?))?;
     drop(store);
-    Ok(())
+    Ok(report)
+}
+
+#[cfg(test)]
+#[path = "../../tests/demo_support/mod.rs"]
+mod demo_support;
+
+/// The 2.1.0 suite ran its benchmark runner on a small generated database
+/// (`tests/v1-performance-generator.test.ts`). This runs the native runner the
+/// same way, on the demo database with invented series: every one of the nine
+/// measurements must succeed, and the evidence request must read records
+/// through `records_record_type_idx`.
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use athleticstandard::model::package::ATHLETIC_STANDARD_VERSION;
+
+    const OPERATIONS: [&str; 9] = [
+        "latest_value",
+        "evidence_28d",
+        "baseline_90d",
+        "workout_drift",
+        "cross_source_comparison",
+        "full_json_export",
+        "database_check",
+        "initial_import",
+        "incremental_import",
+    ];
+
+    /// The one-record package the 2.1.0 runner used for the incremental import.
+    fn write_delta(directory: &Path, database_id: &str, database_revision: i64) {
+        const RECORD_ID: &str = "01890f3e-e7d3-7cc0-88c8-0000fffffff0";
+        let data = json!({
+            "report_type": "note",
+            "reported_at": CREATED_AT,
+            "input_reported_at": {
+                "timestamp_text": CREATED_AT,
+                "utc_offset_text": "Z",
+                "utc_offset_meaning": "documented_recording_offset",
+                "timestamp_basis": "source_instant"
+            },
+            "reported_via": "text",
+            "note": "Deterministic incremental-import performance record"
+        });
+        let document = json!({
+            "athleticstandard_version": ATHLETIC_STANDARD_VERSION,
+            "database_id": database_id,
+            "database_revision": database_revision + 1,
+            "records": [{
+                "record_id": RECORD_ID, "record_type": "athlete_report", "created_at": CREATED_AT,
+                "current_revision": 1, "is_deleted": false, "data": data
+            }],
+            "record_revisions": [{
+                "record_id": RECORD_ID, "record_type": "athlete_report", "revision": 1, "previous_revision": null,
+                "became_known_at": CREATED_AT, "became_known_at_basis": "package_merge",
+                "changed_by": {
+                    "author_type": "tool", "tool": "ath-performance-runner", "tool_version": ATHLETIC_STANDARD_VERSION
+                },
+                "data": data
+            }],
+            "record_deletions": [],
+            "record_erasure_markers": [],
+            "record_import_keys": [],
+            "measurement_series_files": []
+        });
+        athleticstandard::files::create_private_dir_all(directory).unwrap();
+        let text = format!("{}\n", athleticstandard::json::to_pretty(&document));
+        std::fs::write(directory.join("athlete.ath.json"), text).unwrap();
+    }
+
+    #[test]
+    fn every_measurement_runs_and_evidence_reads_the_record_type_index() {
+        let root = athleticstandard::files::make_temporary_directory("ath-performance-library-").unwrap();
+        let database = demo_support::write_with_series(&root.join("database"));
+        let package = root.join("package");
+        let store = Store::open(&database, OpenOptions { read_only: true, allow_outdated_schema: false }).unwrap();
+        export_package(&store, &package, &ExportOptions::default()).unwrap();
+        let database_id = athleticstandard::store::read_metadata(store.connection()).unwrap().database_id;
+        let revision: i64 =
+            store.connection().query_row("SELECT current_revision FROM database_state", [], |row| row.get(0)).unwrap();
+        drop(store);
+        write_delta(&root.join("delta"), &database_id, revision);
+
+        let options = Options {
+            database,
+            package,
+            delta: root.join("delta"),
+            work: root.join("work"),
+            output: root.join("report.json"),
+            repetitions: 1,
+            bulk_repetitions: 1,
+            plans: true,
+        };
+        let report = run(&options).unwrap();
+
+        let operations = report["operations"].as_array().unwrap();
+        let ids: Vec<&str> = operations.iter().map(|operation| operation["id"].as_str().unwrap()).collect();
+        assert_eq!(ids, OPERATIONS);
+        for operation in operations {
+            assert_eq!(operation["samples_ms"].as_array().unwrap().len(), 1, "{}", operation["id"]);
+        }
+        let plans = report["query_plans"].as_object().unwrap();
+        assert_eq!(plans.len(), OPERATIONS.len());
+        let evidence_steps: Vec<&str> = plans["evidence_28d"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .flat_map(|statement| statement["plan"].as_array().unwrap())
+            .map(|step| step.as_str().unwrap())
+            .collect();
+        assert!(
+            evidence_steps.iter().any(|step| step.contains("records_record_type_idx")),
+            "the evidence request does not read records through records_record_type_idx: {evidence_steps:#?}"
+        );
+        std::fs::remove_dir_all(&root).unwrap();
+    }
 }
