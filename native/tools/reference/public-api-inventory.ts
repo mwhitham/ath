@@ -14,7 +14,7 @@
  *
  *   node --import tsx native/tools/reference/public-api-inventory.ts
  *
- * Output: native/reference/public-api.json (2-space JSON, trailing newline),
+ * Output: build-history/v2.1.1/appendix/public-api.json (2-space JSON, trailing newline),
  * sorted by entry point, then export name.
  */
 import { createHash } from "node:crypto";
@@ -24,7 +24,7 @@ import { fileURLToPath } from "node:url";
 import ts from "typescript";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
-const outPath = join(root, "native", "reference", "public-api.json");
+const outPath = join(root, "build-history", "v2.1.1", "appendix", "public-api.json");
 
 interface PackageJson {
   name: string;

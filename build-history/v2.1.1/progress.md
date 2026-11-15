@@ -15,7 +15,7 @@ Completed:
 Built so far (all under `native/`, which moves to the root at the cutover):
 
 - Reference inventories of every command, option, help text, public JavaScript
-  export, and existing test (`native/reference/`).
+  export, and existing test, now in [appendix/](appendix/) (D218).
 - The record model, validator, and JSON Schema generator (D212, D213). All
   7,285 comparable 2.1.0 validation cases match.
 - The one record encoder and the SQLite store. Replaying the demo history

@@ -22,7 +22,7 @@ interface InventorySymbol {
 }
 
 const inventory = JSON.parse(
-  readFileSync(join(repositoryRoot, "native", "reference", "public-api.json"), "utf8"),
+  readFileSync(join(repositoryRoot, "build-history", "v2.1.1", "appendix", "public-api.json"), "utf8"),
 ) as { symbols: InventorySymbol[]; json_only_subpaths: Array<{ subpath: string }> };
 
 const modules: Record<string, Record<string, unknown>> = {

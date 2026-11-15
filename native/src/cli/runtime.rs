@@ -2,7 +2,7 @@
 //! and opened, how a person confirms a write, and how failures are reported.
 //!
 //! This ports `src/cli/runtime.ts` and `src/file.ts` from 2.1.0. Rule IDs such
-//! as S14 refer to `native/reference/command-behavior.md`.
+//! as S14 refer to `build-history/v2.1.1/appendix/command-behavior.md`.
 
 use std::collections::BTreeMap;
 use std::io::{BufRead, Write};

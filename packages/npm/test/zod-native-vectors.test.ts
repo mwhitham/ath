@@ -5,7 +5,7 @@
  * The vectors in native/tests/vectors/model/ were observed from the 2.1.0
  * Zod schemas. Each case runs through the facade in process and through the
  * native validator in one protocol worker. The cases skipped here are the
- * deliberate differences in native/reference/deliberate-changes.md, items 2
+ * deliberate differences in build-history/v2.1.1/appendix/deliberate-changes.md, items 2
  * to 4: lone UTF-16 surrogates, numbers outside the double range, and a
  * `__proto__` key. Version 2.1.1 (item 1) is accepted by both, so those cases
  * still compare.

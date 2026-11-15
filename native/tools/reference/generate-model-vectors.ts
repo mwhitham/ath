@@ -76,7 +76,7 @@ function fail(message: string): never {
 }
 
 // ---------------------------------------------------------------------------
-// Semantic rules (see native/reference/semantic-rules.md)
+// Semantic rules (see build-history/v2.1.1/appendix/semantic-rules.md)
 // ---------------------------------------------------------------------------
 
 const RULE_MESSAGES: Record<string, string | RegExp> = {
@@ -3422,7 +3422,7 @@ function main(): void {
       "present it is the authoritative input. output is JSON.parse(JSON.stringify(parsed)) for valid cases; " +
       "output_text replaces it when the output holds a lone surrogate. issues lists every Zod issue in order with " +
       "path, code, message, then the remaining Zod fields in key order. rules names semantic rules a case triggers " +
-      "or satisfies (native/reference/semantic-rules.md).",
+      "or satisfies (build-history/v2.1.1/appendix/semantic-rules.md).",
     generator: "native/tools/reference/generate-model-vectors.ts",
     zod_version: zodVersion,
     time_zone_data: `ICU ${process.versions.icu ?? "unknown"}, tz ${process.versions.tz ?? "unknown"}`,

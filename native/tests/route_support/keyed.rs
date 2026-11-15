@@ -3,7 +3,7 @@
 //!
 //! The golden files hold what the 2.1.0 helper printed and stored. The native
 //! result is compared with these field-specific normalizations, each a
-//! deliberate change listed in `native/reference/deliberate-changes.md`:
+//! deliberate change listed in `build-history/v2.1.1/appendix/deliberate-changes.md`:
 //!
 //! - Times: the helper read the clock, so the golden files name each time by
 //!   the step that wrote it (`<step N>`). The native steps use fixed times,
@@ -13,7 +13,7 @@
 //!   every record through one encoder.
 //! - `changed_by.tool` is `ath`: the helper named itself `ath-core`.
 //! - A revision the helper wrote is a provider import, not a local write
-//!   (change 55 in `native/reference/deliberate-changes.md`).
+//!   (change 55 in `build-history/v2.1.1/appendix/deliberate-changes.md`).
 //! - The database revision advances once per import that writes, not once per
 //!   record, so only whether it advanced is compared.
 //! - On the Garmin, Strava, and pull routes, 2.1.0 wrote a revision on every

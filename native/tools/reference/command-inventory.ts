@@ -14,7 +14,7 @@
  *
  *   node --import tsx native/tools/reference/command-inventory.ts
  *
- * Output: native/reference/command-inventory.json (2-space JSON, trailing newline).
+ * Output: build-history/v2.1.1/appendix/command-inventory.json (2-space JSON, trailing newline).
  */
 import { readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
@@ -23,7 +23,7 @@ import { CommanderError, type Argument, type Command, type Option } from "comman
 import { buildProgram } from "../../../src/program.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..", "..", "..");
-const outPath = join(root, "native", "reference", "command-inventory.json");
+const outPath = join(root, "build-history", "v2.1.1", "appendix", "command-inventory.json");
 
 /** Commander fields this script reads that are not in its public type declarations. */
 interface CommandInternals {

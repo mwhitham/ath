@@ -195,3 +195,32 @@ Rejected alternatives:
 
 - Build every part in one working tree. Rejected because one part that does not
   compile would stop work on every other part.
+
+## D218. The reference evidence stays in build history
+
+The inventories and comparison notes made from the 2.1.0 reference move from
+`native/reference/` into [appendix/](appendix/) at the cutover. They are the
+evidence for D212, D215, D217, and spec section 13. Tests that compare the
+native program with 2.1.0 read them from there.
+
+- [command-inventory.json](appendix/command-inventory.json): every 2.1.0
+  command, option, default, help text, and parse-only probe.
+- [command-behavior.md](appendix/command-behavior.md): what each command does
+  after parsing, with the rule IDs the native code cites.
+- [cli-changes.md](appendix/cli-changes.md): the deliberate command-line
+  differences from 2.1.0.
+- [deliberate-changes.md](appendix/deliberate-changes.md): every deliberate
+  behavior difference, with the test that proves it (D217).
+- [semantic-rules.md](appendix/semantic-rules.md): the record rules JSON Schema
+  cannot express, which the Rust validator runs (D212).
+- [public-api.json](appendix/public-api.json): every 2.1.0 JavaScript export
+  that the npm package keeps (D209).
+- [test-disposition.md](appendix/test-disposition.md): where each 2.1.0 test
+  file's promises are checked after the rebuild (spec section 13.3).
+
+Rejected alternatives:
+
+- Keep the files under `native/`. Rejected because the cutover removes that
+  folder (spec section 5).
+- Delete them once the comparison passes. Rejected because they record why the
+  native behavior is what it is.

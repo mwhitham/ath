@@ -2,7 +2,7 @@
 //!
 //! The output layout matches the files published for 2.1.0, so a reader can
 //! compare versions line by line. Refinements that JSON Schema cannot express
-//! are listed in `native/reference/semantic-rules.md` and run in the Rust
+//! are listed in `build-history/v2.1.1/appendix/semantic-rules.md` and run in the Rust
 //! validator; structural validity does not prove a package's history is valid.
 
 use super::schema::{Check, Kind, Schema, SchemaRef, StringFormat};

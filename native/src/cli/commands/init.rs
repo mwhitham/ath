@@ -18,7 +18,7 @@ use crate::text::js_number;
 
 /// The refusal when questions would be asked but standard input is not a
 /// terminal. 2.1.0 exited 0 having created nothing (deliberate change; see
-/// `native/reference/cli-changes.md`).
+/// `build-history/v2.1.1/appendix/cli-changes.md`).
 pub const NO_TERMINAL_FOR_QUESTIONS: &str =
     "there is no terminal to ask on, so nothing was created. Pass --yes to skip the questions.";
 

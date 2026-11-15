@@ -7,7 +7,7 @@
  * become labels built from match keys, and the tool version in `changed_by`
  * becomes `<ath version>`. Nothing else is normalized.
  *
- * One deliberate change is applied while recording (listed in native/reference/deliberate-changes.md):
+ * One deliberate change is applied while recording (listed in build-history/v2.1.1/appendix/deliberate-changes.md):
  * 2.1.0 read a GPX time without a UTC offset in the computer's own timezone. The
  * native reader leaves that point out. `Date.parse` is wrapped here so any text
  * whose instant depends on the computer's timezone reads as invalid, which is

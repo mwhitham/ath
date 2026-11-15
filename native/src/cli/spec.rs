@@ -4,7 +4,7 @@
 //! parser and the Commander-style help text are both built from this table, so
 //! a flag cannot be described one way in help and parsed another way.
 //!
-//! The words come from the 2.1.0 program (`native/reference/command-inventory.json`).
+//! The words come from the 2.1.0 program (`build-history/v2.1.1/appendix/command-inventory.json`).
 //! Option `flags` use Commander's notation: `-y, --yes` is a flag with a short
 //! form, `--revision <number>` takes a required value, and `--no-skill` is a
 //! negated flag whose value is true unless the flag is given.

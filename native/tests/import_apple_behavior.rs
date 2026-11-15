@@ -318,7 +318,7 @@ fn two_writers_at_one_instant_are_two_groups_numbered_from_zero() {
 fn a_sample_that_cannot_be_placed_in_time_refuses_the_preview() {
     // 2.1.0 stored this sample at the time of the day's first sample, or
     // stopped with "Invalid time value" when it sorted first. The change is
-    // listed in native/reference/deliberate-changes.md.
+    // listed in build-history/v2.1.1/appendix/deliberate-changes.md.
     let directory = TempDir::new();
     let record = |date: &str, value: u32| {
         format!(

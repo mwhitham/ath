@@ -12,7 +12,7 @@ const OLD_VERSION: &str = "2.1.0";
 const NEW_VERSION: &str = "2.1.1";
 
 fn inventory() -> Value {
-    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("reference/command-inventory.json");
+    let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("../build-history/v2.1.1/appendix/command-inventory.json");
     serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap()
 }
 
