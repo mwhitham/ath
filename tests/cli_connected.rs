@@ -173,3 +173,101 @@ fn update_hands_a_checked_plan_to_the_launcher() {
     assert_eq!(fetched.status, 0, "{}", fetched.stderr);
     assert!(!fetched.stdout.is_empty());
 }
+
+// ---- No write lock during a model call ----------------------------------------
+
+const CATALOG: &str = r#"{"data":[{"id":"test/steady","name":"Steady","reasoning":true}]}"#;
+const STEADY_REPLY: &str = r#"{"predicted_score":{"duration_s":290},"predicted_range":{"low":{"duration_s":280},"high":{"duration_s":300}},"confidence":"moderate","reasoning":"Anchored on the latest result."}"#;
+
+/// A local model server. Before it answers a model call, it takes the write
+/// lock on `database` with its own connection, writes, and commits. A
+/// command that held the write lock during the call would make that fail
+/// after one second. The result of each attempt is kept.
+fn serve_while_writing(database: std::path::PathBuf) -> (String, std::sync::Arc<std::sync::Mutex<Vec<String>>>) {
+    use std::io::{BufRead, BufReader, Read, Write};
+    let listener = std::net::TcpListener::bind("127.0.0.1:0").unwrap();
+    let address = listener.local_addr().unwrap();
+    let writes = std::sync::Arc::new(std::sync::Mutex::new(Vec::new()));
+    let log = std::sync::Arc::clone(&writes);
+    std::thread::spawn(move || {
+        for stream in listener.incoming() {
+            let Ok(mut stream) = stream else { continue };
+            stream.set_read_timeout(Some(std::time::Duration::from_secs(30))).unwrap();
+            let mut reader = BufReader::new(stream.try_clone().unwrap());
+            let mut request_line = String::new();
+            if reader.read_line(&mut request_line).is_err() {
+                continue;
+            }
+            let mut length = 0usize;
+            loop {
+                let mut header = String::new();
+                if reader.read_line(&mut header).unwrap_or(0) == 0 || header == "\r\n" {
+                    break;
+                }
+                if let Some((name, value)) = header.split_once(':') {
+                    if name.eq_ignore_ascii_case("content-length") {
+                        length = value.trim().parse().unwrap_or(0);
+                    }
+                }
+            }
+            let mut body = vec![0; length];
+            let _ = reader.read_exact(&mut body);
+            let reply = if request_line.starts_with("GET /models ") {
+                CATALOG.to_string()
+            } else if request_line.starts_with("POST /chat/completions ") {
+                let connection = rusqlite::Connection::open(&database).unwrap();
+                connection.busy_timeout(std::time::Duration::from_secs(1)).unwrap();
+                let written = connection.execute_batch(
+                    "BEGIN IMMEDIATE;
+                     UPDATE database_state SET current_revision = current_revision + 1 WHERE singleton_id = 1;
+                     COMMIT;",
+                );
+                log.lock().unwrap().push(match written {
+                    Ok(()) => "written".to_string(),
+                    Err(error) => error.to_string(),
+                });
+                serde_json::json!({"model": "test/steady", "choices": [{"message": {"content": STEADY_REPLY}}]})
+                    .to_string()
+            } else {
+                r#"{"error":"not found"}"#.to_string()
+            };
+            let _ = write!(
+                stream,
+                "HTTP/1.1 200 OK\r\ncontent-type: application/json\r\ncontent-length: {}\r\nconnection: close\r\n\r\n{reply}",
+                reply.len()
+            );
+        }
+    });
+    (format!("http://{address}"), writes)
+}
+
+/// Spec section 8: no writer lock is held while a model is called. Another
+/// connection writes during the call, and the prediction is saved after it,
+/// as 2.1.0 saved it: a prediction adds a record and checks no revision.
+#[test]
+fn no_write_lock_is_held_during_a_model_call() {
+    use athleticstandard::store::migrate::{execute_confirmed_migration, MigrationOptions};
+    use athleticstandard::store::{OpenOptions, Store};
+    let folder = private_folder();
+    let path = folder.path().join("athlete.ath.sqlite");
+    std::fs::copy(common::demo_database(), &path).unwrap();
+    athleticstandard::files::set_owner_only(&path).unwrap();
+    let mut store = Store::open(&path, OpenOptions { read_only: false, allow_outdated_schema: true }).unwrap();
+    let options = MigrationOptions { backup_path: Some(folder.path().join("backup.sqlite")), now_millis: None };
+    execute_confirmed_migration(&mut store, &options).unwrap();
+    store.close().unwrap();
+    let before = database_revision(&path);
+
+    let (base_url, writes) = serve_while_writing(path.clone());
+    let mut session = Session::piped(folder.path());
+    session.env.insert("ATH_GATEWAY_BASE_URL".into(), base_url);
+    session.env.insert("AI_GATEWAY_API_KEY".into(), "test-vercel-key".into());
+    session.services.secret_store = Some(Rc::new(MemorySecretStore::new()));
+    let file = path.display().to_string();
+    let output = session.run(&["predict", "fran", "--model", "test/steady", "--yes", "--file", &file]);
+
+    assert_eq!(*writes.lock().unwrap(), ["written"], "the model call held the write lock");
+    assert_eq!(output.status, 0, "{}", output.stderr);
+    assert!(output.stdout.contains(&format!(" at database revision {}\n", before + 2)), "{}", output.stdout);
+    assert_eq!(database_revision(&path), before + 2);
+}
