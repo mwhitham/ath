@@ -291,6 +291,8 @@ fn an_erasure_whose_file_step_fails_is_not_reported_as_complete() {
         assert!(report.is_complete(), "{point}");
         assert!(!directory.join("attachments").join(DEMO_ATTACHMENT).exists(), "{point}");
         assert!(pending(&database).is_empty(), "{point}");
+        // Windows cannot remove a folder that holds an open database.
+        drop(store);
         fs::remove_dir_all(directory).unwrap();
     }
 }

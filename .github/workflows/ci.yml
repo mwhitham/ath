@@ -111,7 +111,8 @@ jobs:
       - run: rustup show active-toolchain || rustup toolchain install
       - run: cargo fmt --check
       - run: cargo clippy --locked --all-targets -- -D warnings
-      - run: cargo test --locked
+      # Report every failing test program, not only the first.
+      - run: cargo test --locked --no-fail-fast
 
   # The npm package (build-history/v2.1.1/spec.md sections 11.2, 11.3, 13.2, 15).
   # Each release executable is built once, here. Every later job uses these
