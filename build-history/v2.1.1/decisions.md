@@ -2,7 +2,7 @@
 
 The complete native rebuild targets version 2.1.1. The specification is
 [spec.md](spec.md). Numbers continue after the unapproved D198–D207 proposals in
-[the earlier draft](../v3.0.0/decisions.md). That draft remains in build history.
+[the earlier draft](appendix/draft-2.1.1/decisions.md). That draft remains in build history.
 
 ## D208. The complete native rebuild ships as 2.1.1
 
@@ -381,3 +381,38 @@ Rejected alternatives:
 - Leave the methods public and document that callers should not use them.
   Rejected because a comment does not stop a write that skips the store's
   checks, and the spec asks for no such access.
+
+## D224. An unapproved draft lives in the appendix of the version that replaced it
+
+A version folder holds only a plan for a version that was approved. A draft that
+was replaced before approval moves, unchanged, into the `appendix/` of the version
+that replaced it, under the name `draft-<version>/`. Its proposed D-numbers stay
+reserved and are never reused.
+
+The first draft of the rebuild plan was written as version 3.0.0 and proposed
+D198–D207. It was never approved, and version 2.1.1 replaced it (D208, D209). Its
+three files moved from `build-history/v3.0.0/` to
+[`appendix/draft-2.1.1/`](appendix/draft-2.1.1/spec.md) with no change to their text.
+Their titles still say 3.0.0, because that is what the draft proposed. Their
+relative links are as they were at commit 9048078, where they resolve; several name
+files that the 2.1.1 cutover removed.
+
+The reason is that folders are named for the format version they describe
+(`build-history/README.md`). No version 3.0.0 exists, so a `v3.0.0/` folder read as
+a planned future version. `build-history/README.md` now lists the status of each
+version folder and states this rule.
+
+This is an exception to the rule that earlier version folders are not changed. It
+applies only to a draft that was never approved. A released version's folder never
+moves.
+
+Rejected alternatives:
+
+- Delete the draft. Rejected because build history keeps rejected plans, and the
+  draft explains what 2.1.1 chose not to do.
+- Leave `v3.0.0/` in place with a warning. Rejected because the folder name itself
+  is what misleads.
+- Name the folder `draft-3.0.0/`. Rejected because it still names a version that
+  does not exist; the draft is the first plan for 2.1.1.
+- Edit the draft's text or links. Rejected because build history keeps what was
+  written.

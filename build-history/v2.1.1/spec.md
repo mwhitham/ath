@@ -3,9 +3,10 @@
 Status: **approved direction; release target 2.1.1**. The complete native rebuild
 is selected for this version. Publication remains separate from implementation.
 
-This specification replaces the unapproved [3.0.0 draft](../v3.0.0/spec.md). That
-draft remains in build history. This version preserves the current public contracts.
-The draft's proposed JavaScript removals are not part of 2.1.1.
+This specification replaces the unapproved [first draft](appendix/draft-2.1.1/spec.md),
+which was written as version 3.0.0. That draft remains in build history (D224). This
+version preserves the current public contracts. The draft's proposed JavaScript
+removals are not part of 2.1.1.
 
 ## 1. The result
 

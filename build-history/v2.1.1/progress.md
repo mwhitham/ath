@@ -10,7 +10,8 @@ Completed:
 - Recorded 2.1.1 as the selected version for the complete rebuild.
 - Retained the full implementation and verification requirements.
 - Removed the earlier draft's proposed public API removals from the selected plan.
-- Preserved the unapproved 3.0.0 draft as history.
+- Preserved the unapproved first draft, written as 3.0.0, as history. It is in
+  [appendix/draft-2.1.1/](appendix/draft-2.1.1/spec.md) (D224).
 
 Built before the cutover (under `native/` at the time):
 
