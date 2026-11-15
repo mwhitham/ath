@@ -12,14 +12,12 @@ mod demo_support;
 #[path = "temporary_root.rs"]
 mod temporary_root;
 
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 
 use athleticstandard::json::{self, Value};
 use athleticstandard::model::{BecameKnownAtBasis, RecordActor, RecordData, RecordType};
 use athleticstandard::store::write::StaleStyle;
-use athleticstandard::store::{
-    Changes, Correction, CreateOptions, Deletion, ExtensionsUpdate, NewRecord, OpenOptions, Store,
-};
+use athleticstandard::store::{Changes, Correction, Deletion, ExtensionsUpdate, NewRecord, OpenOptions, Store};
 use serde_json::json;
 
 const MANUAL_SOURCE: &str = "01890f3e-e7d3-7cc0-88c8-000000000004";
@@ -313,7 +311,9 @@ fn a_17_digit_coordinate_survives_a_correction_and_the_check() {
 #[cfg(unix)]
 mod unix {
     use super::*;
+    use athleticstandard::store::CreateOptions;
     use std::os::unix::fs::{symlink, PermissionsExt};
+    use std::path::Path;
 
     fn mode(path: &Path) -> u32 {
         std::fs::symlink_metadata(path).unwrap().permissions().mode() & 0o777
