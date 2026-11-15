@@ -37,7 +37,7 @@ env:
 
 jobs:
   hundred-thousand:
-    runs-on: macos-14
+    runs-on: macos-15
     timeout-minutes: 120
     env:
       PERF_ROOT: ${{ github.workspace }}/perf
