@@ -72,9 +72,24 @@ The cutover (spec section 15, step 8):
 - CI runs one reusable validation workflow; the release workflow reuses it and
   publishes only the checked tarball and archives.
 
+Performance (spec section 14), reported in
+[`performance/report-2.1.1.md`](../../performance/report-2.1.1.md):
+
+- Every target passes on the measuring machine. The 3-million-record initial
+  import takes 0.465 of the 2.1.0 median (0.468, 0.461, and 0.473 in three
+  paired runs). The 3-million-record check takes about 0.19 of the 2.1.0 time,
+  which needed a larger Node heap to finish at all. Export is faster at both
+  sizes. All nine existing limits pass.
+- Peak memory stays under 512 MiB: at most 185.0 MiB for the 3-million-record
+  import, 324.2 MiB at 1 million, 40.1 MiB for export, and 15.2 MiB for check.
+- The report lists the nine changes made during this work. Each keeps every
+  check and result, and has its own commit and tests. D221 records the rollback-journal
+  restore into a new database, and D222 records how a read-only open undoes a
+  restore that stopped partway. A write command no longer waits for a reader
+  before it exits ([change 77](appendix/deliberate-changes.md)).
+
 Remaining:
 
-- The performance report, `performance/report-2.1.1.md`.
 - Runs of the new validation workflow on Linux, macOS, and Windows, with the
   archive and npm smoke tests, on the final commit. The jobs are defined in
   `.github/workflows/validate.yml` and have not run yet.
