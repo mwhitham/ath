@@ -1,5 +1,6 @@
 //! Package export: byte comparison with version 2.1.0 and staging behavior.
 //! Ported from tests/v1-export-import.test.ts and tests/v1-export-staging.test.ts.
+#![cfg_attr(not(unix), allow(unused_imports, dead_code))]
 
 #[path = "package_support/mod.rs"]
 mod common;

@@ -4,6 +4,7 @@
 //! registry answer. The executable-level comparison with 2.1.0 is
 //! `cli_golden.rs`; these paths cannot run there without a real terminal or
 //! a real service.
+#![cfg_attr(not(unix), allow(unused_imports, dead_code))]
 
 mod common;
 

@@ -1,6 +1,7 @@
 //! The read policy: read-only opens change no file state, read committed WAL
 //! data while a writer holds the file, never checkpoint or delete sidecars,
 //! and concurrent writers wait for each other instead of failing.
+#![cfg_attr(not(unix), allow(unused_imports, dead_code))]
 
 mod maintenance_support;
 

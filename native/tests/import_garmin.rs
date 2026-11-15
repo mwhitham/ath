@@ -5,6 +5,7 @@
 //! helper. `route_support::keyed` names the normalizations. The other tests
 //! port `tests/v2-core.test.ts`, the Garmin, Strava, and pull rows of
 //! `tests/import-baseline.test.ts`, and the helper's own tests.
+#![cfg_attr(not(unix), allow(unused_imports, dead_code))]
 
 mod import_support;
 mod route_support;

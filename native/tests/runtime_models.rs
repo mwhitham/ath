@@ -1,5 +1,6 @@
 //! The default model saved beside the athlete database, and model choice.
 //! Ported from `tests/models.test.ts`. Model lists come from a local server.
+#![cfg_attr(not(unix), allow(unused_imports, dead_code))]
 
 mod support;
 

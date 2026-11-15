@@ -3,6 +3,7 @@
 //! `apple-rust-parity.test.ts`, `ecg.test.ts`, `routes.test.ts`, and the Apple
 //! parts of `import-baseline.test.ts` and `v1-provider-import.test.ts`. The
 //! numeric vectors were written by 2.1.0 and are compared exactly.
+#![cfg_attr(not(unix), allow(unused_imports, dead_code))]
 
 mod import_support;
 

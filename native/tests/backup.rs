@@ -1,4 +1,5 @@
 //! Verified backups through SQLite's in-process backup API.
+#![cfg_attr(not(unix), allow(unused_imports, dead_code))]
 
 mod maintenance_support;
 

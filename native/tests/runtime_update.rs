@@ -1,6 +1,7 @@
 //! `ath --update`. Ported from `tests/update.test.ts`, with the launcher
 //! handoff, Cargo installs, release archives, and source checkouts added.
 //! The registry is a closure or a local server; no package manager runs.
+#![cfg_attr(not(unix), allow(unused_imports, dead_code))]
 
 mod support;
 
