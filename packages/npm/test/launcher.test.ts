@@ -318,7 +318,7 @@ function managerFolder(): string {
 }
 
 describe("plan checks", () => {
-  // The exact text the native program writes (native/tests/runtime_update.rs).
+  // The exact text the native program writes (tests/runtime_update.rs).
   const nativePlanText = `{
   "ath_update_plan": 1,
   "manager": "npm",
@@ -931,7 +931,7 @@ describe("the real native executable", () => {
   const executableName = process.platform === "win32" ? "ath.exe" : "ath";
   const configured = process.env[NATIVE_EXECUTABLE_VARIABLE];
   const built = ["debug", "release"]
-    .map((profile) => join(repositoryRoot, "native", "target", profile, executableName))
+    .map((profile) => join(repositoryRoot, "target", profile, executableName))
     .find((path) => existsSync(path));
   // CI names the tested binary. A checkout uses a Cargo build when one exists.
   const executable = configured !== undefined && configured !== "" ? configured : built;

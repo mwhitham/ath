@@ -8,12 +8,12 @@
  *
  *   node packages/npm/scripts/pack.mjs --native-dir <dir> [--out <dir>]
  *   node packages/npm/scripts/pack.mjs --native <target>=<file> ... [--out <dir>]
- *   node packages/npm/scripts/pack.mjs --native darwin-arm64=native/target/release/ath --allow-missing-targets
+ *   node packages/npm/scripts/pack.mjs --native darwin-arm64=target/release/ath --allow-missing-targets
  *
  * What CI must supply:
  *
- * 1. One executable per target, built in native/ with
- *    `cargo build --release --locked` and copied from native/target/release/.
+ * 1. One executable per target, built at the repository root with
+ *    `cargo build --release --locked` and copied from target/release/.
  *    With --native-dir the folder holds exactly this layout:
  *
  *      <dir>/linux-x64/ath         from ubuntu-latest   (x86_64-unknown-linux-gnu)
@@ -23,23 +23,25 @@
  *    File modes do not matter. Artifact downloads drop them, and the packed
  *    copies get mode 0755. --native <target>=<file> names one file and wins
  *    over --native-dir for that target.
- * 2. The JSON Schema files packages/npm/schema/2.1.1/athleticstandard.schema.json,
- *    export-manifest.schema.json, and measurement-series.schema.json.
- * 3. The repository's Node dependencies (`pnpm install --frozen-lockfile` at
- *    the root), for the TypeScript compiler.
+ * 2. The repository's JSON Schema files schema/2.1.1/athleticstandard.schema.json,
+ *    export-manifest.schema.json, and measurement-series.schema.json. They are
+ *    committed and checked by tests/generated.rs.
+ * 3. This package's Node dependencies (`npm ci` in packages/npm), for the
+ *    TypeScript compiler.
  * 4. Node with its bundled npm.
  *
  * Every target is required. --allow-missing-targets packs only the targets
  * given, for a local check on one machine. That tarball must not be published.
  *
  * Steps: check each executable is built for its target; build dist/ with tsc;
- * copy the executables to native/<target>/ and the repository skill to
- * skills/athletic-standard/; run npm pack; read the tarball back. Every export
- * target, the `ath` bin, and each executable must be in it, and each packed
- * executable must equal its input byte for byte. The SHA-256 of the tarball and
- * of each packed executable is printed and written to pack-summary.json beside
- * the tarball. The copied executables and skill are removed afterwards, so a
- * later run in the checkout cannot pick up a stale executable.
+ * copy the executables to native/<target>/, the repository skill to
+ * skills/athletic-standard/, the repository's schema files to schema/, and the
+ * repository's LICENSE and README.md; run npm pack; read the tarball back.
+ * Every export target, the `ath` bin, and each executable must be in it, and
+ * each packed executable must equal its input byte for byte. The SHA-256 of
+ * the tarball and of each packed executable is printed and written to
+ * pack-summary.json beside the tarball. The copied files are removed
+ * afterwards, so a later run in the checkout cannot pick up a stale copy.
  */
 import { spawnSync } from "node:child_process";
 import {
@@ -55,7 +57,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { createRequire } from "node:module";
-import { join, relative, resolve } from "node:path";
+import { dirname, join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { parseArgs } from "node:util";
 import {
@@ -226,10 +228,11 @@ async function main() {
     packed.push({ target, executable, input: file, sha256: sha256(bytes), size: bytes.length });
   }
 
+  // The JSON Schema files are committed once, in the repository's schema/.
   const schemaTargets = manifestTargets(manifest).filter((target) => target.startsWith("schema/"));
   for (const target of schemaTargets) {
-    if (!existsSync(join(packageDirectory, target))) {
-      fail(`missing packages/npm/${target}. The JSON Schema files are generated into packages/npm/schema/; generate them before packing.`);
+    if (!existsSync(join(repositoryRoot, target))) {
+      fail(`missing ${target} in the repository. Run \`ATH_WRITE_GENERATED=1 cargo test --test generated\` first.`);
     }
   }
   const skillSource = join(repositoryRoot, "skills", SKILL_NAME);
@@ -238,9 +241,10 @@ async function main() {
   }
   const skillFiles = listFiles(skillSource);
 
-  const staged = [join(packageDirectory, "native"), join(packageDirectory, "skills")];
-  const licenseCopy = existsSync(join(packageDirectory, "LICENSE")) ? null : join(packageDirectory, "LICENSE");
-  if (licenseCopy !== null) staged.push(licenseCopy);
+  const staged = [join(packageDirectory, "native"), join(packageDirectory, "skills"), join(packageDirectory, "schema")];
+  // npm puts the license and readme beside package.json in every tarball.
+  const rootCopies = ["LICENSE", "README.md"].filter((name) => !existsSync(join(packageDirectory, name)));
+  staged.push(...rootCopies.map((name) => join(packageDirectory, name)));
   const dist = join(packageDirectory, "dist");
   for (const path of [dist, ...staged]) {
     rmSync(path, { recursive: true, force: true });
@@ -270,8 +274,12 @@ async function main() {
       chmodSync(destination, 0o755);
     }
     cpSync(skillSource, join(packageDirectory, "skills", SKILL_NAME), { recursive: true });
-    if (licenseCopy !== null) {
-      copyFileSync(join(repositoryRoot, "LICENSE"), licenseCopy);
+    for (const target of schemaTargets) {
+      mkdirSync(dirname(join(packageDirectory, target)), { recursive: true });
+      copyFileSync(join(repositoryRoot, target), join(packageDirectory, target));
+    }
+    for (const name of rootCopies) {
+      copyFileSync(join(repositoryRoot, name), join(packageDirectory, name));
     }
 
     for (const target of manifestTargets(manifest)) {

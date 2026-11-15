@@ -10,7 +10,7 @@
  * Windows, so the native program writes an update plan and exits. The launcher
  * checks the plan, runs the package manager it names without a shell command
  * string, and then runs the newly installed executable to refresh skills. The
- * same route is used on every system. native/src/runtime/update.rs defines the
+ * same route is used on every system. src/runtime/update.rs defines the
  * plan and the environment variables.
  */
 import { spawn, type ChildProcess } from "node:child_process";

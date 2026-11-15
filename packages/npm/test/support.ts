@@ -2,7 +2,7 @@
  * Shared test setup: the native executable under test and temporary folders.
  *
  * Tests run the executable named by ATH_NATIVE_EXECUTABLE. Without it they
- * use the debug build in native/target, which `cargo build` makes.
+ * use the debug build in target/, which `cargo build` makes at the repository root.
  */
 import { existsSync, mkdtempSync, realpathSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
@@ -13,7 +13,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 export const repositoryRoot = resolve(here, "..", "..", "..");
 
 const executableName = process.platform === "win32" ? "ath.exe" : "ath";
-const debugBuild = join(repositoryRoot, "native", "target", "debug", executableName);
+const debugBuild = join(repositoryRoot, "target", "debug", executableName);
 
 if (process.env.ATH_NATIVE_EXECUTABLE === undefined || process.env.ATH_NATIVE_EXECUTABLE === "") {
   process.env.ATH_NATIVE_EXECUTABLE = debugBuild;
@@ -23,7 +23,7 @@ export const nativeExecutable = process.env.ATH_NATIVE_EXECUTABLE;
 
 if (!existsSync(nativeExecutable)) {
   throw new Error(
-    `The native ath executable is missing at ${nativeExecutable}. Run cargo build in native/ or set ATH_NATIVE_EXECUTABLE.`,
+    `The native ath executable is missing at ${nativeExecutable}. Run cargo build at the repository root or set ATH_NATIVE_EXECUTABLE.`,
   );
 }
 
