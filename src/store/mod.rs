@@ -69,6 +69,44 @@ pub struct CreateOptions {
     pub created_at: Option<String>,
 }
 
+/// One open database file.
+///
+/// The SQLite connection and its transactions stay inside this library (D223).
+/// Code outside the library reads and writes through the domain operations,
+/// such as [`Store::get_record`] and [`Store::apply`]. None of these compile
+/// outside the library:
+///
+/// ```compile_fail,E0624
+/// # fn main() -> athleticstandard::Result<()> {
+/// let store = athleticstandard::store::Store::open("athlete.ath.sqlite", Default::default())?;
+/// let _connection = store.connection();
+/// # Ok(())
+/// # }
+/// ```
+///
+/// ```compile_fail,E0624
+/// # fn main() -> athleticstandard::Result<()> {
+/// let mut store = athleticstandard::store::Store::open("athlete.ath.sqlite", Default::default())?;
+/// store.transaction(|_transaction| Ok(()))?;
+/// # Ok(())
+/// # }
+/// ```
+///
+/// ```compile_fail,E0624
+/// # fn main() -> athleticstandard::Result<()> {
+/// let mut store = athleticstandard::store::Store::open("athlete.ath.sqlite", Default::default())?;
+/// store.bulk_transaction(|_transaction| Ok(()))?;
+/// # Ok(())
+/// # }
+/// ```
+///
+/// ```compile_fail,E0624
+/// # fn main() -> athleticstandard::Result<()> {
+/// let mut store = athleticstandard::store::Store::open("athlete.ath.sqlite", Default::default())?;
+/// store.fresh_restore_transaction(|_transaction| Ok(()))?;
+/// # Ok(())
+/// # }
+/// ```
 pub struct Store {
     connection: Connection,
     path: PathBuf,
