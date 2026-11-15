@@ -372,7 +372,7 @@ pub fn apply_package_import(
     let mut batch = if files.is_empty() { None } else { Some(AttachmentFileBatch::begin(store, files)?) };
     let resolution_time = time::now_utc();
     let layout = store.layout();
-    let result = store.transaction(|tx| {
+    let result = store.bulk_transaction(|tx| {
         if store::database_revision(tx)? != preview.destination_database_revision
             || store::read_metadata(tx)?.database_id != preview.destination_database_id
         {
