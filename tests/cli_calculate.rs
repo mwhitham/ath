@@ -178,3 +178,61 @@ fn workout_drift_compares_the_two_halves_of_the_session() {
     let argv = ["calculate", "workout-drift", "heart_rate", "--session", WORKOUT];
     check(folder.path(), &argv, &receipt);
 }
+
+/// The database file's SHA-256, the WAL's length, and the database revision.
+fn database_state(path: &Path) -> (String, u64, u64) {
+    use sha2::{Digest, Sha256};
+    let hash = Sha256::digest(std::fs::read(path).unwrap()).iter().map(|byte| format!("{byte:02x}")).collect();
+    let wal = athleticstandard::files::sidecar(path, "-wal");
+    let wal_length = std::fs::metadata(wal).map(|metadata| metadata.len()).unwrap_or(0);
+    (hash, wal_length, common::database_revision(path))
+}
+
+#[test]
+fn calculations_leave_the_database_unchanged() {
+    let folder = private_folder();
+    let path = demo_support::write_with_series(folder.path());
+    let before = database_state(&path);
+    let (first_day, last_day) = (demo_support::SERIES_DAYS[0], demo_support::SERIES_DAYS[4]);
+    let commands: [&[&str]; 9] = [
+        &["calculate", "summary", "hrv_sdnn", "--source", SOURCE_A],
+        &["calculate", "baseline", "hrv_sdnn"],
+        &["calculate", "trend", "hrv_sdnn", "--source", SOURCE_A],
+        &[
+            "calculate",
+            "coverage",
+            "hrv_sdnn",
+            "--source",
+            SOURCE_A,
+            "--timezone",
+            "UTC",
+            "--from",
+            first_day,
+            "--to",
+            last_day,
+        ],
+        &["calculate", "compare-sources", "hrv_sdnn", "--source", SOURCE_A, "--compare-source", SOURCE_B],
+        &["calculate", "correlation", "hrv_sdnn", "--other-quantity", "respiratory_rate", "--timezone", "UTC"],
+        &["calculate", "workout-drift", "heart_rate", "--session", WORKOUT],
+        &[
+            "calculate",
+            "provider-period-summary",
+            "recovery",
+            "--record-kind",
+            "provider-score",
+            "--period-type",
+            "whoop_physiological_cycle",
+        ],
+        &["apply", "heart-rate-zones", "--record", WORKOUT],
+    ];
+    for argv in commands {
+        for json in [false, true] {
+            let mut argv = argv.to_vec();
+            if json {
+                argv.push("--json");
+            }
+            ath(folder.path(), &argv);
+            assert_eq!(database_state(&path), before, "{argv:?}");
+        }
+    }
+}
