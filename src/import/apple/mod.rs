@@ -29,7 +29,7 @@
 //! Every omitted object is counted under a reason with its first example.
 
 mod ecg;
-mod files;
+pub(crate) mod files;
 pub mod hrv;
 pub mod routes;
 pub mod rpeaks;

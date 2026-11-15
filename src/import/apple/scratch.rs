@@ -5,7 +5,8 @@
 //! writer, and workouts wait for their route files. Holding those in memory
 //! would grow with the export, so they wait here. The file lives in an
 //! owner-only temporary directory this value created, and the directory is
-//! removed when the value is dropped. It is working data, not a record.
+//! removed when the value is dropped, or by a later Apple import when the
+//! process stopped first. It is working data, not a record.
 
 use std::path::PathBuf;
 
@@ -54,7 +55,7 @@ CREATE TABLE derived (seq INTEGER PRIMARY KEY, body TEXT NOT NULL);
 
 impl Scratch {
     pub fn create() -> Result<Scratch> {
-        let directory = files::make_temporary_directory("ath-apple-")?;
+        let directory = files::staging::make_owned_temporary_directory("ath-apple-")?;
         let result = (|| {
             let path = directory.join("scratch.sqlite");
             drop(files::create_new_private(&path)?);

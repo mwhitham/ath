@@ -354,6 +354,7 @@ fn apply_after_backup(
     verified: &VerifiedBackup,
     identity: files::FileIdentity,
 ) -> Result<ConfirmedMigrationResult> {
+    crate::package::failpoint!("migrate.after_backup");
     let path = store.path().to_path_buf();
     let backup_text = verified.path.display().to_string();
     let stale = format!(
@@ -370,11 +371,14 @@ fn apply_after_backup(
         {
             return Err(Error::stale(stale.clone()));
         }
-        apply_steps(tx, &steps)
+        apply_steps(tx, &steps)?;
+        crate::package::failpoint!("migrate.before_commit");
+        Ok(())
     });
 
     match outcome {
         Ok(()) => {
+            crate::package::failpoint!("migrate.after_commit");
             store.reload_metadata()?;
             Ok(ConfirmedMigrationResult { backup_path: Some(backup_text), migrated: true, preview })
         }

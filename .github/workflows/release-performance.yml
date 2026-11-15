@@ -79,6 +79,13 @@ jobs:
           name: performance-100k
           path: perf/100k/results
           if-no-files-found: error
+      # The 2.1.0 program, run with tsx from the reference install above,
+      # must refuse a database this commit migrated. The test is ignored in
+      # ordinary runs because it needs this checkout.
+      - name: The 2.1.0 program refuses a migrated database
+        env:
+          ATH_REFERENCE_CHECKOUT: ${{ github.workspace }}/reference
+        run: cargo test --locked --test migration -- --ignored the_2_1_0_program_refuses_a_migrated_database
 
   three-million:
     if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.three_million)

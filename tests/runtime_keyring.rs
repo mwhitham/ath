@@ -1,8 +1,9 @@
 //! Keys live in the password store, never in the athlete file (D75).
 //! Ported from `tests/keyring.test.ts`. The operating-system stores run
 //! against fake `security`, `secret-tool`, and `powershell` programs under a
-//! temporary directory and a test service name. No test reads or changes the
-//! real password store.
+//! temporary directory and a test service name. No test that runs by default
+//! reads or changes the real password store. One ignored test uses the real
+//! Credential Manager on a disposable Windows CI runner.
 #![cfg_attr(not(unix), allow(unused))]
 
 use athleticstandard::runtime::keyring::{
@@ -315,4 +316,28 @@ esac
         let refusal = keyring.set(KeyAccount::Gateway(Gateway::Vercel), "sk-fake").unwrap_err();
         assert!(refusal.message.starts_with("Keychain refused to save the key: "));
     }
+}
+
+/// The real Credential Manager on a Windows CI runner: a key is saved, read,
+/// and cleared through the PowerShell `CredWrite`/`CredRead` helper. The
+/// test uses its own service name, so it never reads or changes Athletic
+/// Standard's saved keys, and it clears what it saved. It is ignored in
+/// ordinary runs because it writes to the password store of whoever runs it;
+/// the Windows job in `validate.yml` runs it on its disposable runner.
+#[cfg(windows)]
+#[test]
+#[ignore = "writes to this computer's Credential Manager; validate.yml runs it on a Windows runner"]
+fn credential_manager_saves_reads_and_clears_a_key_on_windows() {
+    let service = format!("athleticstandard-test-{}", athleticstandard::ids::new_record_id());
+    let powershell = athleticstandard::runtime::find_on_path("powershell").expect("Windows PowerShell is on PATH");
+    let store = OsSecretStore::credential_manager(service, Some(powershell));
+    let keyring = Keyring::new(&store, &NO_ENV);
+    assert!(keyring.saved_gateways().is_empty());
+    let saved = keyring.set(KeyAccount::Gateway(Gateway::Vercel), "sk-fake-windows-1");
+    let read = keyring.resolve_key(Gateway::Vercel);
+    let cleared = keyring.clear(None);
+    saved.unwrap();
+    assert_eq!(read.as_deref(), Some("sk-fake-windows-1"));
+    assert_eq!(cleared, [Gateway::Vercel]);
+    assert_eq!(store.get("vercel"), None);
 }

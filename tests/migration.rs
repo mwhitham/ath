@@ -378,17 +378,21 @@ fn rollback_means_restoring_the_verified_backup() {
     assert!(backup::format_migration_backup_timestamp(0).ends_with('Z'));
 }
 
-/// Runs the 2.1.0 TypeScript `ath` from a reference checkout when
-/// `ATH_REFERENCE_CHECKOUT` names one with its `node_modules`. The old
-/// program must refuse a migrated 2.1.1 database and leave it unchanged. It
-/// must read the restored backup.
+/// Runs the 2.1.0 TypeScript `ath` from the reference checkout that
+/// `ATH_REFERENCE_CHECKOUT` names, with its `node_modules`. The old program
+/// must refuse a migrated 2.1.1 database and leave it unchanged. It must read
+/// the restored backup. The release performance workflow runs this test.
 #[test]
+#[ignore = "needs ATH_REFERENCE_CHECKOUT: a 2.1.0 checkout with node_modules"]
 fn the_2_1_0_program_refuses_a_migrated_database() {
-    let Ok(checkout) = std::env::var("ATH_REFERENCE_CHECKOUT") else {
-        eprintln!("skipped: set ATH_REFERENCE_CHECKOUT to a 2.1.0 checkout with node_modules");
-        return;
-    };
+    let checkout = std::env::var("ATH_REFERENCE_CHECKOUT")
+        .expect("set ATH_REFERENCE_CHECKOUT to a 2.1.0 checkout with node_modules");
     let checkout = PathBuf::from(checkout);
+    assert!(
+        checkout.join("node_modules/tsx").is_dir(),
+        "{} has no node_modules/tsx; run pnpm install there",
+        checkout.display()
+    );
     let path = copy_fixture(&demo_fixture(), "ath-migrate-old-cli-", true);
     let dir = path.parent().unwrap().to_path_buf();
     let mut store = open_for_migration(&path);

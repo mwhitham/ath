@@ -1046,8 +1046,11 @@ export async function eraseRecord(
 
 // ---- Provider imports -------------------------------------------------------------
 
-/** The export path and import time of a preview this client made. */
-const providerPreviewSources = new WeakMap<ProviderImportPreview, { input_path: string; received_at: string }>();
+/** The export path, import time, and export fingerprint of a preview this client made. */
+const providerPreviewSources = new WeakMap<
+  ProviderImportPreview,
+  { input_path: string; received_at: string; input_fingerprint: string }
+>();
 
 export async function previewProviderImport(
   database: AthleticDatabase,
@@ -1072,13 +1075,22 @@ export async function previewProviderImport(
     drafts.push(draft);
     changes.push({ draft, action: planned.action });
   }
-  const { received_at: receivedAt, match_key_method: _method, ...summary } = result.output;
+  const {
+    received_at: receivedAt,
+    match_key_method: _method,
+    input_fingerprint: inputFingerprint,
+    ...summary
+  } = result.output;
   const preview: ProviderImportPreview = {
     ...summary,
     plan: { drafts, received_at: receivedAt },
     changes,
   };
-  providerPreviewSources.set(preview, { input_path: inputPath, received_at: receivedAt });
+  providerPreviewSources.set(preview, {
+    input_path: inputPath,
+    received_at: receivedAt,
+    input_fingerprint: inputFingerprint,
+  });
   return preview;
 }
 
@@ -1099,6 +1111,7 @@ export async function importProviderRecords(
   return outputOf(database, "provider.import", {
     input_path: source.input_path,
     received_at: source.received_at,
+    input_fingerprint: source.input_fingerprint,
     database_revision: preview.database_revision,
     new_record_count: preview.new_records.length,
     matching_record_count: preview.matching_records.length,
