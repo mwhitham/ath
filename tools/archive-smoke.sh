@@ -8,8 +8,8 @@
 # <fixtures folder> is a copy of tests/fixtures/ from this repository: synthetic
 # data only. The script creates a database, logs and corrects a record, imports
 # a provider export, calculates, exports, restores the package, migrates a
-# 2.0.0 database, previews a repair, and checks the results. Every step must
-# exit 0. Run it from an empty working folder.
+# 2.0.0 database, repairs the damaged npm 1.0.0 database, and checks the
+# results. Every step must exit 0. Run it from an empty working folder.
 set -euo pipefail
 
 if [ "$#" -ne 2 ]; then
@@ -94,16 +94,50 @@ step init -y --empty --no-skill --file restored.ath.sqlite
 step import ./package --yes --file restored.ath.sqlite
 step check --file restored.ath.sqlite
 
+# Migrate a database with both confirmations: --yes and its database ID.
+migrate() {
+  local preview database_id
+  preview="$("$ath" migrate --json --file "$1")"
+  database_id="$(printf '%s' "$preview" | grep -o '"database_id": *"[^"]*"' | head -n 1 | sed 's/.*"\([^"]*\)"$/\1/')"
+  if [ -z "$database_id" ]; then
+    echo "archive-smoke: the migration preview of $1 named no database_id" >&2
+    exit 1
+  fi
+  step migrate --yes --confirm-migration "$database_id" --file "$1"
+}
+
 cp "$fixtures/version-2-0-0/database.ath.sqlite" ./older.ath.sqlite
 chmod 600 ./older.ath.sqlite
-preview="$("$ath" migrate --json --file older.ath.sqlite)"
-database_id="$(printf '%s' "$preview" | grep -o '"database_id": *"[^"]*"' | head -n 1 | sed 's/.*"\([^"]*\)"$/\1/')"
-if [ -z "$database_id" ]; then
-  echo "archive-smoke: the migration preview named no database_id" >&2
-  exit 1
-fi
-step migrate --yes --confirm-migration "$database_id" --file older.ath.sqlite
+migrate older.ath.sqlite
 step repair --dry-run --file older.ath.sqlite
 step stats --file older.ath.sqlite
+
+# A confirmed repair. The npm 1.0.0 fixture holds 110 records whose typed
+# rows store their JSON in another key order. The repair rebuilds them before
+# the migration, which would otherwise rebuild them in its step 2. After the
+# migration, check must find the database valid.
+cp "$fixtures/npm-100-encoding/athlete.ath.sqlite" ./encoded.ath.sqlite
+chmod 600 ./encoded.ath.sqlite
+if ! "$ath" repair --json --file encoded.ath.sqlite | grep -q '"repair_candidates": 110,'; then
+  echo "archive-smoke: the repair preview did not find the 110 damaged records" >&2
+  exit 1
+fi
+repaired="$(step repair --yes --file encoded.ath.sqlite)"
+printf '%s\n' "$repaired"
+if ! printf '%s' "$repaired" | grep -q 'repaired 110 record(s); database revision .* with verified backup at '; then
+  echo "archive-smoke: the confirmed repair did not repair the 110 records" >&2
+  exit 1
+fi
+if ! "$ath" repair --json --file encoded.ath.sqlite | grep -q '"repair_candidates": 0,'; then
+  echo "archive-smoke: records still need repair after the confirmed repair" >&2
+  exit 1
+fi
+migrate encoded.ath.sqlite
+checked="$(step check --json --file encoded.ath.sqlite)"
+printf '%s\n' "$checked"
+if ! printf '%s' "$checked" | grep -q '"valid": true'; then
+  echo "archive-smoke: check did not find the repaired database valid" >&2
+  exit 1
+fi
 
 echo "archive-smoke: every step passed in $work"
