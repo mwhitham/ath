@@ -1,7 +1,7 @@
 //! Shared helpers for command-line tests: an in-process runner with chosen
 //! terminal facts and answers, and a small database built from the committed
 //! synthetic demo records.
-#![cfg_attr(not(unix), allow(unused_imports, dead_code))]
+#![cfg_attr(not(unix), allow(unused_imports))]
 #![allow(dead_code)]
 
 use std::collections::BTreeMap;

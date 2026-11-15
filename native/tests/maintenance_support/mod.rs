@@ -1,7 +1,7 @@
 //! Shared helpers for the database maintenance tests: fixtures, independent
 //! SQLite connections, table dumps, and file hashes.
 #![allow(dead_code)]
-#![cfg_attr(not(unix), allow(unused_imports, dead_code))]
+#![cfg_attr(not(unix), allow(unused_imports))]
 
 #[path = "../temporary_root.rs"]
 mod temporary_root;
