@@ -120,6 +120,18 @@ fn every_ring_fixture_matches_the_retained_import_baseline() {
 
 /// `tests/oura-met-column.test.ts`.
 #[test]
+fn every_ring_fixture_passes_the_database_check() {
+    for name in ["oura", "oura-member-portal", "oura-portal", "oura-spo2", "oura-offset"] {
+        let directory = TempDir::new();
+        let mut store = new_store(directory.path());
+        import_path(&mut store, &exports().join(name));
+        let result = athleticstandard::store::check::check_database(&store).unwrap();
+        assert!(result.valid, "{name}: {:?}", result.issues);
+        assert!(result.issues.is_empty(), "{name}: {:?}", result.issues);
+    }
+}
+
+#[test]
 fn a_json_met_cell_counts_as_skipped_activity_data() {
     let directory = TempDir::new();
     let store = new_store(directory.path());

@@ -184,6 +184,43 @@ mod tests {
     }
 
     #[test]
+    fn an_unknown_total_shows_the_count_alone() {
+        let mut bar = TerminalBar::new(Vec::new(), Some(100));
+        bar.start("Reading rows", None, Unit::Count);
+        bar.done = 12_345;
+        assert_eq!(bar.line(), format!("{} 12,345", pad_end("Reading rows", 24)));
+        assert!(!bar.line().contains('%'));
+    }
+
+    #[test]
+    fn a_terminal_without_a_width_still_draws_within_80_columns() {
+        let mut bar = TerminalBar::new(Vec::new(), None);
+        bar.start(&"x".repeat(200), Some(10), Unit::Count);
+        assert_eq!(bar.line().chars().count(), 79);
+        let mut zero = TerminalBar::new(Vec::new(), Some(0));
+        zero.start("Reading", Some(10), Unit::Count);
+        assert!(zero.line().starts_with("Reading"));
+    }
+
+    #[test]
+    fn finishing_twice_and_updating_after_finishing_write_nothing() {
+        let mut out = Vec::new();
+        {
+            let mut bar = TerminalBar::new(&mut out, Some(100));
+            bar.start("Reading", Some(10), Unit::Count);
+            bar.finish();
+        }
+        let once = out.len();
+        {
+            let mut bar = TerminalBar::new(&mut out, Some(100));
+            bar.finish();
+            bar.update(5);
+            bar.advance(1);
+        }
+        assert_eq!(out.len(), once, "an inactive bar wrote {:?}", String::from_utf8_lossy(&out[once..]));
+    }
+
+    #[test]
     fn bytes_and_narrow_lines() {
         assert_eq!(format_bytes(999), "999 B");
         assert_eq!(format_bytes(1_500), "2 kB");

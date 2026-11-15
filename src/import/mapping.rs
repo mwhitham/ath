@@ -1593,6 +1593,96 @@ mod tests {
         load_mapping(&line("provider_or_aggregator")).unwrap();
     }
 
+    /// Every check failure from the 2.1.0 `tests/mapping-cli.test.ts` table,
+    /// with its exact message.
+    #[test]
+    fn check_failures_name_the_line_as_2_1_0_did() {
+        const SLEEP: &str = "name: invented\nroute: invented_route\nwriter_field: source.provider\nvalue_basis: provider\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\n";
+        let file = |body: &str| format!("# case\n\n```ath-mapping\n{body}\n```\n");
+        let sleep = |lines: &str| file(&format!("{SLEEP}{lines}"));
+        let cases: Vec<(String, &str)> = vec![
+            (sleep("sleep_duration_seconds asleep_seconds"), "could not read 'sleep_duration_seconds asleep_seconds'"),
+            (sleep("x: steps count count"), "unknown field steps"),
+            (
+                sleep("x: asleep_seconds s s when-absent\ny: asleep_seconds s s when-absent"),
+                "two when-absent lines write asleep_seconds",
+            ),
+            (
+                sleep("x: asleep_seconds s s basis provider"),
+                "basis is only used for activity_type, hrv_rmssd, hrv_sdnn, and heart-rate summaries",
+            ),
+            (
+                sleep("x: hrv_sdnn ms ms basis invented_basis"),
+                "refusing to map x onto hrv_sdnn; the field does not name the statistic",
+            ),
+            (sleep("heart_rate_variability_sdnn: hrv_sdnn ms ms basis invented_basis"), "unknown basis invented_basis"),
+            (sleep("x: asleep_seconds s s scale 1-100"), "scale is only used for provider_score"),
+            (sleep("x: provider_score.x score score"), "provider_score x needs a scale"),
+            (sleep("x: oxygen_saturation percent percent"), "oxygen_saturation uses %"),
+            (sleep("x: provider_summary.y ms s"), "cannot convert ms to s for x"),
+            (sleep("[activity]\nsteps: provider_summary.steps count count"), "unknown mapping section activity"),
+            (
+                file(&format!("{}x: asleep_seconds s s", SLEEP.replace("value_basis: provider\n", ""))),
+                "the mapping file needs value_basis",
+            ),
+            (
+                file(&format!("{}x: asleep_seconds s s", SLEEP.replace("value_basis: provider", "value_basis: hrv_mean_rmssd"))),
+                "value_basis hrv_mean_rmssd is not one of provider, provider_or_aggregator",
+            ),
+            (
+                file("name: w\nroute: w_route\nwriter_field: source.provider\nvalue_basis: provider\n[workout]\nsport: activity_type"),
+                "activity_type needs a basis: one of aggregator_normalized, provider_label",
+            ),
+            (
+                sleep("nightly: provider_summary.hrv_rmssd ms ms"),
+                "refusing to map nightly onto provider_summary.hrv_rmssd; the field does not name the statistic",
+            ),
+            (
+                file(&format!("{}x: asleep_seconds s s", SLEEP.replace("id_field: id\n", ""))),
+                "[sleep] needs id_field",
+            ),
+            (sleep("window_field: window\nx: asleep_seconds s s"), "window_field is not a setting of [sleep]"),
+            (
+                file("name: t\nroute: t_route\nwriter_field: source.provider\nvalue_basis: provider\n[timeseries]\ntime_field: at\ntype_field: kind\nvalue_field: reading\nunit_field: unit\nrmssd_night: hrv_rmssd ms ms"),
+                "a [timeseries] line reads kind.<type>, not rmssd_night",
+            ),
+            (
+                file(&format!(
+                    "{}x: asleep_seconds s s",
+                    SLEEP.replace("value_basis: provider\n", "value_basis: provider\npage_rows: data\npage_section: sleep\n")
+                )),
+                "the mapping file needs page_marker when it describes a page",
+            ),
+            (
+                file("name: z\nroute: z_route\nwriter_field: source.provider\n[workout]\nid_field: id\nstart_field: start_time\nend_field: end_time\nhr_zones.max_hr: maximum_heart_rate_bpm bpm bpm"),
+                "refusing to map hr_zones.max_hr onto maximum_heart_rate_bpm; that field is the athlete's known maximum",
+            ),
+            (
+                sleep("average_hrv: hrv_sdnn ms ms basis hrv_mean_rmssd"),
+                "refusing to map average_hrv onto hrv_sdnn; the field does not name the statistic",
+            ),
+            (
+                file(&format!("{}sleep_duration_seconds: asleep_seconds s s", SLEEP.replace("invented_route", "garmin_account_export"))),
+                "route garmin_account_export is already used by a built-in importer",
+            ),
+            (
+                file(&format!("{}sleep_duration_seconds: asleep_seconds s s", SLEEP.replace("invented_route", "garmin_account"))),
+                "match key method garmin_account/v1 is already used by a built-in importer",
+            ),
+        ];
+        let mut failures = Vec::new();
+        for (text, expected) in &cases {
+            let actual = match load_mapping(text) {
+                Ok(_) => "accepted".to_string(),
+                Err(error) => error.to_string(),
+            };
+            if actual != *expected {
+                failures.push(format!("{text}\n  expected: {expected}\n  actual:   {actual}"));
+            }
+        }
+        assert!(failures.is_empty(), "{}", failures.join("\n"));
+    }
+
     #[test]
     fn the_bases_are_the_record_format_bases() {
         let values: Vec<&str> = crate::model::ValueBasis::ALL.iter().map(|basis| basis.as_str()).collect();

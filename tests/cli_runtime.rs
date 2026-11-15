@@ -134,6 +134,14 @@ fn a_terminal_can_refuse_the_migration() {
     );
 
     assert_eq!(std::fs::read(&path).unwrap(), before, "a refused migration leaves the file unchanged");
+    let names: Vec<String> = std::fs::read_dir(folder.path())
+        .unwrap()
+        .map(|entry| entry.unwrap().file_name().to_string_lossy().into_owned())
+        .collect();
+    assert!(
+        !names.iter().any(|name| name.contains("backup") || name.ends_with("-wal") || name.ends_with("-shm")),
+        "a refused migration made a backup or left sidecars: {names:?}"
+    );
 
     let confirmed = Session::terminal(folder.path(), &format!("y\n{DEMO_DATABASE_ID}\n")).run(&[
         "delete",

@@ -187,3 +187,54 @@ Fixtures outside `tests/` that these tests read and that stay as data: `examples
    point has no offset. Spec section 13.2 asks for that case without forcing the
    suite to UTC. The replacement should run it under more than one zone or assert the
    documented result directly.
+
+## Result at the cutover
+
+At the cutover each file above was checked against the Rust and npm tests that
+remain. 51 of the 52 files were removed, with `tests/helpers/`. Their promises
+are checked by the planned homes above, and by tests added at the cutover where
+a promise had no remaining check:
+
+- `tests/write_rules.rs`: typed prediction-ledger references, matching
+  benchmarks, exact grade arithmetic, knowledge time that cannot go backward,
+  missing attachment, calculation-input, goal-target, and source references,
+  a 17-digit coordinate through a correction and the check, owner-only
+  database and sidecar files, and refusal of a database reached through a
+  symbolic link (from `v1-db` and `v1-cli-writes`).
+- `tests/cli_executable.rs`: an Apple zip with a route file imported through
+  the executable (`apple-zip`); the remedies for an empty log and an unknown
+  import (`help`); `check --validate-export` leaving nothing in the temporary
+  folder (`cli`); refusals of a corrupt, outdated, mismatched, or read-only
+  database, a log without a terminal, and an erase without confirmation, each
+  leaving no sidecar files; read commands that keep a rollback-journal database
+  unchanged; and a repair from revisions that restores the value a calculation
+  reads (`v1-cli-sidecar`, `v1-repair-cli`).
+- `tests/cli_runtime.rs`: a declined terminal migration makes no backup.
+- `tests/import_oura.rs`: every ring fixture passes the database check
+  (`v1-provider-import`).
+- `src/import/mapping.rs`: every mapping check failure from `mapping-cli`, with
+  its exact message.
+- `src/cli/progress.rs`: an unknown total, a terminal with no width, and a bar
+  that finished (`progress`).
+- `tests/documents.rs`: the record-type count and chunked series names in the
+  published documents (`v1-docs`).
+- `tests/generated.rs`: the committed command reference equals the help, and
+  `SKILL.md` lists every command (`skill`).
+
+`v1-wal-failed-write` is covered in parts by `tests/read_policy.rs`: a failed
+write keeps the sidecars, a reader sees committed WAL data, and a reader keeps
+its snapshot while a writer commits. No single test runs that whole scenario
+with an outside reader.
+
+One file stays, because one of its promises has no remaining check:
+
+- `tests/v1-performance-generator.test.ts`: the evidence query plan uses
+  `records_record_type_idx`. The generator and runner it also tested are
+  retired; the 2.1.0 versions run from the reference checkout
+  (`performance/README.md`). It no longer runs. A Rust test that reads the
+  plan of the native evidence query would replace it.
+
+Promises from the list above that had no test in 2.1.0 and still have none:
+a Garmin pull that receives an HTTP error status, a complete Garmin account
+export, and `ath calculate` compare-sources, correlation, and workout-drift
+through the command line (the library tests cover them).

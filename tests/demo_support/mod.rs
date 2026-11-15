@@ -6,6 +6,8 @@
 //! demo differs from `tests/fixtures/version-2-1-0/` only in its version
 //! metadata and SQL schema step.
 
+#![allow(dead_code)]
+
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -43,6 +45,18 @@ fn actor(value: &Value) -> RecordActor {
 
 fn data(record_type: RecordType, value: &Value) -> RecordData {
     RecordData::decode(record_type, &value["data"]).unwrap_or_else(|error| panic!("{record_type}: {error:?}"))
+}
+
+/// The demo's create entry for one record: `record_type`, `record_id`,
+/// `created_at`, `changed_by`, and `data`.
+pub fn created(record_id: &str) -> Value {
+    history()["changes"][0]["creates"]
+        .as_array()
+        .expect("the first change creates records")
+        .iter()
+        .find(|create| create["record_id"] == record_id)
+        .unwrap_or_else(|| panic!("the demo has no record {record_id}"))
+        .clone()
 }
 
 /// The attachment file name and bytes.
