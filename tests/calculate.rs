@@ -396,3 +396,79 @@ fn calculations_write_nothing() {
     assert_eq!(std::fs::read(&path).unwrap(), before);
     std::fs::remove_dir_all(&working).unwrap();
 }
+
+/// A calculation file holds typed settings, not code (spec section 10). Text
+/// shaped like an expression or a command, where a number or a name belongs,
+/// stays plain text. A number that does not read as a number keeps its
+/// documented default. A name is looked up exactly as written. An unknown
+/// operation is reported. Nothing runs.
+#[test]
+fn an_installed_calculation_file_cannot_run_an_expression() {
+    let (_directory, mut store) = new_store("2026-10-01T00:00:00.000Z");
+    let workout_id = "01890f3e-e7d3-7cc0-88c8-000000000501";
+    let mut record = workout(workout_id, "2026-10-01T12:00:00.000Z", "2026-10-01T12:02:00.000Z");
+    // 120 bpm for 30 s, then 100 bpm for 60 s. Held for 60 s, the lowest rate
+    // is 100 bpm. No rate is held for 120 s.
+    record["data"]["heart_rate_samples"] = json!([
+        { "offset_ms": 0, "bpm": 120 }, { "offset_ms": 30000, "bpm": 120 },
+        { "offset_ms": 60000, "bpm": 100 }, { "offset_ms": 90000, "bpm": 100 },
+        { "offset_ms": 120000, "bpm": 100 },
+    ]);
+    replay(&mut store, &[json!({ "write": [source(SOURCE_A, "Device A", "wearable"), record] })]);
+    let working = temporary_dir("ath-no-expressions-");
+    let shipped = calculate::apply(&store, "resting-heart-rate", workout_id, &working).unwrap();
+    assert_eq!(json::encode(&shipped.result), r#"{"bpm":100}"#);
+
+    let folder = working.join(".agents/skills/resting-heart-rate");
+    std::fs::create_dir_all(&folder).unwrap();
+    let installed = |settings: &str| {
+        let text = format!("```ath-calculation\nname: resting-heart-rate\n{settings}\n```\n");
+        std::fs::write(folder.join("SKILL.md"), text).unwrap();
+        calculate::apply(&store, "resting-heart-rate", workout_id, &working).unwrap()
+    };
+    // The data tells the lengths apart: 120,000 ms finds no held rate.
+    let longer = installed("use: lowest_held\nsustain_ms: 120000");
+    assert_eq!(longer.result, None);
+    assert_eq!(longer.missing, ["heart_rate_samples held for 120000 ms"]);
+
+    // A number written as an expression is not worked out. It keeps the
+    // documented default of 60,000 ms.
+    let expressions =
+        ["30000 * 4", "60000 + 60000", "$(echo 120000)", "`echo 120000`", "{{ 120000 }}", "eval(\"120000\")"];
+    for number in expressions {
+        let result = installed(&format!("use: lowest_held\nsustain_ms: {number}"));
+        assert_eq!(json::encode(&result.result), r#"{"bpm":100}"#, "{number}");
+        assert!(result.missing.is_empty(), "{number}: {:?}", result.missing);
+    }
+
+    // A command where a field name or an operation belongs is plain text.
+    let marker = working.join("ran");
+    let touch = format!("touch {}", marker.display());
+    let commands = [
+        format!("$({touch})"),
+        format!("`{touch}`"),
+        format!("lowest_held; {touch}"),
+        format!("std::process::Command::new(\"sh\").arg(\"-c\").arg(\"{touch}\").status()"),
+    ];
+    for text in &commands {
+        let unknown = installed(&format!("use: {text}"));
+        assert_eq!(unknown.result, None, "{text}");
+        assert_eq!(unknown.missing, [format!("unknown calculation {text}")]);
+
+        let field = installed(&format!("use: lowest_held\nsample_field: {text}"));
+        assert_eq!(field.result, None, "{text}");
+        assert_eq!(field.missing, std::slice::from_ref(text));
+        assert_eq!(field.fields_read.len(), 1);
+        assert_eq!((field.fields_read[0].field.as_str(), field.fields_read[0].present), (text.as_str(), false));
+    }
+    let expression = "heart_rate_samples.filter(sample => sample.bpm > 110)";
+    let field = installed(&format!("use: lowest_held\nsample_field: {expression}"));
+    assert_eq!((field.result, field.missing), (None, vec![expression.to_string()]));
+    assert!(!marker.exists(), "a calculation file ran a command");
+
+    // The shipped copy still gives the same answer.
+    std::fs::remove_dir_all(&folder).unwrap();
+    let again = calculate::apply(&store, "resting-heart-rate", workout_id, &working).unwrap();
+    assert_eq!(again, shipped);
+    std::fs::remove_dir_all(&working).unwrap();
+}

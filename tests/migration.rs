@@ -507,3 +507,110 @@ fn a_wrong_application_marker_is_refused_without_change() {
         assert!(!athleticstandard::files::sidecar(&path, suffix).exists(), "{suffix}");
     }
 }
+
+/// Every `field_basis` key inside every JSON text of every table, by table
+/// and primary key. Each key is named by its column and its path inside the
+/// JSON. The file is read with an independent connection.
+fn field_basis_keys(path: &Path) -> std::collections::BTreeMap<String, std::collections::BTreeSet<String>> {
+    use rusqlite::types::Value as Sql;
+    use serde_json::Value;
+    use std::collections::{BTreeMap, BTreeSet};
+
+    fn walk(value: &Value, at: &str, out: &mut BTreeSet<String>) {
+        match value {
+            Value::Object(map) => {
+                for (key, item) in map {
+                    let here = format!("{at}/{key}");
+                    if key == "field_basis" {
+                        out.insert(here.clone());
+                    }
+                    walk(item, &here, out);
+                }
+            }
+            Value::Array(items) => {
+                for (index, item) in items.iter().enumerate() {
+                    walk(item, &format!("{at}/{index}"), out);
+                }
+            }
+            _ => {}
+        }
+    }
+
+    let connection = inspect(path);
+    let tables: Vec<String> = connection
+        .prepare("SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%' ORDER BY name")
+        .unwrap()
+        .query_map([], |row| row.get(0))
+        .unwrap()
+        .map(Result::unwrap)
+        .collect();
+    let mut found: BTreeMap<String, BTreeSet<String>> = BTreeMap::new();
+    for table in tables {
+        let columns: Vec<(String, i64)> = connection
+            .prepare(&format!("SELECT name, pk FROM pragma_table_info('{table}') ORDER BY cid"))
+            .unwrap()
+            .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))
+            .unwrap()
+            .map(Result::unwrap)
+            .collect();
+        let mut key_columns: Vec<(i64, usize)> =
+            columns.iter().enumerate().filter(|(_, (_, pk))| *pk > 0).map(|(index, (_, pk))| (*pk, index)).collect();
+        key_columns.sort();
+        let mut statement = connection.prepare(&format!("SELECT * FROM {table}")).unwrap();
+        let mut rows = statement.query([]).unwrap();
+        while let Some(row) = rows.next().unwrap() {
+            let key: Vec<String> =
+                key_columns.iter().map(|(_, index)| format!("{:?}", row.get::<_, Sql>(*index).unwrap())).collect();
+            for (index, (column, _)) in columns.iter().enumerate() {
+                let Sql::Text(text) = row.get::<_, Sql>(index).unwrap() else { continue };
+                let Ok(value) = serde_json::from_str::<Value>(&text) else { continue };
+                let mut keys = BTreeSet::new();
+                walk(&value, column, &mut keys);
+                if !keys.is_empty() {
+                    found.entry(format!("{table}[{}]", key.join(", "))).or_default().extend(keys);
+                }
+            }
+        }
+    }
+    found
+}
+
+/// Migration steps 4 and 5 add no `field_basis` to records written before
+/// 2.1.0 (D187 and spec section 12). After migration, every stored record and
+/// revision JSON holds only the `field_basis` keys it held before. The 1.0.0
+/// and 2.0.0 fixtures have none. The 2.1.0 demo has some, which shows that
+/// the scan finds them.
+#[test]
+fn migration_adds_no_field_basis_to_older_records() {
+    for case in cases() {
+        let path = copy_fixture(&case.fixture, "ath-migrate-basis-", false);
+        let measured_revisions: i64 = inspect(&path)
+            .query_row(
+                "SELECT COUNT(*) FROM record_revisions WHERE record_type IN ('point_measurement',
+                 'measurement_sample', 'sleep_session', 'workout_session', 'benchmark_result',
+                 'provider_summary', 'provider_score')",
+                [],
+                |row| row.get(0),
+            )
+            .unwrap();
+        assert!(measured_revisions > 0, "{}: the fixture needs measured records", case.name);
+        let before = field_basis_keys(&path);
+
+        let mut store = open_for_migration(&path);
+        execute_confirmed_migration(&mut store, &MigrationOptions::default()).unwrap();
+        assert_eq!(store.metadata().sql_schema_version, SQL_SCHEMA_VERSION);
+        store.close().unwrap();
+
+        let after = field_basis_keys(&path);
+        for (row, keys) in &after {
+            let earlier = before.get(row).cloned().unwrap_or_default();
+            let gained: Vec<&String> = keys.difference(&earlier).collect();
+            assert!(gained.is_empty(), "{}: {row} gained field_basis at {gained:?}", case.name);
+        }
+        assert_eq!(after, before, "{}: field_basis keys changed", case.name);
+        match case.name {
+            "1.0.0" | "2.0.0" => assert!(before.is_empty(), "{}: {before:?}", case.name),
+            _ => assert!(before.keys().any(|row| row.starts_with("record_revisions[")), "{}", case.name),
+        }
+    }
+}
