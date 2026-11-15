@@ -1,0 +1,233 @@
+{
+  "description": "Health-shaped files that may be tracked in Git. Each entry is invented test data whose exact contents were reviewed. A changed hash is a prompt for another review, not proof of origin. tests/public_data.rs enforces this list.",
+  "fixtures": [
+    {
+      "path": "examples/demo-athlete/athlete.ath.json",
+      "sha256": "7a77fce18b600950cae51e745141f79d1aa14e5f6864847b99c560265a78fb27"
+    },
+    {
+      "path": "examples/demo-athlete/athlete.ath.sqlite",
+      "sha256": "5e8aff5b38ceb31db1457e0f8085bd8b8f1b675838e10bfd28af9769ca6eaef0"
+    },
+    {
+      "path": "examples/demo-athlete/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png",
+      "sha256": "d3fe8e599fb1deea9821063c744434802875c26cceeb9f2d55e8566b15a012f4"
+    },
+    {
+      "path": "tests/fixtures/exports/apple/export.xml",
+      "sha256": "fbb3b4f8ee38f575f32387dc48b5d695caaf76f7de16d920659a1617efae7fcf"
+    },
+    {
+      "path": "tests/fixtures/exports/apple/electrocardiograms/ecg_2026-08-07.csv",
+      "sha256": "f87620e6816813d01e743c5476d823373556ea3c58523161cb4ebceb0a05e409"
+    },
+    {
+      "path": "tests/fixtures/exports/apple/electrocardiograms/ecg_2026-08-09.csv",
+      "sha256": "32768721c3d8a1433f598b36370e9670ce6119fb3a53ee63c8cf73c7182e95a9"
+    },
+    {
+      "path": "tests/fixtures/exports/apple/workout-routes/route_2026-08-09_7.00pm.gpx",
+      "sha256": "8033b604f2bdb46358a7541ad462c9b9d851f315df6f1d1024698800b53e3f52"
+    },
+    {
+      "path": "tests/fixtures/exports/apple-inline-route/export.xml",
+      "sha256": "71cede6f4c1d0cfc6ba6679dd13ecec0836bd0adc8987034081464bf225c8694"
+    },
+    {
+      "path": "tests/fixtures/exports/apple-file-reference/export.xml",
+      "sha256": "0c70458d07b4e4488150cc21938dbc78aaef4e8750a39358970d429c8209bc4e"
+    },
+    {
+      "path": "tests/fixtures/exports/apple-file-reference/workout-routes/route_2026-06-14.gpx",
+      "sha256": "4949d8e93334168e338c047326c5a92b306b91bfba0c9470ed9abbc112ed1783"
+    },
+    {
+      "path": "tests/fixtures/exports/apple-route-mismatch/export.xml",
+      "sha256": "b0ac36381caf3d3800e0df5da83329461a09ae5ff906de0e8d97cf9940371566"
+    },
+    {
+      "path": "tests/fixtures/exports/apple-route-mismatch/workout-routes/route_2026-07-01.gpx",
+      "sha256": "43a93e08ab27c5c9af042792222645bad71b51dd2d2c626a2865a46ae0e71e51"
+    },
+    {
+      "path": "tests/fixtures/exports/apple-route-mismatch/workout-routes/route_2026-08-02.gpx",
+      "sha256": "ac808246bf3e6535f1aef14fe091b514948a0bfaa642b1b9cfa00b13cb1af2a7"
+    },
+    {
+      "path": "tests/fixtures/exports/oura/oura_daily_readiness.csv",
+      "sha256": "f096e2cf7bd4cbea7fb9b9e181c8f55540632f7e0299501ed380e150fb6fbe42"
+    },
+    {
+      "path": "tests/fixtures/exports/oura/oura_sleep.csv",
+      "sha256": "ed59f11d1bb995278882238e26eea72830a114be67d74b2d223f96c8bfe6fb1b"
+    },
+    {
+      "path": "tests/fixtures/exports/oura-member-portal/member-portal-dailyreadiness.csv",
+      "sha256": "1bf215c48dd4b8fc433d6e63dd067c1d905e373a4ce5f1a02c5ed990daaed0e8"
+    },
+    {
+      "path": "tests/fixtures/exports/oura-member-portal/member-portal-dailysleep.csv",
+      "sha256": "b9ba34447d2aeb8fb9bd66a3dd90fdf9346aab4c516182578e4ebbad8ae105d0"
+    },
+    {
+      "path": "tests/fixtures/exports/oura-spo2/oura_sleep_spo2_flat.csv",
+      "sha256": "3e7aaefc6b60bca8f9120bb60020aa61f15c3b989c80848935d6bac0e4429ce7"
+    },
+    {
+      "path": "tests/fixtures/exports/oura-spo2/oura_sleep_spo2_json.csv",
+      "sha256": "949053c0c1503dbabd6773acd2813888c9d9ff360588fca2e253443476632902"
+    },
+    {
+      "path": "tests/fixtures/exports/oura-offset/sleep.csv",
+      "sha256": "da6d0e3e3a6a36759c652fa9bda6e8e93f8673e2a3777cc2f96f70f7f17bdd23"
+    },
+    {
+      "path": "tests/fixtures/exports/oura-portal/dailyreadiness.csv",
+      "sha256": "1bf215c48dd4b8fc433d6e63dd067c1d905e373a4ce5f1a02c5ed990daaed0e8"
+    },
+    {
+      "path": "tests/fixtures/exports/oura-portal/dailysleep.csv",
+      "sha256": "b9ba34447d2aeb8fb9bd66a3dd90fdf9346aab4c516182578e4ebbad8ae105d0"
+    },
+    {
+      "path": "tests/fixtures/exports/oura-portal/dailyactivity.csv",
+      "sha256": "d6ba261d94ccc36bce98d959ea17339b39f2642e241f584d0fdb8be18a6abc62"
+    },
+    {
+      "path": "tests/fixtures/npm-100-encoding/athlete.ath.sqlite",
+      "sha256": "8469f3dfe29768f78b86c4d23e641b5070fd78683b77a7d342925ddc1b81a075"
+    },
+    {
+      "path": "tests/fixtures/exports/whoop/journal_entries.csv",
+      "sha256": "db60258f8c69f115afe427fdc442e6c97c85b9cc96b3d086e5aabc52157701d9"
+    },
+    {
+      "path": "tests/fixtures/exports/whoop/physiological_cycles.csv",
+      "sha256": "e5d0ea4de8c24ac4c9b7fd9795be62c038170f37f6b0c6be51b1ba367b8fb356"
+    },
+    {
+      "path": "tests/fixtures/exports/whoop/sleeps.csv",
+      "sha256": "eb5825dea3f3c26bffb84281f4bac52daa410dd6dcba08cbd9a92442f531229c"
+    },
+    {
+      "path": "tests/fixtures/exports/garmin/park-loop.json",
+      "sha256": "1a9a4204bfa965710d21f9bf96649e7817f0b71c56f1aa781a82d861d4a96c66"
+    },
+    {
+      "path": "tests/fixtures/exports/garmin/namespaced-hr.gpx",
+      "sha256": "28d5cc560941591c25d7f35ef5324d6f53ced34b5ac8342fbe4a9c935dbd86d2"
+    },
+    {
+      "path": "tests/fixtures/exports/garmin/synthetic-position.fit",
+      "sha256": "7f30c8def4390278e9aebe8cf387e5e14b41a8c3d8d50f932b09e742f22c6851"
+    },
+    {
+      "path": "tests/fixtures/exports/strava/activities.csv",
+      "sha256": "9e23b604846202e075658f771bbef4fe433c694cf660d177f286b05e2acb44a7"
+    },
+    {
+      "path": "tests/fixtures/exports/strava/activities/river.gpx",
+      "sha256": "b9708c7f22afda4fa8b18247a27459722e87a0e731f01c171960058c83cc2fdd"
+    },
+    {
+      "path": "tests/fixtures/exports/whoop/workouts.csv",
+      "sha256": "4cb6248df5443456996386a02325e0d21532d4251bfa5649c02ea0ca0d4c4ce1"
+    },
+    {
+      "path": "tests/fixtures/exports/open-wearables/summaries.json",
+      "sha256": "2fa1da0408d0235421e34d12cd2f97abff73db6c94e8df7397d91c2c40b0cb0f"
+    },
+    {
+      "path": "tests/fixtures/exports/open-wearables/page-raw.json",
+      "sha256": "f2d1b386326ecb23ae9fc1728bd0ae743408526feb5b7b55df83739e201dde63"
+    },
+    {
+      "path": "tests/fixtures/exports/open-wearables/page-workouts.json",
+      "sha256": "1e6a6789b40772efffc4d451ba90a940e215589bd4699e4197e9b8666eaf5a35"
+    },
+    {
+      "path": "tests/fixtures/exports/open-wearables/page-sleep.json",
+      "sha256": "af309b90d8b7bb11220f5e53fe17db387fa35b841f36f0303a310547f8360d6a"
+    },
+    {
+      "path": "tests/fixtures/exports/open-wearables/page-null-resolution.json",
+      "sha256": "56ece15dfd869094cc8139f57402d545900e716b8a6e155dec90e663dd7e70df"
+    },
+    {
+      "path": "tests/fixtures/exports/open-wearables/page-5min.json",
+      "sha256": "4e18d5e11e87d11f47fb52fee1ed7830ce64230c832598da853d3d69d2f523cb"
+    },
+    {
+      "path": "tests/fixtures/exports/open-wearables/page-empty.json",
+      "sha256": "bd7cdc097685a02928d8634934476d250b1a8d8f188a7448fdedb831db8e64af"
+    },
+    {
+      "path": "tests/fixtures/exports/junction/summaries.json",
+      "sha256": "4c358aa546987cd2b019bec7d9bf5759a159c10f1ab3d39f27b0b2ca2a0a2b76"
+    },
+    {
+      "path": "tests/fixtures/version-2-0-0/database.ath.sqlite",
+      "sha256": "442e9a966711660c2a03d701b5de2c55479a78330702083a3a67a182992a7856"
+    },
+    {
+      "path": "tests/fixtures/version-2-0-0/package/athlete.ath.json",
+      "sha256": "bc7ffe0c63d2d74be15beb6aba2d51b7d386965003884b7740f0f0a06b7a374f"
+    },
+    {
+      "path": "tests/fixtures/version-2-0-0/package/export-manifest.json",
+      "sha256": "7166e5e381d4b269297afe4301e4a9571d3cffbcd022b21bfb2fa682e3aa69db"
+    },
+    {
+      "path": "tests/fixtures/version-2-0-0/package/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png",
+      "sha256": "d3fe8e599fb1deea9821063c744434802875c26cceeb9f2d55e8566b15a012f4"
+    },
+    {
+      "path": "tests/fixtures/version-2-0-0/package/series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+      "sha256": "2099f0bf78f680ddd168b2bd1a5a30e1fea3758e6699a12075c1ef712b985924"
+    },
+    {
+      "path": "native/tests/vectors/model/AthleteActor.json",
+      "sha256": "bfaba24cedbcefaf8c476d94a1d0ebb75062ccb96f8218d64ff8053a61aa7442"
+    },
+    {
+      "path": "native/tests/vectors/model/AthleteProfileData.json",
+      "sha256": "2ae57b2317f83a027faff5801a41cc24a33b5810266c9085ec28487bf846be72"
+    },
+    {
+      "path": "native/tests/vectors/model/AthleteProfileRecord.json",
+      "sha256": "1758ddfbab762d99196deb8c3361fff24114c193e5690a1fd6bb9a023c14bdfd"
+    },
+    {
+      "path": "native/tests/vectors/model/AthleteProfileRevision.json",
+      "sha256": "f726414d7a6d07f3648c6b8d87be2062cd56f4296c545e5cb41b239a8380f430"
+    },
+    {
+      "path": "native/tests/vectors/model/AthleteReportData.json",
+      "sha256": "7f65e729742c6740ae9a73ffdce20d3fa65de070b66088c01d05f3010d8b9033"
+    },
+    {
+      "path": "native/tests/vectors/model/AthleteReportRecord.json",
+      "sha256": "8077b5ae17a5e7265d64fe734a1f5f999886444435ab738a172c46e11060fb80"
+    },
+    {
+      "path": "native/tests/vectors/model/AthleteReportRevision.json",
+      "sha256": "ed864b537f3dba20013a774667ad83d127542f5abd761e163a7fa5c1503a78d6"
+    },
+    {
+      "path": "native/tests/vectors/model/AthleteReportType.json",
+      "sha256": "c1ccdeed66434b92a74e86841891d92074f061b842d2887d516e6501b21859e5"
+    },
+    {
+      "path": "native/tests/vectors/model/ExportManifest.json",
+      "sha256": "b5924cfb50f77300ba95b55712973ad115957885462e6f70dd5f82ad6551c598"
+    },
+    {
+      "path": "native/tests/golden/routes/invented-refusal-athlete-maximum.json",
+      "sha256": "e1d945a461f9520d19c1fd68b3dd95f7b8c7ef041b6a2e0ced2f19df7533f67f"
+    },
+    {
+      "path": "packages/npm/schema/2.1.1/export-manifest.schema.json",
+      "sha256": "3c8c9435f6786be3b35fe69d9565e0ca296b0ef924347f3c898cac65ef8b97ac"
+    }
+  ]
+}
