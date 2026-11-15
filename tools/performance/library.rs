@@ -236,6 +236,7 @@ fn collapse(sql: &str) -> String {
 
 // ---- Memory ---------------------------------------------------------------
 
+#[cfg(unix)]
 #[repr(C)]
 #[derive(Default)]
 struct RUsage {
@@ -245,11 +246,20 @@ struct RUsage {
     rest: [i64; 13],
 }
 
+#[cfg(unix)]
 extern "C" {
     fn getrusage(who: c_int, usage: *mut RUsage) -> c_int;
 }
 
+/// Windows has no `getrusage`; the report records -1 there. `cargo test`
+/// builds and runs this program on every system.
+#[cfg(not(unix))]
+fn peak_rss_bytes() -> i64 {
+    -1
+}
+
 /// The process's peak resident set in bytes: kilobytes on Linux, bytes on macOS.
+#[cfg(unix)]
 fn peak_rss_bytes() -> i64 {
     let mut usage = RUsage::default();
     // SAFETY: `RUsage` matches `struct rusage` on 64-bit macOS and Linux.
