@@ -17,6 +17,7 @@ pub mod erase;
 pub mod export;
 pub mod load;
 pub mod restore;
+pub(crate) mod series;
 
 #[cfg(test)]
 pub(crate) mod failpoints;

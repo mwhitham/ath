@@ -147,16 +147,136 @@ fn at(parts: &[&str], index: usize, tail: &[&str]) -> Vec<PathSegment> {
     path
 }
 
+/// What the history rules read from one current record of a package file.
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) struct RecordFacts {
+    pub record_id: String,
+    pub record_type: String,
+    pub current_revision: Option<f64>,
+    pub is_deleted: bool,
+    /// The data as its record type outputs it, as JSON text.
+    pub data_text: Option<String>,
+    /// `data.source_id`, `data.quantity`, and `data.recorded_at`, which the
+    /// series rules read.
+    pub data_source_id: String,
+    pub data_quantity: String,
+    pub data_recorded_at: String,
+}
+
+impl RecordFacts {
+    pub(crate) fn of(record: &Value) -> Self {
+        let data = record.get("data").unwrap_or(&Value::Null);
+        RecordFacts {
+            record_id: text(record, "record_id").to_string(),
+            record_type: text(record, "record_type").to_string(),
+            current_revision: int(record, "current_revision"),
+            is_deleted: record.get("is_deleted").and_then(Value::as_bool).unwrap_or(false),
+            data_text: data_text(record),
+            data_source_id: text(data, "source_id").to_string(),
+            data_quantity: text(data, "quantity").to_string(),
+            data_recorded_at: text(data, "recorded_at").to_string(),
+        }
+    }
+}
+
+/// What the history rules read from one retained revision.
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) struct RevisionFacts {
+    pub record_id: String,
+    pub record_type: String,
+    /// The `revision` value as JSON text, which identifies a repeated revision.
+    pub revision_text: String,
+    pub revision: Option<f64>,
+    pub data_text: Option<String>,
+}
+
+impl RevisionFacts {
+    pub(crate) fn of(revision: &Value) -> Self {
+        RevisionFacts {
+            record_id: text(revision, "record_id").to_string(),
+            record_type: text(revision, "record_type").to_string(),
+            revision_text: json::to_string(revision.get("revision").unwrap_or(&Value::Null)),
+            revision: int(revision, "revision"),
+            data_text: data_text(revision),
+        }
+    }
+}
+
+/// What the history rules read from one deletion record.
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) struct DeletionFacts {
+    pub record_id: String,
+    pub record_revision: Option<f64>,
+}
+
+/// What the history rules read from one provider import key.
+#[derive(Debug, Clone, PartialEq)]
+pub(crate) struct ImportKeyFacts {
+    pub record_id: String,
+    pub match_key_method: String,
+    pub match_key: String,
+}
+
+/// The parts of a package file that the history rules read. A series file
+/// can be reduced to these one item at a time, so its whole JSON tree need
+/// not be held to check it.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub(crate) struct HistoryFacts {
+    pub records: Vec<RecordFacts>,
+    pub revisions: Vec<RevisionFacts>,
+    pub deletions: Vec<DeletionFacts>,
+    pub import_keys: Vec<ImportKeyFacts>,
+}
+
+impl HistoryFacts {
+    /// The facts of a package document or series file.
+    pub(crate) fn of(value: &Value) -> Self {
+        let mut facts = HistoryFacts {
+            records: array(value, "records").iter().map(RecordFacts::of).collect(),
+            revisions: array(value, "record_revisions").iter().map(RevisionFacts::of).collect(),
+            ..HistoryFacts::default()
+        };
+        facts.add_deletions_and_import_keys(value);
+        facts
+    }
+
+    /// Add the deletion records and import keys of a file.
+    pub(crate) fn add_deletions_and_import_keys(&mut self, value: &Value) {
+        self.deletions = array(value, "record_deletions")
+            .iter()
+            .map(|deletion| DeletionFacts {
+                record_id: text(deletion, "record_id").to_string(),
+                record_revision: int(deletion, "record_revision"),
+            })
+            .collect();
+        self.import_keys = array(value, "record_import_keys")
+            .iter()
+            .map(|key| ImportKeyFacts {
+                record_id: text(key, "record_id").to_string(),
+                match_key_method: text(key, "match_key_method").to_string(),
+                match_key: text(key, "match_key").to_string(),
+            })
+            .collect();
+    }
+}
+
+/// The data of a record or revision as its record type outputs it, as JSON
+/// text. The history rules compare this text: key order inside supplied
+/// fields is part of the value, as in the published check.
+fn data_text(value: &Value) -> Option<String> {
+    let shape = RecordType::parse(text(value, "record_type")).map(data_schema)?;
+    Some(json::to_string(&shape.output(value.get("data")?)))
+}
+
 /// The history rules shared by the main document and series files.
 fn validate_complete_record_history(value: &Value, issues: &mut Vec<Issue>) {
-    let records = array(value, "records");
-    let revisions = array(value, "record_revisions");
-    let deletions = array(value, "record_deletions");
-    let import_keys = array(value, "record_import_keys");
+    history_issues(&HistoryFacts::of(value), issues);
+}
 
-    let mut records_by_id: HashMap<&str, (&Value, usize)> = HashMap::new();
-    for (index, record) in records.iter().enumerate() {
-        let id = text(record, "record_id");
+fn history_issues(facts: &HistoryFacts, issues: &mut Vec<Issue>) {
+    let mut records_by_id: HashMap<&str, usize> = HashMap::new();
+    for (index, record) in facts.records.iter().enumerate() {
+        let id = record.record_id.as_str();
         if records_by_id.contains_key(id) {
             issue(
                 issues,
@@ -165,14 +285,14 @@ fn validate_complete_record_history(value: &Value, issues: &mut Vec<Issue>) {
             );
             continue;
         }
-        records_by_id.insert(id, (record, index));
+        records_by_id.insert(id, index);
     }
 
-    let mut revisions_by_record: HashMap<&str, Vec<&Value>> = HashMap::new();
-    let mut revision_keys: HashSet<(String, String)> = HashSet::new();
-    for (index, revision) in revisions.iter().enumerate() {
-        let id = text(revision, "record_id");
-        let key = (id.to_string(), json::to_string(revision.get("revision").unwrap_or(&Value::Null)));
+    let mut revisions_by_record: HashMap<&str, Vec<&RevisionFacts>> = HashMap::new();
+    let mut revision_keys: HashSet<(&str, &str)> = HashSet::new();
+    for (index, revision) in facts.revisions.iter().enumerate() {
+        let id = revision.record_id.as_str();
+        let key = (id, revision.revision_text.as_str());
         if revision_keys.contains(&key) {
             issue(
                 issues,
@@ -187,7 +307,7 @@ fn validate_complete_record_history(value: &Value, issues: &mut Vec<Issue>) {
                 at(&["record_revisions"], index, &["record_id"]),
                 "A retained revision needs its current record",
             ),
-            Some((owner, _)) if text(owner, "record_type") != text(revision, "record_type") => issue(
+            Some(owner) if facts.records[*owner].record_type != revision.record_type => issue(
                 issues,
                 at(&["record_revisions"], index, &["record_type"]),
                 "A revision must keep its record type",
@@ -197,9 +317,9 @@ fn validate_complete_record_history(value: &Value, issues: &mut Vec<Issue>) {
         revisions_by_record.entry(id).or_default().push(revision);
     }
 
-    let mut deletion_by_record: HashMap<&str, &Value> = HashMap::new();
-    for (index, deletion) in deletions.iter().enumerate() {
-        let id = text(deletion, "record_id");
+    let mut deletion_by_record: HashMap<&str, &DeletionFacts> = HashMap::new();
+    for (index, deletion) in facts.deletions.iter().enumerate() {
+        let id = deletion.record_id.as_str();
         if !records_by_id.contains_key(id) {
             issue(
                 issues,
@@ -219,17 +339,18 @@ fn validate_complete_record_history(value: &Value, issues: &mut Vec<Issue>) {
 
     // Records are checked in first-appearance order, as a JavaScript Map iterates.
     let mut seen: HashSet<&str> = HashSet::new();
-    for record in records {
-        let id = text(record, "record_id");
+    for record in &facts.records {
+        let id = record.record_id.as_str();
         if !seen.insert(id) {
             continue;
         }
-        let (record, index) = records_by_id[id];
-        let current = int(record, "current_revision").unwrap_or(f64::NAN);
-        let mut group: Vec<&Value> = revisions_by_record.get(id).cloned().unwrap_or_default();
+        let index = records_by_id[id];
+        let record = &facts.records[index];
+        let current = record.current_revision.unwrap_or(f64::NAN);
+        let mut group: Vec<&RevisionFacts> = revisions_by_record.get(id).cloned().unwrap_or_default();
         group.sort_by(|left, right| {
-            let left = int(left, "revision").unwrap_or(f64::NAN);
-            let right = int(right, "revision").unwrap_or(f64::NAN);
+            let left = left.revision.unwrap_or(f64::NAN);
+            let right = right.revision.unwrap_or(f64::NAN);
             left.partial_cmp(&right).unwrap_or(std::cmp::Ordering::Equal)
         });
         if group.len() as f64 != current {
@@ -240,7 +361,7 @@ fn validate_complete_record_history(value: &Value, issues: &mut Vec<Issue>) {
             );
         }
         for (position, revision) in group.iter().enumerate() {
-            if int(revision, "revision") != Some((position + 1) as f64) {
+            if revision.revision != Some((position + 1) as f64) {
                 issue(
                     issues,
                     at(&["records"], index, &["current_revision"]),
@@ -249,14 +370,9 @@ fn validate_complete_record_history(value: &Value, issues: &mut Vec<Issue>) {
             }
         }
         if let Some(latest) = group.last() {
-            let same_revision = int(latest, "revision") == Some(current);
-            // Compare parsed values as text, as the published check does: key
-            // order inside supplied fields is part of the value.
-            let parsed = |value: &Value| {
-                let shape = RecordType::parse(text(value, "record_type")).map(data_schema)?;
-                Some(json::to_string(&shape.output(value.get("data")?)))
-            };
-            let same_data = matches!((parsed(latest), parsed(record)), (Some(left), Some(right)) if left == right);
+            let same_revision = latest.revision == Some(current);
+            let same_data =
+                matches!((&latest.data_text, &record.data_text), (Some(left), Some(right)) if left == right);
             if !same_revision || !same_data {
                 issue(
                     issues,
@@ -265,7 +381,7 @@ fn validate_complete_record_history(value: &Value, issues: &mut Vec<Issue>) {
                 );
             }
         }
-        let deleted = record.get("is_deleted").and_then(Value::as_bool).unwrap_or(false);
+        let deleted = record.is_deleted;
         let deletion = deletion_by_record.get(id);
         if deleted && deletion.is_none() {
             issue(
@@ -278,7 +394,7 @@ fn validate_complete_record_history(value: &Value, issues: &mut Vec<Issue>) {
             issue(issues, at(&["records"], index, &["is_deleted"]), "A current deletion record requires is_deleted");
         }
         if let Some(deletion) = deletion {
-            if int(deletion, "record_revision") != Some(current) {
+            if deletion.record_revision != Some(current) {
                 issue(
                     issues,
                     at(&["records"], index, &["current_revision"]),
@@ -291,8 +407,8 @@ fn validate_complete_record_history(value: &Value, issues: &mut Vec<Issue>) {
     // The published check joins method and key with U+0000, so two pairs that
     // join to the same text count as the same key.
     let mut owners: HashMap<String, &str> = HashMap::new();
-    for (index, key) in import_keys.iter().enumerate() {
-        let id = text(key, "record_id");
+    for (index, key) in facts.import_keys.iter().enumerate() {
+        let id = key.record_id.as_str();
         if !records_by_id.contains_key(id) {
             issue(
                 issues,
@@ -300,7 +416,7 @@ fn validate_complete_record_history(value: &Value, issues: &mut Vec<Issue>) {
                 "A provider import key needs its current record",
             );
         }
-        let pair = format!("{}\u{0}{}", text(key, "match_key_method"), text(key, "match_key"));
+        let pair = format!("{}\u{0}{}", key.match_key_method, key.match_key);
         if let Some(existing) = owners.get(&pair) {
             if *existing != id {
                 issue(
@@ -340,22 +456,28 @@ fn refine_package(value: &Value, issues: &mut Vec<Issue>) {
 }
 
 fn refine_series_file(value: &Value, issues: &mut Vec<Issue>) {
-    validate_complete_record_history(value, issues);
-    let start = js_date_parse(text(value, "start_at"));
-    let end = js_date_parse(text(value, "end_at"));
+    series_issues(value, &HistoryFacts::of(value), issues);
+}
+
+/// The series-file rules: complete history, then the time bounds, then each
+/// sample's source, quantity, and time. `file` supplies the declared
+/// `source_id`, `quantity`, `start_at`, and `end_at`; `facts` hold the items.
+pub(crate) fn series_issues(file: &Value, facts: &HistoryFacts, issues: &mut Vec<Issue>) {
+    history_issues(facts, issues);
+    let start = js_date_parse(text(file, "start_at"));
+    let end = js_date_parse(text(file, "end_at"));
     if let (Some(start), Some(end)) = (start, end) {
         if end < start {
             custom(issues, &["end_at"], "Series file end cannot precede its start");
         }
     }
-    let source_id = text(value, "source_id");
-    let quantity = text(value, "quantity");
-    for (index, record) in array(value, "records").iter().enumerate() {
-        let data = record.get("data").unwrap_or(&Value::Null);
-        if text(data, "source_id") != source_id || text(data, "quantity") != quantity {
+    let source_id = text(file, "source_id");
+    let quantity = text(file, "quantity");
+    for (index, record) in facts.records.iter().enumerate() {
+        if record.data_source_id != source_id || record.data_quantity != quantity {
             issue(issues, at(&["records"], index, &[]), "Every sample must match the series source and quantity");
         }
-        let recorded = js_date_parse(text(data, "recorded_at"));
+        let recorded = js_date_parse(&record.data_recorded_at);
         let outside = match (recorded, start, end) {
             (Some(recorded), Some(start), Some(end)) => recorded < start || recorded > end,
             _ => false,
