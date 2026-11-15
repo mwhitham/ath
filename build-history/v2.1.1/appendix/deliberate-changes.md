@@ -470,6 +470,32 @@ not collide with the native entries.
     5 s busy timeout for the reader before it exited. Test: `store::tests`
     (`closing_after_a_write_does_not_wait_for_a_reader`).
 
+## Found by the release review
+
+78. **`importProviderRecords` compares the export's files with the
+    preview's.** `provider.preview` returns a SHA-256 over every file the
+    reader may read: the file or archive, every file in a folder, or a bare
+    Apple XML with the route and ECG files beside it. The client keeps it with
+    the preview and does not show it on the preview object. `provider.import`
+    checks it before and after it reads the export again, and refuses a
+    change with "The provider export changed after its import preview;
+    preview it again". Before this, the import compared only record counts, so
+    an export whose values changed but whose counts did not was written. This
+    makes change 66 true for every change to the files. The cost is reading
+    the export once more at preview and twice more at import. Tests:
+    `import_stale_input.rs`, and `database.test.ts` "refuses a preview whose
+    export changed even when its counts did not".
+
+79. **A read-only command can leave an empty `-wal` file and a `-shm` file
+    beside a WAL database.** SQLite creates them when a read-only connection
+    opens the file, and a read-only connection cannot remove them. Spec section
+    7 forbids a read from deleting sidecars or checkpointing on close, because
+    another process may be using them. The next command that writes removes
+    them when it closes. 2.1.0 opened its read-only commands with a connection
+    that could write, so SQLite's checkpoint on close removed the files. Tests:
+    `read_policy.rs`
+    (`a_reader_sees_committed_wal_data_and_never_checkpoints_or_deletes_sidecars`).
+
 ## Behavior kept on purpose
 
 These look odd but stay, because changing them would change accepted data or
