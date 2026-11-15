@@ -346,16 +346,22 @@ pub fn serve_streams(
     status
 }
 
-/// Close the database after the operation and report its current ID. A write
-/// that restored a package changes the ID, so it is read again.
+/// Close the database after the operation. Report the database ID only when
+/// the operation replaced it, as a restore into a new database does.
+///
+/// Each call runs in its own worker process, so replies can arrive in any
+/// order. A read that started before a restore must not report the old ID
+/// after the restore reported the new one, or the client would send the old
+/// ID with every later request and have each one refused.
 fn finish_store(store: Option<Store>, outcome: Outcome) -> std::result::Result<(Value, Option<String>), Failure> {
     let Some(mut store) = store else {
         return outcome.map(|output| (output, None));
     };
+    let opened_with = store.metadata().database_id.clone();
     let database_id = if store.is_read_only() {
-        Some(store.metadata().database_id.clone())
+        None
     } else {
-        store.reload_metadata().ok().map(|()| store.metadata().database_id.clone())
+        store.reload_metadata().ok().map(|()| store.metadata().database_id.clone()).filter(|id| *id != opened_with)
     };
     let closed = store.close();
     let output = outcome?;
@@ -543,6 +549,29 @@ mod tests {
         let (status, events) = run("{\"id\":\"1\",\"op\":\"ids.uuid_v7\"}\n");
         assert_eq!(status, EXIT_PROTOCOL);
         assert_eq!(events[0]["error"]["code"], "protocol_version");
+    }
+
+    /// A read reports no database ID, so a read that finishes after a
+    /// restore cannot put the old ID back on the client's handle.
+    #[test]
+    fn a_read_reports_no_database_id() {
+        let directory = crate::files::make_temporary_directory("ath-worker-read-id-").unwrap();
+        let path = directory.join("athlete.ath.sqlite");
+        Store::create(&path, crate::store::CreateOptions::default()).unwrap().close().unwrap();
+        let mut request = Map::new();
+        request.insert("protocol".into(), Value::from(PROTOCOL_VERSION));
+        request.insert("id".into(), "4".into());
+        request.insert("op".into(), "database.metadata".into());
+        let mut target = Map::new();
+        target.insert("path".into(), Value::String(path.display().to_string()));
+        request.insert("target".into(), Value::Object(target));
+        request.insert("input".into(), Value::Object(Map::new()));
+        let (status, events) = run(&format!("{}\n", json::to_string(&Value::Object(request))));
+        assert_eq!(status, EXIT_OK, "{events:?}");
+        let result = events.iter().find(|event| event["type"] == "result").expect("a result");
+        assert!(result["output"]["database_id"].is_string(), "{result:?}");
+        assert!(result.get("database_id").is_none(), "{result:?}");
+        std::fs::remove_dir_all(directory).unwrap();
     }
 
     #[test]
