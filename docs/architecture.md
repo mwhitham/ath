@@ -129,12 +129,16 @@ finishes or cleans up that work; `ath check` reports it.
 - `tests/vectors/` and `tests/golden/` hold the recorded 2.1.0 behavior that
   the native code is compared with. `tools/reference/` holds the generators
   that recorded them from the reference program.
+- `tests/generated.rs` is the one generation entry point. It builds the JSON
+  Schema files, the npm protocol module, the skill's command reference, and the
+  demo database in `examples/demo-athlete/`, and fails when a committed copy
+  differs. `ATH_WRITE_GENERATED=1 cargo test --test generated` writes them.
 
 ## Adding things
 
 - A new optional field on a record: declare it in `src/model/data.rs`, add a
   typed column in `src/store/encode.rs` only if direct SQL needs it, then run
-  the generators. Nothing else maps fields.
+  `ATH_WRITE_GENERATED=1 cargo test --test generated`. Nothing else maps fields.
 - A new provider: write a reader that implements `ProviderReader` and a
   detection rule (`src/import/README.md`). It needs no SQL and no command code.
 - A new command: add it to the table in `src/cli/spec.rs` and a handler in

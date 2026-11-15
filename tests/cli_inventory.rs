@@ -11,6 +11,11 @@ use serde_json::Value;
 const OLD_VERSION: &str = "2.1.0";
 const NEW_VERSION: &str = "2.1.1";
 
+/// The 2.1.0 `migrate` help said the backup needed a `sqlite3` program. The
+/// native backup uses SQLite's own interface, so the sentence is gone
+/// (`build-history/v2.1.1/appendix/cli-changes.md`, change 6).
+const SQLITE3_SENTENCE: &str = "\n\nRequires the `sqlite3` command-line tool on PATH for verified backups (same as\n`ath repair` when repair candidates exist).";
+
 fn inventory() -> Value {
     let path = Path::new(env!("CARGO_MANIFEST_DIR")).join("build-history/v2.1.1/appendix/command-inventory.json");
     serde_json::from_str(&std::fs::read_to_string(path).unwrap()).unwrap()
@@ -54,7 +59,7 @@ fn every_help_text_matches_the_inventory() {
         let mut argv = path.clone();
         argv.push("--help".to_string());
         let (status, stdout, stderr) = run(&argv);
-        let expected = expected.replace(OLD_VERSION, NEW_VERSION);
+        let expected = expected.replace(OLD_VERSION, NEW_VERSION).replace(SQLITE3_SENTENCE, "");
         if status != 0 || stdout != expected || !stderr.is_empty() {
             failures.push(format!(
                 "ath {} --help: status {status}, stderr {stderr:?}\n--- expected\n{expected}\n--- got\n{stdout}",

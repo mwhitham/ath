@@ -138,7 +138,6 @@ fn the_skill_names_the_version_it_ships() {
 }
 
 #[test]
-#[ignore = "skills/ still ship 2.1.0 until the 2.1.1 cutover regenerates them"]
 fn the_skill_names_this_program_version() {
     assert!(skill_text().contains(athleticstandard::model::package::ATHLETIC_STANDARD_VERSION));
     assert_eq!(shipped_skill_version(), env!("CARGO_PKG_VERSION"));

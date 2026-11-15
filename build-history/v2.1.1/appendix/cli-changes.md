@@ -80,6 +80,24 @@ when its package had no skill folder. The native executable carries the
 skill, calculation, and mapping files inside itself (spec section 11.1), so
 this refusal no longer exists.
 
+### 6. `ath migrate --help` no longer asks for `sqlite3`
+
+The 2.1.0 help for `ath migrate` ended with this paragraph:
+
+```text
+Requires the `sqlite3` command-line tool on PATH for verified backups (same as
+`ath repair` when repair candidates exist).
+```
+
+The native executable makes and verifies its backups with SQLite's own backup
+interface, in the same process (spec section 7). It needs no `sqlite3`
+program, so the paragraph is removed. Nothing else in the help changes. The
+installed command reference is regenerated from the new help.
+
+Reason: help that names a requirement the program does not have sends a person
+to install software for nothing. Tests: `tests/cli_inventory.rs` and
+`tests/cli_executable.rs` expect the 2.1.0 help without that paragraph.
+
 ## Comparison with 2.1.0
 
 `tools/reference/cli-golden.ts` runs the 2.1.0 command line on

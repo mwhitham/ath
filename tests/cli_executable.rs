@@ -62,7 +62,12 @@ fn help_through_the_executable_matches_the_inventory() {
         let mut argv: Vec<&str> = command["path"].as_str().unwrap().split(' ').collect();
         argv.push("-h");
         let output = ath(folder.path(), &argv, b"");
-        assert_eq!((output.status, output.stdout.as_str()), (0, command["help_text"].as_str().unwrap()), "{argv:?}");
+        // The `sqlite3` sentence left the migrate help (cli-changes.md, change 6).
+        let expected = command["help_text"].as_str().unwrap().replace(
+            "\n\nRequires the `sqlite3` command-line tool on PATH for verified backups (same as\n`ath repair` when repair candidates exist).",
+            "",
+        );
+        assert_eq!((output.status, output.stdout.as_str()), (0, expected.as_str()), "{argv:?}");
     }
 }
 

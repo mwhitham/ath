@@ -1,5 +1,6 @@
 //! The published documents agree with the format the code implements.
 
+use athleticstandard::model::package::ATHLETIC_STANDARD_VERSION;
 use athleticstandard::model::RecordType;
 
 const DOCUMENTS: &[&str] = &["SPEC.md", "README.md", "skills/athletic-standard/references/format.md"];
@@ -26,4 +27,14 @@ fn documents_name_the_chunked_series_files() {
         assert!(text.contains("<source-id>-<quantity>-000001.ath-series.json"), "{file}");
         assert!(!text.contains("<source-id>-<quantity>.ath-series.json"), "{file} names the unchunked file");
     }
+}
+
+#[test]
+fn the_specification_and_skill_name_the_current_version() {
+    let spec = read("SPEC.md");
+    let title = spec.lines().next().unwrap();
+    assert!(title.ends_with(&format!("v{ATHLETIC_STANDARD_VERSION}")), "{title}");
+    let skill = read("skills/athletic-standard/SKILL.md");
+    assert!(skill.contains(&format!("version: \"{ATHLETIC_STANDARD_VERSION}\"")), "SKILL.md frontmatter version");
+    assert!(skill.contains(&format!("**{ATHLETIC_STANDARD_VERSION}**")), "SKILL.md names the version it expects");
 }
