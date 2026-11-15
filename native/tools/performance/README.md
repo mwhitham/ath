@@ -75,6 +75,8 @@ node $TOOLS/compare.ts environment
 # Generate each size with the 2.1.0 generator, make the migrated native copy,
 # export the shared import package, and write the one-record package.
 node $TOOLS/compare.ts prepare --label 100k --records 100000
+node $TOOLS/compare.ts prepare --label 300k --records 300000
+node $TOOLS/compare.ts prepare --label 1m --records 1000000
 node $TOOLS/compare.ts prepare --label 3m --records 3000000
 
 # Export, check, initial import, and incremental import: three complete runs,
@@ -84,6 +86,16 @@ node $TOOLS/compare.ts bulk --label 100k --runs 3
 node $TOOLS/compare.ts bulk --label 3m --runs 1 --first-run 1
 node $TOOLS/compare.ts bulk --label 3m --runs 1 --first-run 2
 node $TOOLS/compare.ts bulk --label 3m --runs 1 --first-run 3
+
+# After a change to import, measure import alone the same way: three paired
+# runs at 3 million records, alternating order, and three native runs at
+# 300,000 and 1 million records. Each import run also makes the one-record
+# merge.
+node $TOOLS/compare.ts bulk --label 3m --runs 1 --first-run 1 --operations import
+node $TOOLS/compare.ts bulk --label 3m --runs 1 --first-run 2 --operations import
+node $TOOLS/compare.ts bulk --label 3m --runs 1 --first-run 3 --operations import
+node $TOOLS/compare.ts bulk --label 300k --runs 3 --only native --operations import
+node $TOOLS/compare.ts bulk --label 1m --runs 3 --only native --operations import
 
 # The 2.1.0 check stops at Node's default heap limit at 3 million records.
 # One supplementary run with a 16 GiB heap shows how long it takes to finish.
@@ -104,8 +116,6 @@ node $TOOLS/compare.ts library --label 3m --runs 1 --repetitions 50 --no-plans \
   --old-heap-mib 16384
 
 # Working memory at increasing sizes with the same record sizes (native only).
-node $TOOLS/compare.ts prepare --label 300k --records 300000
-node $TOOLS/compare.ts prepare --label 1m --records 1000000
 node $TOOLS/compare.ts scaling --label 300k --runs 3 --only native
 node $TOOLS/compare.ts scaling --label 1m --runs 3 --only native
 
