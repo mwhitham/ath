@@ -40,16 +40,21 @@ fn staging(temporary: &Path) -> Vec<PathBuf> {
     found
 }
 
-/// A staging folder is owner-only and holds only the owner-only plan file.
+/// A staging folder is owner-only and holds only the owner-only plan file
+/// and the marker that names its process.
 #[cfg(unix)]
 fn assert_private(folder: &Path) {
     use std::os::unix::fs::PermissionsExt;
     let mode = |path: &Path| std::fs::symlink_metadata(path).unwrap().permissions().mode() & 0o7777;
     assert_eq!(mode(folder), 0o700, "{}", folder.display());
-    let names: Vec<String> =
+    let mut names: Vec<String> =
         std::fs::read_dir(folder).unwrap().map(|entry| entry.unwrap().file_name().to_string_lossy().into()).collect();
-    assert_eq!(names, ["plan.sqlite"], "{}", folder.display());
-    assert_eq!(mode(&folder.join("plan.sqlite")), 0o600, "{}", folder.display());
+    names.sort();
+    let marker = athleticstandard::files::staging::TEMPORARY_OWNER_MARKER;
+    assert_eq!(names, [marker, "plan.sqlite"], "{}", folder.display());
+    for name in &names {
+        assert_eq!(mode(&folder.join(name)), 0o600, "{}", folder.join(name).display());
+    }
 }
 
 /// The WHOOP reader, checking the staging folder while candidates arrive,
