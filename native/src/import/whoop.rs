@@ -381,7 +381,6 @@ impl Reader<'_, '_> {
                     note: Some(note),
                     duration_seconds: None,
                     attachment_ids: None,
-                    exercise_mood_label: None,
                 }),
             };
             self.sink.add(Candidate::new(
