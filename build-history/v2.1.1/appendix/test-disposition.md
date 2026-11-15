@@ -191,9 +191,9 @@ Fixtures outside `tests/` that these tests read and that stay as data: `examples
 ## Result at the cutover
 
 At the cutover each file above was checked against the Rust and npm tests that
-remain. 51 of the 52 files were removed, with `tests/helpers/`. Their promises
-are checked by the planned homes above, and by tests added at the cutover where
-a promise had no remaining check:
+remain. All 52 files were removed, with `tests/helpers/`. No TypeScript test
+remains outside `packages/npm/`. Their promises are checked by the planned homes
+above, and by tests added at the cutover where a promise had no remaining check:
 
 - `tests/write_rules.rs`: typed prediction-ledger references, matching
   benchmarks, exact grade arithmetic, knowledge time that cannot go backward,
@@ -220,21 +220,42 @@ a promise had no remaining check:
   published documents (`v1-docs`).
 - `tests/generated.rs`: the committed command reference equals the help, and
   `SKILL.md` lists every command (`skill`).
+- `tests/wal_failed_write.rs`: the whole `v1-wal-failed-write` scenario. A
+  separate process holds a read snapshot while `ath log` commits; a stale
+  `ath delete` fails and changes nothing; the record stays visible before and
+  after the reader is killed; `ath check` passes; and the committed record
+  reaches the database file when the last connection closes. It runs on every
+  system and needs no `sqlite3` program.
+- `tools/performance/library.rs` (run by `cargo test`): the `v1-performance-generator`
+  runner promise. All nine release measurements run once and succeed on the
+  demo database with invented series, and the evidence request reads records
+  through `records_record_type_idx`.
 
-`v1-wal-failed-write` is covered in parts by `tests/read_policy.rs`: a failed
-write keeps the sidecars, a reader sees committed WAL data, and a reader keeps
-its snapshot while a writer commits. No single test runs that whole scenario
-with an outside reader.
+The rest of `v1-performance-generator` tested the 2.1.0 dataset generator,
+which is release tooling. That generator still makes the performance datasets,
+from the reference checkout. `tools/performance/compare.ts prepare` now refuses
+a generated database that lacks any of the 24 record types, corrections,
+deletions, or samples from three sources, or whose migrated copy the native
+check rejects: the same requirements the 2.1.0 test made.
 
-One file stays, because one of its promises has no remaining check:
+Promises that had no test in 2.1.0, now checked:
 
-- `tests/v1-performance-generator.test.ts`: the evidence query plan uses
-  `records_record_type_idx`. The generator and runner it also tested are
-  retired; the 2.1.0 versions run from the reference checkout
-  (`performance/README.md`). It no longer runs. A Rust test that reads the
-  plan of the native evidence query would replace it.
+- A Garmin pull that receives an HTTP error status: `tests/cli_pull.rs` runs
+  `ath pull garmin` against a 127.0.0.1 server that answers 401 to the token
+  request or 500 to the activity list. The exact refusal, the hidden key, and
+  the unchanged database are checked.
+- `ath calculate` compare-sources, correlation, and workout-drift through the
+  command line: `tests/cli_calculate.rs` compares the complete `--json`
+  receipt and the complete text output with values worked by hand.
 
-Promises from the list above that had no test in 2.1.0 and still have none:
-a Garmin pull that receives an HTTP error status, a complete Garmin account
-export, and `ath calculate` compare-sources, correlation, and workout-drift
-through the command line (the library tests cover them).
+Still unchecked: an import of a complete Garmin account export folder or zip.
+No approved synthetic fixture has that layout. The Garmin tests cover single
+activity files, nested folders, several files, and zip detection. A fixture
+for it is new health-shaped data and needs review before it is added.
+
+`src/calculate/coverage.rs`, the port of `src/coverage.ts`, was removed. In
+2.1.0 no command reached `src/coverage.ts`: its only caller,
+`mergeSummaryAsJson`, was never called, and no public export named it. The
+gap above about coverage windows chosen by instant therefore concerns code
+that never ran. The calendar `coverage` operation of `ath calculate` is a
+different implementation and keeps its tests (`tests/calculate.rs`).

@@ -53,9 +53,9 @@ The cutover (spec section 15, step 8):
 - The SQL step 5 contract and `docs/architecture.md` were published from
   `native/pending-publication/` (D216).
 - Each 2.1.0 TypeScript test file was matched with the native or npm tests that
-  keep its promises. Tests were added where a promise had no remaining check.
-  51 of 52 files were removed; the result and the one kept file are at the end
-  of the [test disposition](appendix/test-disposition.md).
+  keep its promises. Tests were added where a promise had no remaining check,
+  including the three that 2.1.0 never had. All 52 files were removed; the
+  result is at the end of the [test disposition](appendix/test-disposition.md).
 - The public-data check is a Rust test with the reviewed list in
   `tools/public-data-allowlist.json`.
 - One generation entry point, `tests/generated.rs` (D219), checks and writes the JSON
@@ -78,8 +78,8 @@ Remaining:
 - Runs of the new validation workflow on Linux, macOS, and Windows, with the
   archive and npm smoke tests, on the final commit. The jobs are defined in
   `.github/workflows/validate.yml` and have not run yet.
-- A native test that reads the plan of the evidence query, which would replace
-  the last kept 2.1.0 test file.
+- A test import of a complete Garmin account export, once a synthetic fixture
+  with that layout is reviewed and approved.
 - Record the release evidence listed in spec section 16 before creating a release.
 
 The installed implementation remains 2.1.0 until the rebuilt 2.1.1 is complete.
