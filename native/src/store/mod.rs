@@ -116,6 +116,23 @@ fn cannot_open_wal(failure: &rusqlite::ffi::Error) -> bool {
         || failure.extended_code == rusqlite::ffi::SQLITE_READONLY_DIRECTORY
 }
 
+/// SQLite could not read the file yet: another connection is writing it
+/// with a rollback journal, or a write that stopped partway left a journal
+/// that a read-only connection cannot undo.
+fn cannot_read_yet(failure: &rusqlite::ffi::Error) -> bool {
+    matches!(failure.code, rusqlite::ErrorCode::DatabaseBusy | rusqlite::ErrorCode::DatabaseLocked)
+        || failure.extended_code == rusqlite::ffi::SQLITE_READONLY_ROLLBACK
+}
+
+/// A read-only connection met the journal of a write that stopped partway.
+fn stopped_write(error: &Error) -> bool {
+    matches!(
+        error,
+        Error::Database(rusqlite::Error::SqliteFailure(failure, _))
+            if failure.extended_code == rusqlite::ffi::SQLITE_READONLY_ROLLBACK
+    )
+}
+
 /// Read and check `database_metadata`.
 pub fn read_metadata(connection: &Connection) -> Result<DatabaseMetadata> {
     let mut statement = connection
@@ -124,8 +141,10 @@ pub fn read_metadata(connection: &Connection) -> Result<DatabaseMetadata> {
              FROM database_metadata WHERE singleton_id = 1",
         )
         .map_err(|error| match error {
-            // The file could not be opened at all; that is not a missing table.
-            rusqlite::Error::SqliteFailure(failure, _) if cannot_open_wal(&failure) => Error::Database(error),
+            // The file could not be opened or read; that is not a missing table.
+            rusqlite::Error::SqliteFailure(failure, _) if cannot_open_wal(&failure) || cannot_read_yet(&failure) => {
+                Error::Database(error)
+            }
             _ => Error::refused("File is not an Athletic Standard database: metadata table is missing"),
         })?;
     let rows: Vec<(
@@ -220,10 +239,19 @@ impl Store {
         } else {
             OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_NO_MUTEX
         };
-        let connection = Connection::open_with_flags(&path, flags)?;
+        let mut connection = Connection::open_with_flags(&path, flags)?;
         files::assert_same_file(&path, identity)?;
         configure(&connection)?;
-        let metadata = read_metadata(&connection).map_err(|error| match error {
+        let mut metadata = read_metadata(&connection);
+        if options.read_only && metadata.as_ref().is_err_and(stopped_write) {
+            drop(connection);
+            finish_stopped_write(&path, identity)?;
+            connection = Connection::open_with_flags(&path, flags)?;
+            files::assert_same_file(&path, identity)?;
+            configure(&connection)?;
+            metadata = read_metadata(&connection);
+        }
+        let metadata = metadata.map_err(|error| match error {
             Error::Database(rusqlite::Error::SqliteFailure(failure, _)) if options.read_only && cannot_open_wal(&failure) => {
                 Error::refused(format!(
                     "Cannot read {} read-only. A WAL database needs its -wal and -shm files, and this folder does not allow creating them. Nothing was changed.",
@@ -375,11 +403,17 @@ impl Store {
     /// stays small. The file grows `RESTORE_FILE_CHUNK_BYTES` at a time.
     ///
     /// The change is still one atomic transaction. A failure rolls it back,
-    /// and a process stopped part way leaves a journal that the next writable
-    /// open rolls back, so the database is empty again. The file returns to
-    /// WAL mode before this returns. When SQLite cannot leave WAL mode, for
-    /// example because another connection has the file open, the restore
-    /// runs in WAL mode, as `bulk_transaction`.
+    /// and a process stopped part way leaves a journal that the next open
+    /// rolls back, so the database is empty again (see `finish_stopped_write`
+    /// for a read-only open). The file returns to WAL mode before this
+    /// returns. When SQLite cannot leave WAL mode, for example because
+    /// another connection has the file open, the restore runs in WAL mode, as
+    /// `bulk_transaction`.
+    ///
+    /// While the restore writes, a rollback journal lets no other connection
+    /// read the file. A reader waits up to `SQLITE_BUSY_TIMEOUT` and then
+    /// reports that the database is locked. In WAL mode it would have read
+    /// the empty database.
     ///
     /// The caller must check, inside the transaction, that the database is
     /// still the empty one it previewed.
@@ -479,6 +513,31 @@ fn enable_wal(connection: &Connection) -> Result<()> {
         return Err(Error::other(format!("SQLite did not enable WAL mode: {mode}")));
     }
     Ok(())
+}
+
+/// Finish a rollback-journal write that stopped partway, such as a restore
+/// into a new database whose process was killed. Its journal is still
+/// beside the file. SQLite undoes the write the next time a connection
+/// that may write reads the file, but a read-only connection cannot. So a
+/// short read-write connection reads the file once, which undoes the write,
+/// and returns the file to WAL mode, as the restore would have.
+fn finish_stopped_write(path: &Path, identity: files::FileIdentity) -> Result<()> {
+    let finish = || -> Result<()> {
+        let connection =
+            Connection::open_with_flags(path, OpenFlags::SQLITE_OPEN_READ_WRITE | OpenFlags::SQLITE_OPEN_NO_MUTEX)?;
+        files::assert_same_file(path, identity)?;
+        connection.busy_timeout(SQLITE_BUSY_TIMEOUT)?;
+        connection.query_row("SELECT count(*) FROM sqlite_schema", [], |row| row.get::<_, i64>(0))?;
+        enable_wal(&connection)?;
+        files::set_owner_only_database(path)?;
+        Ok(())
+    };
+    finish().map_err(|error| {
+        Error::refused(format!(
+            "The last write to {} stopped before it finished, and SQLite must undo it before the file can be read. Undoing it needs write access to the file and its folder: {error}",
+            path.display()
+        ))
+    })
 }
 
 /// Install the schema on a new file: the ordered migration chain, metadata,
@@ -668,6 +727,27 @@ mod tests {
         assert_eq!(seen, 2);
         drop(other);
         store.close().unwrap();
+        std::fs::remove_dir_all(directory).unwrap();
+    }
+
+    /// While a rollback-journal write holds the file, as a restore into a new
+    /// database does, a read-only open waits and then reports the lock. It
+    /// does not call the file something other than a database.
+    #[test]
+    fn a_read_only_open_during_a_rollback_journal_write_reports_the_lock() {
+        let directory = files::make_temporary_directory("ath-locked-read-").unwrap();
+        let path = directory.join("locked.ath.sqlite");
+        Store::create(&path, CreateOptions::default()).unwrap().close().unwrap();
+        let writer = Connection::open(&path).unwrap();
+        let mode: String = writer.pragma_update_and_check(None, "journal_mode", "DELETE", |row| row.get(0)).unwrap();
+        assert_eq!(mode, "delete");
+        writer.execute_batch("BEGIN EXCLUSIVE").unwrap();
+        let Err(error) = Store::open(&path, OpenOptions { read_only: true, allow_outdated_schema: false }) else {
+            panic!("the writer holds the file");
+        };
+        assert_eq!(error.to_string(), "database is locked");
+        writer.execute_batch("ROLLBACK").unwrap();
+        drop(writer);
         std::fs::remove_dir_all(directory).unwrap();
     }
 }

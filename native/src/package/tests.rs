@@ -515,6 +515,54 @@ fn a_restore_stopped_after_commit_is_complete() {
     fs::remove_dir_all(directory).unwrap();
 }
 
+/// A rollback-journal write that has written pages to the file and then
+/// stops, as a killed restore into a new database does.
+#[test]
+#[ignore = "run by stop_child_at"]
+fn child_rollback_journal_write() {
+    if let Some(directory) = child_directory() {
+        let connection = rusqlite::Connection::open(directory.join("destination.ath.sqlite")).unwrap();
+        let mode: String =
+            connection.pragma_update_and_check(None, "journal_mode", "DELETE", |row| row.get(0)).unwrap();
+        assert_eq!(mode, "delete");
+        // A small page cache makes SQLite write pages to the file before commit.
+        connection.pragma_update(None, "cache_size", 8).unwrap();
+        connection
+            .execute_batch(
+                "BEGIN IMMEDIATE;
+                 UPDATE database_state SET current_revision = 9 WHERE singleton_id = 1;
+                 CREATE TABLE filler(bytes BLOB);",
+            )
+            .unwrap();
+        for _ in 0..64 {
+            connection.execute("INSERT INTO filler VALUES (zeroblob(8192))", []).unwrap();
+        }
+        std::process::exit(STOP_STATUS);
+    }
+}
+
+/// After a killed restore into a new database, the file reads as the empty
+/// database it was, through a read-only open as well, and is back in WAL
+/// mode with no journal left.
+#[test]
+fn a_stopped_rollback_journal_write_reads_as_before() {
+    let directory = temporary("ath-stopped-write-");
+    let database = empty_database(&directory);
+    stop_child_at("package::tests::child_rollback_journal_write", "rollback journal write", &directory);
+    assert!(files::sidecar(&database, "-journal").exists());
+    let store = Store::open(&database, OpenOptions { read_only: true, allow_outdated_schema: false }).unwrap();
+    assert_eq!(store.database_revision().unwrap(), 0);
+    drop(store);
+    assert_wal_without_journal(&database, "stopped write");
+    assert_empty(&database, "stopped write");
+    let filler: i64 = rusqlite::Connection::open(&database)
+        .unwrap()
+        .query_row("SELECT count(*) FROM sqlite_schema WHERE name = 'filler'", [], |row| row.get(0))
+        .unwrap();
+    assert_eq!(filler, 0);
+    fs::remove_dir_all(directory).unwrap();
+}
+
 // ---- Decoding checked package items ------------------------------------------
 
 /// Loading checks each package file with its schema, then decodes the items
