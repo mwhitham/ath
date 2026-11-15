@@ -11,8 +11,9 @@
 //!
 //! `stream_series` reads the file from disk in chunks, so neither the file
 //! nor its tree is held. It walks the top level itself and hands each value
-//! and each list item to serde_json as one slice. It hashes the bytes and
-//! applies the nesting limit as they pass. Each decoded item goes to a sink
+//! and each list item to serde_json as one slice. It hashes the bytes as they
+//! pass, and applies the nesting limit as it finds where each value ends,
+//! counting the brackets around the value. Each decoded item goes to a sink
 //! as soon as it is checked: a restore writes it at once, records in a first
 //! pass over the file and revisions in a second. What is kept per item is a
 //! few short facts and a 32-byte digest of its data, which the history rules
@@ -225,13 +226,13 @@ struct Pass {
 /// read the file whole. An error is one the sink returned.
 fn read_pass(path: &Path, skip: Option<List>, sink: Option<&mut dyn ItemSink>) -> Result<Option<Pass>> {
     let Ok(file) = File::open(path) else { return Ok(None) };
-    let mut reader = CheckedReader::new(file);
+    let mut reader = HashingReader::new(file);
     let mut scan = Scan { sink, skip, ..Scan::default() };
     let walked = walk_file(&mut Chunks::new(&mut reader, STREAM_BUFFER_BYTES), &mut scan);
     if let Some(error) = scan.sink_error.take() {
         return Err(error);
     }
-    if walked.is_none() || reader.too_deep {
+    if walked.is_none() {
         return Ok(None);
     }
     let Scan { shell, facts, record_count, revision_count, .. } = scan;
@@ -248,62 +249,24 @@ fn read_pass(path: &Path, skip: Option<List>, sink: Option<&mut dyn ItemSink>) -
 /// Bytes read from disk at a time.
 const STREAM_BUFFER_BYTES: usize = 256 * 1024;
 
-/// Hashes what it reads and applies the package nesting limit as it goes,
-/// as `load::check_nesting` does for a file in memory.
-struct CheckedReader<R> {
+/// Hashes and counts what it reads.
+struct HashingReader<R> {
     inner: R,
     hasher: Sha256,
     bytes: u64,
-    depth: i64,
-    in_string: bool,
-    escaped: bool,
-    too_deep: bool,
 }
 
-impl<R> CheckedReader<R> {
+impl<R> HashingReader<R> {
     fn new(inner: R) -> Self {
-        CheckedReader {
-            inner,
-            hasher: Sha256::new(),
-            bytes: 0,
-            depth: 0,
-            in_string: false,
-            escaped: false,
-            too_deep: false,
-        }
+        HashingReader { inner, hasher: Sha256::new(), bytes: 0 }
     }
 }
 
-impl<R: Read> Read for CheckedReader<R> {
+impl<R: Read> Read for HashingReader<R> {
     fn read(&mut self, buffer: &mut [u8]) -> std::io::Result<usize> {
         let count = self.inner.read(buffer)?;
-        let chunk = &buffer[..count];
-        self.hasher.update(chunk);
+        self.hasher.update(&buffer[..count]);
         self.bytes += count as u64;
-        for byte in chunk {
-            if self.in_string {
-                if self.escaped {
-                    self.escaped = false;
-                } else if *byte == b'\\' {
-                    self.escaped = true;
-                } else if *byte == b'"' {
-                    self.in_string = false;
-                }
-                continue;
-            }
-            match byte {
-                b'"' => self.in_string = true,
-                b'{' | b'[' => {
-                    self.depth += 1;
-                    if self.depth > MAX_PACKAGE_JSON_NESTING as i64 {
-                        self.too_deep = true;
-                        return Err(std::io::Error::other("package JSON exceeds the nesting limit"));
-                    }
-                }
-                b'}' | b']' => self.depth -= 1,
-                _ => {}
-            }
-        }
         Ok(count)
     }
 }
@@ -404,7 +367,7 @@ fn walk_file<R: Read>(chunks: &mut Chunks<R>, scan: &mut Scan<'_>) -> Option<()>
             if chunks.peek()? != b'"' {
                 return None;
             }
-            let key: String = serde_json::from_slice(chunks.value()?).ok()?;
+            let key: String = serde_json::from_slice(chunks.value(1)?).ok()?;
             chunks.consume_value();
             if scan.shell.contains_key(&key) {
                 return None;
@@ -423,7 +386,7 @@ fn walk_file<R: Read>(chunks: &mut Chunks<R>, scan: &mut Scan<'_>) -> Option<()>
                     scan.shell.insert(key, Value::Array(Vec::new()));
                 }
                 None => {
-                    let value: Value = serde_json::from_slice(chunks.value()?).ok()?;
+                    let value: Value = serde_json::from_slice(chunks.value(1)?).ok()?;
                     chunks.consume_value();
                     scan.shell.insert(key, value);
                 }
@@ -460,11 +423,11 @@ fn walk_list<R: Read>(chunks: &mut Chunks<R>, scan: &mut Scan<'_>, list: List) -
             return None;
         }
         if parse {
-            let item: Value = serde_json::from_slice(chunks.value()?).ok()?;
+            let item: Value = serde_json::from_slice(chunks.value(2)?).ok()?;
             chunks.consume_value();
             scan.item(list, item).ok()?;
         } else {
-            chunks.value()?;
+            chunks.value(2)?;
             chunks.consume_value();
         }
         chunks.skip_whitespace()?;
@@ -557,56 +520,75 @@ impl<R: Read> Chunks<R> {
     /// The bytes of the value that starts here: an object or array to its
     /// closing bracket, a string to its closing quote, or anything else to
     /// the next delimiter. serde_json then decides whether they are valid.
-    fn value(&mut self) -> Option<&[u8]> {
+    ///
+    /// `depth` is the number of brackets open around the value. `None` when
+    /// the value is cut off, or when it opens brackets past the package
+    /// nesting limit, counted as `load::check_nesting` counts a whole file.
+    fn value(&mut self, depth: usize) -> Option<&[u8]> {
         let first = self.peek()?;
         // Counted from `start`, which `fill` may move to the front.
         let mut offset = 0usize;
-        let mut depth = 0usize;
+        if !matches!(first, b'{' | b'[' | b'"') {
+            let delimiter = |byte: &u8| matches!(byte, b',' | b'}' | b']' | b' ' | b'\t' | b'\n' | b'\r');
+            loop {
+                let rest = &self.buffer[self.start + offset..];
+                if let Some(found) = rest.iter().position(delimiter) {
+                    offset += found;
+                    break;
+                }
+                offset += rest.len();
+                // A scalar may end at the end of the file.
+                if !self.fill() {
+                    break;
+                }
+            }
+            self.end = self.start + offset;
+            return Some(&self.buffer[self.start..self.end]);
+        }
+        let outside = depth;
+        let mut depth = depth;
         let mut in_string = false;
-        let mut escaped = false;
         loop {
             while self.start + offset >= self.buffer.len() {
                 if !self.fill() {
-                    // A scalar may end at the end of the file.
-                    if !matches!(first, b'{' | b'[' | b'"') {
-                        self.end = self.start + offset;
-                        return Some(&self.buffer[self.start..self.end]);
-                    }
                     return None;
                 }
             }
-            let byte = self.buffer[self.start + offset];
-            offset += 1;
-            match first {
-                b'{' | b'[' | b'"' => {
-                    if in_string {
-                        if escaped {
-                            escaped = false;
-                        } else if byte == b'\\' {
-                            escaped = true;
-                        } else if byte == b'"' {
-                            in_string = false;
-                            if first == b'"' {
-                                break;
-                            }
-                        }
-                        continue;
-                    }
-                    match byte {
-                        b'"' => in_string = true,
-                        b'{' | b'[' => depth += 1,
-                        b'}' | b']' => {
-                            depth = depth.checked_sub(1)?;
-                            if depth == 0 {
-                                break;
-                            }
-                        }
-                        _ => {}
+            let rest = &self.buffer[self.start + offset..];
+            if in_string {
+                let Some(found) = rest.iter().position(|byte| matches!(byte, b'"' | b'\\')) else {
+                    offset += rest.len();
+                    continue;
+                };
+                if rest[found] == b'\\' {
+                    // The escaped byte is passed over, even before it is read.
+                    offset += found + 2;
+                    continue;
+                }
+                offset += found + 1;
+                in_string = false;
+                if first == b'"' {
+                    break;
+                }
+                continue;
+            }
+            let Some(found) = rest.iter().position(|byte| matches!(byte, b'"' | b'{' | b'[' | b'}' | b']')) else {
+                offset += rest.len();
+                continue;
+            };
+            let byte = rest[found];
+            offset += found + 1;
+            match byte {
+                b'"' => in_string = true,
+                b'{' | b'[' => {
+                    depth += 1;
+                    if depth > MAX_PACKAGE_JSON_NESTING {
+                        return None;
                     }
                 }
                 _ => {
-                    if matches!(byte, b',' | b'}' | b']' | b' ' | b'\t' | b'\n' | b'\r') {
-                        offset -= 1;
+                    depth -= 1;
+                    if depth == outside {
                         break;
                     }
                 }
@@ -1050,5 +1032,40 @@ mod tests {
         let Err(error) = stream_series(&path, Some(&mut Refuse)) else { panic!("the sink refused") };
         assert_eq!(error.to_string(), "no records");
         std::fs::remove_dir_all(directory).unwrap();
+    }
+
+    /// A value ends at its own closing bracket or quote at every chunk size.
+    /// Brackets and quotes inside strings, and escaped quotes, do not count.
+    #[test]
+    fn a_value_ends_where_its_brackets_close() {
+        let cases: [(&[u8], &[u8]); 5] = [
+            (br#"{"a":"x}\"]\\","b":[1,{"c":"\\\""}]} ,"#, br#"{"a":"x}\"]\\","b":[1,{"c":"\\\""}]}"#),
+            (br#""text with \" and \\ and ]" ,"#, br#""text with \" and \\ and ]""#),
+            (b"12.5e3,", b"12.5e3"),
+            (b"true", b"true"),
+            (b"[[],{}]]", b"[[],{}]"),
+        ];
+        for (text, expected) in cases {
+            for chunk_bytes in [1, 2, 3, 7, 1000] {
+                assert_eq!(Chunks::new(text, chunk_bytes).value(2), Some(expected), "{chunk_bytes}");
+            }
+        }
+    }
+
+    /// A value may open brackets up to the package nesting limit, counted
+    /// with the brackets around it, and no further. A value that is cut off
+    /// is not a value.
+    #[test]
+    fn a_value_past_the_nesting_limit_or_cut_off_is_refused() {
+        let nested = |count: usize| format!("{}{}", "[".repeat(count), "]".repeat(count)).into_bytes();
+        let at_limit = nested(MAX_PACKAGE_JSON_NESTING - 2);
+        let past = nested(MAX_PACKAGE_JSON_NESTING - 1);
+        for chunk_bytes in [1, 7, 1 << 20] {
+            assert_eq!(Chunks::new(&at_limit[..], chunk_bytes).value(2), Some(&at_limit[..]));
+            assert_eq!(Chunks::new(&past[..], chunk_bytes).value(2), None);
+            for cut in [&b"{\"a\":[1,2"[..], b"\"open", b"\"escape\\"] {
+                assert_eq!(Chunks::new(cut, chunk_bytes).value(2), None);
+            }
+        }
     }
 }
