@@ -503,6 +503,7 @@ fn two_route_files_on_one_workout_are_both_stored() {
     assert_eq!(route_positions(workout), [(18.5, 62.5), (18.5, 62.5), (18.75, 62.75), (18.75, 62.75)]);
 }
 
+#[cfg(unix)]
 #[test]
 fn a_symbolic_link_inside_a_route_folder_refuses_the_export() {
     use std::os::unix::fs::symlink;

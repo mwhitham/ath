@@ -128,10 +128,24 @@ fn provider_instants_read_as_2_1_0_read_them() {
     }
 }
 
+#[cfg(unix)]
+fn symlink(target: impl AsRef<std::path::Path>, link: impl AsRef<std::path::Path>) -> std::io::Result<()> {
+    std::os::unix::fs::symlink(target, link)
+}
+
+#[cfg(not(unix))]
+fn symlink(_: impl AsRef<std::path::Path>, _: impl AsRef<std::path::Path>) -> std::io::Result<()> {
+    unreachable!("link cases run only on Unix")
+}
+
 #[test]
 fn detection_refusals_match_2_1_0() {
-    use std::os::unix::fs::symlink;
     for case in golden("detection.json")["cases"].as_array().unwrap() {
+        // Creating a symbolic link needs Unix or extra Windows privileges.
+        let links = ["symbolic_link", "linked_csv_in_directory"];
+        if cfg!(not(unix)) && links.contains(&case["name"].as_str().unwrap()) {
+            continue;
+        }
         let directory = TempDir::new();
         let root = directory.path();
         let path = match case["name"].as_str().unwrap() {

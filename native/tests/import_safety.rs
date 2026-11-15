@@ -7,6 +7,7 @@
 mod import_support;
 
 use std::io::Write;
+#[cfg(unix)]
 use std::os::unix::fs::symlink;
 
 use athleticstandard::import::{self, input, ImportOptions, ImportRoute, SharedImport};
@@ -79,6 +80,7 @@ fn rejects_archive_links_and_extreme_expansion_ratios() {
     assert_eq!(error, "archive entry exceeds the 1000:1 expansion limit: export.xml");
 }
 
+#[cfg(unix)]
 #[test]
 fn rejects_symbolic_links_inside_provider_directories() {
     let directory = TempDir::new();
@@ -159,7 +161,11 @@ fn routes_follow_the_2_1_0_order() {
     std::fs::write(package.join("athlete.ath.json"), "{}").unwrap();
     assert_eq!(import::classify(&package, false).unwrap(), ImportRoute::Package);
 
-    // A symbolic link is never a shared import.
-    symlink(root.join("ride.gpx"), root.join("linked.gpx")).unwrap();
-    assert_eq!(import::classify(&root.join("linked.gpx"), false).unwrap(), ImportRoute::Provider);
+    // A symbolic link is never a shared import. Creating one needs Unix or
+    // extra Windows privileges, so this case runs on Unix.
+    #[cfg(unix)]
+    {
+        symlink(root.join("ride.gpx"), root.join("linked.gpx")).unwrap();
+        assert_eq!(import::classify(&root.join("linked.gpx"), false).unwrap(), ImportRoute::Provider);
+    }
 }

@@ -275,6 +275,7 @@ fn a_strava_activity_file_outside_the_export_is_not_read() {
 }
 
 /// A link inside a Garmin or Strava folder is refused rather than followed.
+#[cfg(unix)]
 #[test]
 fn a_symbolic_link_inside_a_shared_folder_is_refused() {
     use std::os::unix::fs::symlink;
