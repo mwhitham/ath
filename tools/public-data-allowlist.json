@@ -186,43 +186,43 @@
       "sha256": "2099f0bf78f680ddd168b2bd1a5a30e1fea3758e6699a12075c1ef712b985924"
     },
     {
-      "path": "native/tests/vectors/model/AthleteActor.json",
+      "path": "tests/vectors/model/AthleteActor.json",
       "sha256": "bfaba24cedbcefaf8c476d94a1d0ebb75062ccb96f8218d64ff8053a61aa7442"
     },
     {
-      "path": "native/tests/vectors/model/AthleteProfileData.json",
+      "path": "tests/vectors/model/AthleteProfileData.json",
       "sha256": "2ae57b2317f83a027faff5801a41cc24a33b5810266c9085ec28487bf846be72"
     },
     {
-      "path": "native/tests/vectors/model/AthleteProfileRecord.json",
+      "path": "tests/vectors/model/AthleteProfileRecord.json",
       "sha256": "1758ddfbab762d99196deb8c3361fff24114c193e5690a1fd6bb9a023c14bdfd"
     },
     {
-      "path": "native/tests/vectors/model/AthleteProfileRevision.json",
+      "path": "tests/vectors/model/AthleteProfileRevision.json",
       "sha256": "f726414d7a6d07f3648c6b8d87be2062cd56f4296c545e5cb41b239a8380f430"
     },
     {
-      "path": "native/tests/vectors/model/AthleteReportData.json",
+      "path": "tests/vectors/model/AthleteReportData.json",
       "sha256": "7f65e729742c6740ae9a73ffdce20d3fa65de070b66088c01d05f3010d8b9033"
     },
     {
-      "path": "native/tests/vectors/model/AthleteReportRecord.json",
+      "path": "tests/vectors/model/AthleteReportRecord.json",
       "sha256": "8077b5ae17a5e7265d64fe734a1f5f999886444435ab738a172c46e11060fb80"
     },
     {
-      "path": "native/tests/vectors/model/AthleteReportRevision.json",
+      "path": "tests/vectors/model/AthleteReportRevision.json",
       "sha256": "ed864b537f3dba20013a774667ad83d127542f5abd761e163a7fa5c1503a78d6"
     },
     {
-      "path": "native/tests/vectors/model/AthleteReportType.json",
+      "path": "tests/vectors/model/AthleteReportType.json",
       "sha256": "c1ccdeed66434b92a74e86841891d92074f061b842d2887d516e6501b21859e5"
     },
     {
-      "path": "native/tests/vectors/model/ExportManifest.json",
+      "path": "tests/vectors/model/ExportManifest.json",
       "sha256": "b5924cfb50f77300ba95b55712973ad115957885462e6f70dd5f82ad6551c598"
     },
     {
-      "path": "native/tests/golden/routes/invented-refusal-athlete-maximum.json",
+      "path": "tests/golden/routes/invented-refusal-athlete-maximum.json",
       "sha256": "e1d945a461f9520d19c1fd68b3dd95f7b8c7ef041b6a2e0ced2f19df7533f67f"
     },
     {

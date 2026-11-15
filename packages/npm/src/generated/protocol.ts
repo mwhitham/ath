@@ -1,5 +1,5 @@
-// Generated from native/src/protocol by native/tests/npm_generated.rs.
-// Do not edit. Run `ATH_WRITE_GENERATED=1 cargo test --test npm_generated` in native/.
+// Generated from src/protocol by tests/npm_generated.rs.
+// Do not edit. Run `ATH_WRITE_GENERATED=1 cargo test --test npm_generated`.
 
 import type * as Model from "../schema.js";
 import type * as Api from "../types.js";

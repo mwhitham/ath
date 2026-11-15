@@ -8,12 +8,12 @@
  *
  *   node packages/npm/scripts/pack.mjs --native-dir <dir> [--out <dir>]
  *   node packages/npm/scripts/pack.mjs --native <target>=<file> ... [--out <dir>]
- *   node packages/npm/scripts/pack.mjs --native darwin-arm64=native/target/release/ath --allow-missing-targets
+ *   node packages/npm/scripts/pack.mjs --native darwin-arm64=target/release/ath --allow-missing-targets
  *
  * What CI must supply:
  *
- * 1. One executable per target, built in native/ with
- *    `cargo build --release --locked` and copied from native/target/release/.
+ * 1. One executable per target, built at the repository root with
+ *    `cargo build --release --locked` and copied from target/release/.
  *    With --native-dir the folder holds exactly this layout:
  *
  *      <dir>/linux-x64/ath         from ubuntu-latest   (x86_64-unknown-linux-gnu)

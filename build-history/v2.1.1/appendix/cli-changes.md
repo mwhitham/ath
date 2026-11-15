@@ -82,9 +82,9 @@ this refusal no longer exists.
 
 ## Comparison with 2.1.0
 
-`native/tools/reference/cli-golden.ts` runs the 2.1.0 command line on
-synthetic scenarios and writes `native/tests/golden/cli/`. The test
-`native/tests/cli_golden.rs` runs the native executable on the same
+`tools/reference/cli-golden.ts` runs the 2.1.0 command line on
+synthetic scenarios and writes `tests/golden/cli/`. The test
+`tests/cli_golden.rs` runs the native executable on the same
 scenarios. Each golden file lists its normalization rules. The expected
 side also applies these listed differences: change 1 above, the native
 migration step 5 (see Version), and `deliberate-changes.md` entries 5, 25,

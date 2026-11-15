@@ -4,7 +4,7 @@ Language-neutral SQLite schema for Athletic Standard. The ordered SQL files in
 `migrations/` are the executable migrations. The ath program embeds them unchanged,
 and a new database runs the same chain as an upgrade. `contract.json` declares what
 direct SQL clients may rely on. The native store checks a live database against it
-(`native/src/store/contract.rs`).
+(`src/store/contract.rs`).
 
 Published migration files never change. A new SQL schema step adds a new file.
 
@@ -12,7 +12,7 @@ Published migration files never change. A new SQL schema step adds a new file.
 
 | Field | Meaning |
 |---|---|
-| `athleticstandard_version` | Record and JSON package format (see `native/src/model/`). |
+| `athleticstandard_version` | Record and JSON package format (see `src/model/`). |
 | `sql_schema_version` | SQLite encoding in `database_metadata.sql_schema_version`. |
 | `PRAGMA user_version` | Local mirror of `sql_schema_version` on file-backed databases. |
 

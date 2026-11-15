@@ -2,7 +2,7 @@
  * The Zod compatibility facade and the native Rust validator must give the
  * same verdict on every recorded validation vector.
  *
- * The vectors in native/tests/vectors/model/ were observed from the 2.1.0
+ * The vectors in tests/vectors/model/ were observed from the 2.1.0
  * Zod schemas. Each case runs through the facade in process and through the
  * native validator in one protocol worker. The cases skipped here are the
  * deliberate differences in build-history/v2.1.1/appendix/deliberate-changes.md, items 2
@@ -31,7 +31,7 @@ interface VectorFile {
   cases: VectorCase[];
 }
 
-const vectorDirectory = join(repositoryRoot, "native", "tests", "vectors", "model");
+const vectorDirectory = join(repositoryRoot, "tests", "vectors", "model");
 
 function deliberateDifference(text: string): string | null {
   if (/\\u[dD][89abAB]|\\u[dD][c-fC-F]/.test(text)) {

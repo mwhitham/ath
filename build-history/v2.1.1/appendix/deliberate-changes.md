@@ -9,7 +9,7 @@ here; an unlisted difference is a bug.
 
 1. **Version 2.1.1 is accepted.** The record-version enum gains `2.1.1`, so
    messages that list accepted versions name it. Reason: D208 selects 2.1.1.
-   Test: `native/tests/model_vectors.rs` skips the 28 version-message vectors.
+   Test: `tests/model_vectors.rs` skips the 28 version-message vectors.
 
 2. **Lone UTF-16 surrogate escapes are refused when JSON is read.** JavaScript
    accepts text such as `"\ud800"`. Rust text cannot hold a lone surrogate, so
@@ -238,7 +238,7 @@ here; an unlisted difference is a bug.
 
 These routes ran in the 2.1.0 helper, `ath-core`, which wrote through its own
 store. They now run through the one import operation (spec section 8). The
-comparison in `native/tests/route_support/keyed.rs` names each normalization
+comparison in `tests/route_support/keyed.rs` names each normalization
 below. Tests: `import_garmin.rs` and `import_mapping.rs`.
 
 42. **One import is one transaction and advances the database revision once.**

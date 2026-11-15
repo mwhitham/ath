@@ -5,8 +5,8 @@ The native validator must run each rule. Part 1 covers the rules in the Zod
 schemas. Part 2 covers the rules the database layer enforces outside Zod.
 
 Part 1 rules carry IDs R1 to R56. The same IDs appear in the `rules` field of the
-vector cases under `native/tests/vectors/model/`. The file
-`native/tests/vectors/model-index.json` lists every case that triggers or satisfies
+vector cases under `tests/vectors/model/`. The file
+`tests/vectors/model-index.json` lists every case that triggers or satisfies
 each rule. The generator asserts each listed result, so a rule cannot lose its
 evidence without failing generation.
 
@@ -18,7 +18,7 @@ schema is nested, the parent path comes first. For example, R1 inside
 Regenerate the vectors with:
 
 ```sh
-node --import tsx native/tools/reference/generate-model-vectors.ts
+node --import tsx tools/reference/generate-model-vectors.ts
 ```
 
 The vectors were observed with Zod 4.5.2 and ICU 78.2 (tz 2025c).

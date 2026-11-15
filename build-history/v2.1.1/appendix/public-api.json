@@ -1,5 +1,5 @@
 {
-  "generated_by": "native/tools/reference/public-api-inventory.ts",
+  "generated_by": "tools/reference/public-api-inventory.ts",
   "package": {
     "name": "athleticstandard",
     "version": "2.1.0",

@@ -1,5 +1,5 @@
 {
-  "generated_by": "native/tools/reference/command-inventory.ts",
+  "generated_by": "tools/reference/command-inventory.ts",
   "source": {
     "program_factory": "src/program.ts buildProgram()",
     "entry_point": "src/cli.ts",
