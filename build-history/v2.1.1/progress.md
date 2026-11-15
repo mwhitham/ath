@@ -1,6 +1,6 @@
 # v2.1.1 rebuild progress
 
-Status: **cutover complete on `build/native-2-1-1`; release evidence pending**.
+Status: **cutover complete on `build/native-2-1-1`; release evidence recorded; not released**.
 
 The release target is 2.1.1. The complete specification is [spec.md](spec.md).
 [D208–D211](decisions.md) record the target and compatibility requirements.
@@ -88,14 +88,31 @@ Performance (spec section 14), reported in
   restore that stopped partway. A write command no longer waits for a reader
   before it exits ([change 77](appendix/deliberate-changes.md)).
 
+The release review (spec section 16):
+
+- A review mapped every spec rule to the tests that check it and found rules
+  with no test. The missing tests were added: direct-SQL tests for the
+  remaining triggers and uniqueness rules, stopped and failed migrations,
+  imports, and repairs, prompts through a pseudoterminal, no write lock during
+  a prompt or a model call, every record type through its whole life, pinned
+  published files, and others.
+- Two of the new tests found bugs, now fixed. A stopped import left its
+  working files in the temporary folder; a later import now removes them. The
+  JavaScript client wrote a provider export whose files changed after the
+  preview when its counts did not; it now compares the files
+  ([change 78](appendix/deliberate-changes.md)).
+- The Rust library no longer hands out its SQLite connection (D223).
+- The CI jobs on Linux, macOS, and Windows needed small fixes: the macOS 14
+  runners are retired, two test imports were Unix-only, and a Windows test
+  process needs `SystemRoot` to open a socket.
+- The evidence is in [appendix/release-evidence.md](appendix/release-evidence.md).
+
 Remaining:
 
-- Runs of the new validation workflow on Linux, macOS, and Windows, with the
-  archive and npm smoke tests, on the final commit. The jobs are defined in
-  `.github/workflows/validate.yml` and have not run yet.
 - A test import of a complete Garmin account export, once a synthetic fixture
   with that layout is reviewed and approved.
-- Record the release evidence listed in spec section 16 before creating a release.
+- The 3-million-record comparison on the dedicated performance runner.
+- Merging, tagging, and publishing need approval. Nothing is published.
 
-The installed implementation remains 2.1.0 until the rebuilt 2.1.1 is complete.
+The installed implementation remains 2.1.0 until 2.1.1 is released.
 No package was published, and no release or tag was created.
