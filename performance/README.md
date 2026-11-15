@@ -8,8 +8,9 @@ This folder holds the performance evidence for releases.
 - [`report-2.1.1.md`](report-2.1.1.md) is the 2.1.1 report: the native program
   compared with 2.1.0 on the same generated databases (spec 2.1.1 section 14).
 
-Large databases are generated locally or in the release workflow. They are not
-committed. Keep them outside Git, in a temporary folder.
+Large databases are generated locally, or by the speed workflow on GitHub
+(Actions > Release performance > Run workflow), which runs only by hand (D225).
+They are not committed. Keep them outside Git, in a temporary folder.
 
 ## The nine release measurements
 

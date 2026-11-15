@@ -1,33 +1,25 @@
-# Release performance (build-history/v2.1.1/spec.md section 14 and
-# performance/README.md).
+# Release performance (D225; spec section 14 and performance/README.md). It runs
+# only by hand: Actions > Release performance > Run workflow.
 #
 # Each job compares the 2.1.0 reference with this commit's native release
 # build on the same generated database, with tools/performance/compare.ts.
 # The reference is a separate checkout of c6218e8. Results are uploaded with
-# the commit they measure; release-cross-platform.yml refuses to publish a
-# commit without them. compare.ts reads peak memory with `/usr/bin/time -l`,
+# the commit they measure. compare.ts reads peak memory with `/usr/bin/time -l`,
 # so the jobs run on macOS.
 #
-# A pull request that changes the performance tools runs the 100,000-record
-# comparison. A version tag or a manual run also runs the 3-million-record
-# comparison on the named reference runner. No job holds a publication
-# credential.
+# The 100,000-record job runs on a GitHub macOS runner. It also runs the test
+# that the 2.1.0 program refuses a migrated database. The 3-million-record job
+# runs only when `three_million` is set, and needs a self-hosted runner with
+# the labels below. No job holds a publication credential.
 name: Release performance
 
 on:
   workflow_dispatch:
     inputs:
       three_million:
-        description: Also run the 3-million-record comparison on the reference runner
+        description: Also run the 3-million-record comparison (needs the self-hosted ath-performance runner)
         type: boolean
-        default: true
-  pull_request:
-    paths:
-      - .github/workflows/release-performance.yml
-      - tools/performance/**
-  push:
-    tags:
-      - "v*"
+        default: false
 
 permissions:
   contents: read
@@ -88,7 +80,7 @@ jobs:
         run: cargo test --locked --test migration -- --ignored the_2_1_0_program_refuses_a_migrated_database
 
   three-million:
-    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.three_million)
+    if: inputs.three_million
     runs-on: [self-hosted, macOS, ath-performance]
     timeout-minutes: 600
     env:

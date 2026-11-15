@@ -38,6 +38,20 @@ npm test
 
 `cargo test` also checks public data and every generated file.
 
+## What GitHub checks
+
+- **Every pull request push, and every push to `main`:** the quick check. Linux
+  runs formatting, Clippy, every Rust test, and the npm tests on Node 24.
+  Windows runs Clippy and every Rust test. The `checks passed` job must pass
+  before a merge. A new push cancels the run for the push before it.
+- **A version tag, such as `v2.1.1`:** the full check on Linux, macOS, and
+  Windows, with release builds, archive and npm install checks, and Node 22
+  and 24. If everything passes, it publishes to npm and creates the GitHub
+  release. To run the full check on a branch without publishing, use Actions >
+  Release cross-platform > Run workflow.
+- **The speed comparison with 2.1.0** runs only by hand: Actions > Release
+  performance > Run workflow.
+
 ## Generated files
 
 JSON Schema, the npm protocol module, the skill's command reference, and the demo database are generated from the Rust sources. After changing the record model, a command or its help, or a protocol operation, regenerate them and commit the result:

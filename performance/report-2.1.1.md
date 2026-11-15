@@ -346,5 +346,5 @@ The exercise added `exercise_mood_label` to athlete reports.
 - **Shared machine, uncleared OS cache.** Results vary by run: in round 1 the 3M export spread was 166.5 s for native and 181.7 s for 2.1.0.
 - **3M library-level results** are one run each. The 2.1.0 3M library run is from round 1.
 - **The measured round-2 executable is 6e7f459.** The later commit 5c07374 changes only what a read-only open does after an error: it finishes a stopped rollback-journal write, and it reports a locked file as locked. No measured command takes those paths. Two 100k imports with each build took 6.71 and 6.67 s (6e7f459) and 6.66 and 6.67 s (5c07374).
-- **One machine.** Every number comes from one macOS arm64 machine. The release workflow runs the 100k comparison on a hosted macOS runner and the 3M comparison on a dedicated runner; see [README.md](README.md).
+- **One machine.** Every number comes from one macOS arm64 machine. The speed workflow on GitHub, run by hand, runs the 100k comparison on a hosted macOS runner, and the 3M comparison on a self-hosted runner when one is set up (D225); see [README.md](README.md).
 - **Readers during a restore into a new database** wait up to 5 s and then report that the database is locked. Under WAL they read the empty database.

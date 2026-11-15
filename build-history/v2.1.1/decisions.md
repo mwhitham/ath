@@ -416,3 +416,59 @@ Rejected alternatives:
   does not exist; the draft is the first plan for 2.1.1.
 - Edit the draft's text or links. Rejected because build history keeps what was
   written.
+
+## D225. Pull requests run a quick check; releases run the full check
+
+Every pull request push and every push to `main` runs the quick check in
+`.github/workflows/ci.yml`. Linux runs formatting, Clippy, every Rust test, and
+the npm tests on Node 24. Windows runs Clippy, every Rust test, and the real
+Credential Manager test. A summary job, `checks passed`, passes only when both
+pass, and it is the one status check the `main` branch rules require. A new push
+to a pull request cancels the run for the push before it. Rust builds are cached.
+
+A version tag runs the full check in `.github/workflows/validate.yml` through
+`release-cross-platform.yml`. It covers every Rust test on Linux, macOS, and
+Windows, the release builds, the archive and npm install checks on the three
+systems, and the npm tests on Node 22 and 24. Then it publishes the checked
+files. The same workflow runs by hand on any branch, and publishes only from a
+version tag with `publish` set.
+
+The speed comparison with 2.1.0 (`release-performance.yml`) runs only by hand.
+A release no longer waits for its results. The 3-million-record job runs only
+when asked for, because it needs a self-hosted runner.
+
+This supersedes two parts of spec section 15: pull requests running the release
+workflow's validation jobs, and the release job refusing to publish without
+performance results for the same commit.
+
+The reasons:
+
+- A pull request ran about 35 jobs on each push: CI's 16, the release
+  workflow's same 16, and a 20-minute speed comparison. For a pull request,
+  GitHub matches the path filters against the whole pull request, so on a large
+  one the release and speed workflows ran on every push.
+- The release could not succeed. It looked for a finished speed comparison as
+  soon as it started, while the comparison started at the same moment and took
+  20 minutes or more. The 3-million-record job needed a self-hosted runner, and
+  none is registered, so it would have waited forever.
+- The `main` rules required seven check names from the 2.1.0 workflows. The
+  cutover removed those jobs, so no pull request could merge. One stable
+  summary check keeps the rules valid when jobs are renamed or added.
+- Every platform bug found during the rebuild appeared on Windows, so Windows
+  stays in the quick check. macOS is the development machine, where the tests
+  run before each commit.
+- Packaging and macOS problems are now found when a release is tagged, not when
+  a pull request merges. Packaging changes rarely, and the full check can run by
+  hand on a pull request that touches it.
+
+Rejected alternatives:
+
+- Run the full check on every pull request push. Rejected because it ran about
+  35 jobs per push, most of them for packaging that a push rarely changes.
+- Run the full check after every merge to `main`. Rejected because nothing on
+  `main` reaches users until a release, and a release runs the full check.
+- Keep the speed comparison as a release gate. Rejected because it cannot finish
+  before the release workflow checks for it, and its 3-million-record job has
+  no runner.
+- Drop Windows from the quick check. Rejected because Windows is where the
+  platform bugs appeared.

@@ -1,7 +1,8 @@
-# Every release check, as one reusable workflow (build-history/v2.1.1/spec.md
-# sections 13.2 and 15). ci.yml runs it on every pull request and on main.
-# release-cross-platform.yml runs the same jobs before it publishes anything.
-# No job here holds a publication credential.
+# The full check (D225; build-history/v2.1.1/spec.md sections 13.2 and 15), as
+# one reusable workflow. release-cross-platform.yml runs it for every version
+# tag before it publishes anything, and on any branch by hand. Pull requests
+# and main run the quick check in ci.yml instead. No job here holds a
+# publication credential.
 #
 # Each release executable is built once, in native-release. Every later job
 # uses those exact files: the archives and the npm tarball hold them, and the

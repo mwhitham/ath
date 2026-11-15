@@ -1,11 +1,15 @@
-# Releases (build-history/v2.1.1/spec.md section 15).
+# Releases (D225). Pushing a version tag, such as v2.1.1, runs the full check
+# in validate.yml on Linux, macOS, and Windows: every Rust test, release
+# builds, archive smoke tests, and the npm tarball packed from the tested
+# executables and installed on each system. Then it checks that the archives
+# and the tarball hold the same executables, and publishes only those checked
+# files: the tarball to npm and the archives as the GitHub release. Nothing is
+# rebuilt after testing.
 #
-# A pull request that changes a release file runs the validation jobs in
-# validate.yml, with no publication credential. A version tag, or a manual run
-# from a tag with `publish` set, reuses those same jobs. It then requires the
-# performance results that release-performance.yml made on the same commit,
-# checks that the archives and the npm tarball hold the same executables, and
-# publishes only those checked files. Nothing is rebuilt after testing.
+# A manual run (Actions > Release cross-platform > Run workflow) runs the same
+# full check on any branch. It publishes only when it starts from a version
+# tag with `publish` set. The speed comparison is separate and runs by hand
+# (release-performance.yml).
 name: Release cross-platform
 
 on:
@@ -15,12 +19,6 @@ on:
         description: Publish the checked npm tarball and native archives (the run must start from a version tag)
         type: boolean
         default: false
-  pull_request:
-    paths:
-      - .github/workflows/release-cross-platform.yml
-      - .github/workflows/validate.yml
-      - packages/npm/scripts/**
-      - tools/archive-smoke.sh
   push:
     tags:
       - "v*"
@@ -32,41 +30,8 @@ jobs:
   validate:
     uses: ./.github/workflows/validate.yml
 
-  # The release consumes the performance results made on this exact commit.
-  # A missing, failed, or older run stops the release.
-  performance-evidence:
-    if: github.event_name != 'pull_request'
-    runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-    env:
-      GH_TOKEN: ${{ github.token }}
-    steps:
-      - name: Download the performance results for this commit
-        run: |
-          run_id="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow release-performance.yml \
-            --commit "$GITHUB_SHA" --status success --limit 1 --json databaseId --jq '.[0].databaseId // empty')"
-          if [ -z "$run_id" ]; then
-            echo "No successful release-performance run exists for $GITHUB_SHA. Run that workflow on this commit first."
-            exit 1
-          fi
-          for size in 100k 3m; do
-            gh run download "$run_id" --repo "$GITHUB_REPOSITORY" --name "performance-$size" --dir "performance-evidence/$size"
-            recorded="$(cat "performance-evidence/$size/commit.txt")"
-            if [ "$recorded" != "$GITHUB_SHA" ]; then
-              echo "performance-$size was measured on $recorded, not $GITHUB_SHA"
-              exit 1
-            fi
-          done
-      - uses: actions/upload-artifact@v4
-        with:
-          name: release-performance-evidence
-          path: performance-evidence
-          if-no-files-found: error
-
   publish:
-    needs: [validate, performance-evidence]
+    needs: validate
     if: github.ref_type == 'tag' && (github.event_name == 'push' || inputs.publish)
     runs-on: ubuntu-latest
     environment: release
