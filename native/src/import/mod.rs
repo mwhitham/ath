@@ -26,7 +26,6 @@ pub mod instant;
 pub mod mapping;
 pub mod oura;
 pub mod provider;
-pub mod pulseband;
 pub mod shared;
 mod staging;
 pub mod strava;

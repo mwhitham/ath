@@ -150,8 +150,6 @@ pub enum ExportFormat {
     Apple,
     Whoop,
     Oura,
-    /// Invented for the maintainability exercise; not shipped.
-    PulseBand,
 }
 
 impl ExportFormat {
@@ -161,7 +159,6 @@ impl ExportFormat {
             ExportFormat::Apple => "apple",
             ExportFormat::Whoop => "whoop",
             ExportFormat::Oura => "oura",
-            ExportFormat::PulseBand => "pulseband",
         }
     }
 
@@ -171,7 +168,6 @@ impl ExportFormat {
             ExportFormat::Apple => "Apple Health",
             ExportFormat::Whoop => "WHOOP",
             ExportFormat::Oura => "Oura",
-            ExportFormat::PulseBand => "Pulse Band",
         }
     }
 
@@ -181,7 +177,6 @@ impl ExportFormat {
             ExportFormat::Apple => "apple_health",
             ExportFormat::Whoop => "whoop_csv",
             ExportFormat::Oura => "oura_csv",
-            ExportFormat::PulseBand => "pulseband_csv",
         }
     }
 }
@@ -280,9 +275,6 @@ pub fn detect_export(path: &Path) -> Result<DetectedExport> {
         }
         if names.iter().any(|name| name == WHOOP_MARKER) {
             return found(ExportFormat::Whoop, Container::Directory, path, None);
-        }
-        if names.iter().any(|name| name == super::pulseband::PULSEBAND_MARKER) {
-            return found(ExportFormat::PulseBand, Container::Directory, path, None);
         }
         if names.iter().any(|name| name == "health") {
             return Err(Error::refused(whoop_gdpr_message(path)));
