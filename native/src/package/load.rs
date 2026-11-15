@@ -244,19 +244,21 @@ pub fn load_package_checked(input: &Path) -> Result<PackageLoad> {
         )));
     }
 
+    // `package_schema` has checked every record and revision against the
+    // non-sample shapes, so they are decoded without a second check.
     let records: Vec<CurrentRecord> = document["records"]
         .as_array()
         .map(Vec::as_slice)
         .unwrap_or_default()
         .iter()
-        .map(CurrentRecord::from_value_non_sample)
+        .map(CurrentRecord::from_checked)
         .collect::<std::result::Result<_, _>>()?;
     let revisions: Vec<RecordRevision> = document["record_revisions"]
         .as_array()
         .map(Vec::as_slice)
         .unwrap_or_default()
         .iter()
-        .map(RecordRevision::from_value_non_sample)
+        .map(RecordRevision::from_checked)
         .collect::<std::result::Result<_, _>>()?;
     let deletions: Vec<RecordDeletion> = from_checked_value(&document["record_deletions"])?;
     let erasure_markers: Vec<RecordErasureMarker> = from_checked_value(&document["record_erasure_markers"])?;
@@ -322,6 +324,8 @@ pub(crate) fn read_series_batch(file: &LoadedSeriesFile) -> Result<SeriesBatch> 
     drop(bytes);
     measurement_series_file_schema().validate(&value)?;
     check_series_counts(&value, &file.reference, "series counts or grouping changed after package load")?;
+    // The file schema has checked every item against the measurement-sample
+    // shapes, so the items are decoded without a second check.
     // Move each list out and release every JSON item once it is decoded, so
     // the JSON form and the typed form of a file are not both held whole.
     let mut take = |key: &str| match value.get_mut(key).map(Value::take) {
@@ -335,11 +339,11 @@ pub(crate) fn read_series_batch(file: &LoadedSeriesFile) -> Result<SeriesBatch> 
     Ok(SeriesBatch {
         records: records
             .into_iter()
-            .map(|item| CurrentRecord::from_value(&item))
+            .map(|item| CurrentRecord::from_checked(&item))
             .collect::<std::result::Result<_, _>>()?,
         revisions: revisions
             .into_iter()
-            .map(|item| RecordRevision::from_value(&item))
+            .map(|item| RecordRevision::from_checked(&item))
             .collect::<std::result::Result<_, _>>()?,
         deletions: from_checked_value(&deletions)?,
         import_keys: from_checked_value(&import_keys)?,

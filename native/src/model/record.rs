@@ -215,7 +215,10 @@ impl CurrentRecord {
         Self::from_checked(value)
     }
 
-    fn from_checked(value: &Value) -> Result<Self, ValidationError> {
+    /// Decode a value that already passed this record's published shape, for
+    /// example an item of a package file whose schema checked every item.
+    /// The check is not repeated.
+    pub(crate) fn from_checked(value: &Value) -> Result<Self, ValidationError> {
         let record_type = record_type_of(value)?;
         Ok(CurrentRecord {
             record_id: string_field(value, "record_id"),
@@ -271,7 +274,10 @@ impl RecordRevision {
         Self::from_checked(value)
     }
 
-    fn from_checked(value: &Value) -> Result<Self, ValidationError> {
+    /// Decode a value that already passed this revision's published shape.
+    /// The check is not repeated. `RecordRevision` is a plain union of 24
+    /// variants, so checking it again tries every earlier variant first.
+    pub(crate) fn from_checked(value: &Value) -> Result<Self, ValidationError> {
         let record_type = record_type_of(value)?;
         Ok(RecordRevision {
             record_id: string_field(value, "record_id"),

@@ -498,3 +498,57 @@ fn a_restore_stopped_after_commit_is_complete() {
     assert_no_missing_attachment_files(&database);
     fs::remove_dir_all(directory).unwrap();
 }
+
+// ---- Decoding checked package items ------------------------------------------
+
+/// Loading checks each package file with its schema, then decodes the items
+/// without checking each one again. The result must equal a full check and
+/// decode of every item.
+#[test]
+fn package_items_decode_as_a_full_check_would() {
+    let directory = temporary("ath-package-decode-");
+    let package = demo_package(&directory);
+    let loaded = load_package(&package).unwrap();
+    let document = crate::json::parse(&fs::read_to_string(package.join(PACKAGE_DOCUMENT)).unwrap()).unwrap();
+    let items = |value: &crate::json::Value, key: &str| value[key].as_array().unwrap().clone();
+    let records: Vec<CurrentRecord> =
+        items(&document, "records").iter().map(|item| CurrentRecord::from_value_non_sample(item).unwrap()).collect();
+    let revisions: Vec<RecordRevision> = items(&document, "record_revisions")
+        .iter()
+        .map(|item| RecordRevision::from_value_non_sample(item).unwrap())
+        .collect();
+    assert!(!records.is_empty() && !revisions.is_empty());
+    assert_eq!(loaded.records, records);
+    assert_eq!(loaded.revisions, revisions);
+
+    assert!(!loaded.series_files.is_empty());
+    for file in &loaded.series_files {
+        let batch = load::read_series_batch(file).unwrap();
+        let value = crate::json::parse(&fs::read_to_string(&file.path).unwrap()).unwrap();
+        let records: Vec<CurrentRecord> =
+            items(&value, "records").iter().map(|item| CurrentRecord::from_value(item).unwrap()).collect();
+        let revisions: Vec<RecordRevision> =
+            items(&value, "record_revisions").iter().map(|item| RecordRevision::from_value(item).unwrap()).collect();
+        assert!(!records.is_empty() && !revisions.is_empty());
+        assert_eq!(batch.records, records);
+        assert_eq!(batch.revisions, revisions);
+    }
+    fs::remove_dir_all(directory).unwrap();
+}
+
+/// A series file changed after load is refused before any item is decoded,
+/// and loading the changed package again is refused too.
+#[test]
+fn a_series_file_changed_after_load_is_refused() {
+    let directory = temporary("ath-package-broken-sample-");
+    let package = demo_package(&directory);
+    let loaded = load_package(&package).unwrap();
+    let file = &loaded.series_files[0];
+    let text = fs::read_to_string(&file.path).unwrap();
+    let mut value = crate::json::parse(&text).unwrap();
+    value["records"][0]["data"]["recorded_at"] = crate::json::Value::String("not a time".into());
+    fs::write(&file.path, crate::json::to_deterministic_pretty(&value)).unwrap();
+    assert!(load::read_series_batch(file).is_err());
+    assert!(matches!(load_package_checked(&package), Err(_) | Ok(PackageLoad::Unrepresentable(_))));
+    fs::remove_dir_all(directory).unwrap();
+}
