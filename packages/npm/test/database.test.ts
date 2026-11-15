@@ -7,6 +7,7 @@ import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { ZodError } from "zod";
 import * as database from "../src/database.js";
+import { callAsync } from "../src/client/worker.js";
 import { athlete, noteData, removeFolder, repositoryRoot, temporaryFolder } from "./support.js";
 import { buildScenario, day, type Scenario } from "./scenario.js";
 
@@ -211,13 +212,45 @@ describe("records", () => {
 
   it("refuses a measured record without a source before writing", async () => {
     const before = (await database.databaseStats(scenario.handle)).database_revision;
-    await expect(
-      database.writeRecord(scenario.handle, {
+    const complete = {
+      source_id: scenario.source.record_id,
+      received_at: day(9, 7),
+      received_at_basis: "import_time",
+      quantity: "hrv_rmssd",
+      recorded_at: day(9),
+      input_timestamp: {
+        timestamp_missing_reason: "not_provided_by_source",
+        utc_offset_missing_reason: "not_provided_by_source",
+      },
+      value: {
+        standard_value: 44,
+        standard_unit: "ms",
+        input_value_missing_reason: "not_provided_by_source",
+        input_unit_missing_reason: "not_provided_by_source",
+      },
+    };
+    // With its source, the data passes every rule.
+    const checked = await callAsync("model.validate", {
+      schema: "PointMeasurementData",
+      json_text: JSON.stringify(complete),
+    });
+    expect(checked.output).toMatchObject({ valid: true, issues: [] });
+    const { source_id: _source, ...withoutSource } = complete;
+    const error = await database
+      .writeRecord(scenario.handle, {
         record_type: "point_measurement",
-        data: { quantity: "hrv_rmssd" },
+        data: withoutSource,
         changed_by: athlete,
-      }),
-    ).rejects.toBeInstanceOf(ZodError);
+      } as never)
+      .then(
+        () => undefined,
+        (caught: unknown) => caught,
+      );
+    expect(error).toBeInstanceOf(ZodError);
+    const issues = (error as ZodError).issues;
+    expect(issues).toHaveLength(1);
+    expect(issues[0]!.path.slice(-2)).toEqual(["data", "source_id"]);
+    expect(issues[0]!.code).toBe("invalid_type");
     expect((await database.databaseStats(scenario.handle)).database_revision).toBe(before);
   });
 
