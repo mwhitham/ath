@@ -35,6 +35,24 @@ pub fn render(path: &[&str], help_width: usize) -> String {
     out
 }
 
+/// The skill's command reference, `skills/athletic-standard/references/cli.md`:
+/// the root help, then every command's complete help as `ath <command> --help`
+/// prints it, at the fixed reference width (D80).
+pub fn cli_reference() -> String {
+    use crate::assets::reference::{render_reference, HelpEntry, HELP_WIDTH};
+    let root = super::spec::find(&[]).expect("the root command is in the table");
+    let root_help = format_help(root, &[], HELP_WIDTH).trim_end().to_string();
+    let entries = super::spec::all_commands()
+        .into_iter()
+        .map(|(path, command)| HelpEntry {
+            path: format!("ath {}", path.join(" ")),
+            summary: command.description.to_string(),
+            help: render(&path, HELP_WIDTH).trim_end().to_string(),
+        })
+        .collect();
+    render_reference(&root_help, entries)
+}
+
 struct Item {
     term: String,
     description: String,

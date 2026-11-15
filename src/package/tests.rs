@@ -37,13 +37,13 @@ fn open(path: &Path) -> Store {
 }
 
 fn demo_attachment_source() -> PathBuf {
-    repository().join("examples/demo-athlete/attachments").join(DEMO_ATTACHMENT)
+    repository().join("tests/fixtures/version-2-1-0/attachments").join(DEMO_ATTACHMENT)
 }
 
 /// The demo database and attachment, migrated to the current schema.
 fn demo_copy(directory: &Path) -> PathBuf {
     let path = directory.join("athlete.ath.sqlite");
-    fs::copy(repository().join("examples/demo-athlete/athlete.ath.sqlite"), &path).unwrap();
+    fs::copy(repository().join("tests/fixtures/version-2-1-0/athlete.ath.sqlite"), &path).unwrap();
     files::set_owner_only(&path).unwrap();
     files::create_private_dir(&directory.join("attachments")).unwrap();
     fs::copy(demo_attachment_source(), directory.join("attachments").join(DEMO_ATTACHMENT)).unwrap();

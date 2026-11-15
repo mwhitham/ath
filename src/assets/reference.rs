@@ -1,7 +1,8 @@
 //! The skill's command reference, built from the command tree's own help (D80).
 //!
-//! `skills/athletic-standard/references/cli.md` is generated from this text and
-//! committed. A check fails when the committed file is behind the commands.
+//! `skills/athletic-standard/references/cli.md` is generated from the help that
+//! `ath <command> --help` prints (`cli::help::cli_reference`) and committed.
+//! `tests/generated.rs` fails when the committed file is behind the commands.
 //! Regenerate it; do not edit it by hand.
 
 use clap::Command;
@@ -9,11 +10,13 @@ use clap::Command;
 /// Fixed so the output does not depend on the terminal it was generated in.
 pub const HELP_WIDTH: usize = 80;
 
-struct HelpEntry {
+/// One command's section of the reference.
+pub struct HelpEntry {
     /// `ath key set`
-    path: String,
-    summary: String,
-    help: String,
+    pub path: String,
+    pub summary: String,
+    /// The complete help text, without trailing blank lines.
+    pub help: String,
 }
 
 fn help_text(command: &Command) -> String {
@@ -56,15 +59,20 @@ pub fn render_cli_reference(program: &Command) -> String {
     let program = built(program);
     let mut entries = Vec::new();
     walk(&program, program.get_name(), &mut entries);
-
-    let anchor = |path: &str| path.split_whitespace().collect::<Vec<_>>().join("-");
     let mut root = program.clone().after_help(None::<&str>).after_long_help(None::<&str>);
     let root_help = root.render_help().to_string().trim_end().to_string();
+    render_reference(&root_help, entries)
+}
 
+/// The complete `references/cli.md` text from the root help, without its
+/// trailing text, and each command's complete help in definition order.
+pub fn render_reference(root_help: &str, entries: Vec<HelpEntry>) -> String {
+    let anchor = |path: &str| path.split_whitespace().collect::<Vec<_>>().join("-");
     let mut lines: Vec<String> = vec![
         "# ath command reference".into(),
         String::new(),
-        "Generated from the CLI's own help by `pnpm generate:skill-cli`. Do not edit by hand.".into(),
+        "Generated from the command definitions by `ATH_WRITE_GENERATED=1 cargo test --test generated`.".into(),
+        "Do not edit by hand.".into(),
         "This is the text `ath <command> --help` prints, for every command, so an agent".into(),
         "can read the whole surface without a round trip.".into(),
         String::new(),
@@ -79,7 +87,7 @@ pub fn render_cli_reference(program: &Command) -> String {
     for entry in &entries {
         lines.push(format!("- [{}](#{}) — {}", entry.path, anchor(&entry.path), entry.summary));
     }
-    lines.extend([String::new(), "## ath".into(), String::new(), "```".into(), root_help, "```".into()]);
+    lines.extend([String::new(), "## ath".into(), String::new(), "```".into(), root_help.to_string(), "```".into()]);
     for entry in entries {
         lines.extend([
             String::new(),

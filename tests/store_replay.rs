@@ -10,7 +10,7 @@ use athleticstandard::store::{self, Changes, Correction, CreateOptions, Deletion
 use rusqlite::{Connection, OpenFlags};
 
 fn demo_path() -> PathBuf {
-    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("examples/demo-athlete/athlete.ath.sqlite")
+    PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/version-2-1-0/athlete.ath.sqlite")
 }
 
 fn temporary_dir() -> PathBuf {

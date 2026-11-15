@@ -381,7 +381,7 @@ const FAKE_STORE: &str = "#!/bin/sh\necho 'the test password store is read-only'
 
 fn fixture_path(name: &str) -> PathBuf {
     repo().join(match name {
-        "demo" => "examples/demo-athlete/athlete.ath.sqlite",
+        "demo" => "tests/fixtures/version-2-1-0/athlete.ath.sqlite",
         "v200" => "tests/fixtures/version-2-0-0/database.ath.sqlite",
         "npm100" => "tests/fixtures/npm-100-encoding/athlete.ath.sqlite",
         other => panic!("unknown fixture {other}"),
@@ -393,7 +393,7 @@ fn copyable_path(name: &str) -> PathBuf {
     repo().join(match name {
         "wearable_csv" => "tests/fixtures/exports/whoop",
         "package_2_0_0" => "tests/fixtures/version-2-0-0/package",
-        "png" => "examples/demo-athlete/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png",
+        "png" => "tests/fixtures/version-2-1-0/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png",
         "mapped_summaries" => "tests/fixtures/exports/open-wearables/summaries.json",
         "junction_summaries" => "tests/fixtures/exports/junction/summaries.json",
         "rmssd_mapping" => "tests/fixtures/mappings/last-night-rmssd.md",
@@ -447,7 +447,7 @@ fn prepare(scenario: &Value, work: &Path, home: &Path) {
     std::fs::copy(fixture_path(fixture), &database).unwrap();
     std::fs::set_permissions(&database, std::fs::Permissions::from_mode(0o600)).unwrap();
     let attachments = match fixture {
-        "demo" => Some("examples/demo-athlete/attachments"),
+        "demo" => Some("tests/fixtures/version-2-1-0/attachments"),
         "v200" => Some("tests/fixtures/version-2-0-0/package/attachments"),
         _ => None,
     };

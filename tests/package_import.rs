@@ -356,7 +356,7 @@ fn another_nonempty_database_conflicts_and_prerelease_json_is_refused() {
     assert_eq!(preview.new_record_count, 0);
     assert!(save_conflict_set(&store, &preview).unwrap().is_none());
 
-    let prerelease = repository().join("examples/demo-athlete/athlete.ath.json");
+    let prerelease = repository().join("tests/fixtures/version-0-4-3/athlete.ath.json");
     let error = preview_package_import(&store, &prerelease).unwrap_err();
     assert!(error.to_string().contains("prerelease JSON format"), "{error}");
     common::remove_dir(&directory);

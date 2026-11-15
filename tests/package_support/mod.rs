@@ -43,7 +43,7 @@ pub fn temporary(prefix: &str) -> PathBuf {
 /// Copy the demo database and its attachment into `directory`, then apply
 /// migration step 5 so this library can open it.
 pub fn migrated_demo_copy(directory: &Path) -> PathBuf {
-    let demo = repository().join("examples/demo-athlete");
+    let demo = repository().join("tests/fixtures/version-2-1-0");
     let path = directory.join("athlete.ath.sqlite");
     fs::copy(demo.join("athlete.ath.sqlite"), &path).unwrap();
     files::create_private_dir(&directory.join("attachments")).unwrap();
@@ -176,7 +176,7 @@ pub fn materialize_golden_package(case: &str, directory: &Path) -> PathBuf {
     if manifest.contains(DEMO_ATTACHMENT) {
         fs::create_dir_all(target.join("attachments")).unwrap();
         fs::copy(
-            repository().join("examples/demo-athlete/attachments").join(DEMO_ATTACHMENT),
+            repository().join("tests/fixtures/version-2-1-0/attachments").join(DEMO_ATTACHMENT),
             target.join("attachments").join(DEMO_ATTACHMENT),
         )
         .unwrap();

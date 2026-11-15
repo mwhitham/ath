@@ -115,7 +115,8 @@ describe("package layout", () => {
     for (const subpath of ["./json-schema", "./json-schema/export-manifest", "./json-schema/measurement-series"]) {
       const target = packageJson.exports[subpath] as string;
       expect(target).toMatch(/^\.\/schema\/2\.1\.1\//);
-      const document = JSON.parse(readFileSync(join(packageRoot, target), "utf8")) as { $id: string; $schema: string };
+      // pack.mjs copies the repository's committed schema/ files into the package.
+      const document = JSON.parse(readFileSync(join(repositoryRoot, target), "utf8")) as { $id: string; $schema: string };
       expect(document.$schema).toBe("https://json-schema.org/draft/2020-12/schema");
       expect(document.$id).toContain("/2.1.1/");
     }

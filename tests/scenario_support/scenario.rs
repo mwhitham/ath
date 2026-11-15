@@ -9,7 +9,7 @@ use super::{golden, new_store, normalize, replay, scenario_ids, temporary_dir};
 
 /// The deterministic 2.1.0 demo database.
 pub fn demo_path() -> PathBuf {
-    Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/demo-athlete/athlete.ath.sqlite")
+    Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures/version-2-1-0/athlete.ath.sqlite")
 }
 
 /// Replay the demo database's complete history into a new native database:

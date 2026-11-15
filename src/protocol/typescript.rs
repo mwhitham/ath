@@ -2,7 +2,7 @@
 //!
 //! The generated file holds the protocol version, the request and response
 //! types of every operation, the client's dispatch table, and the native
-//! constants the JavaScript exports repeat. `tests/npm_generated.rs`
+//! constants the JavaScript exports repeat. `tests/generated.rs`
 //! compares the committed file with this output; setting
 //! `ATH_WRITE_GENERATED=1` rewrites it.
 
@@ -39,8 +39,8 @@ pub fn constants() -> Vec<(&'static str, Value)> {
 pub fn generate() -> String {
     let mut out = String::new();
     out.push_str(
-        "// Generated from src/protocol by tests/npm_generated.rs.\n\
-         // Do not edit. Run `ATH_WRITE_GENERATED=1 cargo test --test npm_generated`.\n\n",
+        "// Generated from src/protocol by tests/generated.rs.\n\
+         // Do not edit. Run `ATH_WRITE_GENERATED=1 cargo test --test generated`.\n\n",
     );
     out.push_str("import type * as Model from \"../schema.js\";\n");
     out.push_str("import type * as Api from \"../types.js\";\n\n");

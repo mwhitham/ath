@@ -28,7 +28,7 @@ pub fn version_200_fixture() -> PathBuf {
 
 /// The deterministic 2.1.0 demo database, SQL schema 4, every record type.
 pub fn demo_fixture() -> PathBuf {
-    repository().join("examples/demo-athlete/athlete.ath.sqlite")
+    repository().join("tests/fixtures/version-2-1-0/athlete.ath.sqlite")
 }
 
 pub fn temporary_dir(prefix: &str) -> PathBuf {

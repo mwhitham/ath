@@ -59,7 +59,7 @@ fn the_demo_package_restores_and_exports_to_the_same_bytes() {
     assert_same_package(&as_version_2_1_0(&files_below(&output)), &golden_package_files("demo"));
     assert_eq!(
         fs::read(directory.join("attachments").join(DEMO_ATTACHMENT)).unwrap(),
-        fs::read(repository().join("examples/demo-athlete/attachments").join(DEMO_ATTACHMENT)).unwrap()
+        fs::read(repository().join("tests/fixtures/version-2-1-0/attachments").join(DEMO_ATTACHMENT)).unwrap()
     );
     common::remove_dir(&directory);
 }

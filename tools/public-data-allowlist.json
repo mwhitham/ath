@@ -2,15 +2,23 @@
   "description": "Health-shaped files that may be tracked in Git. Each entry is invented test data whose exact contents were reviewed. A changed hash is a prompt for another review, not proof of origin. tests/public_data.rs enforces this list.",
   "fixtures": [
     {
-      "path": "examples/demo-athlete/athlete.ath.json",
-      "sha256": "7a77fce18b600950cae51e745141f79d1aa14e5f6864847b99c560265a78fb27"
-    },
-    {
       "path": "examples/demo-athlete/athlete.ath.sqlite",
-      "sha256": "5e8aff5b38ceb31db1457e0f8085bd8b8f1b675838e10bfd28af9769ca6eaef0"
+      "sha256": "11bad461ee5df010fca9189712baec88455bcca7363f64bfdbe4606122094fc5"
     },
     {
       "path": "examples/demo-athlete/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png",
+      "sha256": "d3fe8e599fb1deea9821063c744434802875c26cceeb9f2d55e8566b15a012f4"
+    },
+    {
+      "path": "tests/fixtures/version-0-4-3/athlete.ath.json",
+      "sha256": "7a77fce18b600950cae51e745141f79d1aa14e5f6864847b99c560265a78fb27"
+    },
+    {
+      "path": "tests/fixtures/version-2-1-0/athlete.ath.sqlite",
+      "sha256": "5e8aff5b38ceb31db1457e0f8085bd8b8f1b675838e10bfd28af9769ca6eaef0"
+    },
+    {
+      "path": "tests/fixtures/version-2-1-0/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png",
       "sha256": "d3fe8e599fb1deea9821063c744434802875c26cceeb9f2d55e8566b15a012f4"
     },
     {
@@ -224,10 +232,6 @@
     {
       "path": "tests/golden/routes/invented-refusal-athlete-maximum.json",
       "sha256": "e1d945a461f9520d19c1fd68b3dd95f7b8c7ef041b6a2e0ced2f19df7533f67f"
-    },
-    {
-      "path": "packages/npm/schema/2.1.1/export-manifest.schema.json",
-      "sha256": "3c8c9435f6786be3b35fe69d9565e0ca296b0ef924347f3c898cac65ef8b97ac"
     }
   ]
 }

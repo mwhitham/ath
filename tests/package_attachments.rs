@@ -21,7 +21,7 @@ fn new_database(directory: &Path) -> PathBuf {
 
 fn photo(directory: &Path) -> PathBuf {
     let path = directory.join("meal photo.png");
-    fs::copy(repository().join("examples/demo-athlete/attachments").join(DEMO_ATTACHMENT), &path).unwrap();
+    fs::copy(repository().join("tests/fixtures/version-2-1-0/attachments").join(DEMO_ATTACHMENT), &path).unwrap();
     path
 }
 

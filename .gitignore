@@ -18,8 +18,9 @@ validation-data/
 *.csv
 
 # These fixtures are approved synthetic data. Keep each exception explicit.
-!examples/demo-athlete/athlete.ath.json
 !examples/demo-athlete/athlete.ath.sqlite
+!tests/fixtures/version-0-4-3/athlete.ath.json
+!tests/fixtures/version-2-1-0/athlete.ath.sqlite
 !tests/fixtures/exports/apple/export.xml
 !tests/fixtures/exports/apple-inline-route/export.xml
 !tests/fixtures/exports/apple-file-reference/export.xml
@@ -63,7 +64,6 @@ validation-data/
 !tests/vectors/model/AthleteReportType.json
 !tests/vectors/model/ExportManifest.json
 !tests/golden/routes/invented-refusal-athlete-maximum.json
-!packages/npm/schema/2.1.1/export-manifest.schema.json
 
 # Large deterministic release fixtures are generated locally or in the release job.
 /performance/generated/
@@ -74,5 +74,6 @@ validation-data/
 
 # The npm package build copies these in; pack.mjs removes them after packing.
 packages/npm/native/
+packages/npm/schema/
 packages/npm/skills/
 packages/npm/pack-output/
