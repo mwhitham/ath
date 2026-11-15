@@ -4,6 +4,8 @@
 use std::collections::{HashMap, HashSet};
 use std::sync::LazyLock;
 
+use sha2::{Digest, Sha256};
+
 use super::common::*;
 use super::data::SeriesQuantity;
 use super::record::*;
@@ -154,8 +156,8 @@ pub(crate) struct RecordFacts {
     pub record_type: String,
     pub current_revision: Option<f64>,
     pub is_deleted: bool,
-    /// The data as its record type outputs it, as JSON text.
-    pub data_text: Option<String>,
+    /// The SHA-256 of the data as its record type outputs it.
+    pub data_digest: Option<DataDigest>,
     /// `data.source_id`, `data.quantity`, and `data.recorded_at`, which the
     /// series rules read.
     pub data_source_id: String,
@@ -171,7 +173,7 @@ impl RecordFacts {
             record_type: text(record, "record_type").to_string(),
             current_revision: int(record, "current_revision"),
             is_deleted: record.get("is_deleted").and_then(Value::as_bool).unwrap_or(false),
-            data_text: data_text(record),
+            data_digest: data_digest(record),
             data_source_id: text(data, "source_id").to_string(),
             data_quantity: text(data, "quantity").to_string(),
             data_recorded_at: text(data, "recorded_at").to_string(),
@@ -187,7 +189,7 @@ pub(crate) struct RevisionFacts {
     /// The `revision` value as JSON text, which identifies a repeated revision.
     pub revision_text: String,
     pub revision: Option<f64>,
-    pub data_text: Option<String>,
+    pub data_digest: Option<DataDigest>,
 }
 
 impl RevisionFacts {
@@ -197,7 +199,7 @@ impl RevisionFacts {
             record_type: text(revision, "record_type").to_string(),
             revision_text: json::to_string(revision.get("revision").unwrap_or(&Value::Null)),
             revision: int(revision, "revision"),
-            data_text: data_text(revision),
+            data_digest: data_digest(revision),
         }
     }
 }
@@ -260,12 +262,18 @@ impl HistoryFacts {
     }
 }
 
-/// The data of a record or revision as its record type outputs it, as JSON
-/// text. The history rules compare this text: key order inside supplied
-/// fields is part of the value, as in the published check.
-fn data_text(value: &Value) -> Option<String> {
+/// The SHA-256 of a record's or revision's data, written as JSON text the way
+/// its record type outputs it.
+pub(crate) type DataDigest = [u8; 32];
+
+/// The history rules compare the data of a record with its latest revision
+/// as text, as the published check does: key order inside supplied fields is
+/// part of the value. Each text is kept as its SHA-256, so a 50,000-sample
+/// series file needs 32 bytes per item for this rule instead of the text.
+fn data_digest(value: &Value) -> Option<DataDigest> {
     let shape = RecordType::parse(text(value, "record_type")).map(data_schema)?;
-    Some(json::to_string(&shape.output(value.get("data")?)))
+    let text = json::to_string(&shape.output(value.get("data")?));
+    Some(Sha256::digest(text.as_bytes()).into())
 }
 
 /// The history rules shared by the main document and series files.
@@ -372,7 +380,7 @@ fn history_issues(facts: &HistoryFacts, issues: &mut Vec<Issue>) {
         if let Some(latest) = group.last() {
             let same_revision = latest.revision == Some(current);
             let same_data =
-                matches!((&latest.data_text, &record.data_text), (Some(left), Some(right)) if left == right);
+                matches!((&latest.data_digest, &record.data_digest), (Some(left), Some(right)) if left == right);
             if !same_revision || !same_data {
                 issue(
                     issues,
