@@ -728,6 +728,25 @@ describe("provider imports", () => {
     handle.close();
   });
 
+  it("refuses a preview whose export changed even when its counts did not", async () => {
+    const handle = await database.createDatabase(join(folder, "whoop-changed.ath.sqlite"));
+    const exportPath = join(folder, "whoop-changed");
+    mkdirSync(exportPath);
+    const fixture = join(repositoryRoot, "tests", "fixtures", "exports", "whoop");
+    for (const name of ["physiological_cycles.csv", "sleeps.csv", "workouts.csv", "journal_entries.csv"]) {
+      copyFileSync(join(fixture, name), join(exportPath, name));
+    }
+    const preview = await database.previewProviderImport(handle, exportPath, { received_at: "2026-03-01T00:00:00.000Z" });
+    expect(Object.keys(preview)).not.toContain("input_fingerprint");
+    const cycles = join(exportPath, "physiological_cycles.csv");
+    writeFileSync(cycles, readFileSync(cycles, "utf8").replace(",68.4,", ",69.4,"));
+    await expect(database.importProviderRecords(handle, preview)).rejects.toThrow(
+      "The provider export changed after its import preview; preview it again",
+    );
+    expect(await database.listRecords(handle)).toEqual([]);
+    handle.close();
+  });
+
   it("refuses a provider preview it did not make", async () => {
     await expect(
       database.importProviderRecords(scenario.handle, { plan: { drafts: [], received_at: day(1) } } as never),

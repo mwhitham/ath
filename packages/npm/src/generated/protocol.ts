@@ -438,12 +438,12 @@ export interface OperationTypes {
   };
   "provider.preview": {
     input: { input_path: string; received_at?: unknown };
-    output: Omit<Api.ProviderImportPreview, "plan" | "changes"> & { received_at: string; match_key_method: string };
+    output: Omit<Api.ProviderImportPreview, "plan" | "changes"> & { received_at: string; match_key_method: string; input_fingerprint: string };
     item: { record_id: string; record_type: Model.RecordTypeT; action: "new" | "matching" | "changed"; match_key: string; data: unknown };
     callbacks: Record<never, never>;
   };
   "provider.import": {
-    input: { input_path: string; received_at: string; database_revision: unknown; new_record_count: number; matching_record_count: number; changed_record_count: number; conflict_count: number };
+    input: { input_path: string; received_at: string; input_fingerprint: string; database_revision: unknown; new_record_count: number; matching_record_count: number; changed_record_count: number; conflict_count: number };
     output: { database_revision: number; new_record_count: number; changed_record_count: number; matching_record_count: number };
     item: never;
     callbacks: Record<never, never>;

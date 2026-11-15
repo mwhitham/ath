@@ -192,7 +192,7 @@ fn export_root(names: &[String]) -> String {
 /// Files directly inside `workout-routes/` and `electrocardiograms/` next to a
 /// bare `export.xml`. A folder that is a link or not a folder is passed over;
 /// a link inside one refuses the export.
-fn beside_bare_xml(folder: &Path) -> Result<Vec<String>> {
+pub(crate) fn beside_bare_xml(folder: &Path) -> Result<Vec<String>> {
     let mut out = Vec::new();
     for name in ["workout-routes", "electrocardiograms"] {
         let directory = folder.join(name);

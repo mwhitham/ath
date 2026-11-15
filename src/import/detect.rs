@@ -411,3 +411,56 @@ pub fn read_csv_bundle(export: &DetectedExport) -> Result<Vec<(String, String)>>
     }
     Ok(out)
 }
+
+/// A SHA-256 over every file an export's reader may read: the file or
+/// archive itself, every file in a folder, or, for a bare Apple XML, the XML
+/// and the files in the two folders beside it. Each file adds its name, byte
+/// count, and SHA-256.
+///
+/// The JavaScript client previews an import in one call and writes it in a
+/// later one, which reads the export again. The write compares this value
+/// with the preview's, so an export that changed in between is refused, even
+/// when its record counts stayed the same.
+pub fn export_fingerprint(path: &Path) -> Result<String> {
+    let export = detect_export(path)?;
+    let mut lines = Vec::new();
+    let mut add = |name: &str, file: &Path| -> Result<()> {
+        let (sha256, byte_count) = hash_file(file)?;
+        lines.push(format!("{name}\u{0}{byte_count}\u{0}{sha256}"));
+        Ok(())
+    };
+    match export.container {
+        Container::Directory => {
+            for name in input::walk_files(&export.path)? {
+                add(&name, &export.path.join(&name))?;
+            }
+        }
+        Container::Zip | Container::File => {
+            add(&base_name(&export.path), &export.path)?;
+            if export.container == Container::File && export.format == ExportFormat::Apple {
+                for name in super::apple::files::beside_bare_xml(&export.aux_root)? {
+                    add(&name, &export.aux_root.join(&name))?;
+                }
+            }
+        }
+    }
+    Ok(crate::files::durable::sha256_hex(lines.join("\n").as_bytes()))
+}
+
+fn hash_file(path: &Path) -> Result<(String, u64)> {
+    use sha2::{Digest, Sha256};
+    use std::io::Read;
+    let mut file = fs::File::open(path)?;
+    let mut hasher = Sha256::new();
+    let mut buffer = vec![0u8; 1 << 20];
+    let mut total = 0u64;
+    loop {
+        let read = file.read(&mut buffer)?;
+        if read == 0 {
+            break;
+        }
+        hasher.update(&buffer[..read]);
+        total += read as u64;
+    }
+    Ok((crate::files::durable::hex(&hasher.finalize()), total))
+}

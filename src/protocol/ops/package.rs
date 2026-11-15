@@ -174,7 +174,7 @@ pub const OPERATIONS: &[Operation] = &[
         kind: Kind::Async,
         target: TargetUse::Read,
         input: "{ input_path: string; received_at?: unknown }",
-        output: "Omit<Api.ProviderImportPreview, \"plan\" | \"changes\"> & { received_at: string; match_key_method: string }",
+        output: "Omit<Api.ProviderImportPreview, \"plan\" | \"changes\"> & { received_at: string; match_key_method: string; input_fingerprint: string }",
         items: Some("{ record_id: string; record_type: Model.RecordTypeT; action: \"new\" | \"matching\" | \"changed\"; match_key: string; data: unknown }"),
         callbacks: &[],
         run: provider_preview,
@@ -183,7 +183,7 @@ pub const OPERATIONS: &[Operation] = &[
         name: "provider.import",
         kind: Kind::Async,
         target: TargetUse::Write,
-        input: "{ input_path: string; received_at: string; database_revision: unknown; new_record_count: number; matching_record_count: number; changed_record_count: number; conflict_count: number }",
+        input: "{ input_path: string; received_at: string; input_fingerprint: string; database_revision: unknown; new_record_count: number; matching_record_count: number; changed_record_count: number; conflict_count: number }",
         output: "{ database_revision: number; new_record_count: number; changed_record_count: number; matching_record_count: number }",
         items: None,
         callbacks: &[],
@@ -571,6 +571,9 @@ fn provider_preview(call: &mut Call<'_>) -> Outcome {
         None => Some(crate::model::time::now_utc()),
     };
     let options = crate::import::ImportOptions { received_at };
+    // Taken before the export is read, so a change during the read shows
+    // at import time.
+    let input_fingerprint = crate::import::detect::export_fingerprint(Path::new(&input_path))?;
     let preview = crate::import::provider::preview(call.store()?, Path::new(&input_path), &options)?;
     for planned in preview.planned()? {
         let data = json::parse(&planned.data_json).map_err(crate::Error::from)?;
@@ -595,19 +598,33 @@ fn provider_preview(call: &mut Call<'_>) -> Outcome {
         "skipped": Value::Object(skipped),
         "received_at": preview.received_at(),
         "match_key_method": preview.match_key_method(),
+        "input_fingerprint": input_fingerprint,
     }))
 }
 
 /// `importProviderRecords(database, preview)`: the export is read and
 /// previewed again at the caller's import time. A database or export that
-/// changed after the caller's preview is refused.
+/// changed after the caller's preview is refused. The export's fingerprint
+/// must match the preview's before and after it is read again.
 fn provider_import(call: &mut Call<'_>) -> Outcome {
     let request = call.input.clone();
     let input_path = input::required_string(&request, "input_path")?;
     let received_at = input::required_string(&request, "received_at")?;
+    let expected_fingerprint = input::required_string(&request, "input_fingerprint")?;
+    let export_changed = || Error::stale("The provider export changed after its import preview; preview it again");
+    let unchanged = || {
+        crate::import::detect::export_fingerprint(Path::new(&input_path))
+            .map(|fingerprint| fingerprint == expected_fingerprint)
+    };
+    if !unchanged()? {
+        return Err(export_changed().into());
+    }
     let options = crate::import::ImportOptions { received_at: Some(received_at) };
     let store = call.store()?;
     let preview = crate::import::provider::preview(store, Path::new(&input_path), &options)?;
+    if !unchanged()? {
+        return Err(export_changed().into());
+    }
     let count = |key: &str| request.get(key).and_then(input::whole_number);
     if count("database_revision") != Some(preview.destination_database_revision) {
         return Err(Error::stale("Database changed after provider import preview; preview it again").into());
@@ -617,7 +634,7 @@ fn provider_import(call: &mut Call<'_>) -> Outcome {
         || count("changed_record_count") != Some(preview.changed_record_count())
         || count("conflict_count") != Some(preview.conflicts.len() as u64)
     {
-        return Err(Error::stale("The provider export changed after its import preview; preview it again").into());
+        return Err(export_changed().into());
     }
     let result = preview.apply(store)?;
     Ok(json::to_value(&result))
