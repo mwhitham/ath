@@ -48,14 +48,13 @@ fn serve(respond: fn(&str) -> (u16, &'static str)) -> String {
 }
 
 fn ath(cwd: &Path, argv: &[&str]) -> (i32, String, String) {
-    let output = Command::new(env!("CARGO_BIN_EXE_ath"))
-        .args(argv)
-        .current_dir(cwd)
-        .env_clear()
-        .env("GARMIN_PERSONAL_API_KEY", KEY)
-        .stdin(Stdio::null())
-        .output()
-        .unwrap();
+    let mut command = Command::new(env!("CARGO_BIN_EXE_ath"));
+    command.args(argv).current_dir(cwd).env_clear().env("GARMIN_PERSONAL_API_KEY", KEY);
+    // Windows cannot start its network stack without SystemRoot (error 10106).
+    if let Some(root) = std::env::var_os("SystemRoot") {
+        command.env("SystemRoot", root);
+    }
+    let output = command.stdin(Stdio::null()).output().unwrap();
     (
         output.status.code().unwrap(),
         String::from_utf8(output.stdout).unwrap(),
