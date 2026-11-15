@@ -122,7 +122,7 @@ impl Store {
 
 /// Apply a change inside an existing transaction. Package restore and imports
 /// call this when they own a larger transaction.
-pub fn apply_in(tx: &Transaction<'_>, layout: Layout, changes: Changes) -> Result<Applied> {
+pub(crate) fn apply_in(tx: &Transaction<'_>, layout: Layout, changes: Changes) -> Result<Applied> {
     let records = write_in(tx, layout, changes)?;
     let database_revision = advance_database_revision(tx)?;
     Ok(Applied { records, database_revision })
@@ -401,7 +401,7 @@ fn delete_record(tx: &Transaction<'_>, deletion: Deletion, now: &str) -> Result<
 /// Insert a provider import key. A key that already names the same record is
 /// kept. A key that names another record means the database changed after a
 /// preview.
-pub fn insert_import_key(tx: &Transaction<'_>, key: &RecordImportKey) -> Result<()> {
+pub(crate) fn insert_import_key(tx: &Transaction<'_>, key: &RecordImportKey) -> Result<()> {
     let existing: Option<String> = tx
         .prepare_cached("SELECT record_id FROM record_import_keys WHERE match_key_method = ?1 AND match_key = ?2")?
         .query_row(params![key.match_key_method, key.match_key], |row| row.get(0))
@@ -420,7 +420,7 @@ pub fn insert_import_key(tx: &Transaction<'_>, key: &RecordImportKey) -> Result<
 }
 
 /// Read one retained revision's data, requiring its record type.
-pub fn revision_data(
+pub(crate) fn revision_data(
     tx: &rusqlite::Connection,
     reference: &EvidenceReference,
     expected: RecordType,
@@ -464,7 +464,7 @@ fn linked(tx: &rusqlite::Connection, link: &PredictionResultLinkData) -> Result<
 /// Relationship rules SQLite cannot check: a link joins a prediction and a
 /// result for the same benchmark, and a saved grade's arithmetic matches the
 /// exact revisions it names.
-pub fn validate_relationships(tx: &rusqlite::Connection, data: &RecordData) -> Result<()> {
+pub(crate) fn validate_relationships(tx: &rusqlite::Connection, data: &RecordData) -> Result<()> {
     match data {
         RecordData::PredictionResultLink(link) => {
             linked(tx, link)?;

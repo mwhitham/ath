@@ -169,7 +169,7 @@ fn collect(connection: &Connection, sql: &str, args: Vec<Sql>) -> Result<Vec<Cur
 }
 
 /// Current point measurements in event order.
-pub fn query_measurements(connection: &Connection, query: &MeasurementQuery) -> Result<Vec<CurrentRecord>> {
+pub(crate) fn query_measurements(connection: &Connection, query: &MeasurementQuery) -> Result<Vec<CurrentRecord>> {
     let mut conditions = vec!["records.is_deleted = 0".to_string()];
     let mut args = Vec::new();
     if let Some(quantity) = query.quantity {
@@ -202,7 +202,7 @@ pub fn query_measurements(connection: &Connection, query: &MeasurementQuery) -> 
 }
 
 /// Current measurement samples of one quantity in event order.
-pub fn query_series(connection: &Connection, query: &SeriesQuery) -> Result<Vec<CurrentRecord>> {
+pub(crate) fn query_series(connection: &Connection, query: &SeriesQuery) -> Result<Vec<CurrentRecord>> {
     let mut conditions = vec!["records.is_deleted = 0".to_string(), "measurement_samples.quantity = ?".to_string()];
     let mut args = vec![Sql::Text(query.quantity.as_str().into())];
     if let Some(source) = &query.source_id {
@@ -243,7 +243,7 @@ fn session_start(record: &CurrentRecord) -> &str {
 }
 
 /// Current sleep and workout sessions in start order.
-pub fn query_sessions(connection: &Connection, query: &SessionQuery) -> Result<Vec<CurrentRecord>> {
+pub(crate) fn query_sessions(connection: &Connection, query: &SessionQuery) -> Result<Vec<CurrentRecord>> {
     let types: &[SessionType] = match query.session_type {
         Some(SessionType::Sleep) => &[SessionType::Sleep],
         Some(SessionType::Workout) => &[SessionType::Workout],
@@ -290,7 +290,7 @@ pub fn query_sessions(connection: &Connection, query: &SessionQuery) -> Result<V
 /// knowledge time is not after the cut-off, unless a deletion was known by
 /// then. Records are in creation order. The `current_revision` of each result
 /// is the revision shown, not the record's present revision.
-pub fn query_records_as_of(connection: &Connection, query: &AsOfQuery) -> Result<Vec<CurrentRecord>> {
+pub(crate) fn query_records_as_of(connection: &Connection, query: &AsOfQuery) -> Result<Vec<CurrentRecord>> {
     let as_of = parse_utc_timestamp(&query.as_of)?;
     let mut args = vec![Sql::Text(as_of.clone())];
     let type_condition = if query.record_types.is_empty() {

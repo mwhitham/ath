@@ -5,7 +5,7 @@ use std::path::{Path, PathBuf};
 use athleticstandard::json::{self, Map, Value};
 use athleticstandard::store::{Changes, Correction, CreateOptions, Deletion, ExtensionsUpdate, NewRecord, Store};
 
-use super::{golden, new_store, normalize, replay, scenario_ids, temporary_dir};
+use super::{direct, golden, new_store, normalize, replay, scenario_ids, temporary_dir, write_directly};
 
 /// The deterministic 2.1.0 demo database.
 pub fn demo_path() -> PathBuf {
@@ -18,17 +18,15 @@ pub fn demo_path() -> PathBuf {
 pub fn replay_demo() -> (PathBuf, Store) {
     use rusqlite::{Connection, OpenFlags};
     let demo = Connection::open_with_flags(demo_path(), OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
-    let metadata = athleticstandard::store::read_metadata(&demo).unwrap();
+    let (database_id, created_at): (String, String) = demo
+        .query_row("SELECT database_id, created_at FROM database_metadata WHERE singleton_id = 1", [], |row| {
+            Ok((row.get(0)?, row.get(1)?))
+        })
+        .unwrap();
     let directory = temporary_dir("ath-demo-");
     let path = directory.join("athlete.ath.sqlite");
-    let mut store = Store::create(
-        &path,
-        CreateOptions {
-            database_id: Some(metadata.database_id.clone()),
-            created_at: Some(metadata.created_at.clone()),
-        },
-    )
-    .unwrap();
+    let mut store =
+        Store::create(&path, CreateOptions { database_id: Some(database_id), created_at: Some(created_at) }).unwrap();
     let columns = athleticstandard::store::read::REVISION_COLUMNS
         .split(',')
         .map(|column| format!("record_revisions.{}", column.trim()))
@@ -94,18 +92,17 @@ pub fn replay_demo() -> (PathBuf, Store) {
     let revision: i64 = demo
         .query_row("SELECT current_revision FROM database_state WHERE singleton_id = 1", [], |row| row.get(0))
         .unwrap();
-    store
-        .transaction(|tx| {
-            tx.execute("UPDATE database_state SET current_revision = ?1 WHERE singleton_id = 1", [revision])?;
-            Ok(())
-        })
-        .unwrap();
+    write_directly(store.path(), |tx| {
+        tx.execute("UPDATE database_state SET current_revision = ?1 WHERE singleton_id = 1", [revision])?;
+        Ok(())
+    });
     (directory, store)
 }
 
 /// Every record ID in a database.
 pub fn database_ids(store: &Store) -> Vec<String> {
-    let mut statement = store.connection().prepare("SELECT record_id FROM records").unwrap();
+    let connection = direct(store.path());
+    let mut statement = connection.prepare("SELECT record_id FROM records").unwrap();
     statement.query_map([], |row| row.get::<_, String>(0)).unwrap().map(Result::unwrap).collect()
 }
 

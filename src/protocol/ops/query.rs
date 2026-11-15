@@ -295,7 +295,7 @@ fn calendar_range(call: &mut Call<'_>) -> Outcome {
     let options = series_options(call.input.get("options").unwrap_or(&Value::Null))?;
     let request =
         CalendarRangeRequest { from: options.from, to: options.to, time_zone: options.time_zone, raw: options.raw };
-    let range = calendar::resolve_calendar_range(call.store()?.connection(), &request)?;
+    let range = calendar::resolve_calendar_range(call.store()?, &request)?;
     Ok(json::to_value(&range))
 }
 
@@ -303,12 +303,8 @@ fn calendar_range(call: &mut Call<'_>) -> Outcome {
 fn as_of_time(call: &mut Call<'_>) -> Outcome {
     let value = input::string(&call.input, "value")?;
     let zone = input::string(&call.input, "time_zone")?;
-    let resolved = calendar::resolve_as_of_time(
-        call.store()?.connection(),
-        value.as_deref(),
-        zone.as_deref(),
-        crate::model::time::now_utc,
-    )?;
+    let resolved =
+        calendar::resolve_as_of_time(call.store()?, value.as_deref(), zone.as_deref(), crate::model::time::now_utc)?;
     Ok(json::to_value(&resolved))
 }
 

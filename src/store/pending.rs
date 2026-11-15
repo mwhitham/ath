@@ -9,6 +9,7 @@
 use rusqlite::Connection;
 use serde::Serialize;
 
+use super::Store;
 use crate::error::Result;
 
 pub const PENDING_FILE_OPERATIONS_TABLE: &str = "internal_pending_file_operations";
@@ -26,7 +27,7 @@ pub struct PendingFileOperation {
 
 /// Every pending file operation in a stable order. A database before SQL
 /// schema step 5 has no such table and therefore no pending work.
-pub fn pending_file_operations(connection: &Connection) -> Result<Vec<PendingFileOperation>> {
+pub(crate) fn pending_file_operations(connection: &Connection) -> Result<Vec<PendingFileOperation>> {
     let present: bool = connection.query_row(
         "SELECT EXISTS (SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?1)",
         [PENDING_FILE_OPERATIONS_TABLE],
@@ -49,6 +50,13 @@ pub fn pending_file_operations(connection: &Connection) -> Result<Vec<PendingFil
         })
     })?;
     Ok(rows.collect::<std::result::Result<_, _>>()?)
+}
+
+impl Store {
+    /// Every pending file operation in a stable order.
+    pub fn pending_file_operations(&self) -> Result<Vec<PendingFileOperation>> {
+        pending_file_operations(self.connection())
+    }
 }
 
 impl PendingFileOperation {

@@ -157,11 +157,8 @@ pub fn render_log_plan(plan: &LogPlan) -> String {
 }
 
 /// Plan a log entry. Reads the database; writes nothing.
-pub fn plan_log_entry(
-    connection: &Connection,
-    request: &LogRequest,
-    new_id: &mut dyn FnMut() -> String,
-) -> Result<LogPlan> {
+pub fn plan_log_entry(store: &Store, request: &LogRequest, new_id: &mut dyn FnMut() -> String) -> Result<LogPlan> {
+    let connection = store.connection();
     let created_at = parse_utc_timestamp(&request.created_at.clone().unwrap_or_else(time::now_utc))?;
     let trimmed = js_trim(&request.text);
     let plan = if trimmed.starts_with('{') || trimmed.starts_with('[') {

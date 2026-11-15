@@ -37,7 +37,7 @@ use athleticstandard::store::{Changes, Deletion, Store};
 use rusqlite::Connection;
 
 use super::{golden, materialize};
-use crate::import_support::{assert_same_json, new_store, replace_uuids, TempDir};
+use crate::import_support::{assert_same_json, direct, new_store, replace_uuids, TempDir};
 
 /// The fixed import time of a step, which the comparison names `<step N>`.
 pub fn step_time(index: usize) -> String {
@@ -292,8 +292,8 @@ fn records_only(database: &Value) -> Value {
 
 /// Delete the first record whose label starts with `prefix`, at `deleted_at`.
 fn delete_by_label(store: &mut Store, labels: &mut KeyedLabels, prefix: &str, deleted_at: &str) {
-    labels.learn(store.connection());
-    let found: Vec<(String, u64)> = rows(store.connection(), "SELECT record_id, current_revision FROM records")
+    labels.learn(&direct(store.path()));
+    let found: Vec<(String, u64)> = rows(&direct(store.path()), "SELECT record_id, current_revision FROM records")
         .iter()
         .map(|row| (text(&row[0]), int(&row[1]) as u64))
         .filter(|(id, _)| labels.text(id).starts_with(prefix))
@@ -440,7 +440,7 @@ pub fn run_keyed_scenario(name: &str) {
             delete_by_label(&mut store, &mut labels, delete["label_prefix"].as_str().unwrap(), &received_at);
             native_revision += 1;
         }
-        let before = records_only(&snapshot(store.connection(), &mut labels, &times));
+        let before = records_only(&snapshot(&direct(store.path()), &mut labels, &times));
         let expect = match (&step["preview"], &step["write"]) {
             (Value::Object(preview), Value::Object(write))
                 if preview.contains_key("result") && write.contains_key("error") =>
@@ -457,7 +457,7 @@ pub fn run_keyed_scenario(name: &str) {
                     Expect::Same => step["preview"]["error"].as_str().or(step["write"]["error"].as_str()),
                 };
                 assert_eq!(Some(error.to_string().as_str()), expected, "{context}: {error}");
-                let after = records_only(&snapshot(store.connection(), &mut labels, &times));
+                let after = records_only(&snapshot(&direct(store.path()), &mut labels, &times));
                 assert_same_json(&after, &before, &format!("{context}: a refused import writes nothing"));
                 continue;
             }
@@ -471,11 +471,11 @@ pub fn run_keyed_scenario(name: &str) {
             assert_eq!(serialized["write_confirmed"], Value::Bool(false), "{context}");
         }
         let result = preview.apply(&mut store).unwrap_or_else(|error| panic!("{context}: {error}"));
-        labels.learn(store.connection());
+        labels.learn(&direct(store.path()));
         let written = labels.value(&preview.report_value(true).unwrap());
         assert_same_json(&written, &step["write"]["result"], &format!("{context} write"));
 
-        let database = native_tool_name(&snapshot(store.connection(), &mut labels, &times));
+        let database = native_tool_name(&snapshot(&direct(store.path()), &mut labels, &times));
         let mut expected = native_tool_name(&step["database"]);
         if file_route {
             expected = without_clock_revisions(&expected);

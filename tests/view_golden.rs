@@ -31,7 +31,7 @@ pub fn view_call(store: &mut Store, call: &str, input: &Value) -> Value {
             }))
         }
         "calendar-range" => outcome(resolve_calendar_range(
-            store.connection(),
+            store,
             &CalendarRangeRequest {
                 from: opt_string(input, "from"),
                 to: opt_string(input, "to"),
@@ -40,7 +40,7 @@ pub fn view_call(store: &mut Store, call: &str, input: &Value) -> Value {
             },
         )),
         "as-of" => outcome(resolve_as_of_time(
-            store.connection(),
+            store,
             input.get("value").and_then(Value::as_str),
             input.get("time_zone").and_then(Value::as_str),
             || unreachable!("every case names a time"),

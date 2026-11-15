@@ -20,7 +20,9 @@
 //!
 //! With `--plans`, one extra pass records every distinct read statement each
 //! operation runs, with its first bound arguments, and its SQLite query plan.
-//! That pass is not timed.
+//! That pass is not timed. The library keeps its SQLite connection private
+//! (D223), so the runner learns the connection's handle when SQLite opens it,
+//! and reads counts and plans through its own read-only connection.
 //!
 //! Run from the repository root:
 //!
@@ -34,7 +36,8 @@
 use std::collections::BTreeMap;
 use std::ffi::{c_char, c_int, c_uint, c_void, CStr};
 use std::path::{Path, PathBuf};
-use std::sync::Mutex;
+use std::sync::atomic::{AtomicPtr, Ordering};
+use std::sync::{Mutex, Once};
 use std::time::Instant;
 
 use athleticstandard::calculate::{calculate_range, CalculateOptions, Operation};
@@ -43,7 +46,7 @@ use athleticstandard::model::SeriesQuantity;
 use athleticstandard::package::{apply_package_import, export_package, preview_package_import, ExportOptions};
 use athleticstandard::prediction::{build_evidence, EvidenceRequest};
 use athleticstandard::store::check::check_database;
-use athleticstandard::store::query::{query_series, Order, SeriesQuery};
+use athleticstandard::store::query::{Order, SeriesQuery};
 use athleticstandard::store::{CreateOptions, OpenOptions, Store};
 use rusqlite::ffi;
 use serde_json::{json, Value};
@@ -192,9 +195,37 @@ unsafe extern "C" fn trace(kind: c_uint, _context: *mut c_void, statement: *mut 
     0
 }
 
-fn handle(store: &Store) -> *mut ffi::sqlite3 {
-    // SAFETY: the handle is used only while the store is alive.
-    unsafe { store.connection().handle() }
+/// The connection SQLite opened most recently in this process.
+static OPENED: AtomicPtr<ffi::sqlite3> = AtomicPtr::new(std::ptr::null_mut());
+
+unsafe extern "C" fn remember_opened(
+    connection: *mut ffi::sqlite3,
+    _error: *mut *mut c_char,
+    _api: *const ffi::sqlite3_api_routines,
+) -> c_int {
+    OPENED.store(connection, Ordering::SeqCst);
+    ffi::SQLITE_OK
+}
+
+/// Open a store and return the handle of the connection it opened last,
+/// which is the one it keeps. The handle is used only while the store is
+/// alive.
+fn with_handle(open: impl FnOnce() -> athleticstandard::Result<Store>) -> Result<(Store, *mut ffi::sqlite3), Failure> {
+    static REGISTER: Once = Once::new();
+    let mut registered = Ok(());
+    REGISTER.call_once(|| {
+        // SAFETY: `remember_opened` only records the handle. It opens and
+        // closes no database and does not change the list of routines.
+        registered = unsafe { rusqlite::auto_extension::register_auto_extension(remember_opened) };
+    });
+    registered?;
+    OPENED.store(std::ptr::null_mut(), Ordering::SeqCst);
+    let store = open()?;
+    let handle = OPENED.load(Ordering::SeqCst);
+    if handle.is_null() {
+        return Err("the store opened no SQLite connection".into());
+    }
+    Ok((store, handle))
 }
 
 fn set_trace(handle: *mut ffi::sqlite3, on: bool) {
@@ -212,7 +243,7 @@ fn set_trace(handle: *mut ffi::sqlite3, on: bool) {
 /// Run `operation` once with statement capture, then explain each statement.
 fn capture_plans(
     connection: *mut ffi::sqlite3,
-    explain_with: &Store,
+    explain_with: &rusqlite::Connection,
     operation: impl FnOnce() -> Result<(), Failure>,
 ) -> Result<Value, Failure> {
     *CAPTURED.lock().expect("capture lock") = Some(BTreeMap::new());
@@ -223,7 +254,7 @@ fn capture_plans(
     result?;
     let mut plans = Vec::new();
     for (sql, expanded) in captured {
-        let mut statement = explain_with.connection().prepare(&format!("EXPLAIN QUERY PLAN {expanded}"))?;
+        let mut statement = explain_with.prepare(&format!("EXPLAIN QUERY PLAN {expanded}"))?;
         let steps: Vec<String> = statement.query_map([], |row| row.get::<_, String>(3))?.collect::<Result<_, _>>()?;
         plans.push(json!({ "sql": collapse(&sql), "plan": steps }));
     }
@@ -292,8 +323,9 @@ fn main() -> Result<(), Failure> {
 /// Run every measurement and return the report.
 fn run(options: &Options) -> Result<Value, Failure> {
     std::fs::create_dir_all(&options.work)?;
-    let store = Store::open(&options.database, OpenOptions { read_only: true, allow_outdated_schema: false })?;
-    let connection = store.connection();
+    let (store, store_handle) =
+        with_handle(|| Store::open(&options.database, OpenOptions { read_only: true, allow_outdated_schema: false }))?;
+    let connection = rusqlite::Connection::open_with_flags(store.path(), rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY)?;
     let quantity = SeriesQuantity::parse("hrv_sdnn").ok_or("hrv_sdnn is not a series quantity")?;
 
     let to: String = connection.query_row(
@@ -323,7 +355,7 @@ fn run(options: &Options) -> Result<Value, Failure> {
         query.source_id = Some(SOURCE_A.into());
         query.order = Order::Descending;
         query.limit = Some(1);
-        if query_series(connection, &query)?.len() != 1 {
+        if store.query_series(&query)?.len() != 1 {
             return Err("latest value was not found".into());
         }
         Ok(())
@@ -331,7 +363,7 @@ fn run(options: &Options) -> Result<Value, Failure> {
     let evidence = || -> Result<(), Failure> {
         let mut request = EvidenceRequest::new("fran", EVIDENCE_AS_OF);
         request.window_days = Some(28);
-        build_evidence(connection, &request)?;
+        build_evidence(&store, &request)?;
         Ok(())
     };
     let baseline = || -> Result<(), Failure> {
@@ -361,7 +393,7 @@ fn run(options: &Options) -> Result<Value, Failure> {
 
     let reps = options.repetitions;
     let mut operations = vec![
-        measure("latest_value", "store::query::query_series", reps, true, |_| latest())?,
+        measure("latest_value", "Store::query_series", reps, true, |_| latest())?,
         measure("evidence_28d", "prediction::build_evidence", reps, true, |_| evidence())?,
         measure("baseline_90d", "calculate::calculate_range", reps, true, |_| baseline())?,
         measure("workout_drift", "calculate::calculate_range", reps, true, |_| drift())?,
@@ -433,16 +465,16 @@ fn run(options: &Options) -> Result<Value, Failure> {
 
     let mut plans = serde_json::Map::new();
     if options.plans {
-        plans.insert("latest_value".into(), capture_plans(handle(&store), &store, latest)?);
-        plans.insert("evidence_28d".into(), capture_plans(handle(&store), &store, evidence)?);
-        plans.insert("baseline_90d".into(), capture_plans(handle(&store), &store, baseline)?);
-        plans.insert("workout_drift".into(), capture_plans(handle(&store), &store, drift)?);
-        plans.insert("cross_source_comparison".into(), capture_plans(handle(&store), &store, compare)?);
+        plans.insert("latest_value".into(), capture_plans(store_handle, &connection, latest)?);
+        plans.insert("evidence_28d".into(), capture_plans(store_handle, &connection, evidence)?);
+        plans.insert("baseline_90d".into(), capture_plans(store_handle, &connection, baseline)?);
+        plans.insert("workout_drift".into(), capture_plans(store_handle, &connection, drift)?);
+        plans.insert("cross_source_comparison".into(), capture_plans(store_handle, &connection, compare)?);
         let path = options.work.join("export-plans");
         let _ = std::fs::remove_dir_all(&path);
         plans.insert(
             "full_json_export".into(),
-            capture_plans(handle(&store), &store, || {
+            capture_plans(store_handle, &connection, || {
                 export_package(&store, &path, &ExportOptions::default())?;
                 Ok(())
             })?,
@@ -450,18 +482,19 @@ fn run(options: &Options) -> Result<Value, Failure> {
         let _ = std::fs::remove_dir_all(&path);
         plans.insert(
             "database_check".into(),
-            capture_plans(handle(&store), &store, || {
+            capture_plans(store_handle, &connection, || {
                 check_database(&store)?;
                 Ok(())
             })?,
         );
         let path = options.work.join("restored-plans.ath.sqlite");
         remove_database(&path);
-        let mut destination =
-            Store::create(&path, CreateOptions { created_at: Some(CREATED_AT.into()), ..CreateOptions::default() })?;
+        let (mut destination, destination_handle) = with_handle(|| {
+            Store::create(&path, CreateOptions { created_at: Some(CREATED_AT.into()), ..CreateOptions::default() })
+        })?;
         plans.insert(
             "initial_import".into(),
-            capture_plans(handle(&destination), &store, || {
+            capture_plans(destination_handle, &connection, || {
                 let preview = preview_package_import(&destination, &options.package)?;
                 apply_package_import(&mut destination, &preview, &[])?;
                 Ok(())
@@ -469,7 +502,7 @@ fn run(options: &Options) -> Result<Value, Failure> {
         );
         plans.insert(
             "incremental_import".into(),
-            capture_plans(handle(&destination), &store, || {
+            capture_plans(destination_handle, &connection, || {
                 let preview = preview_package_import(&destination, &options.delta)?;
                 apply_package_import(&mut destination, &preview, &[])?;
                 Ok(())
@@ -595,9 +628,8 @@ mod tests {
         let package = root.join("package");
         let store = Store::open(&database, OpenOptions { read_only: true, allow_outdated_schema: false }).unwrap();
         export_package(&store, &package, &ExportOptions::default()).unwrap();
-        let database_id = athleticstandard::store::read_metadata(store.connection()).unwrap().database_id;
-        let revision: i64 =
-            store.connection().query_row("SELECT current_revision FROM database_state", [], |row| row.get(0)).unwrap();
+        let database_id = store.metadata().database_id.clone();
+        let revision = store.database_revision().unwrap() as i64;
         drop(store);
         write_delta(&root.join("delta"), &database_id, revision);
 

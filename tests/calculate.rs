@@ -123,10 +123,9 @@ fn named_sources_are_compared_without_pooling() {
 /// Insert many heart-rate samples with direct SQL. The calculation reads
 /// typed rows only, so the stored JSON can be a placeholder.
 fn insert_samples(store: &mut Store, prefix: &str, count: usize, at: &str, value: f64) {
-    store
-        .transaction(|tx| {
-            tx.execute_batch(&format!(
-                "CREATE TEMP TABLE IF NOT EXISTS sequence_numbers (n INTEGER PRIMARY KEY) STRICT;
+    write_directly(store.path(), |tx| {
+        tx.execute_batch(&format!(
+            "CREATE TEMP TABLE IF NOT EXISTS sequence_numbers (n INTEGER PRIMARY KEY) STRICT;
                  DELETE FROM sequence_numbers;
                  WITH RECURSIVE sequence(n) AS (SELECT 1 UNION ALL SELECT n + 1 FROM sequence WHERE n < {count})
                  INSERT INTO sequence_numbers (n) SELECT n FROM sequence;
@@ -140,10 +139,8 @@ fn insert_samples(store: &mut Store, prefix: &str, count: usize, at: &str, value
                      standard_value, standard_unit, received_at, data_json)
                    SELECT printf('{prefix}-%06d', n), 'measurement_sample', '{SOURCE_A}', 'heart_rate', '{at}',
                      {value} + (n % 2), 'bpm', '{at}', '{{}}' FROM sequence_numbers;"
-            ))?;
-            Ok(())
-        })
-        .unwrap();
+        ))
+    });
 }
 
 fn workout(id: &str, start: &str, end: &str) -> Value {
@@ -250,7 +247,7 @@ fn calendar_days_use_the_real_short_and_long_day_boundaries() {
     let (_directory, store) = calculation_database();
     let range = |day: &str| {
         resolve_calendar_range(
-            store.connection(),
+            &store,
             &CalendarRangeRequest {
                 from: Some(day.into()),
                 to: Some(day.into()),

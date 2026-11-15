@@ -201,6 +201,15 @@ pub fn database_revision(path: &Path) -> i64 {
     inspect(path).query_row("SELECT current_revision FROM database_state", [], |row| row.get(0)).unwrap()
 }
 
+/// The software version and SQL schema step stored in `database_metadata`.
+pub fn stored_versions(path: &Path) -> (String, u32) {
+    inspect(path)
+        .query_row("SELECT athleticstandard_version, sql_schema_version FROM database_metadata", [], |row| {
+            Ok((row.get(0)?, row.get(1)?))
+        })
+        .unwrap()
+}
+
 pub fn file_mode(path: &Path) -> u32 {
     #[cfg(unix)]
     {

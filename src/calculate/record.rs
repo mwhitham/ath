@@ -62,7 +62,7 @@ pub struct ApplyResult {
 }
 
 /// A current, not deleted record's stored data.
-pub fn stored_record(connection: &Connection, record_id: &str) -> Result<StoredRecord> {
+pub(crate) fn stored_record(connection: &Connection, record_id: &str) -> Result<StoredRecord> {
     let row: Option<(String, String, i64, String)> = connection
         .query_row(
             "SELECT records.record_id, records.record_type, records.current_revision, record_revisions.record_json
@@ -90,7 +90,7 @@ fn stored_records(connection: &Connection, sql: &str, args: &[&dyn rusqlite::ToS
 /// The other current records a change or regularity calculation compares
 /// against: same-source point measurements of the same quantity, or
 /// same-source sessions of the same type. The record itself is included.
-pub fn related_records(connection: &Connection, record: &StoredRecord) -> Result<Vec<StoredRecord>> {
+pub(crate) fn related_records(connection: &Connection, record: &StoredRecord) -> Result<Vec<StoredRecord>> {
     let Some(source_id) = record.data.get("source_id").and_then(Value::as_str) else {
         return Ok(Vec::new());
     };
@@ -136,13 +136,9 @@ fn uses_related(calculation: &OneRecordCalculation) -> bool {
     )
 }
 
-/// Run a calculation file on one current record.
-pub fn apply(connection: &Connection, file: &CalculationFile, record_id: &str) -> Result<ApplyResult> {
-    apply_to(connection, file, stored_record(connection, record_id)?)
-}
-
-/// Run a calculation file on a record already read.
-pub fn apply_to(connection: &Connection, file: &CalculationFile, record: StoredRecord) -> Result<ApplyResult> {
+/// Run a calculation file on a record already read. Outside the library,
+/// use `calculate::apply`.
+pub(crate) fn apply_to(connection: &Connection, file: &CalculationFile, record: StoredRecord) -> Result<ApplyResult> {
     let related = if uses_related(&file.calculation) { related_records(connection, &record)? } else { Vec::new() };
     Ok(run(file, &record, &related))
 }

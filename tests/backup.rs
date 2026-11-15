@@ -7,7 +7,7 @@ use std::path::Path;
 
 use athleticstandard::model::*;
 use athleticstandard::store::backup::{create_verified_backup, default_migration_backup_path};
-use athleticstandard::store::{read_metadata, Changes, CreateOptions, NewRecord, OpenOptions, Store};
+use athleticstandard::store::{Changes, CreateOptions, NewRecord, OpenOptions, Store};
 use maintenance_support::*;
 
 fn tool_actor() -> RecordActor {
@@ -96,18 +96,18 @@ fn a_backup_path_through_a_symbolic_link_is_refused() {
 fn a_backup_that_fails_verification_is_removed() {
     let (path, store) = new_database("ath-backup-verify-");
     let backup_path = athleticstandard::files::sidecar(&path, ".backup.sqlite");
-    let mut expected = read_metadata(store.connection()).unwrap();
+    let mut expected = store.metadata().clone();
     expected.database_id = "01890f3e-e7d3-7cc0-88c8-5d9c6b3a1f99".to_string();
-    let error = create_verified_backup(store.connection(), &backup_path, &expected).unwrap_err().to_string();
+    let error = create_verified_backup(&store, &backup_path, &expected).unwrap_err().to_string();
     assert_eq!(error, "Migration backup database_id does not match the source database");
     assert!(!backup_path.exists());
     for suffix in ["-wal", "-shm", "-journal"] {
         assert!(!athleticstandard::files::sidecar(&backup_path, suffix).exists());
     }
 
-    let mut expected = read_metadata(store.connection()).unwrap();
+    let mut expected = store.metadata().clone();
     expected.sql_schema_version = 4;
-    let error = create_verified_backup(store.connection(), &backup_path, &expected).unwrap_err().to_string();
+    let error = create_verified_backup(&store, &backup_path, &expected).unwrap_err().to_string();
     assert_eq!(error, "Migration backup sql_schema_version does not match the source database");
     assert!(!backup_path.exists());
 }

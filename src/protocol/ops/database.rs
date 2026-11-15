@@ -293,7 +293,7 @@ fn backup(call: &mut Call<'_>) -> Outcome {
     let backup_path = input::required_string(&call.input, "backup_path")?;
     let expected = metadata_from(input::required(&call.input, "source_metadata")?)?;
     let store = Store::open(&source_path, OpenOptions { read_only: true, allow_outdated_schema: true })?;
-    let result = crate::store::backup::create_verified_backup(store.connection(), Path::new(&backup_path), &expected);
+    let result = crate::store::backup::create_verified_backup(&store, Path::new(&backup_path), &expected);
     store.close()?;
     result?;
     Ok(Value::Null)
@@ -314,7 +314,7 @@ fn stats(call: &mut Call<'_>) -> Outcome {
 /// The repair counts and the records a revision-align repair would rebuild.
 fn repair_candidates(call: &mut Call<'_>) -> Outcome {
     let store = call.store()?;
-    let candidates = crate::store::repair::repair_candidates(store.connection(), store.layout())?;
+    let candidates = crate::store::repair::repair_candidates(store)?;
     Ok(serde_json::json!({
         "encoding_record_count": candidates.repair_candidates(),
         "revision_align_record_ids": candidates.revision_align_record_ids,

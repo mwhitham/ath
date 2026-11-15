@@ -30,6 +30,28 @@ pub fn temporary_dir(prefix: &str) -> PathBuf {
     temporary_root::new_dir(prefix)
 }
 
+/// An independent read-write connection with the published direct-SQL
+/// recipe's settings. The library keeps its own connection private (D223).
+pub fn direct(path: &Path) -> rusqlite::Connection {
+    let connection = rusqlite::Connection::open_with_flags(
+        path,
+        rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE | rusqlite::OpenFlags::SQLITE_OPEN_NO_MUTEX,
+    )
+    .unwrap();
+    connection.execute_batch("PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;").unwrap();
+    connection
+}
+
+/// Write with direct SQL in one immediate transaction. Foreign keys are
+/// checked at commit, as in the recipe, so rows can be written in any order.
+pub fn write_directly(path: &Path, write: impl FnOnce(&rusqlite::Transaction<'_>) -> rusqlite::Result<()>) {
+    let mut connection = direct(path);
+    let transaction = connection.transaction_with_behavior(rusqlite::TransactionBehavior::Immediate).unwrap();
+    transaction.pragma_update(None, "defer_foreign_keys", "ON").unwrap();
+    write(&transaction).unwrap();
+    transaction.commit().unwrap();
+}
+
 /// A new database in a new temporary directory.
 pub fn new_store(created_at: &str) -> (PathBuf, Store) {
     let directory = temporary_dir("ath-test-");

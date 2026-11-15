@@ -27,7 +27,7 @@ use crate::error::{Error, Result};
 use crate::json::{self, Value};
 use crate::model::{point_measurement_unit, series_quantity_unit, EvidenceReference, PointMeasurementType};
 use crate::model::{ProviderReportingPeriodType, SeriesQuantity};
-use crate::view::calendar::{resolve_calendar_range, CalendarRangeRequest};
+use crate::view::calendar::{resolve_calendar_range_in, CalendarRangeRequest};
 
 pub const CALCULATION_VERSION: &str = "ath-runtime-v1";
 /// A calculation that matches more inputs than this is refused.
@@ -358,7 +358,8 @@ pub fn known_measurement_unit(quantity: &str) -> Result<&'static str> {
 }
 
 /// Run a named range calculation. Reading never writes athlete data.
-pub fn calculate(connection: &Connection, options: &CalculateOptions) -> Result<CalculationReceipt> {
+/// Outside the library, use `calculate::calculate_range`.
+pub(crate) fn calculate(connection: &Connection, options: &CalculateOptions) -> Result<CalculationReceipt> {
     let operation = options.operation;
     let kind = options.record_kind;
     let period_summary = operation == Operation::ProviderPeriodSummary;
@@ -384,7 +385,7 @@ pub fn calculate(connection: &Connection, options: &CalculateOptions) -> Result<
         && operation != Operation::WorkoutDrift
         && (options.group != Group::None || operation == Operation::Coverage || operation == Operation::Correlation);
     let (from, to, time_zone) = if needs_calendar {
-        let range = resolve_calendar_range(
+        let range = resolve_calendar_range_in(
             connection,
             &CalendarRangeRequest {
                 from: options.from.clone(),

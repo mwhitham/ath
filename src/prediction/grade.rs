@@ -96,10 +96,11 @@ fn lower_first(message: String) -> String {
 
 /// Check a prediction and result and plan the link and grade.
 pub fn plan_prediction_grade(
-    connection: &Connection,
+    store: &Store,
     request: &GradeRequest,
     new_id: &mut dyn FnMut() -> String,
 ) -> Result<PredictionGradePlan> {
+    let connection = store.connection();
     let prediction_record = current_record(connection, &request.prediction_id)?;
     let RecordData::Prediction(prediction) = &prediction_record.data else {
         return Err(Error::refused(format!("{} is not a prediction", request.prediction_id)));

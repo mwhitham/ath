@@ -108,21 +108,20 @@ fn every_supported_version_migrates_and_keeps_its_history() {
             assert!(!athleticstandard::files::sidecar(&backup_path, suffix).exists());
         }
         assert_eq!(dump_tables(&backup_path, ATHLETE_TABLES), athlete_before, "{}: backup differs", case.name);
-        let backup_metadata = athleticstandard::store::read_metadata(&inspect(&backup_path)).unwrap();
-        assert_eq!(backup_metadata.sql_schema_version, case.source_version);
-        assert_eq!(backup_metadata.athleticstandard_version, case.source_software);
+        let (backup_software, backup_version) = stored_versions(&backup_path);
+        assert_eq!(backup_version, case.source_version);
+        assert_eq!(backup_software, case.source_software);
         assert_eq!(database_revision(&backup_path), revision_before);
 
         // The migrated file opens normally and keeps every retained revision.
         let reopened = Store::open(&path, OpenOptions::default()).unwrap();
         assert_eq!(reopened.metadata().sql_schema_version, SQL_SCHEMA_VERSION);
-        let user_version: u32 =
-            reopened.connection().pragma_query_value(None, "user_version", |row| row.get(0)).unwrap();
+        let user_version: u32 = inspect(&path).pragma_query_value(None, "user_version", |row| row.get(0)).unwrap();
         assert_eq!(user_version, SQL_SCHEMA_VERSION);
         let report = check_database(&reopened).unwrap();
         assert!(report.valid, "{}: {:?}", case.name, report.issues);
         assert!(report.issues.is_empty(), "{}: {:?}", case.name, report.issues);
-        assert_eq!(contract::verify_live_schema(reopened.connection(), &published).unwrap(), Vec::<String>::new());
+        assert_eq!(contract::verify_live_schema(&reopened, &published).unwrap(), Vec::<String>::new());
         drop(reopened);
         assert_eq!(dump_tables(&path, HISTORY_TABLES), history_before, "{}: history changed", case.name);
         assert_eq!(database_revision(&path), revision_before + case.revision_bump, "{}", case.name);
@@ -230,8 +229,7 @@ fn a_failed_step_rolls_back_and_names_the_verified_backup() {
     // Nothing changed: same rows, same schema step, same journal mode.
     assert_eq!(dump_tables(&path, ATHLETE_TABLES), before);
     assert_eq!(database_revision(&path), revision_before);
-    let metadata = athleticstandard::store::read_metadata(&inspect(&path)).unwrap();
-    assert_eq!(metadata.sql_schema_version, 1);
+    assert_eq!(stored_versions(&path).1, 1);
     assert_eq!(journal_mode(&path), "delete");
     // The verified backup stays.
     assert_eq!(dump_tables(&backup_path, ATHLETE_TABLES), before);
@@ -256,8 +254,7 @@ fn a_change_after_the_backup_makes_it_stale() {
     assert!(message.starts_with("Database revision changed before migration could start. Nothing was migrated."));
     assert!(message.contains(&backup_path.display().to_string()));
     drop(store);
-    let metadata = athleticstandard::store::read_metadata(&inspect(&path)).unwrap();
-    assert_eq!(metadata.sql_schema_version, 3);
+    assert_eq!(stored_versions(&path).1, 3);
 
     // A new backup of the current state works.
     let mut store = open_for_migration(&path);
@@ -370,11 +367,8 @@ fn rollback_means_restoring_the_verified_backup() {
     }
     std::fs::copy(&backup_path, &path).unwrap();
     assert_eq!(dump_tables(&path, ATHLETE_TABLES), before);
-    let metadata = athleticstandard::store::read_metadata(&inspect(&path)).unwrap();
-    assert_eq!(metadata.athleticstandard_version, "2.1.0");
-    assert_eq!(metadata.sql_schema_version, 4);
-    let kept_metadata = athleticstandard::store::read_metadata(&inspect(&kept)).unwrap();
-    assert_eq!(kept_metadata.athleticstandard_version, "2.1.1");
+    assert_eq!(stored_versions(&path), ("2.1.0".to_string(), 4));
+    assert_eq!(stored_versions(&kept).0, "2.1.1");
     assert!(backup::format_migration_backup_timestamp(0).ends_with('Z'));
 }
 

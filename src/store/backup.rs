@@ -17,7 +17,7 @@ use rusqlite::backup::Backup;
 use rusqlite::{Connection, OpenFlags, OptionalExtension};
 use serde::Serialize;
 
-use super::{read_metadata, DatabaseMetadata, SQLITE_APPLICATION_MARKER};
+use super::{read_metadata, DatabaseMetadata, Store, SQLITE_APPLICATION_MARKER};
 use crate::error::{Error, Result};
 use crate::files;
 use crate::model::time;
@@ -199,13 +199,14 @@ fn remove_failed_backup(backup_path: &Path) {
     }
 }
 
-/// Copy `source` to a new file at `backup_path` and verify the copy against
+/// Copy `store` to a new file at `backup_path` and verify the copy against
 /// `expected` and the source snapshot. The file must not exist.
 pub fn create_verified_backup(
-    source: &Connection,
+    store: &Store,
     backup_path: &Path,
     expected: &DatabaseMetadata,
 ) -> Result<VerifiedBackup> {
+    let source = store.connection();
     let backup_path = files::absolute(backup_path)?;
     prepare_exclusive_backup_file(&backup_path)?;
     let identity = files::identity(&backup_path)?;
@@ -241,11 +242,11 @@ pub fn create_verified_backup(
     result
 }
 
-impl super::Store {
+impl Store {
     /// Make a verified backup of this database at a new path.
     pub fn create_verified_backup(&self, backup_path: &Path) -> Result<VerifiedBackup> {
         let metadata = read_metadata(self.connection())?;
-        create_verified_backup(self.connection(), backup_path, &metadata)
+        create_verified_backup(self, backup_path, &metadata)
     }
 }
 

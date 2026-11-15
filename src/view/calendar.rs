@@ -13,6 +13,7 @@ use rusqlite::{Connection, OptionalExtension};
 use crate::error::{Error, Result};
 use crate::model::time;
 pub use crate::store::query::parse_utc_timestamp;
+use crate::store::Store;
 
 /// A timezone accepted for calendar views: an IANA name in any letter case,
 /// or a fixed UTC offset such as `+05:30`, which `Intl.DateTimeFormat` also
@@ -134,7 +135,7 @@ pub fn calendar_date_in_zone(timestamp: &str, zone_name: &str) -> Result<String>
 }
 
 /// The athlete profile's default timezone, when one is saved.
-pub fn saved_time_zone(connection: &Connection) -> Result<Option<String>> {
+pub(crate) fn saved_time_zone(connection: &Connection) -> Result<Option<String>> {
     let value: Option<Option<String>> = connection
         .query_row(
             "SELECT athlete_profile.default_time_zone
@@ -171,7 +172,15 @@ pub struct InstantRange {
 
 /// Turn calendar-day bounds into UTC instants. A calendar day uses the given
 /// timezone, else the profile's. Exact instants must use the stored UTC form.
-pub fn resolve_calendar_range(connection: &Connection, request: &CalendarRangeRequest) -> Result<InstantRange> {
+pub fn resolve_calendar_range(store: &Store, request: &CalendarRangeRequest) -> Result<InstantRange> {
+    resolve_calendar_range_in(store.connection(), request)
+}
+
+/// `resolve_calendar_range` on the connection a calculation already reads.
+pub(crate) fn resolve_calendar_range_in(
+    connection: &Connection,
+    request: &CalendarRangeRequest,
+) -> Result<InstantRange> {
     let is_date = |value: &Option<String>| value.as_deref().is_some_and(looks_like_calendar_date);
     let needs_time_zone = is_date(&request.from) || is_date(&request.to) || !request.raw;
     let time_zone = match &request.time_zone {
@@ -222,7 +231,7 @@ pub struct AsOfTime {
 /// Resolve `--as-of`: now, an exact UTC instant, or the last millisecond of a
 /// calendar day in the given or saved timezone.
 pub fn resolve_as_of_time(
-    connection: &Connection,
+    store: &Store,
     value: Option<&str>,
     explicit_time_zone: Option<&str>,
     now: impl FnOnce() -> String,
@@ -235,7 +244,7 @@ pub fn resolve_as_of_time(
     }
     let time_zone = match explicit_time_zone {
         Some(zone) => Some(zone.to_string()),
-        None => saved_time_zone(connection)?,
+        None => saved_time_zone(store.connection())?,
     };
     let Some(time_zone) = time_zone else {
         return Err(Error::other(

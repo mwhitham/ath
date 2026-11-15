@@ -6,7 +6,7 @@
 //! confidence, but they never become measured evidence. Building evidence
 //! needs no key and no network.
 
-use rusqlite::{Connection, OptionalExtension};
+use rusqlite::OptionalExtension;
 use serde::Serialize;
 
 use crate::error::{Error, Result};
@@ -17,6 +17,7 @@ use crate::model::{
 };
 use crate::store::query::{parse_utc_timestamp, query_records_as_of, AsOfQuery};
 use crate::store::read;
+use crate::store::Store;
 
 pub const DEFAULT_EVIDENCE_LIMIT: u32 = 100_000;
 pub const DEFAULT_WINDOW_DAYS: u32 = 90;
@@ -131,7 +132,7 @@ const EVIDENCE_TYPES: &[RecordType] = &[
 ];
 
 /// Build evidence for one benchmark at a cut-off.
-pub fn build_evidence(connection: &Connection, request: &EvidenceRequest) -> Result<PredictionEvidence> {
+pub fn build_evidence(store: &Store, request: &EvidenceRequest) -> Result<PredictionEvidence> {
     let as_of = parse_utc_timestamp(&request.as_of)?;
     let limit = request.limit.unwrap_or(DEFAULT_EVIDENCE_LIMIT);
     let window_days = request.window_days.unwrap_or(DEFAULT_WINDOW_DAYS);
@@ -139,7 +140,7 @@ pub fn build_evidence(connection: &Connection, request: &EvidenceRequest) -> Res
         return Err(Error::other("Evidence window must be between 1 and 3650 days"));
     }
     let records = query_records_as_of(
-        connection,
+        store.connection(),
         &AsOfQuery { as_of: as_of.clone(), record_types: EVIDENCE_TYPES.to_vec(), limit: Some(limit) },
     )?;
     let Some(benchmark) = records
@@ -258,10 +259,8 @@ fn serialize_revision<S: serde::Serializer>(revision: &RecordRevision, serialize
 }
 
 /// Resolve an evidence reference: the exact revision, an erasure marker, or missing.
-pub fn resolve_evidence_reference(
-    connection: &Connection,
-    reference: &EvidenceReference,
-) -> Result<EvidenceReferenceResolution> {
+pub fn resolve_evidence_reference(store: &Store, reference: &EvidenceReference) -> Result<EvidenceReferenceResolution> {
+    let connection = store.connection();
     EvidenceReference::schema().validate(&crate::json::to_value(reference))?;
     let erased: Option<(String, String, String)> = connection
         .query_row(

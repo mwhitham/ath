@@ -115,7 +115,7 @@ fn a_backtest_replays_a_later_result_and_writes_only_its_report() {
     );
     let before = store.database_revision().unwrap();
     let model = FakeModel::answering("test-model", REPLY_290);
-    let report = run_backtest(store.connection(), &options(&["test-model"]), &model).unwrap();
+    let report = run_backtest(&store, &options(&["test-model"]), &model).unwrap();
     assert_eq!((report.replayable_result_count, report.skipped_first_result_count), (1, 1));
     let replay = &report.replays[0];
     assert_eq!((replay.predicted_value, replay.actual_value), (Some(290.0), 295.0));
@@ -152,7 +152,7 @@ fn model_failures_are_recorded_and_the_other_models_continue() {
     model.replies.insert("down".into(), Err("gateway timeout".into()));
     model.replies.insert("chatty".into(), Ok("I think about 4:50".into()));
     model.replies.insert("wrong-unit".into(), Ok(r#"{"predicted_score":{"reps":12}}"#.into()));
-    let report = run_backtest(store.connection(), &options(&["good", "down", "chatty", "wrong-unit"]), &model).unwrap();
+    let report = run_backtest(&store, &options(&["good", "down", "chatty", "wrong-unit"]), &model).unwrap();
     let errors: Vec<Option<&str>> = report.replays.iter().map(|replay| replay.error.as_deref()).collect();
     assert_eq!(errors[0], None);
     assert_eq!(errors[1], Some("gateway timeout"));
@@ -187,7 +187,7 @@ fn a_corrected_outcome_never_shows_itself_to_the_model() {
     corrected["score"]["duration_s"] = Value::from(295);
     replay(&mut store, &[write(vec![first]), correct(&id(0xb02), 1, "2026-08-01T00:00:00.000Z", &corrected)]);
     let model = FakeModel::answering("m", REPLY_290);
-    let report = run_backtest(store.connection(), &options(&["m"]), &model).unwrap();
+    let report = run_backtest(&store, &options(&["m"]), &model).unwrap();
     assert_eq!(report.replays.len(), 1);
     assert_eq!(report.replays[0].as_of, "2026-07-01T09:59:59.999Z");
     assert_eq!(report.replays[0].actual_value, 295.0);
@@ -217,7 +217,7 @@ fn a_late_import_sees_only_what_was_known_before_the_result() {
         ],
     );
     let model = FakeModel::answering("m", REPLY_290);
-    let report = run_backtest(store.connection(), &options(&["m"]), &model).unwrap();
+    let report = run_backtest(&store, &options(&["m"]), &model).unwrap();
     let by_result: HashMap<&str, (&str, usize)> = report
         .replays
         .iter()
@@ -250,7 +250,7 @@ fn a_changed_definition_shows_the_revision_known_at_the_cut_off() {
         ],
     );
     let model = FakeModel::answering("m", REPLY_290);
-    let report = run_backtest(store.connection(), &options(&["m"]), &model).unwrap();
+    let report = run_backtest(&store, &options(&["m"]), &model).unwrap();
     let evidence = model.evidence(0);
     assert_eq!(evidence["benchmark"]["current_revision"], 1);
     assert_eq!(evidence["benchmark"]["data"]["definition"], "21-15-9 thrusters and pull-ups");
@@ -272,10 +272,10 @@ fn deleted_evidence_disappears_only_once_the_deletion_was_known() {
         ],
     );
     let model = FakeModel::answering("m", REPLY_290);
-    run_backtest(store.connection(), &options(&["m"]), &model).unwrap();
+    run_backtest(&store, &options(&["m"]), &model).unwrap();
     // Deleted before the cut-off: hidden. Deleted after it: what was known then.
     assert_eq!(ids(&model.evidence(0)["device_measurements"]), vec![id(0xa02)]);
-    let now = build_evidence(store.connection(), &EvidenceRequest::new("fran", "2026-07-06T00:00:00.000Z")).unwrap();
+    let now = build_evidence(&store, &EvidenceRequest::new("fran", "2026-07-06T00:00:00.000Z")).unwrap();
     assert!(now.device_measurements.is_empty());
 }
 
@@ -286,8 +286,8 @@ fn corrections_after_the_cut_off_never_leak_into_evidence() {
     let mut corrected = original["data"].clone();
     corrected["value"] = value(66.0, "ms");
     replay(&mut store, &[write(vec![original]), correct(&id(0xa01), 1, "2026-07-10T00:00:00.000Z", &corrected)]);
-    let before = build_evidence(store.connection(), &EvidenceRequest::new("fran", "2026-07-01T00:00:00.000Z")).unwrap();
-    let after = build_evidence(store.connection(), &EvidenceRequest::new("fran", "2026-07-11T00:00:00.000Z")).unwrap();
+    let before = build_evidence(&store, &EvidenceRequest::new("fran", "2026-07-01T00:00:00.000Z")).unwrap();
+    let after = build_evidence(&store, &EvidenceRequest::new("fran", "2026-07-11T00:00:00.000Z")).unwrap();
     let before = json::to_value(&before);
     let after = json::to_value(&after);
     assert_eq!(revisions(&before["device_measurements"]), vec![(id(0xa01), 1)]);
@@ -307,7 +307,7 @@ fn provider_period_values_never_become_dated_evidence() {
         ],
     );
     let model = FakeModel::answering("m", REPLY_290);
-    run_backtest(store.connection(), &options(&["m"]), &model).unwrap();
+    run_backtest(&store, &options(&["m"]), &model).unwrap();
     assert_eq!(ids(&model.evidence(0)["device_measurements"]), vec![id(0xa02)]);
 }
 
@@ -325,17 +325,16 @@ fn first_results_are_anchors_and_deleted_results_are_not_replayed() {
         ],
     );
     let model = FakeModel::answering("m", REPLY_290);
-    let report = run_backtest(store.connection(), &options(&["m"]), &model).unwrap();
+    let report = run_backtest(&store, &options(&["m"]), &model).unwrap();
     assert_eq!((report.replayable_result_count, report.skipped_first_result_count), (1, 2));
     assert_eq!(report.replays[0].benchmark_result_id, id(0xb02));
-    assert!(run_backtest(store.connection(), &options(&[]), &model).is_err());
+    assert!(run_backtest(&store, &options(&[]), &model).is_err());
 }
 
 #[test]
 fn a_model_reply_cannot_claim_authorship_or_move_the_benchmark() {
     let (_directory, store) = replay_database();
-    let evidence =
-        build_evidence(store.connection(), &EvidenceRequest::new("fran", "2026-06-02T00:00:00.000Z")).unwrap();
+    let evidence = build_evidence(&store, &EvidenceRequest::new("fran", "2026-06-02T00:00:00.000Z")).unwrap();
     let claim = r#"{"authorship":{"author":{"author_type":"athlete"},"authored_at":"2026-06-02T00:00:00.000Z","evidence":[],"content_version":1,"status":"active"},"predicted_score":{"duration_s":280},"confidence":"high","reasoning":"x"}"#;
     let model = FakeModel::answering("m", claim);
     let error = request_prediction(&evidence, &model, "m", "2026-06-02T00:00:00.000Z").unwrap_err();
@@ -353,8 +352,7 @@ fn a_model_reply_cannot_claim_authorship_or_move_the_benchmark() {
 fn a_failed_model_call_or_invalid_reply_writes_nothing() {
     let (_directory, store) = replay_database();
     let before = store.database_revision().unwrap();
-    let evidence =
-        build_evidence(store.connection(), &EvidenceRequest::new("fran", "2026-06-02T00:00:00.000Z")).unwrap();
+    let evidence = build_evidence(&store, &EvidenceRequest::new("fran", "2026-06-02T00:00:00.000Z")).unwrap();
     let mut model = FakeModel::default();
     model.replies.insert("m".into(), Err("connection reset".into()));
     let error = request_prediction(&evidence, &model, "m", "2026-06-02T00:00:00.000Z").unwrap_err();
@@ -369,8 +367,7 @@ fn a_failed_model_call_or_invalid_reply_writes_nothing() {
 #[test]
 fn a_checked_prediction_is_written_as_one_agent_record() {
     let (_directory, mut store) = replay_database();
-    let evidence =
-        build_evidence(store.connection(), &EvidenceRequest::new("fran", "2026-06-02T00:00:00.000Z")).unwrap();
+    let evidence = build_evidence(&store, &EvidenceRequest::new("fran", "2026-06-02T00:00:00.000Z")).unwrap();
     let reply = "```json\n{\"predicted_score\":{\"duration_s\":280},\"predicted_range\":{\"low\":{\"duration_s\":270},\"high\":{\"duration_s\":290}},\"confidence\":\"moderate\",\"reasoning\":\"Anchored on the June result.\"}\n```";
     let model = FakeModel::answering("test-model", reply);
     let preview = request_prediction(&evidence, &model, "test-model", "2026-06-02T00:00:00.000Z").unwrap();
@@ -414,7 +411,7 @@ fn grading_creates_a_link_then_reuses_it_and_refuses_a_stale_plan() {
         created_at: Some("2026-07-02T00:00:00.000Z".into()),
     };
     let mut new_id = athleticstandard::ids::new_record_id;
-    let plan = plan_prediction_grade(store.connection(), &request, &mut new_id).unwrap();
+    let plan = plan_prediction_grade(&store, &request, &mut new_id).unwrap();
     let LinkAction::Create { record_id: link_id, .. } = plan.preview("file").prediction_result_link else {
         panic!("a first grade creates its link")
     };
@@ -422,7 +419,7 @@ fn grading_creates_a_link_then_reuses_it_and_refuses_a_stale_plan() {
     assert_eq!(written.link.record_id, link_id);
     assert_eq!(written.summary_line(), "hit — signed error -5, absolute error 1.7%");
 
-    let again = plan_prediction_grade(store.connection(), &request, &mut new_id).unwrap();
+    let again = plan_prediction_grade(&store, &request, &mut new_id).unwrap();
     assert!(matches!(again.preview("file").prediction_result_link, LinkAction::Reuse { revision: 1, .. }));
 
     let mut corrected = result(&id(0xb02), &id(0x103), &id(0x901), "2026-07-01T10:00:00.000Z", 301.0)["data"].clone();
@@ -438,19 +435,15 @@ fn grading_creates_a_link_then_reuses_it_and_refuses_a_stale_plan() {
 fn an_erased_evidence_reference_resolves_to_its_value_free_marker() {
     use athleticstandard::model::EvidenceReference;
     use athleticstandard::prediction::evidence::resolve_evidence_reference;
-    let (_directory, mut store) = replay_database();
-    store
-        .transaction(|tx| {
-            tx.execute(
-                "INSERT INTO record_erasure_markers (record_id, erased_at, reason_code) VALUES (?1, ?2, 'athlete_request')",
-                [id(0xa09), "2026-07-01T00:00:00.000Z".to_string()],
-            )?;
-            Ok(())
-        })
-        .unwrap();
-    let erased =
-        resolve_evidence_reference(store.connection(), &EvidenceReference { record_id: id(0xa09), revision: 1 })
-            .unwrap();
+    let (_directory, store) = replay_database();
+    write_directly(store.path(), |tx| {
+        tx.execute(
+            "INSERT INTO record_erasure_markers (record_id, erased_at, reason_code) VALUES (?1, ?2, 'athlete_request')",
+            [id(0xa09), "2026-07-01T00:00:00.000Z".to_string()],
+        )?;
+        Ok(())
+    });
+    let erased = resolve_evidence_reference(&store, &EvidenceReference { record_id: id(0xa09), revision: 1 }).unwrap();
     assert_eq!(
         json::encode(&erased),
         format!(
@@ -459,8 +452,7 @@ fn an_erased_evidence_reference_resolves_to_its_value_free_marker() {
         )
     );
     let available =
-        resolve_evidence_reference(store.connection(), &EvidenceReference { record_id: id(0xb01), revision: 1 })
-            .unwrap();
+        resolve_evidence_reference(&store, &EvidenceReference { record_id: id(0xb01), revision: 1 }).unwrap();
     assert_eq!(json::to_value(&available)["status"], "available");
 }
 

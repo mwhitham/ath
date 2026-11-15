@@ -16,7 +16,7 @@ use std::time::Instant;
 use athleticstandard::import::{self, ImportOptions};
 use athleticstandard::json;
 use athleticstandard::model::*;
-use import_support::{new_store, TempDir};
+use import_support::{direct, new_store, TempDir};
 
 fn write_export(path: &std::path::Path, samples: usize) {
     let mut out = std::io::BufWriter::new(std::fs::File::create(path).unwrap());
@@ -140,8 +140,7 @@ fn import_once(store: &mut athleticstandard::store::Store, export: &std::path::P
 
 /// Time one validation of a stored sample, as the sink and the write each do.
 fn measure_validation(store: &athleticstandard::store::Store) {
-    let (record_id, data_json, count): (String, String, i64) = store
-        .connection()
+    let (record_id, data_json, count): (String, String, i64) = direct(store.path())
         .query_row(
             "SELECT records.record_id, record_revisions.record_json,
                     (SELECT COUNT(*) FROM records)

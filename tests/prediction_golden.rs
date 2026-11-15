@@ -30,7 +30,7 @@ fn prediction_call(store: &mut Store, call: &str, input: &Value) -> Value {
     let mut new_id = athleticstandard::ids::new_record_id;
     match call {
         "evidence" => outcome(build_evidence(
-            store.connection(),
+            store,
             &EvidenceRequest {
                 benchmark: input["benchmark"].as_str().unwrap().into(),
                 as_of: input["as_of"].as_str().unwrap().into(),
@@ -40,17 +40,14 @@ fn prediction_call(store: &mut Store, call: &str, input: &Value) -> Value {
         )),
         "evidence-reference" => {
             let reference: EvidenceReference = serde_json::from_value(input.clone()).unwrap();
-            outcome(resolve_evidence_reference(store.connection(), &reference))
+            outcome(resolve_evidence_reference(store, &reference))
         }
         "grade-plan" => {
             let file = store.path().display().to_string();
-            outcome(
-                plan_prediction_grade(store.connection(), &grade_request(input), &mut new_id)
-                    .map(|plan| plan.preview(&file)),
-            )
+            outcome(plan_prediction_grade(store, &grade_request(input), &mut new_id).map(|plan| plan.preview(&file)))
         }
         "grade-write" => {
-            let plan = plan_prediction_grade(store.connection(), &grade_request(input), &mut new_id);
+            let plan = plan_prediction_grade(store, &grade_request(input), &mut new_id);
             outcome(plan.and_then(|plan| grade_prediction(store, &plan)).map(|written| {
                 object(vec![
                     (
@@ -94,7 +91,7 @@ fn prediction_call(store: &mut Store, call: &str, input: &Value) -> Value {
                     .collect(),
                 created_at: opt_string(input, "created_at"),
             };
-            let report = run_backtest(store.connection(), &options, &client);
+            let report = run_backtest(store, &options, &client);
             let requests = requests.into_inner();
             outcome(
                 report.map(|report| {

@@ -16,7 +16,7 @@ use athleticstandard::model::{RecordData, RecordType};
 use athleticstandard::runtime::garmin_pull;
 use athleticstandard::store::read::ListOptions;
 use athleticstandard::store::Store;
-use import_support::{baseline, new_store, TempDir};
+use import_support::{baseline, direct, new_store, TempDir};
 use route_support::exports;
 use route_support::keyed::{run_keyed_scenario, step_time, PersonalServer, PERSONAL_KEY};
 
@@ -122,7 +122,7 @@ fn a_deleted_garmin_workout_is_left_out() {
 fn shared_fixtures_match_the_retained_import_baseline() {
     let root = import_support::repository_root().join("tests/fixtures/import-baseline");
     let compare = |store: &Store, file: &str| {
-        let snapshot = baseline::read_snapshot(store.connection());
+        let snapshot = baseline::read_snapshot(&direct(store.path()));
         let expected = std::fs::read_to_string(root.join(file)).unwrap();
         assert_eq!(baseline::comparison_string(&snapshot, Some("field_basis")), expected, "{file}");
         let basis = std::fs::read_to_string(root.join("field-basis").join(file)).unwrap();
@@ -225,7 +225,7 @@ fn garmin_and_strava_imports_keep_their_meaning() {
         serde_json::json!({ "activity_type": "provider_label", "value": "provider" })
     );
     // Garmin and Strava stay two sources.
-    let sources: i64 = store.connection().query_row("SELECT COUNT(*) FROM sources", [], |row| row.get(0)).unwrap();
+    let sources: i64 = direct(store.path()).query_row("SELECT COUNT(*) FROM sources", [], |row| row.get(0)).unwrap();
     assert_eq!(sources, 2);
 }
 
@@ -303,7 +303,7 @@ fn a_pull_that_cannot_reach_garmin_names_the_request() {
     let message = error.to_string();
     assert!(message.starts_with("Garmin token request failed: "), "{message}");
     assert!(!message.contains(PERSONAL_KEY));
-    let records: i64 = store.connection().query_row("SELECT COUNT(*) FROM records", [], |row| row.get(0)).unwrap();
+    let records: i64 = direct(store.path()).query_row("SELECT COUNT(*) FROM records", [], |row| row.get(0)).unwrap();
     assert_eq!(records, 0);
 }
 
@@ -346,9 +346,8 @@ fn a_deleted_garmin_source_leaves_its_records_out() {
     let mut store = new_store(directory.path());
     let file = exports().join("garmin/park-loop.json");
     import_shared(&mut store, &file, SharedImport::Garmin, &step_time(0));
-    let source: String = store.connection().query_row("SELECT record_id FROM sources", [], |row| row.get(0)).unwrap();
-    let records: Vec<String> = store
-        .connection()
+    let source: String = direct(store.path()).query_row("SELECT record_id FROM sources", [], |row| row.get(0)).unwrap();
+    let records: Vec<String> = direct(store.path())
         .prepare("SELECT record_id FROM records WHERE record_type != 'source'")
         .unwrap()
         .query_map([], |row| row.get::<_, String>(0))
@@ -360,14 +359,14 @@ fn a_deleted_garmin_source_leaves_its_records_out() {
     }
     delete(&mut store, &source, &step_time(1));
     let records_before: i64 =
-        store.connection().query_row("SELECT COUNT(*) FROM records", [], |row| row.get(0)).unwrap();
+        direct(store.path()).query_row("SELECT COUNT(*) FROM records", [], |row| row.get(0)).unwrap();
     let other = directory.path().join("other.json");
     std::fs::write(&other, r#"{"activityId":"5","startTimeGMT":"2026-03-01T10:00:00Z"}"#).unwrap();
     let report = import_shared(&mut store, &other, SharedImport::Garmin, &step_time(2));
     assert_eq!(strings(&report, "left_out"), [format!("5: its source {source} is deleted")]);
     assert!(ids(&report).is_empty());
     let records_after: i64 =
-        store.connection().query_row("SELECT COUNT(*) FROM records", [], |row| row.get(0)).unwrap();
+        direct(store.path()).query_row("SELECT COUNT(*) FROM records", [], |row| row.get(0)).unwrap();
     assert_eq!(records_after, records_before);
 }
 

@@ -30,6 +30,7 @@ fn plan(connection: &Connection, sql: &str) -> Vec<String> {
 fn check_plans_read_by_key() {
     let path = copy_fixture(&demo_fixture(), "ath-check-plans-", false);
     let store = Store::open(&path, OpenOptions { read_only: true, allow_outdated_schema: true }).unwrap();
+    let connection = inspect(&path);
     let records =
         store.list_records(&ListOptions { include_deleted: true, limit: 1000, ..ListOptions::default() }).unwrap();
     let mut seen = std::collections::BTreeSet::new();
@@ -38,7 +39,7 @@ fn check_plans_read_by_key() {
             if !seen.insert(sql.clone()) {
                 continue;
             }
-            let steps = plan(store.connection(), &sql);
+            let steps = plan(&connection, &sql);
             let text = steps.join(" | ");
             // No statement sorts in a temporary B-tree.
             assert!(!text.contains("TEMP B-TREE"), "{sql}: {text}");
@@ -60,6 +61,7 @@ fn check_plans_read_by_key() {
 fn check_timing() {
     let Ok(path) = std::env::var("ATH_PERF_DATABASE") else { return };
     let store = Store::open(&path, OpenOptions { read_only: true, allow_outdated_schema: true }).unwrap();
+    let connection = inspect(std::path::Path::new(&path));
     let started = Instant::now();
     let result = check_database(&store).unwrap();
     let elapsed = started.elapsed();
@@ -74,7 +76,7 @@ fn check_timing() {
         ("records", athleticstandard::store::check::RECORDS_IN_ORDER),
         ("revisions", athleticstandard::store::check::REVISIONS_IN_ORDER),
     ] {
-        eprintln!("plan {label}: {}", plan(store.connection(), sql).join(" | "));
+        eprintln!("plan {label}: {}", plan(&connection, sql).join(" | "));
     }
     assert!(errors.is_empty(), "{errors:?}");
 }

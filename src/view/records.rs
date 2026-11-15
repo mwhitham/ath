@@ -103,7 +103,8 @@ const LINK_COLUMNS: &[(&str, &str, &str, &str, Option<&str>)] = &[
 
 /// Every incoming and outgoing link of a record, sorted by direction,
 /// relation, record ID, and revision.
-pub fn read_record_links(connection: &rusqlite::Connection, record_id: &str) -> Result<Vec<RecordLink>> {
+pub fn read_record_links(store: &Store, record_id: &str) -> Result<Vec<RecordLink>> {
+    let connection = store.connection();
     let mut links = Vec::new();
     for (table, owner, target, relation, revision_column) in LINK_COLUMNS {
         let revision_select = revision_column.map(|column| format!(", {column}")).unwrap_or_default();
@@ -206,7 +207,7 @@ pub fn show_record(store: &Store, id: &str, options: ShowOptions) -> Result<Reco
         ),
         None => None,
     };
-    let links = if options.links { Some(read_record_links(connection, id)?) } else { None };
+    let links = if options.links { Some(read_record_links(store, id)?) } else { None };
     Ok(RecordShow {
         file: store.path().display().to_string(),
         record,

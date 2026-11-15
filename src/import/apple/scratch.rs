@@ -76,7 +76,7 @@ impl Scratch {
         }
     }
 
-    pub fn connection(&self) -> &Connection {
+    pub(crate) fn connection(&self) -> &Connection {
         self.connection.as_ref().expect("scratch connection is open until drop")
     }
 

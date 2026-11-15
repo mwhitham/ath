@@ -69,6 +69,44 @@ pub struct CreateOptions {
     pub created_at: Option<String>,
 }
 
+/// One open database file.
+///
+/// The SQLite connection and its transactions stay inside this library (D223).
+/// Code outside the library reads and writes through the domain operations,
+/// such as [`Store::get_record`] and [`Store::apply`]. None of these compile
+/// outside the library:
+///
+/// ```compile_fail,E0624
+/// # fn main() -> athleticstandard::Result<()> {
+/// let store = athleticstandard::store::Store::open("athlete.ath.sqlite", Default::default())?;
+/// let _connection = store.connection();
+/// # Ok(())
+/// # }
+/// ```
+///
+/// ```compile_fail,E0624
+/// # fn main() -> athleticstandard::Result<()> {
+/// let mut store = athleticstandard::store::Store::open("athlete.ath.sqlite", Default::default())?;
+/// store.transaction(|_transaction| Ok(()))?;
+/// # Ok(())
+/// # }
+/// ```
+///
+/// ```compile_fail,E0624
+/// # fn main() -> athleticstandard::Result<()> {
+/// let mut store = athleticstandard::store::Store::open("athlete.ath.sqlite", Default::default())?;
+/// store.bulk_transaction(|_transaction| Ok(()))?;
+/// # Ok(())
+/// # }
+/// ```
+///
+/// ```compile_fail,E0624
+/// # fn main() -> athleticstandard::Result<()> {
+/// let mut store = athleticstandard::store::Store::open("athlete.ath.sqlite", Default::default())?;
+/// store.fresh_restore_transaction(|_transaction| Ok(()))?;
+/// # Ok(())
+/// # }
+/// ```
 pub struct Store {
     connection: Connection,
     path: PathBuf,
@@ -133,8 +171,9 @@ fn stopped_write(error: &Error) -> bool {
     )
 }
 
-/// Read and check `database_metadata`.
-pub fn read_metadata(connection: &Connection) -> Result<DatabaseMetadata> {
+/// Read and check `database_metadata`. Outside the library, use
+/// [`Store::metadata`].
+pub(crate) fn read_metadata(connection: &Connection) -> Result<DatabaseMetadata> {
     let mut statement = connection
         .prepare(
             "SELECT application_marker, sql_schema_version, athleticstandard_version, database_id, created_at
@@ -332,8 +371,9 @@ impl Store {
         self.read_only
     }
 
-    /// The connection, for read queries in other library modules.
-    pub fn connection(&self) -> &Connection {
+    /// The connection, for read queries in other library modules. It is not
+    /// public: no caller outside the library runs its own SQL on it (D223).
+    pub(crate) fn connection(&self) -> &Connection {
         &self.connection
     }
 
@@ -359,7 +399,10 @@ impl Store {
 
     /// Run a complete logical change in one write transaction. Foreign keys
     /// are deferred to commit, so related rows can be written in any order.
-    pub fn transaction<T>(&mut self, operation: impl FnOnce(&rusqlite::Transaction<'_>) -> Result<T>) -> Result<T> {
+    pub(crate) fn transaction<T>(
+        &mut self,
+        operation: impl FnOnce(&rusqlite::Transaction<'_>) -> Result<T>,
+    ) -> Result<T> {
         if self.read_only {
             return Err(Error::refused("This database was opened read-only"));
         }
@@ -382,7 +425,7 @@ impl Store {
     /// the pages that one statement changed, and SQLite empties it when the
     /// statement ends, so memory stays small. In a file, each inserted row
     /// cost several write calls. The earlier setting returns afterwards.
-    pub fn bulk_transaction<T>(
+    pub(crate) fn bulk_transaction<T>(
         &mut self,
         operation: impl FnOnce(&rusqlite::Transaction<'_>) -> Result<T>,
     ) -> Result<T> {
@@ -417,7 +460,7 @@ impl Store {
     ///
     /// The caller must check, inside the transaction, that the database is
     /// still the empty one it previewed.
-    pub fn fresh_restore_transaction<T>(
+    pub(crate) fn fresh_restore_transaction<T>(
         &mut self,
         operation: impl FnOnce(&rusqlite::Transaction<'_>) -> Result<T>,
     ) -> Result<T> {
@@ -504,7 +547,7 @@ impl Store {
     }
 }
 
-pub fn database_revision(connection: &Connection) -> Result<u64> {
+pub(crate) fn database_revision(connection: &Connection) -> Result<u64> {
     let revision: Option<i64> = connection
         .query_row("SELECT current_revision FROM database_state WHERE singleton_id = 1", [], |row| row.get(0))
         .optional()?;

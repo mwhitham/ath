@@ -57,16 +57,20 @@ pub fn migrated_demo_copy(directory: &Path) -> PathBuf {
 /// Apply every missing migration step without a backup. Test fixtures only.
 pub fn migrate_to_current(path: &Path) {
     let mut opened = Store::open(path, OpenOptions { read_only: false, allow_outdated_schema: true }).unwrap();
-    let from = opened.metadata().sql_schema_version;
-    opened
-        .transaction(|tx| {
-            for version in from + 1..=store::SQL_SCHEMA_VERSION {
-                store::migrate::apply_step(tx, version)?;
-            }
-            Ok(())
-        })
-        .unwrap();
+    store::migrate::apply_pending_without_backup(&mut opened).unwrap();
     opened.close().unwrap();
+}
+
+/// An independent read-write connection with the published direct-SQL
+/// recipe's settings. The library keeps its own connection private (D223).
+pub fn direct(path: &Path) -> rusqlite::Connection {
+    let connection = rusqlite::Connection::open_with_flags(
+        path,
+        rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE | rusqlite::OpenFlags::SQLITE_OPEN_NO_MUTEX,
+    )
+    .unwrap();
+    connection.execute_batch("PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;").unwrap();
+    connection
 }
 
 pub fn open(path: &Path) -> Store {

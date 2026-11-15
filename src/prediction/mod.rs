@@ -29,9 +29,8 @@ pub fn prediction_evidence(
     as_of: Option<&str>,
     time_zone: Option<&str>,
 ) -> Result<PredictionEvidence> {
-    let AsOfTime { as_of, time_zone } =
-        resolve_as_of_time(store.connection(), as_of, time_zone, crate::model::time::now_utc)?;
-    let mut evidence = build_evidence(store.connection(), &EvidenceRequest::new(benchmark, as_of))?;
+    let AsOfTime { as_of, time_zone } = resolve_as_of_time(store, as_of, time_zone, crate::model::time::now_utc)?;
+    let mut evidence = build_evidence(store, &EvidenceRequest::new(benchmark, as_of))?;
     evidence.calendar_time_zone = time_zone;
     Ok(evidence)
 }

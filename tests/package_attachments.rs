@@ -69,7 +69,7 @@ fn an_attachment_is_copied_and_linked_in_one_change() {
     assert_eq!(prepared[0].final_path, stored);
     assert_eq!(fs::read(&stored).unwrap(), fs::read(&source).unwrap());
     assert_eq!(attachment_files(&directory), [prepared[0].stored_name()]);
-    assert!(pending_file_operations(store.connection()).unwrap().is_empty());
+    assert!(store.pending_file_operations().unwrap().is_empty());
     let attachment = store.get_record(&prepared[0].record_id).unwrap().unwrap();
     assert_eq!(attachment.record_type(), RecordType::Attachment);
     #[cfg(unix)]
@@ -122,7 +122,7 @@ fn a_failed_change_removes_the_new_files() {
     };
     assert!(apply_with_attachments(&mut store, &prepared, stale).is_err());
     assert!(attachment_files(&directory).is_empty());
-    assert!(pending_file_operations(store.connection()).unwrap().is_empty());
+    assert!(store.pending_file_operations().unwrap().is_empty());
     assert_eq!(store.database_revision().unwrap(), 0);
 
     // A change that does not create the attachment record is refused first.
@@ -134,8 +134,7 @@ fn a_failed_change_removes_the_new_files() {
 }
 
 fn pend(store: &Store, operation_id: &str, kind: &str, relative_path: &str) {
-    store
-        .connection()
+    direct(store.path())
         .execute(
             "INSERT INTO internal_pending_file_operations (operation_id, operation_kind, relative_path, created_at)
              VALUES (?1, ?2, ?3, '2026-11-14T00:00:00.000Z')",
@@ -175,7 +174,7 @@ fn cleanup_removes_only_unreferenced_files_of_stopped_operations() {
     assert!(!attachments.join("01890f3e-0000-7000-8000-0000000000aa.png").exists());
     assert!(database.exists());
     let left: Vec<String> =
-        pending_file_operations(store.connection()).unwrap().into_iter().map(|entry| entry.operation_id).collect();
+        store.pending_file_operations().unwrap().into_iter().map(|entry| entry.operation_id).collect();
     assert_eq!(left, [running, "99999999-odd"]);
     common::remove_dir(&directory);
 }

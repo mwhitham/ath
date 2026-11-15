@@ -12,7 +12,7 @@ use athleticstandard::import::{self, ImportOptions};
 use athleticstandard::model::{CurrentRecord, ProviderScoreData, RecordData, RecordType};
 use athleticstandard::store::read::ListOptions;
 use athleticstandard::store::Store;
-use import_support::{baseline, new_store, TempDir};
+use import_support::{baseline, direct, new_store, TempDir};
 use route_support::{exports, run_provider_scenario};
 
 const RECEIVED_AT: &str = "2026-10-13T12:00:00.000Z";
@@ -33,10 +33,10 @@ fn records(store: &Store, record_type: RecordType) -> Vec<CurrentRecord> {
 }
 
 fn assert_database_valid(store: &Store) {
-    let integrity: String = store.connection().query_row("PRAGMA integrity_check", [], |row| row.get(0)).unwrap();
+    let integrity: String = direct(store.path()).query_row("PRAGMA integrity_check", [], |row| row.get(0)).unwrap();
     assert_eq!(integrity, "ok");
     let foreign: i64 =
-        store.connection().query_row("SELECT COUNT(*) FROM pragma_foreign_key_check", [], |row| row.get(0)).unwrap();
+        direct(store.path()).query_row("SELECT COUNT(*) FROM pragma_foreign_key_check", [], |row| row.get(0)).unwrap();
     assert_eq!(foreign, 0);
     for record in store.list_records(&ListOptions { record_type: None, include_deleted: true, limit: 10_000 }).unwrap()
     {
@@ -100,7 +100,7 @@ fn every_ring_fixture_matches_the_retained_import_baseline() {
         let directory = TempDir::new();
         let mut store = new_store(directory.path());
         import_path(&mut store, &exports().join(fixture));
-        let snapshot = baseline::read_snapshot(store.connection());
+        let snapshot = baseline::read_snapshot(&direct(store.path()));
         let root = import_support::repository_root().join("tests/fixtures/import-baseline");
         let expected = std::fs::read_to_string(root.join(file)).unwrap();
         assert_eq!(baseline::comparison_string(&snapshot, Some("field_basis")), expected, "{file}");
@@ -164,12 +164,10 @@ fn date_only_scores_keep_their_provider_day() {
     assert_eq!(sleep.input_timestamp.timestamp_text.as_deref(), Some("2026-08-09T06:08:00-07:00"));
     assert_eq!(sleep.provider_reporting_periods.as_ref().unwrap()[0].period_type.as_str(), "oura_sleep_day");
 
-    let source_id: String = store
-        .connection()
+    let source_id: String = direct(store.path())
         .query_row("SELECT record_id FROM sources WHERE data_writer = 'Oura'", [], |row| row.get(0))
         .unwrap();
-    let keys: Vec<String> = store
-        .connection()
+    let keys: Vec<String> = direct(store.path())
         .prepare("SELECT match_key FROM record_import_keys WHERE match_key_method = 'oura_csv/v1'")
         .unwrap()
         .query_map([], |row| row.get(0))
