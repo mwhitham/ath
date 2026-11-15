@@ -79,3 +79,5 @@ native/target/
 packages/npm/native/
 packages/npm/skills/
 packages/npm/pack-output/
+!native/tests/golden/routes/invented-refusal-athlete-maximum.json
+!packages/npm/schema/2.1.1/export-manifest.schema.json

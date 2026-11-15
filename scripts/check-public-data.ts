@@ -228,6 +228,14 @@ const approvedSyntheticFixtures = new Map<string, string>([
     "native/tests/vectors/model/ExportManifest.json",
     "b5924cfb50f77300ba95b55712973ad115957885462e6f70dd5f82ad6551c598",
   ],
+  [
+    "native/tests/golden/routes/invented-refusal-athlete-maximum.json",
+    "e1d945a461f9520d19c1fd68b3dd95f7b8c7ef041b6a2e0ced2f19df7533f67f",
+  ],
+  [
+    "packages/npm/schema/2.1.1/export-manifest.schema.json",
+    "3c8c9435f6786be3b35fe69d9565e0ca296b0ef924347f3c898cac65ef8b97ac",
+  ],
 ]);
 
 const requiredIgnoreRules = [

@@ -81,6 +81,7 @@ pub fn assert_parent_not_writable_by_others(path: &Path) -> Result<()> {
 
 /// Warnings for a database and its sidecars that other local users can read.
 pub fn readable_path_warnings(path: &Path) -> Vec<String> {
+    #[cfg_attr(not(unix), allow(unused_mut))]
     let mut warnings = Vec::new();
     #[cfg(unix)]
     {
@@ -162,6 +163,7 @@ pub fn create_private_dir_all(path: &Path) -> io::Result<()> {
 
 /// Create one new directory with owner-only permissions. It must not exist.
 pub fn create_private_dir(path: &Path) -> io::Result<()> {
+    #[cfg_attr(not(unix), allow(unused_mut))]
     let mut builder = fs::DirBuilder::new();
     #[cfg(unix)]
     {
