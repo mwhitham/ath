@@ -19,7 +19,7 @@ Not an app, not a coach, not medical advice.
 ## Roadmap
 
 What is being built is on the public project titled Roadmap:
-<https://github.com/users/mwhitham/projects>.
+<https://github.com/users/mwhitham/projects/3>.
 
 A new idea starts in Backlog. It is not chosen yet. The repository owner
 moves an idea to Up next when it should be built. Open a roadmap idea with

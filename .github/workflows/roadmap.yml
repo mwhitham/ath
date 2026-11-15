@@ -25,6 +25,7 @@ jobs:
       - name: Create the label, project, and columns
         env:
           ROADMAP_PROJECT_TOKEN: ${{ secrets.ROADMAP_PROJECT_TOKEN }}
+          ROADMAP_PROJECT_NUMBER: "3"
           REPO: ${{ github.repository }}
         run: node --experimental-strip-types scripts/roadmap-board.ts ensure
 
@@ -39,5 +40,6 @@ jobs:
       - name: Move the card
         env:
           ROADMAP_PROJECT_TOKEN: ${{ secrets.ROADMAP_PROJECT_TOKEN }}
+          ROADMAP_PROJECT_NUMBER: "3"
           REPO: ${{ github.repository }}
         run: node --experimental-strip-types scripts/roadmap-board.ts sync

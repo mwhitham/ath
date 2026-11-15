@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { cardAction, statusColumns } from "../scripts/roadmap-board.js";
+import { cardAction, projectNumber, statusColumns } from "../scripts/roadmap-board.js";
 
 const roadmap = { name: "roadmap" };
 
@@ -34,6 +34,15 @@ describe("roadmap card moves", () => {
       const plan = cardAction({ action, label: roadmap, issue: { labels: [roadmap] } });
       expect(plan.kind === "ignore" || plan.status === "Backlog" || plan.status === "Done").toBe(true);
     }
+  });
+});
+
+describe("roadmap project number", () => {
+  it("uses project 3 unless another number is set", () => {
+    expect(projectNumber(undefined)).toBe(3);
+    expect(projectNumber("")).toBe(3);
+    expect(projectNumber("3")).toBe(3);
+    expect(() => projectNumber("0")).toThrow(/positive integer/);
   });
 });
 

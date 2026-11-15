@@ -163,23 +163,39 @@ async function loadOwner(token: string, owner: string, name: string): Promise<Ow
   return data;
 }
 
-function chooseProject(projects: ProjectNode[], repo: string): ProjectNode | null {
-  const named = projects.filter((project) => project.title === "Roadmap");
-  const linked = (project: ProjectNode) => project.repositories.nodes.some((repository) => repository.nameWithOwner === repo);
-  return named.find(linked) ?? named.find((project) => project.repositories.nodes.length === 0) ?? null;
+/** The live board. Override with ROADMAP_PROJECT_NUMBER. */
+export function projectNumber(raw: string | undefined): number {
+  const value = raw === undefined || raw === "" ? "3" : raw;
+  if (!/^[1-9]\d*$/.test(value)) throw new Error("ROADMAP_PROJECT_NUMBER must be a positive integer.");
+  return Number(value);
 }
 
-async function createProject(token: string, ownerId: string, repositoryId: string): Promise<{ id: string; url: string }> {
-  const data = await graphql<{ createProjectV2: { projectV2: { id: string; url: string } } }>(
-    token,
-    `mutation($ownerId: ID!, $repositoryId: ID!) {
-      createProjectV2(input: { ownerId: $ownerId, title: "Roadmap", repositoryId: $repositoryId }) {
-        projectV2 { id url }
-      }
-    }`,
-    { ownerId, repositoryId },
-  );
-  return data.createProjectV2.projectV2;
+async function loadProjectByNumber(token: string, owner: string, number: number): Promise<ProjectNode> {
+  try {
+    const data = await graphql<{ user: { projectV2: ProjectNode | null } | null }>(
+      token,
+      `query($owner: String!, $number: Int!) {
+        user(login: $owner) {
+          projectV2(number: $number) {
+            id
+            number
+            title
+            url
+            repositories(first: 20) { nodes { nameWithOwner } }
+          }
+        }
+      }`,
+      { owner, number },
+    );
+    const project = data.user?.projectV2;
+    if (!project) throw new Error(`Project ${number} was not found.`);
+    return project;
+  } catch (error) {
+    if (error instanceof Error && /Could not resolve|not found/i.test(error.message)) {
+      throw new Error(`Project ${number} was not found for ${owner}. The token must belong to the repository owner.`);
+    }
+    throw error;
+  }
 }
 
 async function publishProject(token: string, projectId: string): Promise<void> {
@@ -344,20 +360,10 @@ async function ensure(): Promise<void> {
   const { owner, name, repo } = repositoryParts();
   await ensureLabel(token, repo);
   const context = await loadOwner(token, owner, name);
-  let project = chooseProject(context.user?.projectsV2.nodes ?? [], repo);
-  const created = !project;
-  if (!project) {
-    if (!context.repository) throw new Error("The repository was not found.");
-    project = {
-      ...(await createProject(token, context.viewer.id, context.repository.id)),
-      number: 0,
-      title: "Roadmap",
-      repositories: { nodes: [] },
-    };
-  }
+  const project = await loadProjectByNumber(token, owner, projectNumber(process.env.ROADMAP_PROJECT_NUMBER));
   await publishProject(token, project.id);
   if (!context.repository) throw new Error("The repository was not found.");
-  const linked = !created && project.repositories.nodes.some((repository) => repository.nameWithOwner === repo);
+  const linked = project.repositories.nodes.some((repository) => repository.nameWithOwner === repo);
   await linkRepository(token, project.id, context.repository.id, linked);
   const status = await loadStatus(token, project.id);
   await writeStatus(token, status.field);
@@ -380,11 +386,7 @@ async function sync(): Promise<void> {
   if (!issueId) throw new Error("The issue event has no node id.");
   const { owner, name, repo } = repositoryParts();
   const context = await loadOwner(token, owner, name);
-  const project = chooseProject(context.user?.projectsV2.nodes ?? [], repo);
-  if (!project) {
-    console.error("No Roadmap project is linked to this repository. Run the Roadmap workflow from the Actions tab.");
-    return;
-  }
+  const project = await loadProjectByNumber(token, owner, projectNumber(process.env.ROADMAP_PROJECT_NUMBER));
   const status = await loadStatus(token, project.id);
   let item = await itemOnProject(token, issueId, project.id);
   const created = !item;
