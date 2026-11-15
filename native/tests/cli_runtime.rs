@@ -1,7 +1,7 @@
 //! Shared command behavior, run in-process: database discovery (S10–S13),
 //! migration on open (S15), read-only open (S16), `ath init` before
 //! creation, the bare guide, and commands that are not connected yet.
-#![cfg_attr(not(unix), allow(unused_imports, dead_code))]
+#![cfg_attr(not(unix), allow(unused))]
 
 mod common;
 

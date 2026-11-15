@@ -1,6 +1,6 @@
 //! Package restore, merge, conflicts, and input safety.
 //! Ported from tests/v1-export-import.test.ts and tests/v1-package-safety.test.ts.
-#![cfg_attr(not(unix), allow(unused_imports, dead_code))]
+#![cfg_attr(not(unix), allow(unused))]
 
 #[path = "package_support/mod.rs"]
 mod common;

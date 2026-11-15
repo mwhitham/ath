@@ -3,7 +3,7 @@
 //!
 //! The attachment media-type check in that file belongs to attachment import,
 //! not provider import, and is not covered here.
-#![cfg_attr(not(unix), allow(unused_imports, dead_code))]
+#![cfg_attr(not(unix), allow(unused))]
 
 mod import_support;
 

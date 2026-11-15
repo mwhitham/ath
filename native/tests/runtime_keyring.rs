@@ -3,7 +3,7 @@
 //! against fake `security`, `secret-tool`, and `powershell` programs under a
 //! temporary directory and a test service name. No test reads or changes the
 //! real password store.
-#![cfg_attr(not(unix), allow(unused_imports, dead_code))]
+#![cfg_attr(not(unix), allow(unused))]
 
 use athleticstandard::runtime::keyring::{
     describe_cleared, describe_key_status, missing_store_message, parse_gateway, read_secret, Gateway, KeyAccount,

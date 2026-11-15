@@ -1,7 +1,7 @@
 //! Attachment ingestion for `ath log` and `ath correct`, and cleanup of file
 //! changes that an earlier operation left pending.
 //! Ported from the attachment cases of tests/v1-cli-writes.test.ts.
-#![cfg_attr(not(unix), allow(unused_imports, dead_code))]
+#![cfg_attr(not(unix), allow(unused))]
 
 #[path = "package_support/mod.rs"]
 mod common;

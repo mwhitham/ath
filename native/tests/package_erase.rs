@@ -1,7 +1,7 @@
 //! Privacy erasure: dependency closure, value-free markers, and attachment
 //! file removal with recoverable cleanup.
 //! Ported from the erasure case of tests/v1-cli-writes.test.ts.
-#![cfg_attr(not(unix), allow(unused_imports, dead_code))]
+#![cfg_attr(not(unix), allow(unused))]
 
 #[path = "package_support/mod.rs"]
 mod common;

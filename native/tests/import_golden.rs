@@ -7,7 +7,7 @@
 //! keys. Record IDs are compared through labels built from match keys. The only
 //! other normalization is the tool version in `changed_by`, which names the
 //! program version that wrote the revision.
-#![cfg_attr(not(unix), allow(unused_imports, dead_code))]
+#![cfg_attr(not(unix), allow(unused))]
 
 mod import_support;
 

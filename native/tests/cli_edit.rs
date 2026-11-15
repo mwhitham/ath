@@ -1,6 +1,6 @@
 //! `ath correct`, `ath delete`, and `ath link`, run in-process: previews,
 //! confirmations, writes, and refusals (command-behavior.md S9–S20).
-#![cfg_attr(not(unix), allow(unused_imports, dead_code))]
+#![cfg_attr(not(unix), allow(unused))]
 
 mod common;
 
