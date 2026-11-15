@@ -224,3 +224,43 @@ Rejected alternatives:
   folder (spec section 5).
 - Delete them once the comparison passes. Rejected because they record why the
   native behavior is what it is.
+
+## D219. One Cargo test generates and checks every generated file
+
+`tests/generated.rs` builds the JSON Schema files, the npm protocol module, the
+skill's command reference, and the demo database from the Rust sources.
+`cargo test` fails when a committed copy differs. With
+`ATH_WRITE_GENERATED=1` the same test writes the files. It refuses to write a
+published historical schema, `spec/sql/`, build history, or `tests/fixtures/`.
+
+The command reference is the help that `ath <command> --help` prints, rendered
+from the command table. The demo database is written by the native store from
+the fixed IDs, times, and records of the 2.1.0 demo, and a test requires every
+athlete table to equal the 2.1.0 demo's. The 2.1.0 demo stays unchanged in
+`tests/fixtures/version-2-1-0/`, because the comparison tests replay 2.1.0
+behavior on it. A database is compared by its schema and rows when its bytes
+differ, so another SQLite build's page layout does not fail the check.
+
+Rejected alternatives:
+
+- A separate generator program beside a check program. Rejected because two
+  entry points can disagree about which files are generated.
+- Render the reference from Clap's own help. Rejected because the program
+  prints Commander-style help from the command table, and the reference must
+  be the text a person sees.
+- Regenerate the 2.1.0 demo in place. Rejected because tests that compare with
+  2.1.0 need the database 2.1.0 wrote.
+
+## D220. The npm package keeps its own npm lockfile
+
+`packages/npm/` installs its dependencies with `npm ci` from its own
+`package-lock.json`. Its type check and tests run from that folder. Release
+packing copies the repository's committed schema and skill into the tarball,
+so the repository holds one copy of each.
+
+Rejected alternatives:
+
+- Keep a root pnpm workspace. Rejected because the repository root is now the
+  Rust package, and a Node workspace there would serve one folder.
+- Use pnpm inside the package. Rejected because npm ships with Node, and the
+  release jobs already use it to pack and install the tarball.

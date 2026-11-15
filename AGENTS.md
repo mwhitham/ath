@@ -28,7 +28,7 @@ Read these before making decisions — they are the project's memory and outrank
 
 For v1 storage, IDs, revisions, import behavior, and final schema names, D82–D105 supersede the relevant
 parts of D4, D25, D36, D40, D43, D48, D62, D64, and D65. The old decisions still
-describe released 0.x behavior. D208–D218 record the native rebuild; D210 replaces
+describe released 0.x behavior. D208–D220 record the native rebuild; D210 replaces
 D83's native use of Zod and D93's local libSQL adapter.
 
 ## Hard rules
