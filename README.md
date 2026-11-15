@@ -68,7 +68,9 @@ A database from version 1.0.0, 2.0.0, or 2.1.0 upgrades with `ath migrate`. The
 command shows a preview first. It makes a verified backup with SQLite's own backup
 interface before the first schema write. Opening a database never migrates it without
 confirmation. To go back, restore the backup; it does not contain work recorded after
-it was made.
+it was made. [`docs/upgrading-to-2-1-1.md`](docs/upgrading-to-2-1-1.md) lists what
+2.1.1 changes for a database, the command line, an installation, and JavaScript
+callers.
 
 When typed-table columns disagree with the current revision in meaning (for example
 after direct SQL edits), run `ath repair -y --from-revision
