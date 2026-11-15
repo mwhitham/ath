@@ -377,6 +377,23 @@ impl Store {
         &self.connection
     }
 
+    /// Run a read that makes several queries inside one read transaction, so
+    /// every query sees the same committed state. A write that commits during
+    /// the read is not seen. Inside a transaction that is already open, the
+    /// read joins it.
+    pub(crate) fn read_snapshot<T>(&self, read: impl FnOnce() -> Result<T>) -> Result<T> {
+        if !self.connection.is_autocommit() {
+            return read();
+        }
+        self.connection.execute_batch("BEGIN DEFERRED")?;
+        let result = read();
+        // End the read transaction whether or not the read succeeded.
+        let ended = self.connection.execute_batch("ROLLBACK");
+        let value = result?;
+        ended?;
+        Ok(value)
+    }
+
     /// The monotonic database revision.
     pub fn database_revision(&self) -> Result<u64> {
         database_revision(&self.connection)

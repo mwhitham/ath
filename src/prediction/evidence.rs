@@ -133,106 +133,111 @@ const EVIDENCE_TYPES: &[RecordType] = &[
 
 /// Build evidence for one benchmark at a cut-off.
 pub fn build_evidence(store: &Store, request: &EvidenceRequest) -> Result<PredictionEvidence> {
-    let as_of = parse_utc_timestamp(&request.as_of)?;
-    let limit = request.limit.unwrap_or(DEFAULT_EVIDENCE_LIMIT);
-    let window_days = request.window_days.unwrap_or(DEFAULT_WINDOW_DAYS);
-    if !(1..=3_650).contains(&window_days) {
-        return Err(Error::other("Evidence window must be between 1 and 3650 days"));
-    }
-    let records = query_records_as_of(
-        store.connection(),
-        &AsOfQuery { as_of: as_of.clone(), record_types: EVIDENCE_TYPES.to_vec(), limit: Some(limit) },
-    )?;
-    let Some(benchmark) = records
-        .iter()
-        .find(|record| {
-            benchmark_key(record).is_some_and(|key| record.record_id == request.benchmark || key == request.benchmark)
-        })
-        .cloned()
-    else {
-        let mut available: Vec<&str> = records.iter().filter_map(benchmark_key).collect();
-        available.sort_unstable();
-        let available = if available.is_empty() { "none".to_string() } else { available.join(", ") };
-        return Err(Error::not_found(format!(
-            "no benchmark '{}' was visible at {as_of}. Available: {available}",
-            request.benchmark
-        )));
-    };
-
-    let manual_sources: std::collections::HashSet<&str> = records
-        .iter()
-        .filter(|record| matches!(&record.data, RecordData::Source(data) if data.source_type == SourceType::Manual))
-        .map(|record| record.record_id.as_str())
-        .collect();
-    let as_of_millis = js_date_parse(&as_of).unwrap_or_default();
-    let window_start = as_of_millis - i64::from(window_days) * 86_400_000;
-    let visible_by_event = |record: &CurrentRecord| event_at(record).is_none_or(|at| at <= as_of.as_str());
-    let within_window = |record: &CurrentRecord| {
-        event_at(record)
-            .is_some_and(|at| at <= as_of.as_str() && js_date_parse(at).is_some_and(|millis| millis >= window_start))
-    };
-    let of_type = |record_type: RecordType| records.iter().filter(move |record| record.record_type() == record_type);
-    let mut device_measurements: Vec<CurrentRecord> = of_type(RecordType::PointMeasurement)
-        .filter(|record| visible_by_event(record) && within_window(record))
-        .filter(|record| !record.data.source_id().is_some_and(|source| manual_sources.contains(source)))
-        .cloned()
-        .collect();
-    let windowed = |record_type: RecordType| -> Vec<CurrentRecord> {
-        of_type(record_type).filter(|record| within_window(record)).cloned().collect()
-    };
-    let mut athlete_reports = windowed(RecordType::AthleteReport);
-    let mut sleep_sessions = windowed(RecordType::SleepSession);
-    let mut workout_sessions = windowed(RecordType::WorkoutSession);
-    let for_benchmark = |record_type: RecordType| -> Vec<CurrentRecord> {
-        of_type(record_type)
-            .filter(|record| benchmark_id(record) == Some(benchmark.record_id.as_str()) && visible_by_event(record))
+    store.read_snapshot(|| {
+        let as_of = parse_utc_timestamp(&request.as_of)?;
+        let limit = request.limit.unwrap_or(DEFAULT_EVIDENCE_LIMIT);
+        let window_days = request.window_days.unwrap_or(DEFAULT_WINDOW_DAYS);
+        if !(1..=3_650).contains(&window_days) {
+            return Err(Error::other("Evidence window must be between 1 and 3650 days"));
+        }
+        let records = query_records_as_of(
+            store.connection(),
+            &AsOfQuery { as_of: as_of.clone(), record_types: EVIDENCE_TYPES.to_vec(), limit: Some(limit) },
+        )?;
+        let Some(benchmark) = records
+            .iter()
+            .find(|record| {
+                benchmark_key(record)
+                    .is_some_and(|key| record.record_id == request.benchmark || key == request.benchmark)
+            })
             .cloned()
-            .collect()
-    };
-    let mut prior_results = for_benchmark(RecordType::BenchmarkResult);
-    let mut prior_predictions = for_benchmark(RecordType::Prediction);
+        else {
+            let mut available: Vec<&str> = records.iter().filter_map(benchmark_key).collect();
+            available.sort_unstable();
+            let available = if available.is_empty() { "none".to_string() } else { available.join(", ") };
+            return Err(Error::not_found(format!(
+                "no benchmark '{}' was visible at {as_of}. Available: {available}",
+                request.benchmark
+            )));
+        };
 
-    let mut gaps = Vec::new();
-    if prior_results.is_empty() {
-        gaps.push("No earlier result exists for this benchmark.".to_string());
-    }
-    if device_measurements.is_empty() {
-        gaps.push(format!("No device point measurements exist in the prior {window_days} days."));
-    }
-    if sleep_sessions.is_empty() {
-        gaps.push(format!("No recorded sleep session exists in the prior {window_days} days."));
-    }
-    if records.len() == limit as usize {
-        gaps.push(format!("Evidence reached the {limit}-record query limit."));
-    }
-    for list in [
-        &mut prior_results,
-        &mut device_measurements,
-        &mut athlete_reports,
-        &mut sleep_sessions,
-        &mut workout_sessions,
-        &mut prior_predictions,
-    ] {
-        list.sort_by(|left, right| {
-            event_at(left)
-                .unwrap_or("")
-                .cmp(event_at(right).unwrap_or(""))
-                .then_with(|| left.record_id.cmp(&right.record_id))
-        });
-    }
-    Ok(PredictionEvidence {
-        purpose: "prediction_evidence",
-        is_prediction: false,
-        as_of,
-        benchmark,
-        prior_results,
-        device_measurements,
-        athlete_reports,
-        sleep_sessions,
-        workout_sessions,
-        prior_predictions,
-        gaps,
-        calendar_time_zone: None,
+        let manual_sources: std::collections::HashSet<&str> = records
+            .iter()
+            .filter(|record| matches!(&record.data, RecordData::Source(data) if data.source_type == SourceType::Manual))
+            .map(|record| record.record_id.as_str())
+            .collect();
+        let as_of_millis = js_date_parse(&as_of).unwrap_or_default();
+        let window_start = as_of_millis - i64::from(window_days) * 86_400_000;
+        let visible_by_event = |record: &CurrentRecord| event_at(record).is_none_or(|at| at <= as_of.as_str());
+        let within_window = |record: &CurrentRecord| {
+            event_at(record).is_some_and(|at| {
+                at <= as_of.as_str() && js_date_parse(at).is_some_and(|millis| millis >= window_start)
+            })
+        };
+        let of_type =
+            |record_type: RecordType| records.iter().filter(move |record| record.record_type() == record_type);
+        let mut device_measurements: Vec<CurrentRecord> = of_type(RecordType::PointMeasurement)
+            .filter(|record| visible_by_event(record) && within_window(record))
+            .filter(|record| !record.data.source_id().is_some_and(|source| manual_sources.contains(source)))
+            .cloned()
+            .collect();
+        let windowed = |record_type: RecordType| -> Vec<CurrentRecord> {
+            of_type(record_type).filter(|record| within_window(record)).cloned().collect()
+        };
+        let mut athlete_reports = windowed(RecordType::AthleteReport);
+        let mut sleep_sessions = windowed(RecordType::SleepSession);
+        let mut workout_sessions = windowed(RecordType::WorkoutSession);
+        let for_benchmark = |record_type: RecordType| -> Vec<CurrentRecord> {
+            of_type(record_type)
+                .filter(|record| benchmark_id(record) == Some(benchmark.record_id.as_str()) && visible_by_event(record))
+                .cloned()
+                .collect()
+        };
+        let mut prior_results = for_benchmark(RecordType::BenchmarkResult);
+        let mut prior_predictions = for_benchmark(RecordType::Prediction);
+
+        let mut gaps = Vec::new();
+        if prior_results.is_empty() {
+            gaps.push("No earlier result exists for this benchmark.".to_string());
+        }
+        if device_measurements.is_empty() {
+            gaps.push(format!("No device point measurements exist in the prior {window_days} days."));
+        }
+        if sleep_sessions.is_empty() {
+            gaps.push(format!("No recorded sleep session exists in the prior {window_days} days."));
+        }
+        if records.len() == limit as usize {
+            gaps.push(format!("Evidence reached the {limit}-record query limit."));
+        }
+        for list in [
+            &mut prior_results,
+            &mut device_measurements,
+            &mut athlete_reports,
+            &mut sleep_sessions,
+            &mut workout_sessions,
+            &mut prior_predictions,
+        ] {
+            list.sort_by(|left, right| {
+                event_at(left)
+                    .unwrap_or("")
+                    .cmp(event_at(right).unwrap_or(""))
+                    .then_with(|| left.record_id.cmp(&right.record_id))
+            });
+        }
+        Ok(PredictionEvidence {
+            purpose: "prediction_evidence",
+            is_prediction: false,
+            as_of,
+            benchmark,
+            prior_results,
+            device_measurements,
+            athlete_reports,
+            sleep_sessions,
+            workout_sessions,
+            prior_predictions,
+            gaps,
+            calendar_time_zone: None,
+        })
     })
 }
 
@@ -260,28 +265,30 @@ fn serialize_revision<S: serde::Serializer>(revision: &RecordRevision, serialize
 
 /// Resolve an evidence reference: the exact revision, an erasure marker, or missing.
 pub fn resolve_evidence_reference(store: &Store, reference: &EvidenceReference) -> Result<EvidenceReferenceResolution> {
-    let connection = store.connection();
-    EvidenceReference::schema().validate(&crate::json::to_value(reference))?;
-    let erased: Option<(String, String, String)> = connection
-        .query_row(
-            "SELECT record_id, erased_at, reason_code FROM record_erasure_markers WHERE record_id = ?1",
-            [&reference.record_id],
-            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
-        )
-        .optional()?;
-    if let Some((record_id, erased_at, reason_code)) = erased {
-        let mut marker = crate::json::Map::new();
-        marker.insert("record_id".into(), Value::String(record_id));
-        marker.insert("erased_at".into(), Value::String(erased_at));
-        marker.insert("reason_code".into(), Value::String(reason_code));
-        let marker = Value::Object(marker);
-        RecordErasureMarker::schema().validate(&marker)?;
-        let erasure_marker: RecordErasureMarker =
-            serde_json::from_value(marker).map_err(|error| Error::other(error.to_string()))?;
-        return Ok(EvidenceReferenceResolution::Erased { reference: reference.clone(), erasure_marker });
-    }
-    match read::revision(connection, &reference.record_id, reference.revision)? {
-        Some(revision) => Ok(EvidenceReferenceResolution::Available { reference: reference.clone(), revision }),
-        None => Ok(EvidenceReferenceResolution::Missing { reference: reference.clone() }),
-    }
+    store.read_snapshot(|| {
+        let connection = store.connection();
+        EvidenceReference::schema().validate(&crate::json::to_value(reference))?;
+        let erased: Option<(String, String, String)> = connection
+            .query_row(
+                "SELECT record_id, erased_at, reason_code FROM record_erasure_markers WHERE record_id = ?1",
+                [&reference.record_id],
+                |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?)),
+            )
+            .optional()?;
+        if let Some((record_id, erased_at, reason_code)) = erased {
+            let mut marker = crate::json::Map::new();
+            marker.insert("record_id".into(), Value::String(record_id));
+            marker.insert("erased_at".into(), Value::String(erased_at));
+            marker.insert("reason_code".into(), Value::String(reason_code));
+            let marker = Value::Object(marker);
+            RecordErasureMarker::schema().validate(&marker)?;
+            let erasure_marker: RecordErasureMarker =
+                serde_json::from_value(marker).map_err(|error| Error::other(error.to_string()))?;
+            return Ok(EvidenceReferenceResolution::Erased { reference: reference.clone(), erasure_marker });
+        }
+        match read::revision(connection, &reference.record_id, reference.revision)? {
+            Some(revision) => Ok(EvidenceReferenceResolution::Available { reference: reference.clone(), revision }),
+            None => Ok(EvidenceReferenceResolution::Missing { reference: reference.clone() }),
+        }
+    })
 }

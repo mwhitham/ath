@@ -745,6 +745,7 @@ fn read_inputs(
         })?
         .collect::<std::result::Result<Vec<_>, _>>()?;
     refuse_too_many(rows.len())?;
+    crate::package::failpoint!("calculate.after_inputs");
     Ok(rows)
 }
 

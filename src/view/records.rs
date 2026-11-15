@@ -104,38 +104,42 @@ const LINK_COLUMNS: &[(&str, &str, &str, &str, Option<&str>)] = &[
 /// Every incoming and outgoing link of a record, sorted by direction,
 /// relation, record ID, and revision.
 pub fn read_record_links(store: &Store, record_id: &str) -> Result<Vec<RecordLink>> {
-    let connection = store.connection();
-    let mut links = Vec::new();
-    for (table, owner, target, relation, revision_column) in LINK_COLUMNS {
-        let revision_select = revision_column.map(|column| format!(", {column}")).unwrap_or_default();
-        for (direction, sql) in [
-            (
-                LinkDirection::Outgoing,
-                format!("SELECT {target}{revision_select} FROM {table} WHERE {owner} = ?1 AND {target} IS NOT NULL"),
-            ),
-            (LinkDirection::Incoming, format!("SELECT {owner}{revision_select} FROM {table} WHERE {target} = ?1")),
-        ] {
-            let mut statement = connection.prepare_cached(&sql)?;
-            let mut rows = statement.query([record_id])?;
-            while let Some(row) = rows.next()? {
-                let linked: String = row.get(0)?;
-                let revision = if revision_column.is_some() {
-                    Some(row.get::<_, Option<i64>>(1)?.unwrap_or(0) as u64)
-                } else {
-                    None
-                };
-                links.push(RecordLink { direction, relation, record_id: linked, revision });
+    store.read_snapshot(|| {
+        let connection = store.connection();
+        let mut links = Vec::new();
+        for (table, owner, target, relation, revision_column) in LINK_COLUMNS {
+            let revision_select = revision_column.map(|column| format!(", {column}")).unwrap_or_default();
+            for (direction, sql) in [
+                (
+                    LinkDirection::Outgoing,
+                    format!(
+                        "SELECT {target}{revision_select} FROM {table} WHERE {owner} = ?1 AND {target} IS NOT NULL"
+                    ),
+                ),
+                (LinkDirection::Incoming, format!("SELECT {owner}{revision_select} FROM {table} WHERE {target} = ?1")),
+            ] {
+                let mut statement = connection.prepare_cached(&sql)?;
+                let mut rows = statement.query([record_id])?;
+                while let Some(row) = rows.next()? {
+                    let linked: String = row.get(0)?;
+                    let revision = if revision_column.is_some() {
+                        Some(row.get::<_, Option<i64>>(1)?.unwrap_or(0) as u64)
+                    } else {
+                        None
+                    };
+                    links.push(RecordLink { direction, relation, record_id: linked, revision });
+                }
             }
         }
-    }
-    links.sort_by(|left, right| {
-        left.direction
-            .cmp(&right.direction)
-            .then_with(|| left.relation.cmp(right.relation))
-            .then_with(|| left.record_id.cmp(&right.record_id))
-            .then_with(|| left.revision.unwrap_or(0).cmp(&right.revision.unwrap_or(0)))
-    });
-    Ok(links)
+        links.sort_by(|left, right| {
+            left.direction
+                .cmp(&right.direction)
+                .then_with(|| left.relation.cmp(right.relation))
+                .then_with(|| left.record_id.cmp(&right.record_id))
+                .then_with(|| left.revision.unwrap_or(0).cmp(&right.revision.unwrap_or(0)))
+        });
+        Ok(links)
+    })
 }
 
 /// The `ath records list --json` object.
@@ -186,34 +190,36 @@ pub fn checked_record_id(text: &str) -> Result<()> {
 
 /// Show one record, including a deleted one.
 pub fn show_record(store: &Store, id: &str, options: ShowOptions) -> Result<RecordShow> {
-    checked_record_id(id)?;
-    let connection = store.connection();
-    let record =
-        read::get_record(connection, id)?.ok_or_else(|| Error::not_found(format!("record not found: {id}")))?;
-    let revisions =
-        if options.revision.is_some() || options.history { Some(read::revisions(connection, id)?) } else { None };
-    let shown_revision = match options.revision {
-        Some(number) => Some(
-            revisions
-                .as_ref()
-                .and_then(|all| all.iter().find(|revision| revision.revision == number))
-                .cloned()
-                .ok_or_else(|| {
-                    Error::not_found(format!(
-                        "record {id} has no revision {number}; current revision is {}",
-                        record.current_revision
-                    ))
-                })?,
-        ),
-        None => None,
-    };
-    let links = if options.links { Some(read_record_links(store, id)?) } else { None };
-    Ok(RecordShow {
-        file: store.path().display().to_string(),
-        record,
-        shown_revision,
-        history: if options.history { revisions } else { None },
-        links,
+    store.read_snapshot(|| {
+        checked_record_id(id)?;
+        let connection = store.connection();
+        let record =
+            read::get_record(connection, id)?.ok_or_else(|| Error::not_found(format!("record not found: {id}")))?;
+        let revisions =
+            if options.revision.is_some() || options.history { Some(read::revisions(connection, id)?) } else { None };
+        let shown_revision = match options.revision {
+            Some(number) => Some(
+                revisions
+                    .as_ref()
+                    .and_then(|all| all.iter().find(|revision| revision.revision == number))
+                    .cloned()
+                    .ok_or_else(|| {
+                        Error::not_found(format!(
+                            "record {id} has no revision {number}; current revision is {}",
+                            record.current_revision
+                        ))
+                    })?,
+            ),
+            None => None,
+        };
+        let links = if options.links { Some(read_record_links(store, id)?) } else { None };
+        Ok(RecordShow {
+            file: store.path().display().to_string(),
+            record,
+            shown_revision,
+            history: if options.history { revisions } else { None },
+            links,
+        })
     })
 }
 

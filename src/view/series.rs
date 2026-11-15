@@ -79,73 +79,80 @@ struct DayGroup {
 
 /// Read a series view.
 pub fn read_series_view(store: &Store, quantity: SeriesQuantity, options: &SeriesViewOptions) -> Result<SeriesView> {
-    let connection = store.connection();
-    let range = resolve_calendar_range(
-        store,
-        &CalendarRangeRequest {
-            from: options.from.clone(),
-            to: options.to.clone(),
-            time_zone: options.time_zone.clone(),
-            raw: options.raw,
-        },
-    )?;
-    let limit = options.limit.unwrap_or(DEFAULT_SERIES_LIMIT);
-    let mut query = SeriesQuery::new(quantity);
-    query.range = TimeRange { from: range.from.clone(), to: range.to.clone() };
-    query.source_id = options.source_id.clone();
-    query.limit = Some(limit);
-    let records = query_series(connection, &query)?;
-    let truncated = records.len() == limit as usize;
-    let mut view = SeriesView {
-        quantity: quantity.as_str(),
-        unit: quantity.unit(),
-        time_zone: range.time_zone.clone(),
-        from: range.from,
-        to: range.to,
-        source_id: options.source_id.clone(),
-        truncated,
-        samples: None,
-        days: None,
-    };
-    if options.raw {
-        view.samples = Some(records);
-        return Ok(view);
-    }
-    let time_zone = range.time_zone.unwrap_or_default();
-    let mut groups: Vec<DayGroup> = Vec::new();
-    let mut index: std::collections::HashMap<(String, String), usize> = std::collections::HashMap::new();
-    for record in &records {
-        let RecordData::MeasurementSample(sample) = &record.data else {
-            continue;
+    store.read_snapshot(|| {
+        let connection = store.connection();
+        let range = resolve_calendar_range(
+            store,
+            &CalendarRangeRequest {
+                from: options.from.clone(),
+                to: options.to.clone(),
+                time_zone: options.time_zone.clone(),
+                raw: options.raw,
+            },
+        )?;
+        let limit = options.limit.unwrap_or(DEFAULT_SERIES_LIMIT);
+        let mut query = SeriesQuery::new(quantity);
+        query.range = TimeRange { from: range.from.clone(), to: range.to.clone() };
+        query.source_id = options.source_id.clone();
+        query.limit = Some(limit);
+        let records = query_series(connection, &query)?;
+        let truncated = records.len() == limit as usize;
+        let mut view = SeriesView {
+            quantity: quantity.as_str(),
+            unit: quantity.unit(),
+            time_zone: range.time_zone.clone(),
+            from: range.from,
+            to: range.to,
+            source_id: options.source_id.clone(),
+            truncated,
+            samples: None,
+            days: None,
         };
-        let date = calendar_date_in_zone(&sample.recorded_at, &time_zone)?;
-        let key = (date.clone(), sample.source_id.clone());
-        let position = *index.entry(key).or_insert_with(|| {
-            groups.push(DayGroup { date, source_id: sample.source_id.clone(), values: Vec::new(), times: Vec::new() });
-            groups.len() - 1
-        });
-        groups[position].values.push(sample.value.standard_value);
-        groups[position].times.push(sample.recorded_at.clone());
-    }
-    let mut days: Vec<SeriesDay> = groups
-        .into_iter()
-        .map(|group| {
-            let sum = group.values.iter().fold(0.0, |total, value| total + value);
-            SeriesDay {
-                date: group.date,
-                source_id: group.source_id,
-                sample_count: group.values.len(),
-                minimum: group.values.iter().copied().fold(f64::INFINITY, f64::min),
-                maximum: group.values.iter().copied().fold(f64::NEG_INFINITY, f64::max),
-                mean: js_round(sum / group.values.len() as f64 * 10.0) / 10.0,
-                first_at: group.times.first().cloned().unwrap_or_default(),
-                last_at: group.times.last().cloned().unwrap_or_default(),
-            }
-        })
-        .collect();
-    days.sort_by(|left, right| left.date.cmp(&right.date).then_with(|| left.source_id.cmp(&right.source_id)));
-    view.days = Some(days);
-    Ok(view)
+        if options.raw {
+            view.samples = Some(records);
+            return Ok(view);
+        }
+        let time_zone = range.time_zone.unwrap_or_default();
+        let mut groups: Vec<DayGroup> = Vec::new();
+        let mut index: std::collections::HashMap<(String, String), usize> = std::collections::HashMap::new();
+        for record in &records {
+            let RecordData::MeasurementSample(sample) = &record.data else {
+                continue;
+            };
+            let date = calendar_date_in_zone(&sample.recorded_at, &time_zone)?;
+            let key = (date.clone(), sample.source_id.clone());
+            let position = *index.entry(key).or_insert_with(|| {
+                groups.push(DayGroup {
+                    date,
+                    source_id: sample.source_id.clone(),
+                    values: Vec::new(),
+                    times: Vec::new(),
+                });
+                groups.len() - 1
+            });
+            groups[position].values.push(sample.value.standard_value);
+            groups[position].times.push(sample.recorded_at.clone());
+        }
+        let mut days: Vec<SeriesDay> = groups
+            .into_iter()
+            .map(|group| {
+                let sum = group.values.iter().fold(0.0, |total, value| total + value);
+                SeriesDay {
+                    date: group.date,
+                    source_id: group.source_id,
+                    sample_count: group.values.len(),
+                    minimum: group.values.iter().copied().fold(f64::INFINITY, f64::min),
+                    maximum: group.values.iter().copied().fold(f64::NEG_INFINITY, f64::max),
+                    mean: js_round(sum / group.values.len() as f64 * 10.0) / 10.0,
+                    first_at: group.times.first().cloned().unwrap_or_default(),
+                    last_at: group.times.last().cloned().unwrap_or_default(),
+                }
+            })
+            .collect();
+        days.sort_by(|left, right| left.date.cmp(&right.date).then_with(|| left.source_id.cmp(&right.source_id)));
+        view.days = Some(days);
+        Ok(view)
+    })
 }
 
 const LIMIT_NOTE: &str = "result reached --limit; narrow the time range or raise the limit";

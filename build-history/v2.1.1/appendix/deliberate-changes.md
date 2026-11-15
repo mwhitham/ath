@@ -496,6 +496,15 @@ not collide with the native entries.
     `read_policy.rs`
     (`a_reader_sees_committed_wal_data_and_never_checkpoints_or_deletes_sidecars`).
 
+80. **Calculations, prediction evidence, and record views read one
+    snapshot.** `ath calculate`, `ath apply`, prediction evidence, evidence
+    references, the series view, and record history and links run their
+    queries inside one read transaction. A write that commits during the read
+    is not seen, so a result always matches one committed state. 2.1.0 ran
+    each query on its own, so a correction that committed between two queries
+    could give a result that matched neither state. Results are otherwise
+    unchanged. Tests: `calculate::snapshot_tests`.
+
 ## Behavior kept on purpose
 
 These look odd but stay, because changing them would change accepted data or

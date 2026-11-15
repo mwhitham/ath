@@ -9,6 +9,8 @@
 pub mod definition;
 pub mod range;
 pub mod record;
+#[cfg(test)]
+mod snapshot_tests;
 
 use std::path::Path;
 
@@ -22,21 +24,26 @@ pub use record::{ApplyResult, FieldRead, OneRecordResult};
 use crate::error::Result;
 use crate::store::Store;
 
-/// `ath calculate`: run a named range calculation.
+/// `ath calculate`: run a named range calculation. Every input comes from one
+/// read snapshot, so a write that commits during the calculation is not seen.
 pub fn calculate_range(store: &Store, options: &CalculateOptions) -> Result<CalculationReceipt> {
-    range::calculate(store.connection(), options)
+    store.read_snapshot(|| range::calculate(store.connection(), options))
 }
 
 /// `ath apply`: run the calculation file named `calculation` on one current
 /// record. The installed copy in `working_directory/.agents/skills` wins over
-/// the shipped copy.
+/// the shipped copy. The record and the records it names come from one read
+/// snapshot.
 pub fn apply(store: &Store, calculation: &str, record_id: &str, working_directory: &Path) -> Result<ApplyResult> {
     let connection = store.connection();
     // The 2.1.0 order: choose the file, find the record, then read the file.
     let file = crate::assets::resolve_calculation(calculation, working_directory)?;
-    let record = record::stored_record(connection, record_id)?;
-    let parsed = CalculationFile::parse(&file.text)?;
-    record::apply_to(connection, &parsed, record)
+    store.read_snapshot(|| {
+        let record = record::stored_record(connection, record_id)?;
+        let parsed = CalculationFile::parse(&file.text)?;
+        crate::package::failpoint!("calculate.apply_after_target");
+        record::apply_to(connection, &parsed, record)
+    })
 }
 
 /// The human text `ath apply` printed.
