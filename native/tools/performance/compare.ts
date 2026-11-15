@@ -901,11 +901,17 @@ async function largeRecord(): Promise<void> {
   privateDirectory(dataset);
   const base = join(dataset, "base-package");
   rmSync(base, { recursive: true, force: true });
-  run(
-    process.execPath,
-    [join(reference, "dist/cli.js"), "export", base, "--file", join(reference, "examples/demo-athlete/athlete.ath.sqlite")],
-    { cwd: dataset },
-  );
+  // Export a copy, so the reference checkout is only read.
+  const baseDatabase = privateDirectory(join(dataset, "base-database"));
+  copyFileSync(join(reference, "examples/demo-athlete/athlete.ath.sqlite"), join(baseDatabase, "athlete.ath.sqlite"));
+  privateDirectory(join(baseDatabase, "attachments"));
+  for (const name of readdirSync(join(reference, "examples/demo-athlete/attachments"))) {
+    copyFileSync(join(reference, "examples/demo-athlete/attachments", name), join(baseDatabase, "attachments", name));
+  }
+  run(process.execPath, [join(reference, "dist/cli.js"), "export", base, "--file", join(baseDatabase, "athlete.ath.sqlite")], {
+    cwd: dataset,
+  });
+  rmSync(baseDatabase, { recursive: true, force: true });
   const document = JSON.parse(readFileSync(join(base, "athlete.ath.json"), "utf8")) as Record<string, unknown> & {
     records: Array<Record<string, unknown>>;
     record_revisions: Array<Record<string, unknown>>;
@@ -1112,6 +1118,159 @@ function summary(): void {
   console.log(target);
 }
 
+// ---- report tables -----------------------------------------------------------------------------
+
+function readRows(kind: string): Measured[] {
+  const path = join(dataset, "results", `${kind}.jsonl`);
+  if (!existsSync(path)) return [];
+  return readFileSync(path, "utf8")
+    .split("\n")
+    .filter((line) => line.trim() !== "")
+    .map((line) => JSON.parse(line) as Measured);
+}
+
+function ms(value: number | undefined): string {
+  if (value === undefined) return "–";
+  return value >= 10_000 ? `${(value / 1000).toFixed(1)} s` : `${value.toFixed(1)} ms`;
+}
+
+function mib(value: number | undefined): string {
+  return value === undefined || value === 0 ? "–" : `${(value / 1048576).toFixed(1)} MiB`;
+}
+
+function median(values: number[]): number {
+  return percentile([...values].sort((left, right) => left - right), 0.5);
+}
+
+/** Markdown tables of one label's results, for the report. */
+function tables(): void {
+  const out: string[] = [];
+  for (const kind of ["bulk", "scaling", "large"]) {
+    const rows = readRows(kind);
+    if (rows.length === 0) continue;
+    out.push(`### ${label} ${kind}`, "");
+    out.push(
+      "| Operation | Implementation | Runs | Median | Min | Max | Spread | Native/old median | Peak RSS | Peak footprint | Tree peak (sampled) | Peak disk (sampled) | Output bytes |",
+      "|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+    );
+    const operations = [...new Set(rows.map((row) => row.operation))];
+    for (const operation of operations) {
+      const medians: Partial<Record<Implementation, number>> = {};
+      for (const implementation of IMPLEMENTATIONS) {
+        const group = rows.filter((row) => row.operation === operation && row.implementation === implementation);
+        if (group.length === 0) continue;
+        medians[implementation] = median(group.map((row) => row.wall_ms));
+      }
+      for (const implementation of IMPLEMENTATIONS) {
+        const group = rows.filter((row) => row.operation === operation && row.implementation === implementation);
+        if (group.length === 0) continue;
+        const times = group.map((row) => row.wall_ms);
+        const failures = group.filter((row) => row.exit_code !== 0).length;
+        const ratio =
+          implementation === "native" && medians.old !== undefined
+            ? (medians.native! / medians.old).toFixed(3)
+            : "";
+        const output = [
+          ...new Set(
+            group.map((row) => {
+              const pkg = row.extra.package as PackageFacts | undefined;
+              return pkg === undefined ? String(row.stdout_bytes) : `${row.stdout_bytes} (package ${pkg.bytes})`;
+            }),
+          ),
+        ].join(", ");
+        out.push(
+          `| ${operation} | ${implementation}${failures > 0 ? ` (${failures} failed)` : ""} | ${group.length} | ${ms(
+            medians[implementation],
+          )} | ${ms(Math.min(...times))} | ${ms(Math.max(...times))} | ${ms(Math.max(...times) - Math.min(...times))} | ${ratio} | ${mib(
+            Math.max(...group.map((row) => row.time.max_rss_bytes ?? 0)),
+          )} | ${mib(Math.max(...group.map((row) => row.time.peak_footprint_bytes ?? 0)))} | ${mib(
+            Math.max(...group.map((row) => row.tree?.peak_rss_bytes ?? 0)),
+          )} | ${mib(Math.max(...group.map((row) => row.disk?.peak_bytes ?? 0)))} | ${output} |`,
+        );
+      }
+    }
+    out.push("");
+  }
+
+  const queryRows = readRows("queries");
+  if (queryRows.length > 0) {
+    const memoryRows = readRows("queries-memory");
+    out.push(`### ${label} short commands`, "");
+    out.push(
+      "| Command | Implementation | Runs | First run | p50 | p95 | p99 | Max | Peak RSS | Tree peak (5 ms sampler) | Processes | Output bytes | Output SHA-256 |",
+      "|---|---|---|---|---|---|---|---|---|---|---|---|---|",
+    );
+    for (const operation of [...new Set(queryRows.map((row) => row.operation))]) {
+      for (const implementation of IMPLEMENTATIONS) {
+        const measured = queryRows.filter(
+          (row) => row.operation === operation && row.implementation === implementation && !row.warmup,
+        );
+        if (measured.length === 0) continue;
+        const first = queryRows.find(
+          (row) => row.operation === operation && row.implementation === implementation && row.warmup,
+        );
+        const memory = memoryRows.filter((row) => row.operation === operation && row.implementation === implementation);
+        const sorted = measured.map((row) => row.wall_ms).sort((left, right) => left - right);
+        const failures = measured.filter((row) => row.exit_code !== 0).length;
+        out.push(
+          `| ${operation} | ${implementation}${failures > 0 ? ` (${failures} failed)` : ""} | ${measured.length} | ${ms(
+            first?.wall_ms,
+          )} | ${ms(percentile(sorted, 0.5))} | ${ms(percentile(sorted, 0.95))} | ${ms(percentile(sorted, 0.99))} | ${ms(
+            sorted.at(-1),
+          )} | ${mib(Math.max(...[...measured, ...memory].map((row) => row.time.max_rss_bytes ?? 0)))} | ${mib(
+            Math.max(0, ...memory.map((row) => row.tree?.peak_rss_bytes ?? 0)),
+          )} | ${[...new Set(memory.flatMap((row) => row.tree?.processes ?? []))].sort().join(", ")} | ${[
+            ...new Set(measured.map((row) => row.stdout_bytes)),
+          ].join(", ")} | ${[...new Set(measured.map((row) => row.stdout_sha256.slice(0, 12)))].join(", ")} |`,
+        );
+      }
+    }
+    out.push("");
+  }
+
+  const libraryFolder = join(dataset, "results", "library");
+  if (existsSync(libraryFolder)) {
+    type LibraryOperation = { id: string; samples_ms: number[]; success?: boolean; error?: string | null };
+    const pooled = new Map<string, number[]>();
+    const failures: string[] = [];
+    let plans: unknown = undefined;
+    for (const file of readdirSync(libraryFolder).filter((name) => name.endsWith(".json")).sort()) {
+      const implementation = file.split("-")[0]!;
+      const report = JSON.parse(readFileSync(join(libraryFolder, file), "utf8")) as {
+        operations: LibraryOperation[];
+        query_plans?: unknown;
+      };
+      if (implementation === "native" && report.query_plans !== undefined && Object.keys(report.query_plans as object).length > 0) {
+        plans = report.query_plans;
+      }
+      for (const operation of report.operations) {
+        if (operation.success === false) failures.push(`${implementation} ${operation.id}: ${operation.error}`);
+        const key = `${operation.id}|${implementation}`;
+        pooled.set(key, [...(pooled.get(key) ?? []), ...operation.samples_ms]);
+      }
+    }
+    out.push(`### ${label} library latency`, "");
+    out.push("| Operation | Implementation | Samples | p50 | p95 | p99 | Max |", "|---|---|---|---|---|---|---|");
+    for (const [key, samples] of pooled) {
+      const [operation, implementation] = key.split("|");
+      const sorted = [...samples].sort((left, right) => left - right);
+      out.push(
+        `| ${operation} | ${implementation} | ${sorted.length} | ${ms(percentile(sorted, 0.5))} | ${ms(
+          percentile(sorted, 0.95),
+        )} | ${ms(percentile(sorted, 0.99))} | ${ms(sorted.at(-1))} |`,
+      );
+    }
+    if (failures.length > 0) out.push("", `Failures: ${failures.join("; ")}`);
+    out.push("");
+    if (plans !== undefined) {
+      writeFileSync(join(dataset, "results", "native-query-plans.json"), `${JSON.stringify(plans, null, 2)}\n`, {
+        mode: 0o600,
+      });
+    }
+  }
+  console.log(out.join("\n"));
+}
+
 // ---- environment ----------------------------------------------------------------------------
 
 function environment(): void {
@@ -1139,6 +1298,7 @@ const commands: Record<string, () => Promise<void> | void> = {
   library,
   "large-record": largeRecord,
   summary,
+  tables,
   environment,
 };
 
