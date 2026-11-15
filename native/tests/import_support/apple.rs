@@ -106,7 +106,11 @@ pub fn run_scenario(name: &str) {
         if let Some(expected) = step.get("preview_error").and_then(Value::as_str) {
             let message = match result {
                 Ok(_) => panic!("{context}: the preview succeeded, but 2.1.0 refused it: {expected}"),
-                Err(error) => error.to_string().replace(&step_directory.display().to_string(), "<dir>"),
+                // The golden messages come from 2.1.0 on Unix and use `/`.
+                Err(error) => error
+                    .to_string()
+                    .replace(&step_directory.display().to_string(), "<dir>")
+                    .replace(std::path::MAIN_SEPARATOR, "/"),
             };
             assert_eq!(message, expected, "{context}");
             continue;

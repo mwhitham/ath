@@ -143,7 +143,7 @@ fn a_restore_preview_writes_nothing_then_the_restore_keeps_everything() {
     assert!(again.conflicts.is_empty());
     let applied = apply_package_import(&mut store, &again, &[]).unwrap();
     assert_eq!(applied, PackageImportApplied { database_revision: 4, restored: false });
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -170,7 +170,7 @@ fn a_merge_adds_later_revisions_and_new_records() {
     assert_eq!(profile.data.to_value()["name"], "Remote name");
     let remote_store = open_read_only(&remote);
     assert_eq!(store.revisions(PROFILE_ID).unwrap(), remote_store.revisions(PROFILE_ID).unwrap());
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -239,7 +239,7 @@ fn package_conflicts_are_shown_resolved_and_refused_when_stale() {
     assert_eq!(history[2].became_known_at_basis, BecameKnownAtBasis::PackageMerge);
     assert_eq!(history[2].changed_by, RecordActor::Athlete);
     assert!(!conflict_set_path(&store).exists());
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 /// A resolved revision keeps the extensions of the chosen side: the imported
@@ -280,7 +280,7 @@ fn a_resolved_conflict_keeps_the_chosen_side_s_extensions() {
         assert_eq!(store.revision(PROFILE_ID, 3).unwrap().unwrap().extensions, expected, "{choice}");
         store.close().unwrap();
     }
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -323,7 +323,7 @@ fn local_and_corrected_choices_apply() {
     let profile = store.get_record(PROFILE_ID).unwrap().unwrap();
     assert_eq!(profile.current_revision, 3);
     assert_eq!(profile.data.to_value()["name"], "Agreed name");
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -338,7 +338,7 @@ fn a_missing_conflict_file_says_how_to_create_one() {
         .unwrap_err()
         .to_string()
         .starts_with("temporary import conflict file is invalid"));
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -359,7 +359,7 @@ fn another_nonempty_database_conflicts_and_prerelease_json_is_refused() {
     let prerelease = repository().join("examples/demo-athlete/athlete.ath.json");
     let error = preview_package_import(&store, &prerelease).unwrap_err();
     assert!(error.to_string().contains("prerelease JSON format"), "{error}");
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -384,7 +384,7 @@ fn malformed_deep_oversized_and_linked_documents_are_refused() {
         std::os::unix::fs::symlink(&malformed, &linked).unwrap();
         assert!(load_package(&linked).unwrap_err().to_string().contains("symbolic link"));
     }
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -401,7 +401,7 @@ fn a_series_file_outside_the_package_is_refused() {
         PackageLoad::Loaded(_) => panic!("a traversing path loaded"),
     };
     assert!(error.contains("Package path must be relative") || error.contains("package file escapes"), "{error}");
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -421,7 +421,7 @@ fn a_destination_changed_after_preview_is_refused_and_copied_files_are_removed()
     let left: Vec<_> = fs::read_dir(&attachments).map(|entries| entries.collect()).unwrap_or_default();
     assert!(left.is_empty(), "{left:?}");
     assert!(pending_file_operations(store.connection()).unwrap().is_empty());
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -439,7 +439,7 @@ fn a_series_file_changed_after_preview_rolls_back_the_restore() {
     assert!(store.list_records(&read::ListOptions { include_deleted: true, ..Default::default() }).unwrap().is_empty());
     assert_eq!(store.database_revision().unwrap(), 0);
     assert!(!directory.join("attachments").join(DEMO_ATTACHMENT).exists());
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -452,7 +452,7 @@ fn a_manifest_mismatch_is_refused() {
     fs::write(&attachment, bytes).unwrap();
     let error = load_package(&package).unwrap_err();
     assert_eq!(error.to_string(), format!("package file does not match its manifest: attachments/{DEMO_ATTACHMENT}"));
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 /// Build a tiny package from source records: (record ID, route, deleted, supplied fields).
@@ -522,7 +522,7 @@ fn reordered_supplied_fields_match_and_keep_the_local_bytes() {
     assert!(preview.conflicts.is_empty());
     apply_package_import(&mut store, &preview, &[]).unwrap();
     assert_eq!(stored_texts(&store, SOURCE_A), before);
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 /// Re-importing a database's own export reports no conflicts, even though
@@ -552,7 +552,7 @@ fn a_database_s_own_export_imports_without_conflicts() {
     assert_eq!(preview.matching_record_count, 1);
     apply_package_import(&mut store, &preview, &[]).unwrap();
     assert_eq!(stored_texts(&store, &id), before);
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 /// A merge that adds a deleted record, or deletes a record, succeeds: the
@@ -616,7 +616,7 @@ fn a_merge_adds_deleted_records_and_deletions() {
     }
     // The database is still valid and exports again.
     export_package(&store, &directory.join("after"), &ExportOptions::default()).unwrap();
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -640,5 +640,5 @@ fn every_supported_package_version_is_accepted_and_others_are_reported() {
         }
         PackageLoad::Loaded(_) => panic!("an unknown version loaded"),
     }
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }

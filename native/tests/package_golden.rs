@@ -61,7 +61,7 @@ fn the_demo_package_restores_and_exports_to_the_same_bytes() {
         fs::read(directory.join("attachments").join(DEMO_ATTACHMENT)).unwrap(),
         fs::read(repository().join("examples/demo-athlete/attachments").join(DEMO_ATTACHMENT)).unwrap()
     );
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -80,7 +80,7 @@ fn the_version_2_0_0_package_restores_every_row_as_2_1_0_did() {
     let output = directory.join("exported");
     export_package(&store, &output, &timed()).unwrap();
     assert_same_package(&as_version_2_1_0(&files_below(&output)), &golden_package_files("version-2-0-0"));
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 // ---- The many-sample synthetic package -----------------------------------------------
@@ -358,7 +358,7 @@ fn a_package_with_more_samples_than_one_series_file_round_trips_like_2_1_0() {
         assert_eq!(sha256(&exported[name]), file["sha256"].as_str().unwrap(), "{name}");
         assert_eq!(exported[name].len() as u64, file["byte_count"].as_u64().unwrap(), "{name}");
     }
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -382,5 +382,5 @@ fn an_unrepresentable_package_is_reported_like_2_1_0() {
     assert_eq!(preview.new_record_count, 0);
     let error = athleticstandard::package::load_package(&package).unwrap_err();
     assert_eq!(Value::String(error.to_string()), expected["message"]);
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }

@@ -223,11 +223,31 @@ pub fn write_new_synced(path: &Path, bytes: &[u8]) -> io::Result<()> {
     file.sync_all()
 }
 
+/// A path without the Windows `\\?\` prefix when the ordinary form means the
+/// same place. `fs::canonicalize` returns that prefix on Windows, and SQLite
+/// and people read the ordinary form. Other systems return the path unchanged.
+pub fn simplified(path: PathBuf) -> PathBuf {
+    #[cfg(windows)]
+    {
+        let text = path.to_string_lossy();
+        if let Some(rest) = text.strip_prefix(r"\\?\UNC\") {
+            return PathBuf::from(format!(r"\\{rest}"));
+        }
+        if let Some(rest) = text.strip_prefix(r"\\?\") {
+            let bytes = rest.as_bytes();
+            if bytes.len() >= 3 && bytes[0].is_ascii_alphabetic() && bytes[1] == b':' && bytes[2] == b'\\' {
+                return PathBuf::from(rest);
+            }
+        }
+    }
+    path
+}
+
 /// A private temporary directory under the system temporary directory. The
 /// system temporary directory may be behind an operating-system link, such as
 /// `/var` on macOS, so the directory is created under its real path.
 pub fn make_temporary_directory(prefix: &str) -> io::Result<PathBuf> {
-    let base = fs::canonicalize(std::env::temp_dir())?;
+    let base = simplified(fs::canonicalize(std::env::temp_dir())?);
     for _ in 0..16 {
         let candidate = base.join(format!("{prefix}{}", random_suffix()));
         match create_private_dir(&candidate) {

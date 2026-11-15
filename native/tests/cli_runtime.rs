@@ -59,7 +59,7 @@ fn discovery_uses_only_the_default_name() {
 
     assert_eq!(
         delete(&["--file", "missing.ath.sqlite"]).stderr,
-        refusal(&format!("file not found: {cwd}/missing.ath.sqlite"))
+        refusal(&format!("file not found: {}", Path::new(&cwd).join("missing.ath.sqlite").display()))
     );
     std::fs::write(folder.path().join("notes.txt"), b"").unwrap();
     assert_eq!(
@@ -228,7 +228,7 @@ fn init_asks_each_missing_profile_question() {
         "a.ath.sqlite",
     ]);
     assert_eq!(all.status, 0, "{}", all.stderr);
-    assert!(all.stdout.starts_with(&format!("{questions}created {}/a.ath.sqlite\n", folder.path().display())));
+    assert!(all.stdout.starts_with(&format!("{questions}created {}\n", folder.path().join("a.ath.sqlite").display())));
 
     let some = Session::terminal(folder.path(), "1990\n").run(&[
         "init",
@@ -274,7 +274,13 @@ fn init_refuses_a_bad_target() {
     let cwd = folder.path().display().to_string();
     let session = Session::piped(folder.path());
     let named = session.run(&["init", "-y", "--file", "athlete.sqlite"]);
-    assert_eq!(named.stderr, refusal(&format!("the live database name must end in .ath.sqlite: {cwd}/athlete.sqlite")));
+    assert_eq!(
+        named.stderr,
+        refusal(&format!(
+            "the live database name must end in .ath.sqlite: {}",
+            Path::new(&cwd).join("athlete.sqlite").display()
+        ))
+    );
     std::fs::write(folder.path().join("athlete.ath.sqlite"), b"").unwrap();
     let existing = session.run(&["init", "-y"]);
     assert_eq!(

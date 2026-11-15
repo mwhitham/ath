@@ -104,7 +104,7 @@ pub fn private_folder() -> Folder {
         use std::os::unix::fs::PermissionsExt;
         std::fs::set_permissions(dir.path(), std::fs::Permissions::from_mode(0o700)).unwrap();
     }
-    let path = dir.path().canonicalize().unwrap();
+    let path = athleticstandard::files::simplified(dir.path().canonicalize().unwrap());
     Folder { _dir: dir, path }
 }
 
@@ -129,7 +129,11 @@ pub const RESULT: &str = "01890f3e-e7d3-7cc0-88c8-00000000000b";
 /// The current data of a demo record.
 fn demo_data(record_id: &str) -> (RecordType, json::Value) {
     // `immutable` reads the committed file without creating sidecar files.
-    let uri = format!("file:{}?immutable=1", demo_database().canonicalize().unwrap().display());
+    // A file URI uses forward slashes and starts with `/` on every system.
+    let path = athleticstandard::files::simplified(demo_database().canonicalize().unwrap());
+    let text = path.display().to_string().replace('\\', "/");
+    let uri =
+        if text.starts_with('/') { format!("file:{text}?immutable=1") } else { format!("file:/{text}?immutable=1") };
     let connection = rusqlite::Connection::open_with_flags(
         uri,
         rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY | rusqlite::OpenFlags::SQLITE_OPEN_URI,

@@ -190,7 +190,10 @@ fn detection_refusals_match_2_1_0() {
         };
         let message = match import::detect_export(&path) {
             Ok(_) => "detected".to_string(),
-            Err(error) => error.to_string().replace(&root.display().to_string(), "<dir>"),
+            // The golden messages come from 2.1.0 on Unix and use `/`.
+            Err(error) => {
+                error.to_string().replace(&root.display().to_string(), "<dir>").replace(std::path::MAIN_SEPARATOR, "/")
+            }
         };
         assert_eq!(message, case["message"].as_str().unwrap(), "{}", case["name"]);
     }

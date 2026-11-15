@@ -81,7 +81,7 @@ fn erasure_removes_dependents_and_history_and_leaves_value_free_markers() {
 
     let again = preview_erasure(&store, RESULT_ID, 1).unwrap_err();
     assert_eq!(again.to_string(), format!("Record was already erased: {RESULT_ID}"));
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -102,7 +102,7 @@ fn erasing_an_attachment_removes_its_file_after_the_records() {
     assert!(!file.exists());
     assert!(pending_file_operations(store.connection()).unwrap().is_empty());
     assert!(store.get_record(ATTACHMENT_ID).unwrap().is_none());
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -131,7 +131,7 @@ fn stale_and_unknown_erasures_are_refused() {
     assert!(pending_file_operations(store.connection()).unwrap().is_empty());
     let bad_time = erase_record(&mut store, &preview, ErasureReasonCode::Other, Some("yesterday"));
     assert!(matches!(bad_time, Err(Error::Invalid(_))));
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[cfg(unix)]
@@ -170,7 +170,7 @@ fn a_failed_file_removal_stays_pending_until_a_later_writable_operation() {
     assert!(report.is_complete());
     assert!(!file.exists());
     assert!(pending_file_operations(store.connection()).unwrap().is_empty());
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -179,12 +179,13 @@ fn previews_and_an_erasure_match_2_1_0() {
     let database = migrated_demo_copy(&directory);
     let mut store = open(&database);
     let expected = json::parse(&fs::read_to_string(golden("erasure").join("previews.json")).unwrap()).unwrap();
-    let prefix = format!("{}/", directory.display());
+    let prefix = format!("{}{}", directory.display(), std::path::MAIN_SEPARATOR);
     for (record_id, expected_preview) in expected.as_object().unwrap() {
         let preview = preview_erasure(&store, record_id, 1).unwrap();
         let mut actual = json::to_value(&preview);
         for attachment in actual["attachments"].as_array_mut().unwrap() {
-            let path = attachment["path"].as_str().unwrap().strip_prefix(&prefix).unwrap().to_string();
+            // The golden paths come from 2.1.0 on Unix and use `/`.
+            let path = attachment["path"].as_str().unwrap().strip_prefix(&prefix).unwrap().replace('\\', "/");
             attachment["path"] = Value::String(path);
         }
         assert_eq!(json::to_pretty(&actual), json::to_pretty(expected_preview), "{record_id}");
@@ -196,5 +197,5 @@ fn previews_and_an_erasure_match_2_1_0() {
     store.close().unwrap();
     let expected_rows = fs::read_to_string(golden("erasure").join("database-rows.txt")).unwrap();
     assert_eq!(dump_rows(&database), expected_rows);
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }

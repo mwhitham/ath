@@ -19,7 +19,7 @@ use support::{Reply, Server};
 /// A temporary directory under the real temporary path. The store refuses a
 /// database path through a symbolic link, such as `/tmp` on macOS.
 fn tempdir() -> tempfile::TempDir {
-    let base = fs::canonicalize(std::env::temp_dir()).unwrap();
+    let base = athleticstandard::files::simplified(fs::canonicalize(std::env::temp_dir()).unwrap());
     tempfile::Builder::new().prefix("ath-models-").tempdir_in(base).unwrap()
 }
 

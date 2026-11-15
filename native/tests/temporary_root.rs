@@ -17,7 +17,9 @@ fn root() -> &'static PathBuf {
         let program = std::env::current_exe().expect("test program path");
         let stem = program.file_stem().expect("test program name").to_string_lossy().to_string();
         let name = stem.rsplit_once('-').map_or(stem.as_str(), |(name, _)| name).to_string();
-        let base = std::fs::canonicalize(std::env::temp_dir()).expect("temporary folder").join("ath-native-tests");
+        let base =
+            athleticstandard::files::simplified(std::fs::canonicalize(std::env::temp_dir()).expect("temporary folder"))
+                .join("ath-native-tests");
         let root = base.join(name);
         let _ = std::fs::remove_dir_all(&root);
         athleticstandard::files::create_private_dir_all(&root).expect("test root");

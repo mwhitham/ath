@@ -22,7 +22,7 @@ const CURRENT: &str = env!("CARGO_PKG_VERSION");
 const NPM_PATH: &str = "/usr/local/lib/node_modules/athleticstandard";
 
 fn tempdir() -> tempfile::TempDir {
-    let base = fs::canonicalize(std::env::temp_dir()).unwrap();
+    let base = athleticstandard::files::simplified(fs::canonicalize(std::env::temp_dir()).unwrap());
     tempfile::Builder::new().prefix("ath-update-").tempdir_in(base).unwrap()
 }
 
@@ -171,10 +171,10 @@ fn names_the_skill_directories_written() {
         PathBuf::from("/w/.claude/skills/athletic-standard"),
         PathBuf::from("/w/.cursor/skills/athletic-standard"),
     ];
-    assert_eq!(skill_update_line(cwd, &written[..1]), "updated the skill in .agents/skills");
+    assert_eq!(skill_update_line(cwd, &written[..1]), native("updated the skill in .agents/skills"));
     assert_eq!(
         skill_update_line(cwd, &written),
-        "updated the skill in .agents/skills, .claude/skills and .cursor/skills"
+        native("updated the skill in .agents/skills, .claude/skills and .cursor/skills")
     );
     assert_eq!(skill_update_line(cwd, &[]), "");
 }
@@ -346,7 +346,7 @@ fn replaces_an_older_tool_skill_when_this_copy_is_current() {
     assert_eq!(installed_version(dir.path(), ".cursor"), Some(shipped));
     let stdout = outcome.lines(Stream::Stdout);
     assert_eq!(stdout[0], format!("ath {CURRENT} is the current version."));
-    assert_eq!(stdout[1], "updated the skill in .agents/skills and .cursor/skills");
+    assert_eq!(stdout[1], native("updated the skill in .agents/skills and .cursor/skills"));
     assert!(stdout[2].starts_with("added mapping file "), "missing mapping files are added too");
 }
 
@@ -404,7 +404,7 @@ fn the_refresh_run_after_an_install_only_refreshes_skills() {
     let context = InstallContext { phase: UpdatePhase::RefreshSkills, ..launched_from("/anywhere/ath") };
     let outcome = update(&context, CURRENT, dir.path(), no_registry());
     assert_eq!(outcome.exit_code, 0);
-    assert_eq!(outcome.lines(Stream::Stdout)[..1], ["updated the skill in .agents/skills"]);
+    assert_eq!(outcome.lines(Stream::Stdout)[..1], [native("updated the skill in .agents/skills")]);
     assert_ne!(installed_version(dir.path(), ALWAYS_DIR).as_deref(), Some("0.0.1"));
 
     let empty = tempdir();
@@ -522,4 +522,9 @@ fn the_latest_version_comes_from_the_registry_document() {
     let received = server.finish();
     assert_eq!(received[0].path, "/athleticstandard/latest");
     assert_eq!(received[0].headers["accept"], "application/json");
+}
+
+/// Expected text with this system's path separator, as the program prints it.
+fn native(text: &str) -> String {
+    text.replace('/', std::path::MAIN_SEPARATOR_STR)
 }

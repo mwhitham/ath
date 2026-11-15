@@ -77,7 +77,7 @@ fn an_attachment_is_copied_and_linked_in_one_change() {
         use std::os::unix::fs::PermissionsExt;
         assert_eq!(fs::metadata(&stored).unwrap().permissions().mode() & 0o777, 0o600);
     }
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -104,7 +104,7 @@ fn unsupported_oversized_and_irregular_files_are_refused() {
     let error =
         prepare_attachments(&store, std::slice::from_ref(&folder), &RecordActor::Athlete, EXPORTED_AT).unwrap_err();
     assert_eq!(error.to_string(), format!("attachment is not a regular file: {}", folder.display()));
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -130,7 +130,7 @@ fn a_failed_change_removes_the_new_files() {
     assert!(apply_with_attachments(&mut store, &prepared, missing).is_err());
     assert!(attachment_files(&directory).is_empty());
     assert_eq!(store.database_revision().unwrap(), 0);
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 fn pend(store: &Store, operation_id: &str, kind: &str, relative_path: &str) {
@@ -175,5 +175,5 @@ fn cleanup_removes_only_unreferenced_files_of_stopped_operations() {
     let left: Vec<String> =
         pending_file_operations(store.connection()).unwrap().into_iter().map(|entry| entry.operation_id).collect();
     assert_eq!(left, ["1-running", "99999999-odd"]);
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }

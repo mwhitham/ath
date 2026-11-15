@@ -25,6 +25,17 @@ pub fn golden(case: &str) -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/golden/package").join(case)
 }
 
+/// Remove a test folder. Windows cannot remove a folder while the test still
+/// holds its database open; the test program's root is emptied on its next
+/// run, so the folder is left for then.
+pub fn remove_dir(path: &Path) {
+    if let Err(error) = fs::remove_dir_all(path) {
+        if !cfg!(windows) {
+            panic!("could not remove {}: {error}", path.display());
+        }
+    }
+}
+
 pub fn temporary(prefix: &str) -> PathBuf {
     temporary_root::new_dir(prefix)
 }

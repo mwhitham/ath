@@ -116,9 +116,13 @@ fn a_backup_that_fails_verification_is_removed() {
 fn backups_work_at_unusual_paths() {
     let (path, store) = new_database("ath-backup-names-");
     let dir = path.parent().unwrap();
-    for name in
-        ["athlete's backup.sqlite", "a\"b.sqlite", "a\\b.sqlite", "a\\tb.sqlite", "spaces and ünïcödé 🏃.sqlite"]
-    {
+    // `"` and `\` cannot appear in a Windows file name; `\` separates folders there.
+    let names: &[&str] = if cfg!(windows) {
+        &["athlete's backup.sqlite", "spaces and ünïcödé 🏃.sqlite"]
+    } else {
+        &["athlete's backup.sqlite", "a\"b.sqlite", "a\\b.sqlite", "a\\tb.sqlite", "spaces and ünïcödé 🏃.sqlite"]
+    };
+    for name in names {
         let backup_path = dir.join(name);
         let verified = store.create_verified_backup(&backup_path).unwrap();
         assert!(verified.path.is_file(), "{name}");

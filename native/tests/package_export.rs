@@ -39,7 +39,7 @@ fn demo_export_matches_the_2_1_0_bytes_after_the_version_change() {
         String::from_utf8(untimed_files["export-manifest.json"].clone()).unwrap(),
         fs::read_to_string(golden("demo").join("manifest-untimed.json")).unwrap()
     );
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -65,7 +65,7 @@ fn the_result_serializes_like_the_old_json_output() {
     );
     let file_keys: Vec<&String> = value["manifest"]["files"][0].as_object().unwrap().keys().collect();
     assert_eq!(file_keys, ["file", "sha256", "byte_count"]);
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -76,7 +76,7 @@ fn two_exports_of_one_revision_are_byte_identical() {
     export_package(&store, &directory.join("first"), &ExportOptions::default()).unwrap();
     export_package(&store, &directory.join("second"), &ExportOptions::default()).unwrap();
     assert_eq!(files_below(&directory.join("first")), files_below(&directory.join("second")));
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -100,7 +100,7 @@ fn concurrent_exports_into_one_parent_both_succeed() {
             .unwrap()
             .contains("database_revision"));
     }
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -131,7 +131,7 @@ fn an_existing_destination_or_link_is_refused_and_left_alone() {
         export_package(&store, &directory.join("x"), &ExportOptions { exported_at: Some("yesterday".into()) });
     assert!(invalid.is_err());
     assert!(!directory.join("x").exists());
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[test]
@@ -154,7 +154,7 @@ fn finished_packages_have_no_marker_and_survive_a_later_cleanup() {
     export_package(&store, &directory.join("package-two"), &ExportOptions::default()).unwrap();
     assert!(!abandoned.exists());
     assert!(finished.join("athlete.ath.json").exists());
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 /// A missing attachment file is named with its record (deliberate-changes.md,
@@ -172,7 +172,7 @@ fn a_missing_attachment_file_is_named() {
         format!("attachment file is missing: {} (01890f3e-e7d3-7cc0-88c8-00000000000e)", file.display())
     );
     assert!(!directory.join("package").exists());
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 /// Export copies an attachment only from the file itself. A file, or the
@@ -209,7 +209,7 @@ fn an_attachment_reached_through_a_symbolic_link_is_refused() {
         })
         .count();
     assert_eq!(leftovers, 0);
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
 
 #[cfg(unix)]
@@ -228,5 +228,5 @@ fn package_files_and_folders_are_owner_only() {
         let mode = fs::metadata(output.join(name)).unwrap().permissions().mode() & 0o777;
         assert_eq!(mode, 0o600, "{name}");
     }
-    fs::remove_dir_all(directory).unwrap();
+    common::remove_dir(&directory);
 }
