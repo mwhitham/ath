@@ -427,6 +427,7 @@ fn plan_plain_text(
         note: Some(trimmed.to_string()),
         duration_seconds: None,
         attachment_ids: None,
+        exercise_mood_label: None,
     };
     if let Some(found) = match_rating(trimmed) {
         let report_type = rating_report_type(js_trim(found.words));

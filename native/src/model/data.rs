@@ -517,6 +517,7 @@ model_object! {
         note?: String,
         duration_seconds?: f64 = positive(),
         attachment_ids?: Vec<String> = record_id_array(),
+        exercise_mood_label?: String,
     }
     refine(refine_athlete_report)
 }
