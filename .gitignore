@@ -1,9 +1,5 @@
 node_modules/
 dist/
-crates/ath-core/target/
-# Built ath-core binaries are packed into the npm package by the check.
-# They are not source.
-/vendor/
 *.log
 .DS_Store
 
