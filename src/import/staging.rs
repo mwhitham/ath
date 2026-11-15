@@ -6,7 +6,9 @@
 //!
 //! The file is disposable working data, not a second athlete record. It lives
 //! in an owner-only temporary directory that this value created, and it is
-//! removed when the value is dropped. Only that directory is ever removed.
+//! removed when the value is dropped. When a process stops before that, the
+//! next import removes the directory, because its marker names a stopped
+//! process (`files::staging::make_owned_temporary_directory`).
 
 use std::path::PathBuf;
 
@@ -203,7 +205,7 @@ fn key_parts_json(key: &MatchKey) -> String {
 
 impl Staging {
     pub fn create() -> Result<Staging> {
-        let directory = files::make_temporary_directory("ath-import-")?;
+        let directory = files::staging::make_owned_temporary_directory("ath-import-")?;
         let result = (|| {
             let path = directory.join("plan.sqlite");
             drop(files::create_new_private(&path)?);
