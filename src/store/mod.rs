@@ -494,6 +494,10 @@ impl Store {
     /// Checkpoint and truncate the WAL after writes, then close.
     pub fn close(self) -> Result<()> {
         if !self.read_only {
+            // Try once. Another process reading the file would otherwise make
+            // this wait out the whole busy timeout. The WAL keeps every commit
+            // either way, and a later write folds it in.
+            let _ = self.connection.busy_timeout(Duration::ZERO);
             let _ = self.connection.query_row("PRAGMA wal_checkpoint(TRUNCATE)", [], |_| Ok(()));
         }
         self.connection.close().map_err(|(_, error)| error.into())
@@ -748,6 +752,37 @@ mod tests {
         assert_eq!(error.to_string(), "database is locked");
         writer.execute_batch("ROLLBACK").unwrap();
         drop(writer);
+        std::fs::remove_dir_all(directory).unwrap();
+    }
+
+    /// Closing after a write tries the checkpoint once. A reader that holds
+    /// the WAL does not make the close wait out the busy timeout, and the
+    /// write stays readable from the WAL.
+    #[test]
+    fn closing_after_a_write_does_not_wait_for_a_reader() {
+        let directory = files::make_temporary_directory("ath-close-reader-").unwrap();
+        let path = directory.join("close.ath.sqlite");
+        Store::create(&path, CreateOptions::default()).unwrap().close().unwrap();
+        let reader = Connection::open_with_flags(&path, OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
+        reader.execute_batch("BEGIN").unwrap();
+        let _: i64 = reader.query_row("SELECT count(*) FROM sqlite_schema", [], |row| row.get(0)).unwrap();
+
+        let mut store = Store::open(&path, OpenOptions::default()).unwrap();
+        store.write_transaction(|tx| Ok(tx.execute_batch("CREATE TABLE close_probe (value INTEGER)")?)).unwrap();
+        let started = std::time::Instant::now();
+        store.close().unwrap();
+        assert!(started.elapsed() < SQLITE_BUSY_TIMEOUT / 2, "{:?}", started.elapsed());
+        assert!(std::fs::metadata(files::sidecar(&path, "-wal")).unwrap().len() > 0);
+
+        reader.execute_batch("COMMIT").unwrap();
+        drop(reader);
+        let store = Store::open(&path, OpenOptions { read_only: true, allow_outdated_schema: false }).unwrap();
+        let probe: i64 = store
+            .connection()
+            .query_row("SELECT count(*) FROM sqlite_schema WHERE name = 'close_probe'", [], |row| row.get(0))
+            .unwrap();
+        assert_eq!(probe, 1);
+        store.close().unwrap();
         std::fs::remove_dir_all(directory).unwrap();
     }
 }
