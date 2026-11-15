@@ -107,8 +107,10 @@ function implementations(): Implementation[] {
 }
 
 function command(implementation: Implementation): string[] {
+  // --old-heap-mib raises Node's heap limit for a supplementary 2.1.0 run.
+  const heap = args.values.has("old-heap-mib") ? [`--max-old-space-size=${args.values.get("old-heap-mib")}`] : [];
   return implementation === "old"
-    ? [process.execPath, join(reference, "dist/cli.js")]
+    ? [process.execPath, ...heap, join(reference, "dist/cli.js")]
     : [nativeBinary];
 }
 
@@ -281,6 +283,7 @@ interface Measured {
   disk: { files: string[]; peak_bytes: number; samples: number } | null;
   stdout_bytes: number;
   stdout_sha256: string;
+  stderr_head?: string;
   stderr_tail: string;
   extra: Record<string, unknown>;
 }
@@ -439,6 +442,7 @@ async function measure(options: MeasureOptions): Promise<Measured> {
     disk: options.diskFiles ? { files: options.diskFiles, peak_bytes: diskPeak, samples: diskSamples } : null,
     stdout_bytes: stdoutBytes,
     stdout_sha256: stdoutSha,
+    stderr_head: commandStderr.slice(0, 1500),
     stderr_tail: commandStderr.slice(-2000),
     extra: {},
   };
@@ -847,6 +851,7 @@ async function library(): Promise<void> {
         run(
           process.execPath,
           [
+            ...(args.values.has("old-heap-mib") ? [`--max-old-space-size=${number("old-heap-mib", 0)}`] : []),
             "--expose-gc",
             "--import",
             "tsx",
@@ -1130,22 +1135,26 @@ function readRows(kind: string): Measured[] {
 }
 
 function ms(value: number | undefined): string {
-  if (value === undefined) return "–";
-  return value >= 10_000 ? `${(value / 1000).toFixed(1)} s` : `${value.toFixed(1)} ms`;
+  if (value === undefined || Number.isNaN(value)) return "–";
+  if (value >= 10_000) return `${(value / 1000).toFixed(1)} s`;
+  return value >= 10 ? `${value.toFixed(1)} ms` : `${value.toFixed(3)} ms`;
 }
 
 function mib(value: number | undefined): string {
   return value === undefined || value === 0 ? "–" : `${(value / 1048576).toFixed(1)} MiB`;
 }
 
+/** The middle value, or the mean of the two middle values. */
 function median(values: number[]): number {
-  return percentile([...values].sort((left, right) => left - right), 0.5);
+  const sorted = [...values].sort((left, right) => left - right);
+  const middle = Math.floor(sorted.length / 2);
+  return sorted.length % 2 === 1 ? sorted[middle]! : (sorted[middle - 1]! + sorted[middle]!) / 2;
 }
 
 /** Markdown tables of one label's results, for the report. */
 function tables(): void {
   const out: string[] = [];
-  for (const kind of ["bulk", "scaling", "large"]) {
+  for (const kind of ["bulk", "bulk-old-heap", "scaling", "large"]) {
     const rows = readRows(kind);
     if (rows.length === 0) continue;
     out.push(`### ${label} ${kind}`, "");
@@ -1155,20 +1164,27 @@ function tables(): void {
     );
     const operations = [...new Set(rows.map((row) => row.operation))];
     for (const operation of operations) {
+      // Times come from completed runs only. A failed run is listed with the
+      // time at which it stopped.
+      const completed = (implementation: Implementation) =>
+        rows.filter(
+          (row) => row.operation === operation && row.implementation === implementation && row.exit_code === 0,
+        );
       const medians: Partial<Record<Implementation, number>> = {};
       for (const implementation of IMPLEMENTATIONS) {
-        const group = rows.filter((row) => row.operation === operation && row.implementation === implementation);
-        if (group.length === 0) continue;
-        medians[implementation] = median(group.map((row) => row.wall_ms));
+        const group = completed(implementation);
+        if (group.length > 0) medians[implementation] = median(group.map((row) => row.wall_ms));
       }
       for (const implementation of IMPLEMENTATIONS) {
         const group = rows.filter((row) => row.operation === operation && row.implementation === implementation);
         if (group.length === 0) continue;
-        const times = group.map((row) => row.wall_ms);
-        const failures = group.filter((row) => row.exit_code !== 0).length;
+        const done = completed(implementation);
+        const times = done.length > 0 ? done.map((row) => row.wall_ms) : [Number.NaN];
+        const failed = group.filter((row) => row.exit_code !== 0).map((row) => ms(row.wall_ms));
+        const failures = failed.length > 0 ? ` (${failed.length} failed, after ${failed.join(", ")})` : "";
         const ratio =
-          implementation === "native" && medians.old !== undefined
-            ? (medians.native! / medians.old).toFixed(3)
+          implementation === "native" && medians.old !== undefined && medians.native !== undefined
+            ? (medians.native / medians.old).toFixed(3)
             : "";
         const output = [
           ...new Set(
@@ -1179,9 +1195,9 @@ function tables(): void {
           ),
         ].join(", ");
         out.push(
-          `| ${operation} | ${implementation}${failures > 0 ? ` (${failures} failed)` : ""} | ${group.length} | ${ms(
-            medians[implementation],
-          )} | ${ms(Math.min(...times))} | ${ms(Math.max(...times))} | ${ms(Math.max(...times) - Math.min(...times))} | ${ratio} | ${mib(
+          `| ${operation} | ${implementation}${failures} | ${group.length} | ${ms(medians[implementation])} | ${ms(
+            Math.min(...times),
+          )} | ${ms(Math.max(...times))} | ${ms(Math.max(...times) - Math.min(...times))} | ${ratio} | ${mib(
             Math.max(...group.map((row) => row.time.max_rss_bytes ?? 0)),
           )} | ${mib(Math.max(...group.map((row) => row.time.peak_footprint_bytes ?? 0)))} | ${mib(
             Math.max(...group.map((row) => row.tree?.peak_rss_bytes ?? 0)),
@@ -1294,6 +1310,7 @@ const commands: Record<string, () => Promise<void> | void> = {
   prepare,
   bulk: () => bulk("bulk"),
   scaling: () => bulk("scaling"),
+  "bulk-old-heap": () => bulk("bulk-old-heap"),
   queries,
   library,
   "large-record": largeRecord,
