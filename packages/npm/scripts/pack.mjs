@@ -35,12 +35,12 @@
  *
  * Steps: check each executable is built for its target; build dist/ with tsc;
  * copy the executables to native/<target>/, the repository skill to
- * skills/athletic-standard/, and the repository's schema files to schema/; run
- * npm pack; read the tarball back. Every export
- * target, the `ath` bin, and each executable must be in it, and each packed
- * executable must equal its input byte for byte. The SHA-256 of the tarball and
- * of each packed executable is printed and written to pack-summary.json beside
- * the tarball. The copied executables, skill, and schema files are removed
+ * skills/athletic-standard/, the repository's schema files to schema/, and the
+ * repository's LICENSE and README.md; run npm pack; read the tarball back.
+ * Every export target, the `ath` bin, and each executable must be in it, and
+ * each packed executable must equal its input byte for byte. The SHA-256 of
+ * the tarball and of each packed executable is printed and written to
+ * pack-summary.json beside the tarball. The copied files are removed
  * afterwards, so a later run in the checkout cannot pick up a stale copy.
  */
 import { spawnSync } from "node:child_process";
@@ -242,8 +242,9 @@ async function main() {
   const skillFiles = listFiles(skillSource);
 
   const staged = [join(packageDirectory, "native"), join(packageDirectory, "skills"), join(packageDirectory, "schema")];
-  const licenseCopy = existsSync(join(packageDirectory, "LICENSE")) ? null : join(packageDirectory, "LICENSE");
-  if (licenseCopy !== null) staged.push(licenseCopy);
+  // npm puts the license and readme beside package.json in every tarball.
+  const rootCopies = ["LICENSE", "README.md"].filter((name) => !existsSync(join(packageDirectory, name)));
+  staged.push(...rootCopies.map((name) => join(packageDirectory, name)));
   const dist = join(packageDirectory, "dist");
   for (const path of [dist, ...staged]) {
     rmSync(path, { recursive: true, force: true });
@@ -277,8 +278,8 @@ async function main() {
       mkdirSync(dirname(join(packageDirectory, target)), { recursive: true });
       copyFileSync(join(repositoryRoot, target), join(packageDirectory, target));
     }
-    if (licenseCopy !== null) {
-      copyFileSync(join(repositoryRoot, "LICENSE"), licenseCopy);
+    for (const name of rootCopies) {
+      copyFileSync(join(repositoryRoot, name), join(packageDirectory, name));
     }
 
     for (const target of manifestTargets(manifest)) {
