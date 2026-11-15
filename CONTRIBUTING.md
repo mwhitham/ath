@@ -4,7 +4,7 @@ Use a feature branch and open a pull request against `main`. Keep each commit to
 
 ## Roadmap
 
-Use the Roadmap idea issue form for something to build. The issue is labeled `roadmap` and starts in Backlog. The repository owner moves work to Up next. Build from Up next.
+Use the Roadmap idea issue form for something to build. The issue is labeled `roadmap` and starts in Backlog. The Roadmap workflow places it on the board, and moves it to Done when the issue closes. The repository owner moves work to Up next. Build from Up next.
 
 The public board is the project titled Roadmap: <https://github.com/users/mwhitham/projects>.
 

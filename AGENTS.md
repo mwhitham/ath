@@ -43,6 +43,8 @@ describe released 0.x behavior.
 
 Roadmap ideas are GitHub issues labeled `roadmap` on `mwhitham/ath`. File one by following [`.cursor/skills/roadmap/SKILL.md`](.cursor/skills/roadmap/SKILL.md). Stop when the issue is open. Do not move an issue to Up next.
 
+The Roadmap workflow adds a new roadmap issue to Backlog and moves a closed one to Done. It does not set Up next or Now.
+
 Build from Up next on the public project titled Roadmap: <https://github.com/users/mwhitham/projects>. Take one item. Set it to Now. Open a pull request that closes the issue. Closing the issue moves it to Done. Do not start from Backlog.
 
 ## Verification
