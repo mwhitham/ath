@@ -279,6 +279,7 @@ pub fn execute_confirmed_repair(store: &mut Store, options: &RepairOptions) -> R
     if files::identity(&path)? != identity {
         return Err(Error::refused("Database file changed during repair backup"));
     }
+    crate::package::failpoint!("repair.after_backup");
     let backup_text = verified.path.display().to_string();
     let stale = format!(
         "Database revision changed before repair could start. Nothing was repaired. The backup at {backup_text} is older than the database, so preview the repair again."
@@ -292,6 +293,7 @@ pub fn execute_confirmed_repair(store: &mut Store, options: &RepairOptions) -> R
         let aligned = rebuild_typed_rows(tx, layout, &candidates.revision_align_record_ids, true)?;
         let repaired = rebuild_typed_rows(tx, layout, &candidates.encoding_record_ids, false)?;
         let database_revision = if aligned + repaired == 0 { database_revision(tx)? } else { bump_revision(tx)? };
+        crate::package::failpoint!("repair.before_commit");
         Ok(ConfirmedRepairResult {
             backup_path: backup_text.clone(),
             repaired_record_count: repaired,

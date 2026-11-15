@@ -24,3 +24,6 @@ pub mod text;
 pub mod view;
 
 pub use error::{Error, Result};
+
+#[cfg(test)]
+mod stopped_writes;

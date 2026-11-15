@@ -1282,12 +1282,11 @@ impl ProviderPreview {
                     write::write_in(tx, layout, changes)?;
                 }
             }
-            if wrote {
-                write::advance_database_revision(tx)
-            } else {
-                Ok(revision)
-            }
+            let revision = if wrote { write::advance_database_revision(tx)? } else { revision };
+            crate::package::failpoint!("provider.before_commit");
+            Ok(revision)
         })?;
+        crate::package::failpoint!("provider.after_commit");
         Ok(ProviderImportResult {
             database_revision,
             new_record_count: self.counts[0],
