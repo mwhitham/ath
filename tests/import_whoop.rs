@@ -11,9 +11,9 @@ use athleticstandard::import::{
 };
 use athleticstandard::json::{self, Value};
 use athleticstandard::model::*;
-use athleticstandard::store::read::{self, ListOptions};
+use athleticstandard::store::read::ListOptions;
 use athleticstandard::store::{Changes, NewRecord, Store};
-use import_support::{baseline, fixture_files, new_store, write_directory, TempDir};
+use import_support::{baseline, direct, fixture_files, new_store, write_directory, TempDir};
 
 const RECEIVED_AT: &str = "2026-10-13T12:00:00.000Z";
 
@@ -42,8 +42,8 @@ fn corrected_copy(directory: &std::path::Path) -> std::path::PathBuf {
 }
 
 fn import_keys(store: &Store) -> Vec<(String, Value)> {
-    let mut statement = store
-        .connection()
+    let connection = direct(store.path());
+    let mut statement = connection
         .prepare("SELECT match_key_method, match_key FROM record_import_keys ORDER BY match_key_method, match_key")
         .unwrap();
     statement
@@ -74,10 +74,10 @@ fn hrv_record(store: &Store, value: f64) -> CurrentRecord {
 
 /// SQLite's own checks, plus every current record read back through the validator.
 fn assert_database_valid(store: &Store) {
-    let integrity: String = store.connection().query_row("PRAGMA integrity_check", [], |row| row.get(0)).unwrap();
+    let integrity: String = direct(store.path()).query_row("PRAGMA integrity_check", [], |row| row.get(0)).unwrap();
     assert_eq!(integrity, "ok");
     let foreign: i64 =
-        store.connection().query_row("SELECT COUNT(*) FROM pragma_foreign_key_check", [], |row| row.get(0)).unwrap();
+        direct(store.path()).query_row("SELECT COUNT(*) FROM pragma_foreign_key_check", [], |row| row.get(0)).unwrap();
     assert_eq!(foreign, 0);
     let records = store.list_records(&ListOptions { record_type: None, include_deleted: true, limit: 10_000 }).unwrap();
     for record in records {
@@ -90,7 +90,7 @@ fn the_fixture_matches_the_retained_import_baseline() {
     let directory = TempDir::new();
     let mut store = new_store(directory.path());
     import_fixture(&mut store, &import_support::whoop_fixture(), RECEIVED_AT);
-    let snapshot = baseline::read_snapshot(store.connection());
+    let snapshot = baseline::read_snapshot(&direct(store.path()));
     let expected = std::fs::read_to_string(
         import_support::repository_root().join("tests/fixtures/import-baseline/05-cycles.json"),
     )
@@ -238,8 +238,8 @@ fn restore_into(source: &Store, target: &mut Store) {
             changed_by: revision.changed_by,
         });
     }
-    let mut statement = source
-        .connection()
+    let connection = direct(source.path());
+    let mut statement = connection
         .prepare("SELECT record_id, match_key_method, match_key, imported_at FROM record_import_keys")
         .unwrap();
     changes.import_keys = statement
@@ -383,7 +383,7 @@ fn a_correction_is_refused_when_its_record_changed_after_the_preview() {
             ..Changes::default()
         })
         .unwrap();
-    other.connection().execute("UPDATE database_state SET current_revision = 1", []).unwrap();
+    direct(other.path()).execute("UPDATE database_state SET current_revision = 1", []).unwrap();
     let error = correction.apply(&mut store).unwrap_err();
     assert!(matches!(error, Error::Stale(_)), "{error}");
     assert_eq!(error.to_string(), format!("Record {} changed after preview; preview it again", hrv.record_id));
@@ -620,5 +620,5 @@ fn the_preview_serializes_with_the_2_1_0_field_order() {
     let planned_ids: Vec<&str> = planned.iter().map(|record| record.record_id.as_str()).collect();
     assert_eq!(new_ids, planned_ids);
     // The read connection stays usable for other reads after a preview.
-    assert!(read::get_record(store.connection(), planned_ids[0]).unwrap().is_none());
+    assert!(store.get_record(planned_ids[0]).unwrap().is_none());
 }

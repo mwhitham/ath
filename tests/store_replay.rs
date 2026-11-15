@@ -83,17 +83,15 @@ fn dump(connection: &Connection, table: &str) -> Vec<String> {
 #[test]
 fn replaying_the_demo_history_reproduces_every_row() {
     let demo = Connection::open_with_flags(demo_path(), OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
-    let metadata = store::read_metadata(&demo).unwrap();
+    let (database_id, created_at): (String, String) = demo
+        .query_row("SELECT database_id, created_at FROM database_metadata WHERE singleton_id = 1", [], |row| {
+            Ok((row.get(0)?, row.get(1)?))
+        })
+        .unwrap();
     let directory = temporary_dir();
     let path = directory.join("replay.ath.sqlite");
-    let mut replay = Store::create(
-        &path,
-        CreateOptions {
-            database_id: Some(metadata.database_id.clone()),
-            created_at: Some(metadata.created_at.clone()),
-        },
-    )
-    .unwrap();
+    let mut replay =
+        Store::create(&path, CreateOptions { database_id: Some(database_id), created_at: Some(created_at) }).unwrap();
 
     let mut statement = demo
         .prepare(&format!(
@@ -161,13 +159,15 @@ fn replaying_the_demo_history_reproduces_every_row() {
     }
 
     let mut differences = Vec::new();
+    let replayed = Connection::open_with_flags(&path, OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
     for table in TABLES {
         let expected = dump(&demo, table);
-        let actual = dump(replay.connection(), table);
+        let actual = dump(&replayed, table);
         if expected != actual {
             differences.push(format!("{table}:\n  expected {expected:#?}\n  actual {actual:#?}"));
         }
     }
+    drop(replayed);
     replay.close().unwrap();
     std::fs::remove_dir_all(&directory).unwrap();
     assert!(differences.is_empty(), "{}", differences.join("\n"));

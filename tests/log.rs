@@ -58,7 +58,7 @@ fn plan(store: &Store, text: &str) -> athleticstandard::Result<LogPlan> {
 fn plan_as(store: &Store, text: &str, actor: RecordActor) -> athleticstandard::Result<LogPlan> {
     let mut new_id = athleticstandard::ids::new_record_id;
     plan_log_entry(
-        store.connection(),
+        store,
         &LogRequest { text: text.into(), actor, created_at: Some(AT.into()), benchmark: None },
         &mut new_id,
     )
@@ -320,8 +320,7 @@ fn attachments_link_to_the_one_report_in_the_batch() {
     apply_log_plan(&mut store, &with).unwrap();
     let report = records(&store, RecordType::AthleteReport).remove(0);
     assert_eq!(report.data.attachment_ids(), [id(0xa1)]);
-    let linked: i64 = store
-        .connection()
+    let linked: i64 = direct(store.path())
         .query_row("SELECT count(*) FROM record_attachment_links WHERE attachment_record_id = ?1", [id(0xa1)], |row| {
             row.get(0)
         })

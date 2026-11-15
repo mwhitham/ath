@@ -16,7 +16,7 @@ use athleticstandard::json::{self, Value};
 use athleticstandard::model::*;
 use athleticstandard::store::read::ListOptions;
 use athleticstandard::store::{check, Store};
-use import_support::{baseline, golden, new_store, repository_root, write_zip, TempDir};
+use import_support::{baseline, direct, golden, new_store, repository_root, write_zip, TempDir};
 
 const RECEIVED_AT: &str = "2026-10-13T12:00:00.000Z";
 
@@ -99,7 +99,7 @@ fn baseline_text(file: &str) -> (String, String) {
 }
 
 fn assert_baseline(store: &Store, file: &str, directory: &Path) {
-    let snapshot = baseline::read_snapshot(store.connection());
+    let snapshot = baseline::read_snapshot(&direct(store.path()));
     let text = baseline::comparison_string(&snapshot, Some("field_basis"));
     assert!(!text.contains(&directory.display().to_string()));
     let (expected, basis) = baseline_text(file);
@@ -160,7 +160,7 @@ fn the_route_mismatch_fixture_differs_from_the_baseline_only_in_the_offset_free_
     let directory = TempDir::new();
     let mut store = new_store(directory.path());
     import_path(&mut store, &exports("apple-route-mismatch"));
-    let snapshot = baseline::read_snapshot(store.connection());
+    let snapshot = baseline::read_snapshot(&direct(store.path()));
     let (expected, basis) = baseline_text("04-apple-mismatch.json");
     assert_eq!(baseline::field_basis_string(&snapshot), basis);
     let mut actual = json::parse(&baseline::comparison_string(&snapshot, Some("field_basis"))).unwrap();
@@ -268,8 +268,7 @@ fn a_repeated_record_keeps_ordinals_zero_and_one() {
     std::fs::write(copy.join("export.xml"), xml.replace(&line, &format!("{line}\n{line}"))).unwrap();
     let mut store = new_store(directory.path());
     import_path(&mut store, &copy);
-    let mut ordinals: Vec<i64> = store
-        .connection()
+    let mut ordinals: Vec<i64> = direct(store.path())
         .prepare("SELECT match_key FROM record_import_keys")
         .unwrap()
         .query_map([], |row| row.get::<_, String>(0))
@@ -301,8 +300,7 @@ fn two_writers_at_one_instant_are_two_groups_numbered_from_zero() {
     write_files(&directory.path().join("input"), &[("export.xml", xml)]);
     let mut store = new_store(directory.path());
     import_path(&mut store, &directory.path().join("input"));
-    let keys: Vec<Value> = store
-        .connection()
+    let keys: Vec<Value> = direct(store.path())
         .prepare("SELECT match_key FROM record_import_keys")
         .unwrap()
         .query_map([], |row| row.get::<_, String>(0))

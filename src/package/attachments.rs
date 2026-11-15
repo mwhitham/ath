@@ -39,7 +39,8 @@ pub use crate::files::attachments::{
     attachment_directory, bytes_match_media_type, check_attachment_bytes, relative_attachment_path, sniff_media_type,
     stored_attachment_name, ATTACHMENT_DIRECTORY,
 };
-pub use crate::store::pending::{pending_file_operations, PendingFileOperation};
+use crate::store::pending::pending_file_operations;
+pub use crate::store::pending::PendingFileOperation;
 
 // ---- Ingestion for ath log and ath correct ------------------------------
 

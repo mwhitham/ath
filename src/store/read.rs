@@ -103,7 +103,7 @@ pub const REVISION_COLUMNS: &str = "record_id, record_type, revision, previous_r
     became_known_at_basis, changed_by_json, record_json, extensions_json";
 
 /// One current record, including a deleted one.
-pub fn get_record(connection: &Connection, record_id: &str) -> Result<Option<CurrentRecord>> {
+pub(crate) fn get_record(connection: &Connection, record_id: &str) -> Result<Option<CurrentRecord>> {
     let mut statement = connection.prepare_cached(&format!("{CURRENT_SELECT} WHERE records.record_id = ?1"))?;
     let mut rows = statement.query([record_id])?;
     match rows.next()? {
@@ -113,7 +113,7 @@ pub fn get_record(connection: &Connection, record_id: &str) -> Result<Option<Cur
 }
 
 /// Current records in creation order.
-pub fn list_records(connection: &Connection, options: &ListOptions) -> Result<Vec<CurrentRecord>> {
+pub(crate) fn list_records(connection: &Connection, options: &ListOptions) -> Result<Vec<CurrentRecord>> {
     if options.limit < 1 || options.limit > MAX_LIST_LIMIT {
         return Err(Error::other("Record list limit must be between 1 and 10000"));
     }
@@ -139,7 +139,7 @@ pub fn list_records(connection: &Connection, options: &ListOptions) -> Result<Ve
 }
 
 /// Every retained revision of a record, oldest first.
-pub fn revisions(connection: &Connection, record_id: &str) -> Result<Vec<RecordRevision>> {
+pub(crate) fn revisions(connection: &Connection, record_id: &str) -> Result<Vec<RecordRevision>> {
     let mut statement = connection.prepare_cached(&format!(
         "SELECT {REVISION_COLUMNS} FROM record_revisions WHERE record_id = ?1 ORDER BY revision"
     ))?;
@@ -152,7 +152,7 @@ pub fn revisions(connection: &Connection, record_id: &str) -> Result<Vec<RecordR
 }
 
 /// One retained revision.
-pub fn revision(connection: &Connection, record_id: &str, revision: u64) -> Result<Option<RecordRevision>> {
+pub(crate) fn revision(connection: &Connection, record_id: &str, revision: u64) -> Result<Option<RecordRevision>> {
     let mut statement = connection.prepare_cached(&format!(
         "SELECT {REVISION_COLUMNS} FROM record_revisions WHERE record_id = ?1 AND revision = ?2"
     ))?;
@@ -164,7 +164,7 @@ pub fn revision(connection: &Connection, record_id: &str, revision: u64) -> Resu
 }
 
 /// The current revision number and deletion state, without decoding data.
-pub fn current_revision(connection: &Connection, record_id: &str) -> Result<Option<(u64, bool)>> {
+pub(crate) fn current_revision(connection: &Connection, record_id: &str) -> Result<Option<(u64, bool)>> {
     Ok(connection
         .prepare_cached("SELECT current_revision, is_deleted FROM records WHERE record_id = ?1")?
         .query_row([record_id], |row| Ok((row.get::<_, i64>(0)? as u64, row.get::<_, i64>(1)? != 0)))

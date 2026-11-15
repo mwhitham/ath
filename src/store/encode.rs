@@ -458,7 +458,7 @@ impl Layout {
 
 /// Write a record's current typed row and child rows. `record_json` is the
 /// exact text stored in the current revision.
-pub fn write_current_state(
+pub(crate) fn write_current_state(
     tx: &Transaction<'_>,
     layout: Layout,
     record_id: &str,
@@ -522,7 +522,7 @@ pub fn write_current_state(
 
 /// Rebuild a record's typed row and children from its current revision text.
 /// This repairs storage; it does not create a new revision.
-pub fn rebuild_from_current_revision(tx: &Transaction<'_>, layout: Layout, record_id: &str) -> Result<()> {
+pub(crate) fn rebuild_from_current_revision(tx: &Transaction<'_>, layout: Layout, record_id: &str) -> Result<()> {
     let (record_type, record_json): (String, String) = tx
         .query_row(
             "SELECT records.record_type, record_revisions.record_json

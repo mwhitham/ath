@@ -153,8 +153,10 @@ fn the_contract_lists_exactly_the_child_tables_the_encoder_replaces() {
 #[test]
 fn a_new_database_matches_the_contract() {
     let path = seeded_database();
+    let store = Store::open(&path, OpenOptions { read_only: true, allow_outdated_schema: false }).unwrap();
+    assert_eq!(verify_live_schema(&store, &published_contract().unwrap()).unwrap(), Vec::<String>::new());
+    drop(store);
     let connection = recipe_connection(&path);
-    assert_eq!(verify_live_schema(&connection, &published_contract().unwrap()).unwrap(), Vec::<String>::new());
     let application_id: i64 = connection.pragma_query_value(None, "application_id", |row| row.get(0)).unwrap();
     assert_eq!(application_id, i64::from(SQLITE_APPLICATION_ID));
     let user_version: u32 = connection.pragma_query_value(None, "user_version", |row| row.get(0)).unwrap();

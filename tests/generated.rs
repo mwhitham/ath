@@ -273,13 +273,13 @@ fn the_demo_holds_every_record_type_a_correction_a_deletion_and_an_attachment() 
     assert_eq!(stored, sha256_hex(&bytes));
     assert_eq!(fs::read(generated.join(demo_support::ATTACHMENTS).join(name)).unwrap(), bytes);
 
-    let metadata = store::read_metadata(&connection).unwrap();
-    assert_eq!(metadata.athleticstandard_version, package::ATHLETIC_STANDARD_VERSION);
-    assert_eq!(metadata.sql_schema_version, store::SQL_SCHEMA_VERSION);
     drop(connection);
 
     let opened =
         store::Store::open(&path, store::OpenOptions { read_only: true, allow_outdated_schema: false }).unwrap();
+    let metadata = opened.metadata();
+    assert_eq!(metadata.athleticstandard_version, package::ATHLETIC_STANDARD_VERSION);
+    assert_eq!(metadata.sql_schema_version, store::SQL_SCHEMA_VERSION);
     let result = store::check::check_database(&opened).unwrap();
     assert!(result.valid, "{:?}", result.issues);
 }

@@ -43,7 +43,6 @@ fn records(result: athleticstandard::Result<Vec<athleticstandard::model::Current
 }
 
 fn range(store: &mut Store, call: &str, input: &Value, _: &Path) -> (Value, Compare) {
-    let connection = store.connection();
     let output = match call {
         "calculate" => outcome(calculate::calculate_range(store, &options(input)).map(|receipt| {
             object(vec![
@@ -60,17 +59,16 @@ fn range(store: &mut Store, call: &str, input: &Value, _: &Path) -> (Value, Comp
                 ])
             }))
         }
-        "query-measurements" => records(query::query_measurements(
-            connection,
-            &MeasurementQuery {
+        "query-measurements" => records(
+            store.query_measurements(&MeasurementQuery {
                 range: TimeRange { from: opt_string(input, "from"), to: opt_string(input, "to") },
                 quantity: opt_string(input, "quantity")
                     .map(|text| athleticstandard::model::PointMeasurementType::parse(&text).unwrap()),
                 source_id: opt_string(input, "source_id"),
                 include_manual: flag(input, "include_manual"),
                 limit: opt_u32(input, "limit"),
-            },
-        )),
+            }),
+        ),
         "query-series" => {
             let mut series = SeriesQuery::new(SeriesQuantity::parse(input["quantity"].as_str().unwrap()).unwrap());
             series.limit = opt_u32(input, "limit");
@@ -78,23 +76,19 @@ fn range(store: &mut Store, call: &str, input: &Value, _: &Path) -> (Value, Comp
             if opt_string(input, "order").as_deref() == Some("descending") {
                 series.order = Order::Descending;
             }
-            records(query::query_series(connection, &series))
+            records(store.query_series(&series))
         }
-        "query-sessions" => records(query::query_sessions(
-            connection,
-            &SessionQuery {
-                session_type: opt_string(input, "session_type").map(|text| match text.as_str() {
-                    "sleep_session" => query::SessionType::Sleep,
-                    _ => query::SessionType::Workout,
-                }),
-                source_id: opt_string(input, "source_id"),
-                limit: opt_u32(input, "limit"),
-                ..SessionQuery::default()
-            },
-        )),
-        "query-as-of" => records(query::query_records_as_of(
-            connection,
-            &AsOfQuery {
+        "query-sessions" => records(store.query_sessions(&SessionQuery {
+            session_type: opt_string(input, "session_type").map(|text| match text.as_str() {
+                "sleep_session" => query::SessionType::Sleep,
+                _ => query::SessionType::Workout,
+            }),
+            source_id: opt_string(input, "source_id"),
+            limit: opt_u32(input, "limit"),
+            ..SessionQuery::default()
+        })),
+        "query-as-of" => records(
+            store.query_records_as_of(&AsOfQuery {
                 as_of: opt_string(input, "as_of").unwrap(),
                 record_types: input
                     .get("record_types")
@@ -107,8 +101,8 @@ fn range(store: &mut Store, call: &str, input: &Value, _: &Path) -> (Value, Comp
                     })
                     .unwrap_or_default(),
                 limit: opt_u32(input, "limit"),
-            },
-        )),
+            }),
+        ),
         other => panic!("unknown call {other}"),
     };
     (output, Compare::Exact)

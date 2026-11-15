@@ -14,8 +14,8 @@ use std::path::Path;
 
 pub use definition::{CalculationFile, OneRecordCalculation};
 pub use range::{
-    calculate, render_calculation, CalculateOptions, CalculationReceipt, CalculationResult, Group, Operation,
-    RecordKind, MAX_RECEIPT_REFERENCES, MAX_RUNTIME_INPUTS,
+    render_calculation, CalculateOptions, CalculationReceipt, CalculationResult, Group, Operation, RecordKind,
+    MAX_RECEIPT_REFERENCES, MAX_RUNTIME_INPUTS,
 };
 pub use record::{ApplyResult, FieldRead, OneRecordResult};
 

@@ -108,7 +108,7 @@ fn semantic_json_equal(left: &str, right: &str) -> bool {
 
 /// Every typed row whose `data_json` differs from its current revision, by
 /// record type and then record ID. Deleted records are included.
-pub fn typed_table_mismatches(connection: &Connection) -> Result<Vec<TypedTableMismatch>> {
+pub(crate) fn typed_table_mismatches(connection: &Connection) -> Result<Vec<TypedTableMismatch>> {
     let mut mismatches = Vec::new();
     for record_type in RecordType::ALL {
         let table = encode::table_for(*record_type);
@@ -139,7 +139,9 @@ pub fn typed_table_mismatches(connection: &Connection) -> Result<Vec<TypedTableM
 }
 
 /// Find what a repair would change.
-pub fn repair_candidates(connection: &Connection, layout: Layout) -> Result<RepairCandidates> {
+pub fn repair_candidates(store: &Store) -> Result<RepairCandidates> {
+    let connection = store.connection();
+    let layout = store.layout();
     let mismatches = typed_table_mismatches(connection)?;
     let revision_align_record_ids: Vec<String> =
         mismatches.iter().filter(|row| !row.encoding_only).map(|row| row.record_id.clone()).collect();
@@ -163,7 +165,7 @@ pub fn repair_candidates(connection: &Connection, layout: Layout) -> Result<Repa
 
 /// The `ath repair` preview for an open database. It changes nothing.
 pub fn repair_preview(store: &Store) -> Result<RepairPreview> {
-    let candidates = repair_candidates(store.connection(), store.layout())?;
+    let candidates = repair_candidates(store)?;
     Ok(RepairPreview {
         file: store.path().display().to_string(),
         repair_candidates: candidates.repair_candidates(),
@@ -250,7 +252,7 @@ pub fn execute_confirmed_repair(store: &mut Store, options: &RepairOptions) -> R
     let layout = store.layout();
     let path = store.path().to_path_buf();
     let metadata = read_metadata(store.connection())?;
-    let candidates = repair_candidates(store.connection(), layout)?;
+    let candidates = repair_candidates(store)?;
     if candidates.is_empty() {
         return Ok(ConfirmedRepairResult {
             backup_path: String::new(),
@@ -272,7 +274,7 @@ pub fn execute_confirmed_repair(store: &mut Store, options: &RepairOptions) -> R
         backup::default_repair_backup_path(&path, options.now_millis.unwrap_or_else(time::now_millis))
     });
     let identity = files::identity(&path)?;
-    let verified = backup::create_verified_backup(store.connection(), &backup_path, &metadata)?;
+    let verified = backup::create_verified_backup(store, &backup_path, &metadata)?;
     if verified.database_revision != revision_before {
         return Err(Error::stale("Database revision changed during repair backup; stop other writers and retry"));
     }

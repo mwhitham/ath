@@ -22,7 +22,7 @@ use serde::Deserialize;
 
 use super::encode;
 use super::migrate::{MIGRATION_CHAIN, SQL_SCHEMA_VERSION};
-use super::{read_metadata, SQLITE_APPLICATION_ID};
+use super::{read_metadata, Store, SQLITE_APPLICATION_ID};
 use crate::error::{Error, Result};
 use crate::model::RecordType;
 
@@ -167,7 +167,8 @@ fn columns(connection: &Connection, table: &str) -> Result<Vec<String>> {
 
 /// Check a live database at the current schema step against the contract.
 /// Returns a list of problems; an empty list means the schema conforms.
-pub fn verify_live_schema(connection: &Connection, contract: &SqlContract) -> Result<Vec<String>> {
+pub fn verify_live_schema(store: &Store, contract: &SqlContract) -> Result<Vec<String>> {
+    let connection = store.connection();
     let mut problems = Vec::new();
     let metadata = read_metadata(connection)?;
     if metadata.sql_schema_version != contract.sql_schema_version {

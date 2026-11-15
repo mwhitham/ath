@@ -59,8 +59,7 @@ fn erasure_removes_dependents_and_history_and_leaves_value_free_markers() {
     for id in &erased.erased_record_ids {
         assert!(store.revisions(id).unwrap().is_empty(), "{id} kept history");
     }
-    let marker: (String, String) = store
-        .connection()
+    let marker: (String, String) = direct(store.path())
         .query_row(
             "SELECT erased_at, reason_code FROM record_erasure_markers WHERE record_id = ?1",
             [RESULT_ID],
@@ -100,7 +99,7 @@ fn erasing_an_attachment_removes_its_file_after_the_records() {
     let erased = erase_record(&mut store, &preview, ErasureReasonCode::RecordedInError, None).unwrap();
     assert_eq!(erased.erased_attachment_count, 1);
     assert!(!file.exists());
-    assert!(pending_file_operations(store.connection()).unwrap().is_empty());
+    assert!(store.pending_file_operations().unwrap().is_empty());
     assert!(store.get_record(ATTACHMENT_ID).unwrap().is_none());
     common::remove_dir(&directory);
 }
@@ -120,15 +119,14 @@ fn stale_and_unknown_erasures_are_refused() {
         format!("Record {RESULT_ID} is at revision 1, not expected revision 2")
     );
     let preview = preview_erasure(&store, ATTACHMENT_ID, 1).unwrap();
-    store
-        .connection()
+    direct(store.path())
         .execute("UPDATE database_state SET current_revision = current_revision + 1 WHERE singleton_id = 1", [])
         .unwrap();
     let error = erase_record(&mut store, &preview, ErasureReasonCode::Other, None).unwrap_err();
     assert_eq!(error.to_string(), "Database changed after the erasure preview; preview it again");
     assert!(store.get_record(ATTACHMENT_ID).unwrap().is_some());
     assert!(directory.join("attachments").join(DEMO_ATTACHMENT).exists());
-    assert!(pending_file_operations(store.connection()).unwrap().is_empty());
+    assert!(store.pending_file_operations().unwrap().is_empty());
     let bad_time = erase_record(&mut store, &preview, ErasureReasonCode::Other, Some("yesterday"));
     assert!(matches!(bad_time, Err(Error::Invalid(_))));
     common::remove_dir(&directory);
@@ -157,7 +155,7 @@ fn a_failed_file_removal_stays_pending_until_a_later_writable_operation() {
     store.close().unwrap();
 
     let reader = open_read_only(&database);
-    let pending = pending_file_operations(reader.connection()).unwrap();
+    let pending = reader.pending_file_operations().unwrap();
     assert_eq!(pending.len(), 1);
     assert_eq!(pending[0].operation_kind, "attachment_removal");
     assert_eq!(pending[0].relative_path, format!("attachments/{DEMO_ATTACHMENT}"));
@@ -169,7 +167,7 @@ fn a_failed_file_removal_stays_pending_until_a_later_writable_operation() {
     assert_eq!(report.removed_files, [format!("attachments/{DEMO_ATTACHMENT}")]);
     assert!(report.is_complete());
     assert!(!file.exists());
-    assert!(pending_file_operations(store.connection()).unwrap().is_empty());
+    assert!(store.pending_file_operations().unwrap().is_empty());
     common::remove_dir(&directory);
 }
 

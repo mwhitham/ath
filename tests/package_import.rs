@@ -130,10 +130,13 @@ fn a_restore_preview_writes_nothing_then_the_restore_keeps_everything() {
     let records =
         store.list_records(&read::ListOptions { include_deleted: true, limit: 100, ..Default::default() }).unwrap();
     assert_eq!(records.len(), 25);
-    assert_eq!(store::read_metadata(store.connection()).unwrap().database_id, "01890f3e-e7d3-7cc0-88c8-000000000001");
+    let database_id: String = direct(store.path())
+        .query_row("SELECT database_id FROM database_metadata WHERE singleton_id = 1", [], |row| row.get(0))
+        .unwrap();
+    assert_eq!(database_id, "01890f3e-e7d3-7cc0-88c8-000000000001");
     assert_eq!(store.revisions("01890f3e-e7d3-7cc0-88c8-000000000007").unwrap().len(), 2);
     assert!(directory.join("attachments").join(DEMO_ATTACHMENT).is_file());
-    assert!(pending_file_operations(store.connection()).unwrap().is_empty());
+    assert!(store.pending_file_operations().unwrap().is_empty());
 
     // The same package again is a merge in which every record matches.
     let again = preview_package_import(&store, &package).unwrap();
@@ -420,7 +423,7 @@ fn a_destination_changed_after_preview_is_refused_and_copied_files_are_removed()
     let attachments = directory.join("attachments");
     let left: Vec<_> = fs::read_dir(&attachments).map(|entries| entries.collect()).unwrap_or_default();
     assert!(left.is_empty(), "{left:?}");
-    assert!(pending_file_operations(store.connection()).unwrap().is_empty());
+    assert!(store.pending_file_operations().unwrap().is_empty());
     common::remove_dir(&directory);
 }
 
@@ -489,7 +492,7 @@ const SOURCE_B: &str = "01890f3e-0000-7000-8000-00000000000b";
 
 /// Every stored JSON text of a record, to show a merge left it unchanged.
 fn stored_texts(store: &Store, record_id: &str) -> Vec<String> {
-    let connection = store.connection();
+    let connection = direct(store.path());
     let mut texts: Vec<String> = connection
         .prepare("SELECT record_json FROM record_revisions WHERE record_id = ?1 ORDER BY revision")
         .unwrap()
@@ -608,8 +611,7 @@ fn a_merge_adds_deleted_records_and_deletions() {
         let record = store.get_record(id).unwrap().unwrap();
         assert!(record.is_deleted, "{id}");
         assert_eq!(record.current_revision, revision, "{id}");
-        let deleted_revision: i64 = store
-            .connection()
+        let deleted_revision: i64 = direct(store.path())
             .query_row("SELECT record_revision FROM record_deletions WHERE record_id = ?1", [id], |row| row.get(0))
             .unwrap();
         assert_eq!(deleted_revision, revision as i64, "{id}");

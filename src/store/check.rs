@@ -886,7 +886,10 @@ pub enum TypedDenormalizedFinding {
 
 /// Typed-row findings for every active record, by record type and then
 /// record ID. `ath repair` uses the mismatches to plan an encoding repair.
-pub fn typed_denormalized_findings(connection: &Connection, layout: Layout) -> Result<Vec<TypedDenormalizedFinding>> {
+pub(crate) fn typed_denormalized_findings(
+    connection: &Connection,
+    layout: Layout,
+) -> Result<Vec<TypedDenormalizedFinding>> {
     let context = RecordContext { connection, layout, attachments: std::path::PathBuf::new() };
     let mut findings = Vec::new();
     for record_type in RecordType::ALL {

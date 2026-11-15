@@ -85,7 +85,7 @@ fn files_in(directory: &Path) -> Vec<String> {
 
 fn pending(path: &Path) -> Vec<PendingFileOperation> {
     let store = Store::open(path, OpenOptions { read_only: true, allow_outdated_schema: false }).unwrap();
-    pending_file_operations(store.connection()).unwrap()
+    store.pending_file_operations().unwrap()
 }
 
 /// Every attachment record's file exists with its recorded size.

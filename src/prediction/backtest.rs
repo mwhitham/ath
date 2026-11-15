@@ -24,6 +24,7 @@ use crate::model::grade::js_round;
 use crate::model::{time, CurrentRecord, RecordData, Score, ATHLETIC_STANDARD_VERSION};
 use crate::runtime::model_client::{ModelClient, PromptRequest};
 use crate::store::read::current_from_row;
+use crate::store::Store;
 
 pub const BACKTEST_SYSTEM_PROMPT: &str =
     "Return only JSON with predicted_score, optional predicted_range, confidence, and reasoning.";
@@ -137,7 +138,7 @@ fn definition_data(record: &CurrentRecord) -> Option<&crate::model::BenchmarkDef
 
 /// The replay cut-off for a result: one millisecond before the earlier of its
 /// event time and the time this database first learned it.
-pub fn replay_cut_off(connection: &Connection, result: &CurrentRecord) -> Result<String> {
+pub(crate) fn replay_cut_off(connection: &Connection, result: &CurrentRecord) -> Result<String> {
     let first_known: Option<String> = connection
         .query_row(
             "SELECT became_known_at FROM record_revisions WHERE record_id = ?1 ORDER BY revision LIMIT 1",
@@ -154,7 +155,7 @@ pub fn replay_cut_off(connection: &Connection, result: &CurrentRecord) -> Result
 }
 
 /// Every replayable result, and the count of first results skipped.
-pub fn replay_targets(connection: &Connection) -> Result<(Vec<ReplayTarget>, usize)> {
+pub(crate) fn replay_targets(connection: &Connection) -> Result<(Vec<ReplayTarget>, usize)> {
     let mut statement = connection.prepare(
         "SELECT records.record_id, records.record_type, records.current_revision, records.created_at,
                 records.is_deleted, record_revisions.record_json, record_revisions.extensions_json
@@ -212,18 +213,14 @@ pub fn replay_targets(connection: &Connection) -> Result<(Vec<ReplayTarget>, usi
 }
 
 /// Replay every later result with every model. Writes nothing.
-pub fn run_backtest(
-    connection: &Connection,
-    options: &BacktestOptions,
-    client: &dyn ModelClient,
-) -> Result<BacktestReport> {
+pub fn run_backtest(store: &Store, options: &BacktestOptions, client: &dyn ModelClient) -> Result<BacktestReport> {
     if options.models.is_empty() {
         return Err(Error::other("backtest needs at least one model"));
     }
-    let (targets, skipped_first) = replay_targets(connection)?;
+    let (targets, skipped_first) = replay_targets(store.connection())?;
     let mut replays = Vec::new();
     for target in &targets {
-        let evidence = build_evidence(connection, &EvidenceRequest::new(&target.definition.record_id, &target.as_of))?;
+        let evidence = build_evidence(store, &EvidenceRequest::new(&target.definition.record_id, &target.as_of))?;
         let definition = definition_data(&target.definition).expect("targets name definitions");
         let score_type = definition.score_type.as_str();
         let result = result_data(&target.result).expect("targets name results");

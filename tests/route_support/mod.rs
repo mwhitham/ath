@@ -15,7 +15,7 @@ use athleticstandard::json::{self, Value};
 use athleticstandard::model::RecordActor;
 use athleticstandard::store::{Changes, Deletion, Store};
 
-use crate::import_support::{assert_same_json, new_store, snapshot, KeyFact, Labels, TempDir};
+use crate::import_support::{assert_same_json, direct, new_store, snapshot, KeyFact, Labels, TempDir};
 
 pub fn golden(name: &str) -> Value {
     let path = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/golden/routes").join(name);
@@ -100,15 +100,14 @@ pub fn materialize(input: &Value, directory: &Path) -> PathBuf {
 
 /// Delete the first record whose label starts with `prefix`.
 pub fn delete_by_label(store: &mut Store, labels: &mut Labels, prefix: &str, deleted_at: &str) {
-    let before = snapshot(store.connection(), labels);
+    let before = snapshot(&direct(store.path()), labels);
     let target = before["records"]
         .as_array()
         .unwrap()
         .iter()
         .find(|record| record["label"].as_str().unwrap().starts_with(prefix))
         .unwrap_or_else(|| panic!("no record to delete: {prefix}"));
-    let record_id: String = store
-        .connection()
+    let record_id: String = direct(store.path())
         .prepare("SELECT record_id FROM records")
         .unwrap()
         .query_map([], |row| row.get::<_, String>(0))
@@ -178,7 +177,7 @@ pub fn run_provider_scenario(name: &str) {
             Err(error) => serde_json::json!({ "error": error.to_string() }),
         };
         assert_same_json(&apply, &step["apply"], &format!("{context} apply"));
-        let database = snapshot(store.connection(), &mut labels);
+        let database = snapshot(&direct(store.path()), &mut labels);
         assert_same_json(&database, &step["database"], &format!("{context} database"));
     }
 }

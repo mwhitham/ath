@@ -12,7 +12,7 @@ use athleticstandard::json::{self, Value};
 use athleticstandard::model::RecordActor;
 use athleticstandard::store::{Changes, Deletion};
 
-use super::{assert_same_json, golden, new_store, repository_root, snapshot, KeyFact, Labels, TempDir};
+use super::{assert_same_json, direct, golden, new_store, repository_root, snapshot, KeyFact, Labels, TempDir};
 
 fn file_bytes(body: &Value) -> Vec<u8> {
     match body {
@@ -71,7 +71,7 @@ pub fn run_scenario(name: &str) {
         let step_directory = directory.path().join(format!("step-{index}"));
         std::fs::create_dir(&step_directory).unwrap();
         if let Value::Object(delete) = &step["delete_before"] {
-            let before = snapshot(store.connection(), &mut labels);
+            let before = snapshot(&direct(store.path()), &mut labels);
             let prefix = delete["label_prefix"].as_str().unwrap();
             let target = before["records"]
                 .as_array()
@@ -79,8 +79,7 @@ pub fn run_scenario(name: &str) {
                 .iter()
                 .find(|record| record["label"].as_str().unwrap().starts_with(prefix))
                 .unwrap_or_else(|| panic!("{context}: no record to delete"));
-            let record_id: String = store
-                .connection()
+            let record_id: String = direct(store.path())
                 .prepare("SELECT record_id FROM records")
                 .unwrap()
                 .query_map([], |row| row.get::<_, String>(0))
@@ -143,7 +142,7 @@ pub fn run_scenario(name: &str) {
                 error.issues.iter().map(|issue| format!("{}: {}", issue.path_text(), issue.message)).collect();
             assert_eq!(actual, expected, "{context}");
             assert_eq!(
-                snapshot(store.connection(), &mut labels)["database_revision"],
+                snapshot(&direct(store.path()), &mut labels)["database_revision"],
                 step["database"]["database_revision"],
                 "{context}"
             );
@@ -180,7 +179,7 @@ pub fn run_scenario(name: &str) {
             Err(error) => serde_json::json!({ "error": error.to_string() }),
         };
         assert_same_json(&apply, &step["apply"], &format!("{context} apply"));
-        let database = snapshot(store.connection(), &mut labels);
+        let database = snapshot(&direct(store.path()), &mut labels);
         assert_same_json(&database, &step["database"], &format!("{context} database"));
     }
 }

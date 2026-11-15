@@ -108,21 +108,25 @@ fn a_mismatched_header_is_refused_without_change() {
 }
 
 /// A writer that leaves committed frames in the WAL when it closes.
+///
+/// SQLite checkpoints when the last connection to a file closes. An
+/// independent connection stays open while the writer closes, so the writer
+/// does not checkpoint. That connection then closes without a checkpoint.
 fn wal_with_committed_frames(prefix: &str) -> PathBuf {
     let dir = temporary_dir(prefix);
     let path = dir.join("athlete.ath.sqlite");
     let mut store = Store::create(&path, CreateOptions::default()).unwrap();
     store.apply(Changes { creates: vec![report("checkpointed")], ..Changes::default() }).unwrap();
     store.close().unwrap();
-    let connection = direct(&path);
-    connection.set_db_config(DbConfig::SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE, true).unwrap();
-    connection.pragma_update(None, "wal_autocheckpoint", 0).unwrap();
-    drop(connection);
+    let keeper = direct(&path);
+    keeper.set_db_config(DbConfig::SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE, true).unwrap();
+    keeper.pragma_update(None, "wal_autocheckpoint", 0).unwrap();
+    // A read joins the WAL and keeps a shared lock on the file until close.
+    keeper.query_row("SELECT count(*) FROM records", [], |row| row.get::<_, i64>(0)).unwrap();
     let mut store = Store::open(&path, OpenOptions::default()).unwrap();
-    store.connection().set_db_config(DbConfig::SQLITE_DBCONFIG_NO_CKPT_ON_CLOSE, true).unwrap();
-    store.connection().pragma_update(None, "wal_autocheckpoint", 0).unwrap();
     store.apply(Changes { creates: vec![report("only in the WAL")], ..Changes::default() }).unwrap();
     drop(store);
+    drop(keeper);
     assert!(std::fs::metadata(sidecar(&path, "-wal")).unwrap().len() > 0);
     path
 }

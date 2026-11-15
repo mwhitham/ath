@@ -81,7 +81,7 @@ struct DayGroup {
 pub fn read_series_view(store: &Store, quantity: SeriesQuantity, options: &SeriesViewOptions) -> Result<SeriesView> {
     let connection = store.connection();
     let range = resolve_calendar_range(
-        connection,
+        store,
         &CalendarRangeRequest {
             from: options.from.clone(),
             to: options.to.clone(),

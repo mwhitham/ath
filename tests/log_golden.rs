@@ -26,7 +26,7 @@ fn request(input: &Value) -> LogRequest {
 
 fn log_call(store: &mut Store, call: &str, input: &Value) -> Value {
     let mut new_id = athleticstandard::ids::new_record_id;
-    let plan = plan_log_entry(store.connection(), &request(input), &mut new_id);
+    let plan = plan_log_entry(store, &request(input), &mut new_id);
     match call {
         "log-plan" => outcome(plan.map(|plan| {
             let preview = athleticstandard::json::to_value(&plan.preview("unused"));

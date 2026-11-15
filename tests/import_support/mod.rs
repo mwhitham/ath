@@ -50,6 +50,18 @@ impl Drop for TempDir {
     }
 }
 
+/// An independent read-write connection with the published direct-SQL
+/// recipe's settings. The library keeps its own connection private (D223).
+pub fn direct(path: &Path) -> Connection {
+    let connection = Connection::open_with_flags(
+        path,
+        rusqlite::OpenFlags::SQLITE_OPEN_READ_WRITE | rusqlite::OpenFlags::SQLITE_OPEN_NO_MUTEX,
+    )
+    .unwrap();
+    connection.execute_batch("PRAGMA foreign_keys = ON; PRAGMA busy_timeout = 5000;").unwrap();
+    connection
+}
+
 pub fn new_store(directory: &Path) -> Store {
     Store::create(
         directory.join("athlete.ath.sqlite"),

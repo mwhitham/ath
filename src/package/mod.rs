@@ -37,9 +37,8 @@ macro_rules! failpoint {
 pub(crate) use failpoint;
 
 pub use attachments::{
-    apply_with_attachments, attachment_directory, pending_file_operations, prepare_attachments,
-    resume_pending_file_operations, stored_attachment_name, PendingCleanupReport, PendingFileFailure,
-    PendingFileOperation, PreparedAttachment,
+    apply_with_attachments, attachment_directory, prepare_attachments, resume_pending_file_operations,
+    stored_attachment_name, PendingCleanupReport, PendingFileFailure, PendingFileOperation, PreparedAttachment,
 };
 pub use conflicts::{
     assert_conflict_set_current, clear_conflict_set, conflict_resolutions, conflict_set_path, read_conflict_set,

@@ -404,6 +404,6 @@ fn revisions(call: &mut Call<'_>) -> Outcome {
 /// `readRecordLinks(database, recordId)`.
 fn links(call: &mut Call<'_>) -> Outcome {
     let record_id = input::required_string(&call.input, "record_id")?;
-    let links = crate::view::records::read_record_links(call.store()?.connection(), &record_id)?;
+    let links = crate::view::records::read_record_links(call.store()?, &record_id)?;
     Ok(crate::json::to_value(&links))
 }

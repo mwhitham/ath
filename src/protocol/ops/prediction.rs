@@ -205,7 +205,7 @@ fn log_plan(call: &mut Call<'_>) -> Outcome {
         created_at,
         benchmark: input::string(&request, "benchmark")?,
     };
-    let plan = crate::log::plan_log_entry(call.store()?.connection(), &log, &mut crate::ids::new_record_id)?;
+    let plan = crate::log::plan_log_entry(call.store()?, &log, &mut crate::ids::new_record_id)?;
     Ok(plan_value(&plan))
 }
 
@@ -260,11 +260,7 @@ fn grade_plan(call: &mut Call<'_>) -> Outcome {
             None => None,
         },
     };
-    let plan = crate::prediction::grade::plan_prediction_grade(
-        call.store()?.connection(),
-        &grade,
-        &mut crate::ids::new_record_id,
-    )?;
+    let plan = crate::prediction::grade::plan_prediction_grade(call.store()?, &grade, &mut crate::ids::new_record_id)?;
     let planned = |record: &PlannedRecord| {
         Value::Object(write_input(
             record.data.record_type(),
@@ -307,14 +303,14 @@ fn evidence(call: &mut Call<'_>) -> Outcome {
     let number = |key: &str| input::get(&request, key).map(|value| input::whole_number(value).map_or(0, |n| n as u32));
     let evidence_request =
         EvidenceRequest { benchmark, as_of, limit: number("limit"), window_days: number("window_days") };
-    let evidence = crate::prediction::build_evidence(call.store()?.connection(), &evidence_request)?;
+    let evidence = crate::prediction::build_evidence(call.store()?, &evidence_request)?;
     Ok(json::to_value(&evidence))
 }
 
 /// `resolveEvidenceReference(database, reference)`.
 fn resolve_reference(call: &mut Call<'_>) -> Outcome {
     let reference: EvidenceReference = input::decode(call.input.get("reference").unwrap_or(&Value::Null))?;
-    let resolved = crate::prediction::resolve_evidence_reference(call.store()?.connection(), &reference)?;
+    let resolved = crate::prediction::resolve_evidence_reference(call.store()?, &reference)?;
     Ok(json::to_value(&resolved))
 }
 
@@ -354,7 +350,7 @@ fn backtest(call: &mut Call<'_>) -> Outcome {
             Err(message) => Err(ModelError::Transport(message)),
         }
     };
-    let report = crate::prediction::run_backtest(store.connection(), &options, &complete)?;
+    let report = crate::prediction::run_backtest(store, &options, &complete)?;
     Ok(json::to_value(&report))
 }
 

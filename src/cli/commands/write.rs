@@ -30,7 +30,7 @@ pub fn log(context: &mut Context<'_>, args: &Args) -> CommandResult {
             created_at: args.value("at").map(ToString::to_string),
             benchmark: args.value("benchmark").map(ToString::to_string),
         };
-        let plan = plan_log_entry(store.connection(), &request, &mut new_record_id)?;
+        let plan = plan_log_entry(store, &request, &mut new_record_id)?;
         // Each attachment file is read and checked now; it is written only
         // with the records, and linked to the batch's one report or entry.
         let paths: Vec<PathBuf> = args.values("attachment").iter().map(|path| context.resolve(path)).collect();
@@ -83,7 +83,7 @@ pub fn grade(context: &mut Context<'_>, args: &Args) -> CommandResult {
         created_at: None,
     };
     with_store(context, args, Open::Write, |context, store, path| {
-        let plan = plan_prediction_grade(store.connection(), &request, &mut new_record_id)?;
+        let plan = plan_prediction_grade(store, &request, &mut new_record_id)?;
         context.say_json(&json::to_value(&plan.preview(&path.display().to_string())))?;
         if flags.json || !proceed(context, flags, "Write this grade?")? {
             return Ok(());

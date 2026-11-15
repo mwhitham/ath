@@ -121,7 +121,7 @@ pub fn preview(source_version: u32, database_id: &str, planned_backup_path: Opti
 /// Step 2 first rebuilds typed rows whose stored JSON differs from the current
 /// revision only in key order. Any other difference stops the migration, so a
 /// person can review it with `ath repair`.
-pub fn apply_step(tx: &Transaction<'_>, version: u32) -> Result<StepOutcome> {
+pub(crate) fn apply_step(tx: &Transaction<'_>, version: u32) -> Result<StepOutcome> {
     if version == 1 {
         return Err(Error::other("The initial SQL schema cannot be applied to an existing Athletic Standard database"));
     }
@@ -145,7 +145,7 @@ pub struct StepOutcome {
 
 /// Rebuild typed rows whose JSON text differs from the current revision only
 /// in key order (migration step 2).
-pub fn repair_provider_encoding_rows(tx: &Transaction<'_>) -> Result<usize> {
+pub(crate) fn repair_provider_encoding_rows(tx: &Transaction<'_>) -> Result<usize> {
     let layout = Layout { sql_schema_version: 1 };
     let mut ids = Vec::new();
     for record_type in crate::model::RecordType::ALL {
@@ -269,7 +269,7 @@ pub fn execute_confirmed_migration(store: &mut Store, options: &MigrationOptions
     };
 
     let identity = files::identity(&path)?;
-    let verified = backup::create_verified_backup(store.connection(), &backup_path, &metadata)?;
+    let verified = backup::create_verified_backup(store, &backup_path, &metadata)?;
     files::assert_same_file(&path, identity)?;
     apply_after_backup(store, preview, &verified, identity)
 }

@@ -60,7 +60,7 @@ fn creates(records: Vec<NewRecord>) -> Changes {
 }
 
 fn database_revision(store: &Store) -> i64 {
-    store.connection().query_row("SELECT current_revision FROM database_state", [], |row| row.get(0)).unwrap()
+    store.database_revision().unwrap() as i64
 }
 
 fn record_exists(store: &Store, record_id: &str) -> bool {

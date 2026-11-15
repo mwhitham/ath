@@ -16,7 +16,7 @@ use athleticstandard::import::{self, mapping, ImportOptions};
 use athleticstandard::json::{self, Value};
 use athleticstandard::model::RecordActor;
 use athleticstandard::store::{Changes, Deletion, Store};
-use import_support::{new_store, TempDir};
+use import_support::{direct, new_store, TempDir};
 use route_support::exports;
 use route_support::keyed::{run_keyed_scenario, step_time};
 
@@ -62,8 +62,8 @@ struct Stored {
 }
 
 fn stored(store: &Store) -> HashMap<String, Stored> {
-    let mut statement = store
-        .connection()
+    let connection = direct(store.path());
+    let mut statement = connection
         .prepare(
             "SELECT k.match_key_method, k.match_key, r.record_id, r.record_type, r.current_revision, rv.record_json
                FROM record_import_keys k
@@ -92,8 +92,7 @@ fn stored(store: &Store) -> HashMap<String, Stored> {
 }
 
 fn source(store: &Store, id: &str) -> Value {
-    let text: String = store
-        .connection()
+    let text: String = direct(store.path())
         .query_row("SELECT data_json FROM sources WHERE record_id = ?1", [id], |row| row.get(0))
         .unwrap();
     json::parse(&text).unwrap()
@@ -104,7 +103,7 @@ fn strings(value: &Value, field: &str) -> Vec<String> {
 }
 
 fn record_count(store: &Store) -> i64 {
-    store.connection().query_row("SELECT COUNT(*) FROM records", [], |row| row.get(0)).unwrap()
+    direct(store.path()).query_row("SELECT COUNT(*) FROM records", [], |row| row.get(0)).unwrap()
 }
 
 #[test]
@@ -329,8 +328,7 @@ fn a_deleted_source_leaves_its_rows_out_and_makes_no_second_source() {
     let mapping = shipped("open-wearables");
     mapped(&mut store, &input, &mapping, 0);
     let before = stored(&store);
-    let ring_id: String = store
-        .connection()
+    let ring_id: String = direct(store.path())
         .query_row("SELECT record_id FROM sources WHERE data_writer = 'oura' AND sensor_type = ?1", [S_RING], |row| {
             row.get(0)
         })
@@ -347,7 +345,7 @@ fn a_deleted_source_leaves_its_rows_out_and_makes_no_second_source() {
         })
         .unwrap();
     let sources_before: i64 =
-        store.connection().query_row("SELECT COUNT(*) FROM sources", [], |row| row.get(0)).unwrap();
+        direct(store.path()).query_row("SELECT COUNT(*) FROM sources", [], |row| row.get(0)).unwrap();
     let written = mapped(&mut store, &input, &mapping, 1);
     let gone = format!("its source {ring_id} is deleted");
     let left_out = strings(&written, "left_out");
@@ -356,7 +354,7 @@ fn a_deleted_source_leaves_its_rows_out_and_makes_no_second_source() {
     let kept = before.values().filter(|record| record.data["source_id"] != ring_id.as_str()).count();
     assert_eq!(written["outcome"], serde_json::json!({ "new": 0, "changed": 0, "unchanged": kept }));
     let sources_after: i64 =
-        store.connection().query_row("SELECT COUNT(*) FROM sources", [], |row| row.get(0)).unwrap();
+        direct(store.path()).query_row("SELECT COUNT(*) FROM sources", [], |row| row.get(0)).unwrap();
     assert_eq!(sources_after, sources_before);
 }
 
@@ -455,8 +453,7 @@ fn a_garmin_file_and_a_mapping_stay_two_sources() {
     .unwrap();
     preview.apply(&mut store).unwrap();
     mapped(&mut store, &exports().join("open-wearables/summaries.json"), &shipped("open-wearables"), 1);
-    let routes: Vec<(String, String)> = store
-        .connection()
+    let routes: Vec<(String, String)> = direct(store.path())
         .prepare("SELECT data_route, COALESCE(sensor_type, '') FROM sources WHERE data_writer = 'garmin' ORDER BY data_route")
         .unwrap()
         .query_map([], |row| Ok((row.get(0)?, row.get(1)?)))
@@ -467,8 +464,7 @@ fn a_garmin_file_and_a_mapping_stay_two_sources() {
         routes,
         [("garmin_account_export".to_string(), String::new()), ("open_wearables".to_string(), S_WATCH.to_string())]
     );
-    let peaks: Vec<f64> = store
-        .connection()
+    let peaks: Vec<f64> = direct(store.path())
         .prepare("SELECT standard_value FROM provider_summaries WHERE summary_type = 'max_heart_rate' ORDER BY standard_value")
         .unwrap()
         .query_map([], |row| row.get(0))

@@ -165,7 +165,7 @@ pub fn backtest(context: &mut Context<'_>, args: &Args) -> CommandResult {
             }
         }
         let before = store.database_revision()?;
-        let report = run_backtest(store.connection(), &BacktestOptions { models, created_at: None }, &client)?;
+        let report = run_backtest(store, &BacktestOptions { models, created_at: None }, &client)?;
         if store.database_revision()? != before {
             return Err(refuse("backtest changed the athlete database; report was not written"));
         }
