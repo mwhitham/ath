@@ -41,8 +41,10 @@ Both implementations read the same inputs:
 - The incremental package is the 2.1.0 runner's one-record package, written by
   the 2.1.0 library.
 
-The generated data passes both the 2.1.0 check and the native check with no
-issue, so no corrected copy of the generator was needed.
+The generated data passes the native check with no issue at every size, and the
+2.1.0 check at 100,000 records. At 3 million records the 2.1.0 check stops at
+Node's default heap limit; with a 16 GiB heap it also reports no issue. So no
+corrected copy of the generator was needed.
 
 ## Requirements
 
@@ -76,9 +78,17 @@ node $TOOLS/compare.ts prepare --label 100k --records 100000
 node $TOOLS/compare.ts prepare --label 3m --records 3000000
 
 # Export, check, initial import, and incremental import: three complete runs,
-# alternating which implementation goes first.
+# alternating which implementation goes first. A 3-million-record run takes
+# about 45 minutes, so each run is its own invocation there.
 node $TOOLS/compare.ts bulk --label 100k --runs 3
-node $TOOLS/compare.ts bulk --label 3m --runs 3
+node $TOOLS/compare.ts bulk --label 3m --runs 1 --first-run 1
+node $TOOLS/compare.ts bulk --label 3m --runs 1 --first-run 2
+node $TOOLS/compare.ts bulk --label 3m --runs 1 --first-run 3
+
+# The 2.1.0 check stops at Node's default heap limit at 3 million records.
+# One supplementary run with a 16 GiB heap shows how long it takes to finish.
+node $TOOLS/compare.ts bulk-old-heap --label 3m --runs 1 --only old \
+  --operations check --old-heap-mib 16384
 
 # Short commands: --help, --version, stats, latest value, evidence, baseline,
 # workout drift, and source comparison. One first run each, then 50 runs, then
@@ -86,23 +96,26 @@ node $TOOLS/compare.ts bulk --label 3m --runs 3
 node $TOOLS/compare.ts queries --label 100k --runs 50 --memory-runs 5
 node $TOOLS/compare.ts queries --label 3m --runs 50 --memory-runs 5
 
-# Library latency: three runs of the 2.1.0 runner and of the native library
-# program, 50 repetitions of each read.
+# Library latency: the 2.1.0 runner and the native library program, 50
+# repetitions of each read. At 3 million records one run each, and the 2.1.0
+# runner gets the 16 GiB heap so its database check can finish.
 node $TOOLS/compare.ts library --label 100k --runs 3 --repetitions 50
-node $TOOLS/compare.ts library --label 3m --runs 3 --repetitions 50
+node $TOOLS/compare.ts library --label 3m --runs 1 --repetitions 50 --no-plans \
+  --old-heap-mib 16384
 
 # Working memory at increasing sizes with the same record sizes (native only).
 node $TOOLS/compare.ts prepare --label 300k --records 300000
 node $TOOLS/compare.ts prepare --label 1m --records 1000000
-node $TOOLS/compare.ts scaling --label 300k --runs 1 --only native
-node $TOOLS/compare.ts scaling --label 1m --runs 1 --only native
+node $TOOLS/compare.ts scaling --label 300k --runs 3 --only native
+node $TOOLS/compare.ts scaling --label 1m --runs 3 --only native
 
 # One very large valid record: a workout session with 200,000 route points and
 # 200,000 heart-rate samples, added to the demo package.
 node $TOOLS/compare.ts large-record --label large --points 200000 --runs 3
 
-# Medians, percentiles, spread, peak memory, output bytes, and hashes.
-node $TOOLS/compare.ts summary --label 100k
+# Markdown tables (medians, spread, percentiles, peak memory, output bytes and
+# hashes) and a JSON summary for each size.
+node $TOOLS/compare.ts tables --label 3m
 node $TOOLS/compare.ts summary --label 3m
 ```
 
