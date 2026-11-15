@@ -477,3 +477,35 @@ fn migrated_tables_match_the_2_1_0_migration() {
         );
     }
 }
+
+/// The metadata row names the program that owns the file. A wrong marker is
+/// refused by read-only and writable opens, and by the migration preview,
+/// before anything changes the file.
+#[test]
+fn a_wrong_application_marker_is_refused_without_change() {
+    let path = copy_fixture(&demo_fixture(), "ath-migrate-marker-", false);
+    // The column's CHECK keeps the library and the recipe from writing this
+    // value, so this connection turns CHECK constraints off.
+    direct(&path)
+        .execute_batch(
+            "PRAGMA journal_mode = DELETE;
+             PRAGMA ignore_check_constraints = ON;
+             UPDATE database_metadata SET application_marker = 'ATH0';",
+        )
+        .unwrap();
+    let before = file_hash(&path);
+    let expected = "Unsupported database application marker: ATH0";
+    for read_only in [true, false] {
+        for allow_outdated_schema in [true, false] {
+            let error = Store::open(&path, OpenOptions { read_only, allow_outdated_schema }).unwrap_err();
+            assert_eq!(error.to_string(), expected, "read_only {read_only}");
+            assert!(matches!(error, Error::Refused(_)), "{error:?}");
+        }
+    }
+    assert_eq!(inspect_migration(&path, None).unwrap_err().to_string(), expected);
+    assert_eq!(file_hash(&path), before);
+    assert_eq!(journal_mode(&path), "delete");
+    for suffix in ["-wal", "-shm", "-journal"] {
+        assert!(!athleticstandard::files::sidecar(&path, suffix).exists(), "{suffix}");
+    }
+}
