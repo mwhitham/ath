@@ -161,6 +161,7 @@ pub fn reader_for(format: ExportFormat) -> Option<&'static dyn ProviderReader> {
         ExportFormat::Whoop => Some(&super::whoop::WhoopReader),
         ExportFormat::Oura => Some(&super::oura::OuraReader),
         ExportFormat::Apple => Some(&super::apple::AppleReader),
+        ExportFormat::PulseBand => Some(&super::pulseband::PulseBandReader),
     }
 }
 
