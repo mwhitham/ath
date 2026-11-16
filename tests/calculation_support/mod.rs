@@ -99,6 +99,11 @@ impl Lab {
         id
     }
 
+    /// The record ID of a named wearable source, made when first used.
+    pub fn source_id(&mut self, name: &str) -> String {
+        self.source(name)
+    }
+
     fn source(&mut self, name: &str) -> String {
         if let Some(id) = self.sources.get(name) {
             return id.clone();

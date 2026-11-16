@@ -38,6 +38,45 @@ fn options(input: &Value) -> CalculateOptions {
     options
 }
 
+/// Remove what receipt version 2 adds (D244), so the rest is compared with
+/// the 2.1.0 receipt. The additions are tested in `calculate_range_v2.rs`.
+fn as_version_1_receipt(mut receipt: Value) -> Value {
+    const ADDED: &[&str] = &[
+        "daily",
+        "days_spanned",
+        "slope_standard_error",
+        "coverage_ratio",
+        "paired",
+        "first_half_count",
+        "second_half_count",
+    ];
+    fn strip(value: &mut Value) {
+        match value {
+            Value::Object(map) => {
+                for key in ADDED {
+                    map.shift_remove(*key);
+                }
+                // A correlation's reason is new; a drift source's reason is not.
+                if map.contains_key("paired_day_count") {
+                    map.shift_remove("reason");
+                }
+                map.values_mut().for_each(strip);
+            }
+            Value::Array(items) => items.iter_mut().for_each(strip),
+            _ => {}
+        }
+    }
+    assert_eq!(receipt["calculation_version"], Value::String("ath-runtime-v2".into()));
+    receipt["calculation_version"] = Value::String("ath-runtime-v1".into());
+    if let Some(result) = receipt.get_mut("result") {
+        strip(result);
+    }
+    if let Some(Value::Array(exclusions)) = receipt.get_mut("exclusions") {
+        exclusions.retain(|item| !item.as_str().unwrap_or("").starts_with("no daily-mean summary"));
+    }
+    receipt
+}
+
 fn records(result: athleticstandard::Result<Vec<athleticstandard::model::CurrentRecord>>) -> Value {
     outcome(result.map(|records| records.iter().map(|record| record.to_value()).collect::<Vec<_>>()))
 }
@@ -45,10 +84,9 @@ fn records(result: athleticstandard::Result<Vec<athleticstandard::model::Current
 fn range(store: &mut Store, call: &str, input: &Value, _: &Path) -> (Value, Compare) {
     let output = match call {
         "calculate" => outcome(calculate::calculate_range(store, &options(input)).map(|receipt| {
-            object(vec![
-                ("receipt", athleticstandard::json::to_value(&receipt)),
-                ("rendered", Value::String(calculate::render_calculation(&receipt))),
-            ])
+            let receipt = as_version_1_receipt(athleticstandard::json::to_value(&receipt));
+            let rendered = calculate::range::render_calculation_value(&receipt);
+            object(vec![("receipt", receipt), ("rendered", Value::String(rendered))])
         })),
         "series" => {
             let quantity = SeriesQuantity::parse(input["quantity"].as_str().unwrap()).unwrap();

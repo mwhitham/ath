@@ -454,7 +454,7 @@ describe("calculations", () => {
   it("calculates and renders a per-source summary", async () => {
     const result = await database.calculate(scenario.handle, { operation: "summary", quantity: "hrv_rmssd" });
     expect(result).toMatchObject({
-      calculation_version: "ath-runtime-v1",
+      calculation_version: "ath-runtime-v2",
       operation: "summary",
       record_kind: "measurement",
       quantity: "hrv_rmssd",

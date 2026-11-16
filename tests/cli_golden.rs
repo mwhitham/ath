@@ -595,6 +595,13 @@ fn compare_group(group: &str) -> Vec<String> {
             if argv.first().map(String::as_str) == Some("apply") {
                 stdout = without_2_1_2_apply_fields(&stdout);
             }
+            if argv.first().map(String::as_str) == Some("calculate") {
+                // Receipt version 2 (D244); its additions are tested in calculate_range_v2.rs.
+                stdout = stdout.replace(
+                    "\"calculation_version\": \"ath-runtime-v2\"",
+                    "\"calculation_version\": \"ath-runtime-v1\"",
+                );
+            }
             let stderr = step_five_as_four(&normalize(&actual.stderr, &work_text, &mut window));
             let expected_status = step["status"].as_i64().unwrap() as i32;
             let mut expected_stdout = step["stdout"].as_str().unwrap().to_string();
