@@ -267,7 +267,8 @@ owner-correction rule in section 2. Each provider's
 are estimates, and their keys say so. Beside each,
 `estimated_merge_choices_replaced` and `estimated.merge_choices_replaced`
 count the part of it that were merge choices. A merge choice is a
-conflict the person resolved in a package merge, as section 2 says. When
+conflict the person resolved as imported or corrected in a package
+merge, as section 2 says. When
 a provider's count is above zero, the preview prints `estimated: would
 replace N owner corrections; delete an original to keep it` on that
 provider's line. When the top-level count is above zero, it prints
@@ -883,9 +884,10 @@ here. `ath correct` writes basis `local_write`, and a protocol write uses
 the basis its caller gives. A package merge copies the package's
 revisions with their own bases, in `merge_in` in
 `src/package/restore.rs`. So a record merged without a conflict keeps its
-import revisions as imports. Only a conflict the person resolved in the
-merge writes a new revision, in `resolve_in`, with basis `package_merge`
-and the athlete as actor. That revision is a merge choice. It counts as
+import revisions as imports. Only a conflict the person resolved as
+imported or corrected writes a new revision, in `resolve_in`, with basis
+`package_merge` and the athlete as actor. Choosing the local side writes
+nothing. That revision is a merge choice. It counts as
 an owner correction, and the counts in section 1 also name it as a merge
 choice. A native restore copies each revision's basis, so a restored
 database keeps the same answer. When a page's candidate names a stored
@@ -1123,7 +1125,9 @@ that provider the same way. The server has already reloaded the vendor
 token, or refreshed it, and tried once more. Each later request would
 make it do that again, and a refresh the vendor rejects revokes the
 connection. No later list call, window, or detail call goes to that
-provider in this command. The detail call that got 429 or 401, or that
+provider in this command. After a 401, the provider's line says, for
+example, `Garmin answered 401: reconnect the provider in Open Wearables
+if this repeats`. The detail call that got 429 or 401, or that
 timed out, counts as `failed`. Every id still due a detail call by the
 order below counts as `deferred`, and a later command details it. An id
 that was due no call keeps its own count, such as `kept` or
@@ -1155,9 +1159,10 @@ Budgets keep one command inside the providers' limits:
   requests. The server tries one request at most four times. It retries
   a 429 up to three times, and a 401 once after it reloads the token.
   The pull sees only the last answer, and it stops calling Strava after
-  a final 429. When only that last request was retried, one `--yes`
-  command sends 24 Strava requests, or 25 after a token reload. That
-  leaves about 75 for the deployment's own sync in the same 15 minutes.
+  a final 429. In the usual case nothing is retried, and one `--yes`
+  command sends 21 Strava requests. When only the last request was
+  retried, it sends 24, or 25 after a token reload. That still leaves
+  about 75 for the deployment's own sync in the same 15 minutes.
   The ceiling is 84, four tries for each of the 21 requests, because the
   pull cannot see a retry that ended in success. A preview first adds one
   list call. The Strava line says that its limit is shared.
@@ -1215,16 +1220,17 @@ timeout above.
   other id still due a detail call counts as `deferred`, because it was
   not asked. An id due only for its 30-day recheck keeps `not_available`
   instead, as the detail order below says. Every list object is stored,
-  Garmin stays `completed`, and
-  its line says `Garmin detail unavailable (HTTP n); list objects
-  stored`, with the status the probe got. So a missing path costs one
-  detail call in a command. When the probe answers any other error
-  status, except 401 and 429, the pull also makes no other Garmin detail
-  call, and the line is the same. Every id due a call counts as
-  `deferred`, the probed id included, except an id due only for its
-  30-day recheck. A status such as 400, 403, or 405
-  does not show that the activity has no detail, so the next command
-  probes the same oldest id again. After a 4xx status Garmin stays
+  Garmin stays `completed`, and its line says `Garmin detail unavailable
+  (HTTP n); list objects stored`, with the status the probe got. The
+  deferred count on that line reads `N deferred (not asked: detail
+  unavailable this run)`, so the person does not wait for those details.
+  So a missing path costs one detail call in a command. When the probe
+  answers any other error status, except 401 and 429, the pull also makes
+  no other Garmin detail call, and the line is the same. Every id due a
+  call counts as `deferred`, the probed id included, except an id due
+  only for its 30-day recheck. A status such as 400, 403, or 405 does not
+  show that the activity has no detail, so the next command probes the
+  same oldest id again. After a 4xx status Garmin stays
   `completed`. After a 5xx status Garmin is `incomplete`, and the exit is
   nonzero, because the server reported a fault. After a 2xx answer to the
   probe, the later Garmin detail calls go on. A later Garmin detail
@@ -1626,9 +1632,10 @@ before this command, and `--yes` prints the total after it. `--json` has
 of the bound, the run also prints a warning, and `--json` puts it in
 `vendor_workouts.notice`. The warning says three things. At the bound,
 new vendor pages are refused. `ath erase` of an original frees its space,
-but it removes that original and its history and cannot be undone.
-Storing originals in their own files is an open question for the
-maintainer (section 10).
+but it removes that original and its history and cannot be undone. A
+later version may lift the bound. The warning names no person and no
+plan question. Whether this release stores originals in their own files
+instead is open in section 10.
 
 The database keeps each original's size, so no write measures them all.
 Step 6 creates the table `vendor_original_sizes`. It has one row for
@@ -2882,8 +2889,8 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
 - a package merge of two sleep sessions. The first had no conflict, and
   its merged revision keeps basis `provider_import`, so a pull whose
   session changed replaces it with no owner-correction count. The person
-  resolved a conflict on the second, so its current revision has basis
-  `package_merge`. A pull whose session changed replaces it, and both
+  resolved a conflict on the second as imported, so its current revision
+  has basis `package_merge`. A pull whose session changed replaces it, and both
   `estimated_owner_corrections_replaced` and
   `estimated_merge_choices_replaced` are 1. The preview line adds `(1 of
   them a merge choice)`. A native export and restore keeps every
@@ -2974,8 +2981,9 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
 - the pull prints `vendor originals use X MiB of 256 MiB` on a run
   without the flag, on a preview, and on `--yes`, and `--json` has
   `used_bytes` and `bound_bytes`. Under 80% of the bound there is no size
-  warning. At 80% the text and `vendor_workouts.notice` hold the warning,
-  and it names `ath erase` and says the erase cannot be undone
+  warning. At 80% the text and `vendor_workouts.notice` hold the warning.
+  It names `ath erase`, says the erase cannot be undone, and says that a
+  later version may lift the bound. It does not say `maintainer`
 - an export whose main document would pass the read cap, with that cap
   lowered for the test, fails before the rename and publishes nothing. So
   does an export whose item would reach `MAX_PACKAGE_JSON_NESTING`, 128
@@ -3048,7 +3056,8 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   request. The first id is stored with `detail_status` `not_available`
   and a `detail_checked_at` equal to the test clock, and the other two
   with `deferred`. Garmin is `completed`, its line says `Garmin detail
-  unavailable (HTTP 404); list objects stored`, and the command exits 0.
+  unavailable (HTTP 404); list objects stored` and `2 deferred (not
+  asked: detail unavailable this run)`, and the command exits 0.
   HTTP 501 does the same. On the next command, the `not_available` id,
   whose list object is unchanged, gets no call and counts as
   `not_available` again, and the probe is the older of the two deferred
@@ -3076,8 +3085,10 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
 - a live detail that answers HTTP 401, for Garmin and for Polar, counts
   as `failed`. The fixture server sees no later request to that provider
   in the command. Each id still due a call is `deferred`, the provider is
-  `incomplete`, and the exit is nonzero. A Garmin window that answers 401
-  sends no later window
+  `incomplete`, and the exit is nonzero. The Garmin line says `Garmin
+  answered 401: reconnect the provider in Open Wearables if this
+  repeats`, and the Polar line says the same with `Polar`. A Garmin
+  window that answers 401 sends no later window
 - live requests go one at a time, at least one second apart by the
   fixture server's clock. A live request that times out, with the read
   timeout shortened for the test, stops every later request to that

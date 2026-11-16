@@ -175,9 +175,10 @@ number is added:
   call keeps its own count. Each id goes in the first group of the detail
   order it matches, and a `too_large` or `refused` id is no longer in the
   first group.
-- D243. One `--yes` command sends 24 Strava requests in the usual case,
-  or 25 after a token reload, which leaves about 75. The ceiling is 84,
-  because the pull cannot see a server retry that ended in success.
+- D243. One `--yes` command sends 24 Strava requests when only the last
+  request was retried, or 25 after a token reload, which leaves about 75.
+  The ceiling is 84, because the pull cannot see a server retry that
+  ended in success.
 - D243 and D231. A vendor object with a `__proto__` key is refused alone
   as `unusable_name`, and the provider stays `completed`. The import check
   would otherwise fail that provider's page on every command.
@@ -239,6 +240,13 @@ number is added:
   writes, and the bound and the usage line read the sum. Only `ath check`
   measures every original again, and `ath repair` fixes a row that
   differs.
+- D243 and D242. Wording. When the probe stops Garmin, its deferred
+  count adds `(not asked: detail unavailable this run)`. After a 401, the
+  provider's line says to reconnect the provider in Open Wearables if
+  this repeats. A merge choice is a conflict resolved as imported or
+  corrected, because choosing the local side writes nothing. Strava's
+  usual case is 21 requests. The 80% warning says that a later version
+  may lift the bound, and it names no plan question.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -1424,11 +1432,12 @@ original. Deleting an original keeps the person's version in its history
 and stops every later pull from changing it.
 
 A package merge counts as an owner correction only where the person
-resolved a conflict. `merge_in` in `src/package/restore.rs` copies the
-package's revisions with their own bases, so a record merged without a
-conflict keeps its import revisions as imports. `resolve_in` writes a
-conflict the person resolved as a new revision with basis
-`package_merge` and the athlete as actor. That is the person's choice,
+resolved a conflict as imported or corrected. `merge_in` in
+`src/package/restore.rs` copies the package's revisions with their own
+bases, so a record merged without a conflict keeps its import revisions
+as imports. `resolve_in` writes such a resolution as a new revision with
+basis `package_merge` and the athlete as actor. Choosing the local side
+writes nothing. That is the person's choice,
 so the rule keeps it as it keeps an edit. The counts name it accurately:
 `merge_choices_replaced` is the part of `owner_corrections_replaced` that
 were merge choices, and the line adds `(M of them merge choices)`.
@@ -1457,9 +1466,9 @@ item for both. The database keeps each original's size in
 items. A write measures only the items it writes, and only `ath check`
 measures every original again. A synthetic one-hour Polar run with a
 route exports at 2.05 times its compact size, and each original is in
-the document at least twice. So the earlier bound, 128 MiB of compact JSON, could export
-to about 525 MiB. The new bound holds about 158 such workouts with one
-revision each, or about 105 with two. Evidence:
+the document at least twice. So the earlier bound, 128 MiB of compact
+JSON, could export to about 525 MiB. The new bound holds about 158 such
+workouts with one revision each, or about 105 with two. Evidence:
 [appendix/vendor-original-size.md](appendix/vendor-original-size.md).
 
 Every write that adds a vendor-original revision checks the bound: a pull
@@ -1468,7 +1477,9 @@ package merge, and a native restore. A page that would pass it is
 refused, its objects count as `size_cap`, and that provider is
 `incomplete`. Every pull prints how much of the bound the originals use,
 in the text and in `--json`. From 80% it warns, and the warning names
-`ath erase` and says the erase cannot be undone. `ath export` gains a
+`ath erase`, says the erase cannot be undone, and says that a later
+version may lift the bound. It is written for the person, so it names no
+plan question. `ath export` gains a
 check that refuses to publish a document over the 512 MiB read cap or an
 item that reaches 128 levels, because 2.1.1 can write a package it
 cannot read back. The read parses with serde_json, which refuses 128
@@ -1612,7 +1623,8 @@ Garmin detail call in a command is a probe. When it answers HTTP 404 or
 501, the pull makes no other Garmin detail call in that command. The
 probed id is `not_available`, each other id still due a call is
 `deferred`, every list object is stored, and Garmin stays `completed`.
-The line says `Garmin detail unavailable (HTTP n); list objects stored`.
+The line says `Garmin detail unavailable (HTTP n); list objects stored`,
+and its deferred count adds `(not asked: detail unavailable this run)`.
 Any other error status on the probe, except 401 and 429, also stops the
 Garmin detail calls, and every due id is `deferred`, the probed id
 included. A 400, 403, or 405 does not show that the activity has no
@@ -1679,7 +1691,9 @@ server has already spent its three retries on the vendor's limit. An
 HTTP 401 ends it the same way. The server has already reloaded or
 refreshed the vendor token and tried once more, each later 401 would make
 it do that again, and a refresh the vendor rejects revokes the
-connection. The detail call that got 429 or 401, or that timed out, is
+connection. After a 401 the provider's line tells the person to
+reconnect the provider in Open Wearables if this repeats. The detail
+call that got 429 or 401, or that timed out, is
 `failed`. Each id still due a detail call is `deferred`. An id that was
 due no call keeps its own count, such as `kept`. What the provider
 already returned is still written, and the provider is `incomplete`. A
@@ -1688,8 +1702,9 @@ Strava. Ids with no stored detail go first, oldest start first. Each id
 goes in the first group of the order it matches. Strava's limit belongs
 to the whole application, so the deployment's own sync shares it. The
 server tries one request at most four times and the pull sees only the
-last answer, so one command sends 24 or 25 Strava requests in the usual
-case and at most 84. The review cited about 100 requests a
+last answer. So one command sends 21 Strava requests in the usual case,
+24 or 25 when only the last request was retried, and at most 84. The
+review cited about 100 requests a
 minute for Garmin. This study did not find that number in Garmin's public
 docs. The one-second pace keeps this command at 60 a minute or fewer.
 
