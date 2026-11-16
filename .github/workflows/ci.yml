@@ -3,6 +3,7 @@
 #
 # - Linux: formatting, Clippy, every Rust test (including the public-data and
 #   generated-file checks), then the npm client tests on Node 24.
+# - macOS: Clippy and every Rust test (D226).
 # - Windows: Clippy and every Rust test, plus the real Credential Manager test.
 #
 # The `checks passed` job is the one check the main branch rules require, so
@@ -52,6 +53,16 @@ jobs:
           npm run typecheck
           npm test
 
+  macos:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup show active-toolchain || rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo clippy --locked --all-targets -- -D warnings
+      - run: cargo test --locked --no-fail-fast
+
   windows:
     runs-on: windows-latest
     timeout-minutes: 30
@@ -69,12 +80,13 @@ jobs:
 
   checks-passed:
     name: checks passed
-    needs: [linux, windows]
+    needs: [linux, macos, windows]
     if: always()
     runs-on: ubuntu-latest
     steps:
-      - name: Require the Linux and Windows checks to pass
+      - name: Require the Linux, macOS, and Windows checks to pass
         run: |
-          echo "linux: ${{ needs.linux.result }}, windows: ${{ needs.windows.result }}"
+          echo "linux: ${{ needs.linux.result }}, macos: ${{ needs.macos.result }}, windows: ${{ needs.windows.result }}"
           test "${{ needs.linux.result }}" = success
+          test "${{ needs.macos.result }}" = success
           test "${{ needs.windows.result }}" = success

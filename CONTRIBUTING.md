@@ -42,8 +42,8 @@ npm test
 
 - **Every pull request push, and every push to `main`:** the quick check. Linux
   runs formatting, Clippy, every Rust test, and the npm tests on Node 24.
-  Windows runs Clippy and every Rust test. The `checks passed` job must pass
-  before a merge. A new push cancels the run for the push before it.
+  macOS and Windows run Clippy and every Rust test. The `checks passed` job
+  must pass before a merge. A new push cancels the run for the push before it.
 - **A version tag, such as `v2.1.1`:** the full check on Linux, macOS, and
   Windows, with release builds, archive and npm install checks, and Node 22
   and 24. If everything passes, it publishes to npm and creates the GitHub

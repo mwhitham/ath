@@ -472,3 +472,19 @@ Rejected alternatives:
   no runner.
 - Drop Windows from the quick check. Rejected because Windows is where the
   platform bugs appeared.
+
+## D226. macOS joins the quick check
+
+The quick check in `.github/workflows/ci.yml` also runs Clippy and every Rust
+test on macOS. `checks passed` requires the Linux, macOS, and Windows jobs. This
+supersedes the part of D225 that left macOS to the release check.
+
+The reason is that D225 counted on development happening on a Mac, where the
+tests run before each commit. A change written on Linux or Windows would then
+reach macOS only when a release is tagged. The macOS job runs alongside the
+others and finishes before the Windows job, so it adds no waiting.
+
+Rejected alternatives:
+
+- Keep macOS in the release check only. Rejected because it depends on where
+  each change is written.
