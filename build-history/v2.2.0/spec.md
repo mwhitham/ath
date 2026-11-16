@@ -1726,7 +1726,7 @@ interactive open can preview, back up, ask, and then migrate.
 | Flags, key, preview text, refusal if the key appears | `src/cli/`, `src/cli/help.rs`, `src/runtime/keyring.rs`, and `key_clear` in `src/cli/commands/model.rs` |
 | Reader for one decoded page | `MappedPage`, beside `MappedReader` in `src/import/mapping.rs` |
 | Mapping names and field rules, including the `vendor_workout` section | the existing file `mappings/open-wearables.md` |
-| Stage, match, and write each page | `preview_route` and `ProviderPreview::apply` in `src/import/provider.rs` |
+| Stage, match, and write each page | `preview_route` and `ProviderPreview::apply` in `src/import/provider.rs`, with a crate-private accessor for the revision a preview read |
 | Device-binding facts and the safety snapshot | new `src/import/binding.rs`, called from the matching step in `src/import/provider.rs` for route `open_wearables` |
 | Create or first-bind with the checked receipt, and refuse any other `device_binding` change | the staged plan and `ProviderPreview::apply` in `src/import/provider.rs` |
 | Stored-original read for the vendor detail rules | a crate-private read in `src/import/provider.rs` |

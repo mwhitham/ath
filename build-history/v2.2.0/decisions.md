@@ -590,7 +590,7 @@ period type `open_wearables_reporting_window`. `recorded_at` is unset.
 `ProviderReportingPeriodType` gains that one value. `ValueBasis` gains
 `aggregator`, used when `computed_by` is `open_wearables`. Series
 quantities gain the missing pinned types. `quantity` is already an
-unconstrained text column, so those names add no SQL column. Step 5
+unconstrained text column, so those names add no SQL column. Step 6
 rebuilds `provider_summaries` so `standard_value` and `standard_unit` can
 be null together. Existing summary rows are copied with their numbers.
 The device receipt still adds no column. The receipt, the transaction,
@@ -611,7 +611,7 @@ Rejected alternatives:
 - Store a day row as a point at the period start. Rejected. That would
   make a reporting window look like one instant (D88, D110).
 - Drop latitude, longitude, segments, or a large series to keep a
-  response under 8 MiB. Rejected. The smaller page in the specification
+  response under the response cap. Rejected. The smaller page in the specification
   stores the rows. D233 states the minimum-page limit without naming a
   series type.
 - Call the live provider workout proxy or the totals routes so the pull
@@ -668,7 +668,7 @@ gender values, or a source.
 Cursor pages, offset pages, and the two one-shot reads have the terminal
 conditions in the table. A smaller page repeats the same uncommitted
 cursor or offset. A minimum page or an unpaginated response that is still
-over 8 MiB is an incomplete read. The message names the read. It does not
+over the response cap, 10 MiB, is an incomplete read. The message names the read. It does not
 name a series type. Menstrual cycles keep an in-range start and a future
 end. A later start is not stored. The page is still followed to the end.
 
@@ -831,9 +831,9 @@ This corrects D234. The returned health data stays in this pull. The
 specification is the contract.
 
 `records.record_type` is a closed check. `source_report` is not in it.
-Creating `source_reports` does not make a root row insertable. Step 5
+Creating `source_reports` does not make a root row insertable. Step 6
 adds `source_report` to that check in the generated contract. It does
-not edit migrations 001 through 004, and it does not drop the check.
+not edit migrations 001 through 005, and it does not drop the check.
 Ordinary writes keep foreign keys on. The migration connection may turn
 them off only before its own transaction, rebuild `records` and the two
 nullable typed tables by copy, rename, and recreate, then require
@@ -868,11 +868,11 @@ it is not archived.
 reports. They are not sessions and not manual reports. The same server
 id with a different kind refuses the page.
 
-A protected refusal rolls back. For a missing device id on a
-device-targeted series row, and for unequal null-source payloads of one
-full match key, a later archive transaction stores kind `original` with
-no amount and no device receipt. D237 is when that transaction may
-write. D236 is the capsule and the command counts. `written` stays false when only the archive
+A refused protected page is not applied, so it writes nothing. For a
+missing device id on a device-targeted series row, and for unequal
+null-source payloads of one full match key, a later archive preview and
+apply stores kind `original` with no amount and no device receipt. D237
+is when that archive may write. D236 is the capsule and the command counts. `written` stays false when only the archive
 changed. The command
 exits nonzero. Credential failures, invalid ids, conflicting device ids,
 legacy history, and kind changes are not archived. Those originals are
@@ -896,7 +896,7 @@ Rejected alternatives:
 - Treat unknown provenance as automatic when a device id is present.
   Rejected. The id is not a measurement label.
 - Archive every refused page, or write the archive inside the refused
-  transaction. Rejected. The first keeps rejected secrets and rejected
+  page's apply. Rejected. The first keeps rejected secrets and rejected
   devices. The second stores the refused write.
 - Drop the originals of a missing device id so the refusal stays one
   transaction. Rejected for the two reasons above. The archive is a
@@ -914,27 +914,31 @@ proposal disagrees with D237, D237 is the proposal.
 This corrects D235. The returned health data stays in this pull. The
 specification is the contract.
 
-Step 5 drops `sql_v1_current_records`, `sql_v1_active_records`, and the
+Step 6 drops `sql_v1_current_records`, `sql_v1_active_records`, and the
 two `record_revisions` triggers that read `records` before it drops
 `records`. It recreates them from the `001` text after the new root
 exists, in the same transaction. Foreign keys are turned off only before
-that transaction, on a connection ordinary writes do not reuse. After
-every exit the connection reads `foreign_keys` back as on, or it is
-closed. A failure before commit restores the old schema, the old rows,
+that transaction, on the store's own connection, in
+`src/store/migrate.rs`. No ordinary write can run while they are off,
+because `write_transaction` refuses one. After every exit the connection
+reads `foreign_keys` back as on, or the command fails and closes the
+store. A failure before commit restores the old schema, the old rows,
 and the old version. `writable_schema` is not used. Files 001 through
-004 stay unchanged.
+005 stay unchanged.
 
 `written` counts protected creates and revisions across the command. An
 archive-only change leaves it false and sets `database_changed` true.
 Archive counts are separate from protected counts. A later page does not
-clear either. A failed archive transaction keeps the refusal, rolls
-itself back, and leaves earlier commits. The pull text for a new
+clear either. A failed archive apply keeps the refusal, writes nothing,
+and leaves earlier commits. The pull text for a new
 archive-only change is `Protected write refused; N originals archived;
 database changed; pull incomplete.`
 
-D237 reads database-dependent vetoes inside the protected transaction
-and reads them again before any archive write. A veto there, including
-on a `left_out` row, forbids the archive. The privacy scan still comes
+D237 reads database-dependent vetoes in the protected preview, at one
+database revision. The archive goes ahead only at that same revision. A
+veto there, including on a `left_out` row, forbids the archive. A deleted
+source or a deleted record leaves its rows out (D182, D190) and also
+forbids the archive. The privacy scan still comes
 first. The archive is pull-only. A mapped file import does not gain it.
 A deleted archive source is not recreated, and the archive writes no
 device receipt.
@@ -964,46 +968,58 @@ Rejected alternatives:
 - Hash the series row and infer the resolution later. Rejected. The
   resolution is on the response, not on the row.
 
-## D237. The archive reads safety facts under the write lock
+## D237. The archive goes ahead only at the revision where the safety facts were read
 
 This corrects D236. The returned health data stays in this pull. The
-specification is the contract.
+specification is the contract. The first version of this decision read
+the safety facts under one write lock and read them again under a second
+one. Version 2.1.1 has no write-locked preview, so this version uses the
+2.1.1 revision check instead.
 
 Privacy, required ids, and supplied-field names are checked on the
-returned page before either transaction. A failure starts neither
-transaction.
+returned page before either preview. A failure builds neither preview.
 
 Receipts, bindings, history, source deletion, stored records, import
-keys, tombstones, null-source payloads, and workout kinds are read
-inside the protected `BEGIN IMMEDIATE`, before any mutation. The read
+keys, tombstones, null-source payloads, and workout kinds are read in the
+protected preview. `preview_route` in `src/import/provider.rs` reads
+them in one read transaction, at one database revision. The read
 includes a row the mapping would leave out. That read is the safety
 snapshot. A veto in it refuses the protected page, and the archive is
-not attempted. An unlocked read from before that transaction is not the
-snapshot.
+not attempted. A deleted source or a deleted record leaves its rows out
+(D182, D190), and it also stops the archive of that page. A read from
+before that preview is not the snapshot.
 
-The archive transaction then takes its own `BEGIN IMMEDIATE`. Before it
-inserts a source or a capsule, it reads those facts again, and it reads
-the archive source and the target capsules, including tombstones. A new
-veto or a safety fact that differs from the snapshot sets `archive` to
-`not_attempted` and writes nothing. A deleted source or a deleted record
-is not copied onto a new archive identity. A deleted archive source is
-not recreated. A deleted capsule is not replaced. If the page names a
-row the bounded read cannot cover, the page is not archived. There is
-no retry.
+The archive is a second preview and apply. Its preview reads the archive
+source and the target capsules, including tombstones. It is built only
+when the database revision still equals the snapshot's revision. Its
+apply refuses a moved revision, as every 2.1.1 apply does. Every
+athlete-data write in 2.1.1 moves that revision. A restore into an empty
+database instead sets a new database ID, and the apply refuses another
+database ID. So a binding, a deletion, or an owner correction made after
+the snapshot sets `archive` to `not_attempted`, and the archive writes
+nothing. A deleted source or a deleted record is not copied onto a new
+archive identity. A deleted archive source is not recreated. A deleted
+capsule is not replaced. If the page names a row the bounded read cannot
+cover, the page is not archived. There is no retry.
 
 A failed step 6 during init rolls back to the committed step 5 schema
 before the existing init cleanup runs. Init fails. D231's cleanup is
-unchanged. A migrate of an existing database keeps that file and the old
-schema when step 6 rolls back.
+unchanged. A migrate of an existing 2.1.1 database keeps that file and
+schema 5 when step 6 rolls back. An older database keeps the steps that
+committed before step 6, as D227 says.
 
 Rejected alternatives:
 
-- Use an unlocked preflight as the archive decision. Rejected. Another
-  command can bind the source before the protected transaction, and the
-  protected veto would then be stored.
-- Recheck only the archive source after the protected rollback.
-  Rejected. The owner can delete the original source or record in
-  between, and the payload would be stored under a new identity.
+- Read the safety facts again under a second write lock, as the first
+  version of this decision did. Rejected. The revision check already says
+  whether anything changed after the snapshot. A second read would repeat
+  that check in new code.
+- Use a read from before the protected preview as the archive decision.
+  Rejected. Another command can bind the source before that preview, and
+  the protected veto would then be stored.
+- Recheck only the archive source before the archive. Rejected. The owner
+  can delete the original source or record in between, and the payload
+  would be stored under a new identity.
 - Leave a failed init file at step 5. Rejected. The existing caller
   removes that file, and this build does not change that cleanup.
 
