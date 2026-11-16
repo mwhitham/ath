@@ -215,6 +215,13 @@ number is added:
   Any other overlap, which only a saved file can carry, counts as
   `ambiguous_window`. The stored copy is kept, and no owner correction
   is replaced.
+- D243. Only a 404 or 501 on the Garmin probe marks the probed id
+  `not_available`. Any other error status, except 401 and 429, defers
+  every due id, and the next command probes again. A 5xx also makes
+  Garmin `incomplete`. An id that got 404 or 501 keeps the time as
+  `detail_checked_at` and is asked again after 30 days, or sooner when its
+  list object changes. An original with a current owner correction is
+  asked again only when its list object changes.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -1345,7 +1352,8 @@ Each original is one envelope. It holds `provider`, `vendor_id` as text,
 `start` and `start_kind` when the object has a start, `list`, `detail`
 when a detail is stored, and `detail_status`. Sensorbio adds
 `list_parent`. Garmin adds `upload_window`, the window its object came
-from. The specification's section 2 shows the JSON. The whole
+from, and `detail_checked_at` when a detail call answered 404 or 501.
+The specification's section 2 shows the JSON. The whole
 envelope is kept in `supplied_fields`, and `provider_record_id` is
 `vendor_id`. The match key is the writer, the sensor, the resource
 `vendor_workout`, the provider, and the vendor id, escaped by D181.
@@ -1569,17 +1577,32 @@ clock moves by one hour. A zone that moves it by two hours, such as
 `incomplete`. The pull keeps calling Garmin detail at the pinned path,
 `/wellness-api/rest/activities/{activity_id}`. That path is not in
 Garmin's public docs, and this study did not find it there. The first
-Garmin detail call in a command is a probe. When it answers HTTP 400,
-403, 404, 405, or 501, the pull makes no other Garmin detail call in that
-command. The probed id is `not_available`, each other id still due a call
-is `deferred`, every list object is stored, and Garmin stays
-`completed`. The line says `Garmin detail unavailable (HTTP n); list
-objects stored`. After any other answer to the probe, the calls go on,
-and a later 404 or 501 is `not_available` for that id. Any other Garmin
-detail error is `failed`. An id that was `not_available` is not called
-again unless its list object changed. So a missing path costs one call
-in a command, not the budget of 100. This is the stated default. The
-maintainer still has to confirm it before approval. Polar's list omits samples, zones, and route, and detail
+Garmin detail call in a command is a probe. When it answers HTTP 404 or
+501, the pull makes no other Garmin detail call in that command. The
+probed id is `not_available`, each other id still due a call is
+`deferred`, every list object is stored, and Garmin stays `completed`.
+The line says `Garmin detail unavailable (HTTP n); list objects stored`.
+Any other error status on the probe, except 401 and 429, also stops the
+Garmin detail calls, and every due id is `deferred`, the probed id
+included. A 400, 403, or 405 does not show that the activity has no
+detail, so the next command probes that id again. Garmin stays
+`completed` after a 4xx status. It is `incomplete` after a 5xx status,
+because the server reported a fault. After a 2xx answer to the probe,
+the calls go on, and a later 404 or 501 is `not_available` for that id.
+Any other Garmin detail error is `failed`.
+
+An id that got 404 or 501 keeps the time of that answer as
+`detail_checked_at`. It is asked again when its list object changes, or
+30 days after that time, after every other due id. A repeat answer writes
+the new time. An id a command does not ask keeps `not_available` and its
+time, so a missing path does not rewrite those originals. An original
+with a current owner correction is asked again only when its list object
+changes, because a repeat answer would not be written over the
+correction. So a missing path costs one call in a command, not the
+budget of 100. This is the stated default. The maintainer still has to
+confirm it before approval.
+
+Polar's list omits samples, zones, and route, and detail
 asks for all three. Suunto's detail is called at `workoutKey`. A list
 object with no `workoutKey` gets no detail call and is `not_available`,
 because nothing this study read shows that Suunto's detail accepts a
@@ -1591,8 +1614,8 @@ next page `next_token`. The request name, `nextToken`, is not sent.
 Sensorbio reads only the oldest 50 entries, and its line says so.
 
 A stored detail is never lost. A detail is fetched for an id with no
-stored detail, unless an earlier command marked it `not_available`, and
-again only when the list object changed. Credential
+stored detail, unless an earlier command marked it `not_available` less
+than 30 days before, and again only when the list object changed. Credential
 values (D244) are withheld before any comparison, so a token that changed
 between pulls does not make a list object look changed. A list-only
 object never replaces a stored detail. A new detail that is thinner than
@@ -1702,6 +1725,17 @@ Rejected alternatives:
 - Mark every id the probe stopped as `not_available`. Rejected. Those ids
   were not asked. A 404 can mean one missing activity, and the mark would
   stop their details until their list objects changed.
+- Mark the probed id `not_available` after a 400, 403, or 405, as the
+  earlier text did. Rejected. Those statuses do not show that the
+  activity has no detail. A permission not yet granted would leave that
+  workout list-only until its list object changed.
+- Ask a `not_available` id again only when its list object changes, as
+  the earlier text did. Rejected. Where the path works, one passing 404
+  would leave that workout list-only for good.
+- Ask a `not_available` id again on every command. Rejected. Each
+  activity with no detail would spend a call on every command.
+- Keep the recheck time outside the envelope. Rejected. A restore would
+  lose it, and the export would not hold all of the record's state.
 - Treat a 401 on the probe as a missing path. Rejected. A 401 is what an
   expired or revoked grant answers, so the person may need to reconnect
   Garmin. Its line must not say only that detail is unavailable.
