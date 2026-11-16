@@ -170,6 +170,22 @@ number is added:
   export check also refuses an item past the 128-level nesting limit.
   Storing originals in their own files is an open question for the
   maintainer.
+- D243. A detail that timed out is `failed`, as one that got 429 or 401
+  is. Only ids still due a detail call become `deferred`. An id due no
+  call keeps its own count. Each id goes in the first group of the detail
+  order it matches, and a `too_large` or `refused` id is no longer in the
+  first group.
+- D243. One `--yes` command sends 24 Strava requests in the usual case,
+  or 25 after a token reload, which leaves about 75. The ceiling is 84,
+  because the pull cannot see a server retry that ended in success.
+- D243 and D231. A vendor object with a `__proto__` key is refused alone
+  as `unusable_name`, and the provider stays `completed`. The import check
+  would otherwise fail that provider's page on every command.
+- D230. The rebind fix says that it merges the two devices' history on
+  one source. The source's history keeps the old binding.
+- D242. The file-import sentences and the corrected-original test follow
+  the owner-correction rule. A vendor page's counts stay apart from
+  `archive_committed`.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -526,7 +542,11 @@ reconciliation, and
 a rerun cannot repair either one. Each page refusal also names the
 owner's fix where 2.2 has one. `ath correct` on the source can set a new
 `device_binding`, bind history that one device wrote, or replace a
-malformed receipt. A changed workout kind has no fix that keeps the
+malformed receipt. A new `device_binding` puts the old device's history
+and the new device's rows on one source, and a point carries no device
+id, so they can no longer be told apart. That rebind is the owner's
+explicit merge, and the refusal text says so. The source's history keeps
+the old binding. A changed workout kind has no fix that keeps the
 record. `ath erase` removes it, and the next pull stores the new kind. A
 bound source that receives rows with no id, and history from more than
 one device, have no fix in 2.2. A preview that fails makes no database
@@ -683,8 +703,9 @@ it before it builds a candidate (D191). It refuses an empty name and a
 native reader, which keeps such a key and checks it, so the import
 refusal still applies. There is no `persist.rs` and no
 `ath-core persist` command. The pull writes through `MappedPage` and the
-2.1.1 import, so the import check covers it. A name check outside import
-is separate work.
+2.1.1 import, so the import check covers it. The vendor read in D243 runs
+the same check on each vendor object first, so one object with the key is
+refused alone. A name check outside import is separate work.
 
 `is_mapping_path` exists once, in `src/assets/mod.rs`. The pull uses
 `resolve_mapping` in that file. There is no second path rule to remove.
@@ -1298,8 +1319,9 @@ The rewritten `mappings/open-wearables.md` gains a section named
 `vendor_workout`. It declares the record type, the kind, the subject, the
 writer, the sensor, the key, and the start. A saved file of envelopes
 imports through that section. File import writes each envelope as the
-file holds it, as D182 does for every mapped import, except the Garmin
-window rule in D243. The detail rules in
+file holds it, as D182 does for every mapped import, except the
+owner-correction rule below and the Garmin window rule in D243. The
+detail rules in
 D243 run before the mapping engine sees an envelope, so the mapping
 engine has no vendor exception.
 
@@ -1528,12 +1550,17 @@ server has already spent its three retries on the vendor's limit. An
 HTTP 401 ends it the same way. The server has already reloaded or
 refreshed the vendor token and tried once more, each later 401 would make
 it do that again, and a refresh the vendor rejects revokes the
-connection. The detail call that got 429 or 401 is `failed`. Ids whose detail was not yet called
-are `deferred`. What the provider already returned is still written, and
-the provider is `incomplete`. A command makes at most 100 detail calls to one provider
-and at most 20 to Strava. Ids with no stored detail go first, oldest
-start first. Strava's limit belongs to the whole application, so the
-deployment's own sync shares it. The review cited about 100 requests a
+connection. The detail call that got 429 or 401, or that timed out, is
+`failed`. Each id still due a detail call is `deferred`. An id that was
+due no call keeps its own count, such as `kept`. What the provider
+already returned is still written, and the provider is `incomplete`. A
+command makes at most 100 detail calls to one provider and at most 20 to
+Strava. Ids with no stored detail go first, oldest start first. Each id
+goes in the first group of the order it matches. Strava's limit belongs
+to the whole application, so the deployment's own sync shares it. The
+server tries one request at most four times and the pull sees only the
+last answer, so one command sends 24 or 25 Strava requests in the usual
+case and at most 84. The review cited about 100 requests a
 minute for Garmin. This study did not find that number in Garmin's public
 docs. The one-second pace keeps this command at 60 a minute or fewer.
 
@@ -1552,6 +1579,14 @@ leave `upload_window` out, because windows depend on `--from`. The start becomes
 rules in the specification: text keeps its offset or says it has none,
 and Unix seconds or milliseconds keep their digits. The start is stored
 and is not a filter.
+
+A vendor object with a `__proto__` key at any depth is refused alone as
+`unusable_name`, and the provider stays `completed`. The import check
+(D191) refuses that key and fails the whole import. Vendor JSON is
+outside ath's control, so one such object would otherwise fail that
+provider's page on every command, with no count and no fix. The vendor
+read runs the same check on each list object and each detail before the
+page is staged.
 
 Every returned original is stored, including a start outside `--from` and
 `--to`. The count is `vendor workout originals`. `range_complete` uses

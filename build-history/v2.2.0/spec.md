@@ -829,8 +829,13 @@ Each refusal names what the owner can do, and the text says the same:
   owner runs `ath correct` on the source and sets `device_binding` to the
   new id. Later rows from the new device are then accepted. A new row
   replaces an old one only where both have the same match key, which
-  includes the time. When the incoming id is missing, null, or blank,
-  2.2 has no fix that keeps the source. Removing the key would make the
+  includes the time. The old device's rows stay on that source, and the
+  binding then names only the new id. A point carries no device id, so
+  the two devices' rows on that source can no longer be told apart. The
+  rebind is the owner's explicit merge of the two histories. The
+  source's history keeps the old binding, and `ath records show
+  <source-id> --history` shows it. When the incoming id is missing, null,
+  or blank, 2.2 has no fix that keeps the source. Removing the key would make the
   source unbound history, which is refused too. Deleting the source
   leaves out every later row from it (D190).
 - Unbound history. If one device wrote all of that history, the owner
@@ -1082,11 +1087,13 @@ that provider the same way. The server has already reloaded the vendor
 token, or refreshed it, and tried once more. Each later request would
 make it do that again, and a refresh the vendor rejects revokes the
 connection. No later list call, window, or detail call goes to that
-provider in this command. The detail call that got 429 or 401 counts as
-`failed`. Every listed id that had not had its detail call yet counts as
-`deferred`, and a later command details it by the order below. What the
-provider already returned is still written as that provider's page: the
-list objects, and the details already fetched. A later Garmin window
+provider in this command. The detail call that got 429 or 401, or that
+timed out, counts as `failed`. Every id still due a detail call by the
+order below counts as `deferred`, and a later command details it. An id
+that was due no call keeps its own count, such as `kept` or
+`not_available`. What the provider already returned is still written as
+that provider's page: the list objects, and the details already fetched.
+A later Garmin window
 after a 429, a 401, or a timeout is not sent, unlike a window that failed
 another way. A server whose provider timeout is
 raised can outlast this timeout. The same rule covers that case. The
@@ -1108,13 +1115,15 @@ Budgets keep one command inside the providers' limits:
   it. Strava's rate-limit page, fetched 15 November 2026, gives a default
   of 100 read requests per 15 minutes and 1,000 a day. Strava calls them
   non-upload requests. One list call and 20 detail calls are 21
-  requests. A 429 makes the server try that request four times, and the
-  pull then stops calling Strava. So one `--yes` command sends at most 24
-  Strava requests. A 401 adds one attempt to that request after the server
-  reloads the token. That
-  leaves about 76 for the deployment's own sync in the same 15 minutes. A
-  preview first adds one list call. The Strava line says that its limit is
-  shared.
+  requests. The server tries one request at most four times. It retries
+  a 429 up to three times, and a 401 once after it reloads the token.
+  The pull sees only the last answer, and it stops calling Strava after
+  a final 429. When only that last request was retried, one `--yes`
+  command sends 24 Strava requests, or 25 after a token reload. That
+  leaves about 75 for the deployment's own sync in the same 15 minutes.
+  The ceiling is 84, four tries for each of the 21 requests, because the
+  pull cannot see a retry that ended in success. A preview first adds one
+  list call. The Strava line says that its limit is shared.
 
 The routes are
 `GET /api/v1/providers/{provider}/users/{user_id}/workouts` and
@@ -1245,6 +1254,19 @@ reason. A refused object refuses only itself, and the count says why. Two
 different objects with one id in one provider's response refuse both,
 because the pull cannot tell which is right. Two equal objects are one.
 
+A vendor object that holds a key named `__proto__` at any depth is
+refused as `unusable_name`. The import check in section 3 refuses that
+key in any supplied field, and it fails the whole import. So
+`src/runtime/vendor_workouts.rs` runs the same check on each list object
+and each detail before the page is staged. A list object with the key
+gets no detail call. A detail with the key refuses its whole object, list
+object included. Only that object is refused, and the others are
+written. The provider stays `completed`, as it does for the other refused
+objects, because a rerun gets the same object. The person has no fix in
+ath, because nothing is stored to delete. A later command reads the
+object again. When only its detail holds the key, that command spends one
+detail call on it again.
+
 Garmin is read in windows, and one activity can be in two windows when
 Garmin received it again. A window selects by upload time, so the later
 window holds the later copy. For Garmin only, an object in a later window
@@ -1315,11 +1337,14 @@ not look like a vendor change and does not spend a detail call.
 
 The pull calls detail only when the provider has a detail call and its
 budget allows. It spends the budget in this order. First come ids with no
-stored detail that no earlier command marked `not_available`. Then come
-ids whose list object differs from the stored `list`. Then come ids an
-earlier command marked `too_large` or `refused`. An id that an earlier
-command marked `not_available`, and whose list object is unchanged, gets
-no detail call. It counts as `not_available` again. Inside each group
+stored detail that no earlier command marked `not_available`,
+`too_large`, or `refused`. Then come ids whose list object differs from
+the stored `list`. Then come ids an earlier command marked `too_large` or
+`refused`. Each id goes in the first group it matches. So an id that was
+`not_available`, `too_large`, or `refused` and whose list object changed
+is in the second group. An id that an earlier command
+marked `not_available`, and whose list object is unchanged, gets no
+detail call. It counts as `not_available` again. Inside each group
 the oldest start goes first. An id without a start instant goes last in
 its group, in list order. So a Garmin path that answers 404 costs one
 detail call in a command, and only when some id is due a call. An id
@@ -1548,8 +1573,9 @@ preview they are estimates under `estimated`, as section 1 says.
   `deferred`, `failed`, `mismatch`, `thinner`, `not_available`,
   `too_large`, and `refused`.
 - `left_out`: objects not written, by reason: `missing_id`,
-  `unusable_id`, `unsafe_number`, `duplicate_id`, `superseded`,
-  `deleted_record`, `deleted_source`, `response_refused`, and `size_cap`.
+  `unusable_id`, `unsafe_number`, `unusable_name`, `duplicate_id`,
+  `superseded`, `deleted_record`, `deleted_source`, `response_refused`,
+  and `size_cap`.
 - `withheld`: values that section 4 withheld, with up to 20 paths.
 
 Each listed object is in exactly one detail count or one left-out count.
@@ -1573,8 +1599,8 @@ whole envelope in `supplied_fields`. A saved file of envelopes, under
 `vendor_workout`, imports through that section with `ath import --mapping
 open-wearables`. File import does not apply the detail rules above. It
 writes each envelope as the file holds it, as D182 does for every mapped
-import, except the Garmin window rule above. Export and import keep one
-original id.
+import, except the owner-correction rule and the Garmin window rule
+above. Export and import keep one original id.
 
 The provider table, the detail rules, and the thinner check live in
 `src/runtime/vendor_workouts.rs`. They run before the mapping engine sees
@@ -1617,14 +1643,17 @@ route point's `supplied_fields`. Version 2.1.1's D214 changed only the
 native reader, which now keeps a `__proto__` key and checks it like any
 other key. D214 did not lift this import refusal, so it still applies.
 A vendor original keeps its whole envelope in `supplied_fields`, so the
-same check covers every vendor object.
+same check covers every vendor object. The pull runs it on each vendor
+object first and refuses only that object, as section 2 says. A saved
+file of envelopes that holds the key still fails its import (D191).
 A Garmin file import remains a different `data_route`, so both copies of
 one workout stay (D161). A second pull of the same Open Wearables object,
 or an `ath import --mapping open-wearables` of a saved copy of that object,
 keeps the same rows. An identical vendor original changes no row. A
-changed object replaces the stored one. The mapping engine has no vendor
-exception. Section 2's detail rules decide which vendor envelopes reach
-it.
+changed object replaces the stored one, except under the owner-correction
+rule and the Garmin window rule in section 2. The mapping engine has no
+vendor exception. Section 2's detail rules decide which vendor envelopes
+reach it.
 
 On a device source, the writer is `source.provider`. The sensor string is
 `source.device_type`, `source.device`, and `source.source`. Section 2's
@@ -1715,7 +1744,9 @@ The call is one of these states:
   blocked, including when the sample time is new, and that running the
   command again cannot change the id. It names the fix in section 2:
   when the new device replaces the old one, `ath correct` on the source
-  sets `device_binding` to the new id.
+  sets `device_binding` to the new id. It also says that the fix merges
+  the old device's history and the new device's rows on that source, so
+  they can no longer be told apart.
 - The source exists, the source key is absent, and any history exists.
   History includes a deleted record and a deleted source device, not only
   live rows. `existing_source` in `src/import/provider.rs` keeps
@@ -1745,8 +1776,9 @@ The call is one of these states:
   that accepts no rows creates no binding. A refused call is not applied,
   so it creates no source and binds none.
 
-A second device is refused rather than merged. That refusal is not
-archived. On `--yes`, an earlier committed page stays, the failed page
+A second device is refused rather than merged. Only the owner's rebind
+in section 2 merges two devices' history on one source. That refusal is
+not archived. On `--yes`, an earlier committed page stays, the failed page
 makes no database changes, the range is not complete, and the exit is
 nonzero. File import refuses the whole call and writes nothing.
 `--json` and `--json --yes` make no database changes. Device reads
@@ -2384,7 +2416,10 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
 - each of the four page refusals prints the owner's fix from section 2,
   and each fix works. After `ath correct` sets `device_binding` on a bound
   source to a new id, the next pull accepts rows with that id, and a new
-  row replaces an old one only where the match keys are equal. After
+  row replaces an old one only where the match keys are equal. The
+  refusal text says the rebind merges the two devices' history on that
+  source, and `ath records show <source-id> --history` shows the old
+  binding in the source's history. After
   `ath correct` adds `device_binding` to an unbound source written by
   2.1.0, the next pull refreshes that history. After `ath correct`
   replaces a malformed receipt with a nonempty string, the next pull
@@ -2585,6 +2620,11 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   `check_supplied_fields` refuses it (D191). An empty supplied-field name
   fails it too. A package that holds a `__proto__` key still restores,
   because D214 keeps the key in the native reader
+- a Polar list of three objects, where one detail has a `__proto__` key
+  nested in a route point. Two originals are stored. Polar's `left_out`
+  counts 1 `unusable_name`, Polar is `completed`, and the page is not
+  refused. A Polar list object with the key gets no detail call and is
+  counted the same way
 - a literal key, a Unicode-escaped key in a nested unconsumed field, the
   key used as an object key, the selected origin, and the selected user id
   each reject the page before mapping. The database, its revisions, and the
@@ -2788,12 +2828,24 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   timeout shortened for the test, stops every later request to that
   provider in the command. The next provider still runs. The 360-second
   value is checked as a named constant
+- four Polar ids with no stored detail, with the read timeout shortened
+  for the test, where detail call two times out. Id one stores its
+  detail, id two is `failed`, and ids three and four are `deferred`.
+  Polar is `incomplete`, and the fixture server sees no third detail
+  request
 - five Strava ids with no stored detail, where the third detail call
-  answers HTTP 429. The fixture server sees no later Strava request. Ids
-  one and two store their details. Id three is `failed`. Ids four and five
-  are `deferred`. All five list objects are stored. Strava is
-  `incomplete`, the next provider still runs, and the exit is nonzero. A
-  429 on a Garmin window sends no later window
+  answers HTTP 429, and a sixth id with a stored detail and an unchanged
+  list object. The fixture server sees no later Strava request. Ids one
+  and two store their details. Id three is `failed`. Ids four and five
+  are `deferred`. Id six stays `kept`. All six list objects are stored.
+  Strava is `incomplete`, the next provider still runs, and the exit is
+  nonzero. A 429 on a Garmin window sends no later window
+- three Garmin ids: a new id, an id that was `not_available` whose list
+  object changed, and an id that was `not_available` whose list object is
+  unchanged. The new id is detailed first, then the changed id. The
+  unchanged id gets no detail call and counts `not_available`. An id that
+  was `too_large` and whose list object changed is detailed with the
+  changed ids, before an unchanged `too_large` id
 - a Garmin list object with `userAccessToken` is pulled twice, with a
   different token value the second time. The second pull counts it
   `kept`, makes no detail call, and writes nothing for it
@@ -2839,10 +2891,13 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   pull, counted as `deleted_record`, and not recreated. A deleted
   `vendor_workout` source leaves out every object from that provider as
   `deleted_source`. An original that the person corrected gains a
-  revision with the server's envelope when a later envelope differs, and
-  the correction stays in its history. An equal envelope adds nothing
+  revision with the server's envelope when a later envelope differs from
+  the newest `provider_import` revision, and the correction stays in its
+  history. An envelope equal to that import revision writes nothing, even
+  though it differs from the correction, and the correction stays current
 - with the flag on, a run whose protected page is refused and archived
-  still writes the vendor page and keeps its counts apart. A refused
+  still writes the vendor page and keeps its counts apart from
+  `archive_committed`. A refused
   vendor page leaves the archive and the stored pages as they were
 - a vendor list response that the privacy scan refuses stores nothing
   from that response, counts its readable objects as `response_refused`,
