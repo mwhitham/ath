@@ -17,15 +17,16 @@ finish time.
 ## Run it
 
 ```sh
-ath records list --type benchmark_result --json
+ath records list --type benchmark_result --limit 10000 --json
 ath apply hyrox-race-splits --record <benchmark-result-id> --json
 ```
 
 ## Log the result so it can be split
 
-A result is a `benchmark_result` (for example against the `hyrox-full` benchmark)
-whose `score.duration_s` is the finish time and whose `segments` each have a label
-below and a `score.duration_s`:
+A result is a `benchmark_result` against a benchmark definition for its format,
+division, and category, such as `hyrox-singles-open-women`, so that only comparable
+races share a definition. Its `score.duration_s` is the finish time. Each of its
+`segments` has a label from the table below and a `score.duration_s`:
 
 | Part | Labels |
 |---|---|
@@ -101,7 +102,7 @@ stations. Wall balls took 330 s, 6.9 % of the race.
 ```json ath-example
 {
   "records": [
-    { "id": "race", "record_type": "benchmark_result", "benchmark": "hyrox-full", "benchmark_type": "hyrox",
+    { "id": "race", "record_type": "benchmark_result", "benchmark": "hyrox-singles-open-women", "benchmark_type": "hyrox",
       "at": "2026-11-01T10:00:00.000Z", "score": { "duration_s": 4800 },
       "segments": [
         { "label": "run_1", "score": { "duration_s": 285 } }, { "label": "ski_erg", "score": { "duration_s": 270 } },
@@ -143,7 +144,7 @@ A layout that records both a Roxzone total and a transition is refused:
 ```json ath-example
 {
   "records": [
-    { "id": "race", "record_type": "benchmark_result", "benchmark": "hyrox-full", "benchmark_type": "hyrox",
+    { "id": "race", "record_type": "benchmark_result", "benchmark": "hyrox-singles-open-women", "benchmark_type": "hyrox",
       "at": "2026-11-01T10:00:00.000Z", "score": { "duration_s": 4800 },
       "segments": [
         { "label": "run_1", "score": { "duration_s": 285 } },

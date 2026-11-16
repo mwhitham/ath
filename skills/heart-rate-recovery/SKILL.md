@@ -17,7 +17,7 @@ recovery.
 ## Run it
 
 ```sh
-ath records list --type workout_session --json
+ath records list --type workout_session --limit 10000 --json
 ath apply heart-rate-recovery --record <workout-session-id> --json
 ```
 

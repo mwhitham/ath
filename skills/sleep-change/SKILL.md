@@ -16,7 +16,7 @@ compared with their recent main sleeps on the same device?
 ## Run it
 
 ```sh
-ath records list --type sleep_session --json
+ath records list --type sleep_session --limit 10000 --json
 ath apply sleep-change --record <sleep-session-id> --json
 ```
 

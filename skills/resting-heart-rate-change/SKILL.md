@@ -16,7 +16,7 @@ recent normal, as the same device measures it?
 ## Run it
 
 ```sh
-ath records list --type point_measurement --json
+ath records list --type point_measurement --limit 10000 --json
 ath apply resting-heart-rate-change --record <record-id> --json
 ```
 

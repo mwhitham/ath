@@ -16,7 +16,7 @@ heart rate.
 ## Run it
 
 ```sh
-ath records list --type workout_session --json
+ath records list --type workout_session --limit 10000 --json
 ath apply heart-rate-zones --record <workout-session-id> --json
 ```
 

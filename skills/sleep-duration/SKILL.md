@@ -15,7 +15,7 @@ Time asleep on one sleep session, in seconds, exactly as the source recorded it.
 ## Run it
 
 ```sh
-ath records list --type sleep_session --json
+ath records list --type sleep_session --limit 10000 --json
 ath apply sleep-duration --record <sleep-session-id> --json
 ```
 

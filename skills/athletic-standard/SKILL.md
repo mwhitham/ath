@@ -51,7 +51,10 @@ program under this skill.
 
 1. Run `ath stats --json`. It reports current counts, sources, coverage, and
    baselines.
-2. Use `ath records list --json` when stable record IDs are needed.
+2. Use `ath records list --type <record-type> --limit 10000 --json` when stable
+   record IDs are needed. It lists records in creation order, oldest first, and
+   returns 100 by default, so without `--limit` the most recent records can be
+   missing.
 3. Choose a command below. Full options and examples are in
    [references/cli.md](references/cli.md).
 4. Pass `--json` for structured output. On commands that require confirmation,
@@ -139,7 +142,7 @@ When a correction replaces a measured value with one a person typed, set
 Use:
 
 ```sh
-ath records list --type <record-type> --json
+ath records list --type <record-type> --limit 10000 --json
 ath records show <record-id> --history --links --json
 ```
 
@@ -188,7 +191,7 @@ Read and calculate:
 |---|---|
 | `ath check [file]` | Check SQLite integrity, schema versions, foreign keys, revisions, relationships, domain rules, sessions, and attachments |
 | `ath stats [file]` | Show the fixed overview |
-| `ath records list` | Find current stable IDs in stable order |
+| `ath records list` | Find current stable IDs, oldest first; pass `--limit`, because the default is 100 |
 | `ath records show <record-id>` | Read a current record, revision, history, and links |
 | `ath series <quantity>` | Read dense samples from SQLite |
 | `ath calculate <operation> <quantity>` | Run named arithmetic without writing athlete data |

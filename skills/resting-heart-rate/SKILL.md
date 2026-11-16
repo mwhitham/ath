@@ -17,7 +17,7 @@ lowest sustained rate during that workout.
 ## Run it
 
 ```sh
-ath records list --type sleep_session --json
+ath records list --type sleep_session --limit 10000 --json
 ath apply resting-heart-rate --record <sleep-session-id> --json
 ```
 

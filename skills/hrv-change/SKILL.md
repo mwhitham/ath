@@ -16,8 +16,8 @@ recent normal, measured the same way by the same device?
 ## Run it
 
 ```sh
-ath records list --type point_measurement --json     # nightly RMSSD, provider HRV
-ath records list --type measurement_sample --json    # Apple SDNN samples
+ath records list --type point_measurement --limit 10000 --json     # nightly RMSSD, provider HRV
+ath records list --type measurement_sample --limit 10000 --json    # Apple SDNN samples
 ath apply hrv-change --record <record-id> --json
 ```
 
