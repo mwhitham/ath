@@ -2421,10 +2421,28 @@ Risks:
   tested against the stored fixture. That fixture is not a live response, and
   a live timestamp without an offset is left out. A breaking envelope needs a
   new fixture before the pull trusts it.
-- A raw range can be large. A page over 8 MiB is read again with a smaller
-  limit. A 429 or another transport failure still stops that read, keeps
-  earlier pages, and withholds the success line. The study did not read the
-  rate-limit middleware.
+- A raw range can be large. A page over the response cap, 10 MiB, is read
+  again with a smaller limit. A 429 or another transport failure still
+  stops that read, keeps earlier pages, and withholds the success line. The
+  study did not read the rate-limit middleware.
+- A failed step 6 on a database older than 2.1.1 leaves it at 2.1.1,
+  because the earlier steps committed first. The message says so and names
+  the verified backup, and a second `ath migrate` finishes. Step 6 needs
+  foreign keys off, and the earlier steps run with them on, so they cannot
+  share one transaction.
+- A live read can change the server. It can refresh a token, revoke a
+  connection, or wait on a rate limit. The command says so before its
+  first live request. It cannot stop the server from doing it.
+- Strava's limit is shared with the deployment's own sync. One command can
+  use most of a 15-minute window.
+- The pinned Garmin detail path and the cited Garmin rate were not found
+  in Garmin's public docs. If the path does not exist, Garmin details show
+  as `failed`, and Garmin is `incomplete`.
+- A later pull replaces an owner correction of a vendor original when the
+  server's envelope differs. The correction stays in the history. Deleting
+  the original stops it.
+- A deferred id that the provider stops listing is never detailed. Its
+  list object stays stored, and the deferred count shows that it waits.
 - Date-only bounds mean whatever Open Wearables decides. The docs and the
   0.11.0 parser disagree about UTC. This release does not correct that server.
 - Section 2 stores returned periods, series, and snapshots. It does not
@@ -2444,11 +2462,14 @@ the `source_report` type and table, the paired null value and unit, and
 the time-unknown summary. The point check in `src/model/data.rs` and the
 mapping's positive check accept a finite `hr_recovery`, including zero and
 a negative number. `packages/npm/src/schema.ts` is not where that check is
-added. No table is rebuilt for that check. Then the store, the calculation null filter,
-the archive transaction, and the record paths in section 6. Then the
-mapping engine and `mappings/open-wearables.md`. Then the reads, the
-cycle filter, the smaller-page split, and the tests in section 7. The laptop card and the phone proof are
-part of that same pull request. This plan pull request has no media.
+added. No table is rebuilt for that check. Then the store, the
+calculation null filter, the staging and apply changes in
+`src/import/provider.rs` and `src/import/binding.rs`, the archive, and the
+record paths in section 6. Then the mapping engine, `MappedPage`, and
+`mappings/open-wearables.md`. Then the stored reads, the vendor read, the
+cycle filter, the smaller-page split, and the tests in section 7. The
+laptop card and the phone proof are part of that same pull request. This
+plan pull request has no media.
 
 The maintainer approves or rejects this plan before any build. D227 through
 D244 are the proposal. They are not adopted. The stored workout and the
@@ -2470,23 +2491,24 @@ optional source key adds no column.
    together. Existing ids and rows are copied. Before the root rename,
    step 6 drops and later recreates `sql_v1_current_records`,
    `sql_v1_active_records`, and the two `record_revisions` triggers that
-   read `records`. Foreign keys stay on for ordinary writes. The step 6
-   connection turns them off only before its transaction and reads them
-   back on after every exit. A
+   read `records`. Foreign keys stay on for ordinary writes. Step 6 turns
+   them off on the store's own connection, only before its transaction,
+   and reads them back on after every exit. A
    `2.1.1` database does not open until `ath migrate`. This release does
    not schedule a pull, add its own token refresh, backfill, or store a
-   cursor (D227, D237). A live read can still make the server refresh a
-   vendor token (D243).
+   cursor (D227). A live read can still make the server refresh a vendor
+   token (D243).
 2. Store the returned representations in section 2. Device receipts stay
    on device sources. Summaries without a device id use their own sensors.
    Null stays null. A missing response is not called provider-unavailable.
-   The omissions in section 2 are the ones with a reason (D232, D237).
+   The omissions in section 2 are the ones with a reason (D232, D235).
 3. The key, the selected origin, and the selected user id are rejected in
    decoded JSON before a page is mapped. Failure text uses a fixed sentence.
    `ath key clear` with no name still clears only the gateway keys and says
    when the Open Wearables key remains. Named clear removes the saved key
    only. It does not unset the environment and it does not revoke the server
-   key (D229).
+   key (D229). A credential-shaped value is withheld and counted. It does
+   not refuse the page (D244).
 4. Preview is the default and its counts are estimates. `--json` does not
    write. `--yes` commits each successful page under D189, and a committed
    page is not a completed pull. The text of `--yes` shows retained counts
@@ -2497,15 +2519,22 @@ optional source key adds no column.
    a later command or in a mapped file import, including import then import.
    The receipt is the source key `device_binding`. A 2.1.0 supplied field of
    that name does not become the receipt. Unbound history is refused and
-   left in place. `ath correct` and a native 2.2.0 package restore are the
-   owner's whole source record (D230).
-5. The Windows cleanup and the maintainability notes stay separate.
-   `src/import/mapping.rs` gains counts by record type, the open-wearables binding
-   check, and the preservation writes in section 2. `src/store/write.rs`
-   gains the receipt refusal, the receipt and tombstone read, creation with
-   the checked receipt, and the first bind of an existing source that has
-   no history, and the sample, source-report, withdrawal, and paired-null
-   writes in section 6, including the null filter in the calculation
-   readers and the bounded archive safety read. The pull command owns the
-   archive transaction and calls the store. `mapping.rs` does not start
-   it. Failed-init cleanup stays as it is (D231, D237).
+   left in place. `ath correct`, the protocol record writes, and a native
+   2.2.0 package restore are the owner's whole source record (D230, D231).
+5. The Windows cleanup, the Garmin key removal, and the maintainability
+   notes stay separate. `src/import/mapping.rs` gains `MappedPage`, the
+   `vendor_workout` section, and the preservation writes in section 2.
+   `src/import/provider.rs` gains the staged first bind, the
+   `device_binding` refusal in `ProviderPreview::apply`, and the
+   stored-original read. The new `src/import/binding.rs` holds the binding
+   check and the bounded safety snapshot. `src/store/encode.rs` gains the
+   sample, source-report, withdrawal, and paired-null writes in section 6,
+   and `src/calculate/range.rs` gains the null filter. The pull command
+   builds the archive preview and applies it only at the snapshot's
+   revision. `mapping.rs` does not start it. Failed-init cleanup stays as
+   it is (D231, D237).
+6. The live vendor read is off by default and warns before its first
+   request. It calls only active connections and never stores the
+   connections list. It keeps every stored detail, counts every object it
+   does not write, and withholds credential-shaped values. The stored
+   workout and the vendor original stay two records (D242, D243, D244).
