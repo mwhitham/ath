@@ -1244,6 +1244,26 @@ through the detail rules. Equal copies in two windows are one object, and
 nothing is counted. Inside one window, two different objects with one id
 still refuse both as `duplicate_id`.
 
+Each Garmin envelope keeps the window its object came from, as
+`upload_window`, so the same rule holds across commands. Take a Garmin
+candidate that differs from the newest `provider_import` revision of its
+original. When its window ends at or before the start of that revision's
+window, the candidate is the older copy. A window holds only objects
+uploaded inside it, so that copy was uploaded first. It counts as
+`superseded`, and nothing is written. The stored-original read returns
+the stored window, so the pull makes no detail call for it. It is not a
+server change, so it never replaces an owner correction. When either side
+has no `upload_window`, this rule does not apply. The rule runs in
+matching for route `open_wearables`, so a mapped import of saved
+envelopes follows it too.
+
+Every comparison of a vendor original on that route leaves
+`upload_window` out: the 2.1.1 equality test, the owner-correction rule,
+and the difference test above. The windows depend on `--from`, so an
+unchanged object read through another window writes nothing. The stored
+original keeps the window it was stored with, and that window still
+holds its upload.
+
 The start column names one field and how to read it:
 
 - Text with an offset or `Z`. The receipt is the one `input_receipt` in
@@ -1279,7 +1299,7 @@ it gets no detail call.
 For each listed id, the pull first reads the stored original, if there is
 one. That read is crate-private and lives in `src/import/provider.rs`. It
 returns whether the original exists, whether it is deleted, whether it
-holds a detail, and its stored `list`. It reads the newest revision with
+holds a detail, its stored `list`, and, for Garmin, its `upload_window`. It reads the newest revision with
 basis `provider_import`, not an owner correction, so a person's edit does
 not look like a vendor change and does not spend a detail call.
 
@@ -1374,6 +1394,9 @@ the same object:
   `unix_seconds`, or `unix_milliseconds`, from the table. It is absent
   when `start` is.
 - `list` is the list object. `list_parent` is present only for Sensorbio.
+- `upload_window` is present only for Garmin. It holds `start` and `end`,
+  the integer Unix seconds of the window the list object came from, such
+  as `{ "start": 1767225600, "end": 1767308400 }`.
 - `detail` is the detail object after the table's detail unwrap. It is
   absent when no detail is stored.
 - `detail_status` is `stored`, `deferred`, `failed`, `mismatch`,
@@ -1487,7 +1510,8 @@ whole envelope in `supplied_fields`. A saved file of envelopes, under
 `vendor_workout`, imports through that section with `ath import --mapping
 open-wearables`. File import does not apply the detail rules above. It
 writes each envelope as the file holds it, as D182 does for every mapped
-import. Export and import keep one original id.
+import, except the Garmin window rule above. Export and import keep one
+original id.
 
 The provider table, the detail rules, and the thinner check live in
 `src/runtime/vendor_workouts.rs`. They run before the mapping engine sees
@@ -1750,7 +1774,9 @@ besides the typed writes in section 6. It gains nothing beyond those:
   `record_by_import_key` also returns the current revision's basis. For an
   owner correction, matching reads the newest `provider_import` revision of
   that record and compares the candidate with it. The page's report counts
-  each replaced correction.
+  each replaced correction. For a `vendor_workout` row, matching leaves
+  `upload_window` out of each comparison and applies the Garmin window
+  rule in section 2.
 - In matching, for a page with `vendor_workout` rows, the size bound in
   section 2. It sums the stored vendor-original revisions and refuses the
   page when its new and changed envelopes would pass
@@ -2064,7 +2090,7 @@ interactive open can preview, back up, ask, and then migrate.
 | Stage, match, and write each page | `preview_route` and `ProviderPreview::apply` in `src/import/provider.rs`. The revision a preview read is the public `destination_database_revision` |
 | A `connector` source with no vendor | new `connector_source` beside `route_source` in `src/import/provider.rs` |
 | Page counts by record type | a count beside `Staging::count` in `src/import/staging.rs`, exposed by `ProviderPreview` |
-| Owner-correction rule and its count | `match_keyed` and `record_by_import_key` in `src/import/provider.rs`, behind a `KeyedPolicy` flag that only route `open_wearables` sets |
+| Owner-correction rule and its count, and the Garmin window rule | `match_keyed` and `record_by_import_key` in `src/import/provider.rs`, behind a `KeyedPolicy` flag that only route `open_wearables` sets |
 | Where a workout fix belongs | one paragraph in `skills/athletic-standard/SKILL.md`, under "Stable IDs and revisions" |
 | Total size bound for vendor originals | `MAX_VENDOR_ORIGINAL_BYTES` in `src/input_policy.rs`, checked in the matching step in `src/import/provider.rs` |
 | Export refuses a document over the package read cap | `src/package/export.rs`, before the staging folder is renamed |
@@ -2649,6 +2675,15 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   with equal objects in both windows stores one original and counts
   nothing. The same id twice in one window, with different objects,
   refuses both as `duplicate_id`
+- a two-command Garmin fixture. The first command reads both windows and
+  stores the 1860 copy with the second window as its `upload_window`. A
+  second command reads only the first window and sees the 1800 copy. It
+  counts 1 `superseded`, makes no detail call for it, and writes nothing.
+  When the person had corrected that original, the correction stays
+  current, and `owner_corrections_replaced` is 0. In the other order, the
+  second command's later copy replaces the stored earlier copy as a
+  change. A third command with a different `--from` reads the unchanged
+  1860 copy through a different window and writes nothing
 - a three-day Garmin range sends four windows, three of 82,800 seconds and
   one of 10,800 seconds. Each window sends `summary_start_time` and
   `summary_end_time` as integer Unix seconds, and each starts where the

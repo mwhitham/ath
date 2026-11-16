@@ -157,6 +157,10 @@ number is added:
   401 on any live request stops that provider for the command, as a 429
   does. This is the stated default, and the maintainer still has to
   confirm it.
+- D242 and D243. Each Garmin envelope keeps its `upload_window`. On a
+  later command, a copy from a window that ends at or before the start of
+  the stored copy's window is `superseded`. It writes nothing and never
+  replaces an owner correction. Comparisons leave the window out.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -1273,7 +1277,8 @@ measurement samples. Calculations do not read the original.
 Each original is one envelope. It holds `provider`, `vendor_id` as text,
 `start` and `start_kind` when the object has a start, `list`, `detail`
 when a detail is stored, and `detail_status`. Sensorbio adds
-`list_parent`. The specification's section 2 shows the JSON. The whole
+`list_parent`. Garmin adds `upload_window`, the window its object came
+from. The specification's section 2 shows the JSON. The whole
 envelope is kept in `supplied_fields`, and `provider_record_id` is
 `vendor_id`. The match key is the writer, the sensor, the resource
 `vendor_workout`, the provider, and the vendor id, escaped by D181.
@@ -1282,7 +1287,8 @@ The rewritten `mappings/open-wearables.md` gains a section named
 `vendor_workout`. It declares the record type, the kind, the subject, the
 writer, the sensor, the key, and the start. A saved file of envelopes
 imports through that section. File import writes each envelope as the
-file holds it, as D182 does for every mapped import. The detail rules in
+file holds it, as D182 does for every mapped import, except the Garmin
+window rule in D243. The detail rules in
 D243 run before the mapping engine sees an envelope, so the mapping
 engine has no vendor exception.
 
@@ -1500,7 +1506,12 @@ D213 would change its digits. When one Garmin activity id is in two
 windows with different objects, the later window's copy is kept, because
 windows select by upload time and the later window holds the later
 upload. The earlier copy counts as `superseded`. Inside one window, two
-different objects with one id are both refused. The start becomes `input_timestamp` by the
+different objects with one id are both refused. Each Garmin envelope
+keeps its `upload_window`, so the rule also holds across commands. A copy
+from a window that ends at or before the start of the stored copy's
+window was uploaded first. It is `superseded`, it writes nothing, and it
+is not a server change, so it replaces no owner correction. Comparisons
+leave `upload_window` out, because windows depend on `--from`. The start becomes `input_timestamp` by the
 rules in the specification: text keeps its offset or says it has none,
 and Unix seconds or milliseconds keep their digits. The start is stored
 and is not a filter.
@@ -1570,6 +1581,13 @@ Rejected alternatives:
 - Refuse both copies when one Garmin id is in two windows with different
   objects, as inside one response. Rejected. A re-upload is an ordinary
   Garmin event, and the later window holds the later copy.
+- Compare Garmin windows only inside one command, as the earlier text
+  did. Rejected. A later command that reads only an earlier window would
+  store the older copy again, and it would count that as a server change
+  that replaces an owner correction.
+- Count a different `upload_window` as a change. Rejected. Windows depend
+  on `--from`, so every pull with another range would revise every Garmin
+  original.
 - Drop an original whose start is outside the requested range. Rejected.
   The live methods do not filter by workout start, so a drop would hide a
   returned object.
