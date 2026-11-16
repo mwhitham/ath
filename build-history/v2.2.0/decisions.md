@@ -108,6 +108,9 @@ These edits answer the review of this plan at `d636d7a`:
 - D243. When one Garmin activity id is in two windows with different
   objects, the later window's copy is kept and the earlier is counted as
   `superseded`.
+- D242. Vendor originals have a 128 MiB total bound, because a package
+  holds them in its main document under the 512 MiB read cap. `ath export`
+  refuses to publish a document over that cap.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -1260,7 +1263,20 @@ every later pull from changing it.
 
 Each provider's line counts originals as new, changed, and unchanged. It
 counts owner corrections replaced, details by outcome, objects left out
-by reason, and withheld values. Each listed object is in exactly one detail count or one left-out
+by reason, and withheld values.
+
+Vendor originals have a total size bound, `MAX_VENDOR_ORIGINAL_BYTES`,
+128 MiB, counted over every revision of every original. A native package
+writes them in its main document, `athlete.ath.json`, with every record
+that is not a measurement sample: the current record under `records` and
+each revision under `record_revisions`. Only samples go to `series/`
+files. Version 2.1.1 reads that document only up to 512 MiB, and a mapped
+import file only up to 512 MiB. The bound keeps the originals near half of
+the main document. A page that would pass it is refused, its objects
+count as `size_cap`, and that provider is `incomplete`. A mapped import
+uses the same bound. `ath export` gains a check that refuses to publish a
+document over the 512 MiB read cap, because 2.1.1 can write a package it
+cannot read back. Each listed object is in exactly one detail count or one left-out
 count, so no object is dropped without a count.
 
 The pull uses the published query parameters and does not add its own
@@ -1281,6 +1297,14 @@ Rejected alternatives:
 - Store the list object and the detail as two records. Rejected. They
   describe one workout, and nothing in either object joins them except
   the id the envelope already uses.
+- Store vendor originals with no size bound. Rejected. They share the
+  package's main document, and an export past its read cap could not be
+  restored.
+- Store only the list object once the bound is near. Rejected. The pull
+  would drop details while it reported success.
+- Store originals in their own package files now. Not chosen for this
+  release. It changes the package format. Section 9 of the specification
+  lists it.
 - Replace an owner correction whenever the candidate differs from the
   current record, as D182 does and as the first version of this decision
   did. Rejected. A pull repeats the same server data, so every pull would
