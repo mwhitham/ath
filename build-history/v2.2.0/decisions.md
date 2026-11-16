@@ -161,6 +161,15 @@ number is added:
   later command, a copy from a window that ends at or before the start of
   the stored copy's window is `superseded`. It writes nothing and never
   replaces an owner correction. Comparisons leave the window out.
+- D242 and D231. The vendor-original bound is 256 MiB, half of the 512 MiB
+  read cap, counted in the bytes export writes. The earlier bound counted
+  128 MiB of compact JSON, which could export to about 525 MiB. It holds
+  about 158 one-hour Polar workouts with routes and samples. `ath
+  correct`, the protocol writes, a package merge, and a native restore
+  check it too. Every pull prints the total used and warns from 80%. The
+  export check also refuses an item past the 128-level nesting limit.
+  Storing originals in their own files is an open question for the
+  maintainer.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -658,7 +667,9 @@ is refused. `write_current_state` in `src/store/encode.rs` is the only
 record-to-table mapping. Package restore, repair, and the record check use
 it. There is no TypeScript writer to update. D234 also allows
 `source_report` insert and update, and withdrawal of a child whose anchor
-is in this response. Nothing beyond that is added to the store. Other
+is in this response. D242 adds the vendor-original size check to
+`apply_in` in `src/store/write.rs`, for a change that writes an original.
+Nothing beyond that is added to the store. Other
 routes do not call the receipt operations. Splitting `mapping.rs` is
 separate work. It is not required to make the pull correct.
 
@@ -1326,19 +1337,34 @@ Each provider's line counts originals as new, changed, and unchanged. It
 counts owner corrections replaced, details by outcome, objects left out
 by reason, and withheld values.
 
-Vendor originals have a total size bound, `MAX_VENDOR_ORIGINAL_BYTES`,
-128 MiB, counted over every revision of every original. A native package
-writes them in its main document, `athlete.ath.json`, with every record
-that is not a measurement sample: the current record under `records` and
-each revision under `record_revisions`. Only samples go to `series/`
-files. Version 2.1.1 reads that document only up to 512 MiB, and a mapped
-import file only up to 512 MiB. The bound keeps the originals near half of
-the main document. A page that would pass it is refused, its objects
-count as `size_cap`, and that provider is `incomplete`. A mapped import
-uses the same bound. `ath export` gains a check that refuses to publish a
-document over the 512 MiB read cap, because 2.1.1 can write a package it
-cannot read back. Each listed object is in exactly one detail count or one left-out
-count, so no object is dropped without a count.
+Vendor originals have a total size bound, `MAX_VENDOR_ORIGINAL_BYTES`. It
+is half of the 512 MiB package read cap, 256 MiB, counted in the bytes
+`ath export` writes for every revision of every original, including a
+deleted one. A native package writes them in its main document,
+`athlete.ath.json`, with every record that is not a measurement sample:
+the current record under `records` and each revision under
+`record_revisions`. Only samples go to `series/` files. Version 2.1.1
+reads that document only up to 512 MiB, and a mapped import file only up
+to 512 MiB. Export pretty-prints each item, so the bound counts those
+bytes and not the compact `record_json` column. One function measures an
+item for both. A synthetic one-hour Polar run with a route exports at
+2.05 times its compact size, and each original is in the document at
+least twice. So the earlier bound, 128 MiB of compact JSON, could export
+to about 525 MiB. The new bound holds about 158 such workouts with one
+revision each, or about 105 with two. Evidence:
+[appendix/vendor-original-size.md](appendix/vendor-original-size.md).
+
+Every write that adds a vendor-original revision checks the bound: a pull
+page, a mapped import, `ath correct`, the protocol record writes, a
+package merge, and a native restore. A page that would pass it is
+refused, its objects count as `size_cap`, and that provider is
+`incomplete`. Every pull prints how much of the bound the originals use,
+in the text and in `--json`. From 80% it warns, and the warning names
+`ath erase` and says the erase cannot be undone. `ath export` gains a
+check that refuses to publish a document over the 512 MiB read cap or an
+item past the 128-level nesting limit, because 2.1.1 can write a package
+it cannot read back. Each listed object is in exactly one detail count or
+one left-out count, so no object is dropped without a count.
 
 The pull uses the published query parameters and does not add its own
 retry. It does not call sync or historical sync. A completed provider
@@ -1363,9 +1389,20 @@ Rejected alternatives:
   restored.
 - Store only the list object once the bound is near. Rejected. The pull
   would drop details while it reported success.
-- Store originals in their own package files now. Not chosen for this
-  release. It changes the package format. Section 9 of the specification
-  lists it.
+- Count the bound in compact `record_json` bytes, as the earlier text
+  did. Rejected. Export pretty-prints each item and writes each original
+  at least twice, so a database under that bound could not be exported
+  and read back.
+- Give vendor originals more than half of the read cap. Not chosen.
+  Nothing bounds the other records in the main document, and a long
+  history of points, summaries, and sessions shares it.
+- Check the bound only on pulls and mapped imports. Rejected. `ath
+  correct`, a merge, or a restore could then take a database past it, and
+  its export could become unreadable.
+- Store originals in their own package files now. Not chosen in this
+  plan. It changes the package format. Section 9 of the specification
+  lists it, and section 10 leaves it as an open question for the
+  maintainer.
 - Replace an owner correction whenever the candidate differs from the
   current record, as D182 does and as the first version of this decision
   did. Rejected. A pull repeats the same server data, so every pull would

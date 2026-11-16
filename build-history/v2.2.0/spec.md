@@ -98,6 +98,9 @@ Preview text prints:
   failures, size limits and refusals are only known after --yes`
 - when `--vendor-workouts` is on: `vendor workout originals`, then
   `estimated`, then new, changed, and unchanged counts
+- on every run: `vendor originals use X MiB of 256 MiB`, the total stored
+  before this command. It is not an estimate. From 80% of the bound, the
+  size warning in section 2 follows it
 - when a credential-shaped value was withheld: the count and up to 20
   paths, as section 4 says
 - when `--vendor-workouts` is on, this sentence: a workout can appear twice,
@@ -208,6 +211,8 @@ the text. The object has no key, server, user id, or request path.
     "requested": false,
     "requests_made": false,
     "notice": [],
+    "used_bytes": 0,
+    "bound_bytes": 268435456,
     "estimated": {
       "originals": { "new": 0, "changed": 0, "unchanged": 0 }
     },
@@ -239,13 +244,18 @@ the text. The object has no key, server, user id, or request path.
 }
 ```
 
-`notice` is empty without the flag. With it, `notice` holds the three
-sentences about server changes in section 2, on every run, including a
-preview. Every `--json` run is a preview, so with the flag `notice` also
-holds `preview made no detail calls; detail failures, size limits and
-refusals are only known after --yes`. `connection_status` is `active`, `revoked`, `expired`,
-`unknown status`, or `null` when the server listed no connection for that
-provider.
+`notice` is empty without the flag, except for the size warning. With
+the flag, `notice` holds the three sentences about server changes in
+section 2, on every run, including a preview. Every `--json` run is a
+preview, so with the flag `notice` also holds `preview made no detail
+calls; detail failures, size limits and refusals are only known after
+--yes`. From 80% of the bound, with or without the flag, `notice` also
+holds the size warning in section 2. `used_bytes` is the vendor-original
+total stored before this command, as export measures it, and
+`bound_bytes` is `MAX_VENDOR_ORIGINAL_BYTES`. Both are facts, so they are
+not under `estimated`. `connection_status` is `active`, `revoked`,
+`expired`, `unknown status`, or `null` when the server listed no
+connection for that provider.
 
 The top-level `estimated_owner_corrections_replaced` counts owner
 corrections of stored records that the stored pages would replace, by the
@@ -1414,40 +1424,93 @@ mapping reads. The match key is the writer, the sensor, the resource
 `vendor_workout`, the provider, and the vendor id, escaped by D181. So the
 Suunto record in section 7 has a key that ends `suunto|1001`.
 
-Vendor originals have a total size bound. `MAX_VENDOR_ORIGINAL_BYTES` in
-`src/input_policy.rs` is 128 MiB. It counts the bytes of `record_json` in
-every revision of every vendor original, including a deleted one. A native
-package writes these records in its main document, `athlete.ath.json`,
-with every other record that is not a measurement sample. The current
-record is under `records`, and each revision is under `record_revisions`.
-Only measurement samples go to the `series/` files. So each original is in
-that one document at least twice. Version 2.1.1 reads a package document
-only up to `MAX_PACKAGE_DOCUMENT_BYTES`, which is 512 MiB, and a mapped
-import file only up to `MAX_MAPPED_INPUT_BYTES`, also 512 MiB. The bound
-keeps the originals near 256 MiB of the main document, and the rest is
-left for every other record. A saved file of current envelopes is at most
-128 MiB plus its JSON wrapping, so it fits the mapped-import cap.
+Vendor originals have a total size bound. A native package writes them in
+its main document, `athlete.ath.json`, with every other record that is
+not a measurement sample. The current record is under `records`, and each
+revision is under `record_revisions`. Only measurement samples go to the
+`series/` files. So each original is in that one document at least twice.
+Version 2.1.1 reads a package document only up to
+`MAX_PACKAGE_DOCUMENT_BYTES`, which is 512 MiB, and a mapped import file
+only up to `MAX_MAPPED_INPUT_BYTES`, also 512 MiB.
 
-The matching step of a page with `vendor_workout` rows adds the page's
-new and changed envelopes to the stored total. A page that would pass the
-bound is refused. It writes nothing, its objects count as `size_cap` in
-`left_out`, and that provider is `incomplete`. The line says the stored
-vendor originals would pass 128 MiB, so a package holding them could not
-be read back. `ath import --mapping open-wearables` uses the same bound.
-A Polar detail with samples and a route for a one-hour outdoor workout is
-a few hundred kilobytes, so the bound holds several hundred such workouts
-with one revision each. Deleting an original does not lower the total,
-because its revisions stay. `ath erase` removes the record and its
-revisions, so it does. Storing originals in their own package files is
-later work, in section 9.
+`MAX_VENDOR_ORIGINAL_BYTES` in `src/input_policy.rs` is half of
+`MAX_PACKAGE_DOCUMENT_BYTES`, 256 MiB. It counts the bytes `ath export`
+writes for vendor originals. For each original, including a deleted one,
+that is its item under `records` and each of its items under
+`record_revisions`. Export writes each item with
+`json::to_deterministic_pretty`, two spaces for each level, and indents
+every line four spaces more. The stored `record_json` is compact, so the
+bound does not count it. One function beside the item writer in
+`src/package/export.rs` measures an item, so the bound and export count
+the same bytes. The originals therefore take at most half of the main
+document. The other half is for every other record. Nothing bounds those
+records, so the export check below is the last guard.
+
+A synthetic one-hour Polar run with a 3,600-point route, six sample
+strings, and five zones is 413 KB as compact `record_json`. Each item of
+it that export writes is 847 KB, 2.05 times as large. With one revision,
+the original is in the document twice, 1.69 MB. So the bound holds about
+158 such workouts with one revision each, or about 105 with two. The
+earlier bound, 128 MiB of compact JSON, would export to about 525 MiB of
+them, over the read cap.
+[appendix/vendor-original-size.md](appendix/vendor-original-size.md)
+records the measurement.
+
+Every write that adds a vendor-original revision checks the bound before
+it writes:
+
+- A pull page and `ath import --mapping open-wearables`, in the matching
+  step. A page that would pass the bound is refused. It writes nothing,
+  its objects count as `size_cap` in `left_out`, and that provider is
+  `incomplete`.
+- `ath correct` and the protocol record writes, for a change that creates
+  or revises a vendor original. The check is in `apply_in` in
+  `src/store/write.rs`, which `Store::apply` and `apply_with_attachments`
+  both call.
+- A package merge and a native restore, in `src/package/restore.rs`. A
+  package that 2.2.0 exported always passes, because every write keeps
+  its database under the bound.
+
+Each refusal names the bound and the bytes the originals would use. It
+says that a package holding them could not be read back. Deleting an
+original does not lower the total, because its revisions stay. `ath
+erase` removes the record and its revisions, so it does.
+
+Every run of `ath pull openwearables` prints `vendor originals use X MiB
+of 256 MiB`, with X to one decimal. A preview prints the total stored
+before this command, and `--yes` prints the total after it. `--json` has
+`vendor_workouts.used_bytes` and `vendor_workouts.bound_bytes`. From 80%
+of the bound, the run also prints a warning, and `--json` puts it in
+`vendor_workouts.notice`. The warning says three things. At the bound,
+new vendor pages are refused. `ath erase` of an original frees its space,
+but it removes that original and its history and cannot be undone.
+Storing originals in their own files is an open question for the
+maintainer (section 10).
+
+The pull measures the stored originals once per command, in its first
+vendor page's matching read, and adds what each committed page writes. A
+later page whose matching read sees a database revision that the pull's
+own last apply did not produce measures them again. A mapped import
+measures them once.
 
 `ath export` in 2.1.1 writes the main document and the series files with
 no size check, so it can publish a package that `src/package/load.rs`
 refuses to read. The build adds that check to `src/package/export.rs`.
 Export counts the bytes of each document it writes into its staging
-folder. When one passes `MAX_PACKAGE_DOCUMENT_BYTES`, export fails before
-the rename, removes the staging folder, publishes nothing, and names the
-document that was too large.
+folder and the nesting depth of each item. A document may not pass
+`MAX_PACKAGE_DOCUMENT_BYTES`, and an item may not nest deeper than
+`MAX_PACKAGE_JSON_NESTING`, 128 levels, counted from the document. When
+either happens, export fails before the rename, removes the staging
+folder, publishes nothing, and names the document. The package puts a
+vendor object up to five levels deeper than its response did: the
+document, `records`, the item, `data`, and `supplied_fields`. serde_json,
+which `src/json.rs` uses, refuses JSON nested 128 levels or more. So an
+object 124 to 127 levels deep could be stored and then fail this check.
+The pull does not refuse such an object itself.
+
+ath does not write a saved file of envelopes. Written compact or with a
+two-space indent, such a file is smaller than its originals as export
+writes them, so it fits the 512 MiB mapped-import cap.
 
 The pull writes one provider's originals as one page, after that
 provider's list and detail calls finish. The page is one preview at one
@@ -1778,9 +1841,9 @@ besides the typed writes in section 6. It gains nothing beyond those:
   `upload_window` out of each comparison and applies the Garmin window
   rule in section 2.
 - In matching, for a page with `vendor_workout` rows, the size bound in
-  section 2. It sums the stored vendor-original revisions and refuses the
-  page when its new and changed envelopes would pass
-  `MAX_VENDOR_ORIGINAL_BYTES`.
+  section 2. It measures the stored vendor originals as export writes
+  them, adds the page's new and changed envelopes, and refuses the page
+  when the total would pass `MAX_VENDOR_ORIGINAL_BYTES`.
 
 The pull reads the revision a preview matched at from
 `ProviderPreview::destination_database_revision`, which is already public.
@@ -2092,8 +2155,9 @@ interactive open can preview, back up, ask, and then migrate.
 | Page counts by record type | a count beside `Staging::count` in `src/import/staging.rs`, exposed by `ProviderPreview` |
 | Owner-correction rule and its count, and the Garmin window rule | `match_keyed` and `record_by_import_key` in `src/import/provider.rs`, behind a `KeyedPolicy` flag that only route `open_wearables` sets |
 | Where a workout fix belongs | one paragraph in `skills/athletic-standard/SKILL.md`, under "Stable IDs and revisions" |
-| Total size bound for vendor originals | `MAX_VENDOR_ORIGINAL_BYTES` in `src/input_policy.rs`, checked in the matching step in `src/import/provider.rs` |
-| Export refuses a document over the package read cap | `src/package/export.rs`, before the staging folder is renamed |
+| Total size bound for vendor originals, in the bytes export writes | `MAX_VENDOR_ORIGINAL_BYTES` in `src/input_policy.rs`. One function beside `ArrayWriter::item` in `src/package/export.rs` measures an item. The bound is checked in the matching step in `src/import/provider.rs`, in `apply_in` in `src/store/write.rs`, and in `merge_in`, `resolve_in`, and native restore in `src/package/restore.rs` |
+| The vendor-original total and its warning | the pull's text and `--json` outcome, from `pull` in `src/cli/commands/routes.rs` |
+| Export refuses a document over the package read cap, or an item past the nesting limit | `src/package/export.rs`, before the staging folder is renamed |
 | Device-binding facts and the safety snapshot | new `src/import/binding.rs`, called from the matching step in `src/import/provider.rs` for route `open_wearables` |
 | Create or first-bind with the checked receipt, and refuse any other `device_binding` change | the staged plan and `ProviderPreview::apply` in `src/import/provider.rs` |
 | Stored-original read for the vendor detail rules | a crate-private read in `src/import/provider.rs` |
@@ -2657,17 +2721,28 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   as `unsafe_number`. A fractional id refuses only that object and counts
   it as `unusable_id`. Two different objects with one id are both
   refused as `duplicate_id`
-- a synthetic database whose vendor originals, with their revisions, total
-  just under `MAX_VENDOR_ORIGINAL_BYTES` exports with `ath export`. The
-  main document is under 512 MiB. `ath import` of that package into a
-  database made by `ath init --empty` keeps every record id, revision,
-  deletion, and import key.
-  The restored database passes `ath check`. A vendor page that would pass
-  the bound is refused, writes nothing, counts its objects as `size_cap`,
-  and makes that provider `incomplete`. A mapped import of the same
-  envelopes is refused the same way. An export whose main document would
-  pass the read cap, with that cap lowered for the test, fails before the
-  rename and publishes nothing
+- a synthetic database of route-heavy Polar originals totals just under
+  `MAX_VENDOR_ORIGINAL_BYTES`, as export measures it. Each original has a
+  3,600-point route, six sample strings, and five zones, and some have a
+  second revision. `ath export` succeeds, its main document is at most
+  512 MiB, and the originals' items in it total the measured bytes. `ath
+  import` of that package into a database made by `ath init --empty`
+  keeps every record id, revision, deletion, and import key, and the
+  restored database passes `ath check`. One more original is refused by a
+  pull page, by a mapped import of the same envelopes, by `ath correct`,
+  by a protocol record write, by a package merge, and by a native
+  restore. Each refusal writes nothing. The page counts its objects as
+  `size_cap` and makes that provider `incomplete`
+- the pull prints `vendor originals use X MiB of 256 MiB` on a run
+  without the flag, on a preview, and on `--yes`, and `--json` has
+  `used_bytes` and `bound_bytes`. Under 80% of the bound there is no size
+  warning. At 80% the text and `vendor_workouts.notice` hold the warning,
+  and it names `ath erase` and says the erase cannot be undone
+- an export whose main document would pass the read cap, with that cap
+  lowered for the test, fails before the rename and publishes nothing. So
+  does an export whose item would nest deeper than
+  `MAX_PACKAGE_JSON_NESTING`, with that limit lowered for the test. An
+  item at the limit exports, and `ath import` reads it back
 - a synthetic Garmin fixture returns activity 555 in the first window with
   `durationInSeconds` 1800 and in the second window with 1860. One original
   is stored, and its `list` is the second window's object. Garmin's
@@ -2933,8 +3008,11 @@ is in the build pull request.
   There is no duplicate to delete.
 - Vendor originals live in the package's main document, under its 512 MiB
   read cap. Storing them in their own package files, as samples are, would
-  lift the 128 MiB bound in section 2. That is a package format change,
-  and this release does not make it.
+  lift the 256 MiB bound in section 2. That is a package format change,
+  and this plan does not make it. The bound holds about 158 one-hour
+  Polar workouts with routes and samples, so whether 2.2.0 should store
+  originals in their own files is an open question for the maintainer, in
+  section 10.
 
 No maintainability note under another name was found in the 2.1.0 or
 2.1.1 decision logs. The sizes above are the code at 2.1.1, not a
@@ -2984,10 +3062,15 @@ Risks:
 - A deferred id that the provider stops listing is never detailed. Its
   list object stays stored, and the deferred count shows that it waits.
 - Vendor originals share the main package document and its 512 MiB read
-  cap. The 128 MiB bound refuses a vendor page before a package would
-  become unreadable. A person with several hundred Polar workouts that
-  have routes can reach it. That provider then stays `incomplete` until
-  originals are erased, or a later version stores them in their own files.
+  cap. The bound, 256 MiB as export writes them, refuses a vendor write
+  before a package would become unreadable. About 158 one-hour Polar
+  workouts with routes and samples reach it with one revision each, and
+  about 105 with two. Every pull shows the total, and from 80% it warns.
+  At the bound, that provider stays `incomplete` until originals are
+  erased, which removes them and their history, or until a later version
+  stores them in their own files. Nothing bounds the other half of the
+  document. A long history of other records can still reach the read
+  cap, and the export check then refuses to publish.
 - Date-only bounds mean whatever Open Wearables decides. The docs and the
   0.11.0 parser disagree about UTC. This release does not correct that server.
 - Section 2 stores returned periods, series, and snapshots. It does not
@@ -3087,3 +3170,15 @@ optional source key adds no column.
    `open_wearables`, an owner correction is kept until the server's data
    for that record changes, and each correction a page replaces is counted
    (D242, D243, D244).
+
+These questions stay open for the maintainer. The plan states a default
+for each, and the default is not adopted:
+
+1. Garmin detail. The default probes the undocumented detail path once
+   per command. When the probe answers 400, 403, 404, 405, or 501, the
+   pull makes no other Garmin detail call in that command (D243).
+2. The owner-correction scope. The default covers every record the
+   `open_wearables` pull writes. Other routes keep D182 (D242).
+3. Storing vendor originals in their own package files. The default keeps
+   them in the main document under the 256 MiB bound, which holds about
+   158 route-heavy one-hour Polar workouts (D242).
