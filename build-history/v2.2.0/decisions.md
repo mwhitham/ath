@@ -1148,6 +1148,43 @@ joined to the stored session by time. The public stored workout has no
 inside the original. They do not set `device_binding`, and they are not
 measurement samples. Calculations do not read the original.
 
+Each original is one envelope. It holds `provider`, `vendor_id` as text,
+`start` and `start_kind` when the object has a start, `list`, `detail`
+when a detail is stored, and `detail_status`. Sensorbio adds
+`list_parent`. The specification's section 2 shows the JSON. The whole
+envelope is kept in `supplied_fields`, and `provider_record_id` is
+`vendor_id`. The match key is the writer, the sensor, the resource
+`vendor_workout`, the provider, and the vendor id, escaped by D181.
+
+The rewritten `mappings/open-wearables.md` gains a section named
+`vendor_workout`. It declares the record type, the kind, the subject, the
+writer, the sensor, the key, and the start. A saved file of envelopes
+imports through that section. File import writes each envelope as the
+file holds it, as D182 does for every mapped import. The detail rules in
+D243 run before the mapping engine sees an envelope, so the mapping
+engine has no vendor exception.
+
+The pull writes one provider's originals as one page, after that
+provider's list and detail calls finish. That page is one preview and,
+under `--yes`, one apply, as D230 says for every page. A vendor page
+never holds a stored row or an archive capsule. A failed or refused
+vendor page leaves that provider `incomplete`. It does not change the
+stored pages or the archive.
+
+The vendor page uses the 2.1.1 keyed rules. An original the person
+deleted is left out on every later pull and is not recreated (D182). A
+deleted `vendor_workout` source leaves out every object from that
+provider (D190). An original the person corrected gains a revision with
+the server's envelope when a later envelope differs, because a mapped
+import replaces the whole object (D182). The person's revision stays in
+the history. To keep a pull from changing an original, the person
+deletes it.
+
+Each provider's line counts originals as new, changed, and unchanged. It
+counts details by outcome, objects left out by reason, and withheld
+values. Each listed object is in exactly one detail count or one left-out
+count, so no object is dropped without a count.
+
 The pull uses the published query parameters and does not add its own
 retry. It does not call sync or historical sync. A completed provider
 line means that provider's stated limit was reached. It does not mean the
@@ -1163,6 +1200,13 @@ Rejected alternatives:
   them.
 - Call sync or historical sync to fill the gap. Rejected. Those routes
   are writes this pull does not call.
+- Store the list object and the detail as two records. Rejected. They
+  describe one workout, and nothing in either object joins them except
+  the id the envelope already uses.
+- Keep an owner correction when a later pull differs. Rejected for this
+  release. A 2.1.1 keyed import replaces a changed object and keeps the
+  history, on every route. A protection rule would be new import behavior
+  for all of them. Deleting the original keeps a pull from changing it.
 
 ## D243. A live vendor read is opt-in, and one failure stays on that provider
 
@@ -1171,43 +1215,103 @@ the server, that a failed provider stops the later providers, that Polar's
 list asks for samples, zones, and route, that a start outside the range
 is dropped, and that the server splits a Garmin range.
 
+On 15 November 2026 this decision was revised for the review at
+`e145fa6` and for 2.1.1. The specification's section 2 is the full
+procedure.
+
 `--vendor-workouts` is off unless the person passes it. Off, preview and
 `--json` call neither the connections route nor a live workout route.
 On, those calls run for a preview too. The preview writes nothing in this
-database and prints `vendor requests were made`.
+database and prints `vendor requests were made`. "Nothing stored" and
+"nothing written" always mean this database.
 
 The server, while answering the GET, can save a refreshed vendor token,
 revoke a connection, emit `connection.revoked`, write `token_refresh_lock`
 and `provider_auth_failing_since`, and on HTTP 429 sleep 15, then 30,
 then 60 seconds, up to three retries. This program does not add a retry
-of its own.
+of its own. Every run with the flag says, before its first live request,
+that the server may refresh and save vendor tokens, may revoke a
+connection, and may wait about 105 seconds on a rate limit. That holds
+for a preview, for `--yes`, and for `--json`, which puts the three
+sentences in `vendor_workouts.notice`. The flag's help text says the
+same.
 
-The pull reads `GET /users/{id}/connections` and calls only a connected
-provider that has a live list method. The order is Garmin, Polar, Suunto,
-Whoop, Fitbit, Oura, Strava, Withings, Sensorbio. A provider that is not
-connected, and a connected provider with no live list method, is
-`not_attempted`. One failure leaves that line `incomplete`. The others
-still run.
+The pull reads `GET /users/{id}/connections` first. Each item's `user_id`
+must be the selected user, or the list is refused. The pull keeps only
+`provider` and `status` from each item. It drops the rest, including
+`linked_user_ids`, which holds other users' ids. The list is never
+stored, so the privacy scan does not run on it. A provider is called only
+when its status is `active` and it has a live list method. `revoked`,
+`expired`, a missing item, and an unknown status are `not_attempted`, and
+the line shows the status. Those providers are never called, because a
+call could make the server try a refresh or a revoke. The order is
+Garmin, Polar, Suunto, Whoop, Fitbit, Oura, Strava, Withings, Sensorbio.
+One failure leaves that line `incomplete`. The others still run.
 
-Garmin is split by this program into windows of 24 hours or less, one
-call each, with a 120 second read timeout. Any failed window makes Garmin
-`incomplete`. Polar's list omits samples, zones, and route. Detail asks
-for all three. One combined object is written once per command. A second
-identical pull changes no row. A thinner object does not replace a richer
-stored original. A failed detail keeps the list object.
+Garmin is split by this program into windows of 86,400 seconds or less,
+one call each. Each window sends integer Unix seconds. Any failed window
+makes Garmin `incomplete`. The pinned code calls Garmin detail at
+`/wellness-api/rest/activities/{activity_id}`. This study did not find
+that path in Garmin's public docs, so a failed Garmin detail is counted
+like any other. Polar's list omits samples, zones, and route, and detail
+asks for all three. Suunto's detail is called at `workoutKey` when the
+list object has one, and at `workoutId` otherwise. Its `payload` is
+unwrapped, and the record key is `workoutId`. Whoop's response names its
+next page `next_token`. The request name, `nextToken`, is not sent.
+Sensorbio reads only the oldest 50 entries, and its line says so.
+
+A stored detail is never lost. A detail is fetched for an id with no
+stored detail, and again only when the list object changed. A list-only
+object never replaces a stored detail. A new detail that is thinner than
+the stored one writes nothing. Thinner means a detail field the
+specification's table names for that provider is filled in the stored
+detail and empty in the new one. A deferred or failed detail keeps the
+stored detail and adds no revision. A failed or mismatched detail makes
+the provider `incomplete` and the exit nonzero. A deferred detail leaves
+the provider `completed`, with a separate deferred count.
+
+Live requests go one at a time, at least one second apart. The read
+timeout is 360 seconds. The server's own retries can take about 225
+seconds, so the client waits for them. A live request that still times
+out ends that provider for the command, so two requests to one provider
+never overlap. A command makes at most 100 detail calls to one provider
+and at most 20 to Strava. Ids with no stored detail go first, oldest
+start first. Strava's limit belongs to the whole application, so the
+deployment's own sync shares it. The review cited about 100 requests a
+minute for Garmin. This study did not find that number in Garmin's public
+docs. The one-second pace keeps this command at 60 a minute or fewer.
+
+A vendor id is text. A JSON integer is written in decimal, so `123` and
+`"123"` are one id. An integer above 9007199254740991 is refused, because
+D213 would change its digits. The start becomes `input_timestamp` by the
+rules in the specification: text keeps its offset or says it has none,
+and Unix seconds or milliseconds keep their digits. The start is stored
+and is not a filter.
 
 Every returned original is stored, including a start outside `--from` and
 `--to`. The count is `vendor workout originals`. `range_complete` uses
 only the stored ranged reads. Each line says whether its limit covers the
-requested range and whether more data exists. Strava detail stops at 20
-calls per command. Later ids are deferred. Their list objects are stored.
+requested range and whether more data exists. An object the pull does not
+write is counted by reason.
 
-The unwrap, the id, and the start field for each provider are the table
-in the spec. File import uses the same envelope. The provider logic lives
-in `src/runtime/vendor_workouts.rs`, driven by one table.
+The unwrap, the id, the start field, the detail key, the detail unwrap,
+the detail fields, the budget, and the read timeout for each provider are
+the table in the spec. File import uses the same envelope. The provider
+logic lives in `src/runtime/vendor_workouts.rs`, driven by one table.
 `src/runtime/open_wearables.rs` calls that module.
 
 Rejected alternatives:
+
+- Call every provider the server lists. Rejected. A call to a revoked or
+  expired connection can make the server try a refresh or a revoke.
+- Store the connections list. Rejected. It holds other users' ids, and it
+  is not health data.
+- Write the list object over a stored detail when the new detail fails or
+  is deferred. Rejected. The person would lose data they already have.
+- Use a 30-second read timeout. Rejected. The server's own retries take
+  longer. The client would give up, and a rerun could send a second
+  request while the first still runs.
+- Retry a live request that timed out. Rejected for the same reason.
 
 - Leave live reads on by default. Rejected. The server can change a token
   and revoke a connection while answering the GET.
@@ -1225,17 +1329,39 @@ Rejected alternatives:
 This is a labeled choice. The default in this proposal is to keep each
 vendor object whole, including account ids, Polar user URLs, and full GPS
 routes. The reason is a complete, portable copy of what the vendor
-returned. The output and the spec say those fields are included.
+returned. The output and the spec say those fields are included. Only a
+credential-shaped value is withheld, as the next paragraphs say.
 
 The scan still refuses the API key, the selected origin, and the selected
-user id. It also refuses an object key whose letters, after dropping `_`
-and `-` and ignoring case, are `useraccesstoken`, `accesstoken`,
-`refreshtoken`, `apikey`, `authorization`, `password`, `secret`, or
-`clientsecret`. `polar_user` and a coordinate are not those keys.
+user id, wherever they appear. That includes a value under a
+credential-shaped key.
+
+A credential-shaped key does not refuse the page. Its value is withheld.
+The value is replaced by the text `[withheld by ath]`, and the pull
+records the JSON path and counts it. A key is credential-shaped when its
+letters and digits, with case ignored and every other character dropped,
+end in `token` or `secret`, or are `apikey`, `authorization`, or
+`password`. A query parameter with such a name inside a URL string is
+withheld the same way, and the URL keeps its address. `polar_user` and a
+coordinate are not credential-shaped. The rule covers stored reads and
+vendor reads alike.
+
+Garmin's list objects can carry an optional `userAccessToken`. Refusing
+the page would refuse every such Garmin page, and the workouts on it
+would be lost. Withholding keeps the workout and keeps the vendor's token
+out of the record. The stored original then differs from the vendor's
+object only at the withheld paths, and the count says how many there
+are. The maintainer can change the key list or the marker before
+approval.
 
 Rejected alternatives:
 
 - Strip account ids, user URLs, and routes before storage. Not chosen.
   The stored object would no longer be the object the vendor returned.
   The maintainer can replace this decision before approval.
+- Refuse the whole page when a credential-shaped key appears, as the
+  first version of this decision did. Rejected. One optional Garmin field
+  would block every Garmin page, and the person would lose those workouts.
+- Drop a credential-shaped field without a marker. Rejected. The stored
+  original would not show that a value was removed.
 
