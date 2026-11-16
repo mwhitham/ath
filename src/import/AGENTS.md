@@ -1,6 +1,9 @@
-# Import adapters
+# Provider import
 
-Root `AGENTS.md` and the applicable approved spec remain authoritative.
+Root `AGENTS.md` and the applicable approved spec remain authoritative. Use
+`.agents/skills/ath-engineering/SKILL.md` for execution and review follow-up.
+`src/import/` owns provider imports (`docs/architecture.md`). D208 replaced the
+TypeScript adapter and `ath-core` split (D173, D174).
 
 ## Code Review Rules
 
@@ -8,6 +11,6 @@ Root `AGENTS.md` and the applicable approved spec remain authoritative.
   For route changes, check export-local paths, missing/offset-less times, repeated
   references, and two route files on one workout (D175, D176). Count each refused
   file once and keep preview explanations consistent with what was stored.
-- Preserve the current division of work between these adapters and `ath-core`
-  (D173, D174). Compare parity with an unchanged base before moving a parser.
-  Use synthetic inputs and state uncovered provider behavior explicitly.
+- Readers produce typed candidates and do not write SQL (`docs/architecture.md`).
+  Compare a parser change with the unchanged base. Use synthetic inputs and state
+  uncovered provider behavior explicitly.

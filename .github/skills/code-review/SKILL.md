@@ -22,8 +22,9 @@ Review the diff against **only** the sources below. Cite a path (and D-number wh
 | Decision logging layout | `build-history/README.md` |
 | v1 SQLite, migrations, SQL contract | `build-history/v1.0.0/spec.md` (especially §19.3–19.4) |
 | Recorded choices | `build-history/*/decisions.md` |
-| Field-level JSON / v1 records | `SPEC.md` (normative Zod in `src/v1/schema.ts`; legacy 0.x in `src/schema.ts`) |
-| Public fixture allowlist | `scripts/check-public-data.ts` |
+| Field-level JSON / v1 records | `SPEC.md` (normative Rust model in `src/model/`; frozen Zod compatibility copy in `packages/npm/src/schema.ts`) |
+| Native rebuild and its evidence | `build-history/v2.1.1/spec.md`, `build-history/v2.1.1/appendix/` |
+| Public fixture allowlist | `tools/public-data-allowlist.json`, enforced by `tests/public_data.rs` |
 
 When sources appear to disagree, apply recorded precedence first (`AGENTS.md`: for v1 storage and schema names, D82–D105 supersede the listed older decisions; explicit supersession notes in `build-history/*/decisions.md`, e.g. D116 supersedes any reading of D104 that forbids direct SQL writers). Report only disagreements that remain after that. Do not invent policy.
 
@@ -35,7 +36,7 @@ Measured records and athlete reports never mix. Measured records require a `sour
 
 ### Health data (`AGENTS.md`, `CONTRIBUTING.md`)
 
-Never commit real health exports or identifying sample values. Public tests and fixtures must stay synthetic and allowlisted in `scripts/check-public-data.ts`. Flag exact workout dates, routes, birth dates, travel clues, device inventories, or real sample values in committed content or decision evidence.
+Never commit real health exports or identifying sample values. Public tests and fixtures must stay synthetic and allowlisted in `tools/public-data-allowlist.json`. Flag exact workout dates, routes, birth dates, travel clues, device inventories, or real sample values in committed content or decision evidence.
 
 ### Migrations never silent (D124; `build-history/v1.0.0/spec.md` §19.4)
 
@@ -47,11 +48,9 @@ Versioned SQL views are the stable **read** contract. A small documented table s
 
 ### Schema and generated artifacts (`SPEC.md`, D80)
 
-**v1 (current):** `src/v1/schema.ts` is normative (`SPEC.md`). After changes, run `pnpm generate:json-schema` and `pnpm generate:v1-fixture`, and commit regenerated JSON Schema and the SQLite fixture under `examples/demo-athlete/`.
+The Rust model in `src/model/` is normative (`SPEC.md`). After a change to the model, the command table or help (`src/cli/`), or the protocol operations (`src/protocol/`), run `ATH_WRITE_GENERATED=1 cargo test --test generated` and commit the regenerated JSON Schema in `schema/<current version>/`, the npm protocol module, `skills/athletic-standard/references/cli.md` (D80), and the demo database in `examples/demo-athlete/`. `cargo test --test generated` fails on drift. Flag a hand-edited generated file, and any generator that writes a published historical schema, `spec/sql/`, or `tests/fixtures/`.
 
-**Legacy 0.x:** `src/schema.ts` defines released 0.x JSON. After changes there, run `pnpm generate:json-schema` and `pnpm generate:fixture` for `examples/demo-athlete/athlete.ath.json`.
-
-When CLI or help changes (`src/program.ts`, `src/help.ts`), run `pnpm generate:skill-cli` and commit `skills/athletic-standard/references/cli.md` (D80). Flag drift between sources and generated outputs.
+The npm package's Zod schemas are frozen 2.1.x compatibility code (D209). Flag record design changes made there instead of in `src/model/`.
 
 ### SQL safety (D93; v1 spec)
 
@@ -71,13 +70,13 @@ The approved agent interface is CLI plus Skill — not a local HTTP or MCP serve
 
 ### build-history integrity (`AGENTS.md`, `build-history/README.md`)
 
-`build-history/` is append-only. New decisions get new D-numbers in the current version’s `decisions.md`; do not rewrite earlier entries or add addendum files. Long research stays in `appendix/` and links from the D-number.
+`build-history/` is append-only. New decisions get new D-numbers in the current version’s `decisions.md`; do not rewrite earlier entries or add addendum files. Long research stays in `appendix/` and links from the D-number. `tests/decision_history.rs` rejects a rewrite, removal, duplicate, or gap in recorded D-numbers. A decision that is not in the base may still be revised.
 
 ## Medium-severity checks
 
 ### New decisions
 
-If the PR changes format, governance, migration behavior, public SQL/TS contracts, or other recorded policy, it should append a D-number with rejected alternatives per `build-history/README.md`. Flag policy encoded only in code or comments.
+If the PR changes format, governance, migration behavior, public SQL or npm contracts, or other recorded policy, it should append a D-number with rejected alternatives per `build-history/README.md`. Flag policy encoded only in code or comments.
 
 ### Impersonal repository (`AGENTS.md`, D123)
 
@@ -85,7 +84,7 @@ No personal objectives, audience framing, or individual names in committed conte
 
 ### Protected contracts (D123)
 
-Changes under `spec/`, `src/db/migrations/`, `src/v1/schema.ts`, `schema/`, `.github/workflows/release-*.yml`, or `community/policy.json` need explicit owner review per D123. Call this out even when automated checks pass.
+Changes under `spec/`, `src/model/`, `schema/`, `.github/workflows/release-*.yml`, or `community/policy.json` need explicit owner review per D123. Call this out even when automated checks pass.
 
 ### DCO (D122)
 
@@ -93,7 +92,7 @@ Contributions require Developer Certificate of Origin sign-off (`Signed-off-by` 
 
 ### Verification (`AGENTS.md`, `CONTRIBUTING.md`)
 
-Before merge, `pnpm check:public-data && pnpm typecheck && pnpm test && pnpm build` must pass. Note if the PR likely fails these (e.g. hand-edited `examples/demo-athlete/`).
+Before merge, `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, and `cargo test` must pass, and in `packages/npm/`, `npm ci`, `npm run typecheck`, and `npm test`. Note if the PR likely fails these (e.g. hand-edited `examples/demo-athlete/`).
 
 ## Low-severity / defer
 

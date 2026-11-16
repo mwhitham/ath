@@ -1,0 +1,1316 @@
+{
+  "schema": "NutritionModelInterpretationData",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.5,
+        "interpreted_items": []
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.5,
+        "interpreted_items": []
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.75,
+        "interpreted_items": [
+          {
+            "food_description": "oatmeal",
+            "amount": 80,
+            "amount_unit": "g",
+            "nutrients": [
+              {
+                "nutrient_name": "protein",
+                "amount": 10.5,
+                "unit": "g"
+              }
+            ]
+          }
+        ],
+        "explanation": "Portion estimated from the photo."
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.75,
+        "interpreted_items": [
+          {
+            "food_description": "oatmeal",
+            "amount": 80,
+            "amount_unit": "g",
+            "nutrients": [
+              {
+                "nutrient_name": "protein",
+                "amount": 10.5,
+                "unit": "g"
+              }
+            ]
+          }
+        ],
+        "explanation": "Portion estimated from the photo."
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.75,
+        "interpreted_items": [
+          {
+            "food_description": "oatmeal",
+            "amount": 80,
+            "amount_unit": "g",
+            "nutrients": [
+              {
+                "nutrient_name": "protein",
+                "amount": 10.5,
+                "unit": "g"
+              }
+            ]
+          }
+        ],
+        "explanation": "Portion estimated from the photo.",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "authorship:missing",
+      "input": {
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.5,
+        "interpreted_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:null",
+      "input": {
+        "authorship": null,
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.5,
+        "interpreted_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:wrong_type=array",
+      "input": {
+        "authorship": [],
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.5,
+        "interpreted_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:wrong_type=string",
+      "input": {
+        "authorship": "x",
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.5,
+        "interpreted_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:empty_object",
+      "input": {
+        "authorship": {},
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.5,
+        "interpreted_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship",
+            "author"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        },
+        {
+          "path": [
+            "authorship",
+            "authored_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "authorship",
+            "evidence"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received undefined",
+          "expected": "array"
+        },
+        {
+          "path": [
+            "authorship",
+            "content_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        },
+        {
+          "path": [
+            "authorship",
+            "status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"draft\"|\"active\"|\"completed\"|\"superseded\"|\"cancelled\"",
+          "values": [
+            "draft",
+            "active",
+            "completed",
+            "superseded",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "authorship:nested_unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active",
+          "unknown_nested": true
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.5,
+        "interpreted_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "nutrition_entry_id:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "confidence": 0.5,
+        "interpreted_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "nutrition_entry_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "nutrition_entry_id:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": null,
+        "confidence": 0.5,
+        "interpreted_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "nutrition_entry_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "nutrition_entry_id:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": 1,
+        "confidence": 0.5,
+        "interpreted_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "nutrition_entry_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "nutrition_entry_id:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "",
+        "confidence": 0.5,
+        "interpreted_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "nutrition_entry_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "nutrition_entry_id:format=not_valid",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "not valid",
+        "confidence": 0.5,
+        "interpreted_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "nutrition_entry_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "nutrition_entry_id:format=uppercase",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890F3E-E7D3-7CC0-88C8-00000000000F",
+        "confidence": 0.5,
+        "interpreted_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "nutrition_entry_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "confidence:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "interpreted_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "confidence"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "confidence:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": null,
+        "interpreted_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "confidence"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "confidence:wrong_type=string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": "1",
+        "interpreted_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "confidence"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "confidence:number=-1",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": -1,
+        "interpreted_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "confidence"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "confidence:number=0",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0,
+        "interpreted_items": []
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0,
+        "interpreted_items": []
+      },
+      "issues": []
+    },
+    {
+      "name": "confidence:number=1",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 1,
+        "interpreted_items": []
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 1,
+        "interpreted_items": []
+      },
+      "issues": []
+    },
+    {
+      "name": "confidence:number=-0.5",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": -0.5,
+        "interpreted_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "confidence"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "confidence:number=0.5",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.5,
+        "interpreted_items": []
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.5,
+        "interpreted_items": []
+      },
+      "issues": []
+    },
+    {
+      "name": "confidence:number=5e-324",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 5e-324,
+        "interpreted_items": []
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 5e-324,
+        "interpreted_items": []
+      },
+      "issues": []
+    },
+    {
+      "name": "confidence:number=-5e-324",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": -5e-324,
+        "interpreted_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "confidence"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "confidence:number=2",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 2,
+        "interpreted_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "confidence"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected number to be <=1",
+          "inclusive": true,
+          "maximum": 1,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "confidence:number=1.5",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 1.5,
+        "interpreted_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "confidence"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected number to be <=1",
+          "inclusive": true,
+          "maximum": 1,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "confidence:number_text=-0",
+      "input_text": "{\"authorship\":{\"author\":{\"author_type\":\"athlete\"},\"authored_at\":\"2026-01-02T03:04:05.678Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"nutrition_entry_id\":\"01890f3e-e7d3-7cc0-88c8-00000000000f\",\"confidence\":-0,\"interpreted_items\":[]}",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0,
+        "interpreted_items": []
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0,
+        "interpreted_items": []
+      },
+      "issues": []
+    },
+    {
+      "name": "confidence:number_text=1e400",
+      "input_text": "{\"authorship\":{\"author\":{\"author_type\":\"athlete\"},\"authored_at\":\"2026-01-02T03:04:05.678Z\",\"evidence\":[],\"content_version\":1,\"status\":\"active\"},\"nutrition_entry_id\":\"01890f3e-e7d3-7cc0-88c8-00000000000f\",\"confidence\":1e400,\"interpreted_items\":[]}",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": null,
+        "interpreted_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "confidence"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "interpreted_items:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.5
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "interpreted_items"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received undefined",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "interpreted_items:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.5,
+        "interpreted_items": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "interpreted_items"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received null",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "interpreted_items:wrong_type=object",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.5,
+        "interpreted_items": {}
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "interpreted_items"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received object",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "interpreted_items:empty_array",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.5,
+        "interpreted_items": []
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.5,
+        "interpreted_items": []
+      },
+      "issues": []
+    },
+    {
+      "name": "interpreted_items:element[0]:wrong_type=array",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.5,
+        "interpreted_items": [
+          []
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "interpreted_items",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "interpreted_items:element[0]:wrong_type=string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.5,
+        "interpreted_items": [
+          "x"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "interpreted_items",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "explanation:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.75,
+        "interpreted_items": [
+          {
+            "food_description": "oatmeal",
+            "amount": 80,
+            "amount_unit": "g",
+            "nutrients": [
+              {
+                "nutrient_name": "protein",
+                "amount": 10.5,
+                "unit": "g"
+              }
+            ]
+          }
+        ],
+        "explanation": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "explanation"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "explanation:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.75,
+        "interpreted_items": [
+          {
+            "food_description": "oatmeal",
+            "amount": 80,
+            "amount_unit": "g",
+            "nutrients": [
+              {
+                "nutrient_name": "protein",
+                "amount": 10.5,
+                "unit": "g"
+              }
+            ]
+          }
+        ],
+        "explanation": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "explanation"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "explanation:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "nutrition_entry_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "confidence": 0.75,
+        "interpreted_items": [
+          {
+            "food_description": "oatmeal",
+            "amount": 80,
+            "amount_unit": "g",
+            "nutrients": [
+              {
+                "nutrient_name": "protein",
+                "amount": 10.5,
+                "unit": "g"
+              }
+            ]
+          }
+        ],
+        "explanation": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "explanation"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+Examples:
+
+  Write a complete portable package:
+    $ ath export ./athlete-backup
+
+  Return the command result as JSON:
+    $ ath export ./athlete-backup --json
+
+SQLite remains the live record. The exported JSON package is a snapshot
+and does not stay synchronized. The package includes complete current
+records, retained revisions, deletions, dense samples, and permitted
+attachments. The manifest is written last.
+
+The export has no time by default, so two exports of the same database
+revision are byte-identical. Supply a fixed --exported-at only when a
+manifest time is needed.

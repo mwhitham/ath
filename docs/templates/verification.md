@@ -5,17 +5,16 @@ This records evidence; it does not replace the approved spec or decision history
 
 - Tested head SHA / base SHA:
 - Builder/tool / run evidence (unknown is acceptable):
-- Environment (OS, Node, Rust when used):
+- Environment (OS, Rust toolchain, Node when the npm package is exercised):
 - Approved public spec and acceptance criteria:
 
 | Check | Exact command or action | Result / public-safe evidence |
 | --- | --- | --- |
-| Required local checks | `pnpm check:public-data && pnpm typecheck && pnpm test && pnpm build` | |
-| Decisions / generated outputs | `pnpm check:decision-history -- origin/main` / `pnpm check:generated` | |
+| Required local checks | `cargo fmt --check`; `cargo clippy --all-targets -- -D warnings`; `cargo test`; in `packages/npm`: `npm ci`, `npm run typecheck`, `npm test` | |
+| Decisions / generated outputs | `ATH_BASE_SHA=<base> cargo test --locked --test decision_history -- --ignored working_tree_matches_recorded_decisions` / `cargo test --test generated` | |
 | Changed behavior and refusal | Small synthetic regression, including nearby valid case | |
-| Rust, when affected | `cargo test --manifest-path crates/ath-core/Cargo.toml` | |
-| Installed package, when affected | `cargo build --release --manifest-path crates/ath-core/Cargo.toml && node scripts/stage-ath-core.mjs && node scripts/smoke-installed-package.mjs` | |
-| CI | Links to checks for this head and current base; include release cross-platform jobs | |
+| Installed package, when affected | Full check archive smoke (`tools/archive-smoke.sh`) and npm smoke (`packages/npm/scripts/smoke.mjs`) | |
+| CI | Links to checks for this head and current base. The required context is `checks passed`. Include the full check when a command, package, or install changes. | |
 | Website, when affected | Actual site's build, narrow/wide layout, changed interaction | |
 
 ## You test this (Laptop or Phone)

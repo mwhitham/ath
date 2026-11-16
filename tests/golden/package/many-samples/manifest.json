@@ -1,0 +1,204 @@
+{
+  "athleticstandard_version": "2.1.0",
+  "database_revision": 7,
+  "erasure_marker_count": 1,
+  "exported_at": "2026-11-14T00:00:00.000Z",
+  "files": [
+    {
+      "byte_count": 6221,
+      "file": "athlete.ath.json",
+      "sha256": "e7bc336d0a19072a17055d8dd48097fcf09f17984899c408c6485c4a84e71f17"
+    },
+    {
+      "byte_count": 93427618,
+      "file": "series/01890f3e-0000-7000-8000-000000000010-heart_rate-000001.ath-series.json",
+      "sha256": "58cb086dfeb57184263e3a879b62406e75005dddaed5c948feb74a450163cdd4"
+    },
+    {
+      "byte_count": 11716,
+      "file": "series/01890f3e-0000-7000-8000-000000000010-heart_rate-000002.ath-series.json",
+      "sha256": "63c98b0c967137b85bf1374a2f1a3218d526651ede9f7542783184847609eac5"
+    },
+    {
+      "byte_count": 5968,
+      "file": "series/01890f3e-0000-7000-8000-000000000010-respiratory_rate-000001.ath-series.json",
+      "sha256": "2c55a2890f977f8e4ef931005ae55de0c1d76f7ac5bcaabaf6934a7f744171ff"
+    },
+    {
+      "byte_count": 4040,
+      "file": "series/01890f3e-0000-7000-8000-000000000011-heart_rate-000001.ath-series.json",
+      "sha256": "c301157f2a856d66f63912b341c41abf9df8dde33432e2d0946a4f80778a97cd"
+    }
+  ],
+  "record_counts": [
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "athlete_profile",
+      "revision_count": 0
+    },
+    {
+      "current_record_count": 3,
+      "deletion_count": 1,
+      "import_key_count": 1,
+      "record_type": "source",
+      "revision_count": 4
+    },
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "source_device",
+      "revision_count": 0
+    },
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "point_measurement",
+      "revision_count": 0
+    },
+    {
+      "current_record_count": 50011,
+      "deletion_count": 2,
+      "import_key_count": 7,
+      "record_type": "measurement_sample",
+      "revision_count": 50016
+    },
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "sleep_session",
+      "revision_count": 0
+    },
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "workout_session",
+      "revision_count": 0
+    },
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "benchmark_result",
+      "revision_count": 0
+    },
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "provider_summary",
+      "revision_count": 0
+    },
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "provider_score",
+      "revision_count": 0
+    },
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "athlete_report",
+      "revision_count": 0
+    },
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "nutrition_entry",
+      "revision_count": 0
+    },
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "attachment",
+      "revision_count": 0
+    },
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "benchmark_definition",
+      "revision_count": 0
+    },
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "prediction",
+      "revision_count": 0
+    },
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "prediction_result_link",
+      "revision_count": 0
+    },
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "prediction_grade",
+      "revision_count": 0
+    },
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "prediction_error_analysis",
+      "revision_count": 0
+    },
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "training_plan",
+      "revision_count": 0
+    },
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "planned_session",
+      "revision_count": 0
+    },
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "coaching_note",
+      "revision_count": 0
+    },
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "saved_training_review",
+      "revision_count": 0
+    },
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "goal",
+      "revision_count": 0
+    },
+    {
+      "current_record_count": 0,
+      "deletion_count": 0,
+      "import_key_count": 0,
+      "record_type": "nutrition_model_interpretation",
+      "revision_count": 0
+    }
+  ],
+  "source_database_id": "01890f3e-0000-7000-8000-000000000001"
+}

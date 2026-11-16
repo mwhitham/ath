@@ -1,0 +1,1279 @@
+{
+  "schema": "SourceDeviceData",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+      },
+      "valid": true,
+      "output": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": true,
+      "output": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10,
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "source_id:missing",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "source_id:null",
+      "input": {
+        "source_id": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "source_id:wrong_type=number",
+      "input": {
+        "source_id": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "source_id:empty_string",
+      "input": {
+        "source_id": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "source_id:format=not_valid",
+      "input": {
+        "source_id": "not valid"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "source_id:format=uppercase",
+      "input": {
+        "source_id": "01890F3E-E7D3-7CC0-88C8-000000000003"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "name:null",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": null,
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "name"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "name:wrong_type=number",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": 1,
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "name"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "name:empty_string",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "name"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "manufacturer:null",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": null,
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "manufacturer"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "manufacturer:wrong_type=number",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": 1,
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "manufacturer"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "manufacturer:empty_string",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "manufacturer"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "model:null",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": null,
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "model"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "model:wrong_type=number",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": 1,
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "model"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "model:empty_string",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "model"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "hardware:null",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": null,
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "hardware"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "hardware:wrong_type=number",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": 1,
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "hardware"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "hardware:empty_string",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "hardware"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "serial_number:null",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": null,
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "serial_number"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "serial_number:wrong_type=number",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": 1,
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "serial_number"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "serial_number:empty_string",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "serial_number"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "coverage_start_date:null",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": null,
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "coverage_start_date"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "coverage_start_date:wrong_type=number",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": 1,
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "coverage_start_date"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "coverage_start_date:empty_string",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "coverage_start_date"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "coverage_start_date:format=february_30",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-02-30",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "coverage_start_date"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "coverage_start_date:format=datetime",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-02T03:04:05.678Z",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "coverage_start_date"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "coverage_end_date:null",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": null,
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "coverage_end_date"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "coverage_end_date:wrong_type=number",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": 1,
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "coverage_end_date"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "coverage_end_date:empty_string",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "coverage_end_date"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "coverage_end_date:format=february_30",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-02-30",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "coverage_end_date"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "coverage_end_date:format=datetime",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-02T03:04:05.678Z",
+        "accepted_record_count": 10
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "coverage_end_date"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "accepted_record_count:null",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "accepted_record_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "accepted_record_count:wrong_type=string",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": "1"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "accepted_record_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "accepted_record_count:number=-1",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": -1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "accepted_record_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "accepted_record_count:number=0",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 0
+      },
+      "valid": true,
+      "output": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "accepted_record_count:number=1",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 1
+      },
+      "valid": true,
+      "output": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 1
+      },
+      "issues": []
+    },
+    {
+      "name": "accepted_record_count:number=1.5",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 1.5
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "accepted_record_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "accepted_record_count:number=9007199254740991",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 9007199254740991
+      },
+      "valid": true,
+      "output": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 9007199254740991
+      },
+      "issues": []
+    },
+    {
+      "name": "accepted_record_count:number=9007199254740992",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 9007199254740992
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "accepted_record_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "accepted_record_count:number=-9007199254740991",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": -9007199254740991
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "accepted_record_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "accepted_record_count:number=-9007199254740992",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": -9007199254740992
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "accepted_record_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected int to be >=-9007199254740991",
+          "inclusive": true,
+          "minimum": -9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "accepted_record_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "accepted_record_count:number=1e+21",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 1e+21
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "accepted_record_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "accepted_record_count:number_text=-0",
+      "input_text": "{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\",\"name\":\"Example Band 2\",\"manufacturer\":\"Example Vendor\",\"model\":\"EB-2\",\"hardware\":\"rev-b\",\"serial_number\":\"SN-0000\",\"coverage_start_date\":\"2026-01-01\",\"coverage_end_date\":\"2026-01-31\",\"accepted_record_count\":-0}",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 0
+      },
+      "valid": true,
+      "output": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "accepted_record_count:number_text=10.0",
+      "input_text": "{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\",\"name\":\"Example Band 2\",\"manufacturer\":\"Example Vendor\",\"model\":\"EB-2\",\"hardware\":\"rev-b\",\"serial_number\":\"SN-0000\",\"coverage_start_date\":\"2026-01-01\",\"coverage_end_date\":\"2026-01-31\",\"accepted_record_count\":10.0}",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": true,
+      "output": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "issues": []
+    },
+    {
+      "name": "accepted_record_count:number_text=10E0",
+      "input_text": "{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\",\"name\":\"Example Band 2\",\"manufacturer\":\"Example Vendor\",\"model\":\"EB-2\",\"hardware\":\"rev-b\",\"serial_number\":\"SN-0000\",\"coverage_start_date\":\"2026-01-01\",\"coverage_end_date\":\"2026-01-31\",\"accepted_record_count\":10E0}",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "valid": true,
+      "output": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 10
+      },
+      "issues": []
+    },
+    {
+      "name": "accepted_record_count:number_text=9007199254740993",
+      "input_text": "{\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\",\"name\":\"Example Band 2\",\"manufacturer\":\"Example Vendor\",\"model\":\"EB-2\",\"hardware\":\"rev-b\",\"serial_number\":\"SN-0000\",\"coverage_start_date\":\"2026-01-01\",\"coverage_end_date\":\"2026-01-31\",\"accepted_record_count\":9007199254740993}",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "name": "Example Band 2",
+        "manufacturer": "Example Vendor",
+        "model": "EB-2",
+        "hardware": "rev-b",
+        "serial_number": "SN-0000",
+        "coverage_start_date": "2026-01-01",
+        "coverage_end_date": "2026-01-31",
+        "accepted_record_count": 9007199254740992
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "accepted_record_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    }
+  ]
+}

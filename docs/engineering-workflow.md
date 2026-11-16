@@ -42,11 +42,23 @@ describes GitHub findings as P0/P1 only. Keep acceptance checks and human review
 issues below that threshold. See also the
 [custom-rule guidance](https://developers.openai.com/blog/custom-code-review-rules-for-codex).
 
-Verified on 2026-11-08: this repository is public; the connected account has admin
-permission; auto-merge is disabled. Active main rules require one approval, code-owner
-review, dismissal of stale approvals, approval of the last push, and seven checks:
-`verify (22)`, `verify (24)`, three `ath-core-binary` jobs, `package-smoke`, and
-`mapping-path`. `CODEOWNERS` covers every path. Leave those protections in place.
+Verified on 2026-11-08, before the 2.1.1 rebuild: this repository is public; the
+connected account has admin permission; auto-merge is disabled. The rules then
+required one approval, code-owner review, dismissal of stale approvals, approval
+of the last push, and seven checks: `verify (22)`, `verify (24)`, three
+`ath-core-binary` jobs, `package-smoke`, and `mapping-path`. `CODEOWNERS` still
+covers every path.
+
+D225 and D226 replaced those seven checks. Pull requests now run the quick check
+in `.github/workflows/ci.yml`. Linux runs formatting, Clippy, every Rust test, the
+decision-history check, and the npm tests on Node 24. macOS and Windows run Clippy
+and every Rust test. Windows also runs the Credential Manager test. The one
+required status check is `checks passed`, and it passes only when those three
+jobs pass. The full check, including release builds and the archive and npm
+install checks, runs on a version tag and by hand
+(`.github/workflows/release-cross-platform.yml`). It is not one of the required
+pull-request contexts. This merge does not change the ruleset. Leave the approval
+rules and `checks passed` in place.
 
 The existing Codex integration completed a review of this implementation on
 [`e0d872d` in PR #42](https://github.com/mwhitham/ath/pull/42#issuecomment-6726172498)
@@ -54,9 +66,9 @@ and reported no major issues. No new reviewer service or credential was needed.
 Its summary labels the trigger "Manual request". The connected tools do not expose
 the review settings, so **All PRs and update triggers remain unverified**. Check those
 settings for coverage of GrokBot PRs; use the manual trigger if needed. No repository
-ruleset was changed. The existing release cross-platform jobs run on PRs but are not among the
-seven required contexts; inspect them before merging package changes. Making them
-required is a separate maintainer settings choice after confirming their job names.
+ruleset was changed. Inspect the full check before merging a command, package,
+or install change. Making more contexts required is a separate maintainer
+settings choice.
 
 If review is unavailable, paste the public PR and approved public spec into a fresh
 Codex chat: "Review this PR without editing. Read applicable AGENTS.md. Verify each
@@ -82,15 +94,19 @@ unperformed review, never a pass. The builder's self-check is not independent re
 
 ## Checks and learning
 
-`pnpm check:decision-history -- origin/main` compares recorded decisions with the
-chosen base. Stage new decision files before the local check. It rejects rewritten,
-removed, duplicated, or non-continuous new D-numbers. It permits edits to unmerged
-proposals and does not freeze specs/progress. Fetch the current base before checking.
-CI supplies the PR base commit, so a missing base fails instead of skipping the check.
+`ATH_BASE_SHA=origin/main cargo test --locked --test decision_history -- --ignored working_tree_matches_recorded_decisions`
+compares recorded decisions with the chosen base. Stage new decision files before
+the local check. It rejects rewritten, removed, duplicated, or non-continuous new
+D-numbers. It permits edits to unmerged proposals and does not freeze specs or
+progress. Fetch the current base before checking. CI supplies the pull-request base
+commit, so a missing base fails instead of skipping the check.
 
-`pnpm check:generated` regenerates JSON schemas and the CLI reference and rejects
-drift. Inspect generated changes before committing them. Existing SQL drift checks,
-fixture checks, installed-package smoke tests, and platform jobs remain in place.
+`cargo test --test generated` checks JSON Schema, the npm protocol module, the
+command reference, and the demo database (D219).
+`ATH_WRITE_GENERATED=1 cargo test --test generated` rewrites them. Inspect generated
+changes before committing them. It does not rewrite a published historical schema,
+`spec/sql/`, or `tests/fixtures/`. The public-data check is `tests/public_data.rs`.
+Archive and npm install checks stay in the full check.
 
 The [five-PR audit](engineering-audit.md) explains why these checks and instructions
 were chosen. For the next five confirmed GrokBot PRs, record tool/run evidence, review

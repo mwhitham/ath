@@ -1,3 +1,16 @@
+# The quick check (D225). It runs on every pull request push and on every push
+# to main:
+#
+# - Linux: formatting, Clippy, every Rust test (including the public-data and
+#   generated-file checks), the decision-history check on a pull request, then
+#   the npm client tests on Node 24.
+# - macOS: Clippy and every Rust test (D226).
+# - Windows: Clippy and every Rust test, plus the real Credential Manager test.
+#
+# The `checks passed` job is the one check the main branch rules require, so
+# renaming or adding jobs here never strands those rules. The full check on
+# Linux, macOS, and Windows, with release builds and install checks, runs when
+# a release is made (release-cross-platform.yml), or by hand.
 name: CI
 
 on:
@@ -9,96 +22,82 @@ on:
 permissions:
   contents: read
 
+# A new push to a pull request cancels the run for the push before it.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
-  verify:
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version: [22, 24]
+  linux:
     runs-on: ubuntu-latest
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
         with:
+          # The decision check compares the working tree with the pull request's
+          # base commit, so this job needs that commit, not a shallow tip.
           fetch-depth: 0
           persist-credentials: false
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.33.3
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - uses: dtolnay/rust-toolchain@stable
-      - run: cargo test --manifest-path crates/ath-core/Cargo.toml
-      - run: pnpm check:public-data
+      # rust-toolchain.toml pins the compiler; rustup installs it on first use.
+      - run: rustup show active-toolchain || rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo fmt --check
+      - run: cargo clippy --locked --all-targets -- -D warnings
+      # Report every failing test program, not only the first.
+      - run: cargo test --locked --no-fail-fast
       - name: Preserve recorded decisions
         if: github.event_name == 'pull_request'
         env:
           ATH_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-        run: pnpm check:decision-history -- "$ATH_BASE_SHA"
-      - run: pnpm check:generated
-      - run: pnpm typecheck
-      - run: pnpm test
-      - run: pnpm build
-
-  ath-core-binary:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - uses: actions/checkout@v5
+        run: cargo test --locked --test decision_history -- --ignored working_tree_matches_recorded_decisions
+      # The npm tests run the executable at target/debug/ath.
+      - run: cargo build --locked
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-      - uses: dtolnay/rust-toolchain@stable
-      - run: cargo build --release --manifest-path crates/ath-core/Cargo.toml
-      - run: cargo test --manifest-path crates/ath-core/Cargo.toml
-      - run: node scripts/stage-ath-core.mjs
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ath-core-${{ runner.os }}-${{ runner.arch }}
-          path: vendor/ath-core
-          if-no-files-found: error
+          node-version: 24
+          cache: npm
+          cache-dependency-path: packages/npm/package-lock.json
+      - name: npm client
+        working-directory: packages/npm
+        run: |
+          npm ci
+          npm run typecheck
+          npm test
 
-  package-smoke:
-    needs: ath-core-binary
+  macos:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup show active-toolchain || rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo clippy --locked --all-targets -- -D warnings
+      - run: cargo test --locked --no-fail-fast
+
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup show active-toolchain || rustup toolchain install
+      - uses: Swatinem/rust-cache@v2
+      - run: cargo clippy --locked --all-targets -- -D warnings
+      - run: cargo test --locked --no-fail-fast
+      # The real Credential Manager, under a test service name. The test is
+      # ignored elsewhere because it writes to the password store of whoever
+      # runs it; this runner is discarded after the job.
+      - name: Credential Manager on the Windows runner
+        run: cargo test --locked --test runtime_keyring -- --ignored credential_manager_saves_reads_and_clears_a_key_on_windows
+
+  checks-passed:
+    name: checks passed
+    needs: [linux, macos, windows]
+    if: always()
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.33.3
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - uses: actions/download-artifact@v4
-        with:
-          pattern: ath-core-*
-          path: vendor/ath-core
-          merge-multiple: true
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-      - run: pnpm check:schema-drift
-      - run: find vendor/ath-core -type f -exec chmod 755 {} +
-      - run: node --input-type=module -e "import { existsSync } from 'node:fs'; for (const path of ['linux-x64/ath-core', 'darwin-arm64/ath-core', 'win32-x64/ath-core.exe']) { if (!existsSync('vendor/ath-core/' + path)) throw new Error('missing vendor/ath-core/' + path); }"
-      - run: npm pack
-      - run: node scripts/assert-packed-binary.mjs "athleticstandard-$(node -p "require('./package.json').version").tgz"
-      - run: node scripts/smoke-installed-package.mjs
-
-  mapping-path:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v5
-      - uses: pnpm/action-setup@v4
-        with:
-          version: 10.33.3
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm exec vitest run tests/mapping-path.test.ts
+      - name: Require the Linux, macOS, and Windows checks to pass
+        run: |
+          echo "linux: ${{ needs.linux.result }}, macos: ${{ needs.macos.result }}, windows: ${{ needs.windows.result }}"
+          test "${{ needs.linux.result }}" = success
+          test "${{ needs.macos.result }}" = success
+          test "${{ needs.windows.result }}" = success

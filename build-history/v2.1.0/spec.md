@@ -1309,10 +1309,15 @@ Migration step 4 does not backfill. A record written before 2.1.0 has no `field_
 
 The [public PR audit](../../docs/engineering-audit.md) records five representative
 reviews. The implementation adds a repository engineering skill, scoped review
-instructions, specification and verification templates, an append-only decision
-check, and generated-schema/CLI checks in the existing CI job. Tests must show that
-recorded decisions cannot be rewritten or removed, new numbers remain continuous,
-and unmerged proposals can still be revised. Existing required checks must pass.
+instructions, specification and verification templates, and an append-only decision
+check. Tests must show that recorded decisions cannot be rewritten or removed, new
+numbers remain continuous, and unmerged proposals can still be revised. Existing
+required checks must pass.
+
+Generated JSON Schema, the command reference, the npm protocol module, and the demo
+database are checked by `tests/generated.rs` (D219). This section does not add a
+second generator. The decision check runs in the Linux quick check on a pull request
+(D225).
 
 This applies the existing history, verification, and public/private boundaries.
 It changes no record format, product architecture, decision, or release behavior.

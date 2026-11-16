@@ -1,0 +1,590 @@
+{
+  "schema": "HeartRateSample",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "offset_ms": 0,
+        "bpm": 120
+      },
+      "valid": true,
+      "output": {
+        "offset_ms": 0,
+        "bpm": 120
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "offset_ms": 0,
+        "bpm": 120,
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "offset_ms:missing",
+      "input": {
+        "bpm": 120
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "offset_ms"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "offset_ms:null",
+      "input": {
+        "offset_ms": null,
+        "bpm": 120
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "offset_ms"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "offset_ms:wrong_type=string",
+      "input": {
+        "offset_ms": "1",
+        "bpm": 120
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "offset_ms"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "offset_ms:number=-1",
+      "input": {
+        "offset_ms": -1,
+        "bpm": 120
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "offset_ms"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "offset_ms:number=0",
+      "input": {
+        "offset_ms": 0,
+        "bpm": 120
+      },
+      "valid": true,
+      "output": {
+        "offset_ms": 0,
+        "bpm": 120
+      },
+      "issues": []
+    },
+    {
+      "name": "offset_ms:number=1",
+      "input": {
+        "offset_ms": 1,
+        "bpm": 120
+      },
+      "valid": true,
+      "output": {
+        "offset_ms": 1,
+        "bpm": 120
+      },
+      "issues": []
+    },
+    {
+      "name": "offset_ms:number=1.5",
+      "input": {
+        "offset_ms": 1.5,
+        "bpm": 120
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "offset_ms"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "offset_ms:number=9007199254740991",
+      "input": {
+        "offset_ms": 9007199254740991,
+        "bpm": 120
+      },
+      "valid": true,
+      "output": {
+        "offset_ms": 9007199254740991,
+        "bpm": 120
+      },
+      "issues": []
+    },
+    {
+      "name": "offset_ms:number=9007199254740992",
+      "input": {
+        "offset_ms": 9007199254740992,
+        "bpm": 120
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "offset_ms"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "offset_ms:number=-9007199254740991",
+      "input": {
+        "offset_ms": -9007199254740991,
+        "bpm": 120
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "offset_ms"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "offset_ms:number=-9007199254740992",
+      "input": {
+        "offset_ms": -9007199254740992,
+        "bpm": 120
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "offset_ms"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected int to be >=-9007199254740991",
+          "inclusive": true,
+          "minimum": -9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "offset_ms"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "offset_ms:number=1e+21",
+      "input": {
+        "offset_ms": 1e+21,
+        "bpm": 120
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "offset_ms"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "offset_ms:number_text=-0",
+      "input_text": "{\"offset_ms\":-0,\"bpm\":120}",
+      "input": {
+        "offset_ms": 0,
+        "bpm": 120
+      },
+      "valid": true,
+      "output": {
+        "offset_ms": 0,
+        "bpm": 120
+      },
+      "issues": []
+    },
+    {
+      "name": "offset_ms:number_text=0.0",
+      "input_text": "{\"offset_ms\":0.0,\"bpm\":120}",
+      "input": {
+        "offset_ms": 0,
+        "bpm": 120
+      },
+      "valid": true,
+      "output": {
+        "offset_ms": 0,
+        "bpm": 120
+      },
+      "issues": []
+    },
+    {
+      "name": "offset_ms:number_text=0E0",
+      "input_text": "{\"offset_ms\":0E0,\"bpm\":120}",
+      "input": {
+        "offset_ms": 0,
+        "bpm": 120
+      },
+      "valid": true,
+      "output": {
+        "offset_ms": 0,
+        "bpm": 120
+      },
+      "issues": []
+    },
+    {
+      "name": "offset_ms:number_text=9007199254740993",
+      "input_text": "{\"offset_ms\":9007199254740993,\"bpm\":120}",
+      "input": {
+        "offset_ms": 9007199254740992,
+        "bpm": 120
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "offset_ms"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "bpm:missing",
+      "input": {
+        "offset_ms": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "bpm"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "bpm:null",
+      "input": {
+        "offset_ms": 0,
+        "bpm": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "bpm"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "bpm:wrong_type=string",
+      "input": {
+        "offset_ms": 0,
+        "bpm": "1"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "bpm"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "bpm:number=-1",
+      "input": {
+        "offset_ms": 0,
+        "bpm": -1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "bpm"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "bpm:number=0",
+      "input": {
+        "offset_ms": 0,
+        "bpm": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "bpm"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "bpm:number=1",
+      "input": {
+        "offset_ms": 0,
+        "bpm": 1
+      },
+      "valid": true,
+      "output": {
+        "offset_ms": 0,
+        "bpm": 1
+      },
+      "issues": []
+    },
+    {
+      "name": "bpm:number=-0.5",
+      "input": {
+        "offset_ms": 0,
+        "bpm": -0.5
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "bpm"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "bpm:number=0.5",
+      "input": {
+        "offset_ms": 0,
+        "bpm": 0.5
+      },
+      "valid": true,
+      "output": {
+        "offset_ms": 0,
+        "bpm": 0.5
+      },
+      "issues": []
+    },
+    {
+      "name": "bpm:number=5e-324",
+      "input": {
+        "offset_ms": 0,
+        "bpm": 5e-324
+      },
+      "valid": true,
+      "output": {
+        "offset_ms": 0,
+        "bpm": 5e-324
+      },
+      "issues": []
+    },
+    {
+      "name": "bpm:number=-5e-324",
+      "input": {
+        "offset_ms": 0,
+        "bpm": -5e-324
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "bpm"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "bpm:number=1e+308",
+      "input": {
+        "offset_ms": 0,
+        "bpm": 1e+308
+      },
+      "valid": true,
+      "output": {
+        "offset_ms": 0,
+        "bpm": 1e+308
+      },
+      "issues": []
+    },
+    {
+      "name": "bpm:number_text=-0",
+      "input_text": "{\"offset_ms\":0,\"bpm\":-0}",
+      "input": {
+        "offset_ms": 0,
+        "bpm": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "bpm"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "bpm:number_text=1e400",
+      "input_text": "{\"offset_ms\":0,\"bpm\":1e400}",
+      "input": {
+        "offset_ms": 0,
+        "bpm": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "bpm"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    }
+  ]
+}

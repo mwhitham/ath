@@ -24,17 +24,22 @@ architecture, history, data, and verification. This skill adds an execution loop
 ## Build and prove
 
 - Keep the change within the spec. Preserve unknown supplied fields, timestamp
-  meaning, source separation, and published contracts. Follow the recorded Rust /
-  TypeScript split; don't add a second implementation to make a test pass.
+  meaning, source separation, and published contracts. One Rust library owns the
+  record lifecycle (D208, D210). `packages/npm/` calls that executable and holds
+  no second implementation. Don't add one to make a test pass.
 - For an importer fix, test the failure and a nearby valid case. Consider the forms
   actually supported: file/folder/zip, missing/null fields, repeated import, deleted
   source, late invalid row, and preview versus write. Use only relevant cases.
-- Run the root verification commands before committing. Also run
-  `pnpm check:decision-history -- origin/main` and `pnpm check:generated`.
-  The generated check rewrites generated outputs; inspect and commit legitimate changes.
-- Run `cargo test --manifest-path crates/ath-core/Cargo.toml` for Rust changes.
-  For package/CLI/native changes, run the existing installed-package smoke test.
-  Let existing cross-platform CI prove other operating systems. Report unrun checks.
+- Run the root verification commands before committing. Also run the decision
+  check against the fetched base:
+  `ATH_BASE_SHA=origin/main cargo test --locked --test decision_history -- --ignored working_tree_matches_recorded_decisions`.
+  `cargo test` already runs `tests/generated.rs` (D219).
+  `ATH_WRITE_GENERATED=1 cargo test --test generated` rewrites generated outputs;
+  inspect and commit legitimate changes.
+- For a command, package, or install change, the installed-package proof is the
+  full check: archive smoke (`tools/archive-smoke.sh`) and npm smoke
+  (`packages/npm/scripts/smoke.mjs`) in `.github/workflows/validate.yml`.
+  The quick check does not pack a release. Report when that full check was not run.
 - For website work, use its actual repository guidance and build command. Check the
   changed page at narrow and wide widths and exercise the changed interaction.
   Do not imply this repository contains or deploys the website when it does not.

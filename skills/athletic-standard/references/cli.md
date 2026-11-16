@@ -1,6 +1,7 @@
 # ath command reference
 
-Generated from the CLI's own help by `pnpm generate:skill-cli`. Do not edit by hand.
+Generated from the command definitions by `ATH_WRITE_GENERATED=1 cargo test --test generated`.
+Do not edit by hand.
 This is the text `ath <command> --help` prints, for every command, so an agent
 can read the whole surface without a round trip.
 
@@ -115,7 +116,6 @@ Options:
   --json               structured output, for an agent rather than a person
   -h, --help           display help for command
 
-
 Examples:
 
   Answer three questions, then write the file:
@@ -152,7 +152,6 @@ Options:
 Commands:
   install [options]  copy the skill into .agents/skills and every harness folder
                      here
-
 
 Examples:
 
@@ -209,7 +208,6 @@ Options:
                                      migration
   -h, --help                         display help for command
 
-
 Examples:
 
   Preview the SQL schema migration plan:
@@ -224,9 +222,6 @@ Examples:
 Migration never runs silently. A verified SQLite backup is created before the
 first schema write. Non-interactive commands refuse an outdated database and
 point here.
-
-Requires the `sqlite3` command-line tool on PATH for verified backups (same as
-`ath repair` when repair candidates exist).
 ```
 
 ## ath repair
@@ -247,7 +242,6 @@ Options:
   --dry-run                               show how many records would change and write nothing
   --json                                  structured preview only
   -h, --help                              display help for command
-
 
 Examples:
 
@@ -282,7 +276,6 @@ Options:
   -y, --yes         apply a conflict-free preview
   --json            structured preview; never confirms the write
   -h, --help        display help for command
-
 
 Examples:
 
@@ -337,7 +330,6 @@ Commands:
   resolve [options] <record-id>  choose the local, imported, or a corrected
                                  value for one conflict
   help [command]                 display help for command
-
 
 Examples:
 
@@ -410,7 +402,6 @@ Options:
   --json                     structured command result
   -h, --help                 display help for command
 
-
 Examples:
 
   Write a complete portable package:
@@ -453,7 +444,6 @@ Options:
   --dry-run            show what would be written, and write nothing
   --json               structured preview for an agent; never confirms the write
   -h, --help           display help for command
-
 
 Examples:
 
@@ -507,7 +497,6 @@ Options:
   --json               structured preview; never confirms the write
   -h, --help           display help for command
 
-
 Examples:
 
   Find the stable IDs and current result revision:
@@ -547,7 +536,6 @@ Options:
   --json               structured preview; never confirms the write
   -h, --help           display help for command
 
-
 Examples:
 
   Read the current revision and complete data:
@@ -582,7 +570,6 @@ Options:
   --dry-run            show what would change and write nothing
   --json               structured preview; never confirms the write
   -h, --help           display help for command
-
 
 Examples:
 
@@ -623,7 +610,6 @@ Options:
   --json                         structured preview; never confirms the erasure
   -h, --help                     display help for command
 
-
 Examples:
 
   Preview the record, every dependent record, and each attachment:
@@ -658,7 +644,6 @@ Options:
   --json             structured output, for an agent rather than a person
   -h, --help         display help for command
 
-
 Examples:
 
   Check the file in this folder:
@@ -690,7 +675,6 @@ Options:
 Commands:
   set <gateway>    save a Vercel or OpenRouter key in the OS password store
   clear [gateway]  delete the saved gateway key from the password store
-
 
 Examples:
 
@@ -756,7 +740,6 @@ Options:
   --json            structured output, for an agent rather than a person
   -h, --help        display help for command
 
-
 Examples:
 
   Every live text model that can reason, including open weights:
@@ -791,7 +774,6 @@ Options:
   --dry-run          show the prediction, and write nothing
   --json             evidence for a harness, not a prediction
   -h, --help         display help for command
-
 
 Examples:
 
@@ -833,7 +815,6 @@ Options:
   --json              structured output, for an agent rather than a person
   -h, --help          display help for command
 
-
 Examples:
 
   Replay history with the models you name:
@@ -862,7 +843,6 @@ Options:
   --file <path>  look next to a file other than the one in this folder
   --json         structured output, for an agent rather than a person
   -h, --help     display help for command
-
 
 Examples:
 
@@ -894,7 +874,6 @@ Options:
   --dry-run                        show what would be written, and write nothing
   --json                           structured preview; never confirms the write
   -h, --help                       display help for command
-
 
 Examples:
 
@@ -933,7 +912,6 @@ Options:
   --json         structured result
   -h, --help     display help for command
 
-
 Examples:
 
   Run the shipped heart-rate zones calculation on one workout:
@@ -962,7 +940,6 @@ Options:
   --file <path>     write into a database other than the one in this folder
   --json            structured result
   -h, --help        display help for command
-
 
 Examples:
 
@@ -1004,7 +981,6 @@ Options:
   --file <path>                read a database other than the one in this folder
   --json                       structured calculation receipt
   -h, --help                   display help for command
-
 
 Examples:
 
@@ -1076,7 +1052,6 @@ Options:
   --file <path>      read a file other than the one in this folder
   -h, --help         display help for command
 
-
 Examples:
 
   One row per day:
@@ -1112,7 +1087,6 @@ Options:
   --json         structured output, for an agent rather than a person
   -h, --help     display help for command
 
-
 Examples:
 
   What is in the file, and where it came from:
@@ -1147,7 +1121,6 @@ Commands:
   show [options] <record-id>  show one record, one revision, its history, or its
                               links
   help [command]              display help for command
-
 
 Examples:
 

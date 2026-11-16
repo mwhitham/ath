@@ -1,0 +1,3136 @@
+{
+  "schema": "MeasurementSeriesFileReference",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0,
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "file:missing",
+      "input": {
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "file"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "file:null",
+      "input": {
+        "file": null,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "file"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "file:wrong_type=number",
+      "input": {
+        "file": 1,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "file"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "file:empty_string",
+      "input": {
+        "file": "",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "file"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        },
+        {
+          "path": [
+            "file"
+          ],
+          "code": "invalid_format",
+          "message": "Package path must be relative and cannot traverse parent directories",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^(?!\\/)(?!.*\\\\)(?!.*(?:^|\\/)\\.\\.(?:\\/|$)).+$/"
+        }
+      ]
+    },
+    {
+      "name": "file:format=not_valid",
+      "input": {
+        "file": "not valid",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "not valid",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "file:format=uppercase",
+      "input": {
+        "file": "SERIES/01890F3E-E7D3-7CC0-88C8-000000000003-HEART_RATE-000001.ATH-SERIES.JSON",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "SERIES/01890F3E-E7D3-7CC0-88C8-000000000003-HEART_RATE-000001.ATH-SERIES.JSON",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "sha256:missing",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sha256"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "sha256:null",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": null,
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sha256"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "sha256:wrong_type=number",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": 1,
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sha256"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "sha256:empty_string",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sha256"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase SHA-256 hex digest",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-f0-9]{64}$/"
+        }
+      ]
+    },
+    {
+      "name": "sha256:format=not_valid",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "not valid",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sha256"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase SHA-256 hex digest",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-f0-9]{64}$/"
+        }
+      ]
+    },
+    {
+      "name": "sha256:format=uppercase",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sha256"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase SHA-256 hex digest",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-f0-9]{64}$/"
+        }
+      ]
+    },
+    {
+      "name": "source_id:missing",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "source_id:null",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": null,
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "source_id:wrong_type=number",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": 1,
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "source_id:empty_string",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "source_id:format=not_valid",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "not valid",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "source_id:format=uppercase",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890F3E-E7D3-7CC0-88C8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "quantity:missing",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "quantity"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "quantity:null",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": null,
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "quantity"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "quantity:wrong_type=number",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": 1,
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "quantity"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "quantity:enum_invalid",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "__not_an_option__",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "quantity"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "quantity:empty_string",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "quantity"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "quantity:enum_uppercase",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "HEART_RATE",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "quantity"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "start_at:missing",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "start_at:null",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": null,
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "start_at:wrong_type=number",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": 1,
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "start_at:empty_string",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "start_at:format=no_milliseconds",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "start_at:format=offset",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678+00:00",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "end_at:missing",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "end_at:null",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": null,
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "end_at:wrong_type=number",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": 1,
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "end_at:empty_string",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "end_at:format=no_milliseconds",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T03:04:05Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "end_at:format=offset",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T03:04:05.678+00:00",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "sample_count:missing",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sample_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "sample_count:null",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": null,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sample_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "sample_count:wrong_type=string",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": "1",
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sample_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "sample_count:number=-1",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": -1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sample_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "sample_count:number=0",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 0,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 0,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "sample_count:number=1",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "sample_count:number=1.5",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1.5,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sample_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "sample_count:number=9007199254740991",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 9007199254740991,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 9007199254740991,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "sample_count:number=9007199254740992",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 9007199254740992,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sample_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "sample_count:number=-9007199254740991",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": -9007199254740991,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sample_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "sample_count:number=-9007199254740992",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": -9007199254740992,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sample_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected int to be >=-9007199254740991",
+          "inclusive": true,
+          "minimum": -9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "sample_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "sample_count:number=1e+21",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1e+21,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sample_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "sample_count:number_text=-0",
+      "input_text": "{\"file\":\"series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json\",\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\",\"quantity\":\"heart_rate\",\"start_at\":\"2026-01-02T03:04:05.678Z\",\"end_at\":\"2026-01-02T04:04:05.678Z\",\"sample_count\":-0,\"revision_count\":1,\"deletion_count\":0,\"import_key_count\":0}",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 0,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 0,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "sample_count:number_text=1.0",
+      "input_text": "{\"file\":\"series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json\",\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\",\"quantity\":\"heart_rate\",\"start_at\":\"2026-01-02T03:04:05.678Z\",\"end_at\":\"2026-01-02T04:04:05.678Z\",\"sample_count\":1.0,\"revision_count\":1,\"deletion_count\":0,\"import_key_count\":0}",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "sample_count:number_text=1E0",
+      "input_text": "{\"file\":\"series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json\",\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\",\"quantity\":\"heart_rate\",\"start_at\":\"2026-01-02T03:04:05.678Z\",\"end_at\":\"2026-01-02T04:04:05.678Z\",\"sample_count\":1E0,\"revision_count\":1,\"deletion_count\":0,\"import_key_count\":0}",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "sample_count:number_text=9007199254740993",
+      "input_text": "{\"file\":\"series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json\",\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\",\"quantity\":\"heart_rate\",\"start_at\":\"2026-01-02T03:04:05.678Z\",\"end_at\":\"2026-01-02T04:04:05.678Z\",\"sample_count\":9007199254740993,\"revision_count\":1,\"deletion_count\":0,\"import_key_count\":0}",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 9007199254740992,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sample_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "revision_count:missing",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "revision_count:null",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": null,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "revision_count:wrong_type=string",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": "1",
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "revision_count:number=-1",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": -1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "revision_count:number=0",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 0,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 0,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "revision_count:number=1",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "revision_count:number=1.5",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1.5,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "revision_count:number=9007199254740991",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 9007199254740991,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 9007199254740991,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "revision_count:number=9007199254740992",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 9007199254740992,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "revision_count:number=-9007199254740991",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": -9007199254740991,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "revision_count:number=-9007199254740992",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": -9007199254740992,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected int to be >=-9007199254740991",
+          "inclusive": true,
+          "minimum": -9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "revision_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "revision_count:number=1e+21",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1e+21,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "revision_count:number_text=-0",
+      "input_text": "{\"file\":\"series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json\",\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\",\"quantity\":\"heart_rate\",\"start_at\":\"2026-01-02T03:04:05.678Z\",\"end_at\":\"2026-01-02T04:04:05.678Z\",\"sample_count\":1,\"revision_count\":-0,\"deletion_count\":0,\"import_key_count\":0}",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 0,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 0,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "revision_count:number_text=1.0",
+      "input_text": "{\"file\":\"series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json\",\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\",\"quantity\":\"heart_rate\",\"start_at\":\"2026-01-02T03:04:05.678Z\",\"end_at\":\"2026-01-02T04:04:05.678Z\",\"sample_count\":1,\"revision_count\":1.0,\"deletion_count\":0,\"import_key_count\":0}",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "revision_count:number_text=1E0",
+      "input_text": "{\"file\":\"series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json\",\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\",\"quantity\":\"heart_rate\",\"start_at\":\"2026-01-02T03:04:05.678Z\",\"end_at\":\"2026-01-02T04:04:05.678Z\",\"sample_count\":1,\"revision_count\":1E0,\"deletion_count\":0,\"import_key_count\":0}",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "revision_count:number_text=9007199254740993",
+      "input_text": "{\"file\":\"series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json\",\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\",\"quantity\":\"heart_rate\",\"start_at\":\"2026-01-02T03:04:05.678Z\",\"end_at\":\"2026-01-02T04:04:05.678Z\",\"sample_count\":1,\"revision_count\":9007199254740993,\"deletion_count\":0,\"import_key_count\":0}",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 9007199254740992,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "deletion_count:missing",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deletion_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "deletion_count:null",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": null,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deletion_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "deletion_count:wrong_type=string",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": "1",
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deletion_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "deletion_count:number=-1",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": -1,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deletion_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "deletion_count:number=0",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "deletion_count:number=1",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 1,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 1,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "deletion_count:number=1.5",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 1.5,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deletion_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "deletion_count:number=9007199254740991",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 9007199254740991,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 9007199254740991,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "deletion_count:number=9007199254740992",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 9007199254740992,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deletion_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "deletion_count:number=-9007199254740991",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": -9007199254740991,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deletion_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "deletion_count:number=-9007199254740992",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": -9007199254740992,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deletion_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected int to be >=-9007199254740991",
+          "inclusive": true,
+          "minimum": -9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "deletion_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "deletion_count:number=1e+21",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 1e+21,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deletion_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "deletion_count:number_text=-0",
+      "input_text": "{\"file\":\"series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json\",\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\",\"quantity\":\"heart_rate\",\"start_at\":\"2026-01-02T03:04:05.678Z\",\"end_at\":\"2026-01-02T04:04:05.678Z\",\"sample_count\":1,\"revision_count\":1,\"deletion_count\":-0,\"import_key_count\":0}",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "deletion_count:number_text=0.0",
+      "input_text": "{\"file\":\"series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json\",\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\",\"quantity\":\"heart_rate\",\"start_at\":\"2026-01-02T03:04:05.678Z\",\"end_at\":\"2026-01-02T04:04:05.678Z\",\"sample_count\":1,\"revision_count\":1,\"deletion_count\":0.0,\"import_key_count\":0}",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "deletion_count:number_text=0E0",
+      "input_text": "{\"file\":\"series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json\",\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\",\"quantity\":\"heart_rate\",\"start_at\":\"2026-01-02T03:04:05.678Z\",\"end_at\":\"2026-01-02T04:04:05.678Z\",\"sample_count\":1,\"revision_count\":1,\"deletion_count\":0E0,\"import_key_count\":0}",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "deletion_count:number_text=9007199254740993",
+      "input_text": "{\"file\":\"series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json\",\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\",\"quantity\":\"heart_rate\",\"start_at\":\"2026-01-02T03:04:05.678Z\",\"end_at\":\"2026-01-02T04:04:05.678Z\",\"sample_count\":1,\"revision_count\":1,\"deletion_count\":9007199254740993,\"import_key_count\":0}",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 9007199254740992,
+        "import_key_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deletion_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "import_key_count:missing",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "import_key_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "import_key_count:null",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "import_key_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "import_key_count:wrong_type=string",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": "1"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "import_key_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "import_key_count:number=-1",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": -1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "import_key_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "import_key_count:number=0",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "import_key_count:number=1",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 1
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 1
+      },
+      "issues": []
+    },
+    {
+      "name": "import_key_count:number=1.5",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 1.5
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "import_key_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "import_key_count:number=9007199254740991",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 9007199254740991
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 9007199254740991
+      },
+      "issues": []
+    },
+    {
+      "name": "import_key_count:number=9007199254740992",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 9007199254740992
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "import_key_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "import_key_count:number=-9007199254740991",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": -9007199254740991
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "import_key_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "import_key_count:number=-9007199254740992",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": -9007199254740992
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "import_key_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected int to be >=-9007199254740991",
+          "inclusive": true,
+          "minimum": -9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "import_key_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "import_key_count:number=1e+21",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 1e+21
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "import_key_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "import_key_count:number_text=-0",
+      "input_text": "{\"file\":\"series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json\",\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\",\"quantity\":\"heart_rate\",\"start_at\":\"2026-01-02T03:04:05.678Z\",\"end_at\":\"2026-01-02T04:04:05.678Z\",\"sample_count\":1,\"revision_count\":1,\"deletion_count\":0,\"import_key_count\":-0}",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "import_key_count:number_text=0.0",
+      "input_text": "{\"file\":\"series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json\",\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\",\"quantity\":\"heart_rate\",\"start_at\":\"2026-01-02T03:04:05.678Z\",\"end_at\":\"2026-01-02T04:04:05.678Z\",\"sample_count\":1,\"revision_count\":1,\"deletion_count\":0,\"import_key_count\":0.0}",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "import_key_count:number_text=0E0",
+      "input_text": "{\"file\":\"series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json\",\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\",\"quantity\":\"heart_rate\",\"start_at\":\"2026-01-02T03:04:05.678Z\",\"end_at\":\"2026-01-02T04:04:05.678Z\",\"sample_count\":1,\"revision_count\":1,\"deletion_count\":0,\"import_key_count\":0E0}",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "import_key_count:number_text=9007199254740993",
+      "input_text": "{\"file\":\"series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json\",\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"source_id\":\"01890f3e-e7d3-7cc0-88c8-000000000003\",\"quantity\":\"heart_rate\",\"start_at\":\"2026-01-02T03:04:05.678Z\",\"end_at\":\"2026-01-02T04:04:05.678Z\",\"sample_count\":1,\"revision_count\":1,\"deletion_count\":0,\"import_key_count\":9007199254740993}",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 9007199254740992
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "import_key_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "no_rule:end_before_start",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T04:04:05.678Z",
+        "end_at": "2026-01-02T03:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T04:04:05.678Z",
+        "end_at": "2026-01-02T03:04:05.678Z",
+        "sample_count": 1,
+        "revision_count": 1,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "no_rule:counts_unchecked",
+      "input": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 0,
+        "revision_count": 7,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "series/01890f3e-e7d3-7cc0-88c8-000000000003-heart_rate-000001.ath-series.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "sample_count": 0,
+        "revision_count": 7,
+        "deletion_count": 0,
+        "import_key_count": 0
+      },
+      "issues": []
+    }
+  ]
+}

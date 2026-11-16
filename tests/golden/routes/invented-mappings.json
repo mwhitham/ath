@@ -1,0 +1,1633 @@
+{
+  "description": "Invented mapping files: fallback order, a failure partway, and a page with its own fields.",
+  "reference": "2.1.0",
+  "steps": [
+    {
+      "command": "import-mapped",
+      "database": {
+        "database_revision": 2,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "invented-maker:-:sleep:n-1:point:hrv_rmssd",
+                "method": "invented_route/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement invented_route/v1 invented-maker:-:sleep:n-1:point:hrv_rmssd>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T07:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "n-1",
+                  "quantity": "hrv_rmssd",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T07:00:00.000Z",
+                  "source_id": "<source invented-maker invented_route >",
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 40,
+                    "standard_unit": "ms",
+                    "standard_value": 40
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "invented-maker:-:sleep:n-1",
+                "method": "invented_route/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<sleep_session invented_route/v1 invented-maker:-:sleep:n-1>",
+            "record_type": "sleep_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "asleep_seconds": 20000,
+                  "end_at": "2026-08-09T07:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T07:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T01:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "n-1",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source invented-maker invented_route >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T01:00:00.000Z",
+                  "supplied_fields": {
+                    "asleep_total": 21000,
+                    "rmssd_second": 44
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source invented-maker invented_route >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "invented_route",
+                  "data_writer": "invented-maker",
+                  "source_type": "export_file",
+                  "vendor": "invented-maker"
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "kind": "file",
+        "name": "nights.json",
+        "text": "{\"sleep\":[{\"id\":\"n-1\",\"start_time\":\"2026-08-09T01:00:00.000Z\",\"end_time\":\"2026-08-09T07:00:00.000Z\",\"source\":{\"provider\":\"invented-maker\"},\"asleep\":20000,\"asleep_total\":21000,\"rmssd_first\":40,\"rmssd_second\":44}]}"
+      },
+      "mapping": {
+        "text": "# Invented\n\n```ath-mapping\nname: invented\nroute: invented_route\nwriter_field: source.provider\nvalue_basis: provider\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\nrmssd_first: hrv_rmssd ms ms\nrmssd_second: hrv_rmssd ms ms\nasleep_total: asleep_seconds s s when-absent\nasleep: asleep_seconds s s\n```\n"
+      },
+      "preview": {
+        "result": {
+          "left_out": [],
+          "mapping": "invented",
+          "outcome": {
+            "changed": 0,
+            "new": 2,
+            "unchanged": 0
+          },
+          "preserved": [
+            "asleep_total",
+            "rmssd_second"
+          ],
+          "record_ids": [],
+          "understood": [
+            "asleep",
+            "rmssd_first"
+          ]
+        }
+      },
+      "pull": null,
+      "write": {
+        "result": {
+          "left_out": [],
+          "mapping": "invented",
+          "outcome": {
+            "changed": 0,
+            "new": 2,
+            "unchanged": 0
+          },
+          "preserved": [
+            "asleep_total",
+            "rmssd_second"
+          ],
+          "record_ids": [
+            "<sleep_session invented_route/v1 invented-maker:-:sleep:n-1>",
+            "<point_measurement invented_route/v1 invented-maker:-:sleep:n-1:point:hrv_rmssd>"
+          ],
+          "understood": [
+            "asleep",
+            "rmssd_first"
+          ]
+        }
+      }
+    },
+    {
+      "command": "import-mapped",
+      "database": {
+        "database_revision": 2,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "invented-maker:-:sleep:n-1:point:hrv_rmssd",
+                "method": "invented_route/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement invented_route/v1 invented-maker:-:sleep:n-1:point:hrv_rmssd>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T07:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "n-1",
+                  "quantity": "hrv_rmssd",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T07:00:00.000Z",
+                  "source_id": "<source invented-maker invented_route >",
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 40,
+                    "standard_unit": "ms",
+                    "standard_value": 40
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "invented-maker:-:sleep:n-1",
+                "method": "invented_route/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<sleep_session invented_route/v1 invented-maker:-:sleep:n-1>",
+            "record_type": "sleep_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "asleep_seconds": 20000,
+                  "end_at": "2026-08-09T07:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T07:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T01:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "n-1",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source invented-maker invented_route >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T01:00:00.000Z",
+                  "supplied_fields": {
+                    "asleep_total": 21000,
+                    "rmssd_second": 44
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source invented-maker invented_route >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "invented_route",
+                  "data_writer": "invented-maker",
+                  "source_type": "export_file",
+                  "vendor": "invented-maker"
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "kind": "file",
+        "name": "nights.json",
+        "text": "{\"sleep\":[{\"id\":\"n-1\",\"start_time\":\"2026-08-09T01:00:00.000Z\",\"end_time\":\"2026-08-09T07:00:00.000Z\",\"source\":{\"provider\":\"invented-maker\"},\"asleep\":20000,\"asleep_total\":21000,\"rmssd_first\":40,\"rmssd_second\":44}]}"
+      },
+      "mapping": {
+        "text": "# Invented\n\n```ath-mapping\nname: invented\nroute: invented_route\nwriter_field: source.provider\nvalue_basis: provider\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\nrmssd_first: hrv_rmssd ms ms\nrmssd_second: hrv_rmssd ms ms\nasleep_total: asleep_seconds s s when-absent\nasleep: asleep_seconds s s\n```\n"
+      },
+      "preview": {
+        "result": {
+          "left_out": [],
+          "mapping": "invented",
+          "outcome": {
+            "changed": 0,
+            "new": 0,
+            "unchanged": 2
+          },
+          "preserved": [
+            "asleep_total",
+            "rmssd_second"
+          ],
+          "record_ids": [],
+          "understood": [
+            "asleep",
+            "rmssd_first"
+          ]
+        }
+      },
+      "pull": null,
+      "write": {
+        "result": {
+          "left_out": [],
+          "mapping": "invented",
+          "outcome": {
+            "changed": 0,
+            "new": 0,
+            "unchanged": 2
+          },
+          "preserved": [
+            "asleep_total",
+            "rmssd_second"
+          ],
+          "record_ids": [
+            "<sleep_session invented_route/v1 invented-maker:-:sleep:n-1>",
+            "<point_measurement invented_route/v1 invented-maker:-:sleep:n-1:point:hrv_rmssd>"
+          ],
+          "understood": [
+            "asleep",
+            "rmssd_first"
+          ]
+        }
+      }
+    },
+    {
+      "command": "import-mapped",
+      "database": {
+        "database_revision": 2,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "invented-maker:-:sleep:n-1:point:hrv_rmssd",
+                "method": "invented_route/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement invented_route/v1 invented-maker:-:sleep:n-1:point:hrv_rmssd>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T07:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "n-1",
+                  "quantity": "hrv_rmssd",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T07:00:00.000Z",
+                  "source_id": "<source invented-maker invented_route >",
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 40,
+                    "standard_unit": "ms",
+                    "standard_value": 40
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "invented-maker:-:sleep:n-1",
+                "method": "invented_route/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<sleep_session invented_route/v1 invented-maker:-:sleep:n-1>",
+            "record_type": "sleep_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "asleep_seconds": 20000,
+                  "end_at": "2026-08-09T07:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T07:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T01:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "n-1",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source invented-maker invented_route >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T01:00:00.000Z",
+                  "supplied_fields": {
+                    "asleep_total": 21000,
+                    "rmssd_second": 44
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source invented-maker invented_route >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "invented_route",
+                  "data_writer": "invented-maker",
+                  "source_type": "export_file",
+                  "vendor": "invented-maker"
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "kind": "file",
+        "name": "second.json",
+        "text": "{\"sleep\":[{\"id\":\"n-1\",\"start_time\":\"2026-08-09T01:00:00.000Z\",\"end_time\":\"2026-08-09T07:00:00.000Z\",\"source\":{\"provider\":\"invented-maker\"},\"asleep\":20000,\"mood_word\":\"fine\"},{\"id\":\"next-night\",\"start_time\":\"2026-08-10T01:00:00.000Z\",\"end_time\":\"2026-08-10T07:00:00.000Z\",\"source\":{\"provider\":\"invented-maker\"},\"asleep\":20000},{\"id\":\"bad-night\",\"start_time\":\"2026-08-11T01:00:00.000Z\",\"end_time\":\"2026-08-11T07:00:00.000Z\",\"source\":{\"provider\":\"other-maker\"},\"asleep\":20000,\"\":\"no name\"}]}"
+      },
+      "mapping": {
+        "text": "# Invented\n\n```ath-mapping\nname: invented\nroute: invented_route\nwriter_field: source.provider\nvalue_basis: provider\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\nasleep: asleep_seconds s s\n```\n"
+      },
+      "preview": {
+        "error": "sleep_session bad-night: a supplied field has an empty name, and the format needs a name for every field"
+      },
+      "pull": null,
+      "write": {
+        "error": "sleep_session bad-night: a supplied field has an empty name, and the format needs a name for every field"
+      }
+    },
+    {
+      "command": "import-mapped",
+      "database": {
+        "database_revision": 2,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "invented-maker:-:sleep:n-1:point:hrv_rmssd",
+                "method": "invented_route/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement invented_route/v1 invented-maker:-:sleep:n-1:point:hrv_rmssd>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T07:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "n-1",
+                  "quantity": "hrv_rmssd",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T07:00:00.000Z",
+                  "source_id": "<source invented-maker invented_route >",
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 40,
+                    "standard_unit": "ms",
+                    "standard_value": 40
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "invented-maker:-:sleep:n-1",
+                "method": "invented_route/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<sleep_session invented_route/v1 invented-maker:-:sleep:n-1>",
+            "record_type": "sleep_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "asleep_seconds": 20000,
+                  "end_at": "2026-08-09T07:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T07:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T01:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "n-1",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source invented-maker invented_route >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T01:00:00.000Z",
+                  "supplied_fields": {
+                    "asleep_total": 21000,
+                    "rmssd_second": 44
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source invented-maker invented_route >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "invented_route",
+                  "data_writer": "invented-maker",
+                  "source_type": "export_file",
+                  "vendor": "invented-maker"
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "kind": "file",
+        "name": "proto.json",
+        "text": "{\"sleep\":[{\"id\":\"bad-night\",\"start_time\":\"2026-08-10T01:00:00.000Z\",\"end_time\":\"2026-08-10T07:00:00.000Z\",\"source\":{\"provider\":\"invented-maker\"},\"asleep\":20000,\"extra\":{\"__proto__\":1}}]}"
+      },
+      "mapping": {
+        "text": "# Invented\n\n```ath-mapping\nname: invented\nroute: invented_route\nwriter_field: source.provider\nvalue_basis: provider\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\nasleep: asleep_seconds s s\n```\n"
+      },
+      "preview": {
+        "error": "sleep_session bad-night: a supplied field is named __proto__, which JavaScript readers drop"
+      },
+      "pull": null,
+      "write": {
+        "error": "sleep_session bad-night: a supplied field is named __proto__, which JavaScript readers drop"
+      }
+    },
+    {
+      "command": "import-mapped",
+      "database": {
+        "database_revision": 4,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "invented-maker:-:sleep:n-1:point:hrv_rmssd",
+                "method": "invented_route/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement invented_route/v1 invented-maker:-:sleep:n-1:point:hrv_rmssd>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T07:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "n-1",
+                  "quantity": "hrv_rmssd",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T07:00:00.000Z",
+                  "source_id": "<source invented-maker invented_route >",
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 40,
+                    "standard_unit": "ms",
+                    "standard_value": 40
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 4>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 4>",
+                "key": "invented-maker:-:timeseries:point:rmssd_night:2026-08-09T06\\:00\\:00.000Z",
+                "method": "samples_route/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement samples_route/v1 invented-maker:-:timeseries:point:rmssd_night:2026-08-09T06\\:00\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 4>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "hrv_rmssd",
+                  "received_at": "<step 4>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:00:00.000Z",
+                  "source_id": "<source invented-maker samples_route >",
+                  "supplied_fields": {
+                    "span": 60
+                  },
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 41,
+                    "standard_unit": "ms",
+                    "standard_value": 41
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "invented-maker:-:sleep:n-1",
+                "method": "invented_route/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<sleep_session invented_route/v1 invented-maker:-:sleep:n-1>",
+            "record_type": "sleep_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "asleep_seconds": 20000,
+                  "end_at": "2026-08-09T07:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T07:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T01:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "n-1",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source invented-maker invented_route >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T01:00:00.000Z",
+                  "supplied_fields": {
+                    "asleep_total": 21000,
+                    "rmssd_second": 44
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source invented-maker invented_route >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "invented_route",
+                  "data_writer": "invented-maker",
+                  "source_type": "export_file",
+                  "vendor": "invented-maker"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 4>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source invented-maker samples_route >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 4>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "samples_route",
+                  "data_writer": "invented-maker",
+                  "source_type": "export_file",
+                  "vendor": "invented-maker"
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "kind": "file",
+        "name": "raw.json",
+        "text": "{\"meta\":{\"grain\":\"each\"},\"items\":[{\"at\":\"2026-08-09T06:00:00.000Z\",\"kind\":\"rmssd_night\",\"reading\":41,\"unit\":\"ms\",\"maker\":\"invented-maker\",\"span\":60},{\"at\":\"2026-08-09T06:01:00.000Z\",\"kind\":\"rmssd_night\",\"reading\":41,\"unit\":\"ms\",\"maker\":\"invented-maker\",\"until\":\"2026-08-09T07:00:00.000Z\"},{\"at\":\"2026-08-09T06:02:00.000Z\",\"kind\":\"rmssd_night\",\"reading\":41,\"unit\":\"ms\",\"maker\":\"invented-maker\",\"origin\":\"typed\"},{\"at\":\"2026-08-09T06:03:00.000+02:00\",\"kind\":\"rmssd_night\",\"reading\":0,\"unit\":\"ms\",\"maker\":\"invented-maker\"},{\"at\":\"2026-08-09T06:04:00.000Z\",\"kind\":\"other\",\"reading\":1,\"unit\":\"ms\",\"maker\":\"invented-maker\"},{\"at\":\"2026-08-09T06:05:00.000Z\",\"kind\":\"rmssd_night\",\"reading\":\"x\",\"unit\":\"ms\",\"maker\":\"invented-maker\"},{\"at\":\"2026-08-09T06:00:00.000Z\",\"kind\":\"rmssd_night\",\"reading\":41,\"unit\":\"ms\",\"maker\":\"invented-maker\"},{\"at\":\"2026-08-09T06:06:00.000Z\",\"kind\":\"rmssd_night\",\"reading\":42,\"unit\":\"bpm\",\"maker\":\"invented-maker\"},{\"kind\":\"rmssd_night\",\"reading\":42,\"unit\":\"ms\",\"maker\":\"invented-maker\"},{\"at\":\"2026-08-09T06:07:00.000Z\",\"reading\":42,\"unit\":\"ms\",\"maker\":\"invented-maker\"},{\"at\":\"2026-08-09T06:08:00.000Z\",\"kind\":\"rmssd_night\",\"reading\":42,\"unit\":\"ms\"},7]}"
+      },
+      "mapping": {
+        "text": "# Invented\n\n```ath-mapping\nname: samples\nroute: samples_route\nwriter_field: maker\nvalue_basis: provider_or_aggregator\npersonal_when: origin typed\npage_rows: items\npage_marker: meta\npage_section: timeseries\npage_resolution: meta.grain\nraw_resolution: each\n\n[timeseries]\ntime_field: at\ntype_field: kind\nvalue_field: reading\nunit_field: unit\naggregate_field: until\nwindow_field: span\nkind.rmssd_night: hrv_rmssd ms ms\n```\n"
+      },
+      "preview": {
+        "result": {
+          "left_out": [
+            "timeseries rmssd_night 2026-08-09T06:01:00.000Z: aggregate row, not a raw sample",
+            "timeseries rmssd_night 2026-08-09T06:02:00.000Z: origin typed is a personal report",
+            "timeseries rmssd_night 2026-08-09T04:03:00.000Z: hrv_rmssd must be positive",
+            "timeseries other 2026-08-09T06:04:00.000Z: unmapped type other",
+            "timeseries rmssd_night 2026-08-09T06:05:00.000Z: value is not a number",
+            "timeseries rmssd_night 2026-08-09T06:00:00.000Z: duplicate match key invented-maker:-:timeseries:point:rmssd_night:2026-08-09T06\\:00\\:00.000Z",
+            "timeseries rmssd_night 2026-08-09T06:06:00.000Z: unit bpm does not match ms",
+            "timeseries rmssd_night (no timestamp): missing at",
+            "timeseries (no type) 2026-08-09T06:07:00.000Z: missing kind",
+            "timeseries rmssd_night 2026-08-09T06:08:00.000Z: missing maker",
+            "timeseries row 12: not an object"
+          ],
+          "mapping": "samples",
+          "outcome": {
+            "changed": 0,
+            "new": 1,
+            "unchanged": 0
+          },
+          "preserved": [
+            "span"
+          ],
+          "record_ids": [],
+          "understood": [
+            "kind.rmssd_night"
+          ]
+        }
+      },
+      "pull": null,
+      "write": {
+        "result": {
+          "left_out": [
+            "timeseries rmssd_night 2026-08-09T06:01:00.000Z: aggregate row, not a raw sample",
+            "timeseries rmssd_night 2026-08-09T06:02:00.000Z: origin typed is a personal report",
+            "timeseries rmssd_night 2026-08-09T04:03:00.000Z: hrv_rmssd must be positive",
+            "timeseries other 2026-08-09T06:04:00.000Z: unmapped type other",
+            "timeseries rmssd_night 2026-08-09T06:05:00.000Z: value is not a number",
+            "timeseries rmssd_night 2026-08-09T06:00:00.000Z: duplicate match key invented-maker:-:timeseries:point:rmssd_night:2026-08-09T06\\:00\\:00.000Z",
+            "timeseries rmssd_night 2026-08-09T06:06:00.000Z: unit bpm does not match ms",
+            "timeseries rmssd_night (no timestamp): missing at",
+            "timeseries (no type) 2026-08-09T06:07:00.000Z: missing kind",
+            "timeseries rmssd_night 2026-08-09T06:08:00.000Z: missing maker",
+            "timeseries row 12: not an object"
+          ],
+          "mapping": "samples",
+          "outcome": {
+            "changed": 0,
+            "new": 1,
+            "unchanged": 0
+          },
+          "preserved": [
+            "span"
+          ],
+          "record_ids": [
+            "<point_measurement samples_route/v1 invented-maker:-:timeseries:point:rmssd_night:2026-08-09T06\\:00\\:00.000Z>"
+          ],
+          "understood": [
+            "kind.rmssd_night"
+          ]
+        }
+      }
+    },
+    {
+      "command": "import-mapped",
+      "database": {
+        "database_revision": 8,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "invented-maker:-:sleep:n-1:point:hrv_rmssd",
+                "method": "invented_route/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement invented_route/v1 invented-maker:-:sleep:n-1:point:hrv_rmssd>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T07:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "n-1",
+                  "quantity": "hrv_rmssd",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T07:00:00.000Z",
+                  "source_id": "<source invented-maker invented_route >",
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 40,
+                    "standard_unit": "ms",
+                    "standard_value": 40
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 4>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 4>",
+                "key": "invented-maker:-:timeseries:point:rmssd_night:2026-08-09T06\\:00\\:00.000Z",
+                "method": "samples_route/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement samples_route/v1 invented-maker:-:timeseries:point:rmssd_night:2026-08-09T06\\:00\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 4>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "hrv_rmssd",
+                  "received_at": "<step 4>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:00:00.000Z",
+                  "source_id": "<source invented-maker samples_route >",
+                  "supplied_fields": {
+                    "span": 60
+                  },
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 41,
+                    "standard_unit": "ms",
+                    "standard_value": 41
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 5>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 5>",
+                "key": "maker:-:sleep:s-1:point:temperature_deviation",
+                "method": "sessions_route/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement sessions_route/v1 maker:-:sleep:s-1:point:temperature_deviation>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 5>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T07:00:00Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "s-1",
+                  "quantity": "temperature_deviation",
+                  "received_at": "<step 5>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T07:00:00.000Z",
+                  "source_id": "<source maker sessions_route >",
+                  "value": {
+                    "input_unit": "celsius",
+                    "input_value": -0.2,
+                    "standard_unit": "°C",
+                    "standard_value": -0.2
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 5>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 5>",
+                "key": "maker\\:a\\\\b:-:workout:w-1:summary:average_heart_rate",
+                "method": "sessions_route/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_summary sessions_route/v1 maker\\:a\\\\b:-:workout:w-1:summary:average_heart_rate>",
+            "record_type": "provider_summary",
+            "revisions": [
+              {
+                "became_known_at": "<step 5>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_offset_timestamp",
+                    "timestamp_text": "2026-08-09T11:00:00+02:00",
+                    "utc_offset_meaning": "meaning_not_documented",
+                    "utc_offset_text": "+02:00"
+                  },
+                  "provider_record_id": "w-1",
+                  "received_at": "<step 5>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T09:00:00.000Z",
+                  "source_id": "<source maker:a\b sessions_route >",
+                  "summary_type": "average_heart_rate",
+                  "value": {
+                    "input_unit": "bpm",
+                    "input_value": 140,
+                    "standard_unit": "bpm",
+                    "standard_value": 140
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "invented-maker:-:sleep:n-1",
+                "method": "invented_route/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<sleep_session invented_route/v1 invented-maker:-:sleep:n-1>",
+            "record_type": "sleep_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "asleep_seconds": 20000,
+                  "end_at": "2026-08-09T07:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T07:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T01:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "n-1",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source invented-maker invented_route >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T01:00:00.000Z",
+                  "supplied_fields": {
+                    "asleep_total": 21000,
+                    "rmssd_second": 44
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 5>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 5>",
+                "key": "maker:-:sleep:s-1",
+                "method": "sessions_route/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<sleep_session sessions_route/v1 maker:-:sleep:s-1>",
+            "record_type": "sleep_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 5>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "end_at": "2026-08-09T07:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T07:00:00Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T01:00:00Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "s-1",
+                  "received_at": "<step 5>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source maker sessions_route >",
+                  "source_reported_summaries": [],
+                  "stage_minutes": {
+                    "awake": 1.5
+                  },
+                  "start_at": "2026-08-09T01:00:00.000Z",
+                  "supplied_fields": {
+                    "rhr": 0,
+                    "wakes": 2.5
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source invented-maker invented_route >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "invented_route",
+                  "data_writer": "invented-maker",
+                  "source_type": "export_file",
+                  "vendor": "invented-maker"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 4>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source invented-maker samples_route >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 4>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "samples_route",
+                  "data_writer": "invented-maker",
+                  "source_type": "export_file",
+                  "vendor": "invented-maker"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 5>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source maker sessions_route >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 5>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "sessions_route",
+                  "data_writer": "maker",
+                  "source_type": "export_file",
+                  "vendor": "maker"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 5>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source maker:a\\b sessions_route >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 5>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "sessions_route",
+                  "data_writer": "maker:a\\b",
+                  "source_type": "export_file",
+                  "vendor": "maker:a\\b"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 5>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 5>",
+                "key": "maker\\:a\\\\b:-:workout:w-1",
+                "method": "sessions_route/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session sessions_route/v1 maker\\:a\\\\b:-:workout:w-1>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 5>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "end_at": "2026-08-09T09:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_offset_timestamp",
+                    "timestamp_text": "2026-08-09T11:00:00+02:00",
+                    "utc_offset_meaning": "meaning_not_documented",
+                    "utc_offset_text": "+02:00"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_offset_timestamp",
+                    "timestamp_text": "2026-08-09T10:00:00+02:00",
+                    "utc_offset_meaning": "meaning_not_documented",
+                    "utc_offset_text": "+02:00"
+                  },
+                  "name": "Intervals",
+                  "provider_record_id": "w-1",
+                  "received_at": "<step 5>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source maker:a\b sessions_route >",
+                  "source_reported_summaries": [
+                    {
+                      "input_unit": "m",
+                      "input_value": 1000.5,
+                      "standard_unit": "m",
+                      "standard_value": 1000.5,
+                      "summary_type": "distance"
+                    }
+                  ],
+                  "start_at": "2026-08-09T08:00:00.000Z",
+                  "supplied_fields": {
+                    "note": "kept",
+                    "sport": "  "
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "kind": "file",
+        "name": "sessions.json",
+        "text": "{\"workout\":[{\"id\":\"w-1\",\"start_time\":\"2026-08-09T10:00:00+02:00\",\"end_time\":\"2026-08-09T11:00:00+02:00\",\"source\":{\"provider\":\"maker:a\\\\b\"},\"sport\":\"  \",\"label\":\"Intervals\",\"distance_m\":1000.5,\"kcal\":null,\"avg_hr\":140,\"note\":\"kept\"},{\"id\":\"w-2\",\"start_time\":\"2026-08-09T12:00:00Z\",\"end_time\":\"2026-08-09T11:00:00Z\",\"source\":{\"provider\":\"maker\"}},{\"id\":\"w-3\",\"start_time\":\"not a time\",\"end_time\":\"2026-08-09T11:00:00Z\",\"source\":{\"provider\":\"maker\"}},{\"id\":\"w-4\",\"start_time\":\"2026-08-09T12:00:00Z\",\"source\":{\"provider\":\"maker\"}},{\"id\":\"w-5\",\"end_time\":\"2026-08-09T12:00:00Z\",\"start_time\":\"2026-08-09T11:00:00Z\"},{\"start_time\":\"2026-08-09T11:00:00Z\"},\"nope\"],\"sleep\":[{\"id\":\"s-1\",\"start_time\":\"2026-08-09T01:00:00Z\",\"end_time\":\"2026-08-09T07:00:00Z\",\"source\":{\"provider\":\"maker\"},\"awake_s\":90,\"wakes\":2.5,\"temp_dev\":-0.2,\"rhr\":0}],\"extra\":[{\"a\":1}],\"empty\":[]}"
+      },
+      "mapping": {
+        "text": "# Invented\n\n```ath-mapping\nname: sessions\nroute: sessions_route\nwriter_field: source.provider\nvalue_basis: provider\n\n[workout]\nid_field: id\nstart_field: start_time\nend_field: end_time\nsport: activity_type basis provider_label\nlabel: name\ndistance_m: source_reported_summaries.distance m m\nkcal: source_reported_summaries.energy kcal kcal\navg_hr: provider_summary.average_heart_rate bpm bpm\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\nawake_s: stage_minutes.awake s min\nwakes: interruptions count count\ntemp_dev: temperature_deviation celsius °C\nrhr: resting_heart_rate bpm bpm\n```\n"
+      },
+      "preview": {
+        "result": {
+          "left_out": [
+            "extra: no mapping section",
+            "workout w-2: end is before the start",
+            "workout w-3: start_time is not a timestamp with an offset",
+            "workout w-4: missing end_time",
+            "workout w-5: missing source.provider",
+            "workout: missing id",
+            "workout row 7: not an object"
+          ],
+          "mapping": "sessions",
+          "outcome": {
+            "changed": 0,
+            "new": 4,
+            "unchanged": 0
+          },
+          "preserved": [
+            "note",
+            "rhr",
+            "sport",
+            "wakes"
+          ],
+          "record_ids": [],
+          "understood": [
+            "avg_hr",
+            "awake_s",
+            "distance_m",
+            "label",
+            "temp_dev"
+          ]
+        }
+      },
+      "pull": null,
+      "write": {
+        "result": {
+          "left_out": [
+            "extra: no mapping section",
+            "workout w-2: end is before the start",
+            "workout w-3: start_time is not a timestamp with an offset",
+            "workout w-4: missing end_time",
+            "workout w-5: missing source.provider",
+            "workout: missing id",
+            "workout row 7: not an object"
+          ],
+          "mapping": "sessions",
+          "outcome": {
+            "changed": 0,
+            "new": 4,
+            "unchanged": 0
+          },
+          "preserved": [
+            "note",
+            "rhr",
+            "sport",
+            "wakes"
+          ],
+          "record_ids": [
+            "<workout_session sessions_route/v1 maker\\:a\\\\b:-:workout:w-1>",
+            "<provider_summary sessions_route/v1 maker\\:a\\\\b:-:workout:w-1:summary:average_heart_rate>",
+            "<sleep_session sessions_route/v1 maker:-:sleep:s-1>",
+            "<point_measurement sessions_route/v1 maker:-:sleep:s-1:point:temperature_deviation>"
+          ],
+          "understood": [
+            "avg_hr",
+            "awake_s",
+            "distance_m",
+            "label",
+            "temp_dev"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,1279 @@
+{
+  "schema": "WorkoutSessionSegment",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "label": "warm-up",
+        "source_reported_summaries": []
+      },
+      "valid": true,
+      "output": {
+        "label": "warm-up",
+        "source_reported_summaries": []
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ],
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "label:missing",
+      "input": {
+        "source_reported_summaries": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "label"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "label:null",
+      "input": {
+        "label": null,
+        "source_reported_summaries": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "label"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "label:wrong_type=number",
+      "input": {
+        "label": 1,
+        "source_reported_summaries": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "label"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "label:empty_string",
+      "input": {
+        "label": "",
+        "source_reported_summaries": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "label"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "start_offset_ms:null",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": null,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_offset_ms"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "start_offset_ms:wrong_type=string",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": "1",
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_offset_ms"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "start_offset_ms:number=-1",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": -1,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_offset_ms"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "start_offset_ms:number=0",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "start_offset_ms:number=1",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 1,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "label": "warm-up",
+        "start_offset_ms": 1,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "start_offset_ms:number=1.5",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 1.5,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_offset_ms"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "start_offset_ms:number=9007199254740991",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 9007199254740991,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "label": "warm-up",
+        "start_offset_ms": 9007199254740991,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "start_offset_ms:number=9007199254740992",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 9007199254740992,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_offset_ms"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "start_offset_ms:number=-9007199254740991",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": -9007199254740991,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_offset_ms"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "start_offset_ms:number=-9007199254740992",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": -9007199254740992,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_offset_ms"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected int to be >=-9007199254740991",
+          "inclusive": true,
+          "minimum": -9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "start_offset_ms"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "start_offset_ms:number=1e+21",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 1e+21,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_offset_ms"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "start_offset_ms:number_text=-0",
+      "input_text": "{\"label\":\"warm-up\",\"start_offset_ms\":-0,\"end_offset_ms\":600000,\"source_reported_summaries\":[{\"standard_value\":91,\"standard_unit\":\"%\",\"input_value\":0.91,\"input_unit\":\"ratio\",\"summary_type\":\"sleep_efficiency\"}]}",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "start_offset_ms:number_text=0.0",
+      "input_text": "{\"label\":\"warm-up\",\"start_offset_ms\":0.0,\"end_offset_ms\":600000,\"source_reported_summaries\":[{\"standard_value\":91,\"standard_unit\":\"%\",\"input_value\":0.91,\"input_unit\":\"ratio\",\"summary_type\":\"sleep_efficiency\"}]}",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "start_offset_ms:number_text=0E0",
+      "input_text": "{\"label\":\"warm-up\",\"start_offset_ms\":0E0,\"end_offset_ms\":600000,\"source_reported_summaries\":[{\"standard_value\":91,\"standard_unit\":\"%\",\"input_value\":0.91,\"input_unit\":\"ratio\",\"summary_type\":\"sleep_efficiency\"}]}",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "start_offset_ms:number_text=9007199254740993",
+      "input_text": "{\"label\":\"warm-up\",\"start_offset_ms\":9007199254740993,\"end_offset_ms\":600000,\"source_reported_summaries\":[{\"standard_value\":91,\"standard_unit\":\"%\",\"input_value\":0.91,\"input_unit\":\"ratio\",\"summary_type\":\"sleep_efficiency\"}]}",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 9007199254740992,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_offset_ms"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "end_offset_ms:null",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": null,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_offset_ms"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "end_offset_ms:wrong_type=string",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": "1",
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_offset_ms"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "end_offset_ms:number=-1",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": -1,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_offset_ms"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "end_offset_ms:number=0",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 0,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 0,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "end_offset_ms:number=1",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 1,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 1,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "end_offset_ms:number=1.5",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 1.5,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_offset_ms"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "end_offset_ms:number=9007199254740991",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 9007199254740991,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 9007199254740991,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "end_offset_ms:number=9007199254740992",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 9007199254740992,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_offset_ms"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "end_offset_ms:number=-9007199254740991",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": -9007199254740991,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_offset_ms"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "end_offset_ms:number=-9007199254740992",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": -9007199254740992,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_offset_ms"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected int to be >=-9007199254740991",
+          "inclusive": true,
+          "minimum": -9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "end_offset_ms"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "end_offset_ms:number=1e+21",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 1e+21,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_offset_ms"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "end_offset_ms:number_text=-0",
+      "input_text": "{\"label\":\"warm-up\",\"start_offset_ms\":0,\"end_offset_ms\":-0,\"source_reported_summaries\":[{\"standard_value\":91,\"standard_unit\":\"%\",\"input_value\":0.91,\"input_unit\":\"ratio\",\"summary_type\":\"sleep_efficiency\"}]}",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 0,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 0,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "end_offset_ms:number_text=600000.0",
+      "input_text": "{\"label\":\"warm-up\",\"start_offset_ms\":0,\"end_offset_ms\":600000.0,\"source_reported_summaries\":[{\"standard_value\":91,\"standard_unit\":\"%\",\"input_value\":0.91,\"input_unit\":\"ratio\",\"summary_type\":\"sleep_efficiency\"}]}",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "end_offset_ms:number_text=600000E0",
+      "input_text": "{\"label\":\"warm-up\",\"start_offset_ms\":0,\"end_offset_ms\":600000E0,\"source_reported_summaries\":[{\"standard_value\":91,\"standard_unit\":\"%\",\"input_value\":0.91,\"input_unit\":\"ratio\",\"summary_type\":\"sleep_efficiency\"}]}",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 600000,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "end_offset_ms:number_text=9007199254740993",
+      "input_text": "{\"label\":\"warm-up\",\"start_offset_ms\":0,\"end_offset_ms\":9007199254740993,\"source_reported_summaries\":[{\"standard_value\":91,\"standard_unit\":\"%\",\"input_value\":0.91,\"input_unit\":\"ratio\",\"summary_type\":\"sleep_efficiency\"}]}",
+      "input": {
+        "label": "warm-up",
+        "start_offset_ms": 0,
+        "end_offset_ms": 9007199254740992,
+        "source_reported_summaries": [
+          {
+            "standard_value": 91,
+            "standard_unit": "%",
+            "input_value": 0.91,
+            "input_unit": "ratio",
+            "summary_type": "sleep_efficiency"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_offset_ms"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "source_reported_summaries:missing",
+      "input": {
+        "label": "warm-up"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_reported_summaries"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received undefined",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "source_reported_summaries:null",
+      "input": {
+        "label": "warm-up",
+        "source_reported_summaries": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_reported_summaries"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received null",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "source_reported_summaries:wrong_type=object",
+      "input": {
+        "label": "warm-up",
+        "source_reported_summaries": {}
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_reported_summaries"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received object",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "source_reported_summaries:empty_array",
+      "input": {
+        "label": "warm-up",
+        "source_reported_summaries": []
+      },
+      "valid": true,
+      "output": {
+        "label": "warm-up",
+        "source_reported_summaries": []
+      },
+      "issues": []
+    },
+    {
+      "name": "source_reported_summaries:element[0]:wrong_type=array",
+      "input": {
+        "label": "warm-up",
+        "source_reported_summaries": [
+          []
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_reported_summaries",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "source_reported_summaries:element[0]:wrong_type=string",
+      "input": {
+        "label": "warm-up",
+        "source_reported_summaries": [
+          "x"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_reported_summaries",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "no_rule:end_offset_before_start_offset",
+      "input": {
+        "label": "warm-up",
+        "source_reported_summaries": [],
+        "start_offset_ms": 1000,
+        "end_offset_ms": 10
+      },
+      "valid": true,
+      "output": {
+        "label": "warm-up",
+        "start_offset_ms": 1000,
+        "end_offset_ms": 10,
+        "source_reported_summaries": []
+      },
+      "issues": []
+    }
+  ]
+}

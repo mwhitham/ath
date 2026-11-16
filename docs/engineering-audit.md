@@ -35,9 +35,11 @@ reference before making GrokBot-specific performance claims.
    [round-4 addendum](https://github.com/mwhitham/ath/pull/35#issuecomment-6501771869)
    found correction precision and binary-mode problems after an earlier pass.
    #39's final body records platform failures and a successful installer exit that
-   left no `sqlite3`. Preserve the existing pack/smoke and cross-platform jobs;
-   require exact-head installed proof when that surface changes. Do not add a
-   duplicate release workflow.
+   left no `sqlite3`. The jobs that caught those misses were the pack, smoke, and
+   cross-platform release jobs. Version 2.1.1 replaced those job names with the
+   quick check (`checks passed` in `.github/workflows/ci.yml`, D225 and D226) and
+   the full check's archive and npm smoke. Keep those. Require exact-head installed
+   proof when that surface changes. Do not add a duplicate release workflow.
 2. **A fix addressed one example and missed related valid inputs.**
    [#35 round 10](https://github.com/mwhitham/ath/pull/35#issuecomment-6528350489)
    found double-counted refusals and a second route overwriting the first.

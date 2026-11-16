@@ -1,0 +1,7 @@
+Examples:
+
+  Name the latest backtest report:
+    $ ath share
+
+Not built yet. The shareable part of a backtest is the summary in the
+report file this names.

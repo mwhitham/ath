@@ -25,27 +25,29 @@ Anyone who can read the database file can read the athlete record.
 
 ## Install
 
-Athletic Standard needs Node.js 22 or newer.
+`ath` is one native executable. It runs on Linux x64, macOS arm64, and Windows x64.
+Local use needs no Node.js, compiler, `sqlite3` program, service, or account.
 
-SQL schema migration (`ath migrate`) and confirmed `ath repair` use the `sqlite3`
-command-line tool for verified backups. Install it and ensure it is on `PATH` before
-running either command.
-
-When typed-table columns disagree with the current revision in meaning (for example
-after direct SQL edits), run `ath repair -y --from-revision
---confirm-revision-align <database-id>` after reviewing the preview. Each attempt
-writes a new `.repair-backup.*.sqlite` file beside the database; failed attempts
-leave that file in place for restore.
+With Node.js 22 or newer, install it from npm:
 
 ```sh
 npm install -g athleticstandard
 ```
 
-This installs the `ath` command. `npx athleticstandard` can be used instead of a
+The package holds the prebuilt executable for each supported system. Installing it
+downloads and compiles nothing. `npx athleticstandard` can be used instead of a
 global install.
 
-Run `ath --update` to update the package. Run `ath skill install` to refresh the
-local agent skill without updating the package.
+Without Node.js, download the archive for your system from the
+[releases page](https://github.com/mwhitham/ath/releases), and put the `ath`
+executable on your `PATH`. The executable carries the agent skills and mapping files.
+
+Run `ath --update` to update. An npm, pnpm, or bun global install updates through the
+same package manager. An archive install prints the steps to replace the executable.
+Run `ath skill install` to refresh the local agent skill without updating `ath`.
+
+To build from source, install the Rust toolchain named in `rust-toolchain.toml` and
+run `cargo build --release`. The executable is `target/release/ath`.
 
 TypeScript and JavaScript callers can import the public parts directly:
 
@@ -59,6 +61,22 @@ The JSON schemas are exported as `athleticstandard/json-schema`,
 `athleticstandard/json-schema/measurement-series`. The Agent Skill is exported as
 `athleticstandard/skill`. The retired prerelease JSON runtime is not part of the v1
 package API.
+
+## Upgrade a database
+
+A database from version 1.0.0, 2.0.0, or 2.1.0 upgrades with `ath migrate`. The
+command shows a preview first. It makes a verified backup with SQLite's own backup
+interface before the first schema write. Opening a database never migrates it without
+confirmation. To go back, restore the backup; it does not contain work recorded after
+it was made. [`docs/upgrading-to-2-1-1.md`](docs/upgrading-to-2-1-1.md) lists what
+2.1.1 changes for a database, the command line, an installation, and JavaScript
+callers.
+
+When typed-table columns disagree with the current revision in meaning (for example
+after direct SQL edits), run `ath repair -y --from-revision
+--confirm-revision-align <database-id>` after reviewing the preview. Each attempt
+writes a new `.repair-backup.*.sqlite` file beside the database; failed attempts
+leave that file in place for restore.
 
 ## Create a database
 
@@ -89,8 +107,8 @@ The old npm package remains available for reading those files.
 
 ## Import provider data
 
-`ath import` reads Apple Health, WHOOP, Oura, and complete Athletic Standard v1
-packages. The first run is always a preview:
+`ath import` reads Apple Health, WHOOP, Oura, Garmin, and Strava exports, GPX and FIT
+files, and complete Athletic Standard v1 packages. The first run is always a preview:
 
 ```sh
 ath import ~/Downloads/apple_health_export.zip
@@ -370,8 +388,12 @@ keeps the ID. Evidence names both the record ID and revision.
 The format defines 24 record types for profile data, sources, measurements,
 sessions, athlete reports, nutrition, attachments, benchmarks, predictions, plans,
 goals, and saved authored work. [`SPEC.md`](SPEC.md) is the public field reference.
-The generated JSON Schemas are in [`schema/2.1.0/`](schema/2.1.0/). The published
-2.0.0 schemas stay in [`schema/2.0.0/`](schema/2.0.0/).
+The generated JSON Schemas are in [`schema/2.1.1/`](schema/2.1.1/). The published
+2.0.0 and 2.1.0 schemas stay in [`schema/2.0.0/`](schema/2.0.0/) and
+[`schema/2.1.0/`](schema/2.1.0/).
+
+How the code is organized, and the path of one import and one correction to disk, is
+in [`docs/architecture.md`](docs/architecture.md).
 
 Provider data research is in
 [`docs/connections.md`](docs/connections.md). The installed agent instructions are

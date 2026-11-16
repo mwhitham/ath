@@ -1,0 +1,876 @@
+{
+  "schema": "SourceData",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "source_type": "wearable",
+        "data_writer": "Example Band",
+        "data_route": "provider_export"
+      },
+      "valid": true,
+      "output": {
+        "source_type": "wearable",
+        "data_writer": "Example Band",
+        "data_route": "provider_export"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "source_type": "connector",
+        "data_writer": "Example Band",
+        "data_route": "provider_export",
+        "vendor": "Example Vendor",
+        "sensor_type": "optical",
+        "detail": "Invented source for vectors",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        }
+      },
+      "valid": true,
+      "output": {
+        "source_type": "connector",
+        "data_writer": "Example Band",
+        "data_route": "provider_export",
+        "vendor": "Example Vendor",
+        "sensor_type": "optical",
+        "detail": "Invented source for vectors",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "source_type": "connector",
+        "data_writer": "Example Band",
+        "data_route": "provider_export",
+        "vendor": "Example Vendor",
+        "sensor_type": "optical",
+        "detail": "Invented source for vectors",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        },
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "source_type:missing",
+      "input": {
+        "data_writer": "Example Band",
+        "data_route": "provider_export"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"wearable\"|\"export_file\"|\"connector\"|\"manual\"",
+          "values": [
+            "wearable",
+            "export_file",
+            "connector",
+            "manual"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "source_type:null",
+      "input": {
+        "source_type": null,
+        "data_writer": "Example Band",
+        "data_route": "provider_export"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"wearable\"|\"export_file\"|\"connector\"|\"manual\"",
+          "values": [
+            "wearable",
+            "export_file",
+            "connector",
+            "manual"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "source_type:wrong_type=number",
+      "input": {
+        "source_type": 1,
+        "data_writer": "Example Band",
+        "data_route": "provider_export"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"wearable\"|\"export_file\"|\"connector\"|\"manual\"",
+          "values": [
+            "wearable",
+            "export_file",
+            "connector",
+            "manual"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "source_type:enum_invalid",
+      "input": {
+        "source_type": "__not_an_option__",
+        "data_writer": "Example Band",
+        "data_route": "provider_export"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"wearable\"|\"export_file\"|\"connector\"|\"manual\"",
+          "values": [
+            "wearable",
+            "export_file",
+            "connector",
+            "manual"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "source_type:empty_string",
+      "input": {
+        "source_type": "",
+        "data_writer": "Example Band",
+        "data_route": "provider_export"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"wearable\"|\"export_file\"|\"connector\"|\"manual\"",
+          "values": [
+            "wearable",
+            "export_file",
+            "connector",
+            "manual"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "source_type:enum_uppercase",
+      "input": {
+        "source_type": "WEARABLE",
+        "data_writer": "Example Band",
+        "data_route": "provider_export"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"wearable\"|\"export_file\"|\"connector\"|\"manual\"",
+          "values": [
+            "wearable",
+            "export_file",
+            "connector",
+            "manual"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "data_writer:missing",
+      "input": {
+        "source_type": "wearable",
+        "data_route": "provider_export"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "data_writer"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "data_writer:null",
+      "input": {
+        "source_type": "wearable",
+        "data_writer": null,
+        "data_route": "provider_export"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "data_writer"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "data_writer:wrong_type=number",
+      "input": {
+        "source_type": "wearable",
+        "data_writer": 1,
+        "data_route": "provider_export"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "data_writer"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "data_writer:empty_string",
+      "input": {
+        "source_type": "wearable",
+        "data_writer": "",
+        "data_route": "provider_export"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "data_writer"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "data_route:missing",
+      "input": {
+        "source_type": "wearable",
+        "data_writer": "Example Band"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "data_route"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "data_route:null",
+      "input": {
+        "source_type": "wearable",
+        "data_writer": "Example Band",
+        "data_route": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "data_route"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "data_route:wrong_type=number",
+      "input": {
+        "source_type": "wearable",
+        "data_writer": "Example Band",
+        "data_route": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "data_route"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "data_route:empty_string",
+      "input": {
+        "source_type": "wearable",
+        "data_writer": "Example Band",
+        "data_route": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "data_route"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "vendor:null",
+      "input": {
+        "source_type": "connector",
+        "data_writer": "Example Band",
+        "data_route": "provider_export",
+        "vendor": null,
+        "sensor_type": "optical",
+        "detail": "Invented source for vectors",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "vendor"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "vendor:wrong_type=number",
+      "input": {
+        "source_type": "connector",
+        "data_writer": "Example Band",
+        "data_route": "provider_export",
+        "vendor": 1,
+        "sensor_type": "optical",
+        "detail": "Invented source for vectors",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "vendor"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "vendor:empty_string",
+      "input": {
+        "source_type": "connector",
+        "data_writer": "Example Band",
+        "data_route": "provider_export",
+        "vendor": "",
+        "sensor_type": "optical",
+        "detail": "Invented source for vectors",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "vendor"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "sensor_type:null",
+      "input": {
+        "source_type": "connector",
+        "data_writer": "Example Band",
+        "data_route": "provider_export",
+        "vendor": "Example Vendor",
+        "sensor_type": null,
+        "detail": "Invented source for vectors",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sensor_type"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "sensor_type:wrong_type=number",
+      "input": {
+        "source_type": "connector",
+        "data_writer": "Example Band",
+        "data_route": "provider_export",
+        "vendor": "Example Vendor",
+        "sensor_type": 1,
+        "detail": "Invented source for vectors",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sensor_type"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "sensor_type:empty_string",
+      "input": {
+        "source_type": "connector",
+        "data_writer": "Example Band",
+        "data_route": "provider_export",
+        "vendor": "Example Vendor",
+        "sensor_type": "",
+        "detail": "Invented source for vectors",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sensor_type"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "detail:null",
+      "input": {
+        "source_type": "connector",
+        "data_writer": "Example Band",
+        "data_route": "provider_export",
+        "vendor": "Example Vendor",
+        "sensor_type": "optical",
+        "detail": null,
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "detail"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "detail:wrong_type=number",
+      "input": {
+        "source_type": "connector",
+        "data_writer": "Example Band",
+        "data_route": "provider_export",
+        "vendor": "Example Vendor",
+        "sensor_type": "optical",
+        "detail": 1,
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "detail"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "detail:empty_string",
+      "input": {
+        "source_type": "connector",
+        "data_writer": "Example Band",
+        "data_route": "provider_export",
+        "vendor": "Example Vendor",
+        "sensor_type": "optical",
+        "detail": "",
+        "supplied_fields": {
+          "Raw Value": "72",
+          "nested": {
+            "list": [
+              1,
+              2.5,
+              null,
+              true,
+              "x"
+            ]
+          }
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "detail"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "supplied_fields:null",
+      "input": {
+        "source_type": "connector",
+        "data_writer": "Example Band",
+        "data_route": "provider_export",
+        "vendor": "Example Vendor",
+        "sensor_type": "optical",
+        "detail": "Invented source for vectors",
+        "supplied_fields": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "supplied_fields"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected record, received null",
+          "expected": "record"
+        }
+      ]
+    },
+    {
+      "name": "supplied_fields:wrong_type=array",
+      "input": {
+        "source_type": "connector",
+        "data_writer": "Example Band",
+        "data_route": "provider_export",
+        "vendor": "Example Vendor",
+        "sensor_type": "optical",
+        "detail": "Invented source for vectors",
+        "supplied_fields": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "supplied_fields"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected record, received array",
+          "expected": "record"
+        }
+      ]
+    },
+    {
+      "name": "supplied_fields:wrong_type=string",
+      "input": {
+        "source_type": "connector",
+        "data_writer": "Example Band",
+        "data_route": "provider_export",
+        "vendor": "Example Vendor",
+        "sensor_type": "optical",
+        "detail": "Invented source for vectors",
+        "supplied_fields": "x"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "supplied_fields"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected record, received string",
+          "expected": "record"
+        }
+      ]
+    },
+    {
+      "name": "supplied_fields:empty_object",
+      "input": {
+        "source_type": "connector",
+        "data_writer": "Example Band",
+        "data_route": "provider_export",
+        "vendor": "Example Vendor",
+        "sensor_type": "optical",
+        "detail": "Invented source for vectors",
+        "supplied_fields": {}
+      },
+      "valid": true,
+      "output": {
+        "source_type": "connector",
+        "data_writer": "Example Band",
+        "data_route": "provider_export",
+        "vendor": "Example Vendor",
+        "sensor_type": "optical",
+        "detail": "Invented source for vectors",
+        "supplied_fields": {}
+      },
+      "issues": []
+    },
+    {
+      "name": "supplied_fields:empty_key",
+      "input": {
+        "source_type": "connector",
+        "data_writer": "Example Band",
+        "data_route": "provider_export",
+        "vendor": "Example Vendor",
+        "sensor_type": "optical",
+        "detail": "Invented source for vectors",
+        "supplied_fields": {
+          "": "72"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "supplied_fields",
+            ""
+          ],
+          "code": "invalid_key",
+          "message": "Invalid key in record",
+          "issues": [
+            {
+              "path": [],
+              "code": "too_small",
+              "message": "Too small: expected string to have >=1 characters",
+              "inclusive": true,
+              "minimum": 1,
+              "origin": "string"
+            }
+          ],
+          "origin": "record"
+        }
+      ]
+    }
+  ]
+}
