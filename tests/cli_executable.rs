@@ -68,6 +68,13 @@ fn help_through_the_executable_matches_the_inventory() {
         let mut argv: Vec<&str> = command["path"].as_str().unwrap().split(' ').collect();
         argv.push("-h");
         let output = ath(folder.path(), &argv, b"");
+        if argv[0] == "skill" {
+            // 2.1.2 changes the skill help (v2.1.2 cli-changes.md, change 1);
+            // tests/cli_inventory.rs checks its new words.
+            assert_eq!(output.status, 0, "{argv:?}");
+            assert!(output.stdout.contains("hyrox"), "{argv:?}: {}", output.stdout);
+            continue;
+        }
         // The `sqlite3` sentence left the migrate help (cli-changes.md, change 6).
         let expected = command["help_text"].as_str().unwrap().replace(
             "\n\nRequires the `sqlite3` command-line tool on PATH for verified backups (same as\n`ath repair` when repair candidates exist).",
