@@ -51,10 +51,11 @@ environment when both are set.
 
 `--vendor-workouts` is off unless the person passes it. Without it, the
 command does not call the connections route or either live workout route.
-With it, those calls run, including on a preview and on `--json`. The
-server may then refresh and save vendor tokens, revoke a connection, and
-wait about 105 seconds on a rate limit. The help text and every run with
-the flag say so (section 2).
+With it, the connections list and each active provider's list are read,
+including on a preview and on `--json`. A preview makes no detail call.
+The server may then refresh and save vendor tokens, revoke a connection,
+and wait about 105 seconds on a rate limit. The help text and every run
+with the flag say so (section 2).
 
 The first run writes nothing. `--json` writes nothing, including when
 `--yes` is also present. That is the same rule as `ath import --mapping`.
@@ -292,11 +293,11 @@ is otherwise unchanged, and it still writes without a preview.
 
 The flag's help in `src/cli/spec.rs` says: also read live vendor workouts;
 the server may refresh and save vendor tokens, revoke a connection, and
-wait about 105 seconds on a rate limit. It also says that a preview reads
-each provider's list but makes no detail call, and that a preview and
-then `--yes` read each list twice. `src/cli/examples/pull.txt` repeats
-those three effects and says that "nothing stored" means this database
-only.
+wait about 105 seconds on a rate limit. It also says that a preview and
+`--json` read the connections list and each active provider's list and
+make no detail call, and that a preview and then `--yes` read each list
+twice. `src/cli/examples/pull.txt` says the same things, and it says that
+"nothing stored" means this database only.
 
 The saved key can read every user on that server. `ath key` shows whether a
 key is saved in the password store and whether `OPEN_WEARABLES_API_KEY` is
@@ -2534,7 +2535,11 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   the flag, preview and `--json` still write nothing, `requests_made` is
   true, and the text says vendor requests were made. The fixture server
   sees the connections request and each list request, and no detail
-  request. The preview counts the ids `--yes` would detail as `stored`,
+  request. The help text of `--vendor-workouts` and
+  `src/cli/examples/pull.txt` say that a preview and `--json` read the
+  connections list and each active provider's list and make no detail
+  call, and the generated `skills/athletic-standard/references/cli.md`
+  matches them. The preview counts the ids `--yes` would detail as `stored`,
   and says that a preview then `--yes` reads each list twice. A Strava
   preview then `--yes` sends two list calls and at most 20 detail calls
 - every run with the flag, as a preview, under `--yes`, and with `--json`,

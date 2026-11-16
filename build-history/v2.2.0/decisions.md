@@ -135,6 +135,16 @@ These edits answer the review of this plan at `d636d7a`:
 - D230. Each of the four page refusals names the owner's fix, or says
   2.2 has none.
 
+## Changes after the review at `3c3f660`
+
+These edits answer the reviews of this plan at `3c3f660`. No decision
+number is added:
+
+- D243. The opening of the specification says what the flag reads on a
+  preview and on `--json`: the connections list and each active
+  provider's list, with no detail call. The help text, the examples, and
+  their test say the same.
+
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
 `ath pull openwearables` reads the stored representations D232 lists from an
