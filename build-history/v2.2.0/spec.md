@@ -15,9 +15,10 @@ This pull request is the plan. The build after approval is one later pull
 request. This plan does not change a version number, a schema, a fixture, or
 the program.
 
-Version 2.1.0 on `main` `8db90b42ac654767e9e9570a121bbbd4fde3348a` is the
-software this plan was read against. That commit is the merge of pull request
-39. The pull request head was `72b9db9`.
+Version 2.1.1 on `main` `0de71bbd6474916af0408a4090bc2c74a1a3aed2` is the
+software this plan is read against. That commit is the merge of pull request
+44. An earlier reading used version 2.1.0 at
+`8db90b42ac654767e9e9570a121bbbd4fde3348a`, the merge of pull request 39.
 
 ## 1. What a person does
 
@@ -101,7 +102,7 @@ Preview text prints:
 - `nothing written; pass --yes after reviewing this preview`
 
 `--yes` without `--json` commits each successful page. That commit is one
-`apply_mapping` transaction (D189). It is not a completed pull. The text
+`MappedReader` transaction (D189). It is not a completed pull. The text
 prints actual committed counts for pages kept. It prints `requested range
 <from> through <to> is complete` only when every stored ranged read in
 section 2 reached that read's terminal condition. A live workout line does
@@ -114,9 +115,9 @@ provider name. The exit is then nonzero. The success sentence is not
 printed. The stored range sentence can still say the range is complete. A finished range with an incomplete body snapshot does not
 print that sentence. The body line still says the snapshot is incomplete.
 
-If a later page fails, the child returns a typed outcome to the parent
-before the process exits nonzero. The parent renders that outcome as text,
-then uses the exit status. When a ranged read failed, the text says the
+If a later page fails, the command keeps a typed outcome and then exits
+nonzero. It prints that outcome as text, then uses the exit status. There
+is no child process. Version 2.1.1 removed that split. When a ranged read failed, the text says the
 requested range is incomplete. When every ranged read completed and body
 or the personal record failed, the text says the requested range is
 complete and names the snapshot that failed. It names any read that is
@@ -200,7 +201,7 @@ Fitbit, Oura, Strava, Withings, and Sensorbio use the same fields as
 `garmin`. Those names are the public `--json` keys. It is the preview
 outcome. A preview does not say a snapshot was stored.
 
-The child returns a different outcome for `--yes` without `--json`. That
+The command returns a different outcome for `--yes` without `--json`. That
 outcome has the actual `committed` counts, the actual `archive_committed`
 counts, `database_changed`, `protected_write`, `archive`,
 `range_complete`, and `snapshots_complete`. `committed` counts protected
@@ -217,7 +218,7 @@ and that commits no archive change, has `written` false,
 `database_changed` false, both completion flags true, and unchanged
 protected counts. An earlier change keeps both flags true. A failed ranged page has `range_complete` false. A
 failed snapshot after a finished range has `range_complete` true and
-`snapshots_complete` false. The parent prints sentences from this outcome.
+`snapshots_complete` false. The command prints sentences from this outcome.
 It does not print the outcome as public JSON. Public `--json`, with or
 without `--yes`, commits neither the protected transaction nor the
 archive transaction.
@@ -378,9 +379,9 @@ name. The numbers on this session do not enter the eight range
 calculations or `provider-period-summary`. `workout-drift` may use the
 session's start and end as its window when the caller names that session.
 The samples in that window still exclude `source_type` `manual`.
-`queryMeasurements`, `querySeries`, and `querySessions` omit manual
-sources unless `include_manual` is true. This pull does not change those
-three functions. Other record listings are not that switch. The session does not enter a device
+`query_measurements`, `query_series`, and `query_sessions` in
+`src/store/query.rs` omit manual sources unless `include_manual` is true.
+This pull does not change those three functions. Other record listings are not that switch. The session does not enter a device
 baseline. `unknown`, JSON
 null, and a missing `entry_source` are source reports of kind
 `unknown_workout`. They are not a workout session, and they are not
@@ -555,7 +556,9 @@ scales, with the window and without `recorded_at`. Raw points, raw
 `heart_rate_recovery_one_minute` is the point quantity `hr_recovery`, in
 bpm. A finite value stays, including zero and a negative number. The
 mapping's positive check and the v1 point check gain that exception
-beside `temperature_deviation`. `src/schema.ts` stays as it is. No table
+beside `temperature_deviation`. The exception is the point check in
+`src/model/data.rs`. `packages/npm/src/schema.ts` is frozen compatibility
+code and is not where this check is added. No table
 is rebuilt for the check. The server series name stays in `supplied_fields`. The 2.1.0 import
 key stays. A day row of that series is a window summary whose summary
 type is also `hr_recovery`. Its key adds `1day` and `period_end`, so it
@@ -918,7 +921,7 @@ The eight range calculations do not read it.
 
 A saved file imports the same envelope. Export and import keep one
 original id. The per-provider unwrap lives in
-`crates/ath-core/src/vendor_workouts.rs`, driven by one provider table.
+`src/runtime/vendor_workouts.rs`, driven by one provider table.
 `open_wearables.rs` calls that module. It does not grow a provider branch.
 
 Day rows are one selected row per source, series, and local day. The
@@ -931,7 +934,8 @@ period.
 
 ## 3. How a response becomes records
 
-The pull resolves `open-wearables` through `resolveMappingFile`. It parses and
+The pull resolves `open-wearables` through `resolve_mapping` in
+`src/assets/mod.rs`. It parses and
 checks the file before the first request. A bad file fails with no network
 call. A resolved file that does not implement section 2 also fails before
 any request. An installed 2.1.0 copy still wins under D179, and this check
@@ -988,7 +992,7 @@ are one record. The sensor join uses `|`, so a `device_id` that contains
 the join is encoded. That identity change is not this proposal. Old rows
 are not rewritten, moved, or deleted.
 
-Both `ath import --mapping` and `ath pull` call `apply_mapping`. The check
+Both `ath import --mapping` and `ath pull` call `MappedReader`. The check
 lives there, for route `open_wearables` only, inside the same transaction
 as the write and before `insert_group` changes a device source or a
 timeseries record on that source. Summary, event, score, and unattributed
@@ -1041,7 +1045,8 @@ The call is one of these states:
   command again cannot change the id.
 - The source exists, the source key is absent, and any history exists.
   History includes a deleted record and a deleted source device, not only
-  live rows. `same_source_records` keeps `is_deleted = 0`, so it is not
+  live rows. `existing_source` in `src/import/provider.rs` keeps
+  `records.is_deleted = 0`, so it is not
   this test. The store read below includes the deleted rows. The call is
   refused. Hardware is not promoted. The text
   says this Open Wearables history cannot be refreshed until a separate
@@ -1095,23 +1100,22 @@ export and restore keeps the key and the import keys, so the same id can
 correct a point and a different id is refused. No signature is added. A
 person who replaces the database file is outside this rule.
 
-`Store::revise` on a source is a partial update. It applies the other keys
-in the patch and keeps the current `device_binding`, including when the key
-is absent. A patch that contains `device_binding` is refused. The source
-stays unchanged. `revise` cannot set, change, or clear the receipt. Other
-record types are unchanged.
+`Store::apply` in `src/store/write.rs` writes a whole source record. There
+is no partial `revise`. A source write that is not one of the three owner
+operations cannot set, change, or clear `device_binding`, including when
+the key is absent from the new record. A write that contains
+`device_binding` and is not one of those owner operations is refused. The
+source stays unchanged. Other record types are unchanged.
 
-The store connection is private. `ensure_mapped_source` takes the writer,
-the route, the vendor, and the sensor. An existing source returns before a
-data object is built. A new source's JSON is built inside that function,
-and that JSON has no receipt argument today. The mapping receives a source
-id. It cannot add the receipt to an object it does not hold, and it cannot
-read deleted rows through `same_source_records` or through the private
-connection. A later `revise` cannot fill the receipt in, because that patch
-is refused.
+The store connection is private. `Mapping::source` in `src/import/mapping.rs`
+asks `route_source` for the writer, route, and sensor. That call takes no
+receipt. The mapping receives a source id. It does not hold the source
+JSON, and it cannot read deleted rows through the private connection. A
+later whole-record write that is not an owner operation cannot fill the
+receipt in, because a write that contains `device_binding` is refused.
 
-`store.rs` therefore gains three source operations besides the `revise`
-rule above, the typed writes in section 6, and the bounded archive
+`src/store/write.rs` therefore gains three source operations besides that
+refusal, the typed writes in section 6, and the bounded archive
 safety read in section 2. It gains nothing beyond those:
 
 - Read the committed receipt, and whether any record or source device for
@@ -1130,7 +1134,7 @@ The three receipt operations run inside the caller's `BEGIN IMMEDIATE`
 transaction. The safety read runs in that same transaction, before any
 mutation, and again at the start of the archive transaction.
 A refused call rolls them back with the call. Other routes do not call
-them. The build may extend `ensure_mapped_source` or add a narrow operation
+them. The build may extend `route_source` or add a narrow operation
 beside it. It does not add a table, a trait, or a file split. The automatic
 path does not replace `detail`, `vendor`, or `supplied_fields`.
 
@@ -1166,7 +1170,7 @@ the key cannot be sent to a second host. One attempt, then stop. Timeouts are
 take 120 seconds to read. One response may be at most
 8 MiB. One read may be at most 1000 pages.
 
-The body is read inside that cap and parsed before any `apply_mapping` call.
+The body is read inside that cap and parsed before any `MappedReader` call.
 The guard is in `open_wearables.rs`. It walks every decoded object key and
 every decoded string. A value that contains the API key, the selected
 origin, or the selected user id rejects the whole page. A key whose
@@ -1181,7 +1185,7 @@ A raw personal-record `user_id` that is absent, null, the wrong type, or
 not the selected user refuses the page before the drop. The page is not
 rewritten and it is not mapped. A Unicode escape such as `\u0073` is visible
 only after parsing, so a scan of the raw text is not enough. The raw-text
-scan still runs on a body that did not parse, and the parent still refuses
+scan still runs on a body that did not parse, and the command still refuses
 to print the key. Those checks are defense in depth. They do not repair a
 page that has already committed.
 
@@ -1191,8 +1195,9 @@ problem `code` is printed only when it is a single token of letters, digits,
 origin, or the user id. Any other code is withheld. A transport error or a
 parser error is replaced with a fixed sentence. The sentence has no URL, no
 path, and no user id. The result keeps a `left_out` total and at most 20
-example lines. It does not keep every id or every source string. The child
-output has to stay inside the 64 MiB buffer in `src/ath-core.ts`.
+example lines. It does not keep every id or every source string. The 64 MiB
+stdout buffer in `src/ath-core.ts` is gone with the TypeScript bridge.
+The command prints from this process. The 20 example lines are the bound.
 
 There is no Athletic Standard telemetry on this command. The server the person
 named is the only host contacted.
@@ -1203,13 +1208,17 @@ reads in section 2, no user list.
 
 ## 5. Version, migration, and what stays compatible
 
-The build sets `2.2.0` on the package, the record, and `ath-core`, by the
-same constants 2.1.0 moved. Migration step 5 is a new SQL file and a narrow runner arm. It updates
-`athleticstandard_version` to `2.2.0` and `sql_schema_version` to 5. No
-column is added to an existing table. The generated contract adds
+The build sets `2.2.0` on the package, the record, and the
+`athleticstandard` crate, by the same constants 2.1.1 uses.
+`ATHLETIC_STANDARD_VERSION` is in `src/model/package.rs`. `SQL_SCHEMA_VERSION` is in
+`src/store/migrate.rs`. Migration step 6 is a new SQL file and a narrow
+runner arm. Step 5 is already
+`spec/sql/migrations/005-version-2-1-1.sql`. Step 6 updates
+`athleticstandard_version` to `2.2.0` and `sql_schema_version` to 6. No
+column is added to an existing table. The contract adds
 `source_report` to the `records.record_type` check, creates
 `source_reports`, and rebuilds `provider_summaries` and
-`provider_scores` as section 2 describes. Files `001` through `004` stay
+`provider_scores` as section 2 describes. Files `001` through `005` stay
 byte-identical. The check is not removed, and ordinary store writes do
 not turn foreign keys off.
 
@@ -1220,16 +1229,17 @@ record, and the links from typed rows, import keys, deletions,
 attachments, reporting periods, and the other child tables, use
 `ON DELETE CASCADE` and are not deferred. Triggers and views name
 `records`. `PRAGMA foreign_keys` does not change inside a transaction.
-`installInitialSchema` and `withWriteTransaction` already require it to
-be on. A `DROP TABLE records` there would fail or cascade through the
-children. Step 5 does not do that.
+`configure` in `src/store/mod.rs` requires foreign keys on before
+`install_schema` runs. A `DROP TABLE records` inside that transaction
+would fail or cascade through the children. Step 6 does not do that.
 
-The create path finishes steps 1 through 4 and closes that transaction
-before step 5. `installInitialSchema` does not run step 5 inside the
-transaction that requires foreign keys to be on. Target 5 does not use
-`withWriteTransaction`.
+`install_schema` runs steps 1 through 5 in one transaction and commits it.
+Today that same transaction sets `user_version` to `SQL_SCHEMA_VERSION`.
+The step 1 through 5 transaction sets `user_version` 5. Step 6 is not
+inside that transaction, and step 6 sets `user_version` 6. Target 6 does
+not use the ordinary write transaction.
 
-Step 5 uses one connection that ordinary writes do not reuse. Before
+Step 6 uses one connection that ordinary writes do not reuse. Before
 `BEGIN`, it sets `PRAGMA foreign_keys=OFF` and reads the pragma back. The
 value must be 0. Turning foreign keys off does not turn off the schema
 check SQLite runs during `ALTER TABLE`. `sql_v1_current_records` and
@@ -1266,7 +1276,7 @@ Inside that one transaction the order is fixed.
 7. Create `source_reports` and its type trigger.
 8. `PRAGMA foreign_key_check` is empty and `PRAGMA integrity_check` is
    `ok`.
-9. Set the version rows and `user_version` 5.
+9. Set the version rows and `user_version` 6.
 
 `sql_v1_database_info`, `sql_v1_record_revisions`, and
 `sql_v1_record_deletions` do not name `records`, so they stay through the
@@ -1279,37 +1289,39 @@ cross-table triggers, the old check, the rows, and the version. The D124
 backup is already on disk. Device receipts stay in the copied source
 JSON. They are not rewritten.
 
-A new database closes the step 4 transaction, then runs this step 5 path.
-Step 9 sets `user_version`. If step 5 fails during init, that transaction
-rolls back to the closed step 4 schema before the existing failed-init
-cleanup runs. Init reports failure. `createDatabase` still closes the
-database and `removePartialLocalDatabase` still deletes the new file.
-D202 leaves those paths in place, and this build does not change them.
-A file that cleanup does not delete is not left with the views dropped.
-A migrate of a database that already existed is a separate case. Its
-step 5 rollback leaves that file in place, at the old schema, with
-foreign keys on. `applyMigrationStep` gains this arm for target 5
-and does not use `withWriteTransaction` for it. `MIGRATION_CHAIN` in `src/db/sql-contract.ts`,
-`scripts/generate-sql-contract.ts`, and `scripts/check-schema-drift.ts` gain
-the step. `package.json` exports and `tests/v1-package-exports.test.ts` point
-at `schema/2.2.0/`.
+A new database commits steps 1 through 5, then runs this step 6 path.
+Step 9 sets `user_version`. If step 6 fails during init, that transaction
+rolls back to the committed step 5 schema before the existing failed-init
+cleanup runs. Init reports failure. `Store::create` still calls
+`remove_partial_database`, which deletes the new file, the wal file, and
+the shm file. D202 leaves that cleanup in place, and this build does not
+change it. A file that cleanup does not delete is not left with the views
+dropped. A migrate of a database that already existed is a separate case.
+Its step 6 rollback leaves that file in place, at the old schema, with
+foreign keys on. `apply_step` in `src/store/migrate.rs` gains this arm for
+target 6 and does not use the ordinary write transaction for it.
+`MIGRATION_CHAIN` in that file and `spec/sql/contract.json` gain the step.
+The native tests check that the contract matches the embedded SQL.
+`packages/npm/package.json` exports and `packages/npm/test/public-api.test.ts`
+point at `schema/2.2.0/`.
 
 `READABLE_DATABASE_VERSIONS` and `ACCEPTED_RECORD_VERSIONS` become `1.0.0`,
-`2.0.0`, `2.1.0`, and `2.2.0`. Both sets already contain `1.0.0`. Dropping it
-would make a 1.0.0 database unloadable, so migrate could not open it.
-`IMPORTABLE_PACKAGE_VERSIONS` is only `2.0.0` and `2.1.0` today. It gains
-`2.2.0` and keeps those two. `Store::open` rejects a `2.1.0` database until
-`ath migrate`, with the refusal it already uses for an older database. A
-`2.1.0` database will not open in `ath-core` until that migrate.
+`2.0.0`, `2.1.0`, `2.1.1`, and `2.2.0`. Both sets already contain `1.0.0`.
+Dropping it would make a 1.0.0 database unloadable, so migrate could not
+open it. `IMPORTABLE_PACKAGE_VERSIONS` is `2.0.0`, `2.1.0`, and `2.1.1`
+today. It gains `2.2.0` and keeps those three. `Store::open` rejects a
+`2.1.1` database until `ath migrate`, with the refusal it already uses for
+an older database. A `2.1.1` database will not open until that migrate.
 
-The build generates `schema/2.2.0/` and does not rewrite `schema/2.1.0/` or
-`schema/2.0.0/`. The 2.2.0 source object gains optional `device_binding`.
+The build generates `schema/2.2.0/` and does not rewrite `schema/2.1.1/`,
+`schema/2.1.0/`, or `schema/2.0.0/`. The 2.2.0 source object gains optional `device_binding`.
 `ProviderReportingPeriodType` gains `open_wearables_reporting_window`.
 `ValueBasis` gains `aggregator`. Series quantities gain the sample series
 whose units are in the appendix table. Intake, index, age, and effort
-series do not gain quantities. The record type `source_report` is added to `RecordType`, the current
-and revision unions, the package schema, and `typedTables` in
-`src/db/check-tables.ts`. It is not a measured type. Its table has `record_id`, `source_id`,
+series do not gain quantities. The record type `source_report` is added to `RecordType` in
+`src/model/`, the current and revision unions, the package schema, and the
+table description in `src/store/encode.rs`. `src/store/check.rs` compares
+stored rows with that description. It is not a measured type. Its table has `record_id`, `source_id`,
 `report_kind`, `subject`, optional `reported_at`, optional
 `standard_value` and `standard_unit` together, optional
 `provider_record_id`, `received_at`, and `data_json`. It has no required
@@ -1320,14 +1332,17 @@ when its input timestamp uses `not_provided_by_source`. No other field is
 added. The folder exists
 so the package version and the schema path
 stay aligned. The demo athlete is
-regenerated because the stored version is inside it. `examples/demo-athlete/athlete.ath.json`
-stays the legacy 0.4.3 file. `tests/fixtures/version-2-0-0/` is not
+regenerated because the stored version is inside it. The demo is
+`examples/demo-athlete/athlete.ath.sqlite`. The preserved 2.1.0 demo in
+`tests/fixtures/version-2-1-0/` is not regenerated. The 0.4.3 file in
+`tests/fixtures/version-0-4-3/` is not regenerated. `tests/fixtures/version-2-0-0/` is not
 regenerated.
 
 `package.json` `files` already includes `mappings`. The build rewrites
 `mappings/open-wearables.md` so it implements section 2. Other mapping
-files stay as they are. `pnpm generate:skill-cli` runs because help text
-changes (D80). `AGENTS.md`, `build-history/README.md`, and `SPEC.md` are
+files stay as they are. `ATH_WRITE_GENERATED=1 cargo test --test generated`
+runs because help text, the schema, and the demo change (D80, and the 2.1.1
+generator decision). `AGENTS.md`, `build-history/README.md`, and `SPEC.md` are
 updated in the build so they name 2.2.0 as the software. `docs/connections.md`
 keeps the file imports and is updated to the coverage in section 2, including
 that `RecoverySummary` at the pinned commit has no skin-temperature field.
@@ -1335,7 +1350,7 @@ This
 plan's edits to `AGENTS.md` and `build-history/README.md` only point at the
 plan.
 
-A database from 2.1.0 needs `ath migrate` before the pull. The migrate
+A database from 2.1.1 needs `ath migrate` before the pull. The migrate
 command still previews, backs up, and asks (D124). `Store::open` only
 refuses. A noninteractive open and an open with `--json` do not migrate. An
 interactive open can preview, back up, ask, and then migrate.
@@ -1344,31 +1359,32 @@ interactive open can preview, back up, ask, and then migrate.
 
 | Piece | Place |
 |---|---|
-| HTTP, page loop, envelope split, call `apply_mapping` | `crates/ath-core/src/open_wearables.rs` |
-| Live provider table, unwrap, windows, and detail budget | `crates/ath-core/src/vendor_workouts.rs` |
-| Command `pull-openwearables` | `crates/ath-core/src/main.rs` |
-| Flags, key, preview text, refusal if the key appears | `src/program.ts`, `src/help.ts`, `src/keyring.ts` |
+| HTTP, page loop, envelope split, call `MappedReader` | `src/runtime/open_wearables.rs` |
+| Live provider table, unwrap, windows, and detail budget | `src/runtime/vendor_workouts.rs` |
+| Command `pull openwearables` | `src/cli/spec.rs` and `src/cli/commands/routes.rs` |
+| Flags, key, preview text, refusal if the key appears | `src/cli/`, `src/cli/help.rs`, `src/runtime/keyring.rs` |
 | Mapping names and field rules | the existing file `mappings/open-wearables.md` |
 | Stored records | the existing store and mapping engine |
-| Keep `device_binding` on a partial source update | `Store::revise` in `crates/ath-core/src/store.rs`, sources only |
-| Read receipt and tombstone history; create or first-bind with the checked receipt | three source operations in `store.rs`, inside the caller's transaction |
-| Measurement samples, source reports, paired null value and unit, and child withdrawal | `insert_typed`, `update_typed`, and `typed_table` in `store.rs`; the same pair and table in `src/db/records.ts`, `src/db/import-package.ts`, `src/db/records-view.ts`, and the repair copy from `data_json` |
+| Keep `device_binding` on a source write that is not the owner's whole record | `Store::apply` in `src/store/write.rs`, sources only |
+| Read receipt and tombstone history; create or first-bind with the checked receipt | three source operations in `src/store/write.rs`, inside the caller's transaction |
+| Measurement samples, source reports, paired null value and unit, and child withdrawal | `write_current_state` and `typed_columns` in `src/store/encode.rs`. Package restore, repair, and the record check use that encoder |
 | Whole source record from the owner | existing `ath correct`, package restore, and an accepted package merge |
 
-`store.rs`, `persist.rs`, and `personal.rs` are not the home for this client.
-`personal.rs` remains the Garmin pull. The two clients may each call `ureq`.
+`src/store/`, `src/import/mapping.rs`, and `src/runtime/garmin_pull.rs` are
+not the home for this client. `garmin_pull.rs` remains the Garmin pull.
+The two clients may each call `ureq`.
 A shared trait is the later connector work, and this release does not add it.
 
 `mapping.rs` changes for the counts, the device check, and the preservation
-writes in section 2. `apply_mapping` keeps its `outcome` field and adds
-counts by record type.
+writes in section 2. The mapped-import report in `src/import/provider.rs`
+keeps its `outcome` field. `MappedReader` adds counts by record type.
 For route `open_wearables` only, it also runs the device-binding check in
 section 3 before it mutates a source device or a timeseries record. That
 check is the shared mapped-import and pull enforcement. It is not a new
 match key and it does not apply to any other route. It also gains the
 measurement-sample target, the reporting-window write, and the segment
-copy from section 2. HTTP stays out of `mapping.rs`. `store.rs` keeps the
-`revise` refusal and adds the three source operations in section 3: the
+copy from section 2. HTTP stays out of `mapping.rs`. `src/store/write.rs`
+keeps the receipt refusal and adds the three source operations in section 3: the
 receipt and tombstone read, creation with the checked receipt, and a
 first bind on an existing source that has no history. The archive
 transaction adds a bounded read of the sources, records, import keys,
@@ -1378,17 +1394,19 @@ updates `measurement_sample` and `source_report`, and it accepts a provider
 summary or provider score whose `value` and unit are both present or both
 absent. A half-null pair is refused. When an anchor in this response no
 longer emits a child, that child is revised to the absent pair in the same
-transaction. `src/db/records.ts`, `src/db/import-package.ts`,
-`src/db/records-view.ts`, and the repair copy from `data_json` follow that
-pair and the new table. `src/db/check-tables.ts` gains the
-`source_report` entry. The eight range calculations and
+transaction. `write_current_state` in `src/store/encode.rs` writes that
+pair and the new table. Package restore, repair, and the record check use
+that encoder. `RecordType` in `src/model/` gains the `source_report` entry.
+The eight range calculations and
 `provider-period-summary` do not read `source_reports`. `read_inputs` and
 `read_period` also exclude `source_type` `manual`, and they have no
 `include_manual` switch. `workout-drift` loads the named session first,
 including a manual session, and uses that session's start and end as the
 window. Its samples then go through `read_inputs`. A manual source's
-numbers stay out. `queryMeasurements`, `querySeries`, and
-`querySessions` omit manual sources unless `include_manual` is true.
+numbers stay out. `query_measurements`, `query_series`, and
+`query_sessions` in `src/store/query.rs` omit manual sources unless
+`include_manual` is true. The JavaScript names in
+`packages/npm/src/database.ts` call those functions.
 This proposal does not change that code. A generic record listing is
 not those three functions. In
 `read_inputs` and `read_period`, a provider summary or provider score
@@ -1398,7 +1416,7 @@ is not stored as zero and is not replaced by an older revision. The
 session-summary branch of `read_period` uses the same filter on the
 extracted number and unit. Formulas and source grouping stay as they are.
 The archive insert is the pull-only transaction in section 2. It is not
-inside `apply_mapping`, and a mapped file import does not call it. It
+inside `MappedReader`, and a mapped file import does not call it. It
 revalidates the safety snapshot before any insert. It does
 not call the receipt operations. No other store behavior changes. `ath correct`,
 package restore, and an accepted package merge stay whole-record owner
@@ -1414,22 +1432,24 @@ protected estimates to `estimated` and its archive estimates to
 group. Filtering that row out of the totals does not make a preview equal a
 write. Each preview page is rolled back, so page two does not see page one.
 
-The Rust command reads the key from the environment only. It has no `--key`
-flag. The decoded-key walk in section 4 runs before `apply_mapping`. The
-parent still checks stdout and stderr before printing.
+The command reads the saved key and `OPEN_WEARABLES_API_KEY` in this
+process, in `src/runtime/keyring.rs`. It has no `--key` flag. The
+decoded-key walk in section 4 runs before `MappedReader`. The command
+checks its own text before printing.
 
-The child returns the preview outcome from section 1 when the mode is a
+The command returns the preview outcome from section 1 when the mode is a
 preview, including public `--json`. It returns the confirmed outcome when
-the mode is `--yes` without `--json`. On a partial failure it returns that
-confirmed outcome to the parent and then exits nonzero. The parent renders
-text from the confirmed outcome and public JSON from the preview outcome.
-The success sentence is parent text, and only after `--yes` when
-`range_complete` and `snapshots_complete` are both true.
+the mode is `--yes` without `--json`. On a partial failure it keeps that
+confirmed outcome and then exits nonzero. It prints text from the confirmed
+outcome and public JSON from the preview outcome. The success sentence is
+printed only after `--yes` when `range_complete` and `snapshots_complete`
+are both true. There is no child process.
 
 The program runs on Linux, macOS, and Windows with the same command. The
 fixture server listens on `127.0.0.1` and an ephemeral port, which is the
-pattern `personal.rs` already tests. Paths stay the TypeScript resolver's
-job. No new installer and no new system library.
+pattern `src/runtime/garmin_pull.rs` already tests. Mapping paths stay
+`resolve_mapping` in `src/assets/mod.rs`. No new installer and no new
+system library.
 
 ## 7. Tests
 
@@ -1437,7 +1457,8 @@ CI has no Open Wearables account, no API key, and no Docker Compose. The
 acceptance tests are the fixture server and the synthetic files already in
 `tests/fixtures/exports/open-wearables/`. Those files are on the public-data
 list. A new file, if one is required for a two-page response, is synthetic,
-invented, and added to `scripts/check-public-data.ts` with its hash. No real
+invented, and added to `tools/public-data-allowlist.json` with its path
+and SHA-256. `tests/public_data.rs` enforces that list. No real
 export is copied.
 
 Before the first request, `--from` and `--to` are both dates or both
@@ -1469,7 +1490,7 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
 - an installed mapping that does not implement section 2 fails before any
   request. The server sees no request. Raw and day timeseries requests omit
   `types`. A comma-joined type string is not sent
-- a cursor or offset page fails before `apply_mapping` when the object is
+- a cursor or offset page fails before `MappedReader` when the object is
   missing, `data` is not an array, `pagination` is missing, or `has_more`
   is not a boolean. That failure is not an empty success. A body response
   of JSON `null` is a completed empty snapshot and writes nothing. A body
@@ -1643,7 +1664,7 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   absent, null, or non-string `user_id` on the HTTP object refuses the
   page. The canonical envelope without `user_id` imports. The athlete
   profile is unchanged
-- step 5 keeps an old summary's id, number, unit, `data_json`, import key,
+- step 6 keeps an old summary's id, number, unit, `data_json`, import key,
   revisions, and tombstone. A numeric summary can be corrected to
   numberless and back. A half-null value and unit is refused. A sample
   repeats and corrects. `ath check`, export, native import, and restore
@@ -1725,7 +1746,7 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   pair that was accepted. `workout-drift` named on that manual session
   uses its start and end. A wearable sample inside the window is an input.
   A manual sample and the session's own heart rate and distance are not.
-  `queryMeasurements`, `querySeries`, and `querySessions` omit the manual
+  `query_measurements`, `query_series`, and `query_sessions` omit the manual
   session unless `include_manual` is true. That switch is not claimed for
   every record listing.
   `page-raw.json` is stored.
@@ -1786,38 +1807,39 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
 
 Migration tests, in the build gate:
 
-- a synthetic 2.1.0 database makes `Store::open` refuse before any network
+- a synthetic 2.1.1 database makes `Store::open` refuse before any network
   call. `ath migrate` previews without writing. It still previews, backs up,
   and asks, as D124 requires. The target it names is `2.2.0`
 - a confirmed migrate backs up, then sets the record version to `2.2.0`,
-  SQL schema 5, and `user_version` 5. Record ids, revisions, deletions,
+  SQL schema 6, and `user_version` 6. Record ids, revisions, deletions,
   attachments, import keys, reporting periods, and device receipts are
   unchanged. `PRAGMA foreign_key_check` is empty. A deleted row and its
   history are still there. The upgraded database is populated, including
   a tombstone. `sql_v1_current_records` and
   `sql_v1_active_records` still return rows. An insert that would make a
   revision type disagree with its record is still rejected. A second
-  migrate does nothing. A failure injected before the step 5 commit
+  migrate does nothing. A failure injected before the step 6 commit
   leaves the old views, the two cross-table triggers, the rows, the
   version, and `foreign_keys` read back as on. A successful migrate
   leaves `foreign_keys` on. A source report can then be created, revised,
   checked, exported, restored, and repaired from `data_json` without
   becoming a measured type
-- `ath init` creates a database that is already `2.2.0`, SQL schema 5, and
-  `user_version` 5, and `ath check` exits 0. The fresh database accepts a
+- `ath init` creates a database that is already `2.2.0`, SQL schema 6, and
+  `user_version` 6, and `ath check` exits 0. The fresh database accepts a
   source report, the same two views are queryable, and a mismatched
-  revision type is rejected. A failed init rolls step 5 back and then the
+  revision type is rejected. A failed init rolls step 6 back and then the
   existing cleanup removes the new file. A failed migrate of a populated
   database leaves that file, the old schema, the views, and foreign-key
-  enforcement. Step 4 still
-  writes `2.1.0` and schema 4, and the create path closes that
-  transaction before step 5
-- databases at `1.0.0` and `2.0.0` still open for migrate. Packages at
-  `2.0.0` and `2.1.0` still import. `spec/sql/migrations/004-version-2-1.sql`
-  and the folders `schema/2.0.0/` and `schema/2.1.0/` stay byte-identical
+  enforcement. Step 5 still
+  writes `2.1.1` and schema 5, and `install_schema` commits that
+  transaction before step 6
+- databases at `1.0.0`, `2.0.0`, and `2.1.0` still open for migrate. Packages at
+  `2.0.0`, `2.1.0`, and `2.1.1` still import. `spec/sql/migrations/004-version-2-1.sql`,
+  `spec/sql/migrations/005-version-2-1-1.sql`, and the folders `schema/2.0.0/`,
+  `schema/2.1.0/`, and `schema/2.1.1/` stay byte-identical
 
-TypeScript tests use the memory store and do not open the real password
-store. They cover:
+Rust tests use `MemorySecretStore` in `src/runtime/keyring.rs` and do not
+open the real password store. They cover:
 
 - the missing-key sentence
 - `ath key set openwearables`
@@ -1839,8 +1861,9 @@ store. They cover:
   readable range, neither transaction commits and the database is
   unchanged
 
-`pnpm check:public-data`, `pnpm typecheck`, `pnpm test`, and `pnpm build`
-pass, and `cargo test` passes, before the build is called done.
+`cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, and
+`cargo test` pass. In `packages/npm`, `npm ci`, `npm run typecheck`, and
+`npm test` pass. That is the gate before the build is called done.
 
 ## 8. You test this (Laptop)
 
@@ -1887,26 +1910,26 @@ This plan pull request has no screenshots and no video.
 D202 records the check. None of these is a prerequisite for the pull, and none
 is in the build pull request.
 
-- Failed `ath init` and failed `createDatabase` still delete the database file
-  in the same process that closed it, without the garbage collection
-  `removeTemporaryDirectory` uses. On Windows that delete can fail with
-  `EBUSY`. Version 2.1.0 spec section 12 left it out and named no later
-  version. A failed step 5 rolls back before that cleanup. This build
-  does not replace the cleanup.
-- `store.rs` and `mapping.rs` are past a thousand lines. The pull does not
-  add HTTP to them. `mapping.rs` gains the counts, the open-wearables
-  binding check, and the preservation writes in section 2. `store.rs` gains the
-  partial-update refusal, the three source operations in section 3, and the
-  sample, source-report, withdrawal, null-filter, archive, and paired-null
-  writes in section 6. Splitting the files stays out.
-- `persist.rs` can still store a supplied field named `__proto__` if a caller
-  uses `ath-core persist` directly. The pull does not use that path.
-- The mapping path rule is already one function. There is no duplicate to
-  delete.
+- Failed `ath init` and failed `Store::create` still delete the database
+  file in the same process that closed it, without the abandoned-directory
+  cleanup `make_owned_temporary_directory` uses. On Windows that delete can
+  fail with `EBUSY`. Version 2.1.0 spec section 12 left it out
+  and named no later version. Version 2.1.1 did not take it. A failed step 6
+  rolls back before that cleanup. This build does not replace the cleanup.
+- `src/import/mapping.rs` is 1703 lines. `src/store/check.rs` is 1044. The
+  pull does not add HTTP to them. `mapping.rs` gains the counts, the
+  open-wearables binding check, and the preservation writes in section 2.
+  `src/store/write.rs` gains the receipt refusal, the three source
+  operations in section 3, and the sample, source-report, withdrawal,
+  null-filter, archive, and paired-null writes in section 6. Splitting
+  `mapping.rs` stays out.
+- `persist.rs` and `ath-core persist` are gone. A name check outside import
+  is separate work. The pull does not add one.
+- The mapping path rule is already `is_mapping_path` in `src/assets/mod.rs`.
+  There is no duplicate to delete.
 
 No maintainability note under another name was found in the 2.1.0 decision
-log. The sizes and the persist gap are the current code, not a recorded
-D-number.
+log. The sizes above are the current code, not a recorded D-number.
 
 ## 10. Risks and the approval
 
@@ -1937,12 +1960,13 @@ Risks:
   is to avoid copying the key into the record.
 
 The build, after approval, is one pull request in this order. First the
-schema and step 5: the root `record_type` check, the period type, the
+schema and step 6: the root `record_type` check, the period type, the
 `aggregator` basis, the sample series quantities in the appendix table,
 the `source_report` type and table, the paired null value and unit, and
-the time-unknown summary. The v1 point check and the mapping's positive
-check accept a finite `hr_recovery`, including zero and a negative number.
-`src/schema.ts` is not edited. No table is rebuilt for that check. Then the store, the calculation null filter,
+the time-unknown summary. The point check in `src/model/data.rs` and the
+mapping's positive check accept a finite `hr_recovery`, including zero and
+a negative number. `packages/npm/src/schema.ts` is not where that check is
+added. No table is rebuilt for that check. Then the store, the calculation null filter,
 the archive transaction, and the record paths in section 6. Then the
 mapping engine and `mappings/open-wearables.md`. Then the reads, the
 cycle filter, the smaller-page split, and the tests in section 7. The laptop card and the phone proof are
@@ -1959,18 +1983,19 @@ migration with no new column, under D152 and D184. That acceptance does not
 adopt D198. The
 optional source key adds no column.
 
-1. One number, 2.2.0. Readable sets keep `1.0.0`. Step 5 runs on create and
-   on migrate. The device receipt adds no column. Step 5 extends the
+1. One number, 2.2.0. Readable sets keep `1.0.0`. Step 6 runs on create and
+   on migrate. Step 5 stays the published 2.1.1 migration. The device
+   receipt adds no column. Step 6 extends the
    root check with `source_report` by the copy in section 5, creates
    `source_reports`, and rebuilds `provider_summaries` and
    `provider_scores` so a numberless object can omit `value` and its unit
    together. Existing ids and rows are copied. Before the root rename,
-   step 5 drops and later recreates `sql_v1_current_records`,
+   step 6 drops and later recreates `sql_v1_current_records`,
    `sql_v1_active_records`, and the two `record_revisions` triggers that
-   read `records`. Foreign keys stay on for ordinary writes. The step 5
+   read `records`. Foreign keys stay on for ordinary writes. The step 6
    connection turns them off only before its transaction and reads them
    back on after every exit. A
-   `2.1.0` database does not open until `ath migrate`. This release does
+   `2.1.1` database does not open until `ath migrate`. This release does
    not schedule a pull, add its own token refresh, backfill, or store a
    cursor (D198, D208). A live read can still make the server refresh a
    vendor token (D214).
@@ -1997,9 +2022,9 @@ optional source key adds no column.
    left in place. `ath correct` and a native 2.2.0 package restore are the
    owner's whole source record (D201).
 5. The Windows cleanup and the maintainability notes stay separate.
-   `mapping.rs` gains counts by record type, the open-wearables binding
-   check, and the preservation writes in section 2. `store.rs` gains the
-   partial-update refusal, the receipt and tombstone read, creation with
+   `src/import/mapping.rs` gains counts by record type, the open-wearables binding
+   check, and the preservation writes in section 2. `src/store/write.rs`
+   gains the receipt refusal, the receipt and tombstone read, creation with
    the checked receipt, and the first bind of an existing source that has
    no history, and the sample, source-report, withdrawal, and paired-null
    writes in section 6, including the null filter in the calculation

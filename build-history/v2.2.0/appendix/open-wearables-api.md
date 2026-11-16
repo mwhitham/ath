@@ -134,7 +134,7 @@ schema. `zone_offset` is a separate string, `+01:00` or `-05:30`, or null.
 
 The 2.1.0 mapping file's timeseries lines do not name `heart_rate`. In
 Athletic Standard, `heart_rate` is a series quantity
-(`SERIES_QUANTITY_UNITS` in `src/v1/schema.ts`). It is not one of the point
+(the unit table in `src/model/data.rs`). It is not one of the point
 quantities the 2.1.0 mapping engine writes. D203 stores that stream as
 measurement samples. The 2.1.0 file, by itself, still has nowhere to put it.
 
