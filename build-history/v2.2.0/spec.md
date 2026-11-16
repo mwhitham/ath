@@ -862,8 +862,14 @@ An owner correction is kept until the server's data changes. This rule
 is new in 2.2.0. It covers every record on route `open_wearables`, from a
 pull or from `ath import --mapping open-wearables`. Every other route
 keeps D182 as it is. An import writes each revision with basis
-`provider_import`. A revision with any other basis is an owner correction
-here: `ath correct`, a protocol write, and an accepted package merge write
+`provider_import`. The basis is the revision column
+`record_revisions.became_known_at_basis`, which says how that revision
+became known. The rule reads that column, not `changed_by`. An import's
+`changed_by` is the tool actor `ath`. `ath grade` writes that same actor
+when it corrects a link, with basis `local_write`, in
+`src/prediction/grade.rs`. So `changed_by` cannot tell an import from
+another write. A revision with any other basis is an owner
+correction here: `ath correct`, a protocol write, and an accepted package merge write
 other bases. A native restore copies each revision's basis, so a restored
 database keeps the same answer. When a page's candidate names a stored
 record by its import key, and that record is not deleted:
@@ -882,8 +888,9 @@ record by its import key, and that record is not deleted:
 
 The comparison is the 2.1.1 comparison, with the compared revision's
 `received_at`. Section 4 withholds credential values before the candidate
-is built, so a withheld value is the same marker on both sides. A library
-write that chooses basis `provider_import` counts as an import revision.
+is built, so a withheld value is the same marker on both sides. A
+protocol or library caller chooses the basis freely, so a write that
+chooses `provider_import` counts as an import revision.
 
 The archive is allowed only when that snapshot has no veto, names no
 deleted source or record, and has one of these eligible facts: a
@@ -1189,7 +1196,7 @@ timeout above.
   milliseconds, `filter_by_modification_time=false`, and `limit` 100, and
   pages `offset` until a short page. False means creation time. A page
   over the response cap is asked again with a smaller `limit`, down to 1.
-  One command sends at most `MAX_VENDOR_LIST_PAGES`, 100 Suunto list
+  One command sends at most `MAX_SUUNTO_LIST_REQUESTS`, 100 Suunto list
   requests, counting those smaller retries. When the cap stops a list
   whose last page was full, Suunto is `incomplete`, `more` is true, and
   the objects already read are still written. Each page waits for the
@@ -1331,9 +1338,11 @@ it gets no detail call.
 For each listed id, the pull first reads the stored original, if there is
 one. That read is crate-private and lives in `src/import/provider.rs`. It
 returns whether the original exists, whether it is deleted, whether it
-holds a detail, its stored `list`, and, for Garmin, its `upload_window`. It reads the newest revision with
-basis `provider_import`, not an owner correction, so a person's edit does
-not look like a vendor change and does not spend a detail call.
+holds a detail, its stored `list`, and, for Garmin, its
+`upload_window`. It reads the newest revision whose
+`record_revisions.became_known_at_basis` is `provider_import`, not an
+owner correction, so a person's edit does not look like a vendor change
+and does not spend a detail call.
 
 The pull calls detail only when the provider has a detail call and its
 budget allows. It spends the budget in this order. First come ids with no
@@ -1861,14 +1870,18 @@ besides the typed writes in section 6. It gains nothing beyond those:
 - In the preview, count the staged plan by record type and action.
   `Staging::count` in `src/import/staging.rs` counts by action only. A count
   by record type goes beside it, and `ProviderPreview` exposes it. Each
-  page's counts in section 1 come from that count.
+  page's counts in section 1 come from that count. It is one SQL count.
+  `ProviderPreview::planned` also lists each row's record type and
+  action, but it copies each row's whole `data_json`, so the counts do not
+  use it.
 - A crate-private read of a stored vendor original, for the detail rules
   in section 2.
 - In matching, for route `open_wearables` only, the owner-correction rule
   in section 2. `KeyedPolicy` gains a flag that only that route sets.
-  `record_by_import_key` also returns the current revision's basis. For an
-  owner correction, matching reads the newest `provider_import` revision of
-  that record and compares the candidate with it. The page's report counts
+  `record_by_import_key` also returns the current revision's
+  `record_revisions.became_known_at_basis`. For an owner correction,
+  matching reads the newest revision of that record whose basis is
+  `provider_import` and compares the candidate with it. The page's report counts
   each replaced correction. For a `vendor_workout` row, matching leaves
   `upload_window` out of each comparison and applies the Garmin window
   rule in section 2.
@@ -1924,7 +1937,8 @@ seconds to connect and 360 seconds to read, for the reason in section 2.
 The timeouts are named constants in `src/runtime/open_wearables.rs`. One
 response may be at most `MAX_PULL_RESPONSE_BYTES`, which is 10 MiB. One
 read may be at most 1000 pages. One Suunto list may be at most
-`MAX_VENDOR_LIST_PAGES`, which is 100 requests. Those limits are named constants in
+`MAX_SUUNTO_LIST_REQUESTS`, which is 100 requests. Only Suunto's list is
+paged, so the name says Suunto. Those limits are named constants in
 `src/input_policy.rs`, where 2.1.1 keeps every limit on untrusted input.
 In 2.1.1 the comment on `MAX_PULL_RESPONSE_BYTES` says it is the bytes of
 one Garmin personal connection response. The route list at the top of
@@ -2641,6 +2655,9 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   workout remains a second source
 - `left_out` in the result is a total, a count for each reason, and at
   most 20 example lines. With 21 lines it says the list was shortened
+- on a mixed page with new, matching, and changed rows of three record
+  types, the count beside `Staging::count` gives the same numbers as
+  counting `ProviderPreview::planned` by record type and action
 - a synthetic Polar list without samples, zones, and route, then one
   detail with all three true, stores one original with `detail_status`
   `stored`. The nested samples are not measurement samples. A second
@@ -2697,8 +2714,12 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   `estimated_owner_corrections_replaced` 0. A pull whose session changed
   replaces it, and the count is 1 in the preview, in `--json`, and after
   `--yes`. The preview says `estimated: would replace 1 owner correction
-  of stored records because the server's data changed`. `ath import --mapping open-wearables` of a file that holds the
-  same data also keeps the correction. Another route keeps its 2.1.1 rule
+  of stored records because the server's data changed`. `ath import
+  --mapping open-wearables` of a file that holds the same data also keeps
+  the correction. Another route keeps its 2.1.1 rule. The matching unit
+  test reads the basis from `record_revisions.became_known_at_basis`. A
+  revision whose `changed_by` is the tool actor `ath` and whose basis is
+  `local_write` counts as an owner correction
 - a record whose current revision came from an accepted package merge is
   an owner correction. A native export and restore keeps every revision's
   basis, so the same pull reports the same counts before and after the
@@ -2754,7 +2775,7 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
 - a Suunto fixture that always returns full pages, with a small list cap
   and a short pace passed into the loop as the 1000-page test does, stops
   at the cap. Suunto is `incomplete`, `more` is true, the objects already
-  read are stored, and the exit is nonzero. `MAX_VENDOR_LIST_PAGES` is
+  read are stored, and the exit is nonzero. `MAX_SUUNTO_LIST_REQUESTS` is
   checked as a named constant of 100
 - a Garmin `activityId` of `123` and a later `"123"` are one record. An
   integer above 9007199254740991 refuses only that object and counts it

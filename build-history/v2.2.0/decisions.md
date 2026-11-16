@@ -186,6 +186,13 @@ number is added:
 - D242. The file-import sentences and the corrected-original test follow
   the owner-correction rule. A vendor page's counts stay apart from
   `archive_committed`.
+- D228 and D231. Page counts come from one SQL count beside
+  `Staging::count`, not from `ProviderPreview::planned`, which copies each
+  row's `data_json`.
+- D242. The owner-correction rule reads
+  `record_revisions.became_known_at_basis`, not `changed_by`, because
+  `ath grade` writes the same tool actor as an import.
+- D243. The Suunto list cap is named `MAX_SUUNTO_LIST_REQUESTS`.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -338,8 +345,12 @@ call. A comma-joined type string is still not sent.
 measurement samples. Workout `avg_heart_rate_bpm` and
 `max_heart_rate_bpm` stay as the file already maps them.
 
-The pull counts each page by record type from its staged plan, which
-`ProviderPreview::planned` already lists. The mapped-import report from
+The pull counts each page by record type and action with one SQL count
+over its staged plan, beside `Staging::count` in `src/import/staging.rs`
+(D231). `ProviderPreview::planned` already lists each row's `record_type`
+and `action`, but it also copies each row's whole `data_json`, and a
+vendor page holds every original's whole envelope. The count reads no
+record data. The mapped-import report from
 `report_value` in `src/import/provider.rs` keeps its `outcome` field. The
 pull adds the counts into the committed result for a page it applied, and
 into `estimated` for a page it only previewed. It does not add `outcome`
@@ -672,7 +683,9 @@ only an `export_file` source that names a vendor. The writer
 `open_wearables` sources, the archive source, and each `vendor_workout`
 source are `connector` sources with no vendor. `Staging::count` in
 `src/import/staging.rs` counts by action only, so a count by record type
-goes beside it for the page counts. The revision a preview read is
+goes beside it for the page counts. D228 uses it instead of counting
+`ProviderPreview::planned`, which copies each row's `data_json`. The
+revision a preview read is
 already public as `ProviderPreview::destination_database_revision`.
 
 `Store::apply` in `src/store/write.rs` writes a whole record. There is no
@@ -1339,8 +1352,14 @@ provider (D190).
 
 An owner correction is kept until the server's data changes. On route
 `open_wearables` only, a pull or a mapped import compares a candidate for
-an owner-corrected record with the newest revision an import wrote, basis
-`provider_import`. It does not compare with the owner's revision. Equal
+an owner-corrected record with the newest revision an import wrote: the
+newest one whose `record_revisions.became_known_at_basis` is
+`provider_import`. The basis says how a revision became known. The rule
+does not read `changed_by`, because an import writes the tool actor
+`ath`, and `ath grade` writes that same actor with basis `local_write`.
+A protocol caller can choose the basis, so a write that chooses
+`provider_import` counts as an import. The rule does not compare with
+the owner's revision. Equal
 writes nothing, and the correction stays current. Different replaces the
 correction, and the count `owner_corrections_replaced` shows it on that
 provider's line, in `--json`, and in the preview, which says `estimated:
@@ -1512,7 +1531,7 @@ object with no `workoutKey` gets no detail call and is `not_available`,
 because nothing this study read shows that Suunto's detail accepts a
 `workoutId`. Its `payload` is unwrapped, and the record key is
 `workoutId`. One command sends at most 100 Suunto list requests,
-`MAX_VENDOR_LIST_PAGES`. A cap that stops a list after a full page makes
+`MAX_SUUNTO_LIST_REQUESTS`. A cap that stops a list after a full page makes
 Suunto `incomplete`, and the objects already read are still written. Whoop's response names its
 next page `next_token`. The request name, `nextToken`, is not sent.
 Sensorbio reads only the oldest 50 entries, and its line says so.
