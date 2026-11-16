@@ -1630,11 +1630,31 @@ but it removes that original and its history and cannot be undone.
 Storing originals in their own files is an open question for the
 maintainer (section 10).
 
-The pull measures the stored originals once per command, in its first
-vendor page's matching read, and adds what each committed page writes. A
-later page whose matching read sees a database revision that the pull's
-own last apply did not produce measures them again. A mapped import
-measures them once.
+The database keeps each original's size, so no write measures them all.
+Step 6 creates the table `vendor_original_sizes`. It has one row for
+each vendor original, deleted ones included. The row holds `record_id`,
+`record_item_bytes`, and `revision_items_bytes`. `record_item_bytes` is
+the original's item under `records` as export writes it.
+`revision_items_bytes` is the sum of its items under `record_revisions`.
+The row references `records` with `ON DELETE CASCADE`, so `ath erase`
+removes it with the record. The table is not in the package. It is kept
+in step with the record, the way the typed tables are.
+
+Every write that changes an original updates its row in the same
+transaction. A new revision measures two items: the new revision item,
+which is added to `revision_items_bytes`, and the new current item, which
+replaces `record_item_bytes`. A delete measures the current item again,
+because its `is_deleted` value changes. A package merge and a native
+restore measure each item they write. Revision items never change after
+they are written, so no write measures an old one. The bound check reads
+the sum of every row, takes away the old rows of the originals the write
+changes, and adds their new sizes. The pull's usage line reads the same
+sum.
+
+Only `ath check` measures every original again. It compares each with
+its row, and a difference is an error that names the record. A missing
+row or a row with no original is an error too. `ath repair` writes the
+measured sizes, makes a verified backup first, and adds no revision.
 
 `ath export` in 2.1.1 writes the main document and the series files with
 no size check, so it can publish a package that `src/package/load.rs`
@@ -2012,9 +2032,11 @@ besides the typed writes in section 6. It gains nothing beyond those:
   of the owner-correction rule and the window test, and applies the
   Garmin window rule in section 2.
 - In matching, for a page with `vendor_workout` rows, the size bound in
-  section 2. It measures the stored vendor originals as export writes
-  them, adds the page's new and changed envelopes, and refuses the page
-  when the total would pass `MAX_VENDOR_ORIGINAL_BYTES`.
+  section 2. It reads the stored total from `vendor_original_sizes`,
+  measures the items the page's new and changed envelopes would write,
+  and refuses the page when the total would pass
+  `MAX_VENDOR_ORIGINAL_BYTES`. The apply writes those rows in the same
+  transaction.
 
 The pull reads the revision a preview matched at from
 `ProviderPreview::destination_database_revision`, which is already public.
@@ -2149,7 +2171,8 @@ runner arm. Step 5 is already
 `athleticstandard_version` to `2.2.0` and `sql_schema_version` to 6. No
 column is added to an existing table. The contract adds
 `source_report` to the `records.record_type` check, creates
-`source_reports`, and rebuilds `provider_summaries` and
+`source_reports` and `vendor_original_sizes`, and rebuilds
+`provider_summaries` and
 `provider_scores` as section 2 describes. Files `001` through `005` stay
 byte-identical. The check is not removed, and ordinary store writes do
 not turn foreign keys off.
@@ -2222,7 +2245,9 @@ Inside that one transaction the order is fixed.
    `record_erasure_blocks_current_record_update`.
 6. Recreate the two views and the two cross-table triggers from that
    same text, unchanged.
-7. Create `source_reports` and its type trigger.
+7. Create `source_reports` and its type trigger, and
+   `vendor_original_sizes`. A 2.1.1 database has no vendor original, so
+   the new table starts empty.
 8. `PRAGMA foreign_key_check` is empty and `PRAGMA integrity_check` is
    `ok`.
 9. Set the version rows and `user_version` 6.
@@ -2328,6 +2353,7 @@ interactive open can preview, back up, ask, and then migrate.
 | Owner-correction rule and its count, the Garmin window rule, and the depth check for saved envelopes | `match_keyed` and `record_by_import_key` in `src/import/provider.rs`, behind a `KeyedPolicy` flag that only route `open_wearables` sets |
 | Where a workout fix belongs | one paragraph in `skills/athletic-standard/SKILL.md`, under "Stable IDs and revisions" |
 | Total size bound for vendor originals, in the bytes export writes | `MAX_VENDOR_ORIGINAL_BYTES` in `src/input_policy.rs`. One function beside `ArrayWriter::item` in `src/package/export.rs` measures an item. The bound is checked in the matching step in `src/import/provider.rs`, in `apply_in` in `src/store/write.rs`, and in `merge_in`, `resolve_in`, and native restore in `src/package/restore.rs` |
+| Stored sizes of vendor originals | `vendor_original_sizes`, created by the step 6 SQL file. The rows are written beside the typed rows in `src/store/write.rs` and `src/package/restore.rs`. `ath check` compares them in `src/store/check.rs`, and `ath repair` rewrites them in `src/store/repair.rs` |
 | The vendor-original total and its warning | the pull's text and `--json` outcome, from `pull` in `src/cli/commands/routes.rs` |
 | Export refuses a document over the package read cap, or an item that reaches the nesting limit | `src/package/export.rs`, before the staging folder is renamed |
 | The pull's `__proto__` and depth checks on each vendor object | `src/runtime/vendor_workouts.rs`, before the page is staged |
@@ -2937,6 +2963,14 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   by a protocol record write, by a package merge, and by a native
   restore. Each refusal writes nothing. The page counts its objects as
   `size_cap` and makes that provider `incomplete`
+- after a pull, an `ath correct` of one original, a delete, a package
+  merge, a native restore, and an `ath erase` in the size fixtures, the
+  sum of `vendor_original_sizes` equals the bytes `ath export` writes for
+  vendor-original items under `records` and `record_revisions`. The test
+  counts those bytes in the exported main document. `ath check` passes
+  after each step. A row changed by hand fails `ath check`, which names
+  the record, and `ath repair` puts the measured size back. An `ath
+  correct` of one original measures two items
 - the pull prints `vendor originals use X MiB of 256 MiB` on a run
   without the flag, on a preview, and on `--yes`, and `--json` has
   `used_bytes` and `bound_bytes`. Under 80% of the bound there is no size

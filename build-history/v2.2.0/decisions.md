@@ -233,6 +233,12 @@ number is added:
   levels, though `check_nesting` allows 128, so the export check now
   refuses an item that reaches 128. That is why the cut is 123 and not
   124.
+- D242. Step 6 creates `vendor_original_sizes`, one row for each
+  original with its current item's size and the sum of its revision
+  items, as export writes them. A write measures only the items it
+  writes, and the bound and the usage line read the sum. Only `ath check`
+  measures every original again, and `ath repair` fixes a row that
+  differs.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -1446,9 +1452,12 @@ the current record under `records` and each revision under
 reads that document only up to 512 MiB, and a mapped import file only up
 to 512 MiB. Export pretty-prints each item, so the bound counts those
 bytes and not the compact `record_json` column. One function measures an
-item for both. A synthetic one-hour Polar run with a route exports at
-2.05 times its compact size, and each original is in the document at
-least twice. So the earlier bound, 128 MiB of compact JSON, could export
+item for both. The database keeps each original's size in
+`vendor_original_sizes`: its current item, and the sum of its revision
+items. A write measures only the items it writes, and only `ath check`
+measures every original again. A synthetic one-hour Polar run with a
+route exports at 2.05 times its compact size, and each original is in
+the document at least twice. So the earlier bound, 128 MiB of compact JSON, could export
 to about 525 MiB. The new bound holds about 158 such workouts with one
 revision each, or about 105 with two. Evidence:
 [appendix/vendor-original-size.md](appendix/vendor-original-size.md).
@@ -1502,6 +1511,12 @@ Rejected alternatives:
 - Check the bound only on pulls and mapped imports. Rejected. `ath
   correct`, a merge, or a restore could then take a database past it, and
   its export could become unreadable.
+- Measure every stored original on each write, as the earlier text did.
+  Rejected. Near the bound, one `ath correct` would first pretty-print
+  about 256 MiB.
+- Keep one cached total. Rejected. A new revision also changes the
+  original's current item, and one total cannot say how much of the old
+  item to take away.
 - Store originals in their own package files now. Not chosen in this
   plan. It changes the package format. Section 9 of the specification
   lists it, and section 10 leaves it as an open question for the

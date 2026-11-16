@@ -65,5 +65,5 @@ back at 127 levels or fewer. `check_nesting` allows 128, but serde_json
   device and by sport.
 - Garmin, Strava, and Suunto details. Their laps, splits, and sample
   arrays nest in other ways.
-- How long measuring the stored originals takes in a database near the
-  bound.
+- How long `ath check` takes to measure every original in a database
+  near the bound. A write measures only the items it writes.
