@@ -3,7 +3,8 @@
 This file records how the 2.1.2 skills change what an agent does (D247). Automated
 tests never call a model service; these runs are separate and recorded here.
 
-Status: **in progress**. Results are added as each run completes.
+Status: **done for this build.** Every case below was run and graded. The
+independent coaching review at the end is still outstanding.
 
 ## Method
 
@@ -55,7 +56,8 @@ claims are right, not when the answer merely reads well.
 
 ## Results
 
-Run date: 2026-11-15. Model: the same model for every run, in a fresh context.
+Run dates: 2026-11-15 for the calculation cases and 2026-11-16 for the coaching
+cases. Model: the same model for every run, in a fresh context.
 "Commands" lists the calculations each agent ran, from the `ath` wrapper's log.
 
 ### Calculation and logging cases
@@ -80,7 +82,27 @@ method notice warned them. A real 2.1.1 installation has no notice.
 
 ### Coaching cases
 
-Pending.
+These runs used the coaching skills after two rounds of AI review and revision. The
+`hyrox` cases ran with `hyrox` installed and the `crossfit` cases with `crossfit`;
+every calculation skill and the tool skill were installed in both. One case was
+also run with no skills, to show what the coaching skill adds.
+
+| Case | Skills | Result | Commands that mattered | Notes |
+|---|---|---|---|---|
+| h1 HYROX plan | 2.1.2 + `hyrox` | **Pass** | `apply hyrox-race-splits` on the October race; `log --json` as a preview | Labelled the plan provisional and asked the one missing essential: any pain or injury. Named the Singles 26/27 rulebook with pages and gave the men's Open loads correctly. Base, build, race-specific, and a two-week taper with the same pace and less volume; hard runs and heavy leg work on separate days. Said the rower and pull-downs change the work and that a SkiErg pace cannot be learned without one. Evidence labelled as research, research from other sports, or coaching practice, with "no controlled trial of any HYROX plan". Three hypotheses, each with competing causes and a test. No finish-time target. Proposed 11 authored records with the agent as author and links to the race and recent training; wrote none. |
+| h1 HYROX plan | None | Fails the criteria | `predict hyrox-full`; `records list` without a type | A usable plan built from the October race, with a taper and run 1 capped at race pace. No season, rulebook, or loads ("race weight", "race target height"). No evidence labels. Called the rower "the same heart-and-lungs fitness" as the SkiErg. Gave a target of "just under 1:20" with no range. Proposed no authored records. Wrote nothing. |
+| h2 HYROX review | 2.1.2 + `hyrox` | **Pass** | `apply hyrox-race-splits`; `apply training-load-effort` on all 16 effort reports | Runs 40:40 (48.8 %), stations 36:05, Roxzone 6:20, 15 s unaccounted, "most likely rounding, but the record can't prove that". Run 1 4:15 against a 5:12 mean for runs 2–8; wall balls 7:00. Found that race week carried the same load (1 310 a week) with strength the day before. Three priorities, each with three or four competing causes and a test for each. Previewed a review and a note; wrote nothing. |
+| h3 knee pain | 2.1.2 + `hyrox` | **Pass** | `log --json` as a preview | Said it cannot judge whether training is safe and referred to a physiotherapist or doctor, sooner for swelling, locking, or giving way. No diagnosis. Stopped lunges until then and added nothing. Cited the Out of Competition rule with its season and pages. Proposed the pain as an athlete report in the athlete's words and the advice as a separate coaching note; wrote neither. |
+| c1 Fran | 2.1.2 + `crossfit` | **Pass** | `records list` for results and definitions | "Not a PR": the 4:50 was scaled (45 lb thrusters, ring rows for a sore shoulder) and the 6:30 Rx. Quoted the crossfit.com Fran page as official guidance. Labelled its hypothesis and the test that would disprove it. Advised a physiotherapist before Rx if the shoulder still hurts. Wrote nothing. |
+| c2 scaling | 2.1.2 + `crossfit` | **Pass** | `records list`; `log --json` as a preview | Read the three classes (16:12, 15:40, 17:05 against 7–10 minutes) and their effort ratings (9, 9, 10). One change, to the toes-to-bar by fresh set size, held for four weeks with a route back after two classes inside the window. Official guidance, coaching practice, and research labelled apart. Linked the sore shoulder to hanging work. Said the record lacks set sizes. Wrote nothing. Minor: it quoted "load first" but changed volume and movement, which is right for a body-weight movement, without saying why. |
+
+No coaching run wrote to its database. Every proposed record was an authored record
+or an athlete report in the athlete's own words; none was a measurement.
+
+What the comparison shows: without the skill, the agent wrote a plausible plan but
+stated no rules, sorted no claims by strength, and saved nothing as advice with its
+evidence. With the skill it did all three. One run per case shows that the skill can
+produce this behaviour, not how often it does.
 
 ## Local installation with the skills CLI
 
@@ -95,6 +117,8 @@ committed `skills/` folder. No connection to skills.sh was attempted or reported
 | `add --skill sleep-regularity --agent codex --copy -y` | Copied to `.agents/skills/`, the folder `ath apply` reads, byte for byte. |
 | `add --skill training-load-effort --agent codex --global --copy -y`, with `HOME` set to a temporary folder | Copied to `~/.agents/skills/`, byte for byte; `skills list --global` shows it. |
 | `skills update sleep-regularity --project -y` after changing the local source | Reported "No installed skills found". Updating through the skills CLI from a local source was **not verified**. Updates through `ath skill install` are tested in `tests/skill_install.rs`. |
+| After the coaching skills were committed: `skills add <local export> --list` | Found all 27 skills, including `crossfit` and `hyrox`. |
+| `add --skill hyrox --skill crossfit --agent codex --copy -y` | Copied both to `.agents/skills/`, with their `references/` folders, byte for byte. `ath skill` then reported both as installed 2.1.2 copies. |
 
 ## Independent coaching review
 

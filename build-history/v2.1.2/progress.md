@@ -1,6 +1,6 @@
 # v2.1.2 progress
 
-Status: **build in progress; not released**. The plan is [spec.md](spec.md).
+Status: **built; not released**. The plan is [spec.md](spec.md).
 
 | Step | What | Status |
 |---|---|---|
@@ -11,9 +11,24 @@ Status: **build in progress; not released**. The plan is [spec.md](spec.md).
 | 5 | Installer: skill kinds, named coaching installs, unedited-copy updates | done |
 | 6 | Calculation skill rewrites with executed examples | done |
 | 7 | Tool skill update | done |
-| 8 | CrossFit and HYROX skills, `hyrox-race-splits` | in progress: `hyrox-race-splits` done |
+| 8 | CrossFit and HYROX skills, `hyrox-race-splits` | done |
 | 9 | skills.sh preparation and contribution standard | done |
-| 10 | Agent evaluations, installation tests, repository checks | in progress |
+| 10 | Agent evaluations, installation tests, repository checks | done |
+
+Step 10 results are in the [agent evaluation](appendix/agent-evaluation.md). Every
+required check passed on 2026-11-16: `cargo fmt --check`, `cargo clippy
+--all-targets -- -D warnings`, `cargo test` (the six `cli_terminal` tests need a
+real terminal and were run outside the build sandbox), and the npm `ci`,
+`typecheck`, and `test` steps.
+
+Known limits of this build:
+
+- Updating a skill through the skills CLI from a local folder was not verified.
+  `ath skill install` updates are tested.
+- The seeded `hyrox-full` benchmark definition still says "wall balls 100/75 reps".
+  The 2026/27 rulebooks give 100 reps in every Singles division. The `hyrox` skill
+  tells agents to follow the rulebook. Changing seeded text is left for a later
+  version.
 
 Outstanding outside this build:
 
