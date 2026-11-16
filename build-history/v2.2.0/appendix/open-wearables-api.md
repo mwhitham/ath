@@ -539,7 +539,8 @@ an empty workout history.
 The live-route facts below were read again at commit
 `183e8cc4f6de897dbd288c93d49a691f2cf721ae`, for the review findings and
 for Athletic Standard 2.1.1. No server was called, and no vendor account
-was used.
+was used. Every path below is in the Open Wearables repository at that
+commit, under `backend/app/`.
 
 Connections. `UserConnectionWithCapabilities`, in
 `schemas/model_crud/user_management/user_connection.py`, has `user_id`,
@@ -550,23 +551,27 @@ and `linked_user_ids`. The route fills `linked_user_ids` with other users
 linked to the same vendor account. `ConnectionStatus`, in
 `schemas/auth/connection_status.py`, is `active`, `revoked`, or `expired`.
 
-Live routes. Both handlers in `vendor_workouts.py` return the provider
+Live routes. Both handlers in `api/routes/v1/vendor_workouts.py` return the provider
 method's value unchanged. The list handler passes `since`, `limit`
 (default 50, at most 100), `offset`, `filter_by_modification_time`
 (default true), `samples`, `zones`, `route`, `summary_start_time`, and
 `summary_end_time` to every provider. Each provider reads the ones it
 uses.
 
-Client. `_make_api_request` in `api_client.py` makes at most four
-attempts. Each attempt uses `provider_request_timeout_seconds`, which is
-30 seconds by default and at most 300 in `config.py`. A 429 waits 15, then
+Client. `_make_api_request` in `services/providers/api_client.py` makes
+at most four attempts. Each attempt uses `provider_request_timeout_seconds`,
+which is 30 seconds by default and at most 300 in `config.py`. A 429 waits 15, then
 30, then 60 seconds. A 401 reloads the token once and tries again. A
 timeout or another transport error is not retried. A token refresh holds
 `token_refresh_lock` for up to 60 seconds and waits up to 10 seconds for
 it. So with the default timeout, one GET can take about 225 seconds, plus
-a refresh.
+a refresh. After the last 429 retry the client raises HTTP 429. Any other
+vendor error status except 401 is raised with the vendor's own status, so
+a vendor 404 reaches the caller as 404. A transport error becomes 500. The
+route answers 501 only for a provider whose `workouts` is unset, so a
+Garmin call never gets the route's own 501.
 
-Garmin. `get_workouts_from_api` in `garmin_w.py` reads
+Garmin. `get_workouts_from_api` in `services/providers/garmin/workouts.py` reads
 `summary_start_time` and `summary_end_time` as an integer first, then as
 ISO 8601. It turns both into naive local times with
 `datetime.fromtimestamp` and compares them. A difference over 24 hours
@@ -581,20 +586,31 @@ integer or a string. The Garmin wellness models declare an optional
 `userAccessToken`. `ActivityJSON` does not, but the live route returns
 Garmin's objects unchanged.
 
-Suunto. `get_workout_detail` in `suunto_w.py` names its argument
-`workout_key` and calls `/v3/workouts/{workout_key}`. The list method
-reads `payload` and pages by `offset`, at most 100 a page. The route's
-`filter_by_modification_time` defaults to true, so this plan sends false.
+Suunto. `get_workout_detail` in `services/providers/suunto/workouts.py` names its argument
+`workout_key` and calls `/v3/workouts/{workout_key}`. The route calls
+`get_workouts_from_api`, which sends one page: `since`, `limit` at most
+100, `offset`, and `filter-by-modification-time`. The internal
+`get_workouts` walks every page until a short one, but the route does not
+call it. So each route call returns one page, and the caller pages by
+`offset`. The route's `filter_by_modification_time` defaults to true, so
+this plan sends false.
 
-Whoop. The method caps `limit` at 25, takes `nextToken` from the request,
-and reads `next_token` in the response. The route never passes
-`nextToken`, so one call reads only the first page.
+Whoop. The method in `services/providers/whoop/workouts.py` caps `limit`
+at 25, takes `nextToken` from the request, and reads `next_token` in the
+response. `WhoopWorkoutCollectionJSON`, in
+`schemas/providers/whoop/workout_import.py`, declares `records` and
+`next_token` with no alias, so Whoop's own response key is `next_token`.
+The route never passes `nextToken`, so one call reads only the first
+page. Oura's method in `services/providers/oura/workouts.py` sends and
+reads `next_token`.
 
-Sensorbio. The route's method sends `last-timestamp` 0 and `limit` at most
-50, and returns that one response. It does not follow `links.next`, so it
-reads the oldest 50 entries.
+Sensorbio. The route's method in `services/providers/sensorbio/workouts.py`
+sends `last-timestamp` 0 and `limit` at most 50, and returns that one
+response. It does not follow `links.next`, so it reads the oldest 50
+entries.
 
-Strava. `get_workouts_from_api` sends `page` 1 and `per_page` from
+Strava. `get_workouts_from_api` in `services/providers/strava/workouts.py`
+sends `page` 1 and `per_page` from
 `strava_events_per_page`, which is 200 by default, and ignores `limit`.
 Strava's API reference, fetched 15 November 2026, lists `DetailedActivity`
 fields that include `laps`, `splits_metric`, `splits_standard`,
