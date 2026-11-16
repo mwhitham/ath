@@ -1139,6 +1139,15 @@ reason. A refused object refuses only itself, and the count says why. Two
 different objects with one id in one provider's response refuse both,
 because the pull cannot tell which is right. Two equal objects are one.
 
+Garmin is read in windows, and one activity can be in two windows when
+Garmin received it again. A window selects by upload time, so the later
+window holds the later copy. For Garmin only, an object in a later window
+replaces a different object with the same id from an earlier window. The
+earlier copy counts as `superseded` in `left_out`, and the later copy goes
+through the detail rules. Equal copies in two windows are one object, and
+nothing is counted. Inside one window, two different objects with one id
+still refuse both as `duplicate_id`.
+
 The start column names one field and how to read it:
 
 - Text with an offset or `Z`. The receipt is the one `input_receipt` in
@@ -1292,8 +1301,8 @@ Each provider's line, and its object in `--json`, counts:
 - `details`: `stored`, `kept`, `deferred`, `failed`, `mismatch`,
   `thinner`, and `not_available`.
 - `left_out`: objects not written, by reason: `missing_id`,
-  `unusable_id`, `unsafe_number`, `duplicate_id`, `deleted_record`,
-  `deleted_source`, and `response_refused`.
+  `unusable_id`, `unsafe_number`, `duplicate_id`, `superseded`,
+  `deleted_record`, `deleted_source`, and `response_refused`.
 - `withheld`: values that section 4 withheld, with up to 20 paths.
 
 Each listed object is in exactly one detail count or one left-out count.
@@ -1970,7 +1979,8 @@ system library.
 CI has no Open Wearables account, no API key, and no Docker Compose. The
 acceptance tests are the fixture server and the synthetic files already in
 `tests/fixtures/exports/open-wearables/`. Those files are on the public-data
-list. A new file, if one is required for a two-page response, is synthetic,
+list. A new file, such as a two-page response or the two-window Garmin
+fixture below, is synthetic,
 invented, and added to `tools/public-data-allowlist.json` with its path
 and SHA-256. `tests/public_data.rs` enforces that list. No real
 export is copied.
@@ -2377,6 +2387,13 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   as `unsafe_number`. A fractional id refuses only that object and counts
   it as `unusable_id`. Two different objects with one id are both
   refused as `duplicate_id`
+- a synthetic Garmin fixture returns activity 555 in the first window with
+  `durationInSeconds` 1800 and in the second window with 1860. One original
+  is stored, and its `list` is the second window's object. Garmin's
+  `left_out` counts 1 `superseded`, and Garmin is `completed`. The same id
+  with equal objects in both windows stores one original and counts
+  nothing. The same id twice in one window, with different objects,
+  refuses both as `duplicate_id`
 - a three-day Garmin range sends four windows, three of 82,800 seconds and
   one of 10,800 seconds. Each window sends `summary_start_time` and
   `summary_end_time` as integer Unix seconds, and each starts where the

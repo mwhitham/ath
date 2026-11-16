@@ -105,6 +105,9 @@ These edits answer the review of this plan at `d636d7a`:
 - D230 and D236. A committed vendor page is a protected write. It sets
   `written` and `database_changed`, and its originals add to
   `committed.source_report`.
+- D243. When one Garmin activity id is in two windows with different
+  objects, the later window's copy is kept and the earlier is counted as
+  `superseded`.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -1379,7 +1382,11 @@ docs. The one-second pace keeps this command at 60 a minute or fewer.
 
 A vendor id is text. A JSON integer is written in decimal, so `123` and
 `"123"` are one id. An integer above 9007199254740991 is refused, because
-D213 would change its digits. The start becomes `input_timestamp` by the
+D213 would change its digits. When one Garmin activity id is in two
+windows with different objects, the later window's copy is kept, because
+windows select by upload time and the later window holds the later
+upload. The earlier copy counts as `superseded`. Inside one window, two
+different objects with one id are both refused. The start becomes `input_timestamp` by the
 rules in the specification: text keeps its offset or says it has none,
 and Unix seconds or milliseconds keep their digits. The start is stored
 and is not a filter.
@@ -1425,6 +1432,9 @@ Rejected alternatives:
   failed provider must not hide a finished one.
 - Let the server split a Garmin range. Rejected. A failed window must be
   visible as incomplete.
+- Refuse both copies when one Garmin id is in two windows with different
+  objects, as inside one response. Rejected. A re-upload is an ordinary
+  Garmin event, and the later window holds the later copy.
 - Drop an original whose start is outside the requested range. Rejected.
   The live methods do not filter by workout start, so a drop would hide a
   returned object.
