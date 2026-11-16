@@ -292,7 +292,9 @@ is otherwise unchanged, and it still writes without a preview.
 
 The flag's help in `src/cli/spec.rs` says: also read live vendor workouts;
 the server may refresh and save vendor tokens, revoke a connection, and
-wait about 105 seconds on a rate limit. `src/cli/examples/pull.txt` repeats
+wait about 105 seconds on a rate limit. It also says that a preview reads
+each provider's list but makes no detail call, and that a preview and
+then `--yes` read each list twice. `src/cli/examples/pull.txt` repeats
 those three effects and says that "nothing stored" means this database
 only.
 
@@ -946,10 +948,21 @@ The following are not requested. Each line is the reason.
 `--vendor-workouts` is off by default. Off, the command makes no request
 to `/api/v1/users/{user_id}/connections` and no request to either live
 workout route. Preview and `--json` without the flag make those zero
-requests. On, the same preview and `--json` do make them, write nothing
-in this database, and print `vendor requests were made`. "Nothing stored"
+requests. On, the same preview and `--json` read the connections list and
+each active provider's list. They make no detail call, write nothing in
+this database, and print `vendor requests were made`. "Nothing stored"
 and "nothing written" always mean this database. The server can still
 change, as the next paragraph says.
+
+A preview's `details` counts are estimates from the stored originals.
+`stored` counts the ids that `--yes` would detail now, and `deferred` the
+ids past the budget. `kept` and `not_available` are counted as `--yes`
+would count them. `failed`, `mismatch`, `thinner`, `too_large`, and
+`refused` are zero in a preview, because only a detail call can find
+them. A preview and then `--yes` read each provider's list twice. That is
+one extra call for most providers, every window again for Garmin, and
+every page again for Suunto. To read each list once, run `--yes` without
+a separate preview. The preview and the flag's help say so.
 
 A live call can change the server. `api_client.py` at
 the pinned commit can refresh a vendor token and save it, revoke a
@@ -1031,10 +1044,14 @@ Budgets keep one command inside the providers' limits:
 - Strava's limit is per application, so the deployment's own sync shares
   it. Strava's rate-limit page, fetched 15 November 2026, gives a default
   of 100 read requests per 15 minutes and 1,000 a day. Strava calls them
-  non-upload requests. One list call and 20 detail calls can become 84
-  requests when the server retries each one three times. That leaves 16
-  for the deployment's own sync in the same 15 minutes. The Strava line
-  says that its limit is shared.
+  non-upload requests. One list call and 20 detail calls are 21
+  requests. A 429 makes the server try that request four times, and the
+  pull then stops calling Strava. So one `--yes` command sends at most 24
+  Strava requests. A 401 adds one attempt to that request after the server
+  reloads the token. That
+  leaves about 76 for the deployment's own sync in the same 15 minutes. A
+  preview first adds one list call. The Strava line says that its limit is
+  shared.
 
 The routes are
 `GET /api/v1/providers/{provider}/users/{user_id}/workouts` and
@@ -1086,6 +1103,13 @@ timeout above.
   milliseconds, `filter_by_modification_time=false`, and `limit` 100, and
   pages `offset` until a short page. False means creation time. A page
   over the response cap is asked again with a smaller `limit`, down to 1.
+  One command sends at most `MAX_VENDOR_LIST_PAGES`, 100 Suunto list
+  requests, counting those smaller retries. When the cap stops a list
+  whose last page was full, Suunto is `incomplete`, `more` is true, and
+  the objects already read are still written. Each page waits for the
+  one-second pace, so the cap also bounds the list to about 100 seconds.
+  A later `--from` reads fewer pages, because `since` is the requested
+  start.
   The record key is `workoutId`. Detail is called at `workoutKey`. A list
   object with no `workoutKey` gets no detail call, and its detail is
   `not_available`. The pinned detail method calls
@@ -1199,6 +1223,14 @@ detail and whose list object is unchanged gets no detail call. A deleted
 original gets no detail call. A detail is fetched again only when the list
 object changed. A provider that changes a detail without changing the
 list object is not seen, and the line does not claim it.
+
+A list object and its detail are not read at the same moment. The pull
+reads a provider's whole list first, then its details one second apart,
+so a detail can come minutes after its list object. A one-year Garmin
+range sends 381 windows, more than six minutes, before its first detail.
+The vendor can change the workout in between. A `kept` detail was read by
+an earlier command. The envelope does not record when each part was read,
+and the pull does not claim the two parts are one moment's copy.
 
 The detail must name the same id. A detail that names another id is a
 `mismatch`, and it is not stored.
@@ -1675,7 +1707,8 @@ as `src/runtime/garmin_pull.rs` does. A live vendor request uses 30
 seconds to connect and 360 seconds to read, for the reason in section 2.
 The timeouts are named constants in `src/runtime/open_wearables.rs`. One
 response may be at most `MAX_PULL_RESPONSE_BYTES`, which is 10 MiB. One
-read may be at most 1000 pages. Those limits are named constants in
+read may be at most 1000 pages. One Suunto list may be at most
+`MAX_VENDOR_LIST_PAGES`, which is 100 requests. Those limits are named constants in
 `src/input_policy.rs`, where 2.1.1 keeps every limit on untrusted input.
 In 2.1.1 the comment on `MAX_PULL_RESPONSE_BYTES` says it is the bytes of
 one Garmin personal connection response. The route list at the top of
@@ -1930,7 +1963,7 @@ interactive open can preview, back up, ask, and then migrate.
 | Device-binding facts and the safety snapshot | new `src/import/binding.rs`, called from the matching step in `src/import/provider.rs` for route `open_wearables` |
 | Create or first-bind with the checked receipt, and refuse any other `device_binding` change | the staged plan and `ProviderPreview::apply` in `src/import/provider.rs` |
 | Stored-original read for the vendor detail rules | a crate-private read in `src/import/provider.rs` |
-| Response cap and page cap, and the comment and route list that now name both pulls | named constants in `src/input_policy.rs` |
+| Response cap, page cap, Suunto list cap, and the comment and route list that now name both pulls | named constants in `src/input_policy.rs` |
 | Receipt for a start in Unix seconds or milliseconds | a helper beside `offset_timestamp_receipt` in `src/import/candidate.rs` |
 | Measurement samples, source reports, paired null value and unit, and child withdrawal | `write_current_state` and `typed_columns` in `src/store/encode.rs`. Package restore, repair, and the record check use that encoder |
 | Step 6 with foreign keys off | its own transaction in `src/store/migrate.rs`, and `install_schema` in `src/store/mod.rs` |
@@ -2419,7 +2452,11 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   the connections route and to both workout routes. `requests_made` is
   false, `notice` is empty, and every live line is `not_attempted`. With
   the flag, preview and `--json` still write nothing, `requests_made` is
-  true, and the text says vendor requests were made
+  true, and the text says vendor requests were made. The fixture server
+  sees the connections request and each list request, and no detail
+  request. The preview counts the ids `--yes` would detail as `stored`,
+  and says that a preview then `--yes` reads each list twice. A Strava
+  preview then `--yes` sends two list calls and at most 20 detail calls
 - every run with the flag, as a preview, under `--yes`, and with `--json`,
   says before its first live request that the server may refresh and save
   vendor tokens, may revoke a connection, and may wait about 105 seconds
@@ -2446,6 +2483,11 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   `abc` matches. A list object with no `workoutKey` makes no detail call.
   It is stored with `detail_status` `not_available`, and Suunto stays
   `completed`
+- a Suunto fixture that always returns full pages, with a small list cap
+  and a short pace passed into the loop as the 1000-page test does, stops
+  at the cap. Suunto is `incomplete`, `more` is true, the objects already
+  read are stored, and the exit is nonzero. `MAX_VENDOR_LIST_PAGES` is
+  checked as a named constant of 100
 - a Garmin `activityId` of `123` and a later `"123"` are one record. An
   integer above 9007199254740991 refuses only that object and counts it
   as `unsafe_number`. A fractional id refuses only that object and counts

@@ -115,6 +115,10 @@ These edits answer the review of this plan at `d636d7a`:
   is `not_available`. A detail over the response cap is `too_large`, and a
   detail the privacy scan refuses is `refused`. Both make the provider
   `incomplete`.
+- D243. A preview reads each list and makes no detail call, so a preview
+  then `--yes` reads each list twice and makes each detail call once. One
+  command sends at most 100 Suunto list requests. A detail can come
+  minutes after its list object, and the plan says so.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -1334,9 +1338,12 @@ procedure.
 
 `--vendor-workouts` is off unless the person passes it. Off, preview and
 `--json` call neither the connections route nor a live workout route.
-On, those calls run for a preview too. The preview writes nothing in this
-database and prints `vendor requests were made`. "Nothing stored" and
-"nothing written" always mean this database.
+On, a preview reads the connections list and each active provider's list,
+and it makes no detail call. Its detail counts are estimates. The preview
+writes nothing in this database and prints `vendor requests were made`.
+"Nothing stored" and "nothing written" always mean this database. A
+preview and then `--yes` read each list twice, and the preview and the
+help say so. Running `--yes` alone reads each list once.
 
 The server, while answering the GET, can save a refreshed vendor token,
 revoke a connection, emit `connection.revoked`, write `token_refresh_lock`
@@ -1379,7 +1386,9 @@ asks for all three. Suunto's detail is called at `workoutKey`. A list
 object with no `workoutKey` gets no detail call and is `not_available`,
 because nothing this study read shows that Suunto's detail accepts a
 `workoutId`. Its `payload` is unwrapped, and the record key is
-`workoutId`. Whoop's response names its
+`workoutId`. One command sends at most 100 Suunto list requests,
+`MAX_VENDOR_LIST_PAGES`. A cap that stops a list after a full page makes
+Suunto `incomplete`, and the objects already read are still written. Whoop's response names its
 next page `next_token`. The request name, `nextToken`, is not sent.
 Sensorbio reads only the oldest 50 entries, and its line says so.
 
@@ -1398,7 +1407,10 @@ mismatched, too large, or refused detail makes the provider `incomplete`
 and the exit nonzero, because a limit may refuse work but must not report
 it as complete. A too large or refused id is retried after the new and
 changed ids. A deferred detail leaves the provider `completed`, with a
-separate deferred count.
+separate deferred count. A detail is read after the provider's whole
+list, so it can come minutes after its list object, and the vendor can
+change the workout in between. The envelope does not record when each
+part was read.
 
 Live requests go one at a time, at least one second apart. The read
 timeout is 360 seconds. The server's own retries can take about 225
@@ -1471,6 +1483,8 @@ Rejected alternatives:
   `workoutKey`, as the earlier text did. Rejected. No source this study
   read shows that call works, and a wrong call would count as `failed` on
   every command.
+- Make detail calls in a preview. Rejected. A preview and then `--yes`
+  would make every detail call twice, and Strava's limit is shared.
 - Count a too large detail as `not_available`. Rejected. The vendor has
   the detail, and this program's own cap refused it, so the provider did
   not finish.
