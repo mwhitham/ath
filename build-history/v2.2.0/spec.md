@@ -2652,8 +2652,9 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   no `reported_at`, and its receipt says the source gave no offset. A
   Suunto start in Unix milliseconds keeps the digits and stores
   `reported_at` with milliseconds. Both receipts pass `ath check`
-- a Whoop response with `next_token`, an Oura response with
-  `next_token`, a Sensorbio response with `links.next`, and a Strava page
+- a Whoop response with a `next_token` that is not null, an Oura
+  response with a `next_token` that is not null, a Sensorbio response
+  with `links.next`, and a Strava page
   whose length equals `per_page` set `more` true. The fixture server sees
   no `nextToken` sent to Whoop. `covers_requested_range` is false
 - a vendor original that the person deleted is left out on every later
