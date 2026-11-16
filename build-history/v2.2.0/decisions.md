@@ -227,6 +227,12 @@ number is added:
   `unusable_name`, and the detail is asked for again only when the list
   object changes. Each refused object and refused detail is named in
   `left_out.examples` by provider, vendor id, reason, and key path.
+- D243 and D242. A vendor object nested 123 levels or more is refused as
+  `too_deep`, counted, and named with its depth. A deep detail keeps its
+  clean list object, as a `__proto__` detail does. The read refuses 128
+  levels, though `check_nesting` allows 128, so the export check now
+  refuses an item that reaches 128. That is why the cut is 123 and not
+  124.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -1455,8 +1461,12 @@ refused, its objects count as `size_cap`, and that provider is
 in the text and in `--json`. From 80% it warns, and the warning names
 `ath erase` and says the erase cannot be undone. `ath export` gains a
 check that refuses to publish a document over the 512 MiB read cap or an
-item past the 128-level nesting limit, because 2.1.1 can write a package
-it cannot read back. Each listed object is in exactly one detail count or
+item that reaches 128 levels, because 2.1.1 can write a package it
+cannot read back. The read parses with serde_json, which refuses 128
+levels, though `check_nesting` allows 128. The package puts a vendor
+object five levels down, so the pull refuses a vendor object nested 123
+levels or more as `too_deep`, and no vendor original trips that check.
+Each listed object is in exactly one detail count or
 one left-out count, so no object is dropped without a count.
 
 The pull uses the published query parameters and does not add its own
@@ -1706,6 +1716,12 @@ when its list object changes, because a rerun gets the same detail. Each
 refused object and refused detail is named in `left_out.examples`, inside
 its 20-line bound, by provider, vendor id, reason, and key path.
 
+A vendor object nested 123 levels or more is refused the same way as
+`too_deep`, and it is named with its depth. The package puts the object
+five levels down, and the read refuses 128 levels, so storing it would
+make every later export fail until the person erased the original. A
+saved envelope that deep is left out of a mapped import too.
+
 Every returned original is stored, including a start outside `--from` and
 `--to`. The count is `vendor workout originals`. `range_complete` uses
 only the stored ranged reads. Each line says whether its limit covers the
@@ -1809,6 +1825,13 @@ Rejected alternatives:
 - Count refused objects without naming them. Rejected. With the provider
   `completed`, a count alone does not tell the person which workout or
   which key.
+- Store a vendor object of any depth and let export refuse it, as the
+  earlier text did. Rejected. One deep object would block every export
+  until the person erased it.
+- Refuse from 124 levels, which the reviews proposed from the 128 that
+  `check_nesting` allows. Rejected. serde_json refuses 128 levels when
+  the read parses the document, so a 123-level object would be stored
+  and then fail to read back.
 
 ## D244. Vendor originals stay whole. The maintainer can change this
 

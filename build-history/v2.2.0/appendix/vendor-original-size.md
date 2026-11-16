@@ -55,8 +55,9 @@ export writes it, and about 612 MiB of the route-only shape. Both are
 over the 512 MiB package read cap.
 
 The deepest value is a route point's field, five levels inside the
-record's `data`. In the package it is eight levels deep. The package read
-limit is 128 levels.
+record's `data`. In the package it is eight levels deep. A package reads
+back at 127 levels or fewer. `check_nesting` allows 128, but serde_json
+1.0.154 refuses 128 when the read parses the document.
 
 ## What was not measured
 

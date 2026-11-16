@@ -1053,7 +1053,8 @@ A preview's `details` counts are estimates from the stored originals, and
 they are under the `estimated` key. `would_detail` counts the ids that
 `--yes` would detail now, and `deferred` the ids past the budget. `kept`
 and `not_available` are counted as `--yes` would count them, and so is
-an `unusable_name` refusal whose list object is unchanged. `failed`,
+an `unusable_name` or `too_deep` refusal whose list object is unchanged.
+`failed`,
 `mismatch`, `thinner`, and `too_large` are zero in a preview, and so is
 any other `refused`, because only a detail call can find them. The
 preview says so: `preview
@@ -1434,7 +1435,8 @@ goes in the first group it matches. So an id that was `not_available`,
 `too_large`, or `refused` and whose list object changed is in the second
 group. Any other id marked `not_available` whose list object is unchanged
 gets no detail call. It counts as `not_available` again. So does an id
-`refused` as `unusable_name`, which counts as `refused` again. Inside each
+`refused` as `unusable_name` or `too_deep`, which counts as `refused`
+again. Inside each
 group the oldest start goes first. An id without a start instant goes
 last in its group, in list order. So a Garmin path that answers 404
 costs one detail call in a command, and only when some id is due a call.
@@ -1506,12 +1508,13 @@ What is written for one id depends on what this command got:
 A list-only object therefore never replaces a stored detail. A `failed`,
 `mismatch`, or `too_large` detail, or one `refused` by the privacy scan,
 makes the provider `incomplete`, and the exit is nonzero. A detail
-refused as `unusable_name` leaves the provider `completed`, because a
-rerun gets the same detail. A `not_available` detail leaves the provider
-`completed`. A `deferred` detail leaves the provider `completed`, with the
-deferred count on its line, and the next command details those ids first.
-A deferred id that the provider stops listing is never detailed by a later
-command. The deferred count shows how many are waiting.
+refused as `unusable_name` or `too_deep` leaves the provider `completed`,
+because a rerun gets the same detail. A `not_available` detail leaves the
+provider `completed`. A `deferred` detail leaves the provider
+`completed`, with the deferred count on its line, and the next command
+details those ids first. A deferred id that the provider stops listing is
+never detailed by a later command. The deferred count shows how many are
+waiting.
 
 Each original is one envelope. The pull builds it, and a saved file holds
 the same object:
@@ -1546,7 +1549,8 @@ the same object:
   or 501 and `detail_status` is `not_available`. It holds the integer Unix
   seconds of that answer, by the pull's clock.
 - `refused_by` is present only when `detail_status` is `refused`. It is
-  `privacy_scan` or `unusable_name`. `refused_path` is present only with
+  `privacy_scan`, `unusable_name`, or `too_deep`. `refused_path` is
+  present only with
   `unusable_name`. It is the JSON path of the key in the detail, and it
   names keys and indexes, never a value. The privacy scan runs first, so
   the path never holds the key, the origin, or the user id.
@@ -1637,15 +1641,29 @@ no size check, so it can publish a package that `src/package/load.rs`
 refuses to read. The build adds that check to `src/package/export.rs`.
 Export counts the bytes of each document it writes into its staging
 folder and the nesting depth of each item. A document may not pass
-`MAX_PACKAGE_DOCUMENT_BYTES`, and an item may not nest deeper than
+`MAX_PACKAGE_DOCUMENT_BYTES`, and an item may not reach
 `MAX_PACKAGE_JSON_NESTING`, 128 levels, counted from the document. When
 either happens, export fails before the rename, removes the staging
-folder, publishes nothing, and names the document. The package puts a
-vendor object up to five levels deeper than its response did: the
-document, `records`, the item, `data`, and `supplied_fields`. serde_json,
-which `src/json.rs` uses, refuses JSON nested 128 levels or more. So an
-object 124 to 127 levels deep could be stored and then fail this check.
-The pull does not refuse such an object itself.
+folder, publishes nothing, and names the document. `check_nesting` in
+`src/package/load.rs` allows 128 levels. But the read then parses with
+serde_json through `src/json.rs`, and serde_json refuses 128 levels. With
+serde_json 1.0.154, the version in `Cargo.lock`, 127 levels parse and
+128 do not. So 127 is the deepest package that reads back.
+
+The package puts a vendor object five levels down: the document,
+`records` or `record_revisions`, the item, `data`, and
+`supplied_fields`. So a vendor object nested 123 levels or more would
+reach 128 in the package. The pull refuses such an object as `too_deep`,
+by the same rules as `unusable_name`. A list object or list parent that
+deep is not stored and gets no detail call. A detail that deep is not
+stored, and the clean list object is stored with `detail_status`
+`refused` and `refused_by` `too_deep`. That detail is asked for again
+only when the list object changes. The provider stays `completed`. Each
+such object is named in `left_out.examples` with its depth instead of a
+path, such as `polar "1003": too_deep at 125 levels`. A mapped import of
+saved envelopes leaves out an envelope whose `list`, `list_parent`, or
+`detail` is that deep, as `too_deep`. So no vendor original can make
+export fail by its depth.
 
 ath does not write a saved file of envelopes. Written compact or with a
 two-space indent, such a file is smaller than its originals as export
@@ -1690,8 +1708,8 @@ preview they are estimates under `estimated`, as section 1 says.
   `too_large`, and `refused`.
 - `left_out`: objects not written, by reason: `missing_id`,
   `unusable_id`, `unsafe_number`, `unusable_name`, `duplicate_id`,
-  `superseded`, `ambiguous_window`, `deleted_record`, `deleted_source`,
-  `response_refused`, and `size_cap`.
+  `too_deep`, `superseded`, `ambiguous_window`, `deleted_record`,
+  `deleted_source`, `response_refused`, and `size_cap`.
 - `withheld`: values that section 4 withheld, with up to 20 paths.
 
 Each listed object is in exactly one detail count or one left-out count.
@@ -1715,8 +1733,8 @@ whole envelope in `supplied_fields`. A saved file of envelopes, under
 `vendor_workout`, imports through that section with `ath import --mapping
 open-wearables`. File import does not apply the detail rules above. It
 writes each envelope as the file holds it, as D182 does for every mapped
-import, except the owner-correction rule and the Garmin window rule
-above. Export and import keep one original id.
+import, except the owner-correction rule, the Garmin window rule, and
+the depth check above. Export and import keep one original id.
 
 The provider table, the detail rules, and the thinner check live in
 `src/runtime/vendor_workouts.rs`. They run before the mapping engine sees
@@ -2307,11 +2325,12 @@ interactive open can preview, back up, ask, and then migrate.
 | Stage, match, and write each page | `preview_route` and `ProviderPreview::apply` in `src/import/provider.rs`. The revision a preview read is the public `destination_database_revision` |
 | A `connector` source with no vendor | new `connector_source` beside `route_source` in `src/import/provider.rs` |
 | Page counts by record type | a count beside `Staging::count` in `src/import/staging.rs`, exposed by `ProviderPreview` |
-| Owner-correction rule and its count, and the Garmin window rule | `match_keyed` and `record_by_import_key` in `src/import/provider.rs`, behind a `KeyedPolicy` flag that only route `open_wearables` sets |
+| Owner-correction rule and its count, the Garmin window rule, and the depth check for saved envelopes | `match_keyed` and `record_by_import_key` in `src/import/provider.rs`, behind a `KeyedPolicy` flag that only route `open_wearables` sets |
 | Where a workout fix belongs | one paragraph in `skills/athletic-standard/SKILL.md`, under "Stable IDs and revisions" |
 | Total size bound for vendor originals, in the bytes export writes | `MAX_VENDOR_ORIGINAL_BYTES` in `src/input_policy.rs`. One function beside `ArrayWriter::item` in `src/package/export.rs` measures an item. The bound is checked in the matching step in `src/import/provider.rs`, in `apply_in` in `src/store/write.rs`, and in `merge_in`, `resolve_in`, and native restore in `src/package/restore.rs` |
 | The vendor-original total and its warning | the pull's text and `--json` outcome, from `pull` in `src/cli/commands/routes.rs` |
-| Export refuses a document over the package read cap, or an item past the nesting limit | `src/package/export.rs`, before the staging folder is renamed |
+| Export refuses a document over the package read cap, or an item that reaches the nesting limit | `src/package/export.rs`, before the staging folder is renamed |
+| The pull's `__proto__` and depth checks on each vendor object | `src/runtime/vendor_workouts.rs`, before the page is staged |
 | Device-binding facts and the safety snapshot | new `src/import/binding.rs`, called from the matching step in `src/import/provider.rs` for route `open_wearables` |
 | Create or first-bind with the checked receipt, and refuse any other `device_binding` change | the staged plan and `ProviderPreview::apply` in `src/import/provider.rs` |
 | Stored-original read for the vendor detail rules | a crate-private read in `src/import/provider.rs` |
@@ -2925,9 +2944,20 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   and it names `ath erase` and says the erase cannot be undone
 - an export whose main document would pass the read cap, with that cap
   lowered for the test, fails before the rename and publishes nothing. So
-  does an export whose item would nest deeper than
-  `MAX_PACKAGE_JSON_NESTING`, with that limit lowered for the test. An
-  item at the limit exports, and `ath import` reads it back
+  does an export whose item would reach `MAX_PACKAGE_JSON_NESTING`, 128
+  levels, from a record the test writes straight into the database. An
+  item 127 levels deep exports, and `ath import` reads it back
+- a Polar list of three objects, where one detail is nested 125 levels.
+  That detail is not stored. Its list object is stored with
+  `detail_status` `refused` and `refused_by` `too_deep`, and the other two
+  originals are stored. Polar's details count 1 `refused`, Polar is
+  `completed`, the exit is 0, and one `left_out.examples` line names
+  `polar`, that vendor id, and 125 levels. `ath export` then succeeds,
+  and `ath import` reads the package back. A detail nested 122 levels is
+  stored, exports, and reads back. One nested 123 levels is refused. A
+  list object nested 125 levels is not stored, gets no detail call, and
+  counts 1 `too_deep` in `left_out`. A mapped import of a saved envelope
+  whose `detail` is nested 125 levels leaves it out as `too_deep`
 - a synthetic Garmin fixture returns activity 555 in the first window with
   `durationInSeconds` 1800 and in the second window with 1860. One original
   is stored, and its `list` is the second window's object. Garmin's
