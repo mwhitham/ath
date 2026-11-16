@@ -215,7 +215,8 @@ path in `timeseries_service.py` copies `recorded_at`, `zone_offset`, the
 type, the value, and `window_seconds`. It does not set `period_end` or
 `computed_by`. The response `metadata.resolution` is the raw or day
 label. A series row does not carry that label. The archive capsule
-copies it. D237 writes that capsule only after the locked safety read.
+copies it. D237 writes that capsule only at the database revision where
+the safety facts were read.
 
 `_aggregated_timeseries` handles `1min`, `5min`, `15min`, and `1hour`. It
 sets `window_seconds` from `BUCKET_SIZES` and does not set `period_end`.
