@@ -68,8 +68,9 @@ requires `--json` and `--json --yes` to leave the database unchanged. The
 committed result is the text of `--yes` without `--json`. A writing JSON
 report would be a different choice. It is not this proposal.
 
-Preview text, and every `--json` result, labels counts `estimated`. Each
-page is previewed against the database as it was before this command. A
+Preview text, and every `--json` result, labels counts `estimated`. That
+includes every vendor count and both owner-correction counts in section 2.
+Each page is previewed against the database as it was before this command. A
 preview writes nothing. A match key that appears on two pages, or a server that changes
 between the preview and `--yes`, can make the estimate differ from the
 write. The estimate is not a promise of the final new, changed, and
@@ -87,12 +88,16 @@ Preview text prints:
 - one line each for the live workout providers: `completed`, `incomplete`,
   or `not_attempted`, the connection status when it is not `active`,
   whether that limit covers the requested range, whether more data exists,
-  and the detail and left-out counts in section 2
+  and the detail and left-out counts in section 2. Those counts follow the
+  word `estimated`, and the count of ids `--yes` would detail is `would
+  detail`
 - when `--vendor-workouts` is on, before the first live request: the three
   sentences about server changes in section 2
 - when `--vendor-workouts` is on: `vendor requests were made`
-- when `--vendor-workouts` is on: `vendor workout originals` with new,
-  changed, and unchanged counts
+- when `--vendor-workouts` is on: `preview made no detail calls; detail
+  failures, size limits and refusals are only known after --yes`
+- when `--vendor-workouts` is on: `vendor workout originals`, then
+  `estimated`, then new, changed, and unchanged counts
 - when a credential-shaped value was withheld: the count and up to 20
   paths, as section 4 says
 - when `--vendor-workouts` is on, this sentence: a workout can appear twice,
@@ -148,8 +153,8 @@ make `written` true. `database_changed` is true when any protected
 transaction or any archive transaction in this command committed a
 change, including the first insert of the archive source. A vendor page
 in section 2 is a protected transaction. Its originals are `source_report`
-records, so they add to `committed.source_report` as well as to
-`vendor_workouts.originals` and that provider's counts. A committed vendor
+records, so they add to `committed.source_report` as well as to the
+vendor originals count and that provider's counts. A committed vendor
 page that creates or revises an original makes `written` true and
 `database_changed` true, even when every stored page was unchanged. A
 first `vendor_workout` source counts as a database change. A later page
@@ -198,12 +203,14 @@ the text. The object has no key, server, user id, or request path.
   },
   "left_out": { "total": 0, "by_reason": {}, "examples": [], "shortened": false },
   "withheld": { "total": 0, "paths": [], "shortened": false },
-  "owner_corrections_replaced": 0,
+  "estimated_owner_corrections_replaced": 0,
   "vendor_workouts": {
     "requested": false,
     "requests_made": false,
     "notice": [],
-    "originals": { "new": 0, "changed": 0, "unchanged": 0 },
+    "estimated": {
+      "originals": { "new": 0, "changed": 0, "unchanged": 0 }
+    },
     "providers": {
       "garmin": {
         "status": "not_attempted",
@@ -211,19 +218,21 @@ the text. The object has no key, server, user id, or request path.
         "covers_requested_range": false,
         "more": false,
         "limit": "not requested",
-        "owner_corrections_replaced": 0,
-        "details": {
-          "stored": 0,
-          "kept": 0,
-          "deferred": 0,
-          "failed": 0,
-          "mismatch": 0,
-          "thinner": 0,
-          "not_available": 0,
-          "too_large": 0,
-          "refused": 0
-        },
-        "left_out": { "total": 0, "by_reason": {} }
+        "estimated": {
+          "owner_corrections_replaced": 0,
+          "details": {
+            "would_detail": 0,
+            "kept": 0,
+            "deferred": 0,
+            "failed": 0,
+            "mismatch": 0,
+            "thinner": 0,
+            "not_available": 0,
+            "too_large": 0,
+            "refused": 0
+          },
+          "left_out": { "total": 0, "by_reason": {} }
+        }
       }
     }
   }
@@ -232,20 +241,34 @@ the text. The object has no key, server, user id, or request path.
 
 `notice` is empty without the flag. With it, `notice` holds the three
 sentences about server changes in section 2, on every run, including a
-preview. `connection_status` is `active`, `revoked`, `expired`,
+preview. Every `--json` run is a preview, so with the flag `notice` also
+holds `preview made no detail calls; detail failures, size limits and
+refusals are only known after --yes`. `connection_status` is `active`, `revoked`, `expired`,
 `unknown status`, or `null` when the server listed no connection for that
 provider.
 
-The top-level `owner_corrections_replaced` counts owner corrections of
-stored records that the stored pages replace, by the owner-correction rule
-in section 2. Each provider's `owner_corrections_replaced` counts its
-vendor originals. In a preview both are estimates. When a provider's count
-is above zero, the preview prints `would replace N owner corrections;
+The top-level `estimated_owner_corrections_replaced` counts owner
+corrections of stored records that the stored pages would replace, by the
+owner-correction rule in section 2. Each provider's
+`estimated.owner_corrections_replaced` counts its vendor originals. Both
+are estimates, and their keys say so. When a provider's count is above
+zero, the preview prints `estimated: would replace N owner corrections;
 delete an original to keep it` on that provider's line. When the top-level
-count is above zero, it prints `would replace N owner corrections of
-stored records because the server's data changed`. After `--yes` the same
-lines say `replaced N owner corrections`, and that each correction stays
-in the record's history. The text uses the singular when N is 1.
+count is above zero, it prints `estimated: would replace N owner
+corrections of stored records because the server's data changed`. After
+`--yes` the same lines say `replaced N owner corrections`, without
+`estimated`, and that each correction stays in the record's history. The
+text uses the singular when N is 1.
+
+Every vendor count in a preview is under an `estimated` key:
+`vendor_workouts.estimated.originals`, and each provider's `estimated`
+object with its owner-correction count, its `details`, and its
+`left_out`. A provider's status, connection status, coverage, `more`, and
+limit describe the reads this command made, so they stay outside it.
+`details.would_detail` counts the ids `--yes` would detail now. `--yes`
+prints the same counts without `estimated`, and it says `stored` for the
+details it wrote. `withheld` counts the values withheld from what this
+command read, so a preview counts them in list objects only.
 
 The same record types are present for workouts, points, summaries, scores,
 and source reports. The example above is shortened. Polar, Suunto, Whoop,
@@ -255,7 +278,8 @@ outcome. A preview does not say a snapshot was stored.
 
 The command returns a different outcome for `--yes` without `--json`. That
 outcome has the actual `committed` counts, the actual `archive_committed`
-counts, the actual `owner_corrections_replaced` counts,
+counts, the actual `owner_corrections_replaced` counts, the actual
+vendor counts with `stored` in place of `would_detail`,
 `database_changed`, `protected_write`, `archive`,
 `range_complete`, and `snapshots_complete`. `committed` counts protected
 records only. `archive_committed` counts archive records only, including
@@ -977,12 +1001,14 @@ this database, and print `vendor requests were made`. "Nothing stored"
 and "nothing written" always mean this database. The server can still
 change, as the next paragraph says.
 
-A preview's `details` counts are estimates from the stored originals.
-`stored` counts the ids that `--yes` would detail now, and `deferred` the
-ids past the budget. `kept` and `not_available` are counted as `--yes`
-would count them. `failed`, `mismatch`, `thinner`, `too_large`, and
-`refused` are zero in a preview, because only a detail call can find
-them. A preview and then `--yes` read each provider's list twice. That is
+A preview's `details` counts are estimates from the stored originals, and
+they are under the `estimated` key. `would_detail` counts the ids that
+`--yes` would detail now, and `deferred` the ids past the budget. `kept`
+and `not_available` are counted as `--yes` would count them. `failed`,
+`mismatch`, `thinner`, `too_large`, and `refused` are zero in a preview,
+because only a detail call can find them. The preview says so: `preview
+made no detail calls; detail failures, size limits and refusals are only
+known after --yes`. A preview and then `--yes` read each provider's list twice. That is
 one extra call for most providers, every window again for Garmin, and
 every page again for Suunto. To read each list once, run `--yes` without
 a separate preview. The preview and the flag's help say so.
@@ -1409,14 +1435,16 @@ keeps the person's version in its history, and every later pull leaves
 that object out. A workout fix belongs on the stored session or in a
 note, not on the vendor original. The skill says so (section 6).
 
-Each provider's line, and its object in `--json`, counts:
+Each provider's line, and its object in `--json`, counts these. In a
+preview they are estimates under `estimated`, as section 1 says.
 
 - `originals`: new, changed, and unchanged records.
 - `owner_corrections_replaced`: owner corrections that this page replaces,
   by the owner-correction rule above. Each is also counted as a changed
   original.
-- `details`: `stored`, `kept`, `deferred`, `failed`, `mismatch`,
-  `thinner`, `not_available`, `too_large`, and `refused`.
+- `details`: `stored`, which a preview calls `would_detail`, `kept`,
+  `deferred`, `failed`, `mismatch`, `thinner`, `not_available`,
+  `too_large`, and `refused`.
 - `left_out`: objects not written, by reason: `missing_id`,
   `unusable_id`, `unsafe_number`, `duplicate_id`, `superseded`,
   `deleted_record`, `deleted_source`, `response_refused`, and `size_cap`.
@@ -2512,18 +2540,18 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   stays current, and Polar's `owner_corrections_replaced` is 0. That pull
   makes no detail call for the id, because the stored-original read uses
   the newest `provider_import` revision. After the server's list object
-  changes, the preview prints `would replace 1 owner correction; delete an
-  original to keep it`, and `--json` has Polar's
-  `owner_corrections_replaced` 1. `--yes` replaces the correction, counts
-  it as a changed original and as 1 replaced, and keeps the owner's
-  revision in the history. A deleted original is left out instead, and
-  the count stays 0
+  changes, the preview prints `estimated: would replace 1 owner
+  correction; delete an original to keep it`, and `--json` has Polar's
+  `estimated.owner_corrections_replaced` 1. `--yes` replaces the
+  correction, counts it as a changed original and as 1 replaced, and
+  keeps the owner's revision in the history. A deleted original is left
+  out instead, and the count stays 0
 - an owner corrects a stored sleep session. A pull with the same server
-  data keeps the correction, and the top-level `owner_corrections_replaced`
-  is 0. A pull whose session changed replaces it, and the count is 1 in
-  the preview, in `--json`, and after `--yes`. The preview says `would
-  replace 1 owner correction of stored records because the server's data
-  changed`. `ath import --mapping open-wearables` of a file that holds the
+  data keeps the correction, and `--json` has
+  `estimated_owner_corrections_replaced` 0. A pull whose session changed
+  replaces it, and the count is 1 in the preview, in `--json`, and after
+  `--yes`. The preview says `estimated: would replace 1 owner correction
+  of stored records because the server's data changed`. `ath import --mapping open-wearables` of a file that holds the
   same data also keeps the correction. Another route keeps its 2.1.1 rule
 - a record whose current revision came from an accepted package merge is
   an owner correction. A native export and restore keeps every revision's
@@ -2539,9 +2567,18 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   `src/cli/examples/pull.txt` say that a preview and `--json` read the
   connections list and each active provider's list and make no detail
   call, and the generated `skills/athletic-standard/references/cli.md`
-  matches them. The preview counts the ids `--yes` would detail as `stored`,
-  and says that a preview then `--yes` reads each list twice. A Strava
-  preview then `--yes` sends two list calls and at most 20 detail calls
+  matches them. The preview counts the ids `--yes` would detail as
+  `would_detail`, and says that a preview then `--yes` reads each list
+  twice. A Strava preview then `--yes` sends two list calls and at most 20
+  detail calls
+- `--vendor-workouts --json` with three new Polar ids writes nothing, and
+  the fixture server sees no detail request. Every vendor count and both
+  owner-correction counts are under a key named `estimated`. Polar's
+  `would_detail` is 3, and no key that means stored is above zero.
+  `notice` holds the line that the preview made no detail calls. The text
+  preview prints that line, and its Polar line contains `estimated`.
+  `--yes` on the same data prints the same counts without `estimated`,
+  with `stored` 3
 - every run with the flag, as a preview, under `--yes`, and with `--json`,
   says before its first live request that the server may refresh and save
   vendor tokens, may revoke a connection, and may wait about 105 seconds
@@ -2676,9 +2713,10 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   and makes the provider `incomplete`. In every vendor test, each listed
   object is in exactly one detail count or one left-out count
 - `--json` includes `vendor_workouts.requested`, `requests_made`,
-  `notice`, `originals`, and each provider's `status`,
-  `connection_status`, `covers_requested_range`, `more`, `limit`,
-  `details`, and `left_out`
+  `notice`, `estimated.originals`, and each provider's `status`,
+  `connection_status`, `covers_requested_range`, `more`, `limit`, and
+  `estimated` with `owner_corrections_replaced`, `details`, and
+  `left_out`
 
 Migration tests, in the build gate:
 

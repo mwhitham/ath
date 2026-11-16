@@ -144,6 +144,11 @@ number is added:
   preview and on `--json`: the connections list and each active
   provider's list, with no detail call. The help text, the examples, and
   their test say the same.
+- D243. A preview, which every `--json` run is, labels every vendor count
+  and both owner-correction counts `estimated`. It calls the count of ids
+  `--yes` would detail `would_detail`, prints `estimated` on each
+  provider line, and says that it made no detail calls, in the text and
+  in `vendor_workouts.notice`.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -1291,8 +1296,8 @@ an owner-corrected record with the newest revision an import wrote, basis
 `provider_import`. It does not compare with the owner's revision. Equal
 writes nothing, and the correction stays current. Different replaces the
 correction, and the count `owner_corrections_replaced` shows it on that
-provider's line, in `--json`, and in the preview, which says `would
-replace N owner corrections; delete an original to keep it`. The
+provider's line, in `--json`, and in the preview, which says `estimated:
+would replace N owner corrections; delete an original to keep it`. The
 correction stays in the history. The rule covers every record on that
 route, so a workout fix on the stored session also survives a pull of
 unchanged data. For that route it supersedes the D182 sentence that a
@@ -1373,8 +1378,12 @@ procedure.
 `--vendor-workouts` is off unless the person passes it. Off, preview and
 `--json` call neither the connections route nor a live workout route.
 On, a preview reads the connections list and each active provider's list,
-and it makes no detail call. Its detail counts are estimates. The preview
-writes nothing in this database and prints `vendor requests were made`.
+and it makes no detail call. Every vendor count it prints, and both
+owner-correction counts, are labeled `estimated`, in the text and in
+`--json`. The count of ids `--yes` would detail is `would_detail`. The
+preview says that it made no detail calls, so detail failures, size
+limits, and refusals are only known after `--yes`. The preview writes
+nothing in this database and prints `vendor requests were made`.
 "Nothing stored" and "nothing written" always mean this database. A
 preview and then `--yes` read each list twice, and the preview and the
 help say so. Running `--yes` alone reads each list once.
