@@ -964,9 +964,9 @@ Budgets keep one command inside the providers' limits:
 - The pace above keeps this command at 60 live requests a minute or
   fewer. The review cited about 100 a minute for Garmin. This study did
   not find that number in Garmin's public docs.
-- Garmin is read in windows of 86,400 seconds or less, one call each.
-  Every window is sent. A one-year range is 365 windows, so it takes at
-  least six minutes before any detail call.
+- Garmin is read in windows of 82,800 seconds, 23 hours, or less, one
+  call each. Every window is sent. A one-year range is 381 windows, so it
+  takes more than six minutes before any detail call.
 - A command makes at most 100 detail calls to one provider, and at most 20
   to Strava. Ids past the budget are `deferred`. The next paragraphs say
   which ids go first.
@@ -1002,8 +1002,11 @@ timeout above.
   `summary_start_time` and `summary_end_time` as integer Unix seconds. The
   server puts those values in `uploadStartTimeInSeconds` and
   `uploadEndTimeInSeconds`, so a window selects by upload time, not by
-  start. A window longer than 24 hours is never sent, because the pinned
-  server then splits it itself and drops a failed piece without saying so.
+  start. Each window ends where the next begins. The pinned server splits
+  a window it sees as longer than 24 hours, and it drops a failed piece
+  without saying so. It measures the window in naive local time, so on a
+  server whose clock moves forward, a true 24-hour window can look 25
+  hours long. A 23-hour window cannot look longer than 24 hours.
   A failed window makes Garmin `incomplete`, and later windows still run.
   The pinned code calls detail at
   `/wellness-api/rest/activities/{activity_id}`. This study did not find
@@ -1522,9 +1525,11 @@ credential-shaped has its value replaced by the same text. The pull
 records the JSON path of each withheld value and counts them. It prints
 the count and up to 20 paths, and it says when that list was shortened.
 Nothing else in the object changes. The rule applies to every page,
-stored reads and vendor reads alike. Garmin's list objects can carry an
-optional `userAccessToken`, so refusing the page would refuse every such
-Garmin page. `polar_user` and a route coordinate are not credential-shaped.
+stored reads and vendor reads alike. Garmin's summary objects can carry
+an optional `userAccessToken`. The pinned server declares it on its Garmin
+wellness models, and the live route returns Garmin's objects unchanged.
+Refusing the page would refuse every Garmin page that carries it.
+`polar_user` and a route coordinate are not credential-shaped.
 D244 keeps the rest of the vendor object, including account ids, Polar
 user URLs, and full routes. The matching personal-record `user_id` is the
 only field of a stored read that is dropped before this walk. Any other
@@ -2207,11 +2212,12 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   as `unsafe_number`. A fractional id refuses only that object and counts
   it as `unusable_id`. Two different objects with one id are both
   refused as `duplicate_id`
-- a three-day Garmin range sends three windows. Each window sends
-  `summary_start_time` and `summary_end_time` as integer Unix seconds, and
-  no window is longer than 86,400 seconds. A date `--from` starts at
-  midnight UTC. One failed window makes Garmin `incomplete` and never
-  `completed`. A later window still runs
+- a three-day Garmin range sends four windows, three of 82,800 seconds and
+  one of 10,800 seconds. Each window sends `summary_start_time` and
+  `summary_end_time` as integer Unix seconds, and each starts where the
+  last one ended. A date `--from` starts at midnight UTC. One failed
+  window makes Garmin `incomplete` and never `completed`. A later window
+  still runs
 - live requests go one at a time, at least one second apart by the
   fixture server's clock. A live request that times out, with the read
   timeout shortened for the test, stops every later request to that

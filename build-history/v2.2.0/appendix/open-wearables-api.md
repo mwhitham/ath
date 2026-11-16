@@ -134,7 +134,7 @@ schema. `zone_offset` is a separate string, `+01:00` or `-05:30`, or null.
 
 The 2.1.0 mapping file's timeseries lines do not name `heart_rate`. In
 Athletic Standard, `heart_rate` is a series quantity
-(the unit table in `src/model/data.rs`). It is not one of the point
+(`series_quantity_unit` in `src/model/data.rs`, unchanged in 2.1.1). It is not one of the point
 quantities the 2.1.0 mapping engine writes. D232 stores that stream as
 measurement samples. The 2.1.0 file, by itself, still has nowhere to put it.
 
@@ -479,10 +479,13 @@ seconds and `MAX_RETRIES` is 3, so the waits are 15, 30, and 60 seconds.
 A nearby comment says 1, 2, and 4 seconds. The constant is 15.
 
 `GET /api/v1/users/{user_id}/connections` returns the user's connections.
-The pinned Strava page lists 200 requests per 15 minutes for the standard
-tier and 400 for extended access. Garmin's live method accepts upload
+The pinned Open Wearables Strava page lists 200 requests per 15 minutes
+for a standard tier and 400 for extended access. Those are Strava's
+overall limits. The lower read limit, which covers every GET, is in the
+15 November 2026 section below. Garmin's live method accepts upload
 start and end. A range the method itself splits can hide a failed chunk.
-This plan has the client send windows of 24 hours or less instead.
+This plan has the client send shorter windows instead. The 15 November
+2026 section gives their length.
 
 Polar's live methods pass `samples`, `zones`, and `route` through to
 `/v3/exercises`. The save path calls the list method without those
@@ -530,6 +533,80 @@ A route parameter that does not exist explains a provider page that
 cannot take this pull's range. A provider that has no live method is not
 an empty workout history.
 
+## Checks on 15 November 2026
+
+The live-route facts below were read again at commit
+`183e8cc4f6de897dbd288c93d49a691f2cf721ae`, for the review findings and
+for Athletic Standard 2.1.1. No server was called, and no vendor account
+was used.
+
+Connections. `UserConnectionWithCapabilities`, in
+`schemas/model_crud/user_management/user_connection.py`, has `user_id`,
+`provider`, `provider_user_id`, `provider_username`, `scope`, `id`,
+`status`, `last_synced_at`, `created_at`, `updated_at`, `icon_url`,
+`max_historical_days`, `rest_pull`, four webhook flags, `live_sync_mode`,
+and `linked_user_ids`. The route fills `linked_user_ids` with other users
+linked to the same vendor account. `ConnectionStatus`, in
+`schemas/auth/connection_status.py`, is `active`, `revoked`, or `expired`.
+
+Live routes. Both handlers in `vendor_workouts.py` return the provider
+method's value unchanged. The list handler passes `since`, `limit`
+(default 50, at most 100), `offset`, `filter_by_modification_time`
+(default true), `samples`, `zones`, `route`, `summary_start_time`, and
+`summary_end_time` to every provider. Each provider reads the ones it
+uses.
+
+Client. `_make_api_request` in `api_client.py` makes at most four
+attempts. Each attempt uses `provider_request_timeout_seconds`, which is
+30 seconds by default and at most 300 in `config.py`. A 429 waits 15, then
+30, then 60 seconds. A 401 reloads the token once and tries again. A
+timeout or another transport error is not retried. A token refresh holds
+`token_refresh_lock` for up to 60 seconds and waits up to 10 seconds for
+it. So with the default timeout, one GET can take about 225 seconds, plus
+a refresh.
+
+Garmin. `get_workouts_from_api` in `garmin_w.py` reads
+`summary_start_time` and `summary_end_time` as an integer first, then as
+ISO 8601. It turns both into naive local times with
+`datetime.fromtimestamp` and compares them. A difference over 24 hours
+goes to `get_workouts_historical`, which fetches 24-hour pieces and logs
+and skips a piece that fails. On a server whose local zone moves its
+clock forward, a true 24-hour window that crosses that change is 25 local
+hours. So this plan sends windows of 82,800 seconds, 23 hours, or less. A
+one-year range is 381 windows. Detail calls
+`/wellness-api/rest/activities/{activity_id}`. This study did not find that
+path in Garmin's public docs. `ActivityJSON` types `activityId` as an
+integer or a string. The Garmin wellness models declare an optional
+`userAccessToken`. `ActivityJSON` does not, but the live route returns
+Garmin's objects unchanged.
+
+Suunto. `get_workout_detail` in `suunto_w.py` names its argument
+`workout_key` and calls `/v3/workouts/{workout_key}`. The list method
+reads `payload` and pages by `offset`, at most 100 a page. The route's
+`filter_by_modification_time` defaults to true, so this plan sends false.
+
+Whoop. The method caps `limit` at 25, takes `nextToken` from the request,
+and reads `next_token` in the response. The route never passes
+`nextToken`, so one call reads only the first page.
+
+Sensorbio. The route's method sends `last-timestamp` 0 and `limit` at most
+50, and returns that one response. It does not follow `links.next`, so it
+reads the oldest 50 entries.
+
+Strava. `get_workouts_from_api` sends `page` 1 and `per_page` from
+`strava_events_per_page`, which is 200 by default, and ignores `limit`.
+Strava's API reference, fetched 15 November 2026, lists `DetailedActivity`
+fields that include `laps`, `splits_metric`, `splits_standard`,
+`segment_efforts`, `best_efforts`, `map`, `photos`, `gear`,
+`description`, `calories`, and `embed_token`. It calls `embed_token` the
+token used to embed a Strava activity. Strava's rate-limit page,
+`https://developers.strava.com/docs/rate-limits/`, fetched the same day,
+says limits are per application. The default overall limit is 200
+requests per 15 minutes and 2,000 a day. The default non-upload limit,
+which covers every GET, is 100 per 15 minutes and 1,000 a day. After the
+upgrade on the API settings page, the read limit is 200 and 2,000, and
+the overall limit is 400 and 4,000. A request over a limit gets a 429.
+
 ## What was not checked
 
 - A running server's JSON, including the exact `start_time` text.
@@ -537,4 +614,10 @@ an empty workout history.
 - Whether Docker tag `latest` matches release `0.11.0` or `main`.
 - The database timezone applied to a date-only bound.
 - Middleware rate limits.
+- Any timeout the server's web process puts in front of the live routes.
+- Garmin's public docs for the detail path and for a per-minute rate. The
+  review cited about 100 requests a minute. This study did not find it.
+- Which local timezone a given deployment runs in.
+- Whether a Garmin activity object from the live list carries
+  `userAccessToken`.
 - The host `https://docs.openwearables.io`.

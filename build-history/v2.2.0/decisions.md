@@ -73,7 +73,8 @@ These edits answer the thirteen findings of the review at `e145fa6`:
   deletion and correction.
 - D243. Connections, statuses, Suunto keys, detail rules, timeouts, request
   budgets, Garmin windows, id spelling, start times, and the count of every
-  object left out.
+  object left out. Garmin windows are 23 hours, not 24, because the pinned
+  server measures a window in naive local time.
 - D244. A credential-shaped value is withheld and counted. It no longer
   refuses the page.
 
@@ -1248,9 +1249,13 @@ call could make the server try a refresh or a revoke. The order is
 Garmin, Polar, Suunto, Whoop, Fitbit, Oura, Strava, Withings, Sensorbio.
 One failure leaves that line `incomplete`. The others still run.
 
-Garmin is split by this program into windows of 86,400 seconds or less,
-one call each. Each window sends integer Unix seconds. Any failed window
-makes Garmin `incomplete`. The pinned code calls Garmin detail at
+Garmin is split by this program into windows of 82,800 seconds, 23
+hours, or less, one call each. Each window sends integer Unix seconds.
+The pinned server splits a window it sees as longer than 24 hours and
+drops a failed piece without saying so. It measures in naive local time,
+so a true 24-hour window can look 25 hours long when the server's clock
+moves forward. A 23-hour window cannot. Any failed window makes Garmin
+`incomplete`. The pinned code calls Garmin detail at
 `/wellness-api/rest/activities/{activity_id}`. This study did not find
 that path in Garmin's public docs, so a failed Garmin detail is counted
 like any other. Polar's list omits samples, zones, and route, and detail
@@ -1346,9 +1351,10 @@ withheld the same way, and the URL keeps its address. `polar_user` and a
 coordinate are not credential-shaped. The rule covers stored reads and
 vendor reads alike.
 
-Garmin's list objects can carry an optional `userAccessToken`. Refusing
-the page would refuse every such Garmin page, and the workouts on it
-would be lost. Withholding keeps the workout and keeps the vendor's token
+Garmin's summary objects can carry an optional `userAccessToken`. The
+pinned server declares it on its Garmin wellness models, and the live
+route returns Garmin's objects unchanged. Refusing the page would refuse
+every Garmin page that carries it, and the workouts on it would be lost. Withholding keeps the workout and keeps the vendor's token
 out of the record. The stored original then differs from the vendor's
 object only at the withheld paths, and the count says how many there
 are. The maintainer can change the key list or the marker before
