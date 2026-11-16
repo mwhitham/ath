@@ -1587,18 +1587,31 @@ attachments, reporting periods, and the other child tables, use
 `install_schema` runs. A `DROP TABLE records` inside that transaction
 would fail or cascade through the children. Step 6 does not do that.
 `write_transaction` in the same file refuses to write when foreign keys
-are off. `Store::transaction` uses it, and every 2.1.1 migration runs
-through `Store::transaction`.
+are off. `Store::transaction` uses it. `ath migrate` and
+`apply_pending_without_backup` run steps 2 through 5 through
+`Store::transaction`. A new database does not. `Store::create` opens a
+connection, runs `configure` and `enable_wal`, and calls `install_schema`
+on that connection before any `Store` exists. `install_schema` opens its
+own transaction with `rusqlite::Transaction::new_unchecked`.
 
-Today `install_schema` runs the whole chain, steps 1 through 5, in one
-transaction. That transaction sets `user_version` to `SQL_SCHEMA_VERSION`
-and commits. With step 6, that transaction stops after step 5, sets
-`user_version` 5, and commits. Step 6 then runs in its own transaction and
-sets `user_version` 6.
+Today `install_schema` runs the whole chain, steps 1 through 5, in that
+one transaction. It sets `user_version` to `SQL_SCHEMA_VERSION`. Then it
+refuses unless the metadata reads `SQL_SCHEMA_VERSION` and
+`ATHLETIC_STANDARD_VERSION`, in `src/store/mod.rs` lines 625 through 629
+at `0de71bb`. `apply_steps` in `src/store/migrate.rs` has the same kind of
+final check, in lines 321 through 326. It refuses unless the last step it
+ran reached `SQL_SCHEMA_VERSION`. When the constant becomes 6 and steps 1
+through 5 commit at schema 5, both checks would fail. So the build changes
+both. The first `install_schema` transaction stops after step 5, sets
+`user_version` 5, checks for schema 5 and `2.1.1`, and commits.
+`apply_steps` checks that it reached the last step it was given. The
+step-6 function makes the final check before it commits: schema 6,
+`2.2.0`, and `user_version` 6.
 
-Step 6 runs on the store's own connection, in a transaction that
-`src/store/migrate.rs` opens itself rather than through
-`Store::transaction`. Before `BEGIN IMMEDIATE`, it sets
+Step 6 is one function in `src/store/migrate.rs`. It takes the
+connection and opens its own transaction. At init it runs on the
+connection `Store::create` opened. On migrate it runs on the store's
+connection. It does not use `Store::transaction`. Before `BEGIN IMMEDIATE`, it sets
 `PRAGMA foreign_keys=OFF` and reads the pragma back. The value must be 0. Turning foreign keys off does not turn off the schema
 check SQLite runs during `ALTER TABLE`. `sql_v1_current_records` and
 `sql_v1_active_records` select from `records`. The triggers
@@ -2292,7 +2305,13 @@ Migration tests, in the build gate:
   populated 2.1.1 database leaves that file, schema 5, the views, and
   foreign-key enforcement. Step 5 still
   writes `2.1.1` and schema 5, and `install_schema` commits that
-  transaction before step 6
+  transaction before step 6. Its check accepts schema 5 and `2.1.1` there.
+  A step 6 that is made to stop before it sets the version rows fails the
+  step-6 check for schema 6 and `2.2.0`, and init fails. Init runs on the
+  connection `Store::create` opened and never calls `Store::transaction`
+- `apply_steps` given steps 2 through 5 passes its final check at schema 5.
+  Given a list that ends before 5, it still refuses when the database
+  stops short of the last step in that list
 - a 2.0.0 database whose step 6 is made to fail after steps 3 to 5
   committed is a 2.1.1 database at schema 5. The message says so and names
   the verified backup. A second `ath migrate` runs only step 6 and

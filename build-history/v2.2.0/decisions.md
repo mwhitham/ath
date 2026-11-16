@@ -78,6 +78,15 @@ These edits answer the thirteen findings of the review at `e145fa6`:
 - D244. A credential-shaped value is withheld and counted. It no longer
   refuses the page.
 
+## Changes after the review at `d636d7a`
+
+These edits answer the review of this plan at `d636d7a`:
+
+- D227. A new database runs its migrations on the connection
+  `Store::create` opened, not through `Store::transaction`. The two 2.1.1
+  checks that expect one transaction to reach the last schema are named,
+  with the check that replaces each.
+
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
 `ath pull openwearables` reads the stored representations D232 lists from an
@@ -96,16 +105,32 @@ the two cross-table triggers around the root rename. Existing rows keep
 their numbers. Steps 1 through 5 are not edited (D165).
 
 In 2.1.1, `install_schema` in `src/store/mod.rs` runs the whole chain in one
-transaction with foreign keys on. Every other migration runs inside
+transaction with foreign keys on. `Store::create` calls it on a new
+connection before any `Store` exists, and it opens its own transaction.
+`ath migrate` and `apply_pending_without_backup` run their steps inside
 `Store::transaction`, which refuses to write when foreign keys are off.
 Step 6 needs them off while it rebuilds tables that other tables point to.
 So `install_schema` commits steps 1 through 5 first, and step 6 runs in its
-own transaction on the store's own connection. `src/store/migrate.rs` turns
+own transaction on the same connection. Step 6 is one function in
+`src/store/migrate.rs` that takes the connection, so init and migrate both
+call it. It turns
 foreign keys off before that transaction begins, because SQLite ignores the
 setting inside a transaction, and reads the setting back. The step runs
 `PRAGMA foreign_key_check` and refuses any row it returns. It sets
 `user_version` 6 and commits. Foreign keys are turned on again and read
-back, whether the step committed or not. `ath migrate` keeps its verified
+back, whether the step committed or not.
+
+Two 2.1.1 checks expect one transaction to reach the last schema.
+`install_schema` refuses unless the metadata reads `SQL_SCHEMA_VERSION`
+and `ATHLETIC_STANDARD_VERSION` (`src/store/mod.rs`, lines 625 through
+629 at `0de71bb`). `apply_steps` refuses unless its last step reached
+`SQL_SCHEMA_VERSION` (`src/store/migrate.rs`, lines 321 through 326). With
+the constant at 6, both would fail once steps 1 through 5 commit at schema
+5. So the first transaction checks for schema 5 and `2.1.1`. `apply_steps`
+checks for the last step it was given. The step-6 function checks for
+schema 6, `2.2.0`, and `user_version` 6 before it commits.
+
+`ath migrate` keeps its verified
 backup. Inside the step-6 transaction it checks again that the file, the
 database ID, the schema, and the database revision are the ones its earlier
 steps left. `MIGRATION_CHAIN` in that file and `spec/sql/contract.json` gain
