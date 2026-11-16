@@ -47,8 +47,10 @@ The skills CLI puts each agent's copy in that agent's folder: `.agents/skills/` 
 Codex and similar agents, `.claude/skills/` for Claude Code. `ath apply` runs the
 calculation in `.agents/skills/<name>/SKILL.md` when it exists, else the copy built
 into `ath`. A copy in `.claude/skills/` is read by the agent as instructions; an
-edit there does not change what `ath apply` calculates. Run `ath skill install` to
-put the calculation files where `ath apply` reads them.
+edit there does not change what `ath apply` calculates. A global install
+(`--global`) goes to `~/.agents/skills/`, which agents read in every project but
+`ath apply` does not. Run `ath skill install` in the athlete's folder to put the
+calculation files where `ath apply` reads them.
 
 ## The skills
 

@@ -11,9 +11,9 @@ Status: **build in progress; not released**. The plan is [spec.md](spec.md).
 | 5 | Installer: skill kinds, named coaching installs, unedited-copy updates | done |
 | 6 | Calculation skill rewrites with executed examples | done |
 | 7 | Tool skill update | done |
-| 8 | CrossFit and HYROX skills, `hyrox-race-splits` | not started |
-| 9 | skills.sh preparation and contribution standard | in progress |
-| 10 | Agent evaluations, installation tests, repository checks | not started |
+| 8 | CrossFit and HYROX skills, `hyrox-race-splits` | in progress: `hyrox-race-splits` done |
+| 9 | skills.sh preparation and contribution standard | done |
+| 10 | Agent evaluations, installation tests, repository checks | in progress |
 
 Outstanding outside this build:
 

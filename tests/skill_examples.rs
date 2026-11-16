@@ -268,3 +268,27 @@ fn the_examples_folder_is_not_needed() {
     // Examples live inside each SKILL.md so an installed copy carries them.
     assert!(!Path::new(env!("CARGO_MANIFEST_DIR")).join("skills/examples").exists());
 }
+
+/// `skills.sh.json` puts every shipped skill in exactly one group and names no
+/// skill that does not exist (D248).
+#[test]
+fn the_skills_sh_groups_list_every_skill_once() {
+    let text = std::fs::read_to_string(Path::new(env!("CARGO_MANIFEST_DIR")).join("skills.sh.json")).unwrap();
+    let config: serde_json::Value = serde_json::from_str(&text).unwrap();
+    let mut grouped: Vec<String> = Vec::new();
+    for group in config["groupings"].as_array().unwrap() {
+        assert!(group["title"].as_str().is_some_and(|title| !title.is_empty()));
+        for skill in group["skills"].as_array().unwrap() {
+            grouped.push(skill.as_str().unwrap().to_string());
+        }
+    }
+    let mut sorted = grouped.clone();
+    sorted.sort();
+    sorted.dedup();
+    assert_eq!(sorted.len(), grouped.len(), "a skill is listed twice");
+    let shipped: Vec<String> =
+        skill_dirs().iter().map(|dir| dir.file_name().unwrap().to_string_lossy().to_string()).collect();
+    let mut shipped_sorted = shipped.clone();
+    shipped_sorted.sort();
+    assert_eq!(sorted, shipped_sorted);
+}

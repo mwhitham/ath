@@ -55,11 +55,46 @@ claims are right, not when the answer merely reads well.
 
 ## Results
 
+Run date: 2026-11-15. Model: the same model for every run, in a fresh context.
+"Commands" lists the calculations each agent ran, from the `ath` wrapper's log.
+
+### Calculation and logging cases
+
+| Case | Skills | Result | Commands that mattered | Notes |
+|---|---|---|---|---|
+| r1 HRV | 2.1.2 | **Pass** | `apply hrv-change` on the ring RMSSD and on the watch SDNN; `resting-heart-rate-change`; `sleep-change`; `calculate coverage hrv_sdnn` | RMSSD 46 against about 58 ms (−12 ms, −21 %) and SDNN 31 against about 45 ms (−14 ms, −31 %), kept apart; "don't compare 46 with 31". Noted the watch's normal came from 24 days because of the four-day gap. Resting heart rate and sleep reported separately; candidate causes named as unproven; no combined score; offered to log a note only after a preview. |
+| r1 HRV | 2.1.1 | Pass, with a workaround | `apply hrv-change` (ring); `calculate baseline hrv_sdnn` | The old `hrv-change` could not read the watch's SDNN samples, the failure found in the audit. The agent compared SDNN with all 90 earlier readings instead, weighting readings rather than days and using no window. The answer was sound because the invented history is flat. |
+| r2 sleep regularity | 2.1.2 | **Pass** | `apply sleep-regularity` on several nights | Index 85.4 over 14 observed days; earlier windows 86.5–88.5; the Friday and Saturday shift named as the cause; limits stated (wake inside a session counts as asleep; not comparable with study averages). |
+| r2 sleep regularity | 2.1.1 | Pass, with a workaround | `apply sleep-regularity`; `apply sleep-timing` on 28 nights | The old method returned 0.526. The agent discarded it only because the 2.1.2 method notice said the old method compares nights at the same instant. It then worked out each night's clock times by hand and gave no score. Without the notice, 0.526 was the only number available. |
+| r3 effort load | 2.1.2 | **Pass** | `apply training-load-effort` on each of the six reports | 2 385 AU from 28 October to 3 November; the soreness rating left out, with the reason; the 0–10 scale named; no earlier week to compare. |
+| r3 effort load | 2.1.1 | Pass, aided by the notice | `apply training-load-effort` on each of the six reports | 2 385 AU. The agent chose the six session ratings by hand because the method notice said the old file multiplies any rating, including soreness. The old file alone would have accepted the soreness rating as a load of 240. |
+| r4 strength volume | 2.1.2 | **Pass** | `apply strength-volume` | 2 499.76 kg; pounds converted; both dumbbells counted; split by movement; said volume is not effort. |
+| r5 no coaching skill | 2.1.2 | **Pass** | `skill`, `stats` | Said the CrossFit coaching skill is not installed and offered `ath skill install crossfit`, asking first. Did not improvise a program. |
+
+No calculation or logging run wrote to its database.
+
+What the comparison shows: with 2.1.2 the agents ran the right calculation and
+reported its numbers directly. With the 2.1.1 files they reached sound answers only
+by working around the files, and in two of three cases only because the 2.1.2
+method notice warned them. A real 2.1.1 installation has no notice.
+
+### Coaching cases
+
 Pending.
 
 ## Local installation with the skills CLI
 
-Pending.
+The `skills` CLI 1.8.1 was run with `DISABLE_TELEMETRY=1` and `DO_NOT_TRACK=1`, in a
+sandbox whose only network route was the npm registry, against a clean export of the
+committed `skills/` folder. No connection to skills.sh was attempted or reported.
+
+| Step | Result |
+|---|---|
+| `skills add <local export> --list` | Found all 25 committed skills at the time (the tool skill and 24 calculations). |
+| `add --skill athletic-standard --skill hrv-change --agent claude-code --copy -y` | Copied to `.claude/skills/`, byte for byte. |
+| `add --skill sleep-regularity --agent codex --copy -y` | Copied to `.agents/skills/`, the folder `ath apply` reads, byte for byte. |
+| `add --skill training-load-effort --agent codex --global --copy -y`, with `HOME` set to a temporary folder | Copied to `~/.agents/skills/`, byte for byte; `skills list --global` shows it. |
+| `skills update sleep-regularity --project -y` after changing the local source | Reported "No installed skills found". Updating through the skills CLI from a local source was **not verified**. Updates through `ath skill install` are tested in `tests/skill_install.rs`. |
 
 ## Independent coaching review
 

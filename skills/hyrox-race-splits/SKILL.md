@@ -39,8 +39,8 @@ rulebook, format, division, category, whether it was a race or a simulation, and
 any `penalties_s` (D245). The `hyrox` coaching skill shows a complete record.
 
 The 2026/27 rulebooks do not define where Roxzone timing starts or ends, and timing
-providers split it differently. Record the split layout you were given and say which
-it is.
+providers split it differently. Record the split layout you were given, for example
+in the extension's `split_layout` text, and say which it is.
 
 ## Method
 
