@@ -1008,10 +1008,18 @@ timeout above.
   server whose clock moves forward, a true 24-hour window can look 25
   hours long. A 23-hour window cannot look longer than 24 hours.
   A failed window makes Garmin `incomplete`, and later windows still run.
-  The pinned code calls detail at
-  `/wellness-api/rest/activities/{activity_id}`. This study did not find
-  that path in Garmin's public docs. A failed Garmin detail is counted as
-  `failed`, like any other.
+  The pull calls Garmin detail at the pinned path,
+  `/wellness-api/rest/activities/{activity_id}`. That path is not in
+  Garmin's public docs. This study looked and did not find it, so the path
+  may not exist. For a Garmin detail only, HTTP 404 or HTTP 501 counts as
+  `not_available`. The list object is stored whole, with `detail_status`
+  `not_available`, and Garmin stays `completed`. Any other failed Garmin
+  detail is `failed`, and Garmin is `incomplete`. A 404 or 501 on a Garmin
+  list window is not this rule. It fails that window. Every other
+  provider's detail 404 is `failed`. The pinned client passes a vendor's
+  404 through unchanged, and the route answers 501 only for a provider it
+  has no workout method for, so this study cannot tell a missing path
+  from a missing activity.
 - Polar. The list sends `samples`, `zones`, and `route` false, the route's
   default, so the list stays small. Detail sends all three true. A list
   over the response cap fails that list, because the route has no smaller
@@ -1102,9 +1110,12 @@ holds a detail, and its stored `list`.
 
 The pull calls detail only when the provider has a detail call and its
 budget allows. It spends the budget in this order. First come ids with no
-stored detail. Then come ids whose list object differs from the stored
-`list`. Inside each group the oldest start goes first. An id without a
-start instant goes last, in list order. An id whose original holds a
+stored detail that no earlier command marked `not_available`. Then come
+ids whose list object differs from the stored `list`. Then come ids an
+earlier command marked `not_available`. Inside each group the oldest start
+goes first. An id without a start instant goes last in its group, in list
+order. So a Garmin path that answers 404 for every id still lets new ids
+go first, and it costs at most the provider's budget in one command. An id whose original holds a
 detail and whose list object is unchanged gets no detail call. A deleted
 original gets no detail call. A detail is fetched again only when the list
 object changed. A provider that changes a detail without changing the
@@ -1129,13 +1140,16 @@ What is written for one id depends on what this command got:
 - No new detail, and none stored. The original is written with the list
   object alone. `detail_status` says why: `deferred`, `failed`,
   `mismatch`, or `not_available`. The id counts under the same word.
+  `not_available` means the provider has no detail call, or Garmin
+  answered its detail call with 404 or 501.
 - No new detail, but one is stored, and the list object changed. Nothing
   is written for that id, and no revision is added. The stored detail
   stays. The id counts as `deferred`, `failed`, or `mismatch`.
 
 A list-only object therefore never replaces a stored detail. A `failed`
 or `mismatch` detail makes the provider `incomplete`, and the exit is
-nonzero. A `deferred` detail leaves the provider `completed`, with the
+nonzero. A `not_available` detail leaves the provider `completed`. A
+`deferred` detail leaves the provider `completed`, with the
 deferred count on its line, and the next command details those ids first.
 A deferred id that the provider stops listing is never detailed by a later
 command. The deferred count shows how many are waiting.
@@ -2256,6 +2270,14 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   last one ended. A date `--from` starts at midnight UTC. One failed
   window makes Garmin `incomplete` and never `completed`. A later window
   still runs
+- a Garmin detail that answers HTTP 404 stores the list object whole with
+  `detail_status` `not_available`. Garmin is `completed`, its line counts
+  1 `not_available`, and the command exits 0. HTTP 501 is the same. A
+  Garmin detail that answers HTTP 500 is `failed`, Garmin is
+  `incomplete`, and the exit is nonzero. A Polar detail that answers 404
+  is `failed`. A Garmin list window that answers 404 fails that window.
+  On the next command, a new Garmin id is detailed before the id that was
+  `not_available`
 - live requests go one at a time, at least one second apart by the
   fixture server's clock. A live request that times out, with the read
   timeout shortened for the test, stops every later request to that
@@ -2487,8 +2509,12 @@ Risks:
 - Strava's limit is shared with the deployment's own sync. One command can
   use most of a 15-minute window.
 - The pinned Garmin detail path and the cited Garmin rate were not found
-  in Garmin's public docs. If the path does not exist, Garmin details show
-  as `failed`, and Garmin is `incomplete`.
+  in Garmin's public docs. If the path does not exist, each Garmin detail
+  answers 404 or 501. Those count as `not_available`, Garmin stays
+  `completed`, and each Garmin original holds its list object only. Each
+  command still spends up to 100 Garmin detail calls on ids that were
+  `not_available`, after new ids. A deployment where that path works fills
+  those details in on later commands.
 - A later pull replaces an owner correction of a vendor original when the
   server's envelope differs. The correction stays in the history. Deleting
   the original stops it.

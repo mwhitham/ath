@@ -92,6 +92,9 @@ These edits answer the review of this plan at `d636d7a`:
   `connector` source call, because `route_source` stages only
   `export_file` sources, and a count by record type in
   `src/import/staging.rs`. The revision a preview read is already public.
+- D243. A Garmin detail that answers 404 or 501 is `not_available`, not
+  `failed`. Garmin stays `completed`, and the list object is stored whole.
+  The pinned detail path is not in Garmin's public docs.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -1297,10 +1300,14 @@ The pinned server splits a window it sees as longer than 24 hours and
 drops a failed piece without saying so. It measures in naive local time,
 so a true 24-hour window can look 25 hours long when the server's clock
 moves forward. A 23-hour window cannot. Any failed window makes Garmin
-`incomplete`. The pinned code calls Garmin detail at
-`/wellness-api/rest/activities/{activity_id}`. This study did not find
-that path in Garmin's public docs, so a failed Garmin detail is counted
-like any other. Polar's list omits samples, zones, and route, and detail
+`incomplete`. The pull keeps calling Garmin detail at the pinned path,
+`/wellness-api/rest/activities/{activity_id}`. That path is not in
+Garmin's public docs, and this study did not find it there. For a Garmin
+detail only, HTTP 404 or 501 counts as `not_available`: the list object
+is stored whole, and Garmin stays `completed`. Any other Garmin detail
+error is `failed`. An id that was `not_available` is detailed again after
+the new and changed ids, inside the same budget. The maintainer confirms
+this rule before approval. Polar's list omits samples, zones, and route, and detail
 asks for all three. Suunto's detail is called at `workoutKey` when the
 list object has one, and at `workoutId` otherwise. Its `payload` is
 unwrapped, and the record key is `workoutId`. Whoop's response names its
@@ -1355,6 +1362,12 @@ Rejected alternatives:
   is not health data.
 - Write the list object over a stored detail when the new detail fails or
   is deferred. Rejected. The person would lose data they already have.
+- Count a Garmin detail 404 as `failed`, as the earlier text did.
+  Rejected. If the path does not exist, Garmin would be `incomplete` on
+  every command, and the person could not fix it.
+- Drop the Garmin detail call because the path is not in Garmin's public
+  docs. Rejected. The pinned server calls it, and a deployment where it
+  works would lose every Garmin detail.
 - Use a 30-second read timeout. Rejected. The server's own retries take
   longer. The client would give up, and a rerun could send a second
   request while the first still runs.
