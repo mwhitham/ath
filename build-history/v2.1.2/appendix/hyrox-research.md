@@ -270,7 +270,189 @@ A coach turns research and practice into a hypothesis about one athlete. Section
 
 ## 5. Transferable evidence a HYROX coach relies on
 
-TRANSFERABLE_PLACEHOLDER
+None of the studies in this section tested HYROX athletes. They come from runners, triathletes, team-sport athletes, CrossFit athletes, and general gym users. Each finding is labelled **[Research, other sports]**. Each item ends with how far it transfers and what it does not show.
+
+Terms used below:
+
+- **Effect size (ES) or standardised mean difference (SMD):** a score for the size of a change. As a rough guide, 0.2 is small, 0.5 is moderate, and 0.8 is large. The sign depends on the paper, so the direction is stated.
+- **CI:** 95% confidence interval. If it crosses zero, the result may be no effect.
+- **Running economy:** the oxygen cost of running at a set speed. Lower is better.
+- **1RM:** the most weight a person can lift once.
+
+### 5.1 Concurrent strength and endurance training (the "interference effect")
+
+"Interference" means that endurance training can blunt gains from strength training when both are done in the same program.
+
+- **[Research, other sports]** Wilson et al. 2012. Meta-analysis of 21 studies (422 effect sizes).
+  - Gains in muscle size: strength only ES 1.23, concurrent 0.85.
+  - Gains in strength: strength only 1.76, concurrent 1.44.
+  - Gains in power: strength only 0.91, concurrent 0.55.
+  - Strength training combined with running, but not cycling, reduced gains in muscle size and strength.
+  - More frequent and longer endurance training went with smaller gains (frequency r = −0.26 to −0.35; duration r = −0.29 to −0.75).
+  - Limits: older and smaller pool of studies. A later meta-analysis did not confirm the running-versus-cycling finding.
+- **[Research, other sports]** Schumann et al. 2022. Meta-analysis of 43 studies.
+  - Concurrent training did not reduce maximal strength (SMD −0.06, CI −0.20 to 0.09) or muscle size (SMD −0.01).
+  - It did reduce explosive strength (SMD −0.28, CI −0.48 to −0.08).
+  - The loss in explosive strength appeared when both were done in the same session. It was not significant when sessions were at least 3 hours apart.
+  - Running versus cycling, weekly frequency, training status, and age made no clear difference.
+  - Limits: most studies were of medium quality. Aerobic intensity was not analysed.
+- **[Research, other sports]** Petré et al. 2021. Meta-analysis of 27 studies on lower-body 1RM.
+  - Trained people: ES −0.35 (a real loss). Moderately trained: −0.20 (not significant). Untrained: 0.03 (no loss).
+  - In trained people, the loss was −0.66 when both were in the same session, and −0.10 (not significant) in separate sessions.
+- **[Research, other sports]** Huiberts et al. 2024. Meta-analysis of 59 studies and 1,346 adults.
+  - Lower-body strength gains were blunted in men (SMD −0.43, CI −0.64 to −0.22) but not in women (SMD 0.08, CI −0.34 to 0.49).
+  - No sex difference for upper-body strength, power, or VO2max.
+  - Untrained people gained less VO2max with concurrent training. Trained endurance athletes did not.
+  - Limits: few women and few highly trained athletes.
+- **[Research, other sports]** Order within one session.
+  - Murlasits et al. 2018: strength before endurance gave 3.96 kg more lower-body 1RM (CI 0.81 to 7.10). Order did not change VO2max.
+  - Eddens et al. 2018: 10 studies. Strength first gave 6.91% more lower-body dynamic strength. No effect on VO2max or muscle size.
+  - Gao & Yu 2023: 19 trials, 482 people. No VO2max difference (SMD 0.02). Strength first gave slightly more lower-limb strength (SMD 0.19).
+- **[Practice]** When leg strength or power is the priority, many coaches put hard leg work and hard running on different days, or at least 3 hours apart. When both share a session, they lift first.
+- **Transfer:** HYROX athletes must train both. In most people, adding endurance work does little harm to maximal strength or muscle size. It can blunt explosive strength. In trained men it can blunt lower-body strength, mainly in same-session training.
+- **Does not show:** any effect on HYROX race time. Most studies lasted only weeks, used untrained or recreational people, and used modest endurance volumes. None used HYROX-like volumes of station work.
+
+### 5.2 Strength training and running economy
+
+- **[Research, other sports]** Blagrove et al. 2018. Systematic review of 24 studies of runners (no pooled numbers).
+  - Running economy generally improved by 2–8% compared with running-only groups.
+  - Time trials of 1.5–10 km tended to improve.
+  - VO2max, lactate, and body composition usually did not change.
+  - Limits: study quality scores were 4–6 out of 10.
+- **[Research, other sports]** Balsalobre-Fernández et al. 2016. Meta-analysis of 5 studies, 93 highly trained runners.
+  - Running economy improved with a large effect (SMD −1.42, CI −2.23 to −0.60). Negative means a lower oxygen cost.
+  - Programs: 2–3 times a week for 8–12 weeks.
+  - Limits: only 5 small studies. Wide CI.
+- **[Research, other sports]** Llanos-Lagos et al. 2024a. Meta-analysis of 31 studies, 652 runners. Effects on running economy (negative is better):
+  - Heavy loads (at least 80% of 1RM): ES −0.27.
+  - Combined methods: ES −0.43.
+  - Plyometrics (jump training): ES −0.31, but only at speeds of 12 km/h or less.
+  - Submaximal-load and isometric training: no clear effect.
+- **[Research, other sports]** Llanos-Lagos et al. 2024b. Meta-analysis of 38 studies, 894 runners. Effects on time trial or time to exhaustion:
+  - Heavy loads: ES −0.47. Combined methods: ES −1.04 (results varied a lot). Plyometrics: −0.21 (not significant).
+  - No method improved VO2max or sprint capacity.
+  - Certainty of evidence: very low to moderate.
+- **[Research, other sports]** Rønnestad & Mujika 2014. Narrative review. Heavy or explosive strength training improves running economy. The proposed reasons are hypotheses.
+- **[Research, other sports]** Zanini et al. 2025. Randomised trial, 28 well-trained male runners, 10 weeks.
+  - Maximal strength plus plyometrics twice a week.
+  - At 90 minutes of a hard steady run, running economy changed by −2.1% with strength training versus +0.6% without.
+  - A run to exhaustion straight after the 90 minutes lasted 35% longer with strength training. It got 8% shorter without.
+  - Limits: men only, one lab.
+- **[Research, HYROX n = 1]** The world champion in Schwalm et al. 2026 was judged to have exceptional running economy.
+- **[Practice]** Many coaches use heavy lifting (around 80% of 1RM or more) plus jumps, 2–3 times a week, to support the running part of HYROX.
+- **Transfer:** Good support for heavy and jump training to help the 8 km of running. Zanini 2025 suggests the benefit holds when tired.
+- **Does not show:** effects in hybrid athletes who already lift a lot. Effects on running right after sleds, lunges, or wall balls.
+
+### 5.3 Endurance intensity and thresholds
+
+- **[Research, other sports]** Rosenblat et al. 2019. 3 trials pooled. Polarised training beat threshold training for time trials (ES −0.66, CI −1.17 to −0.15). Limits: very few studies, low quality scores, search ended in 2016.
+- **[Research, other sports]** Silva Oliveira et al. 2024. Meta-analysis of 17 studies, 437 people.
+  - Polarised training gave slightly more VO2peak (SMD 0.24, CI 0.01 to 0.48).
+  - No difference in time trial (SMD −0.01), time to exhaustion, or speed at the second threshold.
+- **[Research, other sports]** Rosenblat et al. 2025. Network meta-analysis of individual data, 13 studies, 348 athletes (296 men).
+  - No difference between polarised and pyramidal training in VO2max (SMD −0.06) or time trial (SMD −0.05).
+  - Competitive athletes may gain more VO2max from polarised training. Recreational athletes may gain more from pyramidal training.
+- **[Research, other sports]** Faude et al. 2009. Review of lactate thresholds. The authors found 25 different threshold methods. Most studies found strong links between threshold and endurance performance, especially in running.
+- **[Research, other sports]** Galán-Rioja et al. 2020. Meta-analysis of 9 studies. Thresholds correlate with critical power, but they do not give the same value. Compared with critical power:
+  - first ventilatory threshold: 30% lower
+  - maximal lactate steady state: 11% lower
+  - respiratory compensation point: 6% higher
+  - second ventilatory threshold: 21% higher
+- **[Research, other sports]** Jones & Vanhatalo 2017. Review of the critical power model. Critical power is the highest rate of work a person can sustain. Above it, a fixed reserve of work (called W′) is used up. Below it, the reserve refills, but at a rate that varies a lot between people.
+- **[Research, HYROX]** PRO men ran at about 84% of their VT2 speed across the race (Gutiérrez-Hellín et al. 2026).
+- **[Practice]** Most endurance coaches keep most running easy and add some hard sessions. Polarised, pyramidal, and threshold-heavy plans are all used.
+- **[Unverified, hypothesis]** The critical power model might explain why hard station efforts slow the next run. No HYROX study tests this.
+- **Transfer:** No single intensity split is clearly best for race performance. Threshold or critical speed tests can anchor run paces. But different tests give different numbers, so a coach must use the same test each time.
+- **Does not show:** how to count station work in an intensity split. None of these studies used mixed strength and endurance events.
+
+### 5.4 Running after other work ("brick" or "compromised" running)
+
+Almost all of this comes from triathlon, where the run follows a bike ride.
+
+- **[Research, other sports]** Millet & Vleck 2000. Narrative review. After a 40 km ride, the energy cost of running rises by 1.6% to 11.6%. The size depends on the athlete's level. Most running mechanics stay the same. The trunk leans further forward.
+- **[Research, other sports]** Bonacci et al. 2010 (*J Sci Med Sport*). 15 moderately trained triathletes, after a 45-minute hard ride.
+  - Movement and muscle use changed in 7 of 15.
+  - The change in ankle angle at foot contact explained 67.1% of the change in oxygen use.
+- **[Research, other sports]** Bonacci et al. 2010 (*J Sports Sci*). 15 moderately trained triathletes. Muscle use changed in 1 of 15. Joint angles changed in 5.
+- **[Research, other sports]** Bonacci et al. 2011 (*Sports Biomech*). 7 elite triathletes. No change in muscle use, joint angles, or running economy after easy or hard riding.
+- **[Research, other sports]** Hue et al. 2002. Randomised training study, 12 triathletes, 6 weeks.
+  - Repeated short ride-run blocks did not improve overall ride-run performance more than normal training.
+  - They did improve the transition (the change plus the first 333 m) by 11.2 s, versus 1.2 s with normal training.
+- **[Research, other sports]** Bonacci et al. 2011 (*Phys Ther Sport*). 8 triathletes with altered running after cycling were randomised. 8 weeks of plyometrics improved movement consistency. Running economy did not change.
+- **[Research, other sports]** Doma & Deakin 2013. 14 runners. The day after a strength-then-run session, running cost rose and time to exhaustion fell. Runs after a run-then-strength session were less affected.
+- **[Research, HYROX]** In HYROX splits, runs after sandbag lunges and sled push slow most (Zhu et al. 2026, preprint, **[Unverified]**). One world champion's step rate changed after some stations (Schwalm et al. 2026, n = 1).
+- **[Practice]** Coaches use "brick" sessions: a station, then a run, repeated.
+- **Transfer:** Earlier work can raise running cost and change mechanics, mostly in less-trained athletes. Elite athletes seem protected. Practising the change may speed up the first part of the next run.
+- **Does not show:** The earlier work was cycling, not sleds, lunges, or wall balls. No study shows that brick training improves total race time. I found no meta-analysis of brick training. Only two small training studies exist (12 and 8 athletes).
+
+### 5.5 Tapering
+
+A taper is a planned cut in training before a race.
+
+- **[Research, other sports]** Bosquet et al. 2007. Meta-analysis of 27 studies in competitive athletes. The best strategy found:
+  - Taper for 2 weeks (effect 0.59 ± 0.33).
+  - Cut volume by 41–60%, in a falling curve (effect 0.72 ± 0.36).
+  - Keep intensity the same (effect 0.33 ± 0.14).
+  - Keep frequency the same (effect 0.35 ± 0.17).
+  - Limits: effects compare before and after the taper. There is no control group.
+- **[Research, other sports]** Wang et al. 2023. Meta-analysis of 14 studies of endurance athletes.
+  - Time-trial performance improved after the taper (SMD −0.45). Time to exhaustion improved (SMD 1.28).
+  - VO2max and economy did not change.
+  - A taper after a planned hard block worked better than a normal taper.
+  - Effective tapers cut volume by 41–60%, kept intensity and frequency, and lasted 21 days or less.
+  - Limits: few randomised trials. Mostly men. Mostly running and cycling.
+- **[Practice]** HYROX coaches commonly cut volume for about 1–2 weeks, keep some race-pace work, and keep some station practice.
+- **Transfer:** The core rule likely transfers: cut volume by about 40–60% and keep intensity and frequency.
+- **Does not show:** how to taper heavy station work, or whether strength needs a different taper.
+
+### 5.6 Sled push and sled pull
+
+- **[Research, other sports]** Petrakos et al. 2016. Systematic review of 11 studies on sled sprints. Heavier sleds improved early acceleration in team-sport athletes (0.5–9.1%). Whether sled sprints beat normal sprints was unclear.
+- **[Research, other sports]** Alcaraz et al. 2018. Meta-analysis of 13 studies. Sled training improved acceleration (ES 0.61), but not clearly more than control groups. The authors suggested rigid surfaces and at least 6 weeks of training.
+- **[Research, other sports]** Xu et al. 2025. Meta-analysis of 49 studies, 1,281 people.
+  - Sled sprints beat normal sprints for sprint performance (ES −0.30, moderate certainty).
+  - Only moderate (20–50% of body mass) and very heavy (80% or more) loads beat normal sprints.
+  - Gains were mostly in the first 0–5 m, and mostly in trained athletes.
+- **[Research, other sports]** Cahill et al. 2020. 50 high-school athletes, 8 weeks of sled pushing. All resisted groups improved 5–20 m times (d = 0.34–1.16). The heaviest group improved most.
+- **[Research, other sports]** Cahill et al. 2021. 90 high-school males. The load needed to slow a sled push by 50% ranged from 45% to 85% of body mass. So the same sled load is a very different stimulus for different people.
+- **[Research, other sports]** Linthorne & Cooper 2013. 6 rugby players towing sleds on 4 surfaces. Surface friction ranged from 0.21 to 0.58. On the lowest-friction surface, extra weight slowed athletes much less. Cross et al. 2019 warn that ignoring friction distorts load prescription.
+- **[Research, other sports]** Winwood et al. 2015. Randomised trial, 30 trained rugby players, 7 weeks. Traditional lifting gave small to moderate extra gains in sled push performance, squat, and deadlift compared with strongman training.
+- **[Research, HYROX]** Sled pull is one of the three largest single sources of between-athlete differences in male PRO results (Yustres Amores et al. 2026). The run after the sled push slows a lot (Zhu et al. 2026, preprint, **[Unverified]**).
+- **[Unverified]** One HYROX sled trial (Li F et al. 2026) favours sled-specific training over squats. Its reporting problems are listed in Section 3.2.
+- **[Practice]** Coaches train on surfaces and loads close to the race, and also build general leg strength.
+- **Transfer:** Almost all sled research is about short sprints (5–30 m) and sprint speed. HYROX sleds are heavy, slow, 50 m efforts done while tired. Surface friction can change the stimulus a lot. So a training sled may feel very different from the race sled.
+- **Does not show:** what training best improves a heavy 50 m sled push or pull. I found no good-quality study on this.
+
+### 5.7 Wall balls, squats, and technique under fatigue
+
+Little research exists. I found no peer-reviewed study of wall-ball technique under fatigue.
+
+- **[Research, other sports]** Hooper et al. 2013. 12 trained men. After a very hard short-rest workout, peak knee bend in a bodyweight squat fell from 120.3° to 104.5°. Peak hip bend fell from 109.4° to 95.8°.
+- **[Research, other sports]** Hooper et al. 2014. 25 men and women, during 55 back-squat reps in a hard workout. The knees bent less and the trunk leaned further forward. Injury risk was suggested but not tested.
+- **[Research, other sports]** Willwacher et al. 2021. 10 men during an all-out 2,000 m row. Upper-back rounding increased as back muscles tired. This is relevant to the row station.
+- **[Research, other sports]** Mangine et al. 2021. Pilot study, 11 CrossFit competitors. Wall-ball rate best predicted results on one workout (R² = 0.89). Small sample and a statistical method that tends to overfit.
+- **[Research, HYROX]** The wall-ball station gave the race's peak heart rate (183 bpm), lactate (8.5 mmol/L), and RPE (18) in Brandt et al. 2025. Wall balls were the largest single source of between-athlete differences in male PRO results (Yustres Amores et al. 2026). Wall balls also improved most over seven seasons (Rappelt et al. 2026; Gutiérrez-Hellín et al. 2026, *Appl Sci*).
+- **[Unverified]** Coaching websites quote a claim that skipping full squat depth cuts wall-ball work by about 27%. No primary source was found.
+- **[Practice]** Coaches set planned sets and short rests for wall balls, and practise them when already tired.
+- **Transfer:** Fatigue reduces squat depth and increases forward lean. This supports watching squat depth late in the race, where a shallow squat can mean a no-rep.
+- **Does not show:** how fast wall-ball technique fails, or how that links to injury or no-reps.
+
+### 5.8 Pacing in multi-part events
+
+- **[Research, other sports]** Abbiss & Laursen 2008. Narrative review. For events longer than about 2 minutes, fairly even pacing may give the best times.
+- **[Research, other sports]** Wu et al. 2014. Narrative review of triathlon. Little is known about how pacing in one discipline affects the next.
+- **[Research, other sports]** Wu et al. 2015. 8 trained men raced three triathlon distances. The run slowed across the Olympic and half-Ironman distances.
+- **[Research, other sports]** Skroce et al. 2022. 13 triathletes ran the first km after cycling at 95%, 100%, or 105% of their second threshold. A fast start raised oxygen use, lactate, heart rate, and effort in that km. By the end of the run, these values were the same. Finish time difference was not reported in the abstract.
+- **[Research, other sports]** Mangine et al. 2023. 160 top-ranked CrossFit athletes. The top 10% were faster and more consistent across most workout parts.
+- **[Research, other sports]** Ribeiro et al. 2024. 13 male CrossFit competitors did the same workout twice.
+  - Controlled start: round scores 99, 98, 97.
+  - All-out start: round scores 114, 80, 80.
+  - Jump height fell less early with the controlled start (−4.0% vs −12.7% after round 2).
+  - **[Unverified, my arithmetic]** The controlled total was about 7% higher (294 vs 274). The abstract does not report a test on the total.
+- **[Research, HYROX]** In PRO men, run 1 was close to threshold speed and run speed then fell (Gutiérrez-Hellín et al. 2026). In top athletes, late fade was not clearly linked to finish time (Shi et al. 2026).
+- **[Practice]** Coaches advise a controlled run 1, a steady middle race, and spending what is left on the last run and wall balls.
+- **Transfer:** Fairly even pacing, and avoiding an all-out start, fit both the general pacing research and the HYROX observations.
+- **Does not show:** No study tests different pacing plans in HYROX. The studies above are small, observational, or from other sports.
 
 ## 6. Injury and health
 
@@ -327,8 +509,125 @@ Rules for the skill:
 
 ## 9. What I could not verify
 
-UNVERIFIED_PLACEHOLDER
+1. **Olivares-Llorente et al. 2026.** The paper is open access, but the publisher site would not load. All its numbers here come from a news summary.
+2. **Fernández-Navarrete et al. 2026, "Mapping the physiological demands of Hyrox©".** It exists in Crossref. I could not read its abstract or text, so it is not summarised.
+3. **Fernández-Navarrete et al. 2026, benchmark tables.** I read the abstract only. I did not see the percentile tables, or whether they split by age group.
+4. **HYScience (Gutiérrez-Hellín et al. 2026, *IJSPP*), both *Applied Sciences* papers, Shi et al. 2026, Li et al. 2026, and the case study.** I read the abstracts only. Full texts were blocked or paywalled.
+5. **Official HYROX analysis of the 2025 World Championship Elite 15** (running said to be 52.0–55.7% of time for men). Seen only in a search snippet. Not found.
+6. **HYROX Data Lab age and sex analysis.** The site would not load. Numbers came from a search snippet.
+7. **Williams et al. 2020.** The abstract does not say whether the "functional fitness racing" events were HYROX.
+8. **Li F et al. 2026 sled trial.** I read the text. It has the reporting problems listed in Section 3.2. I could not confirm a trial registration.
+9. **Bartsch 2026.** I could not judge the journal's peer-review standard.
+10. **The "27% less wall-ball work" claim.** No primary source found.
+11. **Transferable evidence:**
+    - Murlasits et al. 2018: the number of studies and participants is not in the abstract.
+    - Wilson et al. 2012: the total number of participants is not in the abstract.
+    - Bosquet et al. 2007: the breakdown by sport was not checked (full text not read).
+    - Cross et al. 2019 comment on Alcaraz et al. 2018: content not read.
+12. **Not found anywhere:** a peer-reviewed HYROX study of doubles or relay physiology, of age-group effects, of race-day heart rate and lactate in a real event, of pacing plans, of tapering, or of injury prevention. No peer-reviewed study of wall-ball technique under fatigue. No meta-analysis of brick training. No good-quality study of training for heavy 50 m sled efforts.
 
 ## 10. References
 
-REFERENCES_PLACEHOLDER
+### 10.1 HYROX-specific sources
+
+Status is shown after each entry.
+
+1. Bartsch K. Applying the 80/20 Training Principle to HYROX: Evidence-Based Approaches to Program Design. A critical narrative review and testable framework for performance and athlete health. *American Impact Review.* 2026;1(9):e2026083. https://doi.org/10.66308/air.e2026083 — narrative review; journal standing unclear.
+2. Brandt T, Ebel C, Lebahn C, Schmidt A. Acute physiological responses and performance determinants in Hyrox© – a new running-focused high intensity functional fitness trend. *Front Physiol.* 2025;16:1519240. https://doi.org/10.3389/fphys.2025.1519240 — peer reviewed; full text read.
+3. Buoite Stella A, D'Andrea F, Deodato M, Murena L, Sabot R, Martini M, Morrison SA, Ajčević M. Strengthening recovery, enduring sleep. An ecologically valid assessment of sleep quantity and quality in hybrid athletes: does training mode matter? *Eur J Appl Physiol.* 2026;126:3473–3480. https://doi.org/10.1007/s00421-026-06187-9 — peer reviewed; abstract read.
+4. Chittenden E, Bell A, Forbes G, Tooth P, Porter R, Van Der Vliet R, Shouman K, Williams S. Prevalence, burden and risk markers of health problems in HYROX athletes: a 12-week prospective cohort study. *Front Sports Act Living.* 2026;8:1937574. https://doi.org/10.3389/fspor.2026.1937574 — peer reviewed; abstract read.
+5. Davids CJ. A Performance Analysis of HYROX: A Review of the Physiologic, Mechanical, and Technical Demands. *Strength Cond J.* 2026;48(1):88–100 (online 9 May 2025). https://doi.org/10.1519/SSC.0000000000000913 — narrative review; abstract read.
+6. Fernández-Navarrete I, Ruiz-Alias SA, García-Pinillos F. Where am I struggling? Detailed benchmarks for every workout and category in Hyrox© competition. *J Sports Med Phys Fitness.* 2026;66:1087–1094. https://doi.org/10.23736/S0022-4707.26.17926-2 — peer reviewed; abstract read.
+7. Fernández-Navarrete I, Ruiz-Alias SA, Gómez-García M, Riquelme-Sebastián L, García-Pinillos F. Hyrox©: A Descriptive Analysis of Participation Trends Among Over 275,000 Athletes in the New Fitness Modality. *Res Q Exerc Sport.* 2026;97:266–272. https://doi.org/10.1080/02701367.2025.2584226 — peer reviewed; abstract read.
+8. Fernández-Navarrete I, Ruiz-Alias SA, Gómez-García M, Riquelme-Sebastián L, García-Pinillos F. Mapping the physiological demands of Hyrox©: Which sections hit hardest? *Ger J Exerc Sport Res.* 2026. https://doi.org/10.1007/s12662-026-01151-3 — peer reviewed; not read.
+9. Gutiérrez-Hellín J, Alonso-Domínguez S, Gil-Cabrera J, Arazola-López D, Sainz-Pérez M, Larnaudie-Faura C, Matias-López M, Martín-Gómez FJ, Franco-Andrés A, Del Coso J. Relative Running Intensity and Pacing During an Official HYROX PRO MEN Competition: The HYScience Study. *Int J Sports Physiol Perform.* 2026 (advance online):1–8. https://doi.org/10.1123/ijspp.2026-0098 — peer reviewed; abstract read.
+10. Gutiérrez-Hellín J, Alonso-Domínguez S, Martín-Gómez FJ, Muñoz A, Franco-Andrés A, Yustres-Amores I, del Cerro JS, Del Coso J. Performance Trends and Pacing Evolution in Elite HYROX©: A Seven-Season Analysis of Top 50 PRO Men (2018–2024). *Appl Sci.* 2026;16(13):6674. https://doi.org/10.3390/app16136674 — peer reviewed; abstract read.
+11. Ketzer C, Kirstein L, Bonleitner M, Beyerle P, Zehnder P, Schwarz M, Biberthaler P, Zyskowski M. Injury epidemiology in HYROX athletes: an international cross-sectional survey. *medRxiv* (preprint). 2026. https://doi.org/10.64898/2026.08.09.26359590 — not peer reviewed; abstract read.
+12. Li F, Xu J, Liu Y. A Randomized Controlled Trial of Different Lower-Limbs Complex Training for Sled Push in Hyrox Competitions. *Front Sport Res.* 2026;8(3):7–14. https://doi.org/10.25236/FSR.2026.080302 — published; serious reporting concerns; text read.
+13. Li K, Ma K, Shao H, Xu Z. Observed pacing patterns and residual late-run variability in standardized hybrid fitness racing: A split-record framework for post-race performance monitoring in HYROX. *Int J Sports Sci Coach.* 2026. https://doi.org/10.1177/17479541261500529 — peer reviewed; abstract read.
+14. Olivares-Llorente R, Martín-Castellanos A, Agudo-Ortega A, Martín-Castellanos C, Barba-Ruiz M, Hermosilla-Perona F. Pacing and effort distribution in Hyrox® PRO athletes: differences by sex and performance level. *BMC Sports Sci Med Rehabil.* 2026. https://doi.org/10.1186/s13102-026-02155-0 — peer reviewed; read only through a news summary (https://bioengineer.org/hyrox-pro-athletes-share-running-pacing-while-strength-station-times-differ/).
+15. Rappelt L, Wiedenmann T, Held S, Heinke L, Micke F, Wicker P, Donath L. Longitudinal performance development in PRO and ELITE HYROX competitions across the first seven competitive seasons. *Front Physiol.* 2026;17:1847569. https://doi.org/10.3389/fphys.2026.1847569 — peer reviewed; full text read.
+16. Rios M, Pyne DB. Integrative Physiological Strategies for Monitoring Demands in Functional Fitness. *Sports (Basel).* 2025;13(11):381. https://doi.org/10.3390/sports13110381 — narrative review; abstract read.
+17. Schwalm L, Schaffarczyk M, Mai J, Hollander K, Gronwald T, Fohrmann D. Physiological and biomechanical characteristics of a Hyrox world champion—a case study. *Ger J Exerc Sport Res.* 2026. https://doi.org/10.1007/s12662-026-01162-0 — peer reviewed; abstract read.
+18. Shi H, Zhong J, Xu J, Lu C. Structural screening and event-aware analysis of official HYROX split data: a retrospective study of top-ranked results. *BMC Sports Sci Med Rehabil.* 2026. https://doi.org/10.1186/s13102-026-02187-6 — peer reviewed; abstract read.
+19. Tibana RA, Rios MJ, Dominski FH, Prestes J. Hyrox®: Current Evidence on Physiology, Psychology and Performance Determinants. *Preprints.org* (preprint). 2026. https://doi.org/10.20944/preprints202607.1912.v1 — not peer reviewed; abstract read.
+20. Villarroel López P, Juárez Santos-García D. High Intensity Functional Training in Hybrid Competitions: A Scoping Review of Performance Models and Physiological Adaptations. *J Funct Morphol Kinesiol.* 2025;10(4):365. https://doi.org/10.3390/jfmk10040365 — scoping review; full text read.
+21. Villarroel López P, Agudo-Ortega A, Juárez Santos-García D. Characterization of the Profile of Hyrox© Athletes. *Appl Sci.* 2025;15(21):11693. https://doi.org/10.3390/app152111693 — peer reviewed; abstract read.
+22. Williams S, Hitchcock J, Davies L, Barnes C, Williams S, Williams A. Injury Surveillance During Competitive Functional Fitness Racing Events. *Int J Exerc Sci.* 2020;13(6):197–205. https://doi.org/10.70252/cdzf5022 — peer reviewed; abstract read; event brand not stated.
+23. Yustres Amores I, Gutiérrez-Hellín J, Alonso-Domínguez S, Muñoz A, Franco-Andrés A, Del Coso J, del Cerro JS. Performance Architecture and Competitive Phenotypes in HYROX: A Large-Scale Analysis of Official Race Performances. *Appl Sci.* 2026;16(21):10832. https://doi.org/10.3390/app162110832 — peer reviewed; abstract read.
+24. Zhu Z, Zhu J, Li K, Shao HT, Ma K. Task-to-run transition stability in standardized hybrid fitness racing: a field-based performance analysis using real-world competition split records. *Research Square* (preprint). 2026. https://doi.org/10.21203/rs.3.rs-9772566/v1 — not peer reviewed; abstract read.
+
+### 10.2 Transferable sources
+
+All were checked against the PubMed or Europe PMC abstract. Full text was also read for Schumann 2022, both Llanos-Lagos 2024 papers, and Wang 2023.
+
+**Concurrent training**
+
+25. Eddens L, van Someren K, Howatson G. The Role of Intra-Session Exercise Sequence in the Interference Effect: A Systematic Review with Meta-Analysis. *Sports Med.* 2018;48(1):177–188. https://doi.org/10.1007/s40279-017-0784-1
+26. Gao J, Yu L. Effects of concurrent training sequence on VO2max and lower limb strength performance: A systematic review and meta-analysis. *Front Physiol.* 2023;14:1072679. https://doi.org/10.3389/fphys.2023.1072679
+27. Huiberts RO, Wüst RCI, van der Zwaard S. Concurrent Strength and Endurance Training: A Systematic Review and Meta-Analysis on the Impact of Sex and Training Status. *Sports Med.* 2024;54(2):485–503. https://doi.org/10.1007/s40279-023-01943-9
+28. Murlasits Z, Kneffel Z, Thalib L. The physiological effects of concurrent strength and endurance training sequence: A systematic review and meta-analysis. *J Sports Sci.* 2018;36(11):1212–1219. https://doi.org/10.1080/02640414.2017.1364405
+29. Petré H, Hemmingsson E, Rosdahl H, Psilander N. Development of Maximal Dynamic Strength During Concurrent Resistance and Endurance Training in Untrained, Moderately Trained, and Trained Individuals: A Systematic Review and Meta-analysis. *Sports Med.* 2021;51(5):991–1010. https://doi.org/10.1007/s40279-021-01426-9
+30. Schumann M, Feuerbacher JF, Sünkeler M, Freitag N, Rønnestad BR, Doma K, Lundberg TR. Compatibility of Concurrent Aerobic and Strength Training for Skeletal Muscle Size and Function: An Updated Systematic Review and Meta-Analysis. *Sports Med.* 2022;52(3):601–612. https://doi.org/10.1007/s40279-021-01587-7
+31. Wilson JM, Marin PJ, Rhea MR, Wilson SM, Loenneke JP, Anderson JC. Concurrent training: a meta-analysis examining interference of aerobic and resistance exercises. *J Strength Cond Res.* 2012;26(8):2293–2307. https://doi.org/10.1519/JSC.0b013e31823a3e2d
+
+**Strength training and running economy**
+
+32. Balsalobre-Fernández C, Santos-Concejero J, Grivas GV. Effects of Strength Training on Running Economy in Highly Trained Runners: A Systematic Review With Meta-Analysis of Controlled Trials. *J Strength Cond Res.* 2016;30(8):2361–2368. https://doi.org/10.1519/JSC.0000000000001316
+33. Blagrove RC, Howatson G, Hayes PR. Effects of Strength Training on the Physiological Determinants of Middle- and Long-Distance Running Performance: A Systematic Review. *Sports Med.* 2018;48(5):1117–1149. https://doi.org/10.1007/s40279-017-0835-7
+34. Llanos-Lagos C, Ramirez-Campillo R, Moran J, Sáez de Villarreal E. Effect of Strength Training Programs in Middle- and Long-Distance Runners' Economy at Different Running Speeds: A Systematic Review with Meta-analysis. *Sports Med.* 2024;54(4):895–932. https://doi.org/10.1007/s40279-023-01978-y
+35. Llanos-Lagos C, Ramirez-Campillo R, Moran J, Sáez de Villarreal E. The Effect of Strength Training Methods on Middle-Distance and Long-Distance Runners' Athletic Performance: A Systematic Review with Meta-analysis. *Sports Med.* 2024;54(7):1801–1833. https://doi.org/10.1007/s40279-024-02018-z
+36. Rønnestad BR, Mujika I. Optimizing strength training for running and cycling endurance performance: A review. *Scand J Med Sci Sports.* 2014;24(4):603–612. https://doi.org/10.1111/sms.12104
+37. Zanini M, Folland JP, Wu H, Blagrove RC. Strength Training Improves Running Economy Durability and Fatigued High-Intensity Performance in Well-Trained Male Runners: A Randomized Control Trial. *Med Sci Sports Exerc.* 2025;57(7):1546–1558. https://doi.org/10.1249/MSS.0000000000003685
+
+**Intensity distribution and thresholds**
+
+38. Faude O, Kindermann W, Meyer T. Lactate threshold concepts: how valid are they? *Sports Med.* 2009;39(6):469–490. https://doi.org/10.2165/00007256-200939060-00003
+39. Galán-Rioja MÁ, González-Mohíno F, Poole DC, González-Ravé JM. Relative Proximity of Critical Power and Metabolic/Ventilatory Thresholds: Systematic Review and Meta-Analysis. *Sports Med.* 2020;50(10):1771–1783. https://doi.org/10.1007/s40279-020-01314-8
+40. Jones AM, Vanhatalo A. The 'Critical Power' Concept: Applications to Sports Performance with a Focus on Intermittent High-Intensity Exercise. *Sports Med.* 2017;47(Suppl 1):65–78. https://doi.org/10.1007/s40279-017-0688-0
+41. Rosenblat MA, Perrotta AS, Vicenzino B. Polarized vs. Threshold Training Intensity Distribution on Endurance Sport Performance: A Systematic Review and Meta-Analysis of Randomized Controlled Trials. *J Strength Cond Res.* 2019;33(12):3491–3500. https://doi.org/10.1519/JSC.0000000000002618
+42. Rosenblat MA, Watt JA, Arnold JI, Treff G, Sandbakk ØB, Esteve-Lanao J, Festa L, Filipas L, Galloway SD, Muñoz I, Ramos-Campo DJ, Schneeweiss P, Sellés-Pérez S, Stöggl T, Talsnes RK, Zinner C, Seiler S. Which Training Intensity Distribution Intervention will Produce the Greatest Improvements in Maximal Oxygen Uptake and Time-Trial Performance in Endurance Athletes? A Systematic Review and Network Meta-analysis of Individual Participant Data. *Sports Med.* 2025;55(3):655–673. https://doi.org/10.1007/s40279-024-02149-3
+43. Silva Oliveira P, Boppre G, Fonseca H. Comparison of Polarized Versus Other Types of Endurance Training Intensity Distribution on Athletes' Endurance Performance: A Systematic Review with Meta-analysis. *Sports Med.* 2024;54(8):2071–2095. https://doi.org/10.1007/s40279-024-02034-z
+
+**Running after other work**
+
+44. Bonacci J, Green D, Saunders PU, Blanch P, Franettovich M, Chapman AR, Vicenzino B. Change in running kinematics after cycling are related to alterations in running economy in triathletes. *J Sci Med Sport.* 2010;13(4):460–464. https://doi.org/10.1016/j.jsams.2010.02.002
+45. Bonacci J, Blanch P, Chapman AR, Vicenzino B. Altered movement patterns but not muscle recruitment in moderately trained triathletes during running after cycling. *J Sports Sci.* 2010;28(13):1477–1487. https://doi.org/10.1080/02640414.2010.514279
+46. Bonacci J, Saunders PU, Alexander M, Blanch P, Vicenzino B. Neuromuscular control and running economy is preserved in elite international triathletes after cycling. *Sports Biomech.* 2011;10(1):59–71. https://doi.org/10.1080/14763141.2010.547593
+47. Bonacci J, Green D, Saunders PU, Franettovich M, Blanch P, Vicenzino B. Plyometric training as an intervention to correct altered neuromotor control during running after cycling in triathletes: a preliminary randomised controlled trial. *Phys Ther Sport.* 2011;12(1):15–21. https://doi.org/10.1016/j.ptsp.2010.10.005
+48. Doma K, Deakin GB. The effects of strength training and endurance training order on running economy and performance. *Appl Physiol Nutr Metab.* 2013;38(6):651–656. https://doi.org/10.1139/apnm-2012-0362
+49. Hue O, Valluet A, Blonc S, Hertogh C. Effects of multicycle-run training on triathlete performance. *Res Q Exerc Sport.* 2002;73(3):289–295. https://doi.org/10.1080/02701367.2002.10609022
+50. Millet GP, Vleck VE. Physiological and biomechanical adaptations to the cycle to run transition in Olympic triathlon: review and practical recommendations for training. *Br J Sports Med.* 2000;34(5):384–390. https://doi.org/10.1136/bjsm.34.5.384
+51. Walsh JA. The Rise of Elite Short-Course Triathlon Re-Emphasises the Necessity to Transition Efficiently from Cycling to Running. *Sports (Basel).* 2019;7(5):99. https://doi.org/10.3390/sports7050099
+
+**Tapering**
+
+52. Bosquet L, Montpetit J, Arvisais D, Mujika I. Effects of tapering on performance: a meta-analysis. *Med Sci Sports Exerc.* 2007;39(8):1358–1365. https://doi.org/10.1249/mss.0b013e31806010e0
+53. Wang Z, Wang YT, Gao W, Zhong Y. Effects of tapering on performance in endurance athletes: A systematic review and meta-analysis. *PLoS One.* 2023;18(5):e0282838. https://doi.org/10.1371/journal.pone.0282838
+
+**Sled training**
+
+54. Alcaraz PE, Carlos-Vivas J, Oponjuru BO, Martínez-Rodríguez A. The Effectiveness of Resisted Sled Training (RST) for Sprint Performance: A Systematic Review and Meta-analysis. *Sports Med.* 2018;48(9):2143–2165. https://doi.org/10.1007/s40279-018-0947-8
+55. Cahill MJ, Oliver JL, Cronin JB, Clark KP, Cross MR, Lloyd RS. Influence of resisted sled-push training on the sprint force-velocity profile of male high school athletes. *Scand J Med Sci Sports.* 2020;30(3):442–449. https://doi.org/10.1111/sms.13600
+56. Cahill MJ, Oliver JL, Cronin JB, Clark KP, Cross MR, Lloyd RS. Sled-Push Load-Velocity Profiling and Implications for Sprint Training Prescription in Young Athletes. *J Strength Cond Res.* 2021;35(11):3084–3089. https://doi.org/10.1519/JSC.0000000000003294
+57. Cross MR, Tinwala F, Lenetsky S, Brown SR, Brughelli M, Morin JB, Samozino P. Assessing Horizontal Force Production in Resisted Sprinting: Computation and Practical Interpretation. *Int J Sports Physiol Perform.* 2019;14(5):689–693. https://doi.org/10.1123/ijspp.2018-0578
+58. Linthorne NP, Cooper JE. Effect of the coefficient of friction of a running surface on sprint time in a sled-towing exercise. *Sports Biomech.* 2013;12(2):175–185. https://doi.org/10.1080/14763141.2012.726638
+59. Petrakos G, Morin JB, Egan B. Resisted Sled Sprint Training to Improve Sprint Performance: A Systematic Review. *Sports Med.* 2016;46(3):381–400. https://doi.org/10.1007/s40279-015-0422-8
+60. Winwood PW, Cronin JB, Posthumus LR, Finlayson SJ, Gill ND, Keogh JW. Strongman vs. traditional resistance training effects on muscular function and performance. *J Strength Cond Res.* 2015;29(2):429–439. https://doi.org/10.1519/JSC.0000000000000629
+61. Xu K, Jukic I, Cross MR, Hicks DS, Yin M, Zhong Y, Tang W, Li Y, Liang Z, Wang R, Morin JB, et al. Effects of Resisted-Sprint Training on Sprint Performance and Mechanics: A Systematic Review and Meta-Analysis Focusing on Load Magnitude. *Scand J Med Sci Sports.* 2025;35(12):e70182. https://doi.org/10.1111/sms.70182
+
+**Technique under fatigue**
+
+62. Hooper DR, Szivak TK, DiStefano LJ, Comstock BA, Dunn-Lewis C, Apicella JM, Kelly NA, Creighton BC, Volek JS, Maresh CM, Kraemer WJ. Effects of resistance training fatigue on joint biomechanics. *J Strength Cond Res.* 2013;27(1):146–153. https://doi.org/10.1519/JSC.0b013e31825390da
+63. Hooper DR, Szivak TK, Comstock BA, Dunn-Lewis C, Apicella JM, Kelly NA, Creighton BC, Flanagan SD, Looney DP, Volek JS, Maresh CM, Kraemer WJ. Effects of fatigue from resistance training on barbell back squat biomechanics. *J Strength Cond Res.* 2014;28(4):1127–1134. https://doi.org/10.1097/JSC.0000000000000237
+64. Willwacher S, Koopmann T, Dill S, Kurz M, Brüggemann GP. Dorsal muscle fatigue increases thoracic spine curvature in all-out recreational ergometer rowing. *Eur J Sport Sci.* 2021;21(2):176–182. https://doi.org/10.1080/17461391.2020.1737242
+
+**Pacing**
+
+65. Abbiss CR, Laursen PB. Describing and understanding pacing strategies during athletic competition. *Sports Med.* 2008;38(3):239–252. https://doi.org/10.2165/00007256-200838030-00004
+66. Mangine GT, Feito Y, Tankersley JE, McDougle JM, Kliszczewicz BM. Workout Pacing Predictors of Crossfit® Open Performance: A Pilot Study. *J Hum Kinet.* 2021;78:89–100. https://doi.org/10.2478/hukin-2021-0043
+67. Mangine GT, Zeitz EK, Dexheimer JD, Hines A, Lively B, Kliszczewicz BM. Pacing Strategies Differ by Sex and Rank in 2020 CrossFit® Open Tests. *Sports (Basel).* 2023;11(10):199. https://doi.org/10.3390/sports11100199
+68. Ribeiro G, De Aguiar RA, Tramontin AF, Martins EC, Caputo F. Fatigue and Performance Rates as Decision-Making Criteria in Pacing Control During CrossFit®. *Percept Mot Skills.* 2024;131(4):1274–1290. https://doi.org/10.1177/00315125241247858
+69. Skroce K, Tarperi C, Brasi I, Bertinato L, Schena F. Fast or slow start? The role of running strategies in triathlon. *J Sci Med Sport.* 2022;25(1):70–74. https://doi.org/10.1016/j.jsams.2021.07.013
+70. Wu SSX, Peiffer JJ, Brisswalter J, Nosaka K, Abbiss CR. Factors influencing pacing in triathlon. *Open Access J Sports Med.* 2014;5:223–234. https://doi.org/10.2147/OAJSM.S44392
+71. Wu SSX, Peiffer JJ, Brisswalter J, Nosaka K, Lau WY, Abbiss CR. Pacing strategies during the swim, cycle and run disciplines of sprint, Olympic and half-Ironman triathlons. *Eur J Appl Physiol.* 2015;115(5):1147–1154. https://doi.org/10.1007/s00421-014-3096-2
