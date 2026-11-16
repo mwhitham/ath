@@ -369,18 +369,22 @@ Rejected alternatives:
 
 ## D230. A page is atomic, a missing row is not a deletion, and the same command is safe to repeat
 
-Each response page is one `MappedReader` call. D189 still makes that call
-one transaction: a failure rolls the page back, and a preview rolls the page
-back after counting. The pull itself is a series of those calls. The order and the terminal
-condition of each read are the table in the specification's section 2.
-A committed
-page follows D189. A committed page does not mean the pull is complete.
+Each response page is one 2.1.1 import preview and, under `--yes`, one
+apply. `preview_route` in `src/import/provider.rs` stages and matches the
+page in one read transaction, at one database revision, and never writes.
+`ProviderPreview::apply` writes that plan in one transaction, as D189
+requires. It refuses the plan when the database revision moved after the
+preview. A failure writes nothing for that page. The pull itself is a
+series of those pages. The order and the terminal condition of each read
+are the table in the specification's section 2. A committed page follows
+D189. A committed page does not mean the pull is complete.
 
 The command previews unless `--yes` is present. `--json` does not write,
 with or without `--yes`, matching `ath import --mapping`. `--yes` without
 `--json` writes each protected page as that page succeeds. A refused
 page is not a success. The pull-only archive in D237 is a separate
-transaction. It reads the safety facts again before it writes.
+preview and apply. It goes ahead only when the database revision has not
+moved since the protected preview.
 
 The command returns one bounded outcome for the mode it ran. A preview,
 including public `--json`, has `written` false, protected and archive
@@ -410,12 +414,12 @@ reconciliation, and
 a rerun cannot repair either one. A preview that fails makes no database
 changes, including for pages that had already been counted.
 
-Before `MappedReader`, a cursor page and an offset page must be a JSON
+Before `MappedPage`, a cursor page and an offset page must be a JSON
 object, `data` must be an array, `pagination` must be an object, and
 `has_more` must be a boolean. Anything else fails that page. It is not an
 empty success. Body may be one object or JSON `null`. `null` is a completed
 empty snapshot. The personal record is one object. The result keeps a
-`left_out` total and at most 20 examples.
+`left_out` total, a count for each reason, and at most 20 examples.
 
 An empty ranged result whose ranged reads completed has `range_complete`
 true. The personal record and the body snapshot can still be written.
@@ -427,12 +431,15 @@ runs the failed read again, and runs any read that was `not_attempted`.
 `has_more: false` is the successful end of a cursor read and of the offset
 read. A repeated cursor, a null cursor while `has_more` is true, and the
 1000-page cap fail that read. An offset retry uses the same offset. A body
-over 8 MiB is handled by D233. The failed page is not written. Later reads
-are `not_attempted`. The success line is not printed. A cursor with the
+over the response cap, `MAX_PULL_RESPONSE_BYTES` in `src/input_policy.rs`,
+is handled by D233. The failed page is not written. Later reads are
+`not_attempted`. The success line is not printed. A cursor with the
 `prev_` prefix is not sent. `limit` starts at 1000. One attempt is made per
-request, except the smaller page D233 sends after a local size cap. A
-transport error is not retried.
-The connect timeout is 10 seconds and the read timeout is 30 seconds.
+request, except the smaller page D233 sends after the response cap. A
+transport error is not retried. The stored reads use a 30-second connect
+timeout and a 120-second read timeout, the values
+`src/runtime/garmin_pull.rs` uses. Live vendor requests use 30 and 360
+seconds, for the reason in D243. Each timeout is a named constant.
 
 A row that this range did not return is left where it is. The pull does not
 call `DELETE`. There is no deletion feed on these reads. Absence can be
@@ -492,42 +499,57 @@ named no later version. Version 2.1.1 did not take that work. The cleanup
 does not run on a pull. This build does not change it. D237 rolls a failed
 step 6 back before this cleanup runs.
 
-`src/import/mapping.rs` is 1703 lines. The store is already several files.
-`src/store/mod.rs` is 848 lines, `src/store/write.rs` is 508,
-`src/store/encode.rs` is 549, and `src/store/check.rs` is 1044.
-`persist.rs` is gone. The pull is a new module so `mapping.rs` and the
-store files do not grow for HTTP. `mapping.rs` may add the count by record
-type that D228 names, and the open-wearables device-binding check in the
-specification. That check is shared by mapped import and pull, and it is
-limited to route `open_wearables`. D232 also adds the measurement-sample
-target, the reporting-window write, and the segment copy. Nothing beyond
-that is added to `mapping.rs`. Source writes go through `Store::apply` in
-`src/store/write.rs`. There is no `Store::revise`. A correction carries the
-whole record. The receipt rule is unchanged. A write that is not the
-owner's whole source record cannot set, change, or clear `device_binding`.
-`Store` keeps its connection private. `write.rs` may also read the receipt
-and tombstone-inclusive history, create a source with the checked receipt,
-and write that receipt on an existing unbound source only when the same
-transaction shows no accepted or deleted record and no source device. Those
-writes keep every other source field and the normal revision and `data_json`
-bookkeeping. They join the caller's `BEGIN IMMEDIATE` transaction. D233
-also allows `measurement_sample` insert and update, and a null value and
-unit pair on provider summaries and provider scores. A half-null pair is
-refused. `write_current_state` in `src/store/encode.rs` is the only
+`src/import/mapping.rs` is 1703 lines and `src/import/provider.rs` is
+1297. The store is already several files. `src/store/mod.rs` is 848
+lines, `src/store/write.rs` is 508, `src/store/encode.rs` is 549, and
+`src/store/check.rs` is 1044. `persist.rs` is gone. The pull is a new
+module so `mapping.rs` and the store files do not grow for HTTP.
+`mapping.rs` may add `MappedPage`, which D228 names, and the
+`vendor_workout` section, which D242 names. D232 also adds the
+measurement-sample target, the reporting-window write, and the segment
+copy. Nothing beyond that is added to `mapping.rs`.
+
+Version 2.1.1 stages, matches, and applies a keyed import in
+`src/import/provider.rs`. A keyed import there only creates sources. It
+never revises one. So the source rules go there, not in
+`src/store/write.rs`. The matching step runs the open-wearables
+device-binding check and reads the page's safety snapshot. Both live in a
+new file, `src/import/binding.rs`, so `provider.rs` grows little. That
+check is shared by mapped import and pull, and it is limited to route
+`open_wearables`. The staged plan may create a source with the checked
+receipt. It may write that receipt on an existing unbound source only when
+the snapshot shows no accepted or deleted record and no source device.
+That first bind is a source correction with the source's expected
+revision. `ProviderPreview::apply` refuses any other staged change to
+`device_binding`. Those writes keep every other source field and the
+normal revision and `data_json` bookkeeping. `provider.rs` also gains the
+crate-private read of a stored vendor original that D243 uses.
+
+`Store::apply` in `src/store/write.rs` writes a whole record. There is no
+`Store::revise`, and a correction carries the whole record. The owner and
+library writes store a whole source record: `ath correct`, the protocol
+operations `records.write`, `records.write_changes`, and `records.correct`,
+native package restore, and an accepted package merge. They keep the
+receipt the caller supplied. `Store` keeps its connection private (D223).
+D233 also allows `measurement_sample` insert and update, and a null value
+and unit pair on provider summaries and provider scores. A half-null pair
+is refused. `write_current_state` in `src/store/encode.rs` is the only
 record-to-table mapping. Package restore, repair, and the record check use
 it. There is no TypeScript writer to update. D234 also allows
 `source_report` insert and update, and withdrawal of a child whose anchor
 is in this response. Nothing beyond that is added to the store. Other
-routes do not call the receipt operations. `ath correct`, package restore,
-and an accepted package merge remain the owner's whole source record.
-Splitting `mapping.rs` is separate work. It is not required to make the pull
-correct.
+routes do not call the receipt operations. Splitting `mapping.rs` is
+separate work. It is not required to make the pull correct.
+
+`ath key clear garmin` is refused in 2.1.1, because `key_clear` in
+`src/cli/commands/model.rs` accepts only gateway names. D229 keeps that.
+Making the Garmin key removable is separate work.
 
 `check_supplied_fields` is in `src/import/shared.rs`. A keyed import calls
 it before it builds a candidate (D191). There is no `persist.rs` and no
-`ath-core persist` command. The pull writes through `MappedReader` and
-the store, so the import check covers it. A name check outside import is
-separate work.
+`ath-core persist` command. The pull writes through `MappedPage` and the
+2.1.1 import, so the import check covers it. A name check outside import
+is separate work.
 
 `is_mapping_path` exists once, in `src/assets/mod.rs`. The pull uses
 `resolve_mapping` in that file. There is no second path rule to remove.
@@ -539,6 +561,10 @@ Rejected alternatives:
   what the pull writes, and the maintainer asked not to widen this build.
 - Block the pull on those fixes. Rejected for the same reason. A later
   change can take any one of them on its own.
+- Put the source rules in `Store::apply`. Rejected. In 2.1.1 every
+  `Store::apply` caller that can write a source is an owner or library
+  write, and the one automatic source writer is `ProviderPreview::apply`.
+  A rule in `Store::apply` would also block the owner's own correction.
 
 ## D232. Stored Open Wearables measurements are kept in this pull
 
