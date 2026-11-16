@@ -578,7 +578,13 @@ ISO 8601. It turns both into naive local times with
 goes to `get_workouts_historical`, which fetches 24-hour pieces and logs
 and skips a piece that fails. On a server whose local zone moves its
 clock forward, a true 24-hour window that crosses that change is 25 local
-hours. So this plan sends windows of 82,800 seconds, 23 hours, or less. A
+hours. When the clock moves back, it is 23 local hours. A 23-hour window
+is at most 24 local hours where the clock moves by one hour. In
+`Antarctica/Troll`, which moves its clock by two hours, a 23-hour window
+is 25 local hours. Those numbers come from Python's
+`datetime.fromtimestamp` with `TZ` set to `America/Chicago` and to
+`Antarctica/Troll`, run on 15 November 2026 across the 2026 changes.
+So this plan sends windows of 82,800 seconds, 23 hours, or less. A
 one-year range is 381 windows. Detail calls
 `/wellness-api/rest/activities/{activity_id}`. This study did not find that
 path in Garmin's public docs. `ActivityJSON` types `activityId` as an

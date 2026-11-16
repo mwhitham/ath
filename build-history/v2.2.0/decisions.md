@@ -122,6 +122,10 @@ These edits answer the review of this plan at `d636d7a`:
 - D244. The page cursors `next_token` and `nextToken` are not
   credential-shaped. A user name or password in a URL, and a
   credential-shaped pair in a URL fragment, are withheld too.
+- D243. The daylight-saving sentence names both directions. A forward
+  change makes 24 real hours read as 25 local hours, and a backward change
+  makes them read as 23. A zone that moves its clock by two hours is not
+  covered by the 23-hour window.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -1374,9 +1378,12 @@ One failure leaves that line `incomplete`. The others still run.
 Garmin is split by this program into windows of 82,800 seconds, 23
 hours, or less, one call each. Each window sends integer Unix seconds.
 The pinned server splits a window it sees as longer than 24 hours and
-drops a failed piece without saying so. It measures in naive local time,
-so a true 24-hour window can look 25 hours long when the server's clock
-moves forward. A 23-hour window cannot. Any failed window makes Garmin
+drops a failed piece without saying so. It measures in naive local time.
+When the server's clock moves forward an hour, 24 real hours read as 25
+local hours, and the server would split the window. When the clock moves
+back, they read as 23. A 23-hour window reads as 24 at most where the
+clock moves by one hour. A zone that moves it by two hours, such as
+`Antarctica/Troll`, is not covered. Any failed window makes Garmin
 `incomplete`. The pull keeps calling Garmin detail at the pinned path,
 `/wellness-api/rest/activities/{activity_id}`. That path is not in
 Garmin's public docs, and this study did not find it there. For a Garmin

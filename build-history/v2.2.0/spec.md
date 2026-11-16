@@ -1079,9 +1079,14 @@ timeout above.
   `uploadEndTimeInSeconds`, so a window selects by upload time, not by
   start. Each window ends where the next begins. The pinned server splits
   a window it sees as longer than 24 hours, and it drops a failed piece
-  without saying so. It measures the window in naive local time, so on a
-  server whose clock moves forward, a true 24-hour window can look 25
-  hours long. A 23-hour window cannot look longer than 24 hours.
+  without saying so. It measures the window in naive local time. When the
+  server's clock moves forward an hour, as in spring, 24 real hours read
+  as 25 local hours, so a 24-hour window would be split. When the clock
+  moves back, as in autumn, 24 real hours read as 23. A 23-hour window
+  reads as 24 hours at most, so it is never split where the clock moves
+  by one hour. A zone that moves its clock by two hours, such as
+  `Antarctica/Troll`, can make a 23-hour window read as 25 hours. The pull
+  does not know the server's zone.
   A failed window makes Garmin `incomplete`, and later windows still run.
   The pull calls Garmin detail at the pinned path,
   `/wellness-api/rest/activities/{activity_id}`. That path is not in
