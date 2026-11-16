@@ -1461,11 +1461,29 @@ besides the typed writes in section 6. It gains nothing beyond those:
   route, sensor, import keys, and baselines stay.
 - In `ProviderPreview::apply`, refuse any other staged change to
   `device_binding`.
+- In the sink, stage a `connector` source. `route_source` stages only an
+  `export_file` source that names a vendor, and it reuses only a staged
+  `export_file` source. The writer-`open_wearables` sensors in section 2,
+  the archive source, and each `vendor_workout` source are `connector`
+  sources with no vendor. So a new `connector_source(writer, sensor)`
+  goes beside `route_source`. Matching finds its stored source by writer,
+  route, and sensor, including a deleted one, as `keyed_existing_source`
+  already does. A device source still comes from `route_source`.
+- In the preview, count the staged plan by record type and action.
+  `Staging::count` in `src/import/staging.rs` counts by action only. A count
+  by record type goes beside it, and `ProviderPreview` exposes it. Each
+  page's counts in section 1 come from that count.
+- A crate-private read of a stored vendor original, for the detail rules
+  in section 2.
+
+The pull reads the revision a preview matched at from
+`ProviderPreview::destination_database_revision`, which is already public.
+No accessor is added for it.
 
 The reads run in the matching step's read transaction. The writes run in
 the page's one apply transaction. A refused call writes none of them.
-Other routes do not call them. The build may extend `route_source` or add
-a narrow operation beside it. It does not add a table or a trait. The
+Other routes do not call them, and `route_source` is unchanged for them.
+It does not add a table or a trait. The
 binding check and the safety snapshot go in one new file,
 `src/import/binding.rs`, because `src/import/provider.rs` is already 1297
 lines. The automatic path does not replace `detail`, `vendor`, or
@@ -1506,6 +1524,11 @@ The timeouts are named constants in `src/runtime/open_wearables.rs`. One
 response may be at most `MAX_PULL_RESPONSE_BYTES`, which is 10 MiB. One
 read may be at most 1000 pages. Those limits are named constants in
 `src/input_policy.rs`, where 2.1.1 keeps every limit on untrusted input.
+In 2.1.1 the comment on `MAX_PULL_RESPONSE_BYTES` says it is the bytes of
+one Garmin personal connection response. The route list at the top of
+that file's route limits names only the Garmin pull. The build rewrites
+that comment to name both pulls, and it adds the Open Wearables pull and
+its new limits to that list. The value stays 10 MiB.
 
 The body is read inside that cap and parsed before the page reaches
 `MappedPage`. The guard is in `open_wearables.rs`. It walks every decoded
@@ -1744,11 +1767,13 @@ interactive open can preview, back up, ask, and then migrate.
 | Flags, key, preview text, refusal if the key appears | `src/cli/`, `src/cli/help.rs`, `src/runtime/keyring.rs`, and `key_clear` in `src/cli/commands/model.rs` |
 | Reader for one decoded page | `MappedPage`, beside `MappedReader` in `src/import/mapping.rs` |
 | Mapping names and field rules, including the `vendor_workout` section | the existing file `mappings/open-wearables.md` |
-| Stage, match, and write each page | `preview_route` and `ProviderPreview::apply` in `src/import/provider.rs`, with a crate-private accessor for the revision a preview read |
+| Stage, match, and write each page | `preview_route` and `ProviderPreview::apply` in `src/import/provider.rs`. The revision a preview read is the public `destination_database_revision` |
+| A `connector` source with no vendor | new `connector_source` beside `route_source` in `src/import/provider.rs` |
+| Page counts by record type | a count beside `Staging::count` in `src/import/staging.rs`, exposed by `ProviderPreview` |
 | Device-binding facts and the safety snapshot | new `src/import/binding.rs`, called from the matching step in `src/import/provider.rs` for route `open_wearables` |
 | Create or first-bind with the checked receipt, and refuse any other `device_binding` change | the staged plan and `ProviderPreview::apply` in `src/import/provider.rs` |
 | Stored-original read for the vendor detail rules | a crate-private read in `src/import/provider.rs` |
-| Response cap and page cap | named constants in `src/input_policy.rs` |
+| Response cap and page cap, and the comment and route list that now name both pulls | named constants in `src/input_policy.rs` |
 | Receipt for a start in Unix seconds or milliseconds | a helper beside `offset_timestamp_receipt` in `src/import/candidate.rs` |
 | Measurement samples, source reports, paired null value and unit, and child withdrawal | `write_current_state` and `typed_columns` in `src/store/encode.rs`. Package restore, repair, and the record check use that encoder |
 | Step 6 with foreign keys off | its own transaction in `src/store/migrate.rs`, and `install_schema` in `src/store/mod.rs` |
@@ -2415,8 +2440,9 @@ is in the build pull request.
   and `src/store/check.rs` is 1044. The pull does not add HTTP to them.
   `mapping.rs` gains `MappedPage`, the `vendor_workout` section, and the
   preservation writes in section 2. `provider.rs` gains the staged first
-  bind, the `device_binding` refusal in `ProviderPreview::apply`, and the
-  stored-original read. The binding check and the safety snapshot go in
+  bind, the `device_binding` refusal in `ProviderPreview::apply`, the
+  `connector` source call, and the stored-original read. `staging.rs` gains
+  the count by record type. The binding check and the safety snapshot go in
   the new `src/import/binding.rs`. `src/store/encode.rs` gains the sample,
   source-report, withdrawal, and paired-null writes in section 6, and
   `src/calculate/range.rs` gains the null filter. Splitting `mapping.rs`
@@ -2550,8 +2576,9 @@ optional source key adds no column.
    notes stay separate. `src/import/mapping.rs` gains `MappedPage`, the
    `vendor_workout` section, and the preservation writes in section 2.
    `src/import/provider.rs` gains the staged first bind, the
-   `device_binding` refusal in `ProviderPreview::apply`, and the
-   stored-original read. The new `src/import/binding.rs` holds the binding
+   `device_binding` refusal in `ProviderPreview::apply`, the `connector`
+   source call, and the stored-original read. `src/import/staging.rs` gains
+   the count by record type. The new `src/import/binding.rs` holds the binding
    check and the bounded safety snapshot. `src/store/encode.rs` gains the
    sample, source-report, withdrawal, and paired-null writes in section 6,
    and `src/calculate/range.rs` gains the null filter. The pull command

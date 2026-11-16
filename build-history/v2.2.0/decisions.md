@@ -86,6 +86,12 @@ These edits answer the review of this plan at `d636d7a`:
   `Store::create` opened, not through `Store::transaction`. The two 2.1.1
   checks that expect one transaction to reach the last schema are named,
   with the check that replaces each.
+- D230. The 2.1.1 comment on the 10 MiB response cap names only Garmin.
+  The build rewrites it and the route list to name both pulls.
+- D231. The `src/import/provider.rs` list is complete. It adds a
+  `connector` source call, because `route_source` stages only
+  `export_file` sources, and a count by record type in
+  `src/import/staging.rs`. The revision a preview read is already public.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -465,7 +471,11 @@ request, except the smaller page D233 sends after the response cap. A
 transport error is not retried. The stored reads use a 30-second connect
 timeout and a 120-second read timeout, the values
 `src/runtime/garmin_pull.rs` uses. Live vendor requests use 30 and 360
-seconds, for the reason in D243. Each timeout is a named constant.
+seconds, for the reason in D243. Each timeout is a named constant. In
+2.1.1 the comment on `MAX_PULL_RESPONSE_BYTES` calls it one Garmin
+personal connection response, and the route list above it names only the
+Garmin pull. The build rewrites both to name the Open Wearables pull too.
+The value stays 10 MiB.
 
 A row that this range did not return is left where it is. The pull does not
 call `DELETE`. There is no deletion feed on these reads. Absence can be
@@ -549,7 +559,14 @@ That first bind is a source correction with the source's expected
 revision. `ProviderPreview::apply` refuses any other staged change to
 `device_binding`. Those writes keep every other source field and the
 normal revision and `data_json` bookkeeping. `provider.rs` also gains the
-crate-private read of a stored vendor original that D243 uses.
+crate-private read of a stored vendor original that D243 uses. It gains
+`connector_source` beside `route_source`, because `route_source` stages
+only an `export_file` source that names a vendor. The writer
+`open_wearables` sources, the archive source, and each `vendor_workout`
+source are `connector` sources with no vendor. `Staging::count` in
+`src/import/staging.rs` counts by action only, so a count by record type
+goes beside it for the page counts. The revision a preview read is
+already public as `ProviderPreview::destination_database_revision`.
 
 `Store::apply` in `src/store/write.rs` writes a whole record. There is no
 `Store::revise`, and a correction carries the whole record. The owner and
