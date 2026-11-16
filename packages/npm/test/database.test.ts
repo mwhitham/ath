@@ -39,8 +39,8 @@ describe("handles", () => {
     });
     expect(await database.readDatabaseMetadata(created)).toEqual({
       application_marker: "ATH1",
-      sql_schema_version: 5,
-      athleticstandard_version: "2.1.1",
+      sql_schema_version: 6,
+      athleticstandard_version: "2.1.2",
       database_id: "01890f3e-e7d3-7cc0-88c8-000000000001",
       created_at: "2026-01-01T00:00:00.000Z",
     });
@@ -56,7 +56,7 @@ describe("handles", () => {
     expect((await database.readDatabaseMetadata(opened)).database_id).toBe("01890f3e-e7d3-7cc0-88c8-000000000001");
     const inspected = await database.inspectDatabase(`file://${path}`);
     expect(inspected.localPath).toBe(path);
-    expect((await database.readDatabaseMetadata(inspected)).sql_schema_version).toBe(5);
+    expect((await database.readDatabaseMetadata(inspected)).sql_schema_version).toBe(6);
     await database.releaseLocalDatabase(opened);
     database.markSkipWalCheckpointOnRelease(inspected);
     await database.releaseLocalDatabase(inspected);
@@ -375,12 +375,12 @@ describe("checks, statistics, and repair", () => {
   it("checks and summarizes the database", async () => {
     const check = await database.checkDatabase(scenario.handle);
     expect(check).toMatchObject({ valid: true, issues: [] });
-    expect(check.metadata?.athleticstandard_version).toBe("2.1.1");
+    expect(check.metadata?.athleticstandard_version).toBe("2.1.2");
     const stats = await database.databaseStats(scenario.handle);
     expect(stats.current_records.by_type).toMatchObject({ point_measurement: 5, benchmark_result: 3 });
     expect(stats.benchmarks).toEqual({ defined: 1, results: 3 });
     const text = database.renderDatabaseStats(stats);
-    expect(text).toContain("unnamed athlete · Athletic Standard 2.1.1");
+    expect(text).toContain("unnamed athlete · Athletic Standard 2.1.2");
     expect(text).toContain("benchmarks defined: 1 · results recorded: 3");
   });
 
@@ -404,9 +404,9 @@ describe("checks, statistics, and repair", () => {
       const required = error as InstanceType<typeof database.MigrationRequiredError>;
       expect(required.name).toBe("MigrationRequiredError");
       expect(required.preview.source_sql_schema_version).toBe(1);
-      expect(required.preview.target_sql_schema_version).toBe(5);
+      expect(required.preview.target_sql_schema_version).toBe(6);
       expect(required.message).toBe(
-        "Database SQL schema 1 must be upgraded to 5 before other commands can run. Run ath migrate.",
+        "Database SQL schema 1 must be upgraded to 6 before other commands can run. Run ath migrate.",
       );
     }
     const handle = await database.openDatabase(copy, { allowOutdatedSchema: true, deferWal: true });
@@ -414,7 +414,7 @@ describe("checks, statistics, and repair", () => {
     expect(database.databaseNeedsMigration(metadata)).toBe(true);
     expect(await database.countProviderEncodingRepairCandidates(handle)).toBeGreaterThan(0);
     const preview = database.buildMigrationPreview(metadata, copy, new Date("2026-01-15T12:00:00.123Z"));
-    expect(preview.planned_steps.map((step) => step.target_sql_schema_version)).toEqual([2, 3, 4, 5]);
+    expect(preview.planned_steps.map((step) => step.target_sql_schema_version)).toEqual([2, 3, 4, 5, 6]);
     expect(preview.planned_backup_path).toMatch(/\.migration-backup\.20260115T120000\.123Z-\d+\.sqlite$/);
 
     const backup = join(folder, "npm-100.backup.sqlite");
@@ -434,7 +434,7 @@ describe("checks, statistics, and repair", () => {
     copyFileSync(join(repositoryRoot, "tests", "fixtures", "npm-100-encoding", "athlete.ath.sqlite"), second);
     const other = await database.openDatabase(second, { allowOutdatedSchema: true });
     await database.migrateDatabase(other);
-    expect((await database.readDatabaseMetadata(other)).sql_schema_version).toBe(5);
+    expect((await database.readDatabaseMetadata(other)).sql_schema_version).toBe(6);
     await database.applyPendingDatabaseMigrations(other);
     other.close();
   });
@@ -573,7 +573,7 @@ describe("grades, evidence, and backtests", () => {
       },
     });
     expect(requests.length).toBeGreaterThan(0);
-    expect(report.athleticstandard_version).toBe("2.1.1");
+    expect(report.athleticstandard_version).toBe("2.1.2");
     expect(report.skipped_first_result_count).toBe(1);
     expect(report.replayable_result_count).toBe(2);
     expect(report.replays.filter((replay) => replay.model === "model-b").every((replay) => replay.error === "model-b is offline")).toBe(true);

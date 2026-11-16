@@ -5,7 +5,7 @@ Status: **build in progress; not released**. The plan is [spec.md](spec.md).
 | Step | What | Status |
 |---|---|---|
 | 1 | Plan, decisions D227–D249, audit, and research | in progress |
-| 2 | Version 2.1.2, migration 6, session effort, strength set fields | not started |
+| 2 | Version 2.1.2, migration 6, session effort, strength set fields | done |
 | 3 | One-record calculation repairs and regression tests | not started |
 | 4 | Range receipt version 2 | not started |
 | 5 | Installer: skill kinds, named coaching installs, unedited-copy updates | not started |

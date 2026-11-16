@@ -45,8 +45,14 @@ fn probes_match_through_the_executable() {
         let argv: Vec<&str> = probe["argv"].as_array().unwrap().iter().map(|word| word.as_str().unwrap()).collect();
         let expected = Output {
             status: probe["exit_status"].as_i64().unwrap() as i32,
-            stdout: probe["stdout"].as_str().unwrap().replace("2.1.0", "2.1.1"),
-            stderr: probe["stderr"].as_str().unwrap().replace("2.1.0", "2.1.1"),
+            stdout: probe["stdout"]
+                .as_str()
+                .unwrap()
+                .replace("2.1.0", athleticstandard::model::package::ATHLETIC_STANDARD_VERSION),
+            stderr: probe["stderr"]
+                .as_str()
+                .unwrap()
+                .replace("2.1.0", athleticstandard::model::package::ATHLETIC_STANDARD_VERSION),
         };
         assert_eq!(ath(folder.path(), &argv, b""), expected, "{argv:?}");
     }
@@ -101,7 +107,10 @@ fn a_piped_delete_previews_refuses_and_writes_with_yes() {
 #[test]
 fn version_guide_and_refusals_through_the_executable() {
     let folder = private_folder();
-    assert_eq!(ath(folder.path(), &["-V"], b"").stdout, "2.1.1\n");
+    assert_eq!(
+        ath(folder.path(), &["-V"], b"").stdout,
+        format!("{}\n", athleticstandard::model::package::ATHLETIC_STANDARD_VERSION)
+    );
     let guide = ath(folder.path(), &[], b"");
     assert_eq!(guide.status, 0);
     assert!(guide.stdout.contains("ath init                       make the file, here\n"));

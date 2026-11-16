@@ -9,15 +9,24 @@ The program, npm package, record package, and database metadata use 2.1.2. D152'
 single version rule stays. The SQL migration step becomes 6.
 
 The number moves because the record gains optional fields and a new report type
-(D238, D239), and because calculation methods change. Minor and patch versions may
-add optional fields (D96, D184). The maintainer chose 2.1.2 for this work on
-2026-11-15.
+(D238, D239), and because calculation methods change. The maintainer chose 2.1.2
+for this work on 2026-11-15.
+
+The published version rule says a minor version may add optional fields and a
+patch version adds none (D96; SPEC.md section 13). Version 2.1.2 is an exception to
+that rule, made by the maintainer's choice. SPEC.md section 13 records the
+exception: 2.1.2 adds optional fields and one report-type value, and removes or
+changes nothing. Every 2.1.1 record and package stays valid 2.1.2 data. A 2.1.1
+program refuses a 2.1.2 database by its SQL step, as every older program refuses a
+newer step. The rule stays in force for later releases.
 
 Rejected alternatives:
 
 - Ship the repairs as a later 2.1.1 build. Rejected because 2.1.1 promised
   unchanged methods and fields (D209), and the repairs change both.
-- Use 2.2.0. Rejected because the maintainer chose 2.1.2.
+- Use 2.2.0, which the version rule suggests. Not chosen: the maintainer chose
+  2.1.2. Changing the number later is mechanical: the constants, the schema folder,
+  and the migration file name.
 
 ## D228. Three kinds of skill; coaching advice is authored
 

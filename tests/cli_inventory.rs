@@ -9,7 +9,7 @@ use athleticstandard::cli::{self, Io, Services, Terminal};
 use serde_json::Value;
 
 const OLD_VERSION: &str = "2.1.0";
-const NEW_VERSION: &str = "2.1.1";
+const NEW_VERSION: &str = athleticstandard::model::package::ATHLETIC_STANDARD_VERSION;
 
 /// The 2.1.0 `migrate` help said the backup needed a `sqlite3` program. The
 /// native backup uses SQLite's own interface, so the sentence is gone
@@ -93,8 +93,8 @@ fn every_probe_matches_the_inventory() {
 
 #[test]
 fn version_is_the_package_version() {
-    assert_eq!(run(&["--version".to_string()]), (0, "2.1.1\n".to_string(), String::new()));
-    assert_eq!(run(&["-V".to_string()]), (0, "2.1.1\n".to_string(), String::new()));
+    assert_eq!(run(&["--version".to_string()]), (0, format!("{NEW_VERSION}\n"), String::new()));
+    assert_eq!(run(&["-V".to_string()]), (0, format!("{NEW_VERSION}\n"), String::new()));
 }
 
 #[test]

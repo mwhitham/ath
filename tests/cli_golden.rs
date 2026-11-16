@@ -12,9 +12,9 @@
 //!
 //! - A refusal is printed once (cli-changes.md 1, quirk S4). Where 2.1.0
 //!   printed the same `ath:` line twice in a row, one copy is expected.
-//! - The native program writes SQL schema step 5 (D211). Step 5 is removed
-//!   from native migration plans, and a source, target, or required step 5
-//!   reads 4.
+//! - The native program writes SQL schema step 6 (D211, D227). Steps 5 and
+//!   6 are removed from native migration plans, and a source, target, or
+//!   required step 5 or 6 reads 4.
 //! - `log` lists record data in published field order (deliberate-changes.md
 //!   25), so its output lines are compared without their order.
 //! - `share` finds the report `backtest` writes (deliberate-changes.md 5).
@@ -128,8 +128,12 @@ fn uuid7_at(bytes: &[u8]) -> bool {
 }
 
 fn normalize(text: &str, work: &str, window: &mut Window) -> String {
-    let mut out = text.replace(work, "<work>").replace("2.1.0", "<version>").replace("2.1.1", "<version>");
-    for step in ["4", "5"] {
+    let mut out = text
+        .replace(work, "<work>")
+        .replace("2.1.0", "<version>")
+        .replace(athleticstandard::model::package::ATHLETIC_STANDARD_VERSION, "<version>");
+    let current_step = athleticstandard::store::SQL_SCHEMA_VERSION.to_string();
+    for step in ["4", current_step.as_str()] {
         // `\b` after the digit: the next byte is not a word character.
         let from = format!("\"sql_schema_version\": {step}");
         let mut result = String::new();
@@ -212,20 +216,27 @@ fn manifest_hashes(text: &str) -> String {
     out.join("\n")
 }
 
-/// The native program writes SQL schema step 5; 2.1.0 wrote step 4.
+/// The native program writes SQL schema step 6 (2.1.1 added step 5, 2.1.2
+/// step 6); 2.1.0 wrote step 4.
 fn step_five_as_four(text: &str) -> String {
     let mut out = text.to_string();
-    let marker = "\"migration_file\": \"migrations/005-version-2-1-1.sql\"";
-    while let Some(position) = out.find(marker) {
-        let object = out[..position].rfind('{').expect("the step object opens");
-        let start = out[..object].rfind(',').expect("step 5 follows another step");
-        let end = position + out[position..].find('}').expect("the step object closes") + 1;
-        out.replace_range(start..end, "");
+    for file in ["migrations/005-version-2-1-1.sql", "migrations/006-version-2-1-2.sql"] {
+        let marker = format!("\"migration_file\": \"{file}\"");
+        while let Some(position) = out.find(&marker) {
+            let object = out[..position].rfind('{').expect("the step object opens");
+            let start = out[..object].rfind(',').expect("a later step follows another step");
+            let end = position + out[position..].find('}').expect("the step object closes") + 1;
+            out.replace_range(start..end, "");
+        }
     }
-    out.replace("\"target_sql_schema_version\": 5", "\"target_sql_schema_version\": 4")
-        .replace("\"source_sql_schema_version\": 5", "\"source_sql_schema_version\": 4")
-        .replace(" to 5 with verified backup", " to 4 with verified backup")
-        .replace("must be upgraded to 5 before", "must be upgraded to 4 before")
+    for step in ["5", "6"] {
+        out = out
+            .replace(&format!("\"target_sql_schema_version\": {step}"), "\"target_sql_schema_version\": 4")
+            .replace(&format!("\"source_sql_schema_version\": {step}"), "\"source_sql_schema_version\": 4")
+            .replace(&format!(" to {step} with verified backup"), " to 4 with verified backup")
+            .replace(&format!("must be upgraded to {step} before"), "must be upgraded to 4 before");
+    }
+    out
 }
 
 /// `log` lists record data in published field order (deliberate-changes.md
@@ -621,8 +632,10 @@ fn normalization_keeps_old_values_and_numbers_new_ones() {
     let mut window = Window { from: now - 1_000, to: now + 1_000, ids: HashMap::new() };
     let new_id = format!("{:08x}-{:04x}-7000-8000-000000000001", now >> 16, now & 0xffff);
     let text = format!(
-        "{new_id} 01890f3e-e7d3-7cc0-88c8-000000000001 {new_id} {} 2026-01-01T00:00:00.000Z /w/x 2.1.1 \"sql_schema_version\": 5",
-        athleticstandard::model::time::format_utc_millis(now)
+        "{new_id} 01890f3e-e7d3-7cc0-88c8-000000000001 {new_id} {} 2026-01-01T00:00:00.000Z /w/x {} \"sql_schema_version\": {}",
+        athleticstandard::model::time::format_utc_millis(now),
+        athleticstandard::model::package::ATHLETIC_STANDARD_VERSION,
+        athleticstandard::store::SQL_SCHEMA_VERSION,
     );
     assert_eq!(
         normalize(&text, "/w", &mut window),

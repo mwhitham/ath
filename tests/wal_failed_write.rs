@@ -73,7 +73,7 @@ fn ath(cwd: &Path, argv: &[&str]) -> (i32, String, String) {
     )
 }
 
-/// A copy of the 2.1.1 demo database and its attachment.
+/// A copy of the current demo database and its attachment.
 fn demo_copy(folder: &Path) -> PathBuf {
     let demo = Path::new(env!("CARGO_MANIFEST_DIR")).join("examples/demo-athlete");
     let path = folder.join("athlete.ath.sqlite");
@@ -144,7 +144,13 @@ fn keeps_committed_wal_data_when_a_later_write_fails() {
     assert_eq!(show(folder.path(), &report)["record"]["data"]["note"], "note two");
     let (status, stdout, stderr) = ath(folder.path(), &["check"]);
     assert_eq!(status, 0, "{stdout}{stderr}");
-    assert!(stdout.contains("valid Athletic Standard 2.1.1 database"), "{stdout}");
+    assert!(
+        stdout.contains(&format!(
+            "valid Athletic Standard {} database",
+            athleticstandard::model::package::ATHLETIC_STANDARD_VERSION
+        )),
+        "{stdout}"
+    );
 
     // The file is still a WAL database: header bytes 18 and 19 are 2.
     let header = std::fs::read(&path).unwrap();

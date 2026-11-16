@@ -624,7 +624,7 @@ fn a_merge_adds_deleted_records_and_deletions() {
 #[test]
 fn every_supported_package_version_is_accepted_and_others_are_reported() {
     let directory = temporary("ath-package-versions-");
-    for version in ["2.0.0", "2.1.0", "2.1.1"] {
+    for version in athleticstandard::model::package::IMPORTABLE_PACKAGE_VERSIONS {
         let package = source_package(&directory, &format!("v{version}"), &[(SOURCE_A, "r-a", false, Value::Null)]);
         let path = package.join("athlete.ath.json");
         let text = fs::read_to_string(&path).unwrap().replace("\"2.1.0\"", &format!("\"{version}\""));
@@ -637,7 +637,13 @@ fn every_supported_package_version_is_accepted_and_others_are_reported() {
     fs::write(&path, text).unwrap();
     match load_package_checked(&package).unwrap() {
         PackageLoad::Unrepresentable(representation) => {
-            assert_eq!(representation.unknown_fields, ["athleticstandard_version: 9.0.0 is not supported by 2.1.1"]);
+            assert_eq!(
+                representation.unknown_fields,
+                [format!(
+                    "athleticstandard_version: 9.0.0 is not supported by {}",
+                    athleticstandard::model::package::ATHLETIC_STANDARD_VERSION
+                )]
+            );
             assert_eq!(representation.source_database_id.as_deref(), Some("01890f3e-0000-7000-8000-000000000001"));
         }
         PackageLoad::Loaded(_) => panic!("an unknown version loaded"),

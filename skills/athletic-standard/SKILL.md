@@ -1,10 +1,10 @@
 ---
 name: athletic-standard
-description: Reads and writes an athlete's Athletic Standard SQLite database (.ath.sqlite) with the ath CLI. Applies when someone logs a workout, lift, named benchmark such as Fran, HRV as RMSSD or SDNN, resting heart rate, sleep, soreness, nutrition, or another athlete report; asks what training or recovery data shows; asks for a benchmark prediction or backtest; reports a result to grade; imports Apple Health, WHOOP, Oura, Garmin, or Strava, or an Athletic Standard 2.0.0, 2.1.0, or 2.1.1 package; reads an Open Wearables or Junction JSON file through a mapping file; exports a complete package; runs ath apply on one record; or asks about Athletic Standard records, revisions, calculations, deletion, or privacy erasure.
+description: Reads and writes an athlete's Athletic Standard SQLite database (.ath.sqlite) with the ath CLI. Applies when someone logs a workout, lift, named benchmark such as Fran, HRV as RMSSD or SDNN, resting heart rate, sleep, soreness, nutrition, or another athlete report; asks what training or recovery data shows; asks for a benchmark prediction or backtest; reports a result to grade; imports Apple Health, WHOOP, Oura, Garmin, or Strava, or an Athletic Standard 2.0.0, 2.1.0, 2.1.1, or 2.1.2 package; reads an Open Wearables or Junction JSON file through a mapping file; exports a complete package; runs ath apply on one record; or asks about Athletic Standard records, revisions, calculations, deletion, or privacy erasure.
 license: MIT
 compatibility: Requires the ath CLI on PATH, from the athleticstandard npm package or a native release archive. Local database use needs no network. Optional terminal model calls need a configured gateway.
 metadata:
-  version: "2.1.1"
+  version: "2.1.2"
 ---
 
 # Athletic Standard
@@ -13,8 +13,8 @@ The live local record is one SQLite database named `athlete.ath.sqlite`. `ath` r
 and writes it. A JSON package is an explicit complete snapshot. It is not a second
 live copy.
 
-This skill expects Athletic Standard **2.1.1**. A version 1.0.0, 2.0.0, or 2.1.0
-database upgrades with `ath migrate`. A 2.0.0 or 2.1.0 package still imports.
+This skill expects Athletic Standard **2.1.2**. A version 1.0.0, 2.0.0, 2.1.0, or 2.1.1
+database upgrades with `ath migrate`. A 2.0.0, 2.1.0, or 2.1.1 package still imports.
 Prerelease `0.x` JSON documents are not imported.
 
 Local use needs no account, network connection, subscription, or hosted service.

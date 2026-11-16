@@ -15,7 +15,7 @@ fn vectors_dir() -> PathBuf {
     PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("tests/vectors/model")
 }
 
-/// Cases where 2.1.1 differs on purpose. Each entry names the reason.
+/// Cases where 2.1.1 or later differs on purpose. Each entry names the reason.
 fn deliberate_difference(schema: &str, case: &Value) -> Option<&'static str> {
     let name = case["name"].as_str().unwrap_or_default();
     let text = case.get("input_text").and_then(Value::as_str).unwrap_or_default();
@@ -32,6 +32,16 @@ fn deliberate_difference(schema: &str, case: &Value) -> Option<&'static str> {
         return Some("a number too large for a double is refused when the JSON is read");
     }
     None
+}
+
+/// The one message 2.1.2 changes on purpose: the report-type list names
+/// `session_effort` (D238). Every case still runs, with that list extended.
+fn as_2_1_2_issue(text: String) -> String {
+    const REPORT_TYPES: &str = r#""sleep_quality"|"soreness"|"stress"|"mood"|"energy"|"note""#;
+    if text.contains(REPORT_TYPES) && !text.contains("session_effort") {
+        return text.replace(REPORT_TYPES, &format!(r#"{REPORT_TYPES}|"session_effort""#));
+    }
+    text
 }
 
 fn issue_text(issue: &Value) -> String {
@@ -78,7 +88,8 @@ fn every_recorded_vector_matches() {
             };
             checked += 1;
             let actual: Vec<String> = shape.issues(&input).iter().map(|issue| issue_text(&issue.to_json())).collect();
-            let expected: Vec<String> = case["issues"].as_array().unwrap().iter().map(issue_text).collect();
+            let expected: Vec<String> =
+                case["issues"].as_array().unwrap().iter().map(issue_text).map(as_2_1_2_issue).collect();
             if actual != expected {
                 failures.push(format!("{schema_name} / {name}:\n    expected {expected:?}\n    actual   {actual:?}"));
                 continue;
