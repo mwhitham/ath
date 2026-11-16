@@ -6,7 +6,8 @@ software changes. A fact below is tied to the page or the file it came from.
 Nothing here was read from a live server, and no key was used. Files
 under `tests/fixtures/exports/open-wearables/` are not evidence. A claim
 about what the server sends cites the Open Wearables docs or the pinned
-0.11.0 OpenAPI file already named in this appendix.
+0.11.0 OpenAPI file already named in this appendix. Later checks are
+dated in their own sections. The last one is 15 November 2026.
 
 ## What the product is
 
