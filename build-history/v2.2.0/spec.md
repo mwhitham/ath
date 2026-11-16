@@ -1052,9 +1052,11 @@ change, as the next paragraph says.
 A preview's `details` counts are estimates from the stored originals, and
 they are under the `estimated` key. `would_detail` counts the ids that
 `--yes` would detail now, and `deferred` the ids past the budget. `kept`
-and `not_available` are counted as `--yes` would count them. `failed`,
-`mismatch`, `thinner`, `too_large`, and `refused` are zero in a preview,
-because only a detail call can find them. The preview says so: `preview
+and `not_available` are counted as `--yes` would count them, and so is
+an `unusable_name` refusal whose list object is unchanged. `failed`,
+`mismatch`, `thinner`, and `too_large` are zero in a preview, and so is
+any other `refused`, because only a detail call can find them. The
+preview says so: `preview
 made no detail calls; detail failures, size limits and refusals are only
 known after --yes`. A preview and then `--yes` read each provider's list twice. That is
 one extra call for most providers, every window again for Garmin, and
@@ -1308,18 +1310,27 @@ reason. A refused object refuses only itself, and the count says why. Two
 different objects with one id in one provider's response refuse both,
 because the pull cannot tell which is right. Two equal objects are one.
 
-A vendor object that holds a key named `__proto__` at any depth is
-refused as `unusable_name`. The import check in section 3 refuses that
-key in any supplied field, and it fails the whole import. So
-`src/runtime/vendor_workouts.rs` runs the same check on each list object
-and each detail before the page is staged. A list object with the key
-gets no detail call. A detail with the key refuses its whole object, list
-object included. Only that object is refused, and the others are
-written. The provider stays `completed`, as it does for the other refused
-objects, because a rerun gets the same object. The person has no fix in
-ath, because nothing is stored to delete. A later command reads the
-object again. When only its detail holds the key, that command spends one
-detail call on it again.
+A vendor list object that holds a key named `__proto__` at any depth is
+refused as `unusable_name`, and it gets no detail call. The import check
+in section 3 refuses that key in any supplied field, and it fails the
+whole import. So `src/runtime/vendor_workouts.rs` runs the same check on
+each list object and each detail before the page is staged. When only
+the detail holds the key, the clean list object is stored with
+`detail_status` `refused`, `refused_by` `unusable_name`, and the key's
+path in `refused_path`. The detail is not stored. A later command asks
+for that detail again only when the list object changes, so the call is
+not spent on every command. Only that object is refused, and the others
+are written. The provider stays `completed`, as it does for the other
+refused objects, because a rerun gets the same object. A refused list
+object is not stored, so a later command reads it and refuses it again,
+with no detail call.
+
+Each object refused this way is named in `left_out.examples`, inside the
+20-line bound. The line gives the provider, the vendor id as a JSON
+string or `no id`, the reason, and the JSON path of the key, in the form
+the withheld paths use. For example: `polar "1002": unusable_name at
+detail.samples[3].__proto__`. A refused detail is named the same way,
+though its original is stored and its count is under `details`.
 
 Garmin is read in windows, and one activity can be in two windows when
 Garmin received it again. A window selects by upload time, so the later
@@ -1412,8 +1423,9 @@ The pull calls detail only when the provider has a detail call and its
 budget allows. It spends the budget in this order. First come ids with no
 stored detail that no earlier command marked `not_available`,
 `too_large`, or `refused`. Then come ids whose list object differs from
-the stored `list`. Then come ids an earlier command marked `too_large` or
-`refused`. Last come Garmin ids that a 404 or 501 marked `not_available`
+the stored `list`. Then come ids an earlier command marked `too_large`,
+or `refused` with `refused_by` `privacy_scan`. Last come Garmin ids that
+a 404 or 501 marked `not_available`
 at least 30 days before this command started, by their
 `detail_checked_at`. An original whose current revision is an owner
 correction is not in that last group, because a repeat answer would not
@@ -1421,7 +1433,8 @@ be written over the correction, and its time would never move. Each id
 goes in the first group it matches. So an id that was `not_available`,
 `too_large`, or `refused` and whose list object changed is in the second
 group. Any other id marked `not_available` whose list object is unchanged
-gets no detail call. It counts as `not_available` again. Inside each
+gets no detail call. It counts as `not_available` again. So does an id
+`refused` as `unusable_name`, which counts as `refused` again. Inside each
 group the oldest start goes first. An id without a start instant goes
 last in its group, in list order. So a Garmin path that answers 404
 costs one detail call in a command, and only when some id is due a call.
@@ -1482,17 +1495,20 @@ What is written for one id depends on what this command got:
   detail response over `MAX_PULL_RESPONSE_BYTES` is `too_large`, because
   the detail route has no smaller page. A detail
   that the privacy scan in section 4 refuses, because it holds the key,
-  the origin, or the user id, is `refused`. Neither of those is stored,
-  and each is counted on the provider's line.
+  the origin, or the user id, is `refused` by `privacy_scan`. A detail
+  with a `__proto__` key is `refused` as `unusable_name`. None of those
+  is stored, and each is counted on the provider's line.
 - No new detail, but one is stored, and the list object changed. Nothing
   is written for that id, and no revision is added. The stored detail
   stays. The id counts as `deferred`, `failed`, `mismatch`,
   `not_available`, `too_large`, or `refused`.
 
 A list-only object therefore never replaces a stored detail. A `failed`,
-`mismatch`, `too_large`, or `refused` detail makes the provider
-`incomplete`, and the exit is nonzero. A `not_available` detail leaves the provider `completed`. A
-`deferred` detail leaves the provider `completed`, with the
+`mismatch`, or `too_large` detail, or one `refused` by the privacy scan,
+makes the provider `incomplete`, and the exit is nonzero. A detail
+refused as `unusable_name` leaves the provider `completed`, because a
+rerun gets the same detail. A `not_available` detail leaves the provider
+`completed`. A `deferred` detail leaves the provider `completed`, with the
 deferred count on its line, and the next command details those ids first.
 A deferred id that the provider stops listing is never detailed by a later
 command. The deferred count shows how many are waiting.
@@ -1529,6 +1545,11 @@ the same object:
 - `detail_checked_at` is present only when a Garmin detail answered 404
   or 501 and `detail_status` is `not_available`. It holds the integer Unix
   seconds of that answer, by the pull's clock.
+- `refused_by` is present only when `detail_status` is `refused`. It is
+  `privacy_scan` or `unusable_name`. `refused_path` is present only with
+  `unusable_name`. It is the JSON path of the key in the detail, and it
+  names keys and indexes, never a value. The privacy scan runs first, so
+  the path never holds the key, the origin, or the user id.
 - A value that section 4 withholds is replaced in place by its marker.
   Nothing else in `list`, `list_parent`, or `detail` is changed.
 
@@ -2722,10 +2743,16 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   fails it too. A package that holds a `__proto__` key still restores,
   because D214 keeps the key in the native reader
 - a Polar list of three objects, where one detail has a `__proto__` key
-  nested in a route point. Two originals are stored. Polar's `left_out`
-  counts 1 `unusable_name`, Polar is `completed`, and the page is not
-  refused. A Polar list object with the key gets no detail call and is
-  counted the same way
+  nested in a route point. All three originals are stored. The one with
+  the bad detail holds its list object, `detail_status` `refused`,
+  `refused_by` `unusable_name`, and the key's path in `refused_path`.
+  Polar's details count 1 `refused`, Polar is `completed`, the exit is 0,
+  and the page is not refused. One `left_out.examples` line names
+  `polar`, that vendor id, and the key's path. A second pull with the
+  same list objects makes no detail call for that id and counts it
+  `refused` again. A Polar list object with the key gets no detail call,
+  is not stored, counts 1 `unusable_name` in `left_out`, and is named the
+  same way
 - a literal key, a Unicode-escaped key in a nested unconsumed field, the
   key used as an object key, the selected origin, and the selected user id
   each reject the page before mapping. The database, its revisions, and the
@@ -2772,7 +2799,7 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
 - a Polar detail over `MAX_PULL_RESPONSE_BYTES`, with the cap lowered for
   the test, is `too_large`. The list object is stored alone, Polar is
   `incomplete`, and the exit is nonzero. A Polar detail that holds the
-  selected user id is `refused`, is not stored, and makes Polar
+  selected user id is `refused` by `privacy_scan`, is not stored, and makes Polar
   `incomplete`. The list object of that id passed the scan and is stored.
   On the next command, a new Polar id is detailed before either of them
 - 101 Polar ids with no stored detail. The first pull makes 100 detail

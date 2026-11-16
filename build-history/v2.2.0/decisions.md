@@ -222,6 +222,11 @@ number is added:
   `detail_checked_at` and is asked again after 30 days, or sooner when its
   list object changes. An original with a current owner correction is
   asked again only when its list object changes.
+- D243 and D231. When only a detail holds a `__proto__` key, the clean
+  list object is stored with `detail_status` `refused` and `refused_by`
+  `unusable_name`, and the detail is asked for again only when the list
+  object changes. Each refused object and refused detail is named in
+  `left_out.examples` by provider, vendor id, reason, and key path.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -746,8 +751,9 @@ native reader, which keeps such a key and checks it, so the import
 refusal still applies. There is no `persist.rs` and no
 `ath-core persist` command. The pull writes through `MappedPage` and the
 2.1.1 import, so the import check covers it. The vendor read in D243 runs
-the same check on each vendor object first, so one object with the key is
-refused alone. A name check outside import is separate work.
+the same check on each vendor object first. A list object with the key is
+refused alone. A detail with the key is refused, and its clean list
+object is stored. A name check outside import is separate work.
 
 `is_mapping_path` exists once, in `src/assets/mod.rs`. The pull uses
 `resolve_mapping` in that file. There is no second path rule to remove.
@@ -1627,11 +1633,13 @@ it has fewer fields. The stored detail stays in the record's history as
 the earlier revision. A deferred or failed detail keeps the
 stored detail and adds no revision. A detail over the 10 MiB response cap
 is `too_large`, because the detail route has no smaller page. A detail
-the privacy scan refuses is `refused`. Neither is stored. A failed,
-mismatched, too large, or refused detail makes the provider `incomplete`
-and the exit nonzero, because a limit may refuse work but must not report
-it as complete. A too large or refused id is retried after the new and
-changed ids. A deferred detail leaves the provider `completed`, with a
+the privacy scan refuses is `refused` by `privacy_scan`. Neither is
+stored. A failed, mismatched, too large, or privacy-refused detail makes
+the provider `incomplete` and the exit nonzero, because a limit may
+refuse work but must not report it as complete. A too large or
+privacy-refused id is retried after the new and changed ids. A detail
+with a `__proto__` key is `refused` as `unusable_name`, as the next
+paragraphs say. A deferred detail leaves the provider `completed`, with a
 separate deferred count. A detail is read after the provider's whole
 list, so it can come minutes after its list object, and the vendor can
 change the workout in between. The envelope does not record when each
@@ -1685,13 +1693,18 @@ The start becomes `input_timestamp` by the rules in the specification:
 text keeps its offset or says it has none, and Unix seconds or
 milliseconds keep their digits. The start is stored and is not a filter.
 
-A vendor object with a `__proto__` key at any depth is refused alone as
-`unusable_name`, and the provider stays `completed`. The import check
+A vendor list object with a `__proto__` key at any depth is refused alone
+as `unusable_name`, and the provider stays `completed`. The import check
 (D191) refuses that key and fails the whole import. Vendor JSON is
 outside ath's control, so one such object would otherwise fail that
 provider's page on every command, with no count and no fix. The vendor
 read runs the same check on each list object and each detail before the
-page is staged.
+page is staged. When only the detail holds the key, the clean list object
+is stored with `detail_status` `refused`, `refused_by` `unusable_name`,
+and the key's path in `refused_path`. That detail is asked for again only
+when its list object changes, because a rerun gets the same detail. Each
+refused object and refused detail is named in `left_out.examples`, inside
+its 20-line bound, by provider, vendor id, reason, and key path.
 
 Every returned original is stored, including a start outside `--from` and
 `--to`. The count is `vendor workout originals`. `range_complete` uses
@@ -1787,6 +1800,15 @@ Rejected alternatives:
 - Drop an original whose start is outside the requested range. Rejected.
   The live methods do not filter by workout start, so a drop would hide a
   returned object.
+- Refuse the list object too when only its detail holds a `__proto__`
+  key, as the earlier text did. Rejected. Nothing would be stored, and
+  every command would spend a detail call on that id again.
+- Ask for a name-refused detail again after the new and changed ids, as
+  a privacy-refused one is. Rejected. The vendor returns the same detail,
+  so the call would be spent on every command for no gain.
+- Count refused objects without naming them. Rejected. With the provider
+  `completed`, a count alone does not tell the person which workout or
+  which key.
 
 ## D244. Vendor originals stay whole. The maintainer can change this
 
