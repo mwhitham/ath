@@ -1,0 +1,2119 @@
+{
+  "schema": "PlannedSessionData",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "training_plan_id": "01890f3e-e7d3-7cc0-88c8-000000000014",
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "scheduled_start_at": "2026-01-02T03:04:05.678Z",
+        "activity_type": "running",
+        "blocks": [
+          {
+            "block_type": "main",
+            "title": "6 x 400 m",
+            "instructions": "Even splits",
+            "planned_duration_s": 1800,
+            "planned_distance_m": 2400,
+            "planned_reps": 6,
+            "planned_weight_kg": 20
+          }
+        ],
+        "completion_status": "completed",
+        "completed_workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a"
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "training_plan_id": "01890f3e-e7d3-7cc0-88c8-000000000014",
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "scheduled_start_at": "2026-01-02T03:04:05.678Z",
+        "activity_type": "running",
+        "blocks": [
+          {
+            "block_type": "main",
+            "title": "6 x 400 m",
+            "instructions": "Even splits",
+            "planned_duration_s": 1800,
+            "planned_distance_m": 2400,
+            "planned_reps": 6,
+            "planned_weight_kg": 20
+          }
+        ],
+        "completion_status": "completed",
+        "completed_workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a"
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "training_plan_id": "01890f3e-e7d3-7cc0-88c8-000000000014",
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "scheduled_start_at": "2026-01-02T03:04:05.678Z",
+        "activity_type": "running",
+        "blocks": [
+          {
+            "block_type": "main",
+            "title": "6 x 400 m",
+            "instructions": "Even splits",
+            "planned_duration_s": 1800,
+            "planned_distance_m": 2400,
+            "planned_reps": 6,
+            "planned_weight_kg": 20
+          }
+        ],
+        "completion_status": "completed",
+        "completed_workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "authorship:missing",
+      "input": {
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:null",
+      "input": {
+        "authorship": null,
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:wrong_type=array",
+      "input": {
+        "authorship": [],
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:wrong_type=string",
+      "input": {
+        "authorship": "x",
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:empty_object",
+      "input": {
+        "authorship": {},
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship",
+            "author"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        },
+        {
+          "path": [
+            "authorship",
+            "authored_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "authorship",
+            "evidence"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received undefined",
+          "expected": "array"
+        },
+        {
+          "path": [
+            "authorship",
+            "content_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        },
+        {
+          "path": [
+            "authorship",
+            "status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"draft\"|\"active\"|\"completed\"|\"superseded\"|\"cancelled\"",
+          "values": [
+            "draft",
+            "active",
+            "completed",
+            "superseded",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "authorship:nested_unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active",
+          "unknown_nested": true
+        },
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "training_plan_id:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "training_plan_id": null,
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "scheduled_start_at": "2026-01-02T03:04:05.678Z",
+        "activity_type": "running",
+        "blocks": [
+          {
+            "block_type": "main",
+            "title": "6 x 400 m",
+            "instructions": "Even splits",
+            "planned_duration_s": 1800,
+            "planned_distance_m": 2400,
+            "planned_reps": 6,
+            "planned_weight_kg": 20
+          }
+        ],
+        "completion_status": "completed",
+        "completed_workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "training_plan_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "training_plan_id:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "training_plan_id": 1,
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "scheduled_start_at": "2026-01-02T03:04:05.678Z",
+        "activity_type": "running",
+        "blocks": [
+          {
+            "block_type": "main",
+            "title": "6 x 400 m",
+            "instructions": "Even splits",
+            "planned_duration_s": 1800,
+            "planned_distance_m": 2400,
+            "planned_reps": 6,
+            "planned_weight_kg": 20
+          }
+        ],
+        "completion_status": "completed",
+        "completed_workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "training_plan_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "training_plan_id:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "training_plan_id": "",
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "scheduled_start_at": "2026-01-02T03:04:05.678Z",
+        "activity_type": "running",
+        "blocks": [
+          {
+            "block_type": "main",
+            "title": "6 x 400 m",
+            "instructions": "Even splits",
+            "planned_duration_s": 1800,
+            "planned_distance_m": 2400,
+            "planned_reps": 6,
+            "planned_weight_kg": 20
+          }
+        ],
+        "completion_status": "completed",
+        "completed_workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "training_plan_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "training_plan_id:format=not_valid",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "training_plan_id": "not valid",
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "scheduled_start_at": "2026-01-02T03:04:05.678Z",
+        "activity_type": "running",
+        "blocks": [
+          {
+            "block_type": "main",
+            "title": "6 x 400 m",
+            "instructions": "Even splits",
+            "planned_duration_s": 1800,
+            "planned_distance_m": 2400,
+            "planned_reps": 6,
+            "planned_weight_kg": 20
+          }
+        ],
+        "completion_status": "completed",
+        "completed_workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "training_plan_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "training_plan_id:format=uppercase",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "training_plan_id": "01890F3E-E7D3-7CC0-88C8-000000000014",
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "scheduled_start_at": "2026-01-02T03:04:05.678Z",
+        "activity_type": "running",
+        "blocks": [
+          {
+            "block_type": "main",
+            "title": "6 x 400 m",
+            "instructions": "Even splits",
+            "planned_duration_s": 1800,
+            "planned_distance_m": 2400,
+            "planned_reps": 6,
+            "planned_weight_kg": 20
+          }
+        ],
+        "completion_status": "completed",
+        "completed_workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "training_plan_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "title:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "scheduled_date": "2026-01-02",
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "title"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "title:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": null,
+        "scheduled_date": "2026-01-02",
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "title"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "title:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": 1,
+        "scheduled_date": "2026-01-02",
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "title"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "title:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "",
+        "scheduled_date": "2026-01-02",
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "title"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "scheduled_date:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": null,
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "scheduled_date"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "scheduled_date:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": 1,
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "scheduled_date"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "scheduled_date:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": "",
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "scheduled_date"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "scheduled_date:format=february_30",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": "2026-02-30",
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "scheduled_date"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "scheduled_date:format=datetime",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02T03:04:05.678Z",
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "scheduled_date"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "scheduled_start_at:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "training_plan_id": "01890f3e-e7d3-7cc0-88c8-000000000014",
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "scheduled_start_at": null,
+        "activity_type": "running",
+        "blocks": [
+          {
+            "block_type": "main",
+            "title": "6 x 400 m",
+            "instructions": "Even splits",
+            "planned_duration_s": 1800,
+            "planned_distance_m": 2400,
+            "planned_reps": 6,
+            "planned_weight_kg": 20
+          }
+        ],
+        "completion_status": "completed",
+        "completed_workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "scheduled_start_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "scheduled_start_at:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "training_plan_id": "01890f3e-e7d3-7cc0-88c8-000000000014",
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "scheduled_start_at": 1,
+        "activity_type": "running",
+        "blocks": [
+          {
+            "block_type": "main",
+            "title": "6 x 400 m",
+            "instructions": "Even splits",
+            "planned_duration_s": 1800,
+            "planned_distance_m": 2400,
+            "planned_reps": 6,
+            "planned_weight_kg": 20
+          }
+        ],
+        "completion_status": "completed",
+        "completed_workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "scheduled_start_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "scheduled_start_at:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "training_plan_id": "01890f3e-e7d3-7cc0-88c8-000000000014",
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "scheduled_start_at": "",
+        "activity_type": "running",
+        "blocks": [
+          {
+            "block_type": "main",
+            "title": "6 x 400 m",
+            "instructions": "Even splits",
+            "planned_duration_s": 1800,
+            "planned_distance_m": 2400,
+            "planned_reps": 6,
+            "planned_weight_kg": 20
+          }
+        ],
+        "completion_status": "completed",
+        "completed_workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "scheduled_start_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "scheduled_start_at:format=no_milliseconds",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "training_plan_id": "01890f3e-e7d3-7cc0-88c8-000000000014",
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "scheduled_start_at": "2026-01-02T03:04:05Z",
+        "activity_type": "running",
+        "blocks": [
+          {
+            "block_type": "main",
+            "title": "6 x 400 m",
+            "instructions": "Even splits",
+            "planned_duration_s": 1800,
+            "planned_distance_m": 2400,
+            "planned_reps": 6,
+            "planned_weight_kg": 20
+          }
+        ],
+        "completion_status": "completed",
+        "completed_workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "scheduled_start_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "scheduled_start_at:format=offset",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "training_plan_id": "01890f3e-e7d3-7cc0-88c8-000000000014",
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "scheduled_start_at": "2026-01-02T03:04:05.678+00:00",
+        "activity_type": "running",
+        "blocks": [
+          {
+            "block_type": "main",
+            "title": "6 x 400 m",
+            "instructions": "Even splits",
+            "planned_duration_s": 1800,
+            "planned_distance_m": 2400,
+            "planned_reps": 6,
+            "planned_weight_kg": 20
+          }
+        ],
+        "completion_status": "completed",
+        "completed_workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "scheduled_start_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "activity_type:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "training_plan_id": "01890f3e-e7d3-7cc0-88c8-000000000014",
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "scheduled_start_at": "2026-01-02T03:04:05.678Z",
+        "activity_type": null,
+        "blocks": [
+          {
+            "block_type": "main",
+            "title": "6 x 400 m",
+            "instructions": "Even splits",
+            "planned_duration_s": 1800,
+            "planned_distance_m": 2400,
+            "planned_reps": 6,
+            "planned_weight_kg": 20
+          }
+        ],
+        "completion_status": "completed",
+        "completed_workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "activity_type"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "activity_type:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "training_plan_id": "01890f3e-e7d3-7cc0-88c8-000000000014",
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "scheduled_start_at": "2026-01-02T03:04:05.678Z",
+        "activity_type": 1,
+        "blocks": [
+          {
+            "block_type": "main",
+            "title": "6 x 400 m",
+            "instructions": "Even splits",
+            "planned_duration_s": 1800,
+            "planned_distance_m": 2400,
+            "planned_reps": 6,
+            "planned_weight_kg": 20
+          }
+        ],
+        "completion_status": "completed",
+        "completed_workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "activity_type"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "activity_type:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "training_plan_id": "01890f3e-e7d3-7cc0-88c8-000000000014",
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "scheduled_start_at": "2026-01-02T03:04:05.678Z",
+        "activity_type": "",
+        "blocks": [
+          {
+            "block_type": "main",
+            "title": "6 x 400 m",
+            "instructions": "Even splits",
+            "planned_duration_s": 1800,
+            "planned_distance_m": 2400,
+            "planned_reps": 6,
+            "planned_weight_kg": 20
+          }
+        ],
+        "completion_status": "completed",
+        "completed_workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "activity_type"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "blocks:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "completion_status": "planned"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "blocks"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received undefined",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "blocks:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": null,
+        "completion_status": "planned"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "blocks"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received null",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "blocks:wrong_type=object",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": {},
+        "completion_status": "planned"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "blocks"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received object",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "blocks:empty_array",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "issues": []
+    },
+    {
+      "name": "blocks:element[0]:wrong_type=array",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": [
+          []
+        ],
+        "completion_status": "planned"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "blocks",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "blocks:element[0]:wrong_type=string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": [
+          "x"
+        ],
+        "completion_status": "planned"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "blocks",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "completion_status:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "completion_status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"planned\"|\"completed\"|\"skipped\"|\"cancelled\"",
+          "values": [
+            "planned",
+            "completed",
+            "skipped",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "completion_status:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": [],
+        "completion_status": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "completion_status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"planned\"|\"completed\"|\"skipped\"|\"cancelled\"",
+          "values": [
+            "planned",
+            "completed",
+            "skipped",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "completion_status:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": [],
+        "completion_status": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "completion_status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"planned\"|\"completed\"|\"skipped\"|\"cancelled\"",
+          "values": [
+            "planned",
+            "completed",
+            "skipped",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "completion_status:enum_invalid",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": [],
+        "completion_status": "__not_an_option__"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "completion_status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"planned\"|\"completed\"|\"skipped\"|\"cancelled\"",
+          "values": [
+            "planned",
+            "completed",
+            "skipped",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "completion_status:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": [],
+        "completion_status": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "completion_status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"planned\"|\"completed\"|\"skipped\"|\"cancelled\"",
+          "values": [
+            "planned",
+            "completed",
+            "skipped",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "completion_status:enum_uppercase",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": [],
+        "completion_status": "PLANNED"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "completion_status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"planned\"|\"completed\"|\"skipped\"|\"cancelled\"",
+          "values": [
+            "planned",
+            "completed",
+            "skipped",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "completed_workout_session_id:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "training_plan_id": "01890f3e-e7d3-7cc0-88c8-000000000014",
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "scheduled_start_at": "2026-01-02T03:04:05.678Z",
+        "activity_type": "running",
+        "blocks": [
+          {
+            "block_type": "main",
+            "title": "6 x 400 m",
+            "instructions": "Even splits",
+            "planned_duration_s": 1800,
+            "planned_distance_m": 2400,
+            "planned_reps": 6,
+            "planned_weight_kg": 20
+          }
+        ],
+        "completion_status": "completed",
+        "completed_workout_session_id": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "completed_workout_session_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "completed_workout_session_id:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "training_plan_id": "01890f3e-e7d3-7cc0-88c8-000000000014",
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "scheduled_start_at": "2026-01-02T03:04:05.678Z",
+        "activity_type": "running",
+        "blocks": [
+          {
+            "block_type": "main",
+            "title": "6 x 400 m",
+            "instructions": "Even splits",
+            "planned_duration_s": 1800,
+            "planned_distance_m": 2400,
+            "planned_reps": 6,
+            "planned_weight_kg": 20
+          }
+        ],
+        "completion_status": "completed",
+        "completed_workout_session_id": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "completed_workout_session_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "completed_workout_session_id:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "training_plan_id": "01890f3e-e7d3-7cc0-88c8-000000000014",
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "scheduled_start_at": "2026-01-02T03:04:05.678Z",
+        "activity_type": "running",
+        "blocks": [
+          {
+            "block_type": "main",
+            "title": "6 x 400 m",
+            "instructions": "Even splits",
+            "planned_duration_s": 1800,
+            "planned_distance_m": 2400,
+            "planned_reps": 6,
+            "planned_weight_kg": 20
+          }
+        ],
+        "completion_status": "completed",
+        "completed_workout_session_id": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "completed_workout_session_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "completed_workout_session_id:format=not_valid",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "training_plan_id": "01890f3e-e7d3-7cc0-88c8-000000000014",
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "scheduled_start_at": "2026-01-02T03:04:05.678Z",
+        "activity_type": "running",
+        "blocks": [
+          {
+            "block_type": "main",
+            "title": "6 x 400 m",
+            "instructions": "Even splits",
+            "planned_duration_s": 1800,
+            "planned_distance_m": 2400,
+            "planned_reps": 6,
+            "planned_weight_kg": 20
+          }
+        ],
+        "completion_status": "completed",
+        "completed_workout_session_id": "not valid"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "completed_workout_session_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "completed_workout_session_id:format=uppercase",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "training_plan_id": "01890f3e-e7d3-7cc0-88c8-000000000014",
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "scheduled_start_at": "2026-01-02T03:04:05.678Z",
+        "activity_type": "running",
+        "blocks": [
+          {
+            "block_type": "main",
+            "title": "6 x 400 m",
+            "instructions": "Even splits",
+            "planned_duration_s": 1800,
+            "planned_distance_m": 2400,
+            "planned_reps": 6,
+            "planned_weight_kg": 20
+          }
+        ],
+        "completion_status": "completed",
+        "completed_workout_session_id": "01890F3E-E7D3-7CC0-88C8-00000000000A"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "completed_workout_session_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "rule:no_date_no_start",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "scheduled_date"
+          ],
+          "code": "custom",
+          "message": "A planned session needs a date or start instant"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R27",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:start_only",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "blocks": [],
+        "completion_status": "planned",
+        "scheduled_start_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_start_at": "2026-01-02T03:04:05.678Z",
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R27",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:date_only",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Intervals",
+        "scheduled_date": "2026-01-02",
+        "blocks": [],
+        "completion_status": "planned"
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R27",
+          "expect": "satisfy"
+        }
+      ]
+    }
+  ]
+}

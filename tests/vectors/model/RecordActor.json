@@ -1,0 +1,323 @@
+{
+  "schema": "RecordActor",
+  "cases": [
+    {
+      "name": "valid:athlete",
+      "input": {
+        "author_type": "athlete"
+      },
+      "valid": true,
+      "output": {
+        "author_type": "athlete"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:agent_minimal",
+      "input": {
+        "author_type": "agent",
+        "agent": "reference-agent"
+      },
+      "valid": true,
+      "output": {
+        "author_type": "agent",
+        "agent": "reference-agent"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:agent_maximal",
+      "input": {
+        "author_type": "agent",
+        "agent": "reference-agent",
+        "agent_version": "2.1.0"
+      },
+      "valid": true,
+      "output": {
+        "author_type": "agent",
+        "agent": "reference-agent",
+        "agent_version": "2.1.0"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:tool",
+      "input": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "2.1.0"
+      },
+      "valid": true,
+      "output": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "2.1.0"
+      },
+      "issues": []
+    },
+    {
+      "name": "invalid:missing_discriminator",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "author_type"
+          ],
+          "code": "invalid_union",
+          "message": "Invalid discriminator value. Expected 'athlete' | 'agent' | 'tool'",
+          "discriminator": "author_type",
+          "errors": [],
+          "note": "No matching discriminator",
+          "options": [
+            "athlete",
+            "agent",
+            "tool"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:unknown_discriminator",
+      "input": {
+        "author_type": "robot"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "author_type"
+          ],
+          "code": "invalid_union",
+          "message": "Invalid discriminator value. Expected 'athlete' | 'agent' | 'tool'",
+          "discriminator": "author_type",
+          "errors": [],
+          "note": "No matching discriminator",
+          "options": [
+            "athlete",
+            "agent",
+            "tool"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:discriminator_wrong_type",
+      "input": {
+        "author_type": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "author_type"
+          ],
+          "code": "invalid_union",
+          "message": "Invalid discriminator value. Expected 'athlete' | 'agent' | 'tool'",
+          "discriminator": "author_type",
+          "errors": [],
+          "note": "No matching discriminator",
+          "options": [
+            "athlete",
+            "agent",
+            "tool"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:athlete_extra_key",
+      "input": {
+        "author_type": "athlete",
+        "agent": "x"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"agent\"",
+          "keys": [
+            "agent"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:agent_missing_agent",
+      "input": {
+        "author_type": "agent"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "agent"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "invalid:agent_empty_agent",
+      "input": {
+        "author_type": "agent",
+        "agent": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "agent"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "invalid:agent_with_model",
+      "input": {
+        "author_type": "agent",
+        "agent": "reference-agent",
+        "agent_version": "2.1.0",
+        "model": "example-model"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"model\"",
+          "keys": [
+            "model"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:agent_bad_version",
+      "input": {
+        "author_type": "agent",
+        "agent": "reference-agent",
+        "agent_version": "v2"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "agent_version"
+          ],
+          "code": "invalid_format",
+          "message": "semantic version",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:tool_missing_version",
+      "input": {
+        "author_type": "tool",
+        "tool": "ath"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "tool_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "invalid:tool_bad_version",
+      "input": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "2.1"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "tool_version"
+          ],
+          "code": "invalid_format",
+          "message": "semantic version",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:tool_with_calculation_version",
+      "input": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "2.1.0",
+        "calculation_version": "1"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"calculation_version\"",
+          "keys": [
+            "calculation_version"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "athlete",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,85 @@
+{
+  "name": "athleticstandard",
+  "version": "2.1.1",
+  "description": "An open, local-first SQLite format for an athlete's training and recovery data, with complete JSON import and export.",
+  "license": "MIT",
+  "homepage": "https://ath.fit",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mwhitham/ath.git",
+    "directory": "packages/npm"
+  },
+  "bugs": {
+    "url": "https://github.com/mwhitham/ath/issues"
+  },
+  "keywords": [
+    "athletic-standard",
+    "file-format",
+    "json-schema",
+    "training",
+    "recovery",
+    "hrv",
+    "wearables",
+    "whoop",
+    "oura",
+    "apple-health",
+    "crossfit",
+    "hyrox",
+    "triathlon",
+    "local-first",
+    "ai-agents"
+  ],
+  "type": "module",
+  "engines": {
+    "node": ">=22"
+  },
+  "os": [
+    "linux",
+    "darwin",
+    "win32"
+  ],
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./database": {
+      "types": "./dist/database.d.ts",
+      "import": "./dist/database.js"
+    },
+    "./schema": {
+      "types": "./dist/schema.d.ts",
+      "import": "./dist/schema.js"
+    },
+    "./json-schema": "./schema/2.1.1/athleticstandard.schema.json",
+    "./json-schema/export-manifest": "./schema/2.1.1/export-manifest.schema.json",
+    "./json-schema/measurement-series": "./schema/2.1.1/measurement-series.schema.json",
+    "./skill": "./skills/athletic-standard/SKILL.md"
+  },
+  "bin": {
+    "ath": "dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "native",
+    "schema",
+    "skills",
+    "REMOTE-TARGETS.md"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^4.5.2"
+  },
+  "devDependencies": {
+    "@types/node": "^26.4.0",
+    "tsx": "^4.23.12",
+    "typescript": "^5.9.3",
+    "vitest": "^4.1.11"
+  }
+}

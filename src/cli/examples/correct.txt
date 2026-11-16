@@ -1,0 +1,15 @@
+Examples:
+
+  Read the current revision and complete data:
+    $ ath records show <record-id> --history --json
+
+  Preview a complete replacement:
+    $ ath correct <record-id> --revision 2 --data '{"...":"..."}' --json
+
+  Write after review:
+    $ ath correct <record-id> --revision 2 --data '{"...":"..."}' --yes
+
+Correction keeps the stable ID and complete earlier revisions. The
+expected revision prevents a stale preview from overwriting newer data.
+Use --attachment while correcting an athlete report or nutrition entry to
+create and link a supported file in the same database revision.

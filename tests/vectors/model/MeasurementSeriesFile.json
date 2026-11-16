@@ -1,0 +1,4340 @@
+{
+  "schema": "MeasurementSeriesFile",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": true,
+      "output": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 2,
+            "is_deleted": false,
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 62,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          },
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000ca",
+            "record_type": "measurement_sample",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": true,
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T04:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          },
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "revision": 2,
+            "previous_revision": 1,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 62,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          },
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000ca",
+            "record_type": "measurement_sample",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T04:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000ca",
+            "record_revision": 1,
+            "deleted_at": "2026-01-02T04:04:05.678Z",
+            "deleted_by": {
+              "author_type": "athlete"
+            }
+          }
+        ],
+        "record_import_keys": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "match_key_method": "provider_record_id",
+            "match_key": "hr-0001",
+            "imported_at": "2026-01-02T03:04:05.678Z"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 2,
+            "is_deleted": false,
+            "record_type": "measurement_sample",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 62,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          },
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000ca",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": true,
+            "record_type": "measurement_sample",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T04:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "record_type": "measurement_sample",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          },
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "revision": 2,
+            "previous_revision": 1,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "record_type": "measurement_sample",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 62,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          },
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000ca",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "record_type": "measurement_sample",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T04:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000ca",
+            "record_revision": 1,
+            "deleted_at": "2026-01-02T04:04:05.678Z",
+            "deleted_by": {
+              "author_type": "athlete"
+            }
+          }
+        ],
+        "record_import_keys": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "match_key_method": "provider_record_id",
+            "match_key": "hr-0001",
+            "imported_at": "2026-01-02T03:04:05.678Z"
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:one_sample",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": true,
+      "output": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "measurement_sample",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "record_type": "measurement_sample",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 2,
+            "is_deleted": false,
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 62,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          },
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000ca",
+            "record_type": "measurement_sample",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": true,
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T04:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          },
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "revision": 2,
+            "previous_revision": 1,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 62,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          },
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000ca",
+            "record_type": "measurement_sample",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T04:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000ca",
+            "record_revision": 1,
+            "deleted_at": "2026-01-02T04:04:05.678Z",
+            "deleted_by": {
+              "author_type": "athlete"
+            }
+          }
+        ],
+        "record_import_keys": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "match_key_method": "provider_record_id",
+            "match_key": "hr-0001",
+            "imported_at": "2026-01-02T03:04:05.678Z"
+          }
+        ],
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "athleticstandard_version:missing",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "athleticstandard_version"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"1.0.0\"|\"2.0.0\"|\"2.1.0\"",
+          "values": [
+            "1.0.0",
+            "2.0.0",
+            "2.1.0"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "athleticstandard_version:null",
+      "input": {
+        "athleticstandard_version": null,
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "athleticstandard_version"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"1.0.0\"|\"2.0.0\"|\"2.1.0\"",
+          "values": [
+            "1.0.0",
+            "2.0.0",
+            "2.1.0"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "athleticstandard_version:wrong_type=number",
+      "input": {
+        "athleticstandard_version": 1,
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "athleticstandard_version"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"1.0.0\"|\"2.0.0\"|\"2.1.0\"",
+          "values": [
+            "1.0.0",
+            "2.0.0",
+            "2.1.0"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "athleticstandard_version:enum_invalid",
+      "input": {
+        "athleticstandard_version": "__not_an_option__",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "athleticstandard_version"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"1.0.0\"|\"2.0.0\"|\"2.1.0\"",
+          "values": [
+            "1.0.0",
+            "2.0.0",
+            "2.1.0"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "athleticstandard_version:empty_string",
+      "input": {
+        "athleticstandard_version": "",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "athleticstandard_version"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"1.0.0\"|\"2.0.0\"|\"2.1.0\"",
+          "values": [
+            "1.0.0",
+            "2.0.0",
+            "2.1.0"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "source_id:missing",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "source_id:null",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": null,
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "source_id:wrong_type=number",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": 1,
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "source_id:empty_string",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "source_id:format=not_valid",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "not valid",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "source_id:format=uppercase",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890F3E-E7D3-7CC0-88C8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "quantity:missing",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "quantity"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "quantity:null",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": null,
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "quantity"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "quantity:wrong_type=number",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": 1,
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "quantity"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "quantity:enum_invalid",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "__not_an_option__",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "quantity"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "quantity:empty_string",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "quantity"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "quantity:enum_uppercase",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "HEART_RATE",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "quantity"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "start_at:missing",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "start_at:null",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": null,
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "start_at:wrong_type=number",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": 1,
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "start_at:empty_string",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "start_at:format=no_milliseconds",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "start_at:format=offset",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678+00:00",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "start_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "end_at:missing",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "end_at:null",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": null,
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "end_at:wrong_type=number",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": 1,
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "end_at:empty_string",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "end_at:format=no_milliseconds",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T03:04:05Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        },
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "custom",
+          "message": "Series file end cannot precede its start"
+        }
+      ]
+    },
+    {
+      "name": "end_at:format=offset",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T03:04:05.678+00:00",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "records:missing",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "records"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received undefined",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "records:null",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": null,
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "records"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received null",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "records:wrong_type=object",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": {},
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "records"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received object",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "records:empty_array",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": true,
+      "output": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "issues": []
+    },
+    {
+      "name": "records:element[0]:wrong_type=array",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          []
+        ],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "records",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "records:element[0]:wrong_type=string",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          "x"
+        ],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "records",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "record_revisions:missing",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_revisions"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received undefined",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "record_revisions:null",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": null,
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_revisions"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received null",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "record_revisions:wrong_type=object",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": {},
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_revisions"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received object",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "record_revisions:empty_array",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": true,
+      "output": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "issues": []
+    },
+    {
+      "name": "record_revisions:element[0]:wrong_type=array",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [
+          []
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_revisions",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "record_revisions:element[0]:wrong_type=string",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [
+          "x"
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_revisions",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "record_deletions:missing",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_deletions"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received undefined",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "record_deletions:null",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": null,
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_deletions"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received null",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "record_deletions:wrong_type=object",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": {},
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_deletions"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received object",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "record_deletions:empty_array",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": true,
+      "output": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "issues": []
+    },
+    {
+      "name": "record_deletions:element[0]:wrong_type=array",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [
+          []
+        ],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_deletions",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "record_deletions:element[0]:wrong_type=string",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [
+          "x"
+        ],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_deletions",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "record_import_keys:missing",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_import_keys"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received undefined",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "record_import_keys:null",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_import_keys"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received null",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "record_import_keys:wrong_type=object",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": {}
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_import_keys"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received object",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "record_import_keys:empty_array",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": true,
+      "output": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "issues": []
+    },
+    {
+      "name": "record_import_keys:element[0]:wrong_type=array",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": [
+          []
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_import_keys",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "record_import_keys:element[0]:wrong_type=string",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": [
+          "x"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_import_keys",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "version:1.0.0_accepted",
+      "input": {
+        "athleticstandard_version": "1.0.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": true,
+      "output": {
+        "athleticstandard_version": "1.0.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "measurement_sample",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "record_type": "measurement_sample",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "issues": []
+    },
+    {
+      "name": "version:2.1.1_rejected",
+      "input": {
+        "athleticstandard_version": "2.1.1",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "athleticstandard_version"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"1.0.0\"|\"2.0.0\"|\"2.1.0\"",
+          "values": [
+            "1.0.0",
+            "2.0.0",
+            "2.1.0"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rule:end_before_start",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T04:04:05.678Z",
+        "end_at": "2026-01-02T03:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "custom",
+          "message": "Series file end cannot precede its start"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R52",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:end_equals_start",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T03:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": true,
+      "output": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T03:04:05.678Z",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R52",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "date_parse:unparseable_end_passes",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "not a date",
+        "records": [],
+        "record_revisions": [],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "end_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R52",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "date_parse:unparseable_sample_time_passes_bounds",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "not a date",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "not a date",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "records",
+            0,
+            "data",
+            "recorded_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        },
+        {
+          "path": [
+            "record_revisions",
+            0,
+            "data",
+            "recorded_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R54",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:sample_source_mismatch",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000004",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000004",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "records",
+            0
+          ],
+          "code": "custom",
+          "message": "Every sample must match the series source and quantity"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R53",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:sample_quantity_mismatch",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "steps",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 42,
+                "standard_unit": "count",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "steps",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 42,
+                "standard_unit": "count",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "records",
+            0
+          ],
+          "code": "custom",
+          "message": "Every sample must match the series source and quantity"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R53",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:sample_matches",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": true,
+      "output": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "measurement_sample",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "record_type": "measurement_sample",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R53",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R54",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:sample_before_start",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.677Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.677Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "records",
+            0,
+            "data",
+            "recorded_at"
+          ],
+          "code": "custom",
+          "message": "Every current sample must fall inside the series time bounds"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R54",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:sample_after_end",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T04:04:05.679Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T04:04:05.679Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "records",
+            0,
+            "data",
+            "recorded_at"
+          ],
+          "code": "custom",
+          "message": "Every current sample must fall inside the series time bounds"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R54",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:sample_at_end",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T04:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T04:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": true,
+      "output": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "record_type": "measurement_sample",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T04:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "record_type": "measurement_sample",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T04:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R54",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:deleted_sample_outside_bounds",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": true,
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T04:04:05.679Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T04:04:05.679Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_revision": 1,
+            "deleted_at": "2026-01-02T04:04:05.678Z",
+            "deleted_by": {
+              "author_type": "athlete"
+            }
+          }
+        ],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "records",
+            0,
+            "data",
+            "recorded_at"
+          ],
+          "code": "custom",
+          "message": "Every current sample must fall inside the series time bounds"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R54",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:older_revision_outside_bounds_allowed",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 2,
+            "is_deleted": false,
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T04:04:05.679Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          },
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "revision": 2,
+            "previous_revision": 1,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": true,
+      "output": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 2,
+            "is_deleted": false,
+            "record_type": "measurement_sample",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "record_type": "measurement_sample",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T04:04:05.679Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          },
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "revision": 2,
+            "previous_revision": 1,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "record_type": "measurement_sample",
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R54",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:mismatch_and_outside_together",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000004",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T04:04:05.679Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000004",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T04:04:05.679Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "records",
+            0
+          ],
+          "code": "custom",
+          "message": "Every sample must match the series source and quantity"
+        },
+        {
+          "path": [
+            "records",
+            0,
+            "data",
+            "recorded_at"
+          ],
+          "code": "custom",
+          "message": "Every current sample must fall inside the series time bounds"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R53",
+          "expect": "trigger"
+        },
+        {
+          "rule": "R54",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "history:duplicate_current_record",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          },
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "records",
+            1,
+            "record_id"
+          ],
+          "code": "custom",
+          "message": "A package cannot contain the same current record twice"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R38",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "history:import_key_two_records",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          },
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000ca",
+            "record_type": "measurement_sample",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          },
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000ca",
+            "record_type": "measurement_sample",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [],
+        "record_import_keys": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "match_key_method": "provider_record_id",
+            "match_key": "same",
+            "imported_at": "2026-01-02T03:04:05.678Z"
+          },
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000ca",
+            "match_key_method": "provider_record_id",
+            "match_key": "same",
+            "imported_at": "2026-01-02T03:04:05.678Z"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_import_keys",
+            1,
+            "match_key"
+          ],
+          "code": "custom",
+          "message": "One provider import key cannot identify two records"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R51",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "history:revision_without_record",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-0000000000c9",
+            "record_type": "measurement_sample",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+              "received_at": "2026-01-02T03:04:05.678Z",
+              "received_at_basis": "import_time",
+              "quantity": "heart_rate",
+              "recorded_at": "2026-01-02T03:04:05.678Z",
+              "input_timestamp": {
+                "timestamp_missing_reason": "not_provided_by_source",
+                "utc_offset_missing_reason": "not_provided_by_source"
+              },
+              "value": {
+                "standard_value": 61,
+                "standard_unit": "bpm",
+                "input_value_missing_reason": "not_provided_by_source",
+                "input_unit_missing_reason": "not_provided_by_source"
+              }
+            }
+          }
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_revisions",
+            0,
+            "record_id"
+          ],
+          "code": "custom",
+          "message": "A retained revision needs its current record"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R40",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "structure:non_sample_record",
+      "input": {
+        "athleticstandard_version": "2.1.0",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "quantity": "heart_rate",
+        "start_at": "2026-01-02T03:04:05.678Z",
+        "end_at": "2026-01-02T04:04:05.678Z",
+        "records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+            "record_type": "goal",
+            "created_at": "2026-01-02T03:04:05.678Z",
+            "current_revision": 1,
+            "is_deleted": false,
+            "data": {
+              "authorship": {
+                "author": {
+                  "author_type": "athlete"
+                },
+                "authored_at": "2026-01-02T03:04:05.678Z",
+                "evidence": [],
+                "content_version": 1,
+                "status": "active"
+              },
+              "title": "Sub-5 Fran"
+            }
+          }
+        ],
+        "record_revisions": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000064",
+            "record_type": "goal",
+            "revision": 1,
+            "previous_revision": null,
+            "became_known_at": "2026-01-02T03:04:05.678Z",
+            "became_known_at_basis": "local_write",
+            "changed_by": {
+              "author_type": "athlete"
+            },
+            "data": {
+              "authorship": {
+                "author": {
+                  "author_type": "athlete"
+                },
+                "authored_at": "2026-01-02T03:04:05.678Z",
+                "evidence": [],
+                "content_version": 1,
+                "status": "active"
+              },
+              "title": "Sub-5 Fran"
+            }
+          }
+        ],
+        "record_deletions": [],
+        "record_import_keys": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "records",
+            0,
+            "record_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"measurement_sample\"",
+          "values": [
+            "measurement_sample"
+          ]
+        },
+        {
+          "path": [
+            "records",
+            0,
+            "data",
+            "source_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "records",
+            0,
+            "data",
+            "received_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "records",
+            0,
+            "data",
+            "received_at_basis"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_supplied\"|\"connector_received_time\"|\"file_modified_time\"|\"import_time\"|\"local_write_time\"",
+          "values": [
+            "provider_supplied",
+            "connector_received_time",
+            "file_modified_time",
+            "import_time",
+            "local_write_time"
+          ]
+        },
+        {
+          "path": [
+            "records",
+            0,
+            "data",
+            "quantity"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        },
+        {
+          "path": [
+            "records",
+            0,
+            "data",
+            "recorded_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "records",
+            0,
+            "data",
+            "input_timestamp"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        },
+        {
+          "path": [
+            "records",
+            0,
+            "data",
+            "value"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        },
+        {
+          "path": [
+            "records",
+            0,
+            "data"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized keys: \"authorship\", \"title\"",
+          "keys": [
+            "authorship",
+            "title"
+          ]
+        },
+        {
+          "path": [
+            "record_revisions",
+            0,
+            "record_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"measurement_sample\"",
+          "values": [
+            "measurement_sample"
+          ]
+        },
+        {
+          "path": [
+            "record_revisions",
+            0,
+            "data",
+            "source_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "record_revisions",
+            0,
+            "data",
+            "received_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "record_revisions",
+            0,
+            "data",
+            "received_at_basis"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_supplied\"|\"connector_received_time\"|\"file_modified_time\"|\"import_time\"|\"local_write_time\"",
+          "values": [
+            "provider_supplied",
+            "connector_received_time",
+            "file_modified_time",
+            "import_time",
+            "local_write_time"
+          ]
+        },
+        {
+          "path": [
+            "record_revisions",
+            0,
+            "data",
+            "quantity"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"heart_rate\"|\"hrv_beats\"|\"ecg_beats\"|\"hrv_sdnn\"|\"respiratory_rate\"|\"oxygen_saturation\"|\"steps\"|\"active_energy\"|\"distance_walking_running\"|\"distance_cycling\"|\"distance_swimming\"|\"running_speed\"|\"running_power\"|\"running_stride_length\"|\"running_vertical_oscillation\"|\"running_ground_contact_time\"|\"physical_effort\"|\"basal_energy\"|\"exercise_time\"|\"flights_climbed\"|\"walking_speed\"|\"walking_step_length\"|\"walking_asymmetry_percentage\"|\"time_in_daylight\"",
+          "values": [
+            "heart_rate",
+            "hrv_beats",
+            "ecg_beats",
+            "hrv_sdnn",
+            "respiratory_rate",
+            "oxygen_saturation",
+            "steps",
+            "active_energy",
+            "distance_walking_running",
+            "distance_cycling",
+            "distance_swimming",
+            "running_speed",
+            "running_power",
+            "running_stride_length",
+            "running_vertical_oscillation",
+            "running_ground_contact_time",
+            "physical_effort",
+            "basal_energy",
+            "exercise_time",
+            "flights_climbed",
+            "walking_speed",
+            "walking_step_length",
+            "walking_asymmetry_percentage",
+            "time_in_daylight"
+          ]
+        },
+        {
+          "path": [
+            "record_revisions",
+            0,
+            "data",
+            "recorded_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "record_revisions",
+            0,
+            "data",
+            "input_timestamp"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        },
+        {
+          "path": [
+            "record_revisions",
+            0,
+            "data",
+            "value"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        },
+        {
+          "path": [
+            "record_revisions",
+            0,
+            "data"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized keys: \"authorship\", \"title\"",
+          "keys": [
+            "authorship",
+            "title"
+          ]
+        }
+      ]
+    }
+  ]
+}

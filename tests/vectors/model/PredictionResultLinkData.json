@@ -1,0 +1,1700 @@
+{
+  "schema": "PredictionResultLinkData",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": true,
+      "output": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 2
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 3
+        },
+        "created_by": {
+          "author_type": "agent",
+          "agent": "reference-agent",
+          "agent_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 2,
+        "status": "superseded"
+      },
+      "valid": true,
+      "output": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 2
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 3
+        },
+        "created_by": {
+          "author_type": "agent",
+          "agent": "reference-agent",
+          "agent_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 2,
+        "status": "superseded"
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 2
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 3
+        },
+        "created_by": {
+          "author_type": "agent",
+          "agent": "reference-agent",
+          "agent_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 2,
+        "status": "superseded",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "prediction:missing",
+      "input": {
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "prediction"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "prediction:null",
+      "input": {
+        "prediction": null,
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "prediction"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "prediction:wrong_type=array",
+      "input": {
+        "prediction": [],
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "prediction"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "prediction:wrong_type=string",
+      "input": {
+        "prediction": "x",
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "prediction"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "prediction:empty_object",
+      "input": {
+        "prediction": {},
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "prediction",
+            "record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "prediction",
+            "revision"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "prediction:nested_unknown_key",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1,
+          "unknown_nested": true
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "prediction"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "benchmark_result:missing",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_result"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_result:null",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": null,
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_result"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_result:wrong_type=array",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": [],
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_result"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_result:wrong_type=string",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": "x",
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_result"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_result:empty_object",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {},
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_result",
+            "record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "benchmark_result",
+            "revision"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_result:nested_unknown_key",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1,
+          "unknown_nested": true
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_result"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "created_by:missing",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "created_by"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "created_by:null",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": null,
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "created_by"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "created_by:wrong_type=array",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": [],
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "created_by"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "created_by:empty_object",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {},
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "created_by",
+            "author_type"
+          ],
+          "code": "invalid_union",
+          "message": "Invalid discriminator value. Expected 'athlete' | 'agent' | 'tool'",
+          "discriminator": "author_type",
+          "errors": [],
+          "note": "No matching discriminator",
+          "options": [
+            "athlete",
+            "agent",
+            "tool"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "created_by:discriminator_invalid",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "__other__"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "created_by",
+            "author_type"
+          ],
+          "code": "invalid_union",
+          "message": "Invalid discriminator value. Expected 'athlete' | 'agent' | 'tool'",
+          "discriminator": "author_type",
+          "errors": [],
+          "note": "No matching discriminator",
+          "options": [
+            "athlete",
+            "agent",
+            "tool"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "linked_at:missing",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "linked_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "linked_at:null",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": null,
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "linked_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "linked_at:wrong_type=number",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": 1,
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "linked_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "linked_at:empty_string",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "linked_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "linked_at:format=no_milliseconds",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "linked_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "linked_at:format=offset",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678+00:00",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "linked_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "content_version:missing",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "content_version:null",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": null,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "content_version:wrong_type=string",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": "1",
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "content_version:number=-1",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": -1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "content_version:number=0",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 0,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "content_version:number=1",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": true,
+      "output": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "issues": []
+    },
+    {
+      "name": "content_version:number=1.5",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1.5,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "content_version:number=9007199254740991",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 9007199254740991,
+        "status": "active"
+      },
+      "valid": true,
+      "output": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 9007199254740991,
+        "status": "active"
+      },
+      "issues": []
+    },
+    {
+      "name": "content_version:number=9007199254740992",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 9007199254740992,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "content_version:number=-9007199254740991",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": -9007199254740991,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "content_version:number=-9007199254740992",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": -9007199254740992,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected int to be >=-9007199254740991",
+          "inclusive": true,
+          "minimum": -9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "content_version:number=1e+21",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1e+21,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "content_version:number_text=-0",
+      "input_text": "{\"prediction\":{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000010\",\"revision\":1},\"benchmark_result\":{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-00000000000b\",\"revision\":1},\"created_by\":{\"author_type\":\"tool\",\"tool\":\"ath\",\"tool_version\":\"2.1.0\"},\"linked_at\":\"2026-01-02T03:04:05.678Z\",\"content_version\":-0,\"status\":\"active\"}",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 0,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "content_version:number_text=1.0",
+      "input_text": "{\"prediction\":{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000010\",\"revision\":1},\"benchmark_result\":{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-00000000000b\",\"revision\":1},\"created_by\":{\"author_type\":\"tool\",\"tool\":\"ath\",\"tool_version\":\"2.1.0\"},\"linked_at\":\"2026-01-02T03:04:05.678Z\",\"content_version\":1.0,\"status\":\"active\"}",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": true,
+      "output": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "issues": []
+    },
+    {
+      "name": "content_version:number_text=1E0",
+      "input_text": "{\"prediction\":{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000010\",\"revision\":1},\"benchmark_result\":{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-00000000000b\",\"revision\":1},\"created_by\":{\"author_type\":\"tool\",\"tool\":\"ath\",\"tool_version\":\"2.1.0\"},\"linked_at\":\"2026-01-02T03:04:05.678Z\",\"content_version\":1E0,\"status\":\"active\"}",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": true,
+      "output": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "issues": []
+    },
+    {
+      "name": "content_version:number_text=9007199254740993",
+      "input_text": "{\"prediction\":{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000010\",\"revision\":1},\"benchmark_result\":{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-00000000000b\",\"revision\":1},\"created_by\":{\"author_type\":\"tool\",\"tool\":\"ath\",\"tool_version\":\"2.1.0\"},\"linked_at\":\"2026-01-02T03:04:05.678Z\",\"content_version\":9007199254740993,\"status\":\"active\"}",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 9007199254740992,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "status:missing",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"draft\"|\"active\"|\"completed\"|\"superseded\"|\"cancelled\"",
+          "values": [
+            "draft",
+            "active",
+            "completed",
+            "superseded",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "status:null",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"draft\"|\"active\"|\"completed\"|\"superseded\"|\"cancelled\"",
+          "values": [
+            "draft",
+            "active",
+            "completed",
+            "superseded",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "status:wrong_type=number",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"draft\"|\"active\"|\"completed\"|\"superseded\"|\"cancelled\"",
+          "values": [
+            "draft",
+            "active",
+            "completed",
+            "superseded",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "status:enum_invalid",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "__not_an_option__"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"draft\"|\"active\"|\"completed\"|\"superseded\"|\"cancelled\"",
+          "values": [
+            "draft",
+            "active",
+            "completed",
+            "superseded",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "status:empty_string",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"draft\"|\"active\"|\"completed\"|\"superseded\"|\"cancelled\"",
+          "values": [
+            "draft",
+            "active",
+            "completed",
+            "superseded",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "status:enum_uppercase",
+      "input": {
+        "prediction": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+          "revision": 1
+        },
+        "benchmark_result": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+          "revision": 1
+        },
+        "created_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "linked_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "DRAFT"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"draft\"|\"active\"|\"completed\"|\"superseded\"|\"cancelled\"",
+          "values": [
+            "draft",
+            "active",
+            "completed",
+            "superseded",
+            "cancelled"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,58 @@
+{
+  "description": "A Strava export with an empty activities.csv.",
+  "reference": "2.1.0",
+  "steps": [
+    {
+      "command": "import-strava",
+      "database": {
+        "database_revision": 1,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source strava strava_bulk >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "strava_bulk",
+                  "data_writer": "strava",
+                  "source_type": "export_file",
+                  "vendor": "strava"
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "files": {
+          "activities.csv": "\n\n"
+        },
+        "kind": "directory"
+      },
+      "mapping": null,
+      "preview": {
+        "error": "activities.csv is empty"
+      },
+      "pull": null,
+      "write": {
+        "error": "activities.csv is empty"
+      }
+    }
+  ]
+}
