@@ -95,6 +95,11 @@ These edits answer the review of this plan at `d636d7a`:
 - D243. A Garmin detail that answers 404 or 501 is `not_available`, not
   `failed`. Garmin stays `completed`, and the list object is stored whole.
   The pinned detail path is not in Garmin's public docs.
+- D242. On route `open_wearables`, an owner correction is replaced only
+  when the server's data differs from the newest revision an import wrote.
+  Each replaced correction is counted per provider and for stored records,
+  in the text, in `--json`, and in the preview. The skill says where a
+  workout fix belongs.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -460,7 +465,8 @@ An empty ranged result whose ranged reads completed has `range_complete`
 true. The personal record and the body snapshot can still be written.
 Those writes are counted. They are not ranged rows. A repeat uses the match
 key from D181 and the replace from D182, so an unchanged row is not written
-again. A rerun after a partial write leaves the committed rows in place,
+again. An owner correction on this route is kept until the server's data
+for that record changes (D242). A rerun after a partial write leaves the committed rows in place,
 runs the failed read again, and runs any read that was `not_attempted`.
 
 `has_more: false` is the successful end of a cursor read and of the offset
@@ -1220,15 +1226,29 @@ stored pages or the archive.
 The vendor page uses the 2.1.1 keyed rules. An original the person
 deleted is left out on every later pull and is not recreated (D182). A
 deleted `vendor_workout` source leaves out every object from that
-provider (D190). An original the person corrected gains a revision with
-the server's envelope when a later envelope differs, because a mapped
-import replaces the whole object (D182). The person's revision stays in
-the history. To keep a pull from changing an original, the person
-deletes it.
+provider (D190).
+
+An owner correction is kept until the server's data changes. On route
+`open_wearables` only, a pull or a mapped import compares a candidate for
+an owner-corrected record with the newest revision an import wrote, basis
+`provider_import`. It does not compare with the owner's revision. Equal
+writes nothing, and the correction stays current. Different replaces the
+correction, and the count `owner_corrections_replaced` shows it on that
+provider's line, in `--json`, and in the preview, which says `would
+replace N owner corrections; delete an original to keep it`. The
+correction stays in the history. The rule covers every record on that
+route, so a workout fix on the stored session also survives a pull of
+unchanged data. For that route it supersedes the D182 sentence that a
+mapped import replaces a changed object. Other routes keep D182. The
+stored-original read in D243 uses the same import revision, so an owner's
+edit does not trigger a detail call. The skill says that a workout fix
+belongs on the session or in a note, not on the vendor original.
+Deleting an original keeps the person's version in its history and stops
+every later pull from changing it.
 
 Each provider's line counts originals as new, changed, and unchanged. It
-counts details by outcome, objects left out by reason, and withheld
-values. Each listed object is in exactly one detail count or one left-out
+counts owner corrections replaced, details by outcome, objects left out
+by reason, and withheld values. Each listed object is in exactly one detail count or one left-out
 count, so no object is dropped without a count.
 
 The pull uses the published query parameters and does not add its own
@@ -1249,10 +1269,17 @@ Rejected alternatives:
 - Store the list object and the detail as two records. Rejected. They
   describe one workout, and nothing in either object joins them except
   the id the envelope already uses.
-- Keep an owner correction when a later pull differs. Rejected for this
-  release. A 2.1.1 keyed import replaces a changed object and keeps the
-  history, on every route. A protection rule would be new import behavior
-  for all of them. Deleting the original keeps a pull from changing it.
+- Replace an owner correction whenever the candidate differs from the
+  current record, as D182 does and as the first version of this decision
+  did. Rejected. A pull repeats the same server data, so every pull would
+  undo every correction even when the server had not changed.
+- Never replace an owner correction. Rejected. A later fix by the vendor
+  would be lost, and nothing would say so.
+- Limit the rule to vendor originals. Rejected. The skill sends workout
+  fixes to the stored session, and the D182 rule would undo those on every
+  pull. The maintainer can narrow it before approval.
+- Use the rule on every mapped route. Not chosen for this release. Other
+  routes import a file the person chose, and D182 stays their rule.
 
 ## D243. A live vendor read is opt-in, and one failure stays on that provider
 

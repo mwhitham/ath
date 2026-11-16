@@ -191,6 +191,7 @@ the text. The object has no key, server, user id, or request path.
   },
   "left_out": { "total": 0, "by_reason": {}, "examples": [], "shortened": false },
   "withheld": { "total": 0, "paths": [], "shortened": false },
+  "owner_corrections_replaced": 0,
   "vendor_workouts": {
     "requested": false,
     "requests_made": false,
@@ -203,6 +204,7 @@ the text. The object has no key, server, user id, or request path.
         "covers_requested_range": false,
         "more": false,
         "limit": "not requested",
+        "owner_corrections_replaced": 0,
         "details": {
           "stored": 0,
           "kept": 0,
@@ -225,6 +227,17 @@ preview. `connection_status` is `active`, `revoked`, `expired`,
 `unknown status`, or `null` when the server listed no connection for that
 provider.
 
+The top-level `owner_corrections_replaced` counts owner corrections of
+stored records that the stored pages replace, by the owner-correction rule
+in section 2. Each provider's `owner_corrections_replaced` counts its
+vendor originals. In a preview both are estimates. When a provider's count
+is above zero, the preview prints `would replace N owner corrections;
+delete an original to keep it` on that provider's line. When the top-level
+count is above zero, it prints `would replace N owner corrections of
+stored records because the server's data changed`. After `--yes` the same
+lines say `replaced N owner corrections`, and that each correction stays
+in the record's history. The text uses the singular when N is 1.
+
 The same record types are present for workouts, points, summaries, scores,
 and source reports. The example above is shortened. Polar, Suunto, Whoop,
 Fitbit, Oura, Strava, Withings, and Sensorbio use the same fields as
@@ -233,7 +246,8 @@ outcome. A preview does not say a snapshot was stored.
 
 The command returns a different outcome for `--yes` without `--json`. That
 outcome has the actual `committed` counts, the actual `archive_committed`
-counts, `database_changed`, `protected_write`, `archive`,
+counts, the actual `owner_corrections_replaced` counts,
+`database_changed`, `protected_write`, `archive`,
 `range_complete`, and `snapshots_complete`. `committed` counts protected
 records only. `archive_committed` counts archive records only, including
 a created archive source, counted once. A record is in one of those
@@ -772,6 +786,33 @@ keyed-import rules, and a deleted row is never recreated. A deleted source
 or a deleted record named anywhere on the page still forbids the archive
 of that page.
 
+An owner correction is kept until the server's data changes. This rule
+is new in 2.2.0. It covers every record on route `open_wearables`, from a
+pull or from `ath import --mapping open-wearables`. Every other route
+keeps D182 as it is. An import writes each revision with basis
+`provider_import`. A revision with any other basis is an owner correction
+here: `ath correct`, a protocol write, and an accepted package merge write
+other bases. A native restore copies each revision's basis, so a restored
+database keeps the same answer. When a page's candidate names a stored
+record by its import key, and that record is not deleted:
+
+1. A candidate equal to the current record writes nothing, as in 2.1.1.
+2. When the current revision has basis `provider_import`, a different
+   candidate replaces it, as in 2.1.1 (D182).
+3. When the current revision is an owner correction, the candidate is
+   compared with the newest revision whose basis is `provider_import`.
+   Equal means the server has not changed that record since an import last
+   wrote it. Nothing is written, and the correction stays current.
+   Different means the server's data changed. The candidate replaces the
+   correction, and that counts as one `owner_corrections_replaced`. The
+   correction stays in the record's history. A record with no
+   `provider_import` revision is replaced and counted the same way.
+
+The comparison is the 2.1.1 comparison, with the compared revision's
+`received_at`. Section 4 withholds credential values before the candidate
+is built, so a withheld value is the same marker on both sides. A library
+write that chooses basis `provider_import` counts as an import revision.
+
 The archive is allowed only when that snapshot has no veto, names no
 deleted source or record, and has one of these eligible facts: a
 device-targeted series row whose source has no device id, or a
@@ -1106,7 +1147,9 @@ The start is stored and is not a filter.
 For each listed id, the pull first reads the stored original, if there is
 one. That read is crate-private and lives in `src/import/provider.rs`. It
 returns whether the original exists, whether it is deleted, whether it
-holds a detail, and its stored `list`.
+holds a detail, and its stored `list`. It reads the newest revision with
+basis `provider_import`, not an owner correction, so a person's edit does
+not look like a vendor change and does not spend a detail call.
 
 The pull calls detail only when the provider has a detail call and its
 budget allows. It spends the budget in this order. First come ids with no
@@ -1208,15 +1251,22 @@ original, a later pull leaves that object out, says so on its line, and
 does not recreate it (D182). That happens on every later pull. If the
 person deleted a provider's `vendor_workout` source, every object from
 that provider is left out (D190). If the person corrected an original with
-`ath correct`, a later pull whose envelope differs adds a revision with
-the server's envelope, because a mapped import replaces the whole object
-(D182). The person's revision stays in the history. A pull whose envelope
-equals the current record adds nothing. To keep a pull from changing an
-original, the person deletes it.
+`ath correct`, the owner-correction rule above applies. A later pull
+whose envelope equals the newest `provider_import` revision adds nothing,
+and the correction stays current. A later pull whose envelope differs
+replaces the correction and counts it in `owner_corrections_replaced`.
+The person's revision stays in the history. To keep a pull from changing
+an original at all, the person deletes it. The deleted original then
+keeps the person's version in its history, and every later pull leaves
+that object out. A workout fix belongs on the stored session or in a
+note, not on the vendor original. The skill says so (section 6).
 
 Each provider's line, and its object in `--json`, counts:
 
 - `originals`: new, changed, and unchanged records.
+- `owner_corrections_replaced`: owner corrections that this page replaces,
+  by the owner-correction rule above. Each is also counted as a changed
+  original.
 - `details`: `stored`, `kept`, `deferred`, `failed`, `mismatch`,
   `thinner`, and `not_available`.
 - `left_out`: objects not written, by reason: `missing_id`,
@@ -1277,7 +1327,8 @@ passes the object after `user_id` is removed. Pagination and health-score
 `metadata` are not records.
 
 Everything after that is the mapping engine that 2.1.1 carries over from
-2.1.0: match keys (D181), replace on change (D182), source and device
+2.1.0: match keys (D181), replace on change (D182) except for the owner
+corrections section 2 keeps, source and device
 (D183), one write transaction per page (D189), a deleted source left out
 (D190), and field names refused when they are empty or `__proto__` (D191).
 A Garmin file import remains a different `data_route`, so both copies of
@@ -1367,8 +1418,8 @@ The call is one of these states:
 - The source is deleted. D190 leaves its rows out. The call does not revive
   the source and does not set a binding.
 - The source has an established binding, and the incoming id equals it. The
-  row may repeat unchanged or correct the stored value under D182. The
-  binding stays. Hardware is not replaced with a different id. Other fields
+  row may repeat unchanged or correct the stored value under D182 and the
+  owner-correction rule in section 2. The binding stays. Hardware is not replaced with a different id. Other fields
   already on the source stay.
 - The source has an established binding, and the incoming id is different,
   missing, null, or blank. The call is refused before any mutation. Equal
@@ -1489,6 +1540,12 @@ besides the typed writes in section 6. It gains nothing beyond those:
   page's counts in section 1 come from that count.
 - A crate-private read of a stored vendor original, for the detail rules
   in section 2.
+- In matching, for route `open_wearables` only, the owner-correction rule
+  in section 2. `KeyedPolicy` gains a flag that only that route sets.
+  `record_by_import_key` also returns the current revision's basis. For an
+  owner correction, matching reads the newest `provider_import` revision of
+  that record and compares the candidate with it. The page's report counts
+  each replaced correction.
 
 The pull reads the revision a preview matched at from
 `ProviderPreview::destination_database_revision`, which is already public.
@@ -1784,6 +1841,8 @@ interactive open can preview, back up, ask, and then migrate.
 | Stage, match, and write each page | `preview_route` and `ProviderPreview::apply` in `src/import/provider.rs`. The revision a preview read is the public `destination_database_revision` |
 | A `connector` source with no vendor | new `connector_source` beside `route_source` in `src/import/provider.rs` |
 | Page counts by record type | a count beside `Staging::count` in `src/import/staging.rs`, exposed by `ProviderPreview` |
+| Owner-correction rule and its count | `match_keyed` and `record_by_import_key` in `src/import/provider.rs`, behind a `KeyedPolicy` flag that only route `open_wearables` sets |
+| Where a workout fix belongs | one paragraph in `skills/athletic-standard/SKILL.md`, under "Stable IDs and revisions" |
 | Device-binding facts and the safety snapshot | new `src/import/binding.rs`, called from the matching step in `src/import/provider.rs` for route `open_wearables` |
 | Create or first-bind with the checked receipt, and refuse any other `device_binding` change | the staged plan and `ProviderPreview::apply` in `src/import/provider.rs` |
 | Stored-original read for the vendor detail rules | a crate-private read in `src/import/provider.rs` |
@@ -1797,6 +1856,15 @@ interactive open can preview, back up, ask, and then migrate.
 not the home for this client. `garmin_pull.rs` remains the Garmin pull.
 The two clients may each call `ureq`.
 A shared trait is the later connector work, and this release does not add it.
+
+The build adds this paragraph to `skills/athletic-standard/SKILL.md`,
+under "Stable IDs and revisions": "Fix an Open Wearables workout on its
+workout session, or write a note. Do not correct the vendor original. It
+is the vendor's own copy. A later pull keeps your correction until the
+server's data for that record changes. Then the pull replaces it, counts
+it, and keeps your correction in the record's history." This plan pull
+request does not edit the skill, because the skill describes the
+released version.
 
 `mapping.rs` changes for `MappedPage` and for the preservation writes in
 section 2: the measurement-sample target, the reporting-window write, the
@@ -2230,6 +2298,28 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   start order. A third pull details the last five. A deferred id whose
   original already has a detail, and whose list object changed, keeps
   that detail, writes nothing, and adds no revision
+- an owner corrects a stored Polar original with `ath correct`. The next
+  pull with the same server data writes nothing for it, the correction
+  stays current, and Polar's `owner_corrections_replaced` is 0. That pull
+  makes no detail call for the id, because the stored-original read uses
+  the newest `provider_import` revision. After the server's list object
+  changes, the preview prints `would replace 1 owner correction; delete an
+  original to keep it`, and `--json` has Polar's
+  `owner_corrections_replaced` 1. `--yes` replaces the correction, counts
+  it as a changed original and as 1 replaced, and keeps the owner's
+  revision in the history. A deleted original is left out instead, and
+  the count stays 0
+- an owner corrects a stored sleep session. A pull with the same server
+  data keeps the correction, and the top-level `owner_corrections_replaced`
+  is 0. A pull whose session changed replaces it, and the count is 1 in
+  the preview, in `--json`, and after `--yes`. The preview says `would
+  replace 1 owner correction of stored records because the server's data
+  changed`. `ath import --mapping open-wearables` of a file that holds the
+  same data also keeps the correction. Another route keeps its 2.1.1 rule
+- a record whose current revision came from an accepted package merge is
+  an owner correction. A native export and restore keeps every revision's
+  basis, so the same pull reports the same counts before and after the
+  restore
 - without `--vendor-workouts`, preview and `--json` make zero requests to
   the connections route and to both workout routes. `requests_made` is
   false, `notice` is empty, and every live line is `not_attempted`. With
@@ -2515,9 +2605,12 @@ Risks:
   command still spends up to 100 Garmin detail calls on ids that were
   `not_available`, after new ids. A deployment where that path works fills
   those details in on later commands.
-- A later pull replaces an owner correction of a vendor original when the
-  server's envelope differs. The correction stays in the history. Deleting
-  the original stops it.
+- A later pull replaces an owner correction when the server's data for
+  that record changed since an import last wrote it. The preview and the
+  result count each one. The correction stays in the history. Deleting
+  the record stops later pulls from changing it, and it also takes the
+  record out of current data. This rule covers every record on route
+  `open_wearables`, not only vendor originals. Other routes keep D182.
 - A deferred id that the provider stops listing is never detailed. Its
   list object stays stored, and the deferred count shows that it waits.
 - Date-only bounds mean whatever Open Wearables decides. The docs and the
@@ -2615,4 +2708,7 @@ optional source key adds no column.
    request. It calls only active connections and never stores the
    connections list. It keeps every stored detail, counts every object it
    does not write, and withholds credential-shaped values. The stored
-   workout and the vendor original stay two records (D242, D243, D244).
+   workout and the vendor original stay two records. On route
+   `open_wearables`, an owner correction is kept until the server's data
+   for that record changes, and each correction a page replaces is counted
+   (D242, D243, D244).
