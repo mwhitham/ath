@@ -1,62 +1,127 @@
+# Release performance (D225; spec section 14 and performance/README.md). It runs
+# only by hand: Actions > Release performance > Run workflow.
+#
+# Each job compares the 2.1.0 reference with this commit's native release
+# build on the same generated database, with tools/performance/compare.ts.
+# The reference is a separate checkout of c6218e8. Results are uploaded with
+# the commit they measure. compare.ts reads peak memory with `/usr/bin/time -l`,
+# so the jobs run on macOS.
+#
+# The 100,000-record job runs on a GitHub macOS runner. It also runs the test
+# that the 2.1.0 program refuses a migrated database. The 3-million-record job
+# runs only when `three_million` is set, and needs a self-hosted runner with
+# the labels below. No job holds a publication credential.
 name: Release performance
 
 on:
   workflow_dispatch:
-  push:
-    tags:
-      - "v1.0.0-*"
+    inputs:
+      three_million:
+        description: Also run the 3-million-record comparison (needs the self-hosted ath-performance runner)
+        type: boolean
+        default: false
 
 permissions:
   contents: read
 
+env:
+  REFERENCE_COMMIT: c6218e88c035708bdd15b3a20888d19713e1df29
+
 jobs:
-  functional-and-100k:
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
+  hundred-thousand:
+    runs-on: macos-15
+    timeout-minutes: 120
+    env:
+      PERF_ROOT: ${{ github.workspace }}/perf
+      ATH_REFERENCE: ${{ github.workspace }}/reference
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.REFERENCE_COMMIT }}
+          path: reference
       - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.3
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm typecheck && pnpm test && pnpm build
-      - run: >-
-          pnpm performance:generate -- --records 100000
-          --output performance/generated/100k
-      - run: >-
-          pnpm performance:run --
-          --database performance/generated/100k/athlete.ath.sqlite
-          --output performance/results/100k.json
-          --measured-at "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
-          --repetitions 3
+      - run: rustup show active-toolchain || rustup toolchain install
+      # Compilation happens here, never inside a measurement.
+      - run: cargo build --release --locked && cargo build --release --locked --example performance-library
+      - name: Build the 2.1.0 reference
+        working-directory: reference
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+          cargo build --release --manifest-path crates/ath-core/Cargo.toml
+      - name: Compare at 100,000 records
+        run: |
+          echo "$GITHUB_SHA" > commit.txt
+          node tools/performance/compare.ts environment
+          node tools/performance/compare.ts prepare --label 100k --records 100000
+          node tools/performance/compare.ts bulk --label 100k --runs 3
+          node tools/performance/compare.ts queries --label 100k --runs 50 --memory-runs 5
+          node tools/performance/compare.ts library --label 100k --runs 3 --repetitions 50
+          node tools/performance/compare.ts tables --label 100k > "$PERF_ROOT/100k/results/tables.md"
+          node tools/performance/compare.ts summary --label 100k
+          cp commit.txt "$PERF_ROOT/100k/results/"
       - uses: actions/upload-artifact@v4
         with:
           name: performance-100k
-          path: performance/results/100k.json
+          path: perf/100k/results
+          if-no-files-found: error
+      # The 2.1.0 program, run with tsx from the reference install above,
+      # must refuse a database this commit migrated. The test is ignored in
+      # ordinary runs because it needs this checkout.
+      - name: The 2.1.0 program refuses a migrated database
+        env:
+          ATH_REFERENCE_CHECKOUT: ${{ github.workspace }}/reference
+        run: cargo test --locked --test migration -- --ignored the_2_1_0_program_refuses_a_migrated_database
 
   three-million:
-    runs-on: [self-hosted, linux, x64, ath-performance]
-    timeout-minutes: 180
+    if: inputs.three_million
+    runs-on: [self-hosted, macOS, ath-performance]
+    timeout-minutes: 600
+    env:
+      PERF_ROOT: ${{ github.workspace }}/perf
+      ATH_REFERENCE: ${{ github.workspace }}/reference
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
+      - uses: actions/checkout@v5
+        with:
+          ref: ${{ env.REFERENCE_COMMIT }}
+          path: reference
       - uses: pnpm/action-setup@v4
+        with:
+          version: 10.33.3
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
-      - run: pnpm install --frozen-lockfile
-      - run: >-
-          pnpm performance:generate -- --records 3000000
-          --output performance/generated/3m
-      - run: >-
-          pnpm performance:run --
-          --database performance/generated/3m/athlete.ath.sqlite
-          --output performance/results/3m.json
-          --measured-at "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
-          --repetitions 3
+      - run: rustup show active-toolchain || rustup toolchain install
+      - run: cargo build --release --locked && cargo build --release --locked --example performance-library
+      - name: Build the 2.1.0 reference
+        working-directory: reference
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+          cargo build --release --manifest-path crates/ath-core/Cargo.toml
+      - name: Compare at 3 million records
+        run: |
+          echo "$GITHUB_SHA" > commit.txt
+          node tools/performance/compare.ts environment
+          node tools/performance/compare.ts prepare --label 3m --records 3000000
+          node tools/performance/compare.ts bulk --label 3m --runs 1 --first-run 1
+          node tools/performance/compare.ts bulk --label 3m --runs 1 --first-run 2
+          node tools/performance/compare.ts bulk --label 3m --runs 1 --first-run 3
+          node tools/performance/compare.ts bulk-old-heap --label 3m --runs 1 --only old --operations check --old-heap-mib 16384
+          node tools/performance/compare.ts queries --label 3m --runs 50 --memory-runs 5
+          node tools/performance/compare.ts library --label 3m --runs 1 --repetitions 50 --no-plans --old-heap-mib 16384
+          node tools/performance/compare.ts tables --label 3m > "$PERF_ROOT/3m/results/tables.md"
+          node tools/performance/compare.ts summary --label 3m
+          cp commit.txt "$PERF_ROOT/3m/results/"
       - uses: actions/upload-artifact@v4
         with:
           name: performance-3m
-          path: performance/results/3m.json
+          path: perf/3m/results
+          if-no-files-found: error

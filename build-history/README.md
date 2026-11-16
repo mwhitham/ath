@@ -30,24 +30,27 @@ build-history/
   ...
 ```
 
-## Current records
+## Status of each folder
 
-- [Version 1.0.0 specification](v1.0.0/spec.md)
-- [Version 1.0.0 decisions](v1.0.0/decisions.md)
-- [Version 1.0.0 progress](v1.0.0/progress.md)
-- [Contribution readiness](v1.0.0/appendix/contribution-readiness.md)
-- [Version 2.0.0 specification](v2.0.0/spec.md)
-- [Version 2.1.0 specification](v2.1.0/spec.md)
-- [Version 2.1.0 decisions](v2.1.0/decisions.md)
-- [Version 2.1.0 progress](v2.1.0/progress.md)
-- [Version 2.2.0 plan](v2.2.0/spec.md)
-- [Version 2.2.0 decisions](v2.2.0/decisions.md)
-- [Version 2.2.0 progress](v2.2.0/progress.md)
+| Folder | Status |
+|---|---|
+| [v0.1.0](v0.1.0/spec.md) to [v0.4.0](v0.4.0/spec.md) | Released prerelease formats. 0.x files are refused by 1.0.0 and later. |
+| [v1.0.0](v1.0.0/spec.md) | Released. SQLite became the live record ([contribution readiness](v1.0.0/appendix/contribution-readiness.md)). |
+| [v2.0.0](v2.0.0/spec.md) | Released. |
+| [v2.1.0](v2.1.0/spec.md) | Released. This is the installed software until 2.1.1 is released. |
+| [v2.1.1](v2.1.1/spec.md) | Built, not yet released: the complete native rebuild. See its [decisions](v2.1.1/decisions.md), [progress](v2.1.1/progress.md), and [release evidence](v2.1.1/appendix/release-evidence.md). |
+| [v2.2.0](v2.2.0/spec.md) | A plan. It is not built. See its [decisions](v2.2.0/decisions.md) and [progress](v2.2.0/progress.md). |
 
-Version 2.1.0 is the software now. The program, the record, and the database
-use that number.
+## Drafts that were not approved
 
-Version 2.2.0 is a plan. It is not built.
+A version folder holds only a plan for a version that was approved. A draft
+that was replaced before approval goes, unchanged, into the `appendix/` of the
+version that replaced it, named `draft-<version>` (D224). Its proposed D-numbers
+stay reserved, so they are never reused.
+
+- [The first draft of the 2.1.1 plan](v2.1.1/appendix/draft-2.1.1/spec.md) was
+  written as version 3.0.0 and proposed D198–D207. It was not approved. Version
+  2.1.1 keeps the same rebuild without its JavaScript removals (D208, D209).
 
 ## Why
 

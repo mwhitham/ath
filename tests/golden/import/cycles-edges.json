@@ -1,0 +1,1103 @@
+{
+  "description": "Invented rows that exercise offsets, skips, delimiters, quoting, and unknown files.",
+  "reference": "2.1.0",
+  "steps": [
+    {
+      "apply": {
+        "result": {
+          "changed_record_count": 0,
+          "database_revision": 1,
+          "matching_record_count": 0,
+          "new_record_count": 30
+        }
+      },
+      "database": {
+        "database_revision": 1,
+        "records": [
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"athlete_report\",\"energy\",\"2026-03-02T01:30:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<athlete_report whoop_csv/v1 [\"athlete_report\",\"energy\",\"2026-03-02T01:30:00.000Z\",0]>",
+            "record_type": "athlete_report",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"report_type\":\"energy\",\"reported_at\":\"2026-03-02T01:30:00.000Z\",\"input_reported_at\":{\"timestamp_text\":\"2026-03-02 07:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"reported_via\":\"text\",\"note\":\"Energy levels low?: no\"}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"athlete_report\",\"mood\",\"2026-03-02T01:30:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<athlete_report whoop_csv/v1 [\"athlete_report\",\"mood\",\"2026-03-02T01:30:00.000Z\",0]>",
+            "record_type": "athlete_report",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"report_type\":\"mood\",\"reported_at\":\"2026-03-02T01:30:00.000Z\",\"input_reported_at\":{\"timestamp_text\":\"2026-03-02 07:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"reported_via\":\"text\",\"note\":\"Good mood?: no\"}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"athlete_report\",\"note\",\"2026-03-02T01:30:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<athlete_report whoop_csv/v1 [\"athlete_report\",\"note\",\"2026-03-02T01:30:00.000Z\",0]>",
+            "record_type": "athlete_report",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"report_type\":\"note\",\"reported_at\":\"2026-03-02T01:30:00.000Z\",\"input_reported_at\":{\"timestamp_text\":\"2026-03-02 07:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"reported_via\":\"text\",\"note\":\"Spend time stretching?: yes\"}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"athlete_report\",\"sleep_quality\",\"2026-03-02T01:30:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<athlete_report whoop_csv/v1 [\"athlete_report\",\"sleep_quality\",\"2026-03-02T01:30:00.000Z\",0]>",
+            "record_type": "athlete_report",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"report_type\":\"sleep_quality\",\"reported_at\":\"2026-03-02T01:30:00.000Z\",\"input_reported_at\":{\"timestamp_text\":\"2026-03-02 07:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"reported_via\":\"text\",\"note\":\"Screen time before bed?: yes\"}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"athlete_report\",\"soreness\",\"2026-03-02T01:30:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<athlete_report whoop_csv/v1 [\"athlete_report\",\"soreness\",\"2026-03-02T01:30:00.000Z\",0]>",
+            "record_type": "athlete_report",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"report_type\":\"soreness\",\"reported_at\":\"2026-03-02T01:30:00.000Z\",\"input_reported_at\":{\"timestamp_text\":\"2026-03-02 07:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"reported_via\":\"text\",\"note\":\"Feel sore?: yes\"}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"athlete_report\",\"stress\",\"2026-03-02T01:30:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<athlete_report whoop_csv/v1 [\"athlete_report\",\"stress\",\"2026-03-02T01:30:00.000Z\",0]>",
+            "record_type": "athlete_report",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"report_type\":\"stress\",\"reported_at\":\"2026-03-02T01:30:00.000Z\",\"input_reported_at\":{\"timestamp_text\":\"2026-03-02 07:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"reported_via\":\"text\",\"note\":\"Practice mediation or breathwork?: no — ten minutes\"}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"athlete_report\",\"nutrition\",\"2026-03-02T01:30:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<nutrition_entry whoop_csv/v1 [\"athlete_report\",\"nutrition\",\"2026-03-02T01:30:00.000Z\",0]>",
+            "record_type": "nutrition_entry",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"reported_at\":\"2026-03-02T01:30:00.000Z\",\"input_reported_at\":{\"timestamp_text\":\"2026-03-02 07:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"reported_via\":\"text\",\"athlete_description\":\"Drink any coffee?: yes — two cups, black\",\"reported_items\":[]}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"hrv_rmssd\",\"2026-03-02T01:00:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement whoop_csv/v1 [\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"hrv_rmssd\",\"2026-03-02T01:00:00.000Z\",0]>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"provider_reporting_periods\":[{\"period_type\":\"whoop_physiological_cycle\",\"start_at\":\"2026-03-01T17:30:00.000Z\",\"end_at\":\"2026-03-02T01:30:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-01 23:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-02 07:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"timezone_offset_text\":\"UTC+05:30\",\"timezone_offset_meaning\":\"provider_cycle_offset\"}],\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"value\":\"provider_documented_rmssd\"},\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-03-02T01:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-03-02 06:30\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"value\":{\"standard_value\":55.56,\"standard_unit\":\"ms\",\"input_value\":55.555,\"input_unit\":\"ms\"}}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"hrv_rmssd\",\"2026-03-03T14:00:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement whoop_csv/v1 [\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"hrv_rmssd\",\"2026-03-03T14:00:00.000Z\",0]>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"provider_reporting_periods\":[{\"period_type\":\"whoop_physiological_cycle\",\"start_at\":\"2026-03-03T06:00:00.000Z\",\"end_at\":\"2026-03-03T14:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-02 23:00\",\"utc_offset_text\":\"-0700\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-03 07:00\",\"utc_offset_text\":\"-0700\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"timezone_offset_text\":\"-0700\",\"timezone_offset_meaning\":\"provider_cycle_offset\"}],\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"value\":\"provider_documented_rmssd\"},\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-03-03T14:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-03-03 07:00\",\"utc_offset_text\":\"-0700\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"value\":{\"standard_value\":61,\"standard_unit\":\"ms\",\"input_value\":61,\"input_unit\":\"ms\"}}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"hrv_rmssd\",\"2026-03-06T09:00:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement whoop_csv/v1 [\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"hrv_rmssd\",\"2026-03-06T09:00:00.000Z\",0]>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"provider_reporting_periods\":[{\"period_type\":\"whoop_physiological_cycle\",\"start_at\":\"2026-03-05T22:00:00.000Z\",\"end_at\":\"2026-03-06T06:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-05 22:00:00\",\"utc_offset_text\":\"UTCZ\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-06 06:00:00\",\"utc_offset_text\":\"UTCZ\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"timezone_offset_text\":\"UTCZ\",\"timezone_offset_meaning\":\"provider_cycle_offset\"}],\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"value\":\"provider_documented_rmssd\"},\"quantity\":\"hrv_rmssd\",\"recorded_at\":\"2026-03-06T09:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-03-06T05:00:00.000-04:00\",\"utc_offset_text\":\"UTCZ\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"value\":{\"standard_value\":62,\"standard_unit\":\"ms\",\"input_value\":62,\"input_unit\":\"ms\"}}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"oxygen_saturation\",\"2026-03-03T14:00:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement whoop_csv/v1 [\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"oxygen_saturation\",\"2026-03-03T14:00:00.000Z\",0]>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"provider_reporting_periods\":[{\"period_type\":\"whoop_physiological_cycle\",\"start_at\":\"2026-03-03T06:00:00.000Z\",\"end_at\":\"2026-03-03T14:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-02 23:00\",\"utc_offset_text\":\"-0700\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-03 07:00\",\"utc_offset_text\":\"-0700\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"timezone_offset_text\":\"-0700\",\"timezone_offset_meaning\":\"provider_cycle_offset\"}],\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"value\":\"provider\"},\"quantity\":\"oxygen_saturation\",\"recorded_at\":\"2026-03-03T14:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-03-03 07:00\",\"utc_offset_text\":\"-0700\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"value\":{\"standard_value\":97.25,\"standard_unit\":\"%\",\"input_value\":97.25,\"input_unit\":\"%\"}}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"respiratory_rate\",\"2026-03-02T01:00:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement whoop_csv/v1 [\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"respiratory_rate\",\"2026-03-02T01:00:00.000Z\",0]>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"provider_reporting_periods\":[{\"period_type\":\"whoop_physiological_cycle\",\"start_at\":\"2026-03-01T17:30:00.000Z\",\"end_at\":\"2026-03-02T01:30:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-01 23:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-02 07:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"timezone_offset_text\":\"UTC+05:30\",\"timezone_offset_meaning\":\"provider_cycle_offset\"}],\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"value\":\"provider\"},\"quantity\":\"respiratory_rate\",\"recorded_at\":\"2026-03-02T01:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-03-02 06:30\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"value\":{\"standard_value\":15.04,\"standard_unit\":\"brpm\",\"input_value\":15.04,\"input_unit\":\"brpm\"}}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"resting_heart_rate\",\"2026-03-02T01:00:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement whoop_csv/v1 [\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"resting_heart_rate\",\"2026-03-02T01:00:00.000Z\",0]>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"provider_reporting_periods\":[{\"period_type\":\"whoop_physiological_cycle\",\"start_at\":\"2026-03-01T17:30:00.000Z\",\"end_at\":\"2026-03-02T01:30:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-01 23:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-02 07:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"timezone_offset_text\":\"UTC+05:30\",\"timezone_offset_meaning\":\"provider_cycle_offset\"}],\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"value\":\"provider\"},\"quantity\":\"resting_heart_rate\",\"recorded_at\":\"2026-03-02T01:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-03-02 06:30\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"value\":{\"standard_value\":48,\"standard_unit\":\"bpm\",\"input_value\":48,\"input_unit\":\"bpm\"}}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"resting_heart_rate\",\"2026-03-03T14:00:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement whoop_csv/v1 [\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"resting_heart_rate\",\"2026-03-03T14:00:00.000Z\",0]>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"provider_reporting_periods\":[{\"period_type\":\"whoop_physiological_cycle\",\"start_at\":\"2026-03-03T06:00:00.000Z\",\"end_at\":\"2026-03-03T14:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-02 23:00\",\"utc_offset_text\":\"-0700\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-03 07:00\",\"utc_offset_text\":\"-0700\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"timezone_offset_text\":\"-0700\",\"timezone_offset_meaning\":\"provider_cycle_offset\"}],\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"value\":\"provider\"},\"quantity\":\"resting_heart_rate\",\"recorded_at\":\"2026-03-03T14:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-03-03 07:00\",\"utc_offset_text\":\"-0700\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"value\":{\"standard_value\":1050,\"standard_unit\":\"bpm\",\"input_value\":1050,\"input_unit\":\"bpm\"}}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"resting_heart_rate\",\"2026-03-06T09:00:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement whoop_csv/v1 [\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"resting_heart_rate\",\"2026-03-06T09:00:00.000Z\",0]>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"provider_reporting_periods\":[{\"period_type\":\"whoop_physiological_cycle\",\"start_at\":\"2026-03-05T22:00:00.000Z\",\"end_at\":\"2026-03-06T06:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-05 22:00:00\",\"utc_offset_text\":\"UTCZ\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-06 06:00:00\",\"utc_offset_text\":\"UTCZ\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"timezone_offset_text\":\"UTCZ\",\"timezone_offset_meaning\":\"provider_cycle_offset\"}],\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"value\":\"provider\"},\"quantity\":\"resting_heart_rate\",\"recorded_at\":\"2026-03-06T09:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-03-06T05:00:00.000-04:00\",\"utc_offset_text\":\"UTCZ\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"value\":{\"standard_value\":51,\"standard_unit\":\"bpm\",\"input_value\":51,\"input_unit\":\"bpm\"}}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"resting_heart_rate\",\"2026-03-08T00:30:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement whoop_csv/v1 [\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"resting_heart_rate\",\"2026-03-08T00:30:00.000Z\",0]>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"value\":\"provider\"},\"quantity\":\"resting_heart_rate\",\"recorded_at\":\"2026-03-08T00:30:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-03-08 06:00:00\",\"utc_offset_text\":\"+530\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"value\":{\"standard_value\":52,\"standard_unit\":\"bpm\",\"input_value\":52,\"input_unit\":\"bpm\"}}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"skin_temperature\",\"2026-03-02T01:00:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement whoop_csv/v1 [\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"skin_temperature\",\"2026-03-02T01:00:00.000Z\",0]>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"provider_reporting_periods\":[{\"period_type\":\"whoop_physiological_cycle\",\"start_at\":\"2026-03-01T17:30:00.000Z\",\"end_at\":\"2026-03-02T01:30:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-01 23:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-02 07:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"timezone_offset_text\":\"UTC+05:30\",\"timezone_offset_meaning\":\"provider_cycle_offset\"}],\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"value\":\"provider\"},\"quantity\":\"skin_temperature\",\"recorded_at\":\"2026-03-02T01:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-03-02 06:30\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"value\":{\"standard_value\":33.26,\"standard_unit\":\"°C\",\"input_value\":33.257,\"input_unit\":\"°C\"}}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"activity_strain\",\"2026-03-02T11:30:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_score whoop_csv/v1 [\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"activity_strain\",\"2026-03-02T11:30:00.000Z\",0]>",
+            "record_type": "provider_score",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"provider_reporting_periods\":[{\"period_type\":\"whoop_physiological_cycle\",\"start_at\":\"2026-03-01T17:30:00.000Z\",\"end_at\":\"2026-03-02T01:30:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-01 23:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-02 07:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"timezone_offset_text\":\"UTC+05:30\",\"timezone_offset_meaning\":\"provider_cycle_offset\"}],\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"value\":\"provider\"},\"metric\":\"activity_strain\",\"value\":{\"standard_value\":0,\"standard_unit\":\"0-21\",\"input_value\":0,\"input_unit_missing_reason\":\"not_provided_by_source\"},\"scale\":\"0-21\",\"recorded_at\":\"2026-03-02T11:30:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-03-02 17:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"}}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"recovery\",\"2026-03-02T01:00:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_score whoop_csv/v1 [\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"recovery\",\"2026-03-02T01:00:00.000Z\",0]>",
+            "record_type": "provider_score",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"provider_reporting_periods\":[{\"period_type\":\"whoop_physiological_cycle\",\"start_at\":\"2026-03-01T17:30:00.000Z\",\"end_at\":\"2026-03-02T01:30:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-01 23:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-02 07:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"timezone_offset_text\":\"UTC+05:30\",\"timezone_offset_meaning\":\"provider_cycle_offset\"}],\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"value\":\"provider\"},\"metric\":\"recovery\",\"value\":{\"standard_value\":0,\"standard_unit\":\"0-100\",\"input_value\":0,\"input_unit\":\"%\"},\"scale\":\"0-100\",\"recorded_at\":\"2026-03-02T01:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-03-02 06:30\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"}}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"recovery\",\"2026-03-03T14:00:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_score whoop_csv/v1 [\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"recovery\",\"2026-03-03T14:00:00.000Z\",0]>",
+            "record_type": "provider_score",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"provider_reporting_periods\":[{\"period_type\":\"whoop_physiological_cycle\",\"start_at\":\"2026-03-03T06:00:00.000Z\",\"end_at\":\"2026-03-03T14:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-02 23:00\",\"utc_offset_text\":\"-0700\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-03 07:00\",\"utc_offset_text\":\"-0700\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"timezone_offset_text\":\"-0700\",\"timezone_offset_meaning\":\"provider_cycle_offset\"}],\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"value\":\"provider\"},\"metric\":\"recovery\",\"value\":{\"standard_value\":-5,\"standard_unit\":\"0-100\",\"input_value\":-5,\"input_unit\":\"%\"},\"scale\":\"0-100\",\"recorded_at\":\"2026-03-03T14:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-03-03 07:00\",\"utc_offset_text\":\"-0700\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"}}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"recovery\",\"2026-03-06T09:00:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_score whoop_csv/v1 [\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"recovery\",\"2026-03-06T09:00:00.000Z\",0]>",
+            "record_type": "provider_score",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"provider_reporting_periods\":[{\"period_type\":\"whoop_physiological_cycle\",\"start_at\":\"2026-03-05T22:00:00.000Z\",\"end_at\":\"2026-03-06T06:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-05 22:00:00\",\"utc_offset_text\":\"UTCZ\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-06 06:00:00\",\"utc_offset_text\":\"UTCZ\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"timezone_offset_text\":\"UTCZ\",\"timezone_offset_meaning\":\"provider_cycle_offset\"}],\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"value\":\"provider\"},\"metric\":\"recovery\",\"value\":{\"standard_value\":72,\"standard_unit\":\"0-100\",\"input_value\":72,\"input_unit\":\"%\"},\"scale\":\"0-100\",\"recorded_at\":\"2026-03-06T09:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-03-06T05:00:00.000-04:00\",\"utc_offset_text\":\"UTCZ\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"}}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"recovery\",\"2026-03-06T22:00:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_score whoop_csv/v1 [\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"recovery\",\"2026-03-06T22:00:00.000Z\",0]>",
+            "record_type": "provider_score",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"provider_reporting_periods\":[{\"period_type\":\"whoop_physiological_cycle\",\"start_at\":\"2026-03-06T22:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-06 22:00:00\",\"utc_offset_text\":\"GMT\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"timezone_offset_text\":\"GMT\",\"timezone_offset_meaning\":\"provider_cycle_offset\"}],\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"value\":\"provider\"},\"metric\":\"recovery\",\"value\":{\"standard_value\":73,\"standard_unit\":\"0-100\",\"input_value\":73,\"input_unit\":\"%\"},\"scale\":\"0-100\",\"recorded_at\":\"2026-03-06T22:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-03-06 22:00:00\",\"utc_offset_text\":\"GMT\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"}}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"recovery\",\"2026-03-08T00:30:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_score whoop_csv/v1 [\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"recovery\",\"2026-03-08T00:30:00.000Z\",0]>",
+            "record_type": "provider_score",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"value\":\"provider\"},\"metric\":\"recovery\",\"value\":{\"standard_value\":74,\"standard_unit\":\"0-100\",\"input_value\":74,\"input_unit\":\"%\"},\"scale\":\"0-100\",\"recorded_at\":\"2026-03-08T00:30:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-03-08 06:00:00\",\"utc_offset_text\":\"+530\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"}}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"strain\",\"2026-03-02T01:00:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_score whoop_csv/v1 [\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"strain\",\"2026-03-02T01:00:00.000Z\",0]>",
+            "record_type": "provider_score",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"provider_reporting_periods\":[{\"period_type\":\"whoop_physiological_cycle\",\"start_at\":\"2026-03-01T17:30:00.000Z\",\"end_at\":\"2026-03-02T01:30:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-01 23:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-02 07:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"timezone_offset_text\":\"UTC+05:30\",\"timezone_offset_meaning\":\"provider_cycle_offset\"}],\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"value\":\"provider\"},\"metric\":\"strain\",\"value\":{\"standard_value\":12.35,\"standard_unit\":\"0-21\",\"input_value\":12.345,\"input_unit_missing_reason\":\"not_provided_by_source\"},\"scale\":\"0-21\",\"recorded_at\":\"2026-03-02T01:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-03-02 06:30\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"}}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"strain\",\"2026-03-06T09:00:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_score whoop_csv/v1 [\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"strain\",\"2026-03-06T09:00:00.000Z\",0]>",
+            "record_type": "provider_score",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"provider_reporting_periods\":[{\"period_type\":\"whoop_physiological_cycle\",\"start_at\":\"2026-03-05T22:00:00.000Z\",\"end_at\":\"2026-03-06T06:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-05 22:00:00\",\"utc_offset_text\":\"UTCZ\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-06 06:00:00\",\"utc_offset_text\":\"UTCZ\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"timezone_offset_text\":\"UTCZ\",\"timezone_offset_meaning\":\"provider_cycle_offset\"}],\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"value\":\"provider\"},\"metric\":\"strain\",\"value\":{\"standard_value\":10,\"standard_unit\":\"0-21\",\"input_value\":10,\"input_unit_missing_reason\":\"not_provided_by_source\"},\"scale\":\"0-21\",\"recorded_at\":\"2026-03-06T09:00:00.000Z\",\"input_timestamp\":{\"timestamp_text\":\"2026-03-06T05:00:00.000-04:00\",\"utc_offset_text\":\"UTCZ\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"}}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"sleep_session\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"2026-03-01T17:40:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<sleep_session whoop_csv/v1 [\"sleep_session\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"2026-03-01T17:40:00.000Z\",0]>",
+            "record_type": "sleep_session",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"provider_reporting_periods\":[{\"period_type\":\"whoop_physiological_cycle\",\"start_at\":\"2026-03-01T17:30:00.000Z\",\"end_at\":\"2026-03-02T01:30:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-01 23:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-02 07:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"timezone_offset_text\":\"UTC+05:30\",\"timezone_offset_meaning\":\"provider_cycle_offset\"}],\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"value\":\"provider\"},\"start_at\":\"2026-03-01T17:40:00.000Z\",\"end_at\":\"2026-03-02T01:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-01 23:10:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-02 06:30:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"source_reported_summaries\":[{\"standard_value\":24030,\"standard_unit\":\"s\",\"input_value\":400.5,\"input_unit\":\"min\",\"summary_type\":\"sleep_duration\"},{\"standard_value\":26400,\"standard_unit\":\"s\",\"input_value\":440,\"input_unit\":\"min\",\"summary_type\":\"time_in_bed\"},{\"standard_value\":12000,\"standard_unit\":\"s\",\"input_value\":200,\"input_unit\":\"min\",\"summary_type\":\"light_sleep\"},{\"standard_value\":6015,\"standard_unit\":\"s\",\"input_value\":100.25,\"input_unit\":\"min\",\"summary_type\":\"rem_sleep\"},{\"standard_value\":2400,\"standard_unit\":\"s\",\"input_value\":40,\"input_unit\":\"min\",\"summary_type\":\"awake\"},{\"standard_value\":100,\"standard_unit\":\"%\",\"input_value\":100.04,\"input_unit\":\"%\",\"summary_type\":\"sleep_efficiency\"}]}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"sleep_session\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"2026-03-05T06:30:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<sleep_session whoop_csv/v1 [\"sleep_session\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"2026-03-05T06:30:00.000Z\",0]>",
+            "record_type": "sleep_session",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"provider_reporting_periods\":[{\"period_type\":\"whoop_physiological_cycle\",\"start_at\":\"2026-03-05T06:00:00.000Z\",\"end_at\":\"2026-03-05T14:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-04 23:00:00\",\"utc_offset_text\":\"UTC-07:00\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-05 07:00:00\",\"utc_offset_text\":\"UTC-07:00\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"timezone_offset_text\":\"UTC-07:00\",\"timezone_offset_meaning\":\"provider_cycle_offset\"}],\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"value\":\"provider\"},\"start_at\":\"2026-03-05T06:30:00.000Z\",\"end_at\":\"2026-03-05T13:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-04 23:30:00\",\"utc_offset_text\":\"UTC-07:00\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-05 06:00:00\",\"utc_offset_text\":\"UTC-07:00\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"source_reported_summaries\":[]}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"source\",\"WHOOP\",\"whoop_csv\",\"\"]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_type\":\"export_file\",\"data_writer\":\"WHOOP\",\"data_route\":\"whoop_csv\",\"vendor\":\"whoop\",\"detail\":\"WHOOP export folder\"}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"workout_session\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"2026-03-02T11:30:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session whoop_csv/v1 [\"workout_session\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"2026-03-02T11:30:00.000Z\",0]>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"provider_reporting_periods\":[{\"period_type\":\"whoop_physiological_cycle\",\"start_at\":\"2026-03-01T17:30:00.000Z\",\"end_at\":\"2026-03-02T01:30:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-01 23:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-02 07:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"timezone_offset_text\":\"UTC+05:30\",\"timezone_offset_meaning\":\"provider_cycle_offset\"}],\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"activity_type\":\"provider_label\",\"value\":\"provider\"},\"start_at\":\"2026-03-02T11:30:00.000Z\",\"end_at\":\"2026-03-02T12:15:30.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-02 17:00:00\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-02 17:45:30\",\"utc_offset_text\":\"UTC+05:30\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"activity_type\":\"functional fitness\",\"source_reported_summaries\":[{\"standard_value\":141,\"standard_unit\":\"bpm\",\"input_value\":140.5,\"input_unit\":\"bpm\",\"summary_type\":\"average_heart_rate\"},{\"standard_value\":182,\"standard_unit\":\"bpm\",\"input_value\":181.6,\"input_unit\":\"bpm\",\"summary_type\":\"max_heart_rate\"},{\"standard_value\":1234,\"standard_unit\":\"kcal\",\"input_value\":1234,\"input_unit\":\"cal\",\"summary_type\":\"energy\"}]}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"workout_session\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"2026-03-04T02:00:00.000Z\",0]",
+                "method": "whoop_csv/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session whoop_csv/v1 [\"workout_session\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"2026-03-04T02:00:00.000Z\",0]>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"provider_reporting_periods\":[{\"period_type\":\"whoop_physiological_cycle\",\"start_at\":\"2026-03-03T06:00:00.000Z\",\"end_at\":\"2026-03-03T14:00:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-02 23:00:00\",\"utc_offset_text\":\"UTC-07:00\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-03 07:00:00\",\"utc_offset_text\":\"UTC-07:00\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"timezone_offset_text\":\"UTC-07:00\",\"timezone_offset_meaning\":\"provider_cycle_offset\"}],\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"field_basis\":{\"value\":\"provider\"},\"start_at\":\"2026-03-04T02:00:00.000Z\",\"end_at\":\"2026-03-04T02:30:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-03-03 19:00:00\",\"utc_offset_text\":\"UTC-07:00\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-03-03 19:30:00\",\"utc_offset_text\":\"UTC-07:00\",\"utc_offset_meaning\":\"provider_cycle_offset\",\"timestamp_basis\":\"source_local_timestamp_with_documented_offset\"},\"source_reported_summaries\":[]}",
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "files": {
+          "a-b.csv": "x\n",
+          "a1.csv": "x\n",
+          "a_b.csv": "x\n",
+          "journal_entries.csv": "Cycle start time,Cycle end time,Cycle timezone,Question text,Answered yes,Notes\n2026-03-01 23:00:00,2026-03-02 07:00:00,UTC+05:30,Drink any coffee?,YES,\"two cups, black\"\n2026-03-01 23:00:00,2026-03-02 07:00:00,UTC+05:30,Feel sore?,1,\n2026-03-01 23:00:00,2026-03-02 07:00:00,UTC+05:30,Energy levels low?,no,\n2026-03-01 23:00:00,2026-03-02 07:00:00,UTC+05:30,Good mood?,,\n2026-03-01 23:00:00,2026-03-02 07:00:00,UTC+05:30,Screen time before bed?,true,\n2026-03-01 23:00:00,2026-03-02 07:00:00,UTC+05:30,Practice mediation or breathwork?,false,ten minutes\n2026-03-01 23:00:00,2026-03-02 07:00:00,UTC+05:30,Spend time stretching?,true,\n2026-03-01 23:00:00,2026-03-02 07:00:00,UTC+05:30,,true,\n,,UTC+05:30,Feel sore?,true,\n2026-03-03 23:00:00,2026-03-04 07:00:00,,Feel sore?,true,",
+          "nested/Extra.CSV": "x\n",
+          "notes.txt": "not a table\n",
+          "physiological_cycles.csv": "Cycle start time,Cycle end time,Cycle timezone,Recovery score %,Resting heart rate (bpm),Heart rate variability (ms),Skin temp (celsius),Blood oxygen %,Day Strain,Wake onset,Respiratory rate (rpm)\n2026-03-01 23:00:00,2026-03-02 07:00:00,UTC+05:30,0,48,55.555,33.257,0,12.345,2026-03-02 06:30,15.04\n2026-03-02 23:00,2026-03-03 07:00,-0700,-5,\"1,050\",61,,97.25,,,\n,,UTC-07:00,70,50,60,,,,,\n2026-03-04 22:00:00,2026-03-05 06:00:00,,71,50,60,,,,2026-03-05 05:00:00,\n2026-03-05 22:00:00,2026-03-06 06:00:00,UTCZ,72,51,62,,,1e1,2026-03-06T05:00:00.000-04:00,\n2026-03-06 22:00:00,,GMT,73,,,,,,,\n,2026-03-08 06:00:00,+530,74,52,,,,,,\n2026-03-08 22:00:00,2026-03-09 06:00:00,UTC +0000,abc,inf,-1,,,,,",
+          "sleeps.csv": "Cycle start time;Cycle end time;Cycle timezone;Sleep onset;Wake onset;Asleep duration (min);In bed duration (min);Light sleep duration (min);Deep (SWS) duration (min);REM duration (min);Awake duration (min);Sleep efficiency %\n2026-03-01 23:00:00;2026-03-02 07:00:00;UTC+05:30;2026-03-01 23:10:00;2026-03-02 06:30:00;400.5;440;200;0;100.25;\"40\";100.04\n2026-03-02 23:00:00;2026-03-03 07:00:00;UTC-07:00;2026-03-03 06:00:00;2026-03-03 06:00:00;1;1;1;1;1;1;1\n2026-03-03 23:00:00;2026-03-04 07:00:00;UTC-07:00;2026-03-03 23:30:00;;1;1;1;1;1;1;1\n2026-03-04 23:00:00;2026-03-05 07:00:00;UTC-07:00;2026-03-04 23:30:00;2026-03-05 06:00:00;;;;;;;0\n",
+          "workouts.csv": "﻿Cycle start time,Cycle end time,Cycle timezone,Workout start time,Workout end time,Activity name,Activity Strain,Energy burned (cal),Max HR (bpm),Average HR (bpm),Distance (meters)\r\n2026-03-01 23:00:00,2026-03-02 07:00:00,UTC+05:30,2026-03-02 17:00:00,2026-03-02 17:45:30,Functional Fitness,0,\"1,234\",181.6,140.5,\r\n2026-03-02 23:00:00,2026-03-03 07:00:00,UTC-07:00,2026-03-03 18:00:00,2026-03-03 17:00:00,Running,5,100,150,120,5000\r\n2026-03-02 23:00:00,2026-03-03 07:00:00,UTC-07:00,2026-03-03 19:00:00,2026-03-03 19:30:00,,,,,,\r\n"
+        },
+        "kind": "directory"
+      },
+      "preview": {
+        "changed_records": [],
+        "conflicts": [],
+        "destination_database_revision": 0,
+        "imported": "WHOOP export",
+        "matching_records": [],
+        "new_records": [
+          {
+            "record_id": "<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>",
+            "record_type": "source"
+          },
+          {
+            "record_id": "<point_measurement whoop_csv/v1 [\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"hrv_rmssd\",\"2026-03-02T01:00:00.000Z\",0]>",
+            "record_type": "point_measurement"
+          },
+          {
+            "record_id": "<point_measurement whoop_csv/v1 [\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"resting_heart_rate\",\"2026-03-02T01:00:00.000Z\",0]>",
+            "record_type": "point_measurement"
+          },
+          {
+            "record_id": "<point_measurement whoop_csv/v1 [\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"respiratory_rate\",\"2026-03-02T01:00:00.000Z\",0]>",
+            "record_type": "point_measurement"
+          },
+          {
+            "record_id": "<point_measurement whoop_csv/v1 [\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"skin_temperature\",\"2026-03-02T01:00:00.000Z\",0]>",
+            "record_type": "point_measurement"
+          },
+          {
+            "record_id": "<provider_score whoop_csv/v1 [\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"recovery\",\"2026-03-02T01:00:00.000Z\",0]>",
+            "record_type": "provider_score"
+          },
+          {
+            "record_id": "<provider_score whoop_csv/v1 [\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"strain\",\"2026-03-02T01:00:00.000Z\",0]>",
+            "record_type": "provider_score"
+          },
+          {
+            "record_id": "<point_measurement whoop_csv/v1 [\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"hrv_rmssd\",\"2026-03-03T14:00:00.000Z\",0]>",
+            "record_type": "point_measurement"
+          },
+          {
+            "record_id": "<point_measurement whoop_csv/v1 [\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"resting_heart_rate\",\"2026-03-03T14:00:00.000Z\",0]>",
+            "record_type": "point_measurement"
+          },
+          {
+            "record_id": "<point_measurement whoop_csv/v1 [\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"oxygen_saturation\",\"2026-03-03T14:00:00.000Z\",0]>",
+            "record_type": "point_measurement"
+          },
+          {
+            "record_id": "<provider_score whoop_csv/v1 [\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"recovery\",\"2026-03-03T14:00:00.000Z\",0]>",
+            "record_type": "provider_score"
+          },
+          {
+            "record_id": "<point_measurement whoop_csv/v1 [\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"hrv_rmssd\",\"2026-03-06T09:00:00.000Z\",0]>",
+            "record_type": "point_measurement"
+          },
+          {
+            "record_id": "<point_measurement whoop_csv/v1 [\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"resting_heart_rate\",\"2026-03-06T09:00:00.000Z\",0]>",
+            "record_type": "point_measurement"
+          },
+          {
+            "record_id": "<provider_score whoop_csv/v1 [\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"recovery\",\"2026-03-06T09:00:00.000Z\",0]>",
+            "record_type": "provider_score"
+          },
+          {
+            "record_id": "<provider_score whoop_csv/v1 [\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"strain\",\"2026-03-06T09:00:00.000Z\",0]>",
+            "record_type": "provider_score"
+          },
+          {
+            "record_id": "<provider_score whoop_csv/v1 [\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"recovery\",\"2026-03-06T22:00:00.000Z\",0]>",
+            "record_type": "provider_score"
+          },
+          {
+            "record_id": "<point_measurement whoop_csv/v1 [\"point_measurement\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"resting_heart_rate\",\"2026-03-08T00:30:00.000Z\",0]>",
+            "record_type": "point_measurement"
+          },
+          {
+            "record_id": "<provider_score whoop_csv/v1 [\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"recovery\",\"2026-03-08T00:30:00.000Z\",0]>",
+            "record_type": "provider_score"
+          },
+          {
+            "record_id": "<sleep_session whoop_csv/v1 [\"sleep_session\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"2026-03-01T17:40:00.000Z\",0]>",
+            "record_type": "sleep_session"
+          },
+          {
+            "record_id": "<sleep_session whoop_csv/v1 [\"sleep_session\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"2026-03-05T06:30:00.000Z\",0]>",
+            "record_type": "sleep_session"
+          },
+          {
+            "record_id": "<workout_session whoop_csv/v1 [\"workout_session\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"2026-03-02T11:30:00.000Z\",0]>",
+            "record_type": "workout_session"
+          },
+          {
+            "record_id": "<provider_score whoop_csv/v1 [\"provider_score\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"activity_strain\",\"2026-03-02T11:30:00.000Z\",0]>",
+            "record_type": "provider_score"
+          },
+          {
+            "record_id": "<workout_session whoop_csv/v1 [\"workout_session\",\"<source whoop_csv/v1 [\"source\",\"WHOOP\",\"whoop_csv\",\"\"]>\",\"2026-03-04T02:00:00.000Z\",0]>",
+            "record_type": "workout_session"
+          },
+          {
+            "record_id": "<nutrition_entry whoop_csv/v1 [\"athlete_report\",\"nutrition\",\"2026-03-02T01:30:00.000Z\",0]>",
+            "record_type": "nutrition_entry"
+          },
+          {
+            "record_id": "<athlete_report whoop_csv/v1 [\"athlete_report\",\"soreness\",\"2026-03-02T01:30:00.000Z\",0]>",
+            "record_type": "athlete_report"
+          },
+          {
+            "record_id": "<athlete_report whoop_csv/v1 [\"athlete_report\",\"energy\",\"2026-03-02T01:30:00.000Z\",0]>",
+            "record_type": "athlete_report"
+          },
+          {
+            "record_id": "<athlete_report whoop_csv/v1 [\"athlete_report\",\"mood\",\"2026-03-02T01:30:00.000Z\",0]>",
+            "record_type": "athlete_report"
+          },
+          {
+            "record_id": "<athlete_report whoop_csv/v1 [\"athlete_report\",\"sleep_quality\",\"2026-03-02T01:30:00.000Z\",0]>",
+            "record_type": "athlete_report"
+          },
+          {
+            "record_id": "<athlete_report whoop_csv/v1 [\"athlete_report\",\"stress\",\"2026-03-02T01:30:00.000Z\",0]>",
+            "record_type": "athlete_report"
+          },
+          {
+            "record_id": "<athlete_report whoop_csv/v1 [\"athlete_report\",\"note\",\"2026-03-02T01:30:00.000Z\",0]>",
+            "record_type": "athlete_report"
+          }
+        ],
+        "provider": "whoop",
+        "route_points_stored": 0,
+        "skipped": {
+          "cycle rows with an unreadable timestamp": {
+            "count": 2,
+            "example": "blank timestamp"
+          },
+          "journal rows we cannot place in time": {
+            "count": 3,
+            "example": "row has no question text"
+          },
+          "sleep rows with an unusable time range": {
+            "count": 2,
+            "example": "\"2026-03-03 06:00:00\" with timezone \"UTC-07:00\" → \"2026-03-03 06:00:00\" with timezone \"UTC-07:00\""
+          },
+          "unrecognized WHOOP file: a-b.csv": {
+            "count": 1,
+            "example": "a-b.csv"
+          },
+          "unrecognized WHOOP file: a1.csv": {
+            "count": 1,
+            "example": "a1.csv"
+          },
+          "unrecognized WHOOP file: a_b.csv": {
+            "count": 1,
+            "example": "a_b.csv"
+          },
+          "unrecognized WHOOP file: extra.csv": {
+            "count": 1,
+            "example": "extra.csv"
+          },
+          "workout rows with an unusable time range": {
+            "count": 1,
+            "example": "\"2026-03-03 18:00:00\" with timezone \"UTC-07:00\" → \"2026-03-03 17:00:00\" with timezone \"UTC-07:00\""
+          }
+        },
+        "write_confirmed": false
+      },
+      "received_at": "2026-10-13T12:00:00.000Z"
+    }
+  ]
+}

@@ -1,0 +1,642 @@
+{
+  "schema": "StrengthSet",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "reps": 5,
+        "weight": 60,
+        "weight_unit": "kg"
+      },
+      "valid": true,
+      "output": {
+        "reps": 5,
+        "weight": 60,
+        "weight_unit": "kg"
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "reps": 5,
+        "weight": 60,
+        "weight_unit": "kg",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reps:missing",
+      "input": {
+        "weight": 60,
+        "weight_unit": "kg"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "reps:null",
+      "input": {
+        "reps": null,
+        "weight": 60,
+        "weight_unit": "kg"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "reps:wrong_type=string",
+      "input": {
+        "reps": "1",
+        "weight": 60,
+        "weight_unit": "kg"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "reps:number=-1",
+      "input": {
+        "reps": -1,
+        "weight": 60,
+        "weight_unit": "kg"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "reps:number=0",
+      "input": {
+        "reps": 0,
+        "weight": 60,
+        "weight_unit": "kg"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "reps:number=1",
+      "input": {
+        "reps": 1,
+        "weight": 60,
+        "weight_unit": "kg"
+      },
+      "valid": true,
+      "output": {
+        "reps": 1,
+        "weight": 60,
+        "weight_unit": "kg"
+      },
+      "issues": []
+    },
+    {
+      "name": "reps:number=-0.5",
+      "input": {
+        "reps": -0.5,
+        "weight": 60,
+        "weight_unit": "kg"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "reps:number=0.5",
+      "input": {
+        "reps": 0.5,
+        "weight": 60,
+        "weight_unit": "kg"
+      },
+      "valid": true,
+      "output": {
+        "reps": 0.5,
+        "weight": 60,
+        "weight_unit": "kg"
+      },
+      "issues": []
+    },
+    {
+      "name": "reps:number=5e-324",
+      "input": {
+        "reps": 5e-324,
+        "weight": 60,
+        "weight_unit": "kg"
+      },
+      "valid": true,
+      "output": {
+        "reps": 5e-324,
+        "weight": 60,
+        "weight_unit": "kg"
+      },
+      "issues": []
+    },
+    {
+      "name": "reps:number=-5e-324",
+      "input": {
+        "reps": -5e-324,
+        "weight": 60,
+        "weight_unit": "kg"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "reps:number=1e+308",
+      "input": {
+        "reps": 1e+308,
+        "weight": 60,
+        "weight_unit": "kg"
+      },
+      "valid": true,
+      "output": {
+        "reps": 1e+308,
+        "weight": 60,
+        "weight_unit": "kg"
+      },
+      "issues": []
+    },
+    {
+      "name": "reps:number_text=-0",
+      "input_text": "{\"reps\":-0,\"weight\":60,\"weight_unit\":\"kg\"}",
+      "input": {
+        "reps": 0,
+        "weight": 60,
+        "weight_unit": "kg"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "reps:number_text=1e400",
+      "input_text": "{\"reps\":1e400,\"weight\":60,\"weight_unit\":\"kg\"}",
+      "input": {
+        "reps": null,
+        "weight": 60,
+        "weight_unit": "kg"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "weight:missing",
+      "input": {
+        "reps": 5,
+        "weight_unit": "kg"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "weight"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "weight:null",
+      "input": {
+        "reps": 5,
+        "weight": null,
+        "weight_unit": "kg"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "weight"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "weight:wrong_type=string",
+      "input": {
+        "reps": 5,
+        "weight": "1",
+        "weight_unit": "kg"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "weight"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "weight:number=-1",
+      "input": {
+        "reps": 5,
+        "weight": -1,
+        "weight_unit": "kg"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "weight"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "weight:number=0",
+      "input": {
+        "reps": 5,
+        "weight": 0,
+        "weight_unit": "kg"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "weight"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "weight:number=1",
+      "input": {
+        "reps": 5,
+        "weight": 1,
+        "weight_unit": "kg"
+      },
+      "valid": true,
+      "output": {
+        "reps": 5,
+        "weight": 1,
+        "weight_unit": "kg"
+      },
+      "issues": []
+    },
+    {
+      "name": "weight:number=-0.5",
+      "input": {
+        "reps": 5,
+        "weight": -0.5,
+        "weight_unit": "kg"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "weight"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "weight:number=0.5",
+      "input": {
+        "reps": 5,
+        "weight": 0.5,
+        "weight_unit": "kg"
+      },
+      "valid": true,
+      "output": {
+        "reps": 5,
+        "weight": 0.5,
+        "weight_unit": "kg"
+      },
+      "issues": []
+    },
+    {
+      "name": "weight:number=5e-324",
+      "input": {
+        "reps": 5,
+        "weight": 5e-324,
+        "weight_unit": "kg"
+      },
+      "valid": true,
+      "output": {
+        "reps": 5,
+        "weight": 5e-324,
+        "weight_unit": "kg"
+      },
+      "issues": []
+    },
+    {
+      "name": "weight:number=-5e-324",
+      "input": {
+        "reps": 5,
+        "weight": -5e-324,
+        "weight_unit": "kg"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "weight"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "weight:number=1e+308",
+      "input": {
+        "reps": 5,
+        "weight": 1e+308,
+        "weight_unit": "kg"
+      },
+      "valid": true,
+      "output": {
+        "reps": 5,
+        "weight": 1e+308,
+        "weight_unit": "kg"
+      },
+      "issues": []
+    },
+    {
+      "name": "weight:number_text=-0",
+      "input_text": "{\"reps\":5,\"weight\":-0,\"weight_unit\":\"kg\"}",
+      "input": {
+        "reps": 5,
+        "weight": 0,
+        "weight_unit": "kg"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "weight"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "weight:number_text=1e400",
+      "input_text": "{\"reps\":5,\"weight\":1e400,\"weight_unit\":\"kg\"}",
+      "input": {
+        "reps": 5,
+        "weight": null,
+        "weight_unit": "kg"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "weight"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "weight_unit:missing",
+      "input": {
+        "reps": 5,
+        "weight": 60
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "weight_unit"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "weight_unit:null",
+      "input": {
+        "reps": 5,
+        "weight": 60,
+        "weight_unit": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "weight_unit"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "weight_unit:wrong_type=number",
+      "input": {
+        "reps": 5,
+        "weight": 60,
+        "weight_unit": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "weight_unit"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "weight_unit:empty_string",
+      "input": {
+        "reps": 5,
+        "weight": 60,
+        "weight_unit": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "weight_unit"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,401 @@
+{
+  "schema": "ReportedNutrient",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "nutrient_name": "protein",
+        "amount": 10.5,
+        "unit": "g"
+      },
+      "valid": true,
+      "output": {
+        "nutrient_name": "protein",
+        "amount": 10.5,
+        "unit": "g"
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "nutrient_name": "protein",
+        "amount": 10.5,
+        "unit": "g",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "nutrient_name:missing",
+      "input": {
+        "amount": 10.5,
+        "unit": "g"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "nutrient_name"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "nutrient_name:null",
+      "input": {
+        "nutrient_name": null,
+        "amount": 10.5,
+        "unit": "g"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "nutrient_name"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "nutrient_name:wrong_type=number",
+      "input": {
+        "nutrient_name": 1,
+        "amount": 10.5,
+        "unit": "g"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "nutrient_name"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "nutrient_name:empty_string",
+      "input": {
+        "nutrient_name": "",
+        "amount": 10.5,
+        "unit": "g"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "nutrient_name"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "amount:missing",
+      "input": {
+        "nutrient_name": "protein",
+        "unit": "g"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "amount"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "amount:null",
+      "input": {
+        "nutrient_name": "protein",
+        "amount": null,
+        "unit": "g"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "amount"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "amount:wrong_type=string",
+      "input": {
+        "nutrient_name": "protein",
+        "amount": "1",
+        "unit": "g"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "amount"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "amount:number=1e+308",
+      "input": {
+        "nutrient_name": "protein",
+        "amount": 1e+308,
+        "unit": "g"
+      },
+      "valid": true,
+      "output": {
+        "nutrient_name": "protein",
+        "amount": 1e+308,
+        "unit": "g"
+      },
+      "issues": []
+    },
+    {
+      "name": "amount:number=-1e+308",
+      "input": {
+        "nutrient_name": "protein",
+        "amount": -1e+308,
+        "unit": "g"
+      },
+      "valid": true,
+      "output": {
+        "nutrient_name": "protein",
+        "amount": -1e+308,
+        "unit": "g"
+      },
+      "issues": []
+    },
+    {
+      "name": "amount:number=-1.5",
+      "input": {
+        "nutrient_name": "protein",
+        "amount": -1.5,
+        "unit": "g"
+      },
+      "valid": true,
+      "output": {
+        "nutrient_name": "protein",
+        "amount": -1.5,
+        "unit": "g"
+      },
+      "issues": []
+    },
+    {
+      "name": "amount:number=0",
+      "input": {
+        "nutrient_name": "protein",
+        "amount": 0,
+        "unit": "g"
+      },
+      "valid": true,
+      "output": {
+        "nutrient_name": "protein",
+        "amount": 0,
+        "unit": "g"
+      },
+      "issues": []
+    },
+    {
+      "name": "amount:number=5e-324",
+      "input": {
+        "nutrient_name": "protein",
+        "amount": 5e-324,
+        "unit": "g"
+      },
+      "valid": true,
+      "output": {
+        "nutrient_name": "protein",
+        "amount": 5e-324,
+        "unit": "g"
+      },
+      "issues": []
+    },
+    {
+      "name": "amount:number_text=-0",
+      "input_text": "{\"nutrient_name\":\"protein\",\"amount\":-0,\"unit\":\"g\"}",
+      "input": {
+        "nutrient_name": "protein",
+        "amount": 0,
+        "unit": "g"
+      },
+      "valid": true,
+      "output": {
+        "nutrient_name": "protein",
+        "amount": 0,
+        "unit": "g"
+      },
+      "issues": []
+    },
+    {
+      "name": "amount:number_text=1e400",
+      "input_text": "{\"nutrient_name\":\"protein\",\"amount\":1e400,\"unit\":\"g\"}",
+      "input": {
+        "nutrient_name": "protein",
+        "amount": null,
+        "unit": "g"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "amount"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "unit:missing",
+      "input": {
+        "nutrient_name": "protein",
+        "amount": 10.5
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "unit"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "unit:null",
+      "input": {
+        "nutrient_name": "protein",
+        "amount": 10.5,
+        "unit": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "unit"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "unit:wrong_type=number",
+      "input": {
+        "nutrient_name": "protein",
+        "amount": 10.5,
+        "unit": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "unit"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "unit:empty_string",
+      "input": {
+        "nutrient_name": "protein",
+        "amount": 10.5,
+        "unit": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "unit"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    }
+  ]
+}

@@ -6,6 +6,10 @@ agent that proves the format works. SQLite (`.ath.sqlite`) is the live local rec
 JSON (`.ath.json`) is the complete portable import and export format. Not an app, not
 a coach, not medical advice.
 
+One Rust library and one native `ath` executable implement it (`src/`).
+`packages/npm/` is the npm launcher and JavaScript client. It calls the executable and
+holds no second implementation. `docs/architecture.md` names the owner of each job.
+
 ## Where the truth lives
 
 Read these before making decisions — they are the project's memory and outrank anything you infer:
@@ -14,25 +18,28 @@ Read these before making decisions — they are the project's memory and outrank
 2. **`build-history/v0.2.0/spec.md`** — the format revision that supersedes parts of it: sidecar series, vendor scores, per-modality distance, distinct temperature signals, and the importers.
 3. **`build-history/v1.0.0/spec.md`** — the approved SQLite build plan: SQLite is the live local record and JSON is the complete portable package. D101 rejects 0.x file migration, so runtime implementation begins with the v1 domain schemas.
 4. **`build-history/v2.0.0/spec.md`** — version 2.0.0. The program, the record, and the database share that version. Garmin and Strava imports and calculation skill files are described there.
-5. **`build-history/v2.1.0/spec.md`** — version 2.1.0, the current version. Mapping files (`mappings/`, `ath import --mapping`), migration step 4, and `field_basis` are described there. A plan for 2.2.0 lives in `build-history/v2.2.0/`. It is not the software until the maintainer approves it and a later pull request builds it.
-6. **`build-history/*/decisions.md`** — every decision with the alternatives that were rejected and why (D1 onward, numbered continuously across version folders). Do not relitigate these without new information; if a decision is superseded, append a new D-number in the current version's file. Don't rewrite earlier entries. Don't create addendum files.
-7. **`build-history/*/appendix/`** — the long-form studies that informed decisions. Link each study from its D-number. Do not move the decision into the appendix, and do not trim the study down to the decision line.
-8. **`build-history/*/progress.md`** — what's done and what's next.
-9. **`docs/connections.md`** — per-provider data research (what WHOOP/Oura/Garmin/Apple Health each provide via which path).
-10. **`SPEC.md`** — the public field-level format reference. Normative Zod for version 2.1.0 is in `src/v1/schema.ts`. `src/schema.ts` is legacy 0.x. JSON Schema is generated from these sources.
+5. **`build-history/v2.1.0/spec.md`** — version 2.1.0. Mapping files (`mappings/`, `ath import --mapping`), migration step 4, and `field_basis` are described there.
+6. **`build-history/v2.1.1/spec.md`** — version 2.1.1, the current version: the complete native rebuild, SQL migration step 5, and the npm launcher and JavaScript client. Its `appendix/` holds the 2.1.0 reference evidence (D218): the command inventory, deliberate behavior changes, semantic rules, public API inventory, and test disposition.
+7. **`build-history/v2.2.0/`** — a plan for 2.2.0. It is not the software until the maintainer approves it and a later pull request builds it.
+8. **`build-history/*/decisions.md`** — every decision with the alternatives that were rejected and why (D1 onward, numbered continuously across version folders). Do not relitigate these without new information; if a decision is superseded, append a new D-number in the current version's file. Don't rewrite earlier entries. Don't create addendum files.
+9. **`build-history/*/appendix/`** — the long-form studies that informed decisions. Link each study from its D-number. Do not move the decision into the appendix, and do not trim the study down to the decision line.
+10. **`build-history/*/progress.md`** — what's done and what's next.
+11. **`docs/connections.md`** — per-provider data research (what WHOOP/Oura/Garmin/Apple Health each provide via which path).
+12. **`SPEC.md`** — the public field-level format reference. The normative model for version 2.1.1 is the Rust model in `src/model/` with its semantic checks. JSON Schema and the npm protocol declarations are generated from it. The Zod schemas in `packages/npm/src/schema.ts` are frozen 2.1.x compatibility code for JavaScript callers (D209); they are tested against the Rust validator and are not where records are designed.
 
 For v1 storage, IDs, revisions, import behavior, and final schema names, D82–D105 supersede the relevant
 parts of D4, D25, D36, D40, D43, D48, D62, D64, and D65. The old decisions still
-describe released 0.x behavior.
+describe released 0.x behavior. D208–D220 record the native rebuild; D210 replaces
+D83's native use of Zod and D93's local libSQL adapter.
 
 ## Hard rules
 
 - **The two-tier wall:** measured records and athlete reports never mix. Measured records require a `source` reference; athlete reports structurally cannot claim one. Never weaken this.
-- **`build-history/` is append-only.** New plans get a new version folder, named for the format version it produces (`v0.2.0/`, `v1.0.0/`). D-numbers continue across folders — D25 follows D24. Within a version, append new decisions to `decisions.md`. Supporting research goes in `appendix/` and is linked from the D-number. Don't rewrite earlier D-numbers or earlier version folders.
-- **Schemas are the source of truth.** After changing `src/v1/schema.ts`, run `pnpm generate:json-schema` and `pnpm generate:v1-fixture` and commit the regenerated outputs. After changing legacy `src/schema.ts`, run `pnpm generate:json-schema` and `pnpm generate:fixture` and commit the regenerated outputs. After changing a command or its help in `src/program.ts` or `src/help.ts`, run `pnpm generate:skill-cli` and commit `skills/athletic-standard/references/cli.md` (D80).
+- **`build-history/` is append-only.** New plans get a new version folder, named for the format version it produces (`v0.2.0/`, `v1.0.0/`). D-numbers continue across folders — D25 follows D24. Within a version, append new decisions to `decisions.md`. Supporting research goes in `appendix/` and is linked from the D-number. Don't rewrite earlier D-numbers or earlier version folders. A draft that was not approved goes, unchanged, into the `appendix/` of the version that replaced it, as `draft-<version>/` (D224).
+- **The Rust model is the source of truth.** After changing the model (`src/model/`), a command or its help (`src/cli/`), or a protocol operation (`src/protocol/`), run `ATH_WRITE_GENERATED=1 cargo test --test generated` and commit the regenerated files: JSON Schema in `schema/2.1.1/` and `schema/athleticstandard.schema.json`, `packages/npm/src/generated/protocol.ts`, `skills/athletic-standard/references/cli.md` (D80), and the demo database in `examples/demo-athlete/`. `cargo test --test generated` fails when a committed copy is behind. Generators never rewrite a published historical schema, `spec/sql/`, or `tests/fixtures/`.
 - **Naming:** "Athletic Standard" in prose; `athleticstandard` for the npm package, file extension, and version field; `ath` is the CLI command; `AthleticStandard` in code identifiers.
 - **Keep the repo impersonal:** no personal objectives, audience/positioning framing, or individual names in committed content.
-- **Never commit real health data.** Real exports stay outside Git, including private repositories. Public tests use only the synthetic files listed in `scripts/check-public-data.ts`.
+- **Never commit real health data.** Real exports stay outside Git, including private repositories. Public tests use only the synthetic files listed in `tools/public-data-allowlist.json`; `tests/public_data.rs` enforces the list and the `.gitignore` rules.
 - **Sanitize validation evidence.** A public decision may state the rule and a rounded technical result. It must omit exact workout dates, routes, birth dates, travel clues, device inventories, and sample values from real exports.
 - **Build synthetic regressions.** Reproduce a real-data bug with the smallest invented case before committing it. Do not copy identifying values into a test.
 - **Prose (D24):** write the rule, then the reason. Short sentences. Ordinary words. No slogans, no metaphor used as if it were the rule, no antithesis wordplay (*an* vs *the*, "X is the pipe, Y is the document", "never a data upgrade"). Don't use "vibes", "bet", "scoreboard", "on-ramp", or "doctrine" as stand-ins for the actual idea. Named principles are allowed when they name a real rule ("two-tier wall", "the file is the database", "not an app, not a coach, not medical advice") — after the name, state the rule in ordinary words in the same paragraph.
@@ -41,7 +48,16 @@ describe released 0.x behavior.
 
 ## Verification
 
-`pnpm check:public-data && pnpm typecheck && pnpm test && pnpm build` must pass before any commit. The fixture (`examples/demo-athlete/`) is deterministic — regenerate, don't hand-edit.
+These must pass before any commit:
+
+```sh
+cargo fmt --check
+cargo clippy --all-targets -- -D warnings
+cargo test
+(cd packages/npm && npm ci && npm run typecheck && npm test)
+```
+
+`cargo test` includes the public-data check (`tests/public_data.rs`) and the generated-file check (`tests/generated.rs`). The npm tests run the executable `cargo build` makes in `target/debug/`, or the one named by `ATH_NATIVE_EXECUTABLE`. The demo fixture (`examples/demo-athlete/`) is deterministic — regenerate it with `ATH_WRITE_GENERATED=1 cargo test --test generated`, don't hand-edit it. The 2.1.0 demo in `tests/fixtures/version-2-1-0/` is a preserved input; never regenerate it.
 
 ## Workflow
 

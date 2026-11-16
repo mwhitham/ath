@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://athleticstandard.ai/schema/2.1.0/athleticstandard.schema.json",
+  "$id": "https://athleticstandard.ai/schema/2.1.1/athleticstandard.schema.json",
   "title": "Athletic Standard portable package document",
   "type": "object",
   "properties": {
@@ -9,7 +9,8 @@
       "enum": [
         "1.0.0",
         "2.0.0",
-        "2.1.0"
+        "2.1.0",
+        "2.1.1"
       ]
     },
     "database_id": {

@@ -1,0 +1,17 @@
+Examples:
+
+  What is in the file, and where it came from:
+    $ ath stats
+
+  As data, for an agent:
+    $ ath stats --json
+
+Baselines are listed per source and never averaged across them, because
+two devices measuring one thing give two answers. Each carries how many
+observations it rests on, over what days, and the rule used.
+
+Each source also lists the devices seen writing under it, with the days
+each one covered — which is where a replaced watch becomes visible.
+
+Predictions are counted by who made them, so you can see which agent and
+model has actually been right about you.

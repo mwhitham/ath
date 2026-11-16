@@ -1,0 +1,29 @@
+{
+  "description": "A mapping file refused before anything is read: page-section.",
+  "reference": "2.1.0",
+  "steps": [
+    {
+      "command": "import-mapped",
+      "database": {
+        "database_revision": 0,
+        "records": []
+      },
+      "delete_before": null,
+      "input": {
+        "kind": "file",
+        "name": "nights.json",
+        "text": "{\"sleep\":[{\"id\":\"n-1\",\"start_time\":\"2026-08-09T01:00:00.000Z\",\"end_time\":\"2026-08-09T07:00:00.000Z\",\"source\":{\"provider\":\"invented-maker\"},\"asleep\":20000}]}"
+      },
+      "mapping": {
+        "text": "# Invented\n\n```ath-mapping\nname: invented\nroute: invented_route\nwriter_field: source.provider\nvalue_basis: provider\npage_rows: data\npage_marker: meta\npage_section: workout\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\nx: asleep_seconds s s\n```\n"
+      },
+      "preview": {
+        "error": "page_section workout is not a section of this file"
+      },
+      "pull": null,
+      "write": {
+        "error": "page_section workout is not a section of this file"
+      }
+    }
+  ]
+}

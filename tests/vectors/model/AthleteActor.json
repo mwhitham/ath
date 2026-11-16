@@ -1,0 +1,147 @@
+{
+  "schema": "AthleteActor",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "author_type": "athlete"
+      },
+      "valid": true,
+      "output": {
+        "author_type": "athlete"
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "author_type": "athlete",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "author_type:missing",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "author_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"athlete\"",
+          "values": [
+            "athlete"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "author_type:null",
+      "input": {
+        "author_type": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "author_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"athlete\"",
+          "values": [
+            "athlete"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "author_type:literal_other",
+      "input": {
+        "author_type": "__other__"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "author_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"athlete\"",
+          "values": [
+            "athlete"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "author_type:wrong_type=number",
+      "input": {
+        "author_type": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "author_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"athlete\"",
+          "values": [
+            "athlete"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,171 @@
+{
+  "schema": "RecordFormatVersion",
+  "cases": [
+    {
+      "name": "valid:1.0.0",
+      "input": "1.0.0",
+      "valid": true,
+      "output": "1.0.0",
+      "issues": []
+    },
+    {
+      "name": "valid:2.0.0",
+      "input": "2.0.0",
+      "valid": true,
+      "output": "2.0.0",
+      "issues": []
+    },
+    {
+      "name": "valid:2.1.0",
+      "input": "2.1.0",
+      "valid": true,
+      "output": "2.1.0",
+      "issues": []
+    },
+    {
+      "name": "invalid:unknown",
+      "input": "__not_an_option__",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"1.0.0\"|\"2.0.0\"|\"2.1.0\"",
+          "values": [
+            "1.0.0",
+            "2.0.0",
+            "2.1.0"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:empty",
+      "input": "",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"1.0.0\"|\"2.0.0\"|\"2.1.0\"",
+          "values": [
+            "1.0.0",
+            "2.0.0",
+            "2.1.0"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:uppercase",
+      "input": "1.0.0",
+      "valid": true,
+      "output": "1.0.0",
+      "issues": []
+    },
+    {
+      "name": "invalid:leading_space",
+      "input": " 1.0.0",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"1.0.0\"|\"2.0.0\"|\"2.1.0\"",
+          "values": [
+            "1.0.0",
+            "2.0.0",
+            "2.1.0"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:trailing_space",
+      "input": "1.0.0 ",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"1.0.0\"|\"2.0.0\"|\"2.1.0\"",
+          "values": [
+            "1.0.0",
+            "2.0.0",
+            "2.1.0"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:number",
+      "input": 1,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"1.0.0\"|\"2.0.0\"|\"2.1.0\"",
+          "values": [
+            "1.0.0",
+            "2.0.0",
+            "2.1.0"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"1.0.0\"|\"2.0.0\"|\"2.1.0\"",
+          "values": [
+            "1.0.0",
+            "2.0.0",
+            "2.1.0"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:array",
+      "input": [
+        "1.0.0"
+      ],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"1.0.0\"|\"2.0.0\"|\"2.1.0\"",
+          "values": [
+            "1.0.0",
+            "2.0.0",
+            "2.1.0"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:object",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"1.0.0\"|\"2.0.0\"|\"2.1.0\"",
+          "values": [
+            "1.0.0",
+            "2.0.0",
+            "2.1.0"
+          ]
+        }
+      ]
+    }
+  ]
+}

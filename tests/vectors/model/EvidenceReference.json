@@ -1,0 +1,491 @@
+{
+  "schema": "EvidenceReference",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": 1
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": 1
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": 1,
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "record_id:missing",
+      "input": {
+        "revision": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "record_id:null",
+      "input": {
+        "record_id": null,
+        "revision": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "record_id:wrong_type=number",
+      "input": {
+        "record_id": 1,
+        "revision": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "record_id:empty_string",
+      "input": {
+        "record_id": "",
+        "revision": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "record_id:format=not_valid",
+      "input": {
+        "record_id": "not valid",
+        "revision": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "record_id:format=uppercase",
+      "input": {
+        "record_id": "01890F3E-E7D3-7CC0-88C8-000000000007",
+        "revision": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "revision:missing",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "revision:null",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "revision:wrong_type=string",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": "1"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "revision:number=-1",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": -1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "revision:number=0",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "revision:number=1",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": 1
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": 1
+      },
+      "issues": []
+    },
+    {
+      "name": "revision:number=1.5",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": 1.5
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "revision:number=9007199254740991",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": 9007199254740991
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": 9007199254740991
+      },
+      "issues": []
+    },
+    {
+      "name": "revision:number=9007199254740992",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": 9007199254740992
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "revision:number=-9007199254740991",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": -9007199254740991
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "revision:number=-9007199254740992",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": -9007199254740992
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected int to be >=-9007199254740991",
+          "inclusive": true,
+          "minimum": -9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "revision"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "revision:number=1e+21",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": 1e+21
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "revision:number_text=-0",
+      "input_text": "{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000007\",\"revision\":-0}",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "revision:number_text=1.0",
+      "input_text": "{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000007\",\"revision\":1.0}",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": 1
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": 1
+      },
+      "issues": []
+    },
+    {
+      "name": "revision:number_text=1E0",
+      "input_text": "{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000007\",\"revision\":1E0}",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": 1
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": 1
+      },
+      "issues": []
+    },
+    {
+      "name": "revision:number_text=9007199254740993",
+      "input_text": "{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000007\",\"revision\":9007199254740993}",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "revision": 9007199254740992
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "revision"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    }
+  ]
+}

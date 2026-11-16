@@ -1,0 +1,1399 @@
+{
+  "description": "Each Garmin file alone, then the files in a zip archive.",
+  "reference": "2.1.0",
+  "steps": [
+    {
+      "command": "import-garmin",
+      "database": {
+        "database_revision": 3,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "1001:max_heart_rate",
+                "method": "garmin_account/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_summary garmin_account/v1 1001:max_heart_rate>",
+            "record_type": "provider_summary",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "1001",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-01-02T15:00:00.000Z",
+                  "source_id": "<source garmin garmin_account_export >",
+                  "summary_type": "max_heart_rate",
+                  "value": {
+                    "input_unit": "bpm",
+                    "input_value": 200,
+                    "standard_unit": "bpm",
+                    "standard_value": 200
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source garmin garmin_account_export >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "garmin_account_export",
+                  "data_writer": "garmin",
+                  "source_type": "export_file",
+                  "vendor": "garmin"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "1001",
+                "method": "garmin_account/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_account/v1 1001>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "activity_type": "running",
+                  "description": "easy jog",
+                  "end_at": "2026-01-02T15:00:03.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "heart_rate_samples": [
+                    {
+                      "bpm": 100,
+                      "offset_ms": 0
+                    },
+                    {
+                      "bpm": 130,
+                      "offset_ms": 1000
+                    },
+                    {
+                      "bpm": 160,
+                      "offset_ms": 2000
+                    },
+                    {
+                      "bpm": 190,
+                      "offset_ms": 3000
+                    }
+                  ],
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:03.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Park Loop",
+                  "provider_record_id": "1001",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_account_export >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-02T15:00:00.000Z",
+                  "supplied_fields": {
+                    "Feeling": "smooth"
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "kind": "file",
+        "name": "park-loop.json",
+        "text": "{\n  \"activityId\": \"1001\",\n  \"activityName\": \"Park Loop\",\n  \"activityType\": \"running\",\n  \"startTimeGMT\": \"2026-01-02T15:00:00.000Z\",\n  \"duration\": 3,\n  \"description\": \"easy jog\",\n  \"maxHR\": 200,\n  \"Feeling\": \"smooth\",\n  \"samples\": [\n    {\"offset_ms\": 0, \"bpm\": 100},\n    {\"offset_ms\": 1000, \"bpm\": 130},\n    {\"offset_ms\": 2000, \"bpm\": 160},\n    {\"offset_ms\": 3000, \"bpm\": 190}\n  ]\n}\n"
+      },
+      "mapping": null,
+      "preview": {
+        "result": {
+          "left_out": [],
+          "preserved": [
+            "Feeling"
+          ],
+          "record_ids": [],
+          "source": "garmin",
+          "understood": [
+            "activity_type",
+            "description",
+            "end_at",
+            "heart_rate_samples",
+            "max_heart_rate",
+            "name",
+            "provider_record_id",
+            "start_at"
+          ]
+        }
+      },
+      "pull": null,
+      "write": {
+        "result": {
+          "left_out": [],
+          "preserved": [
+            "Feeling"
+          ],
+          "record_ids": [
+            "<workout_session garmin_account/v1 1001>",
+            "<provider_summary garmin_account/v1 1001:max_heart_rate>"
+          ],
+          "source": "garmin",
+          "understood": [
+            "activity_type",
+            "description",
+            "end_at",
+            "heart_rate_samples",
+            "max_heart_rate",
+            "name",
+            "provider_record_id",
+            "start_at"
+          ]
+        }
+      }
+    },
+    {
+      "command": "import-garmin",
+      "database": {
+        "database_revision": 4,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "1001:max_heart_rate",
+                "method": "garmin_account/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_summary garmin_account/v1 1001:max_heart_rate>",
+            "record_type": "provider_summary",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "1001",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-01-02T15:00:00.000Z",
+                  "source_id": "<source garmin garmin_account_export >",
+                  "summary_type": "max_heart_rate",
+                  "value": {
+                    "input_unit": "bpm",
+                    "input_value": 200,
+                    "standard_unit": "bpm",
+                    "standard_value": 200
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source garmin garmin_account_export >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "garmin_account_export",
+                  "data_writer": "garmin",
+                  "source_type": "export_file",
+                  "vendor": "garmin"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "1001",
+                "method": "garmin_account/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_account/v1 1001>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "activity_type": "running",
+                  "description": "easy jog",
+                  "end_at": "2026-01-02T15:00:03.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "heart_rate_samples": [
+                    {
+                      "bpm": 100,
+                      "offset_ms": 0
+                    },
+                    {
+                      "bpm": 130,
+                      "offset_ms": 1000
+                    },
+                    {
+                      "bpm": 160,
+                      "offset_ms": 2000
+                    },
+                    {
+                      "bpm": 190,
+                      "offset_ms": 3000
+                    }
+                  ],
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:03.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Park Loop",
+                  "provider_record_id": "1001",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_account_export >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-02T15:00:00.000Z",
+                  "supplied_fields": {
+                    "Feeling": "smooth"
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 1>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 1>",
+                "key": "namespaced-hr.gpx",
+                "method": "garmin_account/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_account/v1 namespaced-hr.gpx>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 1>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "end_at": "2026-08-09T15:00:10.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "heart_rate_samples": [
+                    {
+                      "bpm": 100,
+                      "offset_ms": 0
+                    },
+                    {
+                      "bpm": 160,
+                      "offset_ms": 10000
+                    }
+                  ],
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:10.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Park loop",
+                  "provider_record_id": "namespaced-hr.gpx",
+                  "received_at": "<step 1>",
+                  "received_at_basis": "import_time",
+                  "route": [
+                    {
+                      "latitude_deg": 40,
+                      "longitude_deg": -105,
+                      "recorded_at": "2026-08-09T15:00:00.000Z"
+                    },
+                    {
+                      "latitude_deg": 40.002,
+                      "longitude_deg": -105.002,
+                      "recorded_at": "2026-08-09T15:00:10.000Z"
+                    }
+                  ],
+                  "source_id": "<source garmin garmin_account_export >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T15:00:00.000Z"
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "kind": "file",
+        "name": "namespaced-hr.gpx",
+        "text": "<?xml version=\"1.0\"?>\n<gpx>\n<trk><name>Park loop</name><trkseg>\n<trkpt lat=\"40.0\" lon=\"-105.0\"><time>2026-08-09T15:00:00Z</time><extensions><ns3:TrackPointExtension><ns3:hr>100</ns3:hr></ns3:TrackPointExtension></extensions></trkpt>\n<trkpt lat=\"40.001\" lon=\"-105.001\"><extensions><ns3:TrackPointExtension><ns3:hr>130</ns3:hr></ns3:TrackPointExtension></extensions></trkpt>\n<trkpt lat=\"40.002\" lon=\"-105.002\"><time>2026-08-09T15:00:10Z</time><extensions><gpxtpx:hr>160</gpxtpx:hr></extensions></trkpt>\n</trkseg></trk>\n</gpx>\n"
+      },
+      "mapping": null,
+      "preview": {
+        "result": {
+          "left_out": [
+            "namespaced-hr.gpx: 1 track point had no time"
+          ],
+          "preserved": [],
+          "record_ids": [],
+          "source": "garmin",
+          "understood": [
+            "end_at",
+            "heart_rate_samples",
+            "name",
+            "route",
+            "start_at"
+          ]
+        }
+      },
+      "pull": null,
+      "write": {
+        "result": {
+          "left_out": [
+            "namespaced-hr.gpx: 1 track point had no time"
+          ],
+          "preserved": [],
+          "record_ids": [
+            "<workout_session garmin_account/v1 namespaced-hr.gpx>"
+          ],
+          "source": "garmin",
+          "understood": [
+            "end_at",
+            "heart_rate_samples",
+            "name",
+            "route",
+            "start_at"
+          ]
+        }
+      }
+    },
+    {
+      "command": "import-garmin",
+      "database": {
+        "database_revision": 5,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "1001:max_heart_rate",
+                "method": "garmin_account/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_summary garmin_account/v1 1001:max_heart_rate>",
+            "record_type": "provider_summary",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "1001",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-01-02T15:00:00.000Z",
+                  "source_id": "<source garmin garmin_account_export >",
+                  "summary_type": "max_heart_rate",
+                  "value": {
+                    "input_unit": "bpm",
+                    "input_value": 200,
+                    "standard_unit": "bpm",
+                    "standard_value": 200
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source garmin garmin_account_export >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "garmin_account_export",
+                  "data_writer": "garmin",
+                  "source_type": "export_file",
+                  "vendor": "garmin"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "1001",
+                "method": "garmin_account/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_account/v1 1001>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "activity_type": "running",
+                  "description": "easy jog",
+                  "end_at": "2026-01-02T15:00:03.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "heart_rate_samples": [
+                    {
+                      "bpm": 100,
+                      "offset_ms": 0
+                    },
+                    {
+                      "bpm": 130,
+                      "offset_ms": 1000
+                    },
+                    {
+                      "bpm": 160,
+                      "offset_ms": 2000
+                    },
+                    {
+                      "bpm": 190,
+                      "offset_ms": 3000
+                    }
+                  ],
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:03.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Park Loop",
+                  "provider_record_id": "1001",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_account_export >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-02T15:00:00.000Z",
+                  "supplied_fields": {
+                    "Feeling": "smooth"
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 1>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 1>",
+                "key": "namespaced-hr.gpx",
+                "method": "garmin_account/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_account/v1 namespaced-hr.gpx>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 1>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "end_at": "2026-08-09T15:00:10.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "heart_rate_samples": [
+                    {
+                      "bpm": 100,
+                      "offset_ms": 0
+                    },
+                    {
+                      "bpm": 160,
+                      "offset_ms": 10000
+                    }
+                  ],
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:10.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Park loop",
+                  "provider_record_id": "namespaced-hr.gpx",
+                  "received_at": "<step 1>",
+                  "received_at_basis": "import_time",
+                  "route": [
+                    {
+                      "latitude_deg": 40,
+                      "longitude_deg": -105,
+                      "recorded_at": "2026-08-09T15:00:00.000Z"
+                    },
+                    {
+                      "latitude_deg": 40.002,
+                      "longitude_deg": -105.002,
+                      "recorded_at": "2026-08-09T15:00:10.000Z"
+                    }
+                  ],
+                  "source_id": "<source garmin garmin_account_export >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T15:00:00.000Z"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 2>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 2>",
+                "key": "synthetic-position.fit",
+                "method": "garmin_account/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_account/v1 synthetic-position.fit>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 2>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "end_at": "2026-08-09T15:00:10.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "heart_rate_samples": [
+                    {
+                      "bpm": 120,
+                      "offset_ms": 0
+                    }
+                  ],
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:10.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "synthetic-position.fit",
+                  "provider_record_id": "synthetic-position.fit",
+                  "received_at": "<step 2>",
+                  "received_at_basis": "import_time",
+                  "route": [
+                    {
+                      "latitude_deg": 0,
+                      "longitude_deg": 0,
+                      "recorded_at": "2026-08-09T15:00:10.000Z"
+                    }
+                  ],
+                  "source_id": "<source garmin garmin_account_export >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T15:00:00.000Z"
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "kind": "file",
+        "name": "synthetic-position.fit",
+        "text": "base64:DBBkAC4AAAAuRklUQAABABQE/QSGAASFAQSFAwECAETbSfB/////f////3gARNtJ+gAAAAAAAAAA/w=="
+      },
+      "mapping": null,
+      "preview": {
+        "result": {
+          "left_out": [],
+          "preserved": [],
+          "record_ids": [],
+          "source": "garmin",
+          "understood": [
+            "heart_rate_samples",
+            "name",
+            "route"
+          ]
+        }
+      },
+      "pull": null,
+      "write": {
+        "result": {
+          "left_out": [],
+          "preserved": [],
+          "record_ids": [
+            "<workout_session garmin_account/v1 synthetic-position.fit>"
+          ],
+          "source": "garmin",
+          "understood": [
+            "heart_rate_samples",
+            "name",
+            "route"
+          ]
+        }
+      }
+    },
+    {
+      "command": "import-garmin",
+      "database": {
+        "database_revision": 8,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 2,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "1001:max_heart_rate",
+                "method": "garmin_account/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_summary garmin_account/v1 1001:max_heart_rate>",
+            "record_type": "provider_summary",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "1001",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-01-02T15:00:00.000Z",
+                  "source_id": "<source garmin garmin_account_export >",
+                  "summary_type": "max_heart_rate",
+                  "value": {
+                    "input_unit": "bpm",
+                    "input_value": 200,
+                    "standard_unit": "bpm",
+                    "standard_value": 200
+                  }
+                },
+                "revision": 1
+              },
+              {
+                "became_known_at": "<step 3>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 1,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "1001",
+                  "received_at": "<step 3>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-01-02T15:00:00.000Z",
+                  "source_id": "<source garmin garmin_account_export >",
+                  "summary_type": "max_heart_rate",
+                  "value": {
+                    "input_unit": "bpm",
+                    "input_value": 200,
+                    "standard_unit": "bpm",
+                    "standard_value": 200
+                  }
+                },
+                "revision": 2
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source garmin garmin_account_export >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "garmin_account_export",
+                  "data_writer": "garmin",
+                  "source_type": "export_file",
+                  "vendor": "garmin"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 2,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "1001",
+                "method": "garmin_account/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_account/v1 1001>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "activity_type": "running",
+                  "description": "easy jog",
+                  "end_at": "2026-01-02T15:00:03.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "heart_rate_samples": [
+                    {
+                      "bpm": 100,
+                      "offset_ms": 0
+                    },
+                    {
+                      "bpm": 130,
+                      "offset_ms": 1000
+                    },
+                    {
+                      "bpm": 160,
+                      "offset_ms": 2000
+                    },
+                    {
+                      "bpm": 190,
+                      "offset_ms": 3000
+                    }
+                  ],
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:03.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Park Loop",
+                  "provider_record_id": "1001",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_account_export >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-02T15:00:00.000Z",
+                  "supplied_fields": {
+                    "Feeling": "smooth"
+                  }
+                },
+                "revision": 1
+              },
+              {
+                "became_known_at": "<step 3>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 1,
+                "record": {
+                  "activity_type": "running",
+                  "description": "easy jog",
+                  "end_at": "2026-01-02T15:00:03.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "heart_rate_samples": [
+                    {
+                      "bpm": 100,
+                      "offset_ms": 0
+                    },
+                    {
+                      "bpm": 130,
+                      "offset_ms": 1000
+                    },
+                    {
+                      "bpm": 160,
+                      "offset_ms": 2000
+                    },
+                    {
+                      "bpm": 190,
+                      "offset_ms": 3000
+                    }
+                  ],
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:03.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Park Loop",
+                  "provider_record_id": "1001",
+                  "received_at": "<step 3>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_account_export >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-02T15:00:00.000Z",
+                  "supplied_fields": {
+                    "Feeling": "smooth"
+                  }
+                },
+                "revision": 2
+              }
+            ]
+          },
+          {
+            "created_at": "<step 3>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 3>",
+                "key": "garmin/namespaced-hr.gpx",
+                "method": "garmin_account/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_account/v1 garmin/namespaced-hr.gpx>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 3>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "end_at": "2026-08-09T15:00:10.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "heart_rate_samples": [
+                    {
+                      "bpm": 100,
+                      "offset_ms": 0
+                    },
+                    {
+                      "bpm": 160,
+                      "offset_ms": 10000
+                    }
+                  ],
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:10.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Park loop",
+                  "provider_record_id": "garmin/namespaced-hr.gpx",
+                  "received_at": "<step 3>",
+                  "received_at_basis": "import_time",
+                  "route": [
+                    {
+                      "latitude_deg": 40,
+                      "longitude_deg": -105,
+                      "recorded_at": "2026-08-09T15:00:00.000Z"
+                    },
+                    {
+                      "latitude_deg": 40.002,
+                      "longitude_deg": -105.002,
+                      "recorded_at": "2026-08-09T15:00:10.000Z"
+                    }
+                  ],
+                  "source_id": "<source garmin garmin_account_export >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T15:00:00.000Z"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 1>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 1>",
+                "key": "namespaced-hr.gpx",
+                "method": "garmin_account/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_account/v1 namespaced-hr.gpx>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 1>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "end_at": "2026-08-09T15:00:10.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "heart_rate_samples": [
+                    {
+                      "bpm": 100,
+                      "offset_ms": 0
+                    },
+                    {
+                      "bpm": 160,
+                      "offset_ms": 10000
+                    }
+                  ],
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:10.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Park loop",
+                  "provider_record_id": "namespaced-hr.gpx",
+                  "received_at": "<step 1>",
+                  "received_at_basis": "import_time",
+                  "route": [
+                    {
+                      "latitude_deg": 40,
+                      "longitude_deg": -105,
+                      "recorded_at": "2026-08-09T15:00:00.000Z"
+                    },
+                    {
+                      "latitude_deg": 40.002,
+                      "longitude_deg": -105.002,
+                      "recorded_at": "2026-08-09T15:00:10.000Z"
+                    }
+                  ],
+                  "source_id": "<source garmin garmin_account_export >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T15:00:00.000Z"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 2>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 2>",
+                "key": "synthetic-position.fit",
+                "method": "garmin_account/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_account/v1 synthetic-position.fit>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 2>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "end_at": "2026-08-09T15:00:10.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "heart_rate_samples": [
+                    {
+                      "bpm": 120,
+                      "offset_ms": 0
+                    }
+                  ],
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:10.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "synthetic-position.fit",
+                  "provider_record_id": "synthetic-position.fit",
+                  "received_at": "<step 2>",
+                  "received_at_basis": "import_time",
+                  "route": [
+                    {
+                      "latitude_deg": 0,
+                      "longitude_deg": 0,
+                      "recorded_at": "2026-08-09T15:00:10.000Z"
+                    }
+                  ],
+                  "source_id": "<source garmin garmin_account_export >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T15:00:00.000Z"
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "files": {
+          "garmin/namespaced-hr.gpx": "<?xml version=\"1.0\"?>\n<gpx>\n<trk><name>Park loop</name><trkseg>\n<trkpt lat=\"40.0\" lon=\"-105.0\"><time>2026-08-09T15:00:00Z</time><extensions><ns3:TrackPointExtension><ns3:hr>100</ns3:hr></ns3:TrackPointExtension></extensions></trkpt>\n<trkpt lat=\"40.001\" lon=\"-105.001\"><extensions><ns3:TrackPointExtension><ns3:hr>130</ns3:hr></ns3:TrackPointExtension></extensions></trkpt>\n<trkpt lat=\"40.002\" lon=\"-105.002\"><time>2026-08-09T15:00:10Z</time><extensions><gpxtpx:hr>160</gpxtpx:hr></extensions></trkpt>\n</trkseg></trk>\n</gpx>\n",
+          "garmin/park-loop.json": "{\n  \"activityId\": \"1001\",\n  \"activityName\": \"Park Loop\",\n  \"activityType\": \"running\",\n  \"startTimeGMT\": \"2026-01-02T15:00:00.000Z\",\n  \"duration\": 3,\n  \"description\": \"easy jog\",\n  \"maxHR\": 200,\n  \"Feeling\": \"smooth\",\n  \"samples\": [\n    {\"offset_ms\": 0, \"bpm\": 100},\n    {\"offset_ms\": 1000, \"bpm\": 130},\n    {\"offset_ms\": 2000, \"bpm\": 160},\n    {\"offset_ms\": 3000, \"bpm\": 190}\n  ]\n}\n"
+        },
+        "kind": "zip"
+      },
+      "mapping": null,
+      "preview": {
+        "result": {
+          "left_out": [
+            "garmin/namespaced-hr.gpx: 1 track point had no time"
+          ],
+          "preserved": [
+            "Feeling"
+          ],
+          "record_ids": [],
+          "source": "garmin",
+          "understood": [
+            "activity_type",
+            "description",
+            "end_at",
+            "heart_rate_samples",
+            "max_heart_rate",
+            "name",
+            "provider_record_id",
+            "route",
+            "start_at"
+          ]
+        }
+      },
+      "pull": null,
+      "write": {
+        "result": {
+          "left_out": [
+            "garmin/namespaced-hr.gpx: 1 track point had no time"
+          ],
+          "preserved": [
+            "Feeling"
+          ],
+          "record_ids": [
+            "<workout_session garmin_account/v1 garmin/namespaced-hr.gpx>",
+            "<workout_session garmin_account/v1 1001>",
+            "<provider_summary garmin_account/v1 1001:max_heart_rate>"
+          ],
+          "source": "garmin",
+          "understood": [
+            "activity_type",
+            "description",
+            "end_at",
+            "heart_rate_samples",
+            "max_heart_rate",
+            "name",
+            "provider_record_id",
+            "route",
+            "start_at"
+          ]
+        }
+      }
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "description": "An input row that is a personal report.",
+  "reference": "2.1.0",
+  "steps": [
+    {
+      "command": "import-mapped",
+      "database": {
+        "database_revision": 0,
+        "records": []
+      },
+      "delete_before": null,
+      "input": {
+        "kind": "file",
+        "name": "report.json",
+        "text": "{\"sleep\":[{\"id\":\"report-1\",\"report_type\":\"sleep_quality\",\"reported_via\":\"text\",\"rating\":2}]}"
+      },
+      "mapping": {
+        "shipped": "open-wearables",
+        "text": "# Open Wearables\n\nSleep sessions, workouts, and timeseries samples. The provider is `source.provider`. The device is `source.device_type`, `source.device`, and `source.source`. A value's basis is `provider_or_aggregator`, because an Open Wearables object does not say whether the provider or Open Wearables computed it. Open Wearables normalizes the workout type, so its basis is `aggregator_normalized`. A provider score's basis is `provider`. Stage minutes are under `stages`. `efficiency_percent` stays under that name. A row whose `entry_source` is `manual` is a personal report, and it is left out. `intensity` stays under that name. A timeseries type is stored only when a line below names it.\n\nA page is the `data` array of an object that also has `metadata`. Its rows are timeseries samples. Only raw samples are stored: `metadata.resolution` must be `raw`. A row with `period_end` is an aggregate. A row with `window_seconds` on a page with no resolution cannot be confirmed raw.\n\n```ath-mapping\nname: open-wearables\nroute: open_wearables\nwriter_field: source.provider\nvalue_basis: provider_or_aggregator\npersonal_when: entry_source manual\npage_rows: data\npage_marker: metadata\npage_section: timeseries\npage_resolution: metadata.resolution\nraw_resolution: raw\nsensor: source.device_type, source.device, source.source\ndevice_name: source.device_name, source.device\ndevice_model: source.device\ndevice_hardware: source.device_id\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\nsleep_duration_seconds: asleep_seconds s s\ntime_in_bed_seconds: in_bed_seconds s s\nstages.awake_minutes: stage_minutes.awake min min\nstages.light_minutes: stage_minutes.light min min\nstages.deep_minutes: stage_minutes.deep min min\nstages.rem_minutes: stage_minutes.rem min min\n\n[workout]\nid_field: id\nstart_field: start_time\nend_field: end_time\ntype: activity_type basis aggregator_normalized\nname: name\ndistance_meters: source_reported_summaries.distance m m\nelevation_gain_meters: source_reported_summaries.elevation_gain m m\navg_heart_rate_bpm: provider_summary.average_heart_rate bpm bpm basis provider_or_aggregator\nmax_heart_rate_bpm: provider_summary.max_heart_rate bpm bpm basis provider_or_aggregator\n\n[timeseries]\ntime_field: timestamp\ntype_field: type\nvalue_field: value\nunit_field: unit\naggregate_field: period_end\nwindow_field: window_seconds\ntype.heart_rate_variability_rmssd: hrv_rmssd ms ms\ntype.heart_rate_variability_sdnn: hrv_sdnn ms ms\ntype.resting_heart_rate: resting_heart_rate bpm bpm\ntype.respiratory_rate: respiratory_rate brpm brpm\ntype.skin_temperature: skin_temperature celsius °C\ntype.skin_temperature: wrist_temperature_sleeping celsius °C when-writer apple\ntype.oxygen_saturation: oxygen_saturation percent %\ntype.heart_rate_recovery_one_minute: hr_recovery bpm bpm\ntype.vo2_max: provider_summary.vo2_max ml_kg_min ml/kg/min\ntype.garmin_stress_level: provider_score.garmin_stress_level score score scale 1-100\ntype.garmin_body_battery: provider_score.garmin_body_battery percent score scale 0-100\n```\n"
+      },
+      "preview": {
+        "error": "refusing to turn a personal report into a measured record"
+      },
+      "pull": null,
+      "write": {
+        "error": "refusing to turn a personal report into a measured record"
+      }
+    }
+  ]
+}

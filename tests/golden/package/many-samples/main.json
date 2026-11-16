@@ -1,0 +1,206 @@
+{
+  "athleticstandard_version": "2.1.0",
+  "database_id": "01890f3e-0000-7000-8000-000000000001",
+  "database_revision": 7,
+  "measurement_series_files": [
+    {
+      "deletion_count": 1,
+      "end_at": "2026-01-01T13:53:17.000Z",
+      "file": "series/01890f3e-0000-7000-8000-000000000010-heart_rate-000001.ath-series.json",
+      "import_key_count": 7,
+      "quantity": "heart_rate",
+      "revision_count": 50005,
+      "sample_count": 50000,
+      "sha256": "58cb086dfeb57184263e3a879b62406e75005dddaed5c948feb74a450163cdd4",
+      "source_id": "01890f3e-0000-7000-8000-000000000010",
+      "start_at": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "deletion_count": 1,
+      "end_at": "2026-01-01T13:53:25.000Z",
+      "file": "series/01890f3e-0000-7000-8000-000000000010-heart_rate-000002.ath-series.json",
+      "import_key_count": 0,
+      "quantity": "heart_rate",
+      "revision_count": 6,
+      "sample_count": 6,
+      "sha256": "63c98b0c967137b85bf1374a2f1a3218d526651ede9f7542783184847609eac5",
+      "source_id": "01890f3e-0000-7000-8000-000000000010",
+      "start_at": "2026-01-01T13:53:17.000Z"
+    },
+    {
+      "deletion_count": 0,
+      "end_at": "2026-01-01T00:02:00.000Z",
+      "file": "series/01890f3e-0000-7000-8000-000000000010-respiratory_rate-000001.ath-series.json",
+      "import_key_count": 0,
+      "quantity": "respiratory_rate",
+      "revision_count": 3,
+      "sample_count": 3,
+      "sha256": "2c55a2890f977f8e4ef931005ae55de0c1d76f7ac5bcaabaf6934a7f744171ff",
+      "source_id": "01890f3e-0000-7000-8000-000000000010",
+      "start_at": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "deletion_count": 0,
+      "end_at": "2026-01-01T00:00:01.000Z",
+      "file": "series/01890f3e-0000-7000-8000-000000000011-heart_rate-000001.ath-series.json",
+      "import_key_count": 0,
+      "quantity": "heart_rate",
+      "revision_count": 2,
+      "sample_count": 2,
+      "sha256": "c301157f2a856d66f63912b341c41abf9df8dde33432e2d0946a4f80778a97cd",
+      "source_id": "01890f3e-0000-7000-8000-000000000011",
+      "start_at": "2026-01-01T00:00:00.000Z"
+    }
+  ],
+  "record_deletions": [
+    {
+      "deleted_at": "2026-01-03T00:00:00.000Z",
+      "deleted_by": {
+        "author_type": "athlete"
+      },
+      "record_id": "01890f3e-0000-7000-8000-000000000012",
+      "record_revision": 1
+    }
+  ],
+  "record_erasure_markers": [
+    {
+      "erased_at": "2026-01-03T00:00:00.000Z",
+      "reason_code": "athlete_request",
+      "record_id": "01890f3e-0000-7000-8000-000000000013"
+    }
+  ],
+  "record_import_keys": [
+    {
+      "imported_at": "2026-01-02T00:00:00.000Z",
+      "match_key": "A",
+      "match_key_method": "synthetic_source",
+      "record_id": "01890f3e-0000-7000-8000-000000000010"
+    }
+  ],
+  "record_revisions": [
+    {
+      "became_known_at": "2026-01-01T00:00:00.000Z",
+      "became_known_at_basis": "provider_import",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "synthetic",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "data_route": "synthetic_route",
+        "data_writer": "Synthetic",
+        "source_type": "wearable",
+        "supplied_fields": {
+          "1": "one",
+          "a": 1,
+          "b": 2
+        },
+        "vendor": "synthetic"
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-0000-7000-8000-000000000010",
+      "record_type": "source",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-01-01T00:00:00.000Z",
+      "became_known_at_basis": "provider_import",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "synthetic",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "data_route": "synthetic_route_b",
+        "data_writer": "Synthetic",
+        "source_type": "wearable"
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-0000-7000-8000-000000000011",
+      "record_type": "source",
+      "revision": 1
+    },
+    {
+      "became_known_at": "2026-01-03T00:00:00.000Z",
+      "became_known_at_basis": "provider_import",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "synthetic",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "data_route": "synthetic_route_b",
+        "data_writer": "Synthetic",
+        "source_type": "wearable",
+        "vendor": "synthetic"
+      },
+      "previous_revision": 1,
+      "record_id": "01890f3e-0000-7000-8000-000000000011",
+      "record_type": "source",
+      "revision": 2
+    },
+    {
+      "became_known_at": "2026-01-01T00:00:00.000Z",
+      "became_known_at_basis": "provider_import",
+      "changed_by": {
+        "author_type": "tool",
+        "tool": "synthetic",
+        "tool_version": "1.0.0"
+      },
+      "data": {
+        "data_route": "synthetic_route_c",
+        "data_writer": "Synthetic",
+        "source_type": "wearable"
+      },
+      "previous_revision": null,
+      "record_id": "01890f3e-0000-7000-8000-000000000012",
+      "record_type": "source",
+      "revision": 1
+    }
+  ],
+  "records": [
+    {
+      "created_at": "2026-01-01T00:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "data_route": "synthetic_route",
+        "data_writer": "Synthetic",
+        "source_type": "wearable",
+        "supplied_fields": {
+          "1": "one",
+          "a": 1,
+          "b": 2
+        },
+        "vendor": "synthetic"
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-0000-7000-8000-000000000010",
+      "record_type": "source"
+    },
+    {
+      "created_at": "2026-01-01T00:00:00.000Z",
+      "current_revision": 2,
+      "data": {
+        "data_route": "synthetic_route_b",
+        "data_writer": "Synthetic",
+        "source_type": "wearable",
+        "vendor": "synthetic"
+      },
+      "is_deleted": false,
+      "record_id": "01890f3e-0000-7000-8000-000000000011",
+      "record_type": "source"
+    },
+    {
+      "created_at": "2026-01-01T00:00:00.000Z",
+      "current_revision": 1,
+      "data": {
+        "data_route": "synthetic_route_c",
+        "data_writer": "Synthetic",
+        "source_type": "wearable"
+      },
+      "is_deleted": true,
+      "record_id": "01890f3e-0000-7000-8000-000000000012",
+      "record_type": "source"
+    }
+  ]
+}

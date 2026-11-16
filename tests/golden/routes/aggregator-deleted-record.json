@@ -1,0 +1,2793 @@
+{
+  "description": "A deleted mapped record is left out.",
+  "reference": "2.1.0",
+  "steps": [
+    {
+      "command": "import-mapped",
+      "database": {
+        "database_revision": 20,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "apple:phone|iPhone15,2|Health:timeseries:point:resting_heart_rate:2026-08-09T08\\:00\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement open_wearables/v1 apple:phone|iPhone15,2|Health:timeseries:point:resting_heart_rate:2026-08-09T08\\:00\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T08:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "resting_heart_rate",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T08:00:00.000Z",
+                  "source_id": "<source apple open_wearables phone|iPhone15,2|Health>",
+                  "value": {
+                    "input_unit": "bpm",
+                    "input_value": 61,
+                    "standard_unit": "bpm",
+                    "standard_value": 61
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "apple:watch|Watch6,1|Health:timeseries:point:resting_heart_rate:2026-08-09T08\\:00\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement open_wearables/v1 apple:watch|Watch6,1|Health:timeseries:point:resting_heart_rate:2026-08-09T08\\:00\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T08:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "resting_heart_rate",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T08:00:00.000Z",
+                  "source_id": "<source apple open_wearables watch|Watch6,1|Health>",
+                  "value": {
+                    "input_unit": "bpm",
+                    "input_value": 52,
+                    "standard_unit": "bpm",
+                    "standard_value": 52
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "apple:watch|Watch6,1|Health:timeseries:point:skin_temperature:2026-08-09T06\\:12\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement open_wearables/v1 apple:watch|Watch6,1|Health:timeseries:point:skin_temperature:2026-08-09T06\\:12\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:12:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "wrist_temperature_sleeping",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:12:00.000Z",
+                  "source_id": "<source apple open_wearables watch|Watch6,1|Health>",
+                  "value": {
+                    "input_unit": "celsius",
+                    "input_value": 33.4,
+                    "standard_unit": "°C",
+                    "standard_value": 33.4
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:timeseries:point:heart_rate_recovery_one_minute:2026-08-09T06\\:12\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:heart_rate_recovery_one_minute:2026-08-09T06\\:12\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:12:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "hr_recovery",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:12:00.000Z",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>",
+                  "value": {
+                    "input_unit": "bpm",
+                    "input_value": 22,
+                    "standard_unit": "bpm",
+                    "standard_value": 22
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:timeseries:point:heart_rate_variability_rmssd:2026-08-09T06\\:12\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:heart_rate_variability_rmssd:2026-08-09T06\\:12\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:12:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "hrv_rmssd",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:12:00.000Z",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>",
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 42.5,
+                    "standard_unit": "ms",
+                    "standard_value": 42.5
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:timeseries:point:heart_rate_variability_sdnn:2026-08-09T06\\:12\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:heart_rate_variability_sdnn:2026-08-09T06\\:12\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:12:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "hrv_sdnn",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:12:00.000Z",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>",
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 61.2,
+                    "standard_unit": "ms",
+                    "standard_value": 61.2
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:timeseries:point:oxygen_saturation:2026-08-09T06\\:12\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:oxygen_saturation:2026-08-09T06\\:12\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:12:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "oxygen_saturation",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:12:00.000Z",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>",
+                  "value": {
+                    "input_unit": "percent",
+                    "input_value": 98,
+                    "standard_unit": "%",
+                    "standard_value": 98
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:timeseries:point:respiratory_rate:2026-08-09T06\\:12\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:respiratory_rate:2026-08-09T06\\:12\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:12:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "respiratory_rate",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:12:00.000Z",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>",
+                  "value": {
+                    "input_unit": "brpm",
+                    "input_value": 16,
+                    "standard_unit": "brpm",
+                    "standard_value": 16
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:timeseries:point:resting_heart_rate:2026-08-09T06\\:12\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:resting_heart_rate:2026-08-09T06\\:12\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:12:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "resting_heart_rate",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:12:00.000Z",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>",
+                  "value": {
+                    "input_unit": "bpm",
+                    "input_value": 48,
+                    "standard_unit": "bpm",
+                    "standard_value": 48
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:timeseries:point:skin_temperature:2026-08-09T06\\:12\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:skin_temperature:2026-08-09T06\\:12\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:12:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "skin_temperature",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:12:00.000Z",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>",
+                  "value": {
+                    "input_unit": "celsius",
+                    "input_value": 33.2,
+                    "standard_unit": "°C",
+                    "standard_value": 33.2
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:timeseries:score:garmin_body_battery:2026-08-09T06\\:13\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_score open_wearables/v1 garmin:watch|invented-watch|invented-app:timeseries:score:garmin_body_battery:2026-08-09T06\\:13\\:00.000Z>",
+            "record_type": "provider_score",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:13:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "metric": "garmin_body_battery",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:13:00.000Z",
+                  "scale": "0-100",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>",
+                  "value": {
+                    "input_unit": "percent",
+                    "input_value": 70,
+                    "standard_unit": "score",
+                    "standard_value": 70
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:12\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_score open_wearables/v1 garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:12\\:00.000Z>",
+            "record_type": "provider_score",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:12:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "metric": "garmin_stress_level",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:12:00.000Z",
+                  "scale": "1-100",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>",
+                  "value": {
+                    "input_unit": "score",
+                    "input_value": 15,
+                    "standard_unit": "score",
+                    "standard_value": 15
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:workout:ow-workout-1:summary:average_heart_rate",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_summary open_wearables/v1 garmin:watch|invented-watch|invented-app:workout:ow-workout-1:summary:average_heart_rate>",
+            "record_type": "provider_summary",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:03.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "ow-workout-1",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-01-02T15:00:03.000Z",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>",
+                  "summary_type": "average_heart_rate",
+                  "value": {
+                    "input_unit": "bpm",
+                    "input_value": 140,
+                    "standard_unit": "bpm",
+                    "standard_value": 140
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:workout:ow-workout-1:summary:max_heart_rate",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_summary open_wearables/v1 garmin:watch|invented-watch|invented-app:workout:ow-workout-1:summary:max_heart_rate>",
+            "record_type": "provider_summary",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:03.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "ow-workout-1",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-01-02T15:00:03.000Z",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>",
+                  "summary_type": "max_heart_rate",
+                  "value": {
+                    "input_unit": "bpm",
+                    "input_value": 180,
+                    "standard_unit": "bpm",
+                    "standard_value": 180
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:timeseries:summary:vo2_max:2026-08-09T06\\:12\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_summary open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:summary:vo2_max:2026-08-09T06\\:12\\:00.000Z>",
+            "record_type": "provider_summary",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:12:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:12:00.000Z",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>",
+                  "summary_type": "vo2_max",
+                  "value": {
+                    "input_unit": "ml_kg_min",
+                    "input_value": 45,
+                    "standard_unit": "ml/kg/min",
+                    "standard_value": 45
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:sleep:ow-nap-1",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<sleep_session open_wearables/v1 oura:ring|invented-ring|invented-app:sleep:ow-nap-1>",
+            "record_type": "sleep_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "asleep_seconds": 1000,
+                  "end_at": "2026-08-09T18:20:00.000Z",
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "in_bed_seconds": 1200,
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:20:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "ow-nap-1",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T18:00:00.000Z",
+                  "supplied_fields": {
+                    "efficiency_percent": 80,
+                    "is_nap": true
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:sleep:ow-sleep-1",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<sleep_session open_wearables/v1 oura:ring|invented-ring|invented-app:sleep:ow-sleep-1>",
+            "record_type": "sleep_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "asleep_seconds": 600,
+                  "end_at": "2026-08-09T14:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "in_bed_seconds": 700,
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_offset_timestamp",
+                    "timestamp_text": "2026-08-09T10:00:00.000-04:00",
+                    "utc_offset_meaning": "meaning_not_documented",
+                    "utc_offset_text": "-04:00"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_offset_timestamp",
+                    "timestamp_text": "2026-08-09T02:00:00.000-04:00",
+                    "utc_offset_meaning": "meaning_not_documented",
+                    "utc_offset_text": "-04:00"
+                  },
+                  "provider_record_id": "ow-sleep-1",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>",
+                  "source_reported_summaries": [],
+                  "stage_minutes": {
+                    "awake": 2,
+                    "deep": 4,
+                    "light": 3
+                  },
+                  "start_at": "2026-08-09T06:00:00.000Z",
+                  "supplied_fields": {
+                    "duration_seconds": 800,
+                    "efficiency_percent": 91,
+                    "is_nap": false,
+                    "zone_offset": "-04:00"
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source apple open_wearables phone|iPhone15,2|Health>",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "open_wearables",
+                  "data_writer": "apple",
+                  "sensor_type": "phone|iPhone15,2|Health",
+                  "source_type": "export_file",
+                  "vendor": "apple"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source apple open_wearables watch|Watch6,1|Health>",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "open_wearables",
+                  "data_writer": "apple",
+                  "sensor_type": "watch|Watch6,1|Health",
+                  "source_type": "export_file",
+                  "vendor": "apple"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source garmin open_wearables watch|invented-watch|invented-app>",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "open_wearables",
+                  "data_writer": "garmin",
+                  "sensor_type": "watch|invented-watch|invented-app",
+                  "source_type": "export_file",
+                  "vendor": "garmin"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source oura open_wearables ring|invented-ring|invented-app>",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "open_wearables",
+                  "data_writer": "oura",
+                  "sensor_type": "ring|invented-ring|invented-app",
+                  "source_type": "export_file",
+                  "vendor": "oura"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "apple:phone|iPhone15,2|Health:source_device",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<source_device open_wearables/v1 apple:phone|iPhone15,2|Health:source_device>",
+            "record_type": "source_device",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "hardware": "phone-1",
+                  "manufacturer": "apple",
+                  "model": "iPhone15,2",
+                  "name": "Invented Phone",
+                  "source_id": "<source apple open_wearables phone|iPhone15,2|Health>"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "apple:watch|Watch6,1|Health:source_device",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<source_device open_wearables/v1 apple:watch|Watch6,1|Health:source_device>",
+            "record_type": "source_device",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "hardware": "watch-a",
+                  "manufacturer": "apple",
+                  "model": "Watch6,1",
+                  "name": "Invented Watch",
+                  "source_id": "<source apple open_wearables watch|Watch6,1|Health>"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:source_device",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<source_device open_wearables/v1 garmin:watch|invented-watch|invented-app:source_device>",
+            "record_type": "source_device",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "hardware": "watch-1",
+                  "manufacturer": "garmin",
+                  "model": "invented-watch",
+                  "name": "Invented Watch",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:source_device",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<source_device open_wearables/v1 oura:ring|invented-ring|invented-app:source_device>",
+            "record_type": "source_device",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "hardware": "ring-1",
+                  "manufacturer": "oura",
+                  "model": "invented-ring",
+                  "name": "Invented Ring",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:workout:ow-workout-1",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session open_wearables/v1 garmin:watch|invented-watch|invented-app:workout:ow-workout-1>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "activity_type": "running",
+                  "end_at": "2026-01-02T15:00:03.000Z",
+                  "field_basis": {
+                    "activity_type": "aggregator_normalized",
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:03.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Invented loop",
+                  "provider_record_id": "ow-workout-1",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>",
+                  "source_reported_summaries": [
+                    {
+                      "input_unit": "m",
+                      "input_value": 12,
+                      "standard_unit": "m",
+                      "standard_value": 12,
+                      "summary_type": "distance"
+                    },
+                    {
+                      "input_unit": "m",
+                      "input_value": 4,
+                      "standard_unit": "m",
+                      "standard_value": 4,
+                      "summary_type": "elevation_gain"
+                    }
+                  ],
+                  "start_at": "2026-01-02T15:00:00.000Z",
+                  "supplied_fields": {
+                    "calories_kcal": 1,
+                    "duration_seconds": 3,
+                    "hr_zones": {
+                      "max_hr": 190
+                    },
+                    "intensity": "moderate",
+                    "start_latitude": 12.345,
+                    "start_longitude": -45.678
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "kind": "file",
+        "name": "summaries.json",
+        "text": "{\n  \"sleep\": [\n    {\n      \"id\": \"ow-sleep-1\",\n      \"start_time\": \"2026-08-09T02:00:00.000-04:00\",\n      \"end_time\": \"2026-08-09T10:00:00.000-04:00\",\n      \"zone_offset\": \"-04:00\",\n      \"source\": {\n        \"provider\": \"oura\",\n        \"source\": \"invented-app\",\n        \"device\": \"invented-ring\",\n        \"device_type\": \"ring\",\n        \"device_id\": \"ring-1\",\n        \"device_name\": \"Invented Ring\"\n      },\n      \"duration_seconds\": 800,\n      \"sleep_duration_seconds\": 600,\n      \"time_in_bed_seconds\": 700,\n      \"efficiency_percent\": 91,\n      \"stages\": { \"awake_minutes\": 2, \"light_minutes\": 3, \"deep_minutes\": 4, \"rem_minutes\": null },\n      \"is_nap\": false\n    },\n    {\n      \"id\": \"ow-nap-1\",\n      \"start_time\": \"2026-08-09T18:00:00.000Z\",\n      \"end_time\": \"2026-08-09T18:20:00.000Z\",\n      \"source\": {\n        \"provider\": \"oura\",\n        \"source\": \"invented-app\",\n        \"device\": \"invented-ring\",\n        \"device_type\": \"ring\",\n        \"device_id\": \"ring-1\",\n        \"device_name\": \"Invented Ring\"\n      },\n      \"sleep_duration_seconds\": 1000,\n      \"time_in_bed_seconds\": 1200,\n      \"efficiency_percent\": 80,\n      \"is_nap\": true\n    }\n  ],\n  \"workout\": [\n    {\n      \"id\": \"ow-workout-1\",\n      \"type\": \"running\",\n      \"name\": \"Invented loop\",\n      \"start_time\": \"2026-01-02T15:00:00.000Z\",\n      \"end_time\": \"2026-01-02T15:00:03.000Z\",\n      \"source\": {\n        \"provider\": \"garmin\",\n        \"source\": \"invented-app\",\n        \"device\": \"invented-watch\",\n        \"device_type\": \"watch\",\n        \"device_id\": \"watch-1\",\n        \"device_name\": \"Invented Watch\"\n      },\n      \"duration_seconds\": 3,\n      \"distance_meters\": 12,\n      \"elevation_gain_meters\": 4,\n      \"avg_heart_rate_bpm\": 140,\n      \"max_heart_rate_bpm\": 180,\n      \"intensity\": \"moderate\",\n      \"start_latitude\": 12.345,\n      \"start_longitude\": -45.678,\n      \"calories_kcal\": 1,\n      \"hr_zones\": { \"max_hr\": 190 }\n    },\n    {\n      \"id\": \"ow-workout-manual\",\n      \"type\": \"running\",\n      \"name\": \"Typed by hand\",\n      \"entry_source\": \"manual\",\n      \"start_time\": \"2026-08-09T12:00:00.000Z\",\n      \"end_time\": \"2026-08-09T12:10:00.000Z\",\n      \"source\": { \"provider\": \"garmin\", \"device_type\": \"watch\", \"device\": \"invented-watch\", \"source\": \"invented-app\" }\n    }\n  ],\n  \"timeseries\": [\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"heart_rate_variability_rmssd\", \"value\": 42.5, \"unit\": \"ms\", \"source\": { \"provider\": \"oura\", \"source\": \"invented-app\", \"device\": \"invented-ring\", \"device_type\": \"ring\", \"device_id\": \"ring-1\", \"device_name\": \"Invented Ring\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"heart_rate_variability_sdnn\", \"value\": 61.2, \"unit\": \"ms\", \"source\": { \"provider\": \"oura\", \"source\": \"invented-app\", \"device\": \"invented-ring\", \"device_type\": \"ring\", \"device_id\": \"ring-1\", \"device_name\": \"Invented Ring\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"resting_heart_rate\", \"value\": 48, \"unit\": \"bpm\", \"source\": { \"provider\": \"oura\", \"source\": \"invented-app\", \"device\": \"invented-ring\", \"device_type\": \"ring\", \"device_id\": \"ring-1\", \"device_name\": \"Invented Ring\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"respiratory_rate\", \"value\": 16, \"unit\": \"brpm\", \"source\": { \"provider\": \"oura\", \"source\": \"invented-app\", \"device\": \"invented-ring\", \"device_type\": \"ring\", \"device_id\": \"ring-1\", \"device_name\": \"Invented Ring\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"skin_temperature\", \"value\": 33.2, \"unit\": \"celsius\", \"source\": { \"provider\": \"oura\", \"source\": \"invented-app\", \"device\": \"invented-ring\", \"device_type\": \"ring\", \"device_id\": \"ring-1\", \"device_name\": \"Invented Ring\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"oxygen_saturation\", \"value\": 98, \"unit\": \"percent\", \"source\": { \"provider\": \"oura\", \"source\": \"invented-app\", \"device\": \"invented-ring\", \"device_type\": \"ring\", \"device_id\": \"ring-1\", \"device_name\": \"Invented Ring\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"heart_rate_recovery_one_minute\", \"value\": 22, \"unit\": \"bpm\", \"source\": { \"provider\": \"oura\", \"source\": \"invented-app\", \"device\": \"invented-ring\", \"device_type\": \"ring\", \"device_id\": \"ring-1\", \"device_name\": \"Invented Ring\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"vo2_max\", \"value\": 45, \"unit\": \"ml_kg_min\", \"source\": { \"provider\": \"oura\", \"source\": \"invented-app\", \"device\": \"invented-ring\", \"device_type\": \"ring\", \"device_id\": \"ring-1\", \"device_name\": \"Invented Ring\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"skin_temperature\", \"value\": 33.4, \"unit\": \"celsius\", \"source\": { \"provider\": \"apple\", \"source\": \"Health\", \"device\": \"Watch6,1\", \"device_type\": \"watch\", \"device_id\": \"watch-a\", \"device_name\": \"Invented Watch\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"garmin_stress_level\", \"value\": 15, \"unit\": \"score\", \"source\": { \"provider\": \"garmin\", \"source\": \"invented-app\", \"device\": \"invented-watch\", \"device_type\": \"watch\", \"device_id\": \"watch-1\", \"device_name\": \"Invented Watch\" } },\n    { \"timestamp\": \"2026-08-09T06:13:00.000Z\", \"type\": \"garmin_body_battery\", \"value\": 70, \"unit\": \"percent\", \"source\": { \"provider\": \"garmin\", \"source\": \"invented-app\", \"device\": \"invented-watch\", \"device_type\": \"watch\", \"device_id\": \"watch-1\", \"device_name\": \"Invented Watch\" } },\n    { \"timestamp\": \"2026-08-09T06:14:00.000Z\", \"type\": \"garmin_stress_level\", \"value\": 18, \"unit\": \"score\", \"window_seconds\": 60, \"source\": { \"provider\": \"garmin\", \"source\": \"invented-app\", \"device\": \"invented-watch\", \"device_type\": \"watch\", \"device_id\": \"watch-1\", \"device_name\": \"Invented Watch\" } },\n    { \"timestamp\": \"2026-08-09T06:15:00.000Z\", \"type\": \"garmin_stress_level\", \"value\": 20, \"unit\": \"score\", \"period_end\": \"2026-08-09T07:15:00.000Z\", \"source\": { \"provider\": \"garmin\", \"source\": \"invented-app\", \"device\": \"invented-watch\", \"device_type\": \"watch\", \"device_id\": \"watch-1\", \"device_name\": \"Invented Watch\" } },\n    { \"timestamp\": \"2026-08-09T08:00:00.000Z\", \"type\": \"resting_heart_rate\", \"value\": 61, \"unit\": \"bpm\", \"source\": { \"provider\": \"apple\", \"source\": \"Health\", \"device\": \"iPhone15,2\", \"device_type\": \"phone\", \"device_id\": \"phone-1\", \"device_name\": \"Invented Phone\" } },\n    { \"timestamp\": \"2026-08-09T08:00:00.000Z\", \"type\": \"resting_heart_rate\", \"value\": 52, \"unit\": \"bpm\", \"source\": { \"provider\": \"apple\", \"source\": \"Health\", \"device\": \"Watch6,1\", \"device_type\": \"watch\", \"device_id\": \"watch-a\", \"device_name\": \"Invented Watch\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"dietary_caffeine\", \"value\": 40, \"unit\": \"mg\", \"source\": { \"provider\": \"oura\", \"device_type\": \"ring\", \"device\": \"invented-ring\", \"source\": \"invented-app\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"workout_effort_score\", \"value\": 7, \"unit\": \"score\", \"source\": { \"provider\": \"oura\", \"device_type\": \"ring\", \"device\": \"invented-ring\", \"source\": \"invented-app\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"skin_temperature_deviation\", \"value\": 0.2, \"unit\": \"celsius\", \"source\": { \"provider\": \"oura\", \"device_type\": \"ring\", \"device\": \"invented-ring\", \"source\": \"invented-app\" } },\n    { \"timestamp\": \"2026-08-09T07:00:00.000Z\", \"type\": \"heart_rate_variability_rmssd\", \"value\": 40, \"unit\": \"bpm\", \"source\": { \"provider\": \"oura\", \"device_type\": \"ring\", \"device\": \"invented-ring\", \"source\": \"invented-app\" } }\n  ]\n}\n"
+      },
+      "mapping": {
+        "shipped": "open-wearables",
+        "text": "# Open Wearables\n\nSleep sessions, workouts, and timeseries samples. The provider is `source.provider`. The device is `source.device_type`, `source.device`, and `source.source`. A value's basis is `provider_or_aggregator`, because an Open Wearables object does not say whether the provider or Open Wearables computed it. Open Wearables normalizes the workout type, so its basis is `aggregator_normalized`. A provider score's basis is `provider`. Stage minutes are under `stages`. `efficiency_percent` stays under that name. A row whose `entry_source` is `manual` is a personal report, and it is left out. `intensity` stays under that name. A timeseries type is stored only when a line below names it.\n\nA page is the `data` array of an object that also has `metadata`. Its rows are timeseries samples. Only raw samples are stored: `metadata.resolution` must be `raw`. A row with `period_end` is an aggregate. A row with `window_seconds` on a page with no resolution cannot be confirmed raw.\n\n```ath-mapping\nname: open-wearables\nroute: open_wearables\nwriter_field: source.provider\nvalue_basis: provider_or_aggregator\npersonal_when: entry_source manual\npage_rows: data\npage_marker: metadata\npage_section: timeseries\npage_resolution: metadata.resolution\nraw_resolution: raw\nsensor: source.device_type, source.device, source.source\ndevice_name: source.device_name, source.device\ndevice_model: source.device\ndevice_hardware: source.device_id\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\nsleep_duration_seconds: asleep_seconds s s\ntime_in_bed_seconds: in_bed_seconds s s\nstages.awake_minutes: stage_minutes.awake min min\nstages.light_minutes: stage_minutes.light min min\nstages.deep_minutes: stage_minutes.deep min min\nstages.rem_minutes: stage_minutes.rem min min\n\n[workout]\nid_field: id\nstart_field: start_time\nend_field: end_time\ntype: activity_type basis aggregator_normalized\nname: name\ndistance_meters: source_reported_summaries.distance m m\nelevation_gain_meters: source_reported_summaries.elevation_gain m m\navg_heart_rate_bpm: provider_summary.average_heart_rate bpm bpm basis provider_or_aggregator\nmax_heart_rate_bpm: provider_summary.max_heart_rate bpm bpm basis provider_or_aggregator\n\n[timeseries]\ntime_field: timestamp\ntype_field: type\nvalue_field: value\nunit_field: unit\naggregate_field: period_end\nwindow_field: window_seconds\ntype.heart_rate_variability_rmssd: hrv_rmssd ms ms\ntype.heart_rate_variability_sdnn: hrv_sdnn ms ms\ntype.resting_heart_rate: resting_heart_rate bpm bpm\ntype.respiratory_rate: respiratory_rate brpm brpm\ntype.skin_temperature: skin_temperature celsius °C\ntype.skin_temperature: wrist_temperature_sleeping celsius °C when-writer apple\ntype.oxygen_saturation: oxygen_saturation percent %\ntype.heart_rate_recovery_one_minute: hr_recovery bpm bpm\ntype.vo2_max: provider_summary.vo2_max ml_kg_min ml/kg/min\ntype.garmin_stress_level: provider_score.garmin_stress_level score score scale 1-100\ntype.garmin_body_battery: provider_score.garmin_body_battery percent score scale 0-100\n```\n"
+      },
+      "preview": {
+        "result": {
+          "left_out": [
+            "workout ow-workout-manual: entry_source manual is a personal report",
+            "timeseries garmin_stress_level 2026-08-09T06:14:00.000Z: window_seconds present without resolution: cannot confirm raw",
+            "timeseries garmin_stress_level 2026-08-09T06:15:00.000Z: aggregate row, not a raw sample",
+            "timeseries dietary_caffeine 2026-08-09T06:12:00.000Z: unmapped type dietary_caffeine",
+            "timeseries workout_effort_score 2026-08-09T06:12:00.000Z: unmapped type workout_effort_score",
+            "timeseries skin_temperature_deviation 2026-08-09T06:12:00.000Z: unmapped type skin_temperature_deviation",
+            "timeseries heart_rate_variability_rmssd 2026-08-09T07:00:00.000Z: unit bpm does not match ms"
+          ],
+          "mapping": "open-wearables",
+          "outcome": {
+            "changed": 0,
+            "new": 22,
+            "unchanged": 0
+          },
+          "preserved": [
+            "calories_kcal",
+            "duration_seconds",
+            "efficiency_percent",
+            "hr_zones",
+            "intensity",
+            "is_nap",
+            "start_latitude",
+            "start_longitude",
+            "zone_offset"
+          ],
+          "record_ids": [],
+          "understood": [
+            "avg_heart_rate_bpm",
+            "distance_meters",
+            "elevation_gain_meters",
+            "max_heart_rate_bpm",
+            "name",
+            "sleep_duration_seconds",
+            "stages.awake_minutes",
+            "stages.deep_minutes",
+            "stages.light_minutes",
+            "time_in_bed_seconds",
+            "type",
+            "type.garmin_body_battery",
+            "type.garmin_stress_level",
+            "type.heart_rate_recovery_one_minute",
+            "type.heart_rate_variability_rmssd",
+            "type.heart_rate_variability_sdnn",
+            "type.oxygen_saturation",
+            "type.respiratory_rate",
+            "type.resting_heart_rate",
+            "type.skin_temperature",
+            "type.vo2_max"
+          ]
+        }
+      },
+      "pull": null,
+      "write": {
+        "result": {
+          "left_out": [
+            "workout ow-workout-manual: entry_source manual is a personal report",
+            "timeseries garmin_stress_level 2026-08-09T06:14:00.000Z: window_seconds present without resolution: cannot confirm raw",
+            "timeseries garmin_stress_level 2026-08-09T06:15:00.000Z: aggregate row, not a raw sample",
+            "timeseries dietary_caffeine 2026-08-09T06:12:00.000Z: unmapped type dietary_caffeine",
+            "timeseries workout_effort_score 2026-08-09T06:12:00.000Z: unmapped type workout_effort_score",
+            "timeseries skin_temperature_deviation 2026-08-09T06:12:00.000Z: unmapped type skin_temperature_deviation",
+            "timeseries heart_rate_variability_rmssd 2026-08-09T07:00:00.000Z: unit bpm does not match ms"
+          ],
+          "mapping": "open-wearables",
+          "outcome": {
+            "changed": 0,
+            "new": 22,
+            "unchanged": 0
+          },
+          "preserved": [
+            "calories_kcal",
+            "duration_seconds",
+            "efficiency_percent",
+            "hr_zones",
+            "intensity",
+            "is_nap",
+            "start_latitude",
+            "start_longitude",
+            "zone_offset"
+          ],
+          "record_ids": [
+            "<source_device open_wearables/v1 oura:ring|invented-ring|invented-app:source_device>",
+            "<sleep_session open_wearables/v1 oura:ring|invented-ring|invented-app:sleep:ow-sleep-1>",
+            "<sleep_session open_wearables/v1 oura:ring|invented-ring|invented-app:sleep:ow-nap-1>",
+            "<source_device open_wearables/v1 garmin:watch|invented-watch|invented-app:source_device>",
+            "<workout_session open_wearables/v1 garmin:watch|invented-watch|invented-app:workout:ow-workout-1>",
+            "<provider_summary open_wearables/v1 garmin:watch|invented-watch|invented-app:workout:ow-workout-1:summary:average_heart_rate>",
+            "<provider_summary open_wearables/v1 garmin:watch|invented-watch|invented-app:workout:ow-workout-1:summary:max_heart_rate>",
+            "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:heart_rate_variability_rmssd:2026-08-09T06\\:12\\:00.000Z>",
+            "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:heart_rate_variability_sdnn:2026-08-09T06\\:12\\:00.000Z>",
+            "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:resting_heart_rate:2026-08-09T06\\:12\\:00.000Z>",
+            "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:respiratory_rate:2026-08-09T06\\:12\\:00.000Z>",
+            "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:skin_temperature:2026-08-09T06\\:12\\:00.000Z>",
+            "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:oxygen_saturation:2026-08-09T06\\:12\\:00.000Z>",
+            "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:heart_rate_recovery_one_minute:2026-08-09T06\\:12\\:00.000Z>",
+            "<provider_summary open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:summary:vo2_max:2026-08-09T06\\:12\\:00.000Z>",
+            "<source_device open_wearables/v1 apple:watch|Watch6,1|Health:source_device>",
+            "<point_measurement open_wearables/v1 apple:watch|Watch6,1|Health:timeseries:point:skin_temperature:2026-08-09T06\\:12\\:00.000Z>",
+            "<provider_score open_wearables/v1 garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:12\\:00.000Z>",
+            "<provider_score open_wearables/v1 garmin:watch|invented-watch|invented-app:timeseries:score:garmin_body_battery:2026-08-09T06\\:13\\:00.000Z>",
+            "<source_device open_wearables/v1 apple:phone|iPhone15,2|Health:source_device>",
+            "<point_measurement open_wearables/v1 apple:phone|iPhone15,2|Health:timeseries:point:resting_heart_rate:2026-08-09T08\\:00\\:00.000Z>",
+            "<point_measurement open_wearables/v1 apple:watch|Watch6,1|Health:timeseries:point:resting_heart_rate:2026-08-09T08\\:00\\:00.000Z>"
+          ],
+          "understood": [
+            "avg_heart_rate_bpm",
+            "distance_meters",
+            "elevation_gain_meters",
+            "max_heart_rate_bpm",
+            "name",
+            "sleep_duration_seconds",
+            "stages.awake_minutes",
+            "stages.deep_minutes",
+            "stages.light_minutes",
+            "time_in_bed_seconds",
+            "type",
+            "type.garmin_body_battery",
+            "type.garmin_stress_level",
+            "type.heart_rate_recovery_one_minute",
+            "type.heart_rate_variability_rmssd",
+            "type.heart_rate_variability_sdnn",
+            "type.oxygen_saturation",
+            "type.respiratory_rate",
+            "type.resting_heart_rate",
+            "type.skin_temperature",
+            "type.vo2_max"
+          ]
+        }
+      }
+    },
+    {
+      "command": "import-mapped",
+      "database": {
+        "database_revision": 21,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "apple:phone|iPhone15,2|Health:timeseries:point:resting_heart_rate:2026-08-09T08\\:00\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement open_wearables/v1 apple:phone|iPhone15,2|Health:timeseries:point:resting_heart_rate:2026-08-09T08\\:00\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T08:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "resting_heart_rate",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T08:00:00.000Z",
+                  "source_id": "<source apple open_wearables phone|iPhone15,2|Health>",
+                  "value": {
+                    "input_unit": "bpm",
+                    "input_value": 61,
+                    "standard_unit": "bpm",
+                    "standard_value": 61
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "apple:watch|Watch6,1|Health:timeseries:point:resting_heart_rate:2026-08-09T08\\:00\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement open_wearables/v1 apple:watch|Watch6,1|Health:timeseries:point:resting_heart_rate:2026-08-09T08\\:00\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T08:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "resting_heart_rate",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T08:00:00.000Z",
+                  "source_id": "<source apple open_wearables watch|Watch6,1|Health>",
+                  "value": {
+                    "input_unit": "bpm",
+                    "input_value": 52,
+                    "standard_unit": "bpm",
+                    "standard_value": 52
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "apple:watch|Watch6,1|Health:timeseries:point:skin_temperature:2026-08-09T06\\:12\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement open_wearables/v1 apple:watch|Watch6,1|Health:timeseries:point:skin_temperature:2026-08-09T06\\:12\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:12:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "wrist_temperature_sleeping",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:12:00.000Z",
+                  "source_id": "<source apple open_wearables watch|Watch6,1|Health>",
+                  "value": {
+                    "input_unit": "celsius",
+                    "input_value": 33.4,
+                    "standard_unit": "°C",
+                    "standard_value": 33.4
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:timeseries:point:heart_rate_recovery_one_minute:2026-08-09T06\\:12\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:heart_rate_recovery_one_minute:2026-08-09T06\\:12\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:12:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "hr_recovery",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:12:00.000Z",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>",
+                  "value": {
+                    "input_unit": "bpm",
+                    "input_value": 22,
+                    "standard_unit": "bpm",
+                    "standard_value": 22
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:timeseries:point:heart_rate_variability_rmssd:2026-08-09T06\\:12\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:heart_rate_variability_rmssd:2026-08-09T06\\:12\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:12:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "hrv_rmssd",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:12:00.000Z",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>",
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 42.5,
+                    "standard_unit": "ms",
+                    "standard_value": 42.5
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:timeseries:point:heart_rate_variability_sdnn:2026-08-09T06\\:12\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:heart_rate_variability_sdnn:2026-08-09T06\\:12\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:12:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "hrv_sdnn",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:12:00.000Z",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>",
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 61.2,
+                    "standard_unit": "ms",
+                    "standard_value": 61.2
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:timeseries:point:oxygen_saturation:2026-08-09T06\\:12\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:oxygen_saturation:2026-08-09T06\\:12\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:12:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "oxygen_saturation",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:12:00.000Z",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>",
+                  "value": {
+                    "input_unit": "percent",
+                    "input_value": 98,
+                    "standard_unit": "%",
+                    "standard_value": 98
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:timeseries:point:respiratory_rate:2026-08-09T06\\:12\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:respiratory_rate:2026-08-09T06\\:12\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:12:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "respiratory_rate",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:12:00.000Z",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>",
+                  "value": {
+                    "input_unit": "brpm",
+                    "input_value": 16,
+                    "standard_unit": "brpm",
+                    "standard_value": 16
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:timeseries:point:resting_heart_rate:2026-08-09T06\\:12\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:resting_heart_rate:2026-08-09T06\\:12\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:12:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "resting_heart_rate",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:12:00.000Z",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>",
+                  "value": {
+                    "input_unit": "bpm",
+                    "input_value": 48,
+                    "standard_unit": "bpm",
+                    "standard_value": 48
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:timeseries:point:skin_temperature:2026-08-09T06\\:12\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:skin_temperature:2026-08-09T06\\:12\\:00.000Z>",
+            "record_type": "point_measurement",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:12:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "quantity": "skin_temperature",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:12:00.000Z",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>",
+                  "value": {
+                    "input_unit": "celsius",
+                    "input_value": 33.2,
+                    "standard_unit": "°C",
+                    "standard_value": 33.2
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:timeseries:score:garmin_body_battery:2026-08-09T06\\:13\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_score open_wearables/v1 garmin:watch|invented-watch|invented-app:timeseries:score:garmin_body_battery:2026-08-09T06\\:13\\:00.000Z>",
+            "record_type": "provider_score",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:13:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "metric": "garmin_body_battery",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:13:00.000Z",
+                  "scale": "0-100",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>",
+                  "value": {
+                    "input_unit": "percent",
+                    "input_value": 70,
+                    "standard_unit": "score",
+                    "standard_value": 70
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:12\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_score open_wearables/v1 garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:12\\:00.000Z>",
+            "record_type": "provider_score",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:12:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "metric": "garmin_stress_level",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:12:00.000Z",
+                  "scale": "1-100",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>",
+                  "value": {
+                    "input_unit": "score",
+                    "input_value": 15,
+                    "standard_unit": "score",
+                    "standard_value": 15
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:workout:ow-workout-1:summary:average_heart_rate",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_summary open_wearables/v1 garmin:watch|invented-watch|invented-app:workout:ow-workout-1:summary:average_heart_rate>",
+            "record_type": "provider_summary",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:03.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "ow-workout-1",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-01-02T15:00:03.000Z",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>",
+                  "summary_type": "average_heart_rate",
+                  "value": {
+                    "input_unit": "bpm",
+                    "input_value": 140,
+                    "standard_unit": "bpm",
+                    "standard_value": 140
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:workout:ow-workout-1:summary:max_heart_rate",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_summary open_wearables/v1 garmin:watch|invented-watch|invented-app:workout:ow-workout-1:summary:max_heart_rate>",
+            "record_type": "provider_summary",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:03.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "ow-workout-1",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-01-02T15:00:03.000Z",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>",
+                  "summary_type": "max_heart_rate",
+                  "value": {
+                    "input_unit": "bpm",
+                    "input_value": 180,
+                    "standard_unit": "bpm",
+                    "standard_value": 180
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:timeseries:summary:vo2_max:2026-08-09T06\\:12\\:00.000Z",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_summary open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:summary:vo2_max:2026-08-09T06\\:12\\:00.000Z>",
+            "record_type": "provider_summary",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T06:12:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T06:12:00.000Z",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>",
+                  "summary_type": "vo2_max",
+                  "value": {
+                    "input_unit": "ml_kg_min",
+                    "input_value": 45,
+                    "standard_unit": "ml/kg/min",
+                    "standard_value": 45
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:sleep:ow-nap-1",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<sleep_session open_wearables/v1 oura:ring|invented-ring|invented-app:sleep:ow-nap-1>",
+            "record_type": "sleep_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "asleep_seconds": 1000,
+                  "end_at": "2026-08-09T18:20:00.000Z",
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "in_bed_seconds": 1200,
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:20:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "ow-nap-1",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T18:00:00.000Z",
+                  "supplied_fields": {
+                    "efficiency_percent": 80,
+                    "is_nap": true
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [
+              {
+                "deleted_at": "<step 1>",
+                "record_revision": 1
+              }
+            ],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:sleep:ow-sleep-1",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": true,
+            "label": "<sleep_session open_wearables/v1 oura:ring|invented-ring|invented-app:sleep:ow-sleep-1>",
+            "record_type": "sleep_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "asleep_seconds": 600,
+                  "end_at": "2026-08-09T14:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider_or_aggregator"
+                  },
+                  "in_bed_seconds": 700,
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_offset_timestamp",
+                    "timestamp_text": "2026-08-09T10:00:00.000-04:00",
+                    "utc_offset_meaning": "meaning_not_documented",
+                    "utc_offset_text": "-04:00"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_offset_timestamp",
+                    "timestamp_text": "2026-08-09T02:00:00.000-04:00",
+                    "utc_offset_meaning": "meaning_not_documented",
+                    "utc_offset_text": "-04:00"
+                  },
+                  "provider_record_id": "ow-sleep-1",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>",
+                  "source_reported_summaries": [],
+                  "stage_minutes": {
+                    "awake": 2,
+                    "deep": 4,
+                    "light": 3
+                  },
+                  "start_at": "2026-08-09T06:00:00.000Z",
+                  "supplied_fields": {
+                    "duration_seconds": 800,
+                    "efficiency_percent": 91,
+                    "is_nap": false,
+                    "zone_offset": "-04:00"
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source apple open_wearables phone|iPhone15,2|Health>",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "open_wearables",
+                  "data_writer": "apple",
+                  "sensor_type": "phone|iPhone15,2|Health",
+                  "source_type": "export_file",
+                  "vendor": "apple"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source apple open_wearables watch|Watch6,1|Health>",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "open_wearables",
+                  "data_writer": "apple",
+                  "sensor_type": "watch|Watch6,1|Health",
+                  "source_type": "export_file",
+                  "vendor": "apple"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source garmin open_wearables watch|invented-watch|invented-app>",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "open_wearables",
+                  "data_writer": "garmin",
+                  "sensor_type": "watch|invented-watch|invented-app",
+                  "source_type": "export_file",
+                  "vendor": "garmin"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source oura open_wearables ring|invented-ring|invented-app>",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "open_wearables",
+                  "data_writer": "oura",
+                  "sensor_type": "ring|invented-ring|invented-app",
+                  "source_type": "export_file",
+                  "vendor": "oura"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "apple:phone|iPhone15,2|Health:source_device",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<source_device open_wearables/v1 apple:phone|iPhone15,2|Health:source_device>",
+            "record_type": "source_device",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "hardware": "phone-1",
+                  "manufacturer": "apple",
+                  "model": "iPhone15,2",
+                  "name": "Invented Phone",
+                  "source_id": "<source apple open_wearables phone|iPhone15,2|Health>"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "apple:watch|Watch6,1|Health:source_device",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<source_device open_wearables/v1 apple:watch|Watch6,1|Health:source_device>",
+            "record_type": "source_device",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "hardware": "watch-a",
+                  "manufacturer": "apple",
+                  "model": "Watch6,1",
+                  "name": "Invented Watch",
+                  "source_id": "<source apple open_wearables watch|Watch6,1|Health>"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:source_device",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<source_device open_wearables/v1 garmin:watch|invented-watch|invented-app:source_device>",
+            "record_type": "source_device",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "hardware": "watch-1",
+                  "manufacturer": "garmin",
+                  "model": "invented-watch",
+                  "name": "Invented Watch",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "oura:ring|invented-ring|invented-app:source_device",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<source_device open_wearables/v1 oura:ring|invented-ring|invented-app:source_device>",
+            "record_type": "source_device",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "hardware": "ring-1",
+                  "manufacturer": "oura",
+                  "model": "invented-ring",
+                  "name": "Invented Ring",
+                  "source_id": "<source oura open_wearables ring|invented-ring|invented-app>"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "garmin:watch|invented-watch|invented-app:workout:ow-workout-1",
+                "method": "open_wearables/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session open_wearables/v1 garmin:watch|invented-watch|invented-app:workout:ow-workout-1>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "activity_type": "running",
+                  "end_at": "2026-01-02T15:00:03.000Z",
+                  "field_basis": {
+                    "activity_type": "aggregator_normalized",
+                    "value": "provider_or_aggregator"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:03.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-02T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Invented loop",
+                  "provider_record_id": "ow-workout-1",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin open_wearables watch|invented-watch|invented-app>",
+                  "source_reported_summaries": [
+                    {
+                      "input_unit": "m",
+                      "input_value": 12,
+                      "standard_unit": "m",
+                      "standard_value": 12,
+                      "summary_type": "distance"
+                    },
+                    {
+                      "input_unit": "m",
+                      "input_value": 4,
+                      "standard_unit": "m",
+                      "standard_value": 4,
+                      "summary_type": "elevation_gain"
+                    }
+                  ],
+                  "start_at": "2026-01-02T15:00:00.000Z",
+                  "supplied_fields": {
+                    "calories_kcal": 1,
+                    "duration_seconds": 3,
+                    "hr_zones": {
+                      "max_hr": 190
+                    },
+                    "intensity": "moderate",
+                    "start_latitude": 12.345,
+                    "start_longitude": -45.678
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": {
+        "deleted_at": "2026-10-13T13:00:00.000Z",
+        "label_prefix": "<sleep_session open_wearables/v1 oura:ring|invented-ring|invented-app:sleep:ow-sleep-1"
+      },
+      "input": {
+        "kind": "file",
+        "name": "summaries.json",
+        "text": "{\n  \"sleep\": [\n    {\n      \"id\": \"ow-sleep-1\",\n      \"start_time\": \"2026-08-09T02:00:00.000-04:00\",\n      \"end_time\": \"2026-08-09T10:00:00.000-04:00\",\n      \"zone_offset\": \"-04:00\",\n      \"source\": {\n        \"provider\": \"oura\",\n        \"source\": \"invented-app\",\n        \"device\": \"invented-ring\",\n        \"device_type\": \"ring\",\n        \"device_id\": \"ring-1\",\n        \"device_name\": \"Invented Ring\"\n      },\n      \"duration_seconds\": 800,\n      \"sleep_duration_seconds\": 600,\n      \"time_in_bed_seconds\": 700,\n      \"efficiency_percent\": 91,\n      \"stages\": { \"awake_minutes\": 2, \"light_minutes\": 3, \"deep_minutes\": 4, \"rem_minutes\": null },\n      \"is_nap\": false\n    },\n    {\n      \"id\": \"ow-nap-1\",\n      \"start_time\": \"2026-08-09T18:00:00.000Z\",\n      \"end_time\": \"2026-08-09T18:20:00.000Z\",\n      \"source\": {\n        \"provider\": \"oura\",\n        \"source\": \"invented-app\",\n        \"device\": \"invented-ring\",\n        \"device_type\": \"ring\",\n        \"device_id\": \"ring-1\",\n        \"device_name\": \"Invented Ring\"\n      },\n      \"sleep_duration_seconds\": 1000,\n      \"time_in_bed_seconds\": 1200,\n      \"efficiency_percent\": 80,\n      \"is_nap\": true\n    }\n  ],\n  \"workout\": [\n    {\n      \"id\": \"ow-workout-1\",\n      \"type\": \"running\",\n      \"name\": \"Invented loop\",\n      \"start_time\": \"2026-01-02T15:00:00.000Z\",\n      \"end_time\": \"2026-01-02T15:00:03.000Z\",\n      \"source\": {\n        \"provider\": \"garmin\",\n        \"source\": \"invented-app\",\n        \"device\": \"invented-watch\",\n        \"device_type\": \"watch\",\n        \"device_id\": \"watch-1\",\n        \"device_name\": \"Invented Watch\"\n      },\n      \"duration_seconds\": 3,\n      \"distance_meters\": 12,\n      \"elevation_gain_meters\": 4,\n      \"avg_heart_rate_bpm\": 140,\n      \"max_heart_rate_bpm\": 180,\n      \"intensity\": \"moderate\",\n      \"start_latitude\": 12.345,\n      \"start_longitude\": -45.678,\n      \"calories_kcal\": 1,\n      \"hr_zones\": { \"max_hr\": 190 }\n    },\n    {\n      \"id\": \"ow-workout-manual\",\n      \"type\": \"running\",\n      \"name\": \"Typed by hand\",\n      \"entry_source\": \"manual\",\n      \"start_time\": \"2026-08-09T12:00:00.000Z\",\n      \"end_time\": \"2026-08-09T12:10:00.000Z\",\n      \"source\": { \"provider\": \"garmin\", \"device_type\": \"watch\", \"device\": \"invented-watch\", \"source\": \"invented-app\" }\n    }\n  ],\n  \"timeseries\": [\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"heart_rate_variability_rmssd\", \"value\": 42.5, \"unit\": \"ms\", \"source\": { \"provider\": \"oura\", \"source\": \"invented-app\", \"device\": \"invented-ring\", \"device_type\": \"ring\", \"device_id\": \"ring-1\", \"device_name\": \"Invented Ring\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"heart_rate_variability_sdnn\", \"value\": 61.2, \"unit\": \"ms\", \"source\": { \"provider\": \"oura\", \"source\": \"invented-app\", \"device\": \"invented-ring\", \"device_type\": \"ring\", \"device_id\": \"ring-1\", \"device_name\": \"Invented Ring\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"resting_heart_rate\", \"value\": 48, \"unit\": \"bpm\", \"source\": { \"provider\": \"oura\", \"source\": \"invented-app\", \"device\": \"invented-ring\", \"device_type\": \"ring\", \"device_id\": \"ring-1\", \"device_name\": \"Invented Ring\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"respiratory_rate\", \"value\": 16, \"unit\": \"brpm\", \"source\": { \"provider\": \"oura\", \"source\": \"invented-app\", \"device\": \"invented-ring\", \"device_type\": \"ring\", \"device_id\": \"ring-1\", \"device_name\": \"Invented Ring\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"skin_temperature\", \"value\": 33.2, \"unit\": \"celsius\", \"source\": { \"provider\": \"oura\", \"source\": \"invented-app\", \"device\": \"invented-ring\", \"device_type\": \"ring\", \"device_id\": \"ring-1\", \"device_name\": \"Invented Ring\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"oxygen_saturation\", \"value\": 98, \"unit\": \"percent\", \"source\": { \"provider\": \"oura\", \"source\": \"invented-app\", \"device\": \"invented-ring\", \"device_type\": \"ring\", \"device_id\": \"ring-1\", \"device_name\": \"Invented Ring\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"heart_rate_recovery_one_minute\", \"value\": 22, \"unit\": \"bpm\", \"source\": { \"provider\": \"oura\", \"source\": \"invented-app\", \"device\": \"invented-ring\", \"device_type\": \"ring\", \"device_id\": \"ring-1\", \"device_name\": \"Invented Ring\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"vo2_max\", \"value\": 45, \"unit\": \"ml_kg_min\", \"source\": { \"provider\": \"oura\", \"source\": \"invented-app\", \"device\": \"invented-ring\", \"device_type\": \"ring\", \"device_id\": \"ring-1\", \"device_name\": \"Invented Ring\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"skin_temperature\", \"value\": 33.4, \"unit\": \"celsius\", \"source\": { \"provider\": \"apple\", \"source\": \"Health\", \"device\": \"Watch6,1\", \"device_type\": \"watch\", \"device_id\": \"watch-a\", \"device_name\": \"Invented Watch\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"garmin_stress_level\", \"value\": 15, \"unit\": \"score\", \"source\": { \"provider\": \"garmin\", \"source\": \"invented-app\", \"device\": \"invented-watch\", \"device_type\": \"watch\", \"device_id\": \"watch-1\", \"device_name\": \"Invented Watch\" } },\n    { \"timestamp\": \"2026-08-09T06:13:00.000Z\", \"type\": \"garmin_body_battery\", \"value\": 70, \"unit\": \"percent\", \"source\": { \"provider\": \"garmin\", \"source\": \"invented-app\", \"device\": \"invented-watch\", \"device_type\": \"watch\", \"device_id\": \"watch-1\", \"device_name\": \"Invented Watch\" } },\n    { \"timestamp\": \"2026-08-09T06:14:00.000Z\", \"type\": \"garmin_stress_level\", \"value\": 18, \"unit\": \"score\", \"window_seconds\": 60, \"source\": { \"provider\": \"garmin\", \"source\": \"invented-app\", \"device\": \"invented-watch\", \"device_type\": \"watch\", \"device_id\": \"watch-1\", \"device_name\": \"Invented Watch\" } },\n    { \"timestamp\": \"2026-08-09T06:15:00.000Z\", \"type\": \"garmin_stress_level\", \"value\": 20, \"unit\": \"score\", \"period_end\": \"2026-08-09T07:15:00.000Z\", \"source\": { \"provider\": \"garmin\", \"source\": \"invented-app\", \"device\": \"invented-watch\", \"device_type\": \"watch\", \"device_id\": \"watch-1\", \"device_name\": \"Invented Watch\" } },\n    { \"timestamp\": \"2026-08-09T08:00:00.000Z\", \"type\": \"resting_heart_rate\", \"value\": 61, \"unit\": \"bpm\", \"source\": { \"provider\": \"apple\", \"source\": \"Health\", \"device\": \"iPhone15,2\", \"device_type\": \"phone\", \"device_id\": \"phone-1\", \"device_name\": \"Invented Phone\" } },\n    { \"timestamp\": \"2026-08-09T08:00:00.000Z\", \"type\": \"resting_heart_rate\", \"value\": 52, \"unit\": \"bpm\", \"source\": { \"provider\": \"apple\", \"source\": \"Health\", \"device\": \"Watch6,1\", \"device_type\": \"watch\", \"device_id\": \"watch-a\", \"device_name\": \"Invented Watch\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"dietary_caffeine\", \"value\": 40, \"unit\": \"mg\", \"source\": { \"provider\": \"oura\", \"device_type\": \"ring\", \"device\": \"invented-ring\", \"source\": \"invented-app\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"workout_effort_score\", \"value\": 7, \"unit\": \"score\", \"source\": { \"provider\": \"oura\", \"device_type\": \"ring\", \"device\": \"invented-ring\", \"source\": \"invented-app\" } },\n    { \"timestamp\": \"2026-08-09T06:12:00.000Z\", \"type\": \"skin_temperature_deviation\", \"value\": 0.2, \"unit\": \"celsius\", \"source\": { \"provider\": \"oura\", \"device_type\": \"ring\", \"device\": \"invented-ring\", \"source\": \"invented-app\" } },\n    { \"timestamp\": \"2026-08-09T07:00:00.000Z\", \"type\": \"heart_rate_variability_rmssd\", \"value\": 40, \"unit\": \"bpm\", \"source\": { \"provider\": \"oura\", \"device_type\": \"ring\", \"device\": \"invented-ring\", \"source\": \"invented-app\" } }\n  ]\n}\n"
+      },
+      "mapping": {
+        "shipped": "open-wearables",
+        "text": "# Open Wearables\n\nSleep sessions, workouts, and timeseries samples. The provider is `source.provider`. The device is `source.device_type`, `source.device`, and `source.source`. A value's basis is `provider_or_aggregator`, because an Open Wearables object does not say whether the provider or Open Wearables computed it. Open Wearables normalizes the workout type, so its basis is `aggregator_normalized`. A provider score's basis is `provider`. Stage minutes are under `stages`. `efficiency_percent` stays under that name. A row whose `entry_source` is `manual` is a personal report, and it is left out. `intensity` stays under that name. A timeseries type is stored only when a line below names it.\n\nA page is the `data` array of an object that also has `metadata`. Its rows are timeseries samples. Only raw samples are stored: `metadata.resolution` must be `raw`. A row with `period_end` is an aggregate. A row with `window_seconds` on a page with no resolution cannot be confirmed raw.\n\n```ath-mapping\nname: open-wearables\nroute: open_wearables\nwriter_field: source.provider\nvalue_basis: provider_or_aggregator\npersonal_when: entry_source manual\npage_rows: data\npage_marker: metadata\npage_section: timeseries\npage_resolution: metadata.resolution\nraw_resolution: raw\nsensor: source.device_type, source.device, source.source\ndevice_name: source.device_name, source.device\ndevice_model: source.device\ndevice_hardware: source.device_id\n\n[sleep]\nid_field: id\nstart_field: start_time\nend_field: end_time\nsleep_duration_seconds: asleep_seconds s s\ntime_in_bed_seconds: in_bed_seconds s s\nstages.awake_minutes: stage_minutes.awake min min\nstages.light_minutes: stage_minutes.light min min\nstages.deep_minutes: stage_minutes.deep min min\nstages.rem_minutes: stage_minutes.rem min min\n\n[workout]\nid_field: id\nstart_field: start_time\nend_field: end_time\ntype: activity_type basis aggregator_normalized\nname: name\ndistance_meters: source_reported_summaries.distance m m\nelevation_gain_meters: source_reported_summaries.elevation_gain m m\navg_heart_rate_bpm: provider_summary.average_heart_rate bpm bpm basis provider_or_aggregator\nmax_heart_rate_bpm: provider_summary.max_heart_rate bpm bpm basis provider_or_aggregator\n\n[timeseries]\ntime_field: timestamp\ntype_field: type\nvalue_field: value\nunit_field: unit\naggregate_field: period_end\nwindow_field: window_seconds\ntype.heart_rate_variability_rmssd: hrv_rmssd ms ms\ntype.heart_rate_variability_sdnn: hrv_sdnn ms ms\ntype.resting_heart_rate: resting_heart_rate bpm bpm\ntype.respiratory_rate: respiratory_rate brpm brpm\ntype.skin_temperature: skin_temperature celsius °C\ntype.skin_temperature: wrist_temperature_sleeping celsius °C when-writer apple\ntype.oxygen_saturation: oxygen_saturation percent %\ntype.heart_rate_recovery_one_minute: hr_recovery bpm bpm\ntype.vo2_max: provider_summary.vo2_max ml_kg_min ml/kg/min\ntype.garmin_stress_level: provider_score.garmin_stress_level score score scale 1-100\ntype.garmin_body_battery: provider_score.garmin_body_battery percent score scale 0-100\n```\n"
+      },
+      "preview": {
+        "result": {
+          "left_out": [
+            "sleep ow-sleep-1: the stored record <sleep_session open_wearables/v1 oura:ring|invented-ring|invented-app:sleep:ow-sleep-1> is deleted",
+            "workout ow-workout-manual: entry_source manual is a personal report",
+            "timeseries garmin_stress_level 2026-08-09T06:14:00.000Z: window_seconds present without resolution: cannot confirm raw",
+            "timeseries garmin_stress_level 2026-08-09T06:15:00.000Z: aggregate row, not a raw sample",
+            "timeseries dietary_caffeine 2026-08-09T06:12:00.000Z: unmapped type dietary_caffeine",
+            "timeseries workout_effort_score 2026-08-09T06:12:00.000Z: unmapped type workout_effort_score",
+            "timeseries skin_temperature_deviation 2026-08-09T06:12:00.000Z: unmapped type skin_temperature_deviation",
+            "timeseries heart_rate_variability_rmssd 2026-08-09T07:00:00.000Z: unit bpm does not match ms"
+          ],
+          "mapping": "open-wearables",
+          "outcome": {
+            "changed": 0,
+            "new": 0,
+            "unchanged": 21
+          },
+          "preserved": [
+            "calories_kcal",
+            "duration_seconds",
+            "efficiency_percent",
+            "hr_zones",
+            "intensity",
+            "is_nap",
+            "start_latitude",
+            "start_longitude",
+            "zone_offset"
+          ],
+          "record_ids": [],
+          "understood": [
+            "avg_heart_rate_bpm",
+            "distance_meters",
+            "elevation_gain_meters",
+            "max_heart_rate_bpm",
+            "name",
+            "sleep_duration_seconds",
+            "stages.awake_minutes",
+            "stages.deep_minutes",
+            "stages.light_minutes",
+            "time_in_bed_seconds",
+            "type",
+            "type.garmin_body_battery",
+            "type.garmin_stress_level",
+            "type.heart_rate_recovery_one_minute",
+            "type.heart_rate_variability_rmssd",
+            "type.heart_rate_variability_sdnn",
+            "type.oxygen_saturation",
+            "type.respiratory_rate",
+            "type.resting_heart_rate",
+            "type.skin_temperature",
+            "type.vo2_max"
+          ]
+        }
+      },
+      "pull": null,
+      "write": {
+        "result": {
+          "left_out": [
+            "sleep ow-sleep-1: the stored record <sleep_session open_wearables/v1 oura:ring|invented-ring|invented-app:sleep:ow-sleep-1> is deleted",
+            "workout ow-workout-manual: entry_source manual is a personal report",
+            "timeseries garmin_stress_level 2026-08-09T06:14:00.000Z: window_seconds present without resolution: cannot confirm raw",
+            "timeseries garmin_stress_level 2026-08-09T06:15:00.000Z: aggregate row, not a raw sample",
+            "timeseries dietary_caffeine 2026-08-09T06:12:00.000Z: unmapped type dietary_caffeine",
+            "timeseries workout_effort_score 2026-08-09T06:12:00.000Z: unmapped type workout_effort_score",
+            "timeseries skin_temperature_deviation 2026-08-09T06:12:00.000Z: unmapped type skin_temperature_deviation",
+            "timeseries heart_rate_variability_rmssd 2026-08-09T07:00:00.000Z: unit bpm does not match ms"
+          ],
+          "mapping": "open-wearables",
+          "outcome": {
+            "changed": 0,
+            "new": 0,
+            "unchanged": 21
+          },
+          "preserved": [
+            "calories_kcal",
+            "duration_seconds",
+            "efficiency_percent",
+            "hr_zones",
+            "intensity",
+            "is_nap",
+            "start_latitude",
+            "start_longitude",
+            "zone_offset"
+          ],
+          "record_ids": [
+            "<source_device open_wearables/v1 oura:ring|invented-ring|invented-app:source_device>",
+            "<sleep_session open_wearables/v1 oura:ring|invented-ring|invented-app:sleep:ow-nap-1>",
+            "<source_device open_wearables/v1 garmin:watch|invented-watch|invented-app:source_device>",
+            "<workout_session open_wearables/v1 garmin:watch|invented-watch|invented-app:workout:ow-workout-1>",
+            "<provider_summary open_wearables/v1 garmin:watch|invented-watch|invented-app:workout:ow-workout-1:summary:average_heart_rate>",
+            "<provider_summary open_wearables/v1 garmin:watch|invented-watch|invented-app:workout:ow-workout-1:summary:max_heart_rate>",
+            "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:heart_rate_variability_rmssd:2026-08-09T06\\:12\\:00.000Z>",
+            "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:heart_rate_variability_sdnn:2026-08-09T06\\:12\\:00.000Z>",
+            "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:resting_heart_rate:2026-08-09T06\\:12\\:00.000Z>",
+            "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:respiratory_rate:2026-08-09T06\\:12\\:00.000Z>",
+            "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:skin_temperature:2026-08-09T06\\:12\\:00.000Z>",
+            "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:oxygen_saturation:2026-08-09T06\\:12\\:00.000Z>",
+            "<point_measurement open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:point:heart_rate_recovery_one_minute:2026-08-09T06\\:12\\:00.000Z>",
+            "<provider_summary open_wearables/v1 oura:ring|invented-ring|invented-app:timeseries:summary:vo2_max:2026-08-09T06\\:12\\:00.000Z>",
+            "<source_device open_wearables/v1 apple:watch|Watch6,1|Health:source_device>",
+            "<point_measurement open_wearables/v1 apple:watch|Watch6,1|Health:timeseries:point:skin_temperature:2026-08-09T06\\:12\\:00.000Z>",
+            "<provider_score open_wearables/v1 garmin:watch|invented-watch|invented-app:timeseries:score:garmin_stress_level:2026-08-09T06\\:12\\:00.000Z>",
+            "<provider_score open_wearables/v1 garmin:watch|invented-watch|invented-app:timeseries:score:garmin_body_battery:2026-08-09T06\\:13\\:00.000Z>",
+            "<source_device open_wearables/v1 apple:phone|iPhone15,2|Health:source_device>",
+            "<point_measurement open_wearables/v1 apple:phone|iPhone15,2|Health:timeseries:point:resting_heart_rate:2026-08-09T08\\:00\\:00.000Z>",
+            "<point_measurement open_wearables/v1 apple:watch|Watch6,1|Health:timeseries:point:resting_heart_rate:2026-08-09T08\\:00\\:00.000Z>"
+          ],
+          "understood": [
+            "avg_heart_rate_bpm",
+            "distance_meters",
+            "elevation_gain_meters",
+            "max_heart_rate_bpm",
+            "name",
+            "sleep_duration_seconds",
+            "stages.awake_minutes",
+            "stages.deep_minutes",
+            "stages.light_minutes",
+            "time_in_bed_seconds",
+            "type",
+            "type.garmin_body_battery",
+            "type.garmin_stress_level",
+            "type.heart_rate_recovery_one_minute",
+            "type.heart_rate_variability_rmssd",
+            "type.heart_rate_variability_sdnn",
+            "type.oxygen_saturation",
+            "type.respiratory_rate",
+            "type.resting_heart_rate",
+            "type.skin_temperature",
+            "type.vo2_max"
+          ]
+        }
+      }
+    }
+  ]
+}

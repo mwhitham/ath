@@ -1,0 +1,304 @@
+{
+  "description": "Inline WorkoutRoute locations: stored points, a bad point, and an empty route.",
+  "reference": "2.1.0",
+  "steps": [
+    {
+      "apply": {
+        "result": {
+          "changed_record_count": 0,
+          "database_revision": 1,
+          "matching_record_count": 0,
+          "new_record_count": 3
+        }
+      },
+      "database": {
+        "database_revision": 1,
+        "records": [
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"source\",\"Apple Watch\",\"apple_health\",\"\"]",
+                "method": "apple_health/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<source apple_health/v1 [\"source\",\"Apple Watch\",\"apple_health\",\"\"]>",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_type\":\"export_file\",\"data_writer\":\"Apple Watch\",\"data_route\":\"apple_health\",\"vendor\":\"apple\",\"detail\":\"Apple Watch via Apple Health export folder\"}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"workout_session\",\"<source apple_health/v1 [\"source\",\"Apple Watch\",\"apple_health\",\"\"]>\",\"2026-06-14T13:00:00.000Z\",0]",
+                "method": "apple_health/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session apple_health/v1 [\"workout_session\",\"<source apple_health/v1 [\"source\",\"Apple Watch\",\"apple_health\",\"\"]>\",\"2026-06-14T13:00:00.000Z\",0]>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source apple_health/v1 [\"source\",\"Apple Watch\",\"apple_health\",\"\"]>\",\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"supplied_fields\":{\"WorkoutRoute\":[{\"creationDate\":\"2026-06-14 08:00:30 -0500\",\"endDate\":\"2026-06-14 08:30:00 -0500\",\"sourceName\":\"Demo Phone\",\"sourceVersion\":\"1\",\"startDate\":\"2026-06-14 08:00:00 -0500\",\"MetadataEntry\":[{\"key\":\"HKMetadataKeySyncVersion\",\"value\":\"3\"}]}]},\"field_basis\":{\"activity_type\":\"provider_label\",\"value\":\"provider\"},\"start_at\":\"2026-06-14T13:00:00.000Z\",\"end_at\":\"2026-06-14T13:30:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-14 08:00:00 -0500\",\"utc_offset_text\":\"-0500\",\"utc_offset_meaning\":\"meaning_not_documented\",\"timestamp_basis\":\"source_offset_timestamp\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-14 08:30:00 -0500\",\"utc_offset_text\":\"-0500\",\"utc_offset_meaning\":\"meaning_not_documented\",\"timestamp_basis\":\"source_offset_timestamp\"},\"activity_type\":\"running\",\"route\":[{\"recorded_at\":\"2026-06-14T13:01:00.000Z\",\"latitude_deg\":12.5,\"longitude_deg\":56.5,\"input_timestamp\":{\"timestamp_text\":\"2026-06-14 08:01:00 -0500\",\"utc_offset_text\":\"-0500\",\"utc_offset_meaning\":\"meaning_not_documented\",\"timestamp_basis\":\"source_offset_timestamp\"},\"supplied_fields\":{\"altitude\":\"200\"}},{\"recorded_at\":\"2026-06-14T13:02:00.000Z\",\"latitude_deg\":12.75,\"longitude_deg\":56.75,\"input_timestamp\":{\"timestamp_text\":\"2026-06-14 08:02:00 -0500\",\"utc_offset_text\":\"-0500\",\"utc_offset_meaning\":\"meaning_not_documented\",\"timestamp_basis\":\"source_offset_timestamp\"},\"supplied_fields\":{\"altitude\":\"201\"}}],\"source_reported_summaries\":[]}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"workout_session\",\"<source apple_health/v1 [\"source\",\"Apple Watch\",\"apple_health\",\"\"]>\",\"2026-06-14T14:00:00.000Z\",0]",
+                "method": "apple_health/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session apple_health/v1 [\"workout_session\",\"<source apple_health/v1 [\"source\",\"Apple Watch\",\"apple_health\",\"\"]>\",\"2026-06-14T14:00:00.000Z\",0]>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source apple_health/v1 [\"source\",\"Apple Watch\",\"apple_health\",\"\"]>\",\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"supplied_fields\":{\"WorkoutRoute\":[{\"sourceName\":\"Apple Watch\"}]},\"field_basis\":{\"activity_type\":\"provider_label\",\"value\":\"provider\"},\"start_at\":\"2026-06-14T14:00:00.000Z\",\"end_at\":\"2026-06-14T14:10:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-14 09:00:00 -0500\",\"utc_offset_text\":\"-0500\",\"utc_offset_meaning\":\"meaning_not_documented\",\"timestamp_basis\":\"source_offset_timestamp\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-14 09:10:00 -0500\",\"utc_offset_text\":\"-0500\",\"utc_offset_meaning\":\"meaning_not_documented\",\"timestamp_basis\":\"source_offset_timestamp\"},\"activity_type\":\"walking\",\"source_reported_summaries\":[]}",
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "files": {
+          "export.xml": {
+            "fixture": "tests/fixtures/exports/apple-inline-route/export.xml"
+          }
+        },
+        "kind": "directory"
+      },
+      "preview": {
+        "changed_records": [],
+        "conflicts": [],
+        "destination_database_revision": 0,
+        "imported": "Apple Health export",
+        "matching_records": [],
+        "new_records": [
+          {
+            "record_id": "<source apple_health/v1 [\"source\",\"Apple Watch\",\"apple_health\",\"\"]>",
+            "record_type": "source"
+          },
+          {
+            "record_id": "<workout_session apple_health/v1 [\"workout_session\",\"<source apple_health/v1 [\"source\",\"Apple Watch\",\"apple_health\",\"\"]>\",\"2026-06-14T13:00:00.000Z\",0]>",
+            "record_type": "workout_session"
+          },
+          {
+            "record_id": "<workout_session apple_health/v1 [\"workout_session\",\"<source apple_health/v1 [\"source\",\"Apple Watch\",\"apple_health\",\"\"]>\",\"2026-06-14T14:00:00.000Z\",0]>",
+            "record_type": "workout_session"
+          }
+        ],
+        "provider": "apple",
+        "route_points_stored": 2,
+        "skipped": {
+          "inline WorkoutRoute had no location points": {
+            "count": 1,
+            "example": "workout from \"2026-06-14 09:00:00 -0500\""
+          },
+          "inline WorkoutRoute points we could not store": {
+            "count": 2,
+            "example": "Location latitude \"120\" is outside -90 to 90"
+          }
+        },
+        "write_confirmed": false
+      },
+      "received_at": "2026-10-13T12:00:00.000Z"
+    },
+    {
+      "apply": {
+        "result": {
+          "changed_record_count": 0,
+          "database_revision": 1,
+          "matching_record_count": 3,
+          "new_record_count": 0
+        }
+      },
+      "database": {
+        "database_revision": 1,
+        "records": [
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"source\",\"Apple Watch\",\"apple_health\",\"\"]",
+                "method": "apple_health/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<source apple_health/v1 [\"source\",\"Apple Watch\",\"apple_health\",\"\"]>",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_type\":\"export_file\",\"data_writer\":\"Apple Watch\",\"data_route\":\"apple_health\",\"vendor\":\"apple\",\"detail\":\"Apple Watch via Apple Health export folder\"}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"workout_session\",\"<source apple_health/v1 [\"source\",\"Apple Watch\",\"apple_health\",\"\"]>\",\"2026-06-14T13:00:00.000Z\",0]",
+                "method": "apple_health/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session apple_health/v1 [\"workout_session\",\"<source apple_health/v1 [\"source\",\"Apple Watch\",\"apple_health\",\"\"]>\",\"2026-06-14T13:00:00.000Z\",0]>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source apple_health/v1 [\"source\",\"Apple Watch\",\"apple_health\",\"\"]>\",\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"supplied_fields\":{\"WorkoutRoute\":[{\"creationDate\":\"2026-06-14 08:00:30 -0500\",\"endDate\":\"2026-06-14 08:30:00 -0500\",\"sourceName\":\"Demo Phone\",\"sourceVersion\":\"1\",\"startDate\":\"2026-06-14 08:00:00 -0500\",\"MetadataEntry\":[{\"key\":\"HKMetadataKeySyncVersion\",\"value\":\"3\"}]}]},\"field_basis\":{\"activity_type\":\"provider_label\",\"value\":\"provider\"},\"start_at\":\"2026-06-14T13:00:00.000Z\",\"end_at\":\"2026-06-14T13:30:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-14 08:00:00 -0500\",\"utc_offset_text\":\"-0500\",\"utc_offset_meaning\":\"meaning_not_documented\",\"timestamp_basis\":\"source_offset_timestamp\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-14 08:30:00 -0500\",\"utc_offset_text\":\"-0500\",\"utc_offset_meaning\":\"meaning_not_documented\",\"timestamp_basis\":\"source_offset_timestamp\"},\"activity_type\":\"running\",\"route\":[{\"recorded_at\":\"2026-06-14T13:01:00.000Z\",\"latitude_deg\":12.5,\"longitude_deg\":56.5,\"input_timestamp\":{\"timestamp_text\":\"2026-06-14 08:01:00 -0500\",\"utc_offset_text\":\"-0500\",\"utc_offset_meaning\":\"meaning_not_documented\",\"timestamp_basis\":\"source_offset_timestamp\"},\"supplied_fields\":{\"altitude\":\"200\"}},{\"recorded_at\":\"2026-06-14T13:02:00.000Z\",\"latitude_deg\":12.75,\"longitude_deg\":56.75,\"input_timestamp\":{\"timestamp_text\":\"2026-06-14 08:02:00 -0500\",\"utc_offset_text\":\"-0500\",\"utc_offset_meaning\":\"meaning_not_documented\",\"timestamp_basis\":\"source_offset_timestamp\"},\"supplied_fields\":{\"altitude\":\"201\"}}],\"source_reported_summaries\":[]}",
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "2026-10-13T12:00:00.000Z",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "2026-10-13T12:00:00.000Z",
+                "key": "[\"workout_session\",\"<source apple_health/v1 [\"source\",\"Apple Watch\",\"apple_health\",\"\"]>\",\"2026-06-14T14:00:00.000Z\",0]",
+                "method": "apple_health/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session apple_health/v1 [\"workout_session\",\"<source apple_health/v1 [\"source\",\"Apple Watch\",\"apple_health\",\"\"]>\",\"2026-06-14T14:00:00.000Z\",0]>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "2026-10-13T12:00:00.000Z",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record_json": "{\"source_id\":\"<source apple_health/v1 [\"source\",\"Apple Watch\",\"apple_health\",\"\"]>\",\"received_at\":\"2026-10-13T12:00:00.000Z\",\"received_at_basis\":\"import_time\",\"supplied_fields\":{\"WorkoutRoute\":[{\"sourceName\":\"Apple Watch\"}]},\"field_basis\":{\"activity_type\":\"provider_label\",\"value\":\"provider\"},\"start_at\":\"2026-06-14T14:00:00.000Z\",\"end_at\":\"2026-06-14T14:10:00.000Z\",\"input_start_timestamp\":{\"timestamp_text\":\"2026-06-14 09:00:00 -0500\",\"utc_offset_text\":\"-0500\",\"utc_offset_meaning\":\"meaning_not_documented\",\"timestamp_basis\":\"source_offset_timestamp\"},\"input_end_timestamp\":{\"timestamp_text\":\"2026-06-14 09:10:00 -0500\",\"utc_offset_text\":\"-0500\",\"utc_offset_meaning\":\"meaning_not_documented\",\"timestamp_basis\":\"source_offset_timestamp\"},\"activity_type\":\"walking\",\"source_reported_summaries\":[]}",
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "files": {
+          "export.xml": {
+            "fixture": "tests/fixtures/exports/apple-inline-route/export.xml"
+          }
+        },
+        "kind": "directory"
+      },
+      "preview": {
+        "changed_records": [],
+        "conflicts": [],
+        "destination_database_revision": 1,
+        "imported": "Apple Health export",
+        "matching_records": [
+          {
+            "record_id": "<source apple_health/v1 [\"source\",\"Apple Watch\",\"apple_health\",\"\"]>",
+            "record_type": "source"
+          },
+          {
+            "record_id": "<workout_session apple_health/v1 [\"workout_session\",\"<source apple_health/v1 [\"source\",\"Apple Watch\",\"apple_health\",\"\"]>\",\"2026-06-14T13:00:00.000Z\",0]>",
+            "record_type": "workout_session"
+          },
+          {
+            "record_id": "<workout_session apple_health/v1 [\"workout_session\",\"<source apple_health/v1 [\"source\",\"Apple Watch\",\"apple_health\",\"\"]>\",\"2026-06-14T14:00:00.000Z\",0]>",
+            "record_type": "workout_session"
+          }
+        ],
+        "new_records": [],
+        "provider": "apple",
+        "route_points_stored": 2,
+        "skipped": {
+          "inline WorkoutRoute had no location points": {
+            "count": 1,
+            "example": "workout from \"2026-06-14 09:00:00 -0500\""
+          },
+          "inline WorkoutRoute points we could not store": {
+            "count": 2,
+            "example": "Location latitude \"120\" is outside -90 to 90"
+          }
+        },
+        "write_confirmed": false
+      },
+      "received_at": "2026-10-14T12:00:00.000Z"
+    }
+  ]
+}

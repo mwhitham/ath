@@ -1,8 +1,24 @@
+# Releases (D225). Pushing a version tag, such as v2.1.1, runs the full check
+# in validate.yml on Linux, macOS, and Windows: every Rust test, release
+# builds, archive smoke tests, and the npm tarball packed from the tested
+# executables and installed on each system. Then it checks that the archives
+# and the tarball hold the same executables, and publishes only those checked
+# files: the tarball to npm and the archives as the GitHub release. Nothing is
+# rebuilt after testing.
+#
+# A manual run (Actions > Release cross-platform > Run workflow) runs the same
+# full check on any branch. It publishes only when it starts from a version
+# tag with `publish` set. The speed comparison is separate and runs by hand
+# (release-performance.yml).
 name: Release cross-platform
 
 on:
   workflow_dispatch:
-  pull_request:
+    inputs:
+      publish:
+        description: Publish the checked npm tarball and native archives (the run must start from a version tag)
+        type: boolean
+        default: false
   push:
     tags:
       - "v*"
@@ -11,86 +27,72 @@ permissions:
   contents: read
 
 jobs:
-  test:
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-    runs-on: ${{ matrix.os }}
-    timeout-minutes: 45
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: pnpm
-      - name: Install sqlite3, which ath migrate and ath repair use for backups (D137)
-        if: runner.os == 'Windows'
-        shell: pwsh
-        # Chocolatey can answer HTTP 503, install 0 packages, and still exit 0, so a try
-        # counts only when sqlite3 is on the path afterwards. After three tries the pinned
-        # sqlite.org archive is used, only if its SHA-256 matches (D197).
-        run: |
-          for ($try = 1; $try -le 3; $try++) {
-            choco install sqlite --no-progress -y
-            if (Get-Command sqlite3 -ErrorAction SilentlyContinue) { exit 0 }
-            if ($try -lt 3) { Start-Sleep -Seconds (20 * $try) }
-          }
-          $zip = Join-Path $env:RUNNER_TEMP "sqlite-tools.zip"
-          Invoke-WebRequest -Uri "https://www.sqlite.org/2026/sqlite-tools-win-x64-3540100.zip" -OutFile $zip -MaximumRetryCount 3 -RetryIntervalSec 15
-          $hash = (Get-FileHash $zip -Algorithm SHA256).Hash.ToLowerInvariant()
-          if ($hash -ne "fb20997ade5583a5fbf1e36db7bc3c82c9416b3f314f16961e1572aa4e49487d") {
-            throw "sqlite-tools-win-x64-3540100.zip has SHA-256 $hash, not the pinned value"
-          }
-          $tools = Join-Path $env:RUNNER_TEMP "sqlite-tools"
-          Expand-Archive -Path $zip -DestinationPath $tools -Force
-          Add-Content -Path $env:GITHUB_PATH -Value $tools
-          # The runner ends the step with the last native exit code, which can be choco's.
-          exit 0
-      - run: sqlite3 --version
-      - run: pnpm install --frozen-lockfile
-      - uses: dtolnay/rust-toolchain@stable
-      - run: cargo test --manifest-path crates/ath-core/Cargo.toml
-      - run: pnpm typecheck
-      - run: pnpm test
-      - run: pnpm build
-      - run: cargo build --release --manifest-path crates/ath-core/Cargo.toml
-      - run: node scripts/stage-ath-core.mjs
-      - uses: actions/upload-artifact@v4
-        with:
-          name: ath-core-${{ runner.os }}-${{ runner.arch }}
-          path: vendor/ath-core
-          if-no-files-found: error
+  validate:
+    uses: ./.github/workflows/validate.yml
 
-  package:
-    needs: test
+  publish:
+    needs: validate
+    if: github.ref_type == 'tag' && (github.event_name == 'push' || inputs.publish)
     runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: packages/npm/package.json
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: pnpm
           registry-url: https://registry.npmjs.org
       - uses: actions/download-artifact@v4
         with:
-          pattern: ath-core-*
-          path: vendor/ath-core
+          name: npm-tarball
+          path: npm-tarball
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: archive-*
+          path: archives
           merge-multiple: true
-      - run: find vendor/ath-core -type f -exec chmod 755 {} +
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-      - run: ATH_KEEP_TARBALL=1 node scripts/smoke-installed-package.mjs
-      - run: node scripts/assert-packed-binary.mjs "athleticstandard-$(node -p "require('./package.json').version").tgz"
-      - name: Publish the tarball the smoke test checked
-        if: startsWith(github.ref, 'refs/tags/v')
-        run: npm publish "athleticstandard-$(node -p "require('./package.json').version").tgz"
+      - name: Check the tag, the archives, and the tarball agree
+        run: |
+          version="$(node -p "require('./packages/npm/package.json').version")"
+          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "The tag $GITHUB_REF_NAME does not name version $version"
+            exit 1
+          fi
+          mkdir unpacked
+          for archive in archives/*.tar.gz; do tar -C unpacked -xzf "$archive"; done
+          for archive in archives/*.zip; do (cd unpacked && unzip -q "../$archive"); done
+          VERSION="$version" node --input-type=module - <<'EOF'
+          import { createHash } from "node:crypto";
+          import { readFileSync } from "node:fs";
+          const version = process.env.VERSION;
+          const triples = {
+            "linux-x64": ["x86_64-unknown-linux-gnu", "ath"],
+            "darwin-arm64": ["aarch64-apple-darwin", "ath"],
+            "win32-x64": ["x86_64-pc-windows-msvc", "ath.exe"],
+          };
+          const summary = JSON.parse(readFileSync("npm-tarball/pack-summary.json", "utf8"));
+          if (summary.package !== `athleticstandard@${version}` || summary.missing_targets.length > 0) {
+            throw new Error(`the tarball is ${summary.package} and lacks ${summary.missing_targets.join(", ")}`);
+          }
+          for (const native of summary.native) {
+            const [triple, executable] = triples[native.target];
+            const file = `unpacked/ath-${version}-${triple}/${executable}`;
+            const sha256 = createHash("sha256").update(readFileSync(file)).digest("hex");
+            if (sha256 !== native.sha256) {
+              throw new Error(`${file} is ${sha256}; the tarball's ${native.path} is ${native.sha256}`);
+            }
+            console.log(`${sha256}  ${native.target}: archive and tarball agree`);
+          }
+          EOF
+          (cd archives && sha256sum * > SHA256SUMS && cat SHA256SUMS)
+      - name: Publish the checked tarball to npm
+        run: npm publish "npm-tarball/$(node -p "require('./npm-tarball/pack-summary.json').tarball")"
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      - uses: actions/upload-artifact@v4
-        with:
-          name: athleticstandard-tarball
-          path: athleticstandard-*.tgz
-          if-no-files-found: error
+      - name: Publish the checked archives as the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" archives/* --repo "$GITHUB_REPOSITORY" --verify-tag --title "$GITHUB_REF_NAME"

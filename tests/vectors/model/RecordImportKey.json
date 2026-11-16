@@ -1,0 +1,494 @@
+{
+  "schema": "RecordImportKey",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "match_key_method": "provider_record_id",
+        "match_key": "provider-0007",
+        "imported_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "match_key_method": "provider_record_id",
+        "match_key": "provider-0007",
+        "imported_at": "2026-01-02T03:04:05.678Z"
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "match_key_method": "provider_record_id",
+        "match_key": "provider-0007",
+        "imported_at": "2026-01-02T03:04:05.678Z",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "record_id:missing",
+      "input": {
+        "match_key_method": "provider_record_id",
+        "match_key": "provider-0007",
+        "imported_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "record_id:null",
+      "input": {
+        "record_id": null,
+        "match_key_method": "provider_record_id",
+        "match_key": "provider-0007",
+        "imported_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "record_id:wrong_type=number",
+      "input": {
+        "record_id": 1,
+        "match_key_method": "provider_record_id",
+        "match_key": "provider-0007",
+        "imported_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "record_id:empty_string",
+      "input": {
+        "record_id": "",
+        "match_key_method": "provider_record_id",
+        "match_key": "provider-0007",
+        "imported_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "record_id:format=not_valid",
+      "input": {
+        "record_id": "not valid",
+        "match_key_method": "provider_record_id",
+        "match_key": "provider-0007",
+        "imported_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "record_id:format=uppercase",
+      "input": {
+        "record_id": "01890F3E-E7D3-7CC0-88C8-000000000007",
+        "match_key_method": "provider_record_id",
+        "match_key": "provider-0007",
+        "imported_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "match_key_method:missing",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "match_key": "provider-0007",
+        "imported_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "match_key_method"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "match_key_method:null",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "match_key_method": null,
+        "match_key": "provider-0007",
+        "imported_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "match_key_method"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "match_key_method:wrong_type=number",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "match_key_method": 1,
+        "match_key": "provider-0007",
+        "imported_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "match_key_method"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "match_key_method:empty_string",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "match_key_method": "",
+        "match_key": "provider-0007",
+        "imported_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "match_key_method"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "match_key:missing",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "match_key_method": "provider_record_id",
+        "imported_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "match_key"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "match_key:null",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "match_key_method": "provider_record_id",
+        "match_key": null,
+        "imported_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "match_key"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "match_key:wrong_type=number",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "match_key_method": "provider_record_id",
+        "match_key": 1,
+        "imported_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "match_key"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "match_key:empty_string",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "match_key_method": "provider_record_id",
+        "match_key": "",
+        "imported_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "match_key"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "imported_at:missing",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "match_key_method": "provider_record_id",
+        "match_key": "provider-0007"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "imported_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "imported_at:null",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "match_key_method": "provider_record_id",
+        "match_key": "provider-0007",
+        "imported_at": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "imported_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "imported_at:wrong_type=number",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "match_key_method": "provider_record_id",
+        "match_key": "provider-0007",
+        "imported_at": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "imported_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "imported_at:empty_string",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "match_key_method": "provider_record_id",
+        "match_key": "provider-0007",
+        "imported_at": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "imported_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "imported_at:format=no_milliseconds",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "match_key_method": "provider_record_id",
+        "match_key": "provider-0007",
+        "imported_at": "2026-01-02T03:04:05Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "imported_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "imported_at:format=offset",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "match_key_method": "provider_record_id",
+        "match_key": "provider-0007",
+        "imported_at": "2026-01-02T03:04:05.678+00:00"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "imported_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    }
+  ]
+}
