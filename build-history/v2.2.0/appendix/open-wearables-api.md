@@ -564,7 +564,13 @@ uses.
 Client. `_make_api_request` in `services/providers/api_client.py` makes
 at most four attempts. Each attempt uses `provider_request_timeout_seconds`,
 which is 30 seconds by default and at most 300 in `config.py`. A 429 waits 15, then
-30, then 60 seconds. A 401 reloads the token once and tries again. A
+30, then 60 seconds. A 401 reloads the token once and tries again. That
+reload can refresh the vendor token under `token_refresh_lock`, and a
+refresh the vendor rejects revokes the connection. The second try is one
+of the four attempts. A 401 or 403 that remains is noted in
+`provider_auth_failing_since`. When one comes a day or more after the
+first noted failure, with no success between, the server revokes the
+connection. That day is `DEAD_GRANT_AFTER`. A success clears the note. A
 timeout or another transport error is not retried. A token refresh holds
 `token_refresh_lock` for up to 60 seconds and waits up to 10 seconds for
 it. So with the default timeout, one GET can take about 225 seconds, plus

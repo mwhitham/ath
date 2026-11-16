@@ -1067,14 +1067,18 @@ provider in this command, so two requests to one provider never overlap.
 That provider is `incomplete`. The next provider still runs, and it uses
 a different vendor account and limit. An HTTP 429 from a live request
 stops that provider the same way. The server has already waited and
-retried three times, so the vendor's limit is spent. No later list call,
-window, or detail call goes to that provider in this command. The detail
-call that got 429 counts as `failed`. Every listed id that had not had its
-detail call yet counts as `deferred`, and a later command details it by
-the order below. What the provider already returned is still written as that
-provider's page: the list objects, and the details already fetched. A
-later Garmin window after a 429 or a timeout is not sent, unlike a window
-that failed another way. A server whose provider timeout is
+retried three times, so the vendor's limit is spent. An HTTP 401 stops
+that provider the same way. The server has already reloaded the vendor
+token, or refreshed it, and tried once more. Each later request would
+make it do that again, and a refresh the vendor rejects revokes the
+connection. No later list call, window, or detail call goes to that
+provider in this command. The detail call that got 429 or 401 counts as
+`failed`. Every listed id that had not had its detail call yet counts as
+`deferred`, and a later command details it by the order below. What the
+provider already returned is still written as that provider's page: the
+list objects, and the details already fetched. A later Garmin window
+after a 429, a 401, or a timeout is not sent, unlike a window that failed
+another way. A server whose provider timeout is
 raised can outlast this timeout. The same rule covers that case. The
 stored reads keep 30 seconds to connect and 120 seconds to read, the values
 `src/runtime/garmin_pull.rs` uses.
@@ -1140,15 +1144,24 @@ timeout above.
   The pull calls Garmin detail at the pinned path,
   `/wellness-api/rest/activities/{activity_id}`. That path is not in
   Garmin's public docs. This study looked and did not find it, so the path
-  may not exist. For a Garmin detail only, HTTP 404 or HTTP 501 counts as
-  `not_available`. The list object is stored whole, with `detail_status`
-  `not_available`, and Garmin stays `completed`. Any other failed Garmin
-  detail is `failed`, and Garmin is `incomplete`. A 404 or 501 on a Garmin
-  list window is not this rule. It fails that window. Every other
-  provider's detail 404 is `failed`. The pinned client passes a vendor's
-  404 through unchanged, and the route answers 501 only for a provider it
-  has no workout method for, so this study cannot tell a missing path
-  from a missing activity.
+  may not exist. The first Garmin detail call in a command is a probe.
+  When it answers HTTP 400, 403, 404, 405, or 501, the pull makes no other
+  Garmin detail call in that command. The probed id counts as
+  `not_available`. Each other id still due a detail call counts as
+  `deferred`, because it was not asked. Every list object is stored,
+  Garmin stays `completed`, and its line says `Garmin detail unavailable
+  (HTTP n); list objects stored`, with the status the probe got. So a
+  missing path costs one detail call in a command. After any other answer
+  to the probe, the later Garmin detail calls go on. A later Garmin detail
+  that answers 404 or 501 is `not_available` for that id, and the next id
+  is still called. Any other failed Garmin detail is `failed`, and Garmin
+  is `incomplete`. A 401, a 429, or a timeout stops Garmin as above. A 404
+  or 501 on a Garmin list window is not this rule. It fails that window.
+  Every other provider's detail 404 is `failed`. The pinned client passes
+  a vendor's status through unchanged, and the route answers 501 only for
+  a provider it has no workout method for, so this study cannot tell a
+  missing path from a missing activity. This is the plan's stated
+  default. The maintainer still has to confirm it (D243).
 - Polar. The list sends `samples`, `zones`, and `route` false, the route's
   default, so the list stays small. Detail sends all three true. A list
   over the response cap fails that list, because the route has no smaller
@@ -1274,11 +1287,13 @@ The pull calls detail only when the provider has a detail call and its
 budget allows. It spends the budget in this order. First come ids with no
 stored detail that no earlier command marked `not_available`. Then come
 ids whose list object differs from the stored `list`. Then come ids an
-earlier command marked `not_available`, `too_large`, or `refused`. Inside each group the oldest start
-goes first. An id without a start instant goes last in its group, in list
-order. So a Garmin path that answers 404 for every id still lets new ids
-go first, and it costs at most the provider's budget in one command. An id whose original holds a
-detail and whose list object is unchanged gets no detail call. A deleted
+earlier command marked `too_large` or `refused`. An id that an earlier
+command marked `not_available`, and whose list object is unchanged, gets
+no detail call. It counts as `not_available` again. Inside each group
+the oldest start goes first. An id without a start instant goes last in
+its group, in list order. So a Garmin path that answers 404 costs one
+detail call in a command, and only when some id is due a call. An id
+whose original holds a detail and whose list object is unchanged gets no detail call. A deleted
 original gets no detail call. A detail is fetched again only when the list
 object changed. A provider that changes a detail without changing the
 list object is not seen, and the line does not claim it.
@@ -1316,17 +1331,18 @@ What is written for one id depends on what this command got:
   object alone. `detail_status` says why: `deferred`, `failed`,
   `mismatch`, `not_available`, `too_large`, or `refused`. The id counts
   under the same word.
-  `not_available` means the provider has no detail call, Garmin answered
-  its detail call with 404 or 501, or a Suunto list object has no
-  `workoutKey`. A detail response over `MAX_PULL_RESPONSE_BYTES` is
-  `too_large`, because the detail route has no smaller page. A detail
+  `not_available` means the provider has no detail call, the Garmin probe
+  answered 400, 403, 404, 405, or 501 for that id, a later Garmin detail
+  answered 404 or 501, or a Suunto list object has no `workoutKey`. A
+  detail response over `MAX_PULL_RESPONSE_BYTES` is `too_large`, because
+  the detail route has no smaller page. A detail
   that the privacy scan in section 4 refuses, because it holds the key,
   the origin, or the user id, is `refused`. Neither of those is stored,
   and each is counted on the provider's line.
 - No new detail, but one is stored, and the list object changed. Nothing
   is written for that id, and no revision is added. The stored detail
-  stays. The id counts as `deferred`, `failed`, `mismatch`, `too_large`,
-  or `refused`.
+  stays. The id counts as `deferred`, `failed`, `mismatch`,
+  `not_available`, `too_large`, or `refused`.
 
 A list-only object therefore never replaces a stored detail. A `failed`,
 `mismatch`, `too_large`, or `refused` detail makes the provider
@@ -2639,14 +2655,24 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   last one ended. A date `--from` starts at midnight UTC. One failed
   window makes Garmin `incomplete` and never `completed`. A later window
   still runs
-- a Garmin detail that answers HTTP 404 stores the list object whole with
-  `detail_status` `not_available`. Garmin is `completed`, its line counts
-  1 `not_available`, and the command exits 0. HTTP 501 is the same. A
-  Garmin detail that answers HTTP 500 is `failed`, Garmin is
+- three Garmin ids are due a detail call, and the first detail call
+  answers HTTP 404. The fixture server sees no second Garmin detail
+  request. The first id is stored with `detail_status` `not_available`,
+  and the other two with `deferred`. Garmin is `completed`, its line says
+  `Garmin detail unavailable (HTTP 404); list objects stored`, and the
+  command exits 0. HTTP 400, 403, 405, and 501 do the same. On the next
+  command, the `not_available` id, whose list object is unchanged, gets
+  no call and counts as `not_available` again, and the probe is the older
+  of the two deferred ids. When the probe gets a detail, a later Garmin
+  detail that answers 404 is `not_available`, and the next id is still
+  called. A Garmin detail that answers HTTP 500 is `failed`, Garmin is
   `incomplete`, and the exit is nonzero. A Polar detail that answers 404
-  is `failed`. A Garmin list window that answers 404 fails that window.
-  On the next command, a new Garmin id is detailed before the id that was
-  `not_available`
+  is `failed`. A Garmin list window that answers 404 fails that window
+- a live detail that answers HTTP 401, for Garmin and for Polar, counts
+  as `failed`. The fixture server sees no later request to that provider
+  in the command. Each id still due a call is `deferred`, the provider is
+  `incomplete`, and the exit is nonzero. A Garmin window that answers 401
+  sends no later window
 - live requests go one at a time, at least one second apart by the
   fixture server's clock. A live request that times out, with the read
   timeout shortened for the test, stops every later request to that
@@ -2906,12 +2932,14 @@ Risks:
 - Strava's limit is shared with the deployment's own sync. One command can
   use most of a 15-minute window.
 - The pinned Garmin detail path and the cited Garmin rate were not found
-  in Garmin's public docs. If the path does not exist, each Garmin detail
-  answers 404 or 501. Those count as `not_available`, Garmin stays
-  `completed`, and each Garmin original holds its list object only. Each
-  command still spends up to 100 Garmin detail calls on ids that were
-  `not_available`, after new ids. A deployment where that path works fills
-  those details in on later commands.
+  in Garmin's public docs. If the path does not exist, the first Garmin
+  detail call in a command answers an error such as 404. The pull then
+  makes no other Garmin detail call in that command, Garmin stays
+  `completed`, and each Garmin original holds its list object only. That
+  costs one detail call in each command that has a Garmin id due a call.
+  Where the path works, an id that once got 404 or 501 is not called
+  again until its list object changes. This is the stated default, and
+  the maintainer still has to confirm it.
 - A later pull replaces an owner correction when the server's data for
   that record changed since an import last wrote it. The preview and the
   result count each one. The correction stays in the history. Deleting

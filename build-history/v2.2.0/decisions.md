@@ -149,6 +149,14 @@ number is added:
   `--yes` would detail `would_detail`, prints `estimated` on each
   provider line, and says that it made no detail calls, in the text and
   in `vendor_workouts.notice`.
+- D243. The first Garmin detail call in a command is a probe. When it
+  answers 400, 403, 404, 405, or 501, no other Garmin detail call is made
+  in that command. The other due ids are `deferred`, Garmin stays
+  `completed`, and its line says detail is unavailable. An id that was
+  `not_available` is called again only when its list object changed. A
+  401 on any live request stops that provider for the command, as a 429
+  does. This is the stated default, and the maintainer still has to
+  confirm it.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -1422,12 +1430,18 @@ clock moves by one hour. A zone that moves it by two hours, such as
 `Antarctica/Troll`, is not covered. Any failed window makes Garmin
 `incomplete`. The pull keeps calling Garmin detail at the pinned path,
 `/wellness-api/rest/activities/{activity_id}`. That path is not in
-Garmin's public docs, and this study did not find it there. For a Garmin
-detail only, HTTP 404 or 501 counts as `not_available`: the list object
-is stored whole, and Garmin stays `completed`. Any other Garmin detail
-error is `failed`. An id that was `not_available` is detailed again after
-the new and changed ids, inside the same budget. The maintainer confirms
-this rule before approval. Polar's list omits samples, zones, and route, and detail
+Garmin's public docs, and this study did not find it there. The first
+Garmin detail call in a command is a probe. When it answers HTTP 400,
+403, 404, 405, or 501, the pull makes no other Garmin detail call in that
+command. The probed id is `not_available`, each other id still due a call
+is `deferred`, every list object is stored, and Garmin stays
+`completed`. The line says `Garmin detail unavailable (HTTP n); list
+objects stored`. After any other answer to the probe, the calls go on,
+and a later 404 or 501 is `not_available` for that id. Any other Garmin
+detail error is `failed`. An id that was `not_available` is not called
+again unless its list object changed. So a missing path costs one call
+in a command, not the budget of 100. This is the stated default. The
+maintainer still has to confirm it before approval. Polar's list omits samples, zones, and route, and detail
 asks for all three. Suunto's detail is called at `workoutKey`. A list
 object with no `workoutKey` gets no detail call and is `not_available`,
 because nothing this study read shows that Suunto's detail accepts a
@@ -1439,7 +1453,8 @@ next page `next_token`. The request name, `nextToken`, is not sent.
 Sensorbio reads only the oldest 50 entries, and its line says so.
 
 A stored detail is never lost. A detail is fetched for an id with no
-stored detail, and again only when the list object changed. Credential
+stored detail, unless an earlier command marked it `not_available`, and
+again only when the list object changed. Credential
 values (D244) are withheld before any comparison, so a token that changed
 between pulls does not make a list object look changed. A list-only
 object never replaces a stored detail. A new detail that is thinner than
@@ -1466,8 +1481,11 @@ timeout is 360 seconds. The server's own retries can take about 225
 seconds, so the client waits for them. A live request that still times
 out ends that provider for the command, so two requests to one provider
 never overlap. An HTTP 429 ends that provider the same way, because the
-server has already spent its three retries on the vendor's limit. The
-detail call that got 429 is `failed`. Ids whose detail was not yet called
+server has already spent its three retries on the vendor's limit. An
+HTTP 401 ends it the same way. The server has already reloaded or
+refreshed the vendor token and tried once more, each later 401 would make
+it do that again, and a refresh the vendor rejects revokes the
+connection. The detail call that got 429 or 401 is `failed`. Ids whose detail was not yet called
 are `deferred`. What the provider already returned is still written, and
 the provider is `incomplete`. A command makes at most 100 detail calls to one provider
 and at most 20 to Strava. Ids with no stored detail go first, oldest
@@ -1513,6 +1531,18 @@ Rejected alternatives:
 - Drop the Garmin detail call because the path is not in Garmin's public
   docs. Rejected. The pinned server calls it, and a deployment where it
   works would lose every Garmin detail.
+- Call Garmin detail for every due id after a 404, as the earlier text
+  did. Rejected. A missing path would spend up to 100 calls in every
+  command.
+- Mark every id the probe stopped as `not_available`. Rejected. Those ids
+  were not asked. A 404 can mean one missing activity, and the mark would
+  stop their details until their list objects changed.
+- Treat a 401 on the probe as a missing path. Rejected. A 401 is what an
+  expired or revoked grant answers, so the person may need to reconnect
+  Garmin. Its line must not say only that detail is unavailable.
+- Keep calling a provider after a 401. Rejected. Each call could make the
+  server refresh the vendor token, and a rejected refresh revokes the
+  connection.
 - Use a 30-second read timeout. Rejected. The server's own retries take
   longer. The client would give up, and a rerun could send a second
   request while the first still runs.
