@@ -111,6 +111,10 @@ These edits answer the review of this plan at `d636d7a`:
 - D242. Vendor originals have a 128 MiB total bound, because a package
   holds them in its main document under the 512 MiB read cap. `ath export`
   refuses to publish a document over that cap.
+- D243. A Suunto list object with no `workoutKey` gets no detail call and
+  is `not_available`. A detail over the response cap is `too_large`, and a
+  detail the privacy scan refuses is `refused`. Both make the provider
+  `incomplete`.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -1371,9 +1375,11 @@ is stored whole, and Garmin stays `completed`. Any other Garmin detail
 error is `failed`. An id that was `not_available` is detailed again after
 the new and changed ids, inside the same budget. The maintainer confirms
 this rule before approval. Polar's list omits samples, zones, and route, and detail
-asks for all three. Suunto's detail is called at `workoutKey` when the
-list object has one, and at `workoutId` otherwise. Its `payload` is
-unwrapped, and the record key is `workoutId`. Whoop's response names its
+asks for all three. Suunto's detail is called at `workoutKey`. A list
+object with no `workoutKey` gets no detail call and is `not_available`,
+because nothing this study read shows that Suunto's detail accepts a
+`workoutId`. Its `payload` is unwrapped, and the record key is
+`workoutId`. Whoop's response names its
 next page `next_token`. The request name, `nextToken`, is not sent.
 Sensorbio reads only the oldest 50 entries, and its line says so.
 
@@ -1385,9 +1391,14 @@ object never replaces a stored detail. A new detail that is thinner than
 the stored one writes nothing. Thinner means a detail field the
 specification's table names for that provider is filled in the stored
 detail and empty in the new one. A deferred or failed detail keeps the
-stored detail and adds no revision. A failed or mismatched detail makes
-the provider `incomplete` and the exit nonzero. A deferred detail leaves
-the provider `completed`, with a separate deferred count.
+stored detail and adds no revision. A detail over the 10 MiB response cap
+is `too_large`, because the detail route has no smaller page. A detail
+the privacy scan refuses is `refused`. Neither is stored. A failed,
+mismatched, too large, or refused detail makes the provider `incomplete`
+and the exit nonzero, because a limit may refuse work but must not report
+it as complete. A too large or refused id is retried after the new and
+changed ids. A deferred detail leaves the provider `completed`, with a
+separate deferred count.
 
 Live requests go one at a time, at least one second apart. The read
 timeout is 360 seconds. The server's own retries can take about 225
@@ -1456,6 +1467,13 @@ Rejected alternatives:
   failed provider must not hide a finished one.
 - Let the server split a Garmin range. Rejected. A failed window must be
   visible as incomplete.
+- Call Suunto detail at `workoutId` when the list object has no
+  `workoutKey`, as the earlier text did. Rejected. No source this study
+  read shows that call works, and a wrong call would count as `failed` on
+  every command.
+- Count a too large detail as `not_available`. Rejected. The vendor has
+  the detail, and this program's own cap refused it, so the provider did
+  not finish.
 - Refuse both copies when one Garmin id is in two windows with different
   objects, as inside one response. Rejected. A re-upload is an ordinary
   Garmin event, and the later window holds the later copy.

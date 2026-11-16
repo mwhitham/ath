@@ -218,7 +218,9 @@ the text. The object has no key, server, user id, or request path.
           "failed": 0,
           "mismatch": 0,
           "thinner": 0,
-          "not_available": 0
+          "not_available": 0,
+          "too_large": 0,
+          "refused": 0
         },
         "left_out": { "total": 0, "by_reason": {} }
       }
@@ -1046,7 +1048,7 @@ timeout above.
 |---|---|---|---|---|---|---|---|---|
 | Garmin | the JSON array | `activityId` | `startTimeInSeconds`, Unix seconds | `activityId` | the object | none named | every window; 100 details | 360 s |
 | Polar | the JSON array | `id` | `start_time`, text with no offset | `id` | the object | `samples`, `zones`, `route` | 1 list; 100 details | 360 s |
-| Suunto | `payload` | `workoutId` | `startTime`, Unix milliseconds | `workoutKey`, else `workoutId` | `payload` | none named | list pages of 100; 100 details | 360 s |
+| Suunto | `payload` | `workoutId` | `startTime`, Unix milliseconds | `workoutKey`. No call without it | `payload` | none named | at most 100 list pages of 100; 100 details | 360 s |
 | Whoop | `records` | `id` | `start`, text with offset | `id` | the object | none named | 1 list; 100 details | 360 s |
 | Fitbit | the JSON array. The method reads `activities` | `logId` | `startTime`, text with offset | no detail call | none | none | 1 list | 360 s |
 | Oura | `data` | `id` | `start_datetime`, text with offset | `id` | the object | none named | 1 list; 100 details | 360 s |
@@ -1084,8 +1086,11 @@ timeout above.
   milliseconds, `filter_by_modification_time=false`, and `limit` 100, and
   pages `offset` until a short page. False means creation time. A page
   over the response cap is asked again with a smaller `limit`, down to 1.
-  The record key is `workoutId`. Detail is called at `workoutKey` when the
-  list object has one, and at `workoutId` otherwise. Detail unwraps
+  The record key is `workoutId`. Detail is called at `workoutKey`. A list
+  object with no `workoutKey` gets no detail call, and its detail is
+  `not_available`. The pinned detail method calls
+  `/v3/workouts/{workout_key}`, and nothing this study read shows that
+  Suunto accepts a `workoutId` there. Detail unwraps
   `payload`. A detail matches when its `workoutId` or its `workoutKey`
   equals the list object's. The pinned `WorkoutJSON` model has no
   `workoutKey`. The pinned tests and Suunto's own API use it, so the list
@@ -1186,7 +1191,7 @@ The pull calls detail only when the provider has a detail call and its
 budget allows. It spends the budget in this order. First come ids with no
 stored detail that no earlier command marked `not_available`. Then come
 ids whose list object differs from the stored `list`. Then come ids an
-earlier command marked `not_available`. Inside each group the oldest start
+earlier command marked `not_available`, `too_large`, or `refused`. Inside each group the oldest start
 goes first. An id without a start instant goes last in its group, in list
 order. So a Garmin path that answers 404 for every id still lets new ids
 go first, and it costs at most the provider's budget in one command. An id whose original holds a
@@ -1213,16 +1218,23 @@ What is written for one id depends on what this command got:
   `unchanged` and nothing is written. The id counts as `kept`.
 - No new detail, and none stored. The original is written with the list
   object alone. `detail_status` says why: `deferred`, `failed`,
-  `mismatch`, or `not_available`. The id counts under the same word.
-  `not_available` means the provider has no detail call, or Garmin
-  answered its detail call with 404 or 501.
+  `mismatch`, `not_available`, `too_large`, or `refused`. The id counts
+  under the same word.
+  `not_available` means the provider has no detail call, Garmin answered
+  its detail call with 404 or 501, or a Suunto list object has no
+  `workoutKey`. A detail response over `MAX_PULL_RESPONSE_BYTES` is
+  `too_large`, because the detail route has no smaller page. A detail
+  that the privacy scan in section 4 refuses, because it holds the key,
+  the origin, or the user id, is `refused`. Neither of those is stored,
+  and each is counted on the provider's line.
 - No new detail, but one is stored, and the list object changed. Nothing
   is written for that id, and no revision is added. The stored detail
-  stays. The id counts as `deferred`, `failed`, or `mismatch`.
+  stays. The id counts as `deferred`, `failed`, `mismatch`, `too_large`,
+  or `refused`.
 
-A list-only object therefore never replaces a stored detail. A `failed`
-or `mismatch` detail makes the provider `incomplete`, and the exit is
-nonzero. A `not_available` detail leaves the provider `completed`. A
+A list-only object therefore never replaces a stored detail. A `failed`,
+`mismatch`, `too_large`, or `refused` detail makes the provider
+`incomplete`, and the exit is nonzero. A `not_available` detail leaves the provider `completed`. A
 `deferred` detail leaves the provider `completed`, with the
 deferred count on its line, and the next command details those ids first.
 A deferred id that the provider stops listing is never detailed by a later
@@ -1252,8 +1264,8 @@ the same object:
 - `list` is the list object. `list_parent` is present only for Sensorbio.
 - `detail` is the detail object after the table's detail unwrap. It is
   absent when no detail is stored.
-- `detail_status` is `stored`, `deferred`, `failed`, `mismatch`, or
-  `not_available`.
+- `detail_status` is `stored`, `deferred`, `failed`, `mismatch`,
+  `not_available`, `too_large`, or `refused`.
 - A value that section 4 withholds is replaced in place by its marker.
   Nothing else in `list`, `list_parent`, or `detail` is changed.
 
@@ -1334,7 +1346,7 @@ Each provider's line, and its object in `--json`, counts:
   by the owner-correction rule above. Each is also counted as a changed
   original.
 - `details`: `stored`, `kept`, `deferred`, `failed`, `mismatch`,
-  `thinner`, and `not_available`.
+  `thinner`, `not_available`, `too_large`, and `refused`.
 - `left_out`: objects not written, by reason: `missing_id`,
   `unusable_id`, `unsafe_number`, `duplicate_id`, `superseded`,
   `deleted_record`, `deleted_source`, `response_refused`, and `size_cap`.
@@ -2365,6 +2377,15 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   changed list object writes nothing and adds no revision. A detail that
   names another id is `mismatch`, is not stored, and also makes Polar
   `incomplete`
+- a Polar detail over `MAX_PULL_RESPONSE_BYTES`, with the cap lowered for
+  the test, is `too_large`. The list object is stored alone, Polar is
+  `incomplete`, and the exit is nonzero. A Polar detail that holds the
+  selected user id is `refused`, is not stored, and makes Polar
+  `incomplete`. The list object of that id passed the scan and is stored.
+  On the next command, a new Polar id is detailed before either of them
+- 101 Polar ids with no stored detail. The first pull makes 100 detail
+  calls, oldest start first, and the newest id is `deferred`. Polar stays
+  `completed` with `deferred` 1. The second pull details that id first
 - 45 Strava ids with no stored detail. The first pull details the 20
   oldest starts and stores the other 25 with `detail_status` `deferred`.
   Strava stays `completed`, its line counts 25 deferred, and the exit is
@@ -2422,7 +2443,9 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
 - a Suunto list object `{"workoutId": 1001, "workoutKey": "abc"}` calls
   detail at `abc`. The detail's `payload` is unwrapped. One record is
   stored, and its key ends `suunto|1001`. A detail that names 1001 or
-  `abc` matches. A list object with no `workoutKey` calls detail at 1001
+  `abc` matches. A list object with no `workoutKey` makes no detail call.
+  It is stored with `detail_status` `not_available`, and Suunto stays
+  `completed`
 - a Garmin `activityId` of `123` and a later `"123"` are one record. An
   integer above 9007199254740991 refuses only that object and counts it
   as `unsafe_number`. A fractional id refuses only that object and counts
