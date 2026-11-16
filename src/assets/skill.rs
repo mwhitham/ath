@@ -1,11 +1,16 @@
-//! Installing the agent skill and the calculation skills (D79, D81).
+//! Installing the tool, calculation, and coaching skills (D79, D81, D228).
 //!
 //! Each shipped skill folder is copied into `.agents/skills/`, which Claude
 //! Code, Cursor, Codex, and Gemini CLI read. It is also copied into each
-//! harness folder that is already present. A missing file is added. A
-//! calculation skill that is already installed is left alone, because the
-//! person may have edited it. An older copy of the tool skill is replaced,
-//! because an agent would otherwise keep reading old instructions.
+//! harness folder that is already present. A missing file is added.
+//!
+//! - The tool skill and calculation skills are installed by default. A
+//!   coaching skill is installed only when it is named (D229).
+//! - An older copy of the tool skill or a coaching skill is replaced, because
+//!   an agent would otherwise keep reading old instructions.
+//! - An installed calculation skill is replaced only when its `SKILL.md` is
+//!   byte for byte a file an earlier release shipped, so the person never
+//!   edited it (D231). An edited copy is left alone and reported as edited.
 //!
 //! Shipped mapping files are copied into `.agents/mappings/` only when that
 //! copy is missing. An installed mapping file is never replaced.
@@ -16,9 +21,10 @@ use std::io;
 use std::path::{Path, PathBuf};
 
 use serde::Serialize;
+use sha2::{Digest, Sha256};
 
 use super::{EmbeddedFile, MAPPING_FILES, SKILL_FILES};
-use crate::error::Result;
+use crate::error::{Error, Result};
 
 /// The folder name the tool skill installs under, inside each skills directory.
 pub const SKILL_NAME: &str = "athletic-standard";
@@ -33,25 +39,73 @@ pub const AGENT_DIRS: [&str; 5] = [".claude", ".cursor", ".codex", ".gemini", ".
 /// older than 0.4.0 wrote such a copy.
 pub const UNVERSIONED: &str = "unversioned";
 
-/// Whether a skill folder has a `SKILL.md`.
+/// Whether a skill folder has a `SKILL.md`. A coaching skill that is not
+/// installed is `available`: it is installed only when named (D229).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum SkillState {
     Installed,
     Missing,
+    Available,
 }
+
+/// What a shipped skill is for (D228).
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
+#[serde(rename_all = "lowercase")]
+pub enum SkillKind {
+    /// Reads and writes the record: `athletic-standard`.
+    Tool,
+    /// Produces one reproducible result.
+    Calculation,
+    /// Assesses, plans, adapts, and reviews training for one sport.
+    Coaching,
+}
+
+/// The SHA-256 of every calculation `SKILL.md` an earlier release shipped
+/// (D231). A copy with one of these hashes was never edited, so it is
+/// replaced by the current file. The 2.0.0, 2.1.0, and 2.1.1 files are the
+/// same; `tests/fixtures/calculations-2-1-1` keeps them.
+pub const PREVIOUSLY_SHIPPED_CALCULATIONS: &[(&str, &str)] = &[
+    ("baseline", "b89283be4e217b785b17b96c711dce4c17e660cdcff8a58838f9ad7e829f9e9f"),
+    ("compare-sources", "3977b56322124b91e95bf870deb8d2b6d3f2411b8545cd1336471787f5e55dff"),
+    ("correlation", "de7400002cdb901fa0b8a80af23e9e34d5ab21dab4c725cc15f99451d42c6b63"),
+    ("coverage", "7ad67f0d10864e7e433f10c585907a7b32b8fcabac255f3bed4826fb8f8b183a"),
+    ("heart-rate-recovery", "57041f7e55e3b4a8eaf2a0ec6b8db428cd9627b45c18c33cc9e95c289eb91821"),
+    ("heart-rate-zones", "bed7403c07bf94744209ef34d8bea1ad0014b356c20f90f0018898ba24f94b3a"),
+    ("hrv-change", "be5aab44fa83749598f95769eb7c3c17ed8f623b479c7cff843b52333e97754f"),
+    ("provider-period-summary", "8b53ee9f7aca520571440c3343d7ad39650865cf73f5e93f7b6fb4850048bc73"),
+    ("resting-heart-rate-change", "24ed1e2e9e1713d3bba8a3aaf9a22e457a8210af82cad1af4016a57673e450bc"),
+    ("resting-heart-rate", "7627646242280399a9cbf30a5613b046929465be62d66b43a83b0699374ff11c"),
+    ("sleep-change", "aa1c5c13ca166b26ad381b289b1924c0c197bfe7b3a13f9df9348a7da2372785"),
+    ("sleep-duration", "b011a83053e5e4ce9d364032969ad8b2939ba020a784a91ef1da25f4901f13fe"),
+    ("sleep-efficiency", "dbcfc7c38d4ae05fd7aa359def167cab37c2f1b0b758c35fd3a3796efe7f7a88"),
+    ("sleep-interruptions", "8b773b3993ee1e0f1aeaecf34b58173154a8a651832cfe8a1ffd79ebe12f481f"),
+    ("sleep-regularity", "e024d60251ec056a5950792d694d2ddc2a6bd2940f380013cf9e5d1bc30f14d7"),
+    ("sleep-stages", "87a3b4f9665e0e57b2789f0408591146db2b70ce298dcb7b9d18a85a1b122d2b"),
+    ("sleep-timing", "647226abf89181b4b06cf26df1b70440867ae7a4bf17c167426bec1708538853"),
+    ("strength-volume", "c06ff53d223b495d397cc50f09833f32653224a17e1f73297aea14165d53042b"),
+    ("summary", "282c7bc312aa36f469530788b7a502136c2afa1d9690741397079fbd3570744b"),
+    ("training-load-effort", "e99189a3a0fe5a095166cba9fbf9abf76e616b7f5ebaa080aa212b5ea3918cff"),
+    ("training-load-heart-rate", "7268d3a3ff249fa1a499cc355e867bff5dc9d00bbeeb85cfab7c44f3d87900a6"),
+    ("trend", "71f7027c3330336e2f18228d10e81ae0bb33919b00b540752d5e9562fdacf065"),
+    ("workout-drift", "0d5abf11d1ac2f50ae0566b0816a573581da97f4159b23e5c94584736450dfbf"),
+];
 
 /// One place a skill could be installed. `ath skill --json` lists these.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct SkillCopy {
     /// The installed folder, absolute when `cwd` was absolute.
     pub path: PathBuf,
+    pub kind: SkillKind,
     /// The version in the copy's frontmatter, or null when there is no copy.
     pub installed: Option<String>,
     /// The tool skill version this `ath` ships. Every copy reports the tool
     /// skill's version here, including calculation skills, as 2.1.0 did.
     pub shipped: String,
     pub state: SkillState,
+    /// A calculation copy that matches no shipped file: the person edited it,
+    /// so it is kept and runs its own method (D231).
+    pub edited: bool,
 }
 
 /// `ath skill --json`.
@@ -218,6 +272,43 @@ fn shipped_version_of(skill: &str) -> Option<String> {
     SKILL_FILES.iter().find(|file| file.path == wanted).map(|file| version_in(&String::from_utf8_lossy(file.bytes)))
 }
 
+/// The kind of a shipped skill: the tool skill by name, a coaching skill by
+/// `metadata.kind`, and otherwise a calculation.
+pub fn shipped_kind(name: &str) -> SkillKind {
+    if name == SKILL_NAME {
+        return SkillKind::Tool;
+    }
+    let wanted = format!("{name}/SKILL.md");
+    let kind = SKILL_FILES.iter().find(|file| file.path == wanted).and_then(|file| {
+        match read_frontmatter(&String::from_utf8_lossy(file.bytes)).get("metadata") {
+            Some(FrontmatterValue::Map(map)) => map.get("kind").cloned(),
+            _ => None,
+        }
+    });
+    match kind.as_deref() {
+        Some("coaching") => SkillKind::Coaching,
+        Some("tool") => SkillKind::Tool,
+        _ => SkillKind::Calculation,
+    }
+}
+
+fn sha256_hex(bytes: &[u8]) -> String {
+    Sha256::digest(bytes).iter().map(|byte| format!("{byte:02x}")).collect()
+}
+
+fn shipped_bytes(name: &str) -> Option<&'static [u8]> {
+    let wanted = format!("{name}/SKILL.md");
+    SKILL_FILES.iter().find(|file| file.path == wanted).map(|file| file.bytes)
+}
+
+/// True when an installed calculation `SKILL.md` matches no file this or an
+/// earlier release shipped.
+fn calculation_edited(name: &str, installed: &[u8]) -> bool {
+    let hash = sha256_hex(installed);
+    shipped_bytes(name) != Some(installed)
+        && !PREVIOUSLY_SHIPPED_CALCULATIONS.iter().any(|(skill, shipped)| *skill == name && *shipped == hash)
+}
+
 /// The tool skill version this `ath` ships.
 pub fn shipped_skill_version() -> String {
     shipped_version_of(SKILL_NAME).unwrap_or_else(|| UNVERSIONED.to_string())
@@ -296,9 +387,9 @@ fn write_file(destination: &Path, relative: &str, bytes: &[u8]) -> io::Result<()
     fs::write(target, bytes)
 }
 
-/// Replace the tool skill when an older copy is installed. A calculation
-/// skill is never passed here.
-fn replace_older_tool_skill(name: &str, destination: &Path) -> io::Result<bool> {
+/// Replace the tool skill or a coaching skill when an older copy is
+/// installed.
+fn replace_older_versioned_skill(name: &str, destination: &Path) -> io::Result<bool> {
     let installed = skill_version(destination)?;
     let shipped = shipped_version_of(name);
     let (Some(installed), Some(shipped)) = (installed, shipped) else {
@@ -307,6 +398,30 @@ fn replace_older_tool_skill(name: &str, destination: &Path) -> io::Result<bool> 
     if !version_is_older(&installed, &shipped) {
         return Ok(false);
     }
+    replace_folder(name, destination)?;
+    Ok(true)
+}
+
+/// Replace a calculation skill whose `SKILL.md` an earlier release shipped
+/// unchanged (D231).
+fn replace_unedited_calculation(name: &str, destination: &Path) -> io::Result<bool> {
+    let file = destination.join("SKILL.md");
+    if !file.exists() {
+        return Ok(false);
+    }
+    let installed = fs::read(&file)?;
+    let hash = sha256_hex(&installed);
+    let unedited_old = shipped_bytes(name) != Some(installed.as_slice())
+        && PREVIOUSLY_SHIPPED_CALCULATIONS.iter().any(|(skill, shipped)| *skill == name && *shipped == hash);
+    if !unedited_old {
+        return Ok(false);
+    }
+    replace_folder(name, destination)?;
+    Ok(true)
+}
+
+/// Remove a skill folder and write the shipped files in its place.
+fn replace_folder(name: &str, destination: &Path) -> io::Result<()> {
     match fs::remove_dir_all(destination) {
         Ok(()) => {}
         Err(error) if error.kind() == io::ErrorKind::NotFound => {}
@@ -316,7 +431,7 @@ fn replace_older_tool_skill(name: &str, destination: &Path) -> io::Result<bool> 
     for (relative, file) in files_of(name) {
         write_file(destination, relative, file.bytes)?;
     }
-    Ok(true)
+    Ok(())
 }
 
 /// Add the files of one shipped skill that are not in `destination` yet.
@@ -336,17 +451,52 @@ fn copy_missing_files(name: &str, destination: &Path) -> io::Result<usize> {
     Ok(added)
 }
 
-/// Copy skill files that are not already installed in `cwd`.
-///
-/// Returns the destination folders where at least one file was added or the
-/// tool skill was replaced.
+/// Install one shipped skill into one folder by its kind's rules. True when a
+/// file was added or the folder was replaced.
+fn install_one(name: &str, destination: &Path) -> io::Result<bool> {
+    fs::create_dir_all(destination)?;
+    let replaced = match shipped_kind(name) {
+        SkillKind::Tool | SkillKind::Coaching => replace_older_versioned_skill(name, destination)?,
+        SkillKind::Calculation => replace_unedited_calculation(name, destination)?,
+    };
+    Ok(replaced || copy_missing_files(name, destination)? > 0)
+}
+
+/// Install the tool skill and the calculation skills, and refresh any coaching
+/// skill that is already installed (D229). Returns the destination folders
+/// where a file was added or a folder was replaced.
 pub fn install_skill(cwd: &Path) -> Result<Vec<PathBuf>> {
     let mut written = Vec::new();
     for name in skill_names() {
+        let coaching = shipped_kind(name) == SkillKind::Coaching;
         for destination in skill_targets(cwd, name) {
-            fs::create_dir_all(&destination)?;
-            let replaced = name == SKILL_NAME && replace_older_tool_skill(name, &destination)?;
-            if replaced || copy_missing_files(name, &destination)? > 0 {
+            if coaching && !destination.join("SKILL.md").exists() {
+                continue;
+            }
+            if install_one(name, &destination)? {
+                written.push(destination);
+            }
+        }
+    }
+    Ok(written)
+}
+
+/// `ath skill install <name>...`: install the named shipped skills, of any
+/// kind, by the same rules. An unknown name installs nothing.
+pub fn install_named_skills(cwd: &Path, names: &[String]) -> Result<Vec<PathBuf>> {
+    let shipped = skill_names();
+    for name in names {
+        if !shipped.contains(&name.as_str()) {
+            return Err(Error::not_found(format!(
+                "no shipped skill named {name}. Shipped skills: {}",
+                shipped.join(", ")
+            )));
+        }
+    }
+    let mut written = Vec::new();
+    for name in names {
+        for destination in skill_targets(cwd, name) {
+            if install_one(name, &destination)? && !written.contains(&destination) {
                 written.push(destination);
             }
         }
@@ -378,15 +528,29 @@ pub fn install_skill_and_mappings(cwd: &Path) -> Result<SkillInstallResult> {
     Ok(SkillInstallResult { shipped: shipped_skill_version(), skill_installed, mappings_installed })
 }
 
+/// `ath skill install <name>...`: only the named skills; no mapping files.
+pub fn install_named(cwd: &Path, names: &[String]) -> Result<SkillInstallResult> {
+    let skill_installed = install_named_skills(cwd, names)?;
+    Ok(SkillInstallResult { shipped: shipped_skill_version(), skill_installed, mappings_installed: Vec::new() })
+}
+
 /// Each place a shipped skill could be in `cwd`, and whether a copy is there.
 pub fn skill_status(cwd: &Path) -> Result<Vec<SkillCopy>> {
     let shipped = shipped_skill_version();
     let mut copies = Vec::new();
     for name in skill_names() {
+        let kind = shipped_kind(name);
         for path in skill_targets(cwd, name) {
             let installed = skill_version(&path)?;
-            let state = if installed.is_some() { SkillState::Installed } else { SkillState::Missing };
-            copies.push(SkillCopy { path, installed, shipped: shipped.clone(), state });
+            let state = match (&installed, kind) {
+                (Some(_), _) => SkillState::Installed,
+                (None, SkillKind::Coaching) => SkillState::Available,
+                (None, _) => SkillState::Missing,
+            };
+            let edited = kind == SkillKind::Calculation
+                && installed.is_some()
+                && calculation_edited(name, &fs::read(path.join("SKILL.md"))?);
+            copies.push(SkillCopy { path, kind, installed, shipped: shipped.clone(), state, edited });
         }
     }
     Ok(copies)
@@ -400,7 +564,7 @@ pub fn skill_status_report(cwd: &Path) -> Result<SkillStatusReport> {
 /// True when any skill copy is installed in `cwd`. `ath --update` refreshes
 /// skills only then.
 pub fn skill_present(cwd: &Path) -> Result<bool> {
-    Ok(skill_status(cwd)?.iter().any(|copy| copy.state != SkillState::Missing))
+    Ok(skill_status(cwd)?.iter().any(|copy| copy.state == SkillState::Installed))
 }
 
 /// The one-line notice a command would print on standard error when an
@@ -424,9 +588,13 @@ pub fn render_skill_status(cwd: &Path, copies: &[SkillCopy]) -> String {
         let relative = path_text.get(cwd_text.len()..).unwrap_or("").trim_start_matches(['/', '\\']);
         let place = if relative.is_empty() { path_text.as_ref() } else { relative };
         let state = match (&copy.state, &copy.installed) {
+            (SkillState::Installed, Some(version)) if copy.edited => {
+                format!("installed ({version}), edited: kept, runs its own method")
+            }
             (SkillState::Installed, Some(version)) => format!("installed ({version})"),
             (SkillState::Installed, None) => "installed (null)".to_string(),
             (SkillState::Missing, _) => "missing".to_string(),
+            (SkillState::Available, _) => "available: coaching, installed only when named".to_string(),
         };
         let width = place.encode_utf16().count();
         let padding = " ".repeat(40usize.saturating_sub(width));
@@ -435,14 +603,26 @@ pub fn render_skill_status(cwd: &Path, copies: &[SkillCopy]) -> String {
     lines.push(String::new());
     if copies.iter().any(|copy| copy.state == SkillState::Missing) {
         lines.push(
-            "`ath skill install` adds skill files that are not already here, and replaces an older tool skill."
+            "`ath skill install` adds skill files that are not already here, replaces an older tool or coaching skill, and updates an unedited calculation skill."
                 .to_string(),
         );
     } else {
         lines.push(
-            "An older tool skill is replaced by `ath skill install`. A calculation skill that is already installed is left as it is."
+            "An older tool or coaching skill is replaced by `ath skill install`. An unedited calculation skill is updated; an edited one is left as it is."
                 .to_string(),
         );
+    }
+    let mut available: Vec<&str> = copies
+        .iter()
+        .filter(|copy| copy.state == SkillState::Available)
+        .filter_map(|copy| copy.path.file_name().and_then(|name| name.to_str()))
+        .collect();
+    available.dedup();
+    if !available.is_empty() {
+        lines.push(format!(
+            "Coaching skills are installed only when named, such as `ath skill install {}`.",
+            available.join(" ")
+        ));
     }
     lines.push(format!("{ALWAYS_DIR}/skills is read by Claude Code, Cursor, Codex, and Gemini CLI."));
     lines.join("\n")

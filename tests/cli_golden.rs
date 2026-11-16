@@ -279,6 +279,51 @@ fn without_2_1_2_apply_fields(text: &str) -> String {
         + if text.ends_with('\n') { "\n" } else { "" }
 }
 
+/// `ath skill` and `ath skill install` describe more in 2.1.2: each copy's
+/// kind, an edited flag, new skills, and coaching skills that are available
+/// (v2.1.2 cli-changes.md, changes 1 and 2). The recorded promises must still
+/// hold: every recorded folder is listed with the same state and version for
+/// the tool skill, and every folder recorded as written is written again.
+fn skill_promises_hold(actual: &str, expected: &str) -> bool {
+    if expected.trim_start().starts_with('{') {
+        let (Ok(actual), Ok(expected)) =
+            (serde_json::from_str::<Value>(actual), serde_json::from_str::<Value>(expected))
+        else {
+            return false;
+        };
+        if let Some(copies) = expected.get("copies").and_then(Value::as_array) {
+            return copies.iter().all(|copy| {
+                actual["copies"].as_array().into_iter().flatten().any(|other| {
+                    let tool = copy["path"].as_str().unwrap_or("").ends_with("/athletic-standard");
+                    other["path"] == copy["path"]
+                        && other["state"] == copy["state"]
+                        && (!tool || other["installed"] == copy["installed"])
+                })
+            });
+        }
+        let listed = |value: &Value, key: &str| -> Vec<String> {
+            value[key].as_array().into_iter().flatten().filter_map(|item| item.as_str().map(str::to_string)).collect()
+        };
+        let written = listed(&actual, "skill_installed");
+        return actual["shipped"] == expected["shipped"]
+            && listed(&expected, "skill_installed").iter().all(|path| written.contains(path))
+            && listed(&actual, "mappings_installed") == listed(&expected, "mappings_installed");
+    }
+    let state_of = |line: &str| -> Option<(String, String)> {
+        let trimmed = line.trim_start();
+        let (place, rest) = trimmed.split_once(' ')?;
+        (place.contains("/skills/"))
+            .then(|| (place.to_string(), rest.trim().split(' ').next().unwrap_or("").to_string()))
+    };
+    let actual_states: Vec<(String, String)> = actual.lines().filter_map(state_of).collect();
+    let actual_lines: Vec<&str> = actual.lines().collect();
+    expected.lines().all(|line| match state_of(line) {
+        Some(state) => actual_states.contains(&state),
+        None if line.starts_with("added ") || line.starts_with("agent skill, version") => actual_lines.contains(&line),
+        None => true,
+    })
+}
+
 /// `log` lists record data in published field order (deliberate-changes.md
 /// 25); 2.1.0 used the order its planner built. The lines must be the same,
 /// apart from the comma a reordered last field gains or loses.
@@ -623,6 +668,8 @@ fn compare_group(group: &str) -> Vec<String> {
             }
             let same_stdout = if argv.first().map(String::as_str) == Some("log") {
                 same_lines_in_any_order(&stdout, &expected_stdout)
+            } else if argv.first().map(String::as_str) == Some("skill") {
+                skill_promises_hold(&stdout, &expected_stdout)
             } else {
                 stdout == expected_stdout
             };

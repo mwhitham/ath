@@ -42,13 +42,33 @@ pub fn apply(store: &Store, calculation: &str, record_id: &str, working_director
     let file = crate::assets::resolve_calculation(calculation, working_directory)?;
     store.read_snapshot(|| {
         let record = record::stored_record(connection, record_id)?;
-        let parsed = CalculationFile::parse(&file.text)?;
+        let parsed =
+            CalculationFile::parse(&file.text).map_err(|error| coaching_refusal(&file.text).unwrap_or(error))?;
         if let OneRecordCalculation::Range(name) = &parsed.calculation {
             return Err(range_refusal(name));
         }
         crate::package::failpoint!("calculate.apply_after_target");
         record::apply_to(connection, &parsed, record)
     })
+}
+
+/// `ath apply` on a coaching skill: it gives advice, it does not calculate.
+fn coaching_refusal(text: &str) -> Option<crate::error::Error> {
+    use crate::assets::skill::{read_frontmatter, FrontmatterValue};
+    let frontmatter = read_frontmatter(text);
+    let Some(FrontmatterValue::Map(metadata)) = frontmatter.get("metadata") else {
+        return None;
+    };
+    if metadata.get("kind").map(String::as_str) != Some("coaching") {
+        return None;
+    }
+    let name = match frontmatter.get("name") {
+        Some(FrontmatterValue::Text(name)) => name.clone(),
+        _ => "this".to_string(),
+    };
+    Some(crate::error::Error::refused(format!(
+        "{name} is a coaching skill, not a calculation. An agent reads it to plan and review training; `ath apply` runs calculation skills."
+    )))
 }
 
 /// `ath apply` on a range calculation (D243): it needs a quantity and a
