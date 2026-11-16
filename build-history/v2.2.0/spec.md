@@ -322,8 +322,8 @@ gateway commands they are today.
 
 ## 2. What this pull stores
 
-D237 is the storage rule. D232 keeps these values in this pull. D233
-corrected source, time, and score direction. D234 corrects units, day
+This section is the storage rule, as D232 says. D232 keeps these values
+in this pull. D233 corrected source, time, and score direction. D234 corrects units, day
 windows, sleep bounds, identity encoding, reported records, and child
 withdrawal. D235 corrects the root record type, numberless calculation
 inputs, recovery scales, required ids, workout provenance, hydration,

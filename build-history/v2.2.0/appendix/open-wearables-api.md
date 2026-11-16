@@ -205,8 +205,8 @@ route files. A limit may still exist in middleware this study did not open.
 
 The same commit, `183e8cc4f6de897dbd288c93d49a691f2cf721ae`, was read again
 for every user data route. The OpenAPI file is `docs/openapi.json`,
-`info.version` `0.11.0`. The storage rule is D237. This section records
-what the source shows.
+`info.version` `0.11.0`. The storage rule is section 2 of the
+specification, as D232 says. This section records what the source shows.
 
 `SeriesType` is the enum in `backend/app/schemas/enums/series_types.py`.
 Each entry in `SERIES_TYPE_DEFINITIONS` is an id, a name, and a unit.
@@ -258,8 +258,9 @@ listed rows. The personal-record response fields are `birth_date`,
 ## Contract read on 7 November 2026
 
 The same commit was read again for the summary, score, meal, cycle, body,
-and personal-record contracts. D237 is the storage rule. This section
-records the source facts that rule uses. `SERIES_TYPE_DEFINITIONS` has 141
+and personal-record contracts. The storage rule is section 2 of the
+specification, as D232 says. This section records the source facts that
+rule uses. `SERIES_TYPE_DEFINITIONS` has 141
 entries.
 
 Raw rows keep the 2.1.0 kind when the mapping already names one. Those
@@ -268,7 +269,8 @@ series are `heart_rate_variability_rmssd`, `heart_rate_variability_sdnn`,
 `oxygen_saturation`, `heart_rate_recovery_one_minute`, `vo2_max`,
 `garmin_stress_level`, and `garmin_body_battery`.
 
-The table below is the mapping for all 141 series. D237 is the storage rule.
+The table below is the mapping for all 141 series. The storage rule is
+section 2 of the specification.
 `input_value` and the input unit are the server's number and unit.
 `standard_value` equals `input_value` except where the conversion is
 `divide by 100`. A day row uses the day record in the last column. It is
