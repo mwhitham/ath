@@ -1370,4 +1370,3 @@ Rejected alternatives:
   would block every Garmin page, and the person would lose those workouts.
 - Drop a credential-shaped field without a marker. Rejected. The stored
   original would not show that a value was removed.
-
