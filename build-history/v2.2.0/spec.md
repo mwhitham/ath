@@ -69,7 +69,8 @@ committed result is the text of `--yes` without `--json`. A writing JSON
 report would be a different choice. It is not this proposal.
 
 Preview text, and every `--json` result, labels counts `estimated`. That
-includes every vendor count and both owner-correction counts in section 2.
+includes every vendor count, and the owner-correction and merge-choice
+counts, in section 2.
 Each page is previewed against the database as it was before this command. A
 preview writes nothing. A match key that appears on two pages, or a server that changes
 between the preview and `--yes`, can make the estimate differ from the
@@ -207,6 +208,7 @@ the text. The object has no key, server, user id, or request path.
   "left_out": { "total": 0, "by_reason": {}, "examples": [], "shortened": false },
   "withheld": { "total": 0, "paths": [], "shortened": false },
   "estimated_owner_corrections_replaced": 0,
+  "estimated_merge_choices_replaced": 0,
   "vendor_workouts": {
     "requested": false,
     "requests_made": false,
@@ -225,6 +227,7 @@ the text. The object has no key, server, user id, or request path.
         "limit": "not requested",
         "estimated": {
           "owner_corrections_replaced": 0,
+          "merge_choices_replaced": 0,
           "details": {
             "would_detail": 0,
             "kept": 0,
@@ -261,14 +264,19 @@ The top-level `estimated_owner_corrections_replaced` counts owner
 corrections of stored records that the stored pages would replace, by the
 owner-correction rule in section 2. Each provider's
 `estimated.owner_corrections_replaced` counts its vendor originals. Both
-are estimates, and their keys say so. When a provider's count is above
-zero, the preview prints `estimated: would replace N owner corrections;
-delete an original to keep it` on that provider's line. When the top-level
-count is above zero, it prints `estimated: would replace N owner
-corrections of stored records because the server's data changed`. After
-`--yes` the same lines say `replaced N owner corrections`, without
-`estimated`, and that each correction stays in the record's history. The
-text uses the singular when N is 1.
+are estimates, and their keys say so. Beside each,
+`estimated_merge_choices_replaced` and `estimated.merge_choices_replaced`
+count the part of it that were merge choices. A merge choice is a
+conflict the person resolved in a package merge, as section 2 says. When
+a provider's count is above zero, the preview prints `estimated: would
+replace N owner corrections; delete an original to keep it` on that
+provider's line. When the top-level count is above zero, it prints
+`estimated: would replace N owner corrections of stored records because
+the server's data changed`. When some were merge choices, each line adds
+`(M of them merge choices)` after `owner corrections`. After `--yes` the
+same lines say `replaced N owner corrections`, without `estimated`, and
+that each correction stays in the record's history. The text uses the
+singular when N or M is 1.
 
 Every vendor count in a preview is under an `estimated` key:
 `vendor_workouts.estimated.originals`, and each provider's `estimated`
@@ -288,8 +296,9 @@ outcome. A preview does not say a snapshot was stored.
 
 The command returns a different outcome for `--yes` without `--json`. That
 outcome has the actual `committed` counts, the actual `archive_committed`
-counts, the actual `owner_corrections_replaced` counts, the actual
-vendor counts with `stored` in place of `would_detail`,
+counts, the actual `owner_corrections_replaced` and
+`merge_choices_replaced` counts, the actual vendor counts with `stored`
+in place of `would_detail`,
 `database_changed`, `protected_write`, `archive`,
 `range_complete`, and `snapshots_complete`. `committed` counts protected
 records only. `archive_committed` counts archive records only, including
@@ -861,16 +870,24 @@ of that page.
 An owner correction is kept until the server's data changes. This rule
 is new in 2.2.0. It covers every record on route `open_wearables`, from a
 pull or from `ath import --mapping open-wearables`. Every other route
-keeps D182 as it is. An import writes each revision with basis
+keeps D182 as it is. That scope is the plan's default, and the maintainer
+still has to confirm it (section 10). An import writes each revision with basis
 `provider_import`. The basis is the revision column
 `record_revisions.became_known_at_basis`, which says how that revision
 became known. The rule reads that column, not `changed_by`. An import's
 `changed_by` is the tool actor `ath`. `ath grade` writes that same actor
 when it corrects a link, with basis `local_write`, in
 `src/prediction/grade.rs`. So `changed_by` cannot tell an import from
-another write. A revision with any other basis is an owner
-correction here: `ath correct`, a protocol write, and an accepted package merge write
-other bases. A native restore copies each revision's basis, so a restored
+another write. A revision with any other basis is an owner correction
+here. `ath correct` writes basis `local_write`, and a protocol write uses
+the basis its caller gives. A package merge copies the package's
+revisions with their own bases, in `merge_in` in
+`src/package/restore.rs`. So a record merged without a conflict keeps its
+import revisions as imports. Only a conflict the person resolved in the
+merge writes a new revision, in `resolve_in`, with basis `package_merge`
+and the athlete as actor. That revision is a merge choice. It counts as
+an owner correction, and the counts in section 1 also name it as a merge
+choice. A native restore copies each revision's basis, so a restored
 database keeps the same answer. When a page's candidate names a stored
 record by its import key, and that record is not deleted:
 
@@ -882,9 +899,18 @@ record by its import key, and that record is not deleted:
    Equal means the server has not changed that record since an import last
    wrote it. Nothing is written, and the correction stays current.
    Different means the server's data changed. The candidate replaces the
-   correction, and that counts as one `owner_corrections_replaced`. The
-   correction stays in the record's history. A record with no
-   `provider_import` revision is replaced and counted the same way.
+   correction, and that counts as one `owner_corrections_replaced`. When
+   the correction was a merge choice, it also counts as one
+   `merge_choices_replaced`. The correction stays in the record's
+   history. A record with no `provider_import` revision is replaced and
+   counted the same way.
+
+Body-snapshot records rarely keep a correction. The server averages heart
+rate and HRV over a window that ends at the request, 7 days and 4 hours
+by default, and the body records' match keys have no date. So the
+snapshot almost always differs from the last pull. A correction of the
+snapshot's original, or of a value the server averages, is replaced on
+almost every pull, and the count shows it.
 
 The comparison is the 2.1.1 comparison, with the compared revision's
 `received_at`. Section 4 withholds credential values before the candidate
@@ -1578,6 +1604,8 @@ preview they are estimates under `estimated`, as section 1 says.
 - `owner_corrections_replaced`: owner corrections that this page replaces,
   by the owner-correction rule above. Each is also counted as a changed
   original.
+- `merge_choices_replaced`: the part of `owner_corrections_replaced`
+  that were merge choices.
 - `details`: `stored`, which a preview calls `would_detail`, `kept`,
   `deferred`, `failed`, `mismatch`, `thinner`, `not_available`,
   `too_large`, and `refused`.
@@ -2720,10 +2748,19 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   test reads the basis from `record_revisions.became_known_at_basis`. A
   revision whose `changed_by` is the tool actor `ath` and whose basis is
   `local_write` counts as an owner correction
-- a record whose current revision came from an accepted package merge is
-  an owner correction. A native export and restore keeps every revision's
-  basis, so the same pull reports the same counts before and after the
-  restore
+- a package merge of two sleep sessions. The first had no conflict, and
+  its merged revision keeps basis `provider_import`, so a pull whose
+  session changed replaces it with no owner-correction count. The person
+  resolved a conflict on the second, so its current revision has basis
+  `package_merge`. A pull whose session changed replaces it, and both
+  `estimated_owner_corrections_replaced` and
+  `estimated_merge_choices_replaced` are 1. The preview line adds `(1 of
+  them a merge choice)`. A native export and restore keeps every
+  revision's basis, so the same pull reports the same counts before and
+  after the restore
+- a body snapshot whose owner corrected its original, pulled again after
+  the server's averaging window moved, replaces the correction and counts
+  1 `estimated_owner_corrections_replaced`
 - without `--vendor-workouts`, preview and `--json` make zero requests to
   the connections route and to both workout routes. `requests_made` is
   false, `notice` is empty, and every live line is `not_attempted`. With
@@ -2739,8 +2776,9 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   twice. A Strava preview then `--yes` sends two list calls and at most 20
   detail calls
 - `--vendor-workouts --json` with three new Polar ids writes nothing, and
-  the fixture server sees no detail request. Every vendor count and both
-  owner-correction counts are under a key named `estimated`. Polar's
+  the fixture server sees no detail request. Every vendor count, and the
+  owner-correction and merge-choice counts, are under a key named
+  `estimated`. Polar's
   `would_detail` is 3, and no key that means stored is above zero.
   `notice` holds the line that the preview made no detail calls. The text
   preview prints that line, and its Polar line contains `estimated`.
@@ -2925,10 +2963,12 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   and makes the provider `incomplete`. In every vendor test, each listed
   object is in exactly one detail count or one left-out count
 - `--json` includes `vendor_workouts.requested`, `requests_made`,
-  `notice`, `estimated.originals`, and each provider's `status`,
-  `connection_status`, `covers_requested_range`, `more`, `limit`, and
-  `estimated` with `owner_corrections_replaced`, `details`, and
-  `left_out`
+  `notice`, `used_bytes`, `bound_bytes`, `estimated.originals`, and each
+  provider's `status`, `connection_status`, `covers_requested_range`,
+  `more`, `limit`, and `estimated` with `owner_corrections_replaced`,
+  `merge_choices_replaced`, `details`, and `left_out`. The top level has
+  `estimated_owner_corrections_replaced` and
+  `estimated_merge_choices_replaced`
 
 Migration tests, in the build gate:
 
@@ -3135,6 +3175,11 @@ Risks:
   the record stops later pulls from changing it, and it also takes the
   record out of current data. This rule covers every record on route
   `open_wearables`, not only vendor originals. Other routes keep D182.
+  That scope is the stated default, and the maintainer still has to
+  confirm it. A conflict the person resolved in a package merge counts as
+  an owner correction, and the counts name it as a merge choice. A
+  body-snapshot correction rarely survives, because the server's
+  averaging window moves with every request.
 - A deferred id that the provider stops listing is never detailed. Its
   list object stays stored, and the deferred count shows that it waits.
 - Vendor originals share the main package document and its 512 MiB read

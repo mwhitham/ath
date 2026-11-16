@@ -193,6 +193,14 @@ number is added:
   `record_revisions.became_known_at_basis`, not `changed_by`, because
   `ath grade` writes the same tool actor as an import.
 - D243. The Suunto list cap is named `MAX_SUUNTO_LIST_REQUESTS`.
+- D242. A package merge counts as an owner correction only where the
+  person resolved a conflict, because `merge_in` copies the package's
+  revisions with their own bases. The counts name that part
+  `merge_choices_replaced`, and the line adds `(M of them merge
+  choices)`. Body-snapshot records rarely keep a correction, because the
+  server's averaging window moves with every request. The rule still
+  covers every record the `open_wearables` pull writes, and other routes
+  keep D182. The maintainer still has to confirm that scope.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -1367,16 +1375,32 @@ would replace N owner corrections; delete an original to keep it`. The
 correction stays in the history. The rule covers every record on that
 route, so a workout fix on the stored session also survives a pull of
 unchanged data. For that route it supersedes the D182 sentence that a
-mapped import replaces a changed object. Other routes keep D182. The
-stored-original read in D243 uses the same import revision, so an owner's
-edit does not trigger a detail call. The skill says that a workout fix
-belongs on the session or in a note, not on the vendor original.
-Deleting an original keeps the person's version in its history and stops
-every later pull from changing it.
+mapped import replaces a changed object. Other routes keep D182. That
+scope is the stated default, and the maintainer still has to confirm it.
+The stored-original read in D243 uses the same import revision, so an
+owner's edit does not trigger a detail call. The skill says that a
+workout fix belongs on the session or in a note, not on the vendor
+original. Deleting an original keeps the person's version in its history
+and stops every later pull from changing it.
+
+A package merge counts as an owner correction only where the person
+resolved a conflict. `merge_in` in `src/package/restore.rs` copies the
+package's revisions with their own bases, so a record merged without a
+conflict keeps its import revisions as imports. `resolve_in` writes a
+conflict the person resolved as a new revision with basis
+`package_merge` and the athlete as actor. That is the person's choice,
+so the rule keeps it as it keeps an edit. The counts name it accurately:
+`merge_choices_replaced` is the part of `owner_corrections_replaced` that
+were merge choices, and the line adds `(M of them merge choices)`.
+
+Body-snapshot records rarely keep a correction. The server averages
+heart rate and HRV over a window that ends at the request, and the body
+records' match keys have no date, so the snapshot almost always differs
+from the last pull. The count shows each replacement.
 
 Each provider's line counts originals as new, changed, and unchanged. It
-counts owner corrections replaced, details by outcome, objects left out
-by reason, and withheld values.
+counts owner corrections replaced, with the merge choices among them,
+details by outcome, objects left out by reason, and withheld values.
 
 Vendor originals have a total size bound, `MAX_VENDOR_ORIGINAL_BYTES`. It
 is half of the 512 MiB package read cap, 256 MiB, counted in the bytes
@@ -1455,6 +1479,12 @@ Rejected alternatives:
   pull. The maintainer can narrow it before approval.
 - Use the rule on every mapped route. Not chosen for this release. Other
   routes import a file the person chose, and D182 stays their rule.
+- Treat a `package_merge` revision as an import. Rejected. It is a
+  conflict the person resolved, and a pull of changed data would replace
+  that choice with no count.
+- Count merge choices only as owner corrections. Rejected. The line would
+  name an edit the person never made, so the counts name merge choices
+  as their own part.
 
 ## D243. A live vendor read is opt-in, and one failure stays on that provider
 
@@ -1470,9 +1500,10 @@ procedure.
 `--vendor-workouts` is off unless the person passes it. Off, preview and
 `--json` call neither the connections route nor a live workout route.
 On, a preview reads the connections list and each active provider's list,
-and it makes no detail call. Every vendor count it prints, and both
-owner-correction counts, are labeled `estimated`, in the text and in
-`--json`. The count of ids `--yes` would detail is `would_detail`. The
+and it makes no detail call. Every vendor count it prints, and the
+owner-correction and merge-choice counts, are labeled `estimated`, in
+the text and in `--json`. The count of ids `--yes` would detail is
+`would_detail`. The
 preview says that it made no detail calls, so detail failures, size
 limits, and refusals are only known after `--yes`. The preview writes
 nothing in this database and prints `vendor requests were made`.
