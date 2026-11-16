@@ -1,0 +1,197 @@
+{
+  "schema": "BecameKnownAtBasis",
+  "cases": [
+    {
+      "name": "valid:local_write",
+      "input": "local_write",
+      "valid": true,
+      "output": "local_write",
+      "issues": []
+    },
+    {
+      "name": "valid:provider_import",
+      "input": "provider_import",
+      "valid": true,
+      "output": "provider_import",
+      "issues": []
+    },
+    {
+      "name": "valid:package_restore",
+      "input": "package_restore",
+      "valid": true,
+      "output": "package_restore",
+      "issues": []
+    },
+    {
+      "name": "valid:package_merge",
+      "input": "package_merge",
+      "valid": true,
+      "output": "package_merge",
+      "issues": []
+    },
+    {
+      "name": "invalid:unknown",
+      "input": "__not_an_option__",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"local_write\"|\"provider_import\"|\"package_restore\"|\"package_merge\"",
+          "values": [
+            "local_write",
+            "provider_import",
+            "package_restore",
+            "package_merge"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:empty",
+      "input": "",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"local_write\"|\"provider_import\"|\"package_restore\"|\"package_merge\"",
+          "values": [
+            "local_write",
+            "provider_import",
+            "package_restore",
+            "package_merge"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:uppercase",
+      "input": "LOCAL_WRITE",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"local_write\"|\"provider_import\"|\"package_restore\"|\"package_merge\"",
+          "values": [
+            "local_write",
+            "provider_import",
+            "package_restore",
+            "package_merge"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:leading_space",
+      "input": " local_write",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"local_write\"|\"provider_import\"|\"package_restore\"|\"package_merge\"",
+          "values": [
+            "local_write",
+            "provider_import",
+            "package_restore",
+            "package_merge"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:trailing_space",
+      "input": "local_write ",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"local_write\"|\"provider_import\"|\"package_restore\"|\"package_merge\"",
+          "values": [
+            "local_write",
+            "provider_import",
+            "package_restore",
+            "package_merge"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:number",
+      "input": 1,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"local_write\"|\"provider_import\"|\"package_restore\"|\"package_merge\"",
+          "values": [
+            "local_write",
+            "provider_import",
+            "package_restore",
+            "package_merge"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"local_write\"|\"provider_import\"|\"package_restore\"|\"package_merge\"",
+          "values": [
+            "local_write",
+            "provider_import",
+            "package_restore",
+            "package_merge"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:array",
+      "input": [
+        "local_write"
+      ],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"local_write\"|\"provider_import\"|\"package_restore\"|\"package_merge\"",
+          "values": [
+            "local_write",
+            "provider_import",
+            "package_restore",
+            "package_merge"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:object",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"local_write\"|\"provider_import\"|\"package_restore\"|\"package_merge\"",
+          "values": [
+            "local_write",
+            "provider_import",
+            "package_restore",
+            "package_merge"
+          ]
+        }
+      ]
+    }
+  ]
+}

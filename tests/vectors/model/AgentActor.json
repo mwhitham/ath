@@ -1,0 +1,344 @@
+{
+  "schema": "AgentActor",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "author_type": "agent",
+        "agent": "reference-agent"
+      },
+      "valid": true,
+      "output": {
+        "author_type": "agent",
+        "agent": "reference-agent"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "author_type": "agent",
+        "agent": "reference-agent",
+        "agent_version": "2.1.0"
+      },
+      "valid": true,
+      "output": {
+        "author_type": "agent",
+        "agent": "reference-agent",
+        "agent_version": "2.1.0"
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "author_type": "agent",
+        "agent": "reference-agent",
+        "agent_version": "2.1.0",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "author_type:missing",
+      "input": {
+        "agent": "reference-agent"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "author_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"agent\"",
+          "values": [
+            "agent"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "author_type:null",
+      "input": {
+        "author_type": null,
+        "agent": "reference-agent"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "author_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"agent\"",
+          "values": [
+            "agent"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "author_type:literal_other",
+      "input": {
+        "author_type": "__other__",
+        "agent": "reference-agent"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "author_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"agent\"",
+          "values": [
+            "agent"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "author_type:wrong_type=number",
+      "input": {
+        "author_type": 1,
+        "agent": "reference-agent"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "author_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"agent\"",
+          "values": [
+            "agent"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "agent:missing",
+      "input": {
+        "author_type": "agent"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "agent"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "agent:null",
+      "input": {
+        "author_type": "agent",
+        "agent": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "agent"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "agent:wrong_type=number",
+      "input": {
+        "author_type": "agent",
+        "agent": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "agent"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "agent:empty_string",
+      "input": {
+        "author_type": "agent",
+        "agent": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "agent"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "agent_version:null",
+      "input": {
+        "author_type": "agent",
+        "agent": "reference-agent",
+        "agent_version": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "agent_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "agent_version:wrong_type=number",
+      "input": {
+        "author_type": "agent",
+        "agent": "reference-agent",
+        "agent_version": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "agent_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "agent_version:empty_string",
+      "input": {
+        "author_type": "agent",
+        "agent": "reference-agent",
+        "agent_version": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "agent_version"
+          ],
+          "code": "invalid_format",
+          "message": "semantic version",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$/"
+        }
+      ]
+    },
+    {
+      "name": "agent_version:format=not_valid",
+      "input": {
+        "author_type": "agent",
+        "agent": "reference-agent",
+        "agent_version": "not valid"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "agent_version"
+          ],
+          "code": "invalid_format",
+          "message": "semantic version",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$/"
+        }
+      ]
+    },
+    {
+      "name": "extra:model_not_allowed_on_actor",
+      "input": {
+        "author_type": "agent",
+        "agent": "reference-agent",
+        "agent_version": "2.1.0",
+        "model": "example-model"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"model\"",
+          "keys": [
+            "model"
+          ]
+        }
+      ]
+    }
+  ]
+}

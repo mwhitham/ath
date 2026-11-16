@@ -1,0 +1,294 @@
+{
+  "schema": "RecordRevisionNumber",
+  "cases": [
+    {
+      "name": "valid:1",
+      "input": 1,
+      "valid": true,
+      "output": 1,
+      "issues": []
+    },
+    {
+      "name": "valid:2",
+      "input": 2,
+      "valid": true,
+      "output": 2,
+      "issues": []
+    },
+    {
+      "name": "valid:max_safe_integer",
+      "input": 9007199254740991,
+      "valid": true,
+      "output": 9007199254740991,
+      "issues": []
+    },
+    {
+      "name": "valid:integer_valued_exponent",
+      "input": 1000000000000000,
+      "valid": true,
+      "output": 1000000000000000,
+      "issues": []
+    },
+    {
+      "name": "invalid:0",
+      "input": 0,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "invalid:-1",
+      "input": -1,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "invalid:1.5",
+      "input": 1.5,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "invalid:2^53",
+      "input": 9007199254740992,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "invalid:1e21",
+      "input": 1e+21,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "invalid:-2^53",
+      "input": -9007199254740992,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "too_small",
+          "message": "Too small: expected int to be >=-9007199254740991",
+          "inclusive": true,
+          "minimum": -9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "invalid:5e-324",
+      "input": 5e-324,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "text:1.0",
+      "input_text": "1.0",
+      "input": 1,
+      "valid": true,
+      "output": 1,
+      "issues": []
+    },
+    {
+      "name": "text:1E0",
+      "input_text": "1E0",
+      "input": 1,
+      "valid": true,
+      "output": 1,
+      "issues": []
+    },
+    {
+      "name": "text:10e-1",
+      "input_text": "10e-1",
+      "input": 1,
+      "valid": true,
+      "output": 1,
+      "issues": []
+    },
+    {
+      "name": "text:2.0000000000000001_rounds_to_2",
+      "input_text": "2.0000000000000001",
+      "input": 2,
+      "valid": true,
+      "output": 2,
+      "issues": []
+    },
+    {
+      "name": "text:-0",
+      "input_text": "-0",
+      "input": 0,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "text:9007199254740993",
+      "input_text": "9007199254740993",
+      "input": 9007199254740992,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "text:1e400",
+      "input_text": "1e400",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:string",
+      "input": "1",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:boolean",
+      "input": true,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received boolean",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:array",
+      "input": [
+        1
+      ],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received array",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:object",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received object",
+          "expected": "number"
+        }
+      ]
+    }
+  ]
+}

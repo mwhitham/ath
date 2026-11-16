@@ -1,0 +1,2361 @@
+{
+  "schema": "AthleteReportData",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text"
+      },
+      "valid": true,
+      "output": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": true,
+      "output": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ],
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "report_type:missing",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "report_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"sleep_quality\"|\"soreness\"|\"stress\"|\"mood\"|\"energy\"|\"note\"",
+          "values": [
+            "sleep_quality",
+            "soreness",
+            "stress",
+            "mood",
+            "energy",
+            "note"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "report_type:null",
+      "input": {
+        "report_type": null,
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "report_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"sleep_quality\"|\"soreness\"|\"stress\"|\"mood\"|\"energy\"|\"note\"",
+          "values": [
+            "sleep_quality",
+            "soreness",
+            "stress",
+            "mood",
+            "energy",
+            "note"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "report_type:wrong_type=number",
+      "input": {
+        "report_type": 1,
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "report_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"sleep_quality\"|\"soreness\"|\"stress\"|\"mood\"|\"energy\"|\"note\"",
+          "values": [
+            "sleep_quality",
+            "soreness",
+            "stress",
+            "mood",
+            "energy",
+            "note"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "report_type:enum_invalid",
+      "input": {
+        "report_type": "__not_an_option__",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "report_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"sleep_quality\"|\"soreness\"|\"stress\"|\"mood\"|\"energy\"|\"note\"",
+          "values": [
+            "sleep_quality",
+            "soreness",
+            "stress",
+            "mood",
+            "energy",
+            "note"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "report_type:empty_string",
+      "input": {
+        "report_type": "",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "report_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"sleep_quality\"|\"soreness\"|\"stress\"|\"mood\"|\"energy\"|\"note\"",
+          "values": [
+            "sleep_quality",
+            "soreness",
+            "stress",
+            "mood",
+            "energy",
+            "note"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "report_type:enum_uppercase",
+      "input": {
+        "report_type": "SLEEP_QUALITY",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "report_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"sleep_quality\"|\"soreness\"|\"stress\"|\"mood\"|\"energy\"|\"note\"",
+          "values": [
+            "sleep_quality",
+            "soreness",
+            "stress",
+            "mood",
+            "energy",
+            "note"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reported_at:missing",
+      "input": {
+        "report_type": "note",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "reported_at:null",
+      "input": {
+        "report_type": "note",
+        "reported_at": null,
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "reported_at:wrong_type=number",
+      "input": {
+        "report_type": "note",
+        "reported_at": 1,
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "reported_at:empty_string",
+      "input": {
+        "report_type": "note",
+        "reported_at": "",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "reported_at:format=no_milliseconds",
+      "input": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "reported_at:format=offset",
+      "input": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678+00:00",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "input_reported_at:missing",
+      "input": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "reported_via": "text"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_reported_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_reported_at:null",
+      "input": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": null,
+        "reported_via": "text"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_reported_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_reported_at:wrong_type=array",
+      "input": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": [],
+        "reported_via": "text"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_reported_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_reported_at:wrong_type=string",
+      "input": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": "x",
+        "reported_via": "text"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_reported_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_reported_at:empty_object",
+      "input": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {},
+        "reported_via": "text"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_reported_at",
+            "timestamp_missing_reason"
+          ],
+          "code": "custom",
+          "message": "A missing input timestamp needs a reason"
+        },
+        {
+          "path": [
+            "input_reported_at",
+            "utc_offset_missing_reason"
+          ],
+          "code": "custom",
+          "message": "A missing input UTC offset needs a reason"
+        }
+      ]
+    },
+    {
+      "name": "input_reported_at:nested_unknown_key",
+      "input": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source",
+          "unknown_nested": true
+        },
+        "reported_via": "text"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_reported_at"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reported_via:missing",
+      "input": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_via"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"text\"|\"voice\"|\"photo\"",
+          "values": [
+            "text",
+            "voice",
+            "photo"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reported_via:null",
+      "input": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_via"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"text\"|\"voice\"|\"photo\"",
+          "values": [
+            "text",
+            "voice",
+            "photo"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reported_via:wrong_type=number",
+      "input": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_via"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"text\"|\"voice\"|\"photo\"",
+          "values": [
+            "text",
+            "voice",
+            "photo"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reported_via:enum_invalid",
+      "input": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "__not_an_option__"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_via"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"text\"|\"voice\"|\"photo\"",
+          "values": [
+            "text",
+            "voice",
+            "photo"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reported_via:empty_string",
+      "input": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_via"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"text\"|\"voice\"|\"photo\"",
+          "values": [
+            "text",
+            "voice",
+            "photo"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reported_via:enum_uppercase",
+      "input": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "TEXT"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_via"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"text\"|\"voice\"|\"photo\"",
+          "values": [
+            "text",
+            "voice",
+            "photo"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rating:null",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": null,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "rating"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "rating:wrong_type=string",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": "1",
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "rating"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "rating:number=1e+308",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 1e+308,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": true,
+      "output": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 1e+308,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "rating:number=-1e+308",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": -1e+308,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": true,
+      "output": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": -1e+308,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "rating:number=-1.5",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": -1.5,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": true,
+      "output": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": -1.5,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "rating:number=0",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 0,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": true,
+      "output": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 0,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "rating:number=5e-324",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 5e-324,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": true,
+      "output": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 5e-324,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "rating:number_text=-0",
+      "input_text": "{\"report_type\":\"soreness\",\"reported_at\":\"2026-01-02T03:04:05.678Z\",\"input_reported_at\":{\"timestamp_text\":\"2026-01-01T21:04:05.678-06:00\",\"utc_offset_text\":\"-06:00\",\"utc_offset_meaning\":\"documented_recording_offset\",\"source_time_zone\":\"America/Chicago\",\"source_time_zone_meaning\":\"apple_health_object_creation_time_zone\",\"timestamp_basis\":\"source_offset_timestamp\"},\"reported_via\":\"voice\",\"rating\":-0,\"rating_scale\":\"0-10\",\"body_region\":\"left calf\",\"note\":\"Mild soreness after intervals.\",\"duration_seconds\":45,\"attachment_ids\":[\"01890f3e-e7d3-7cc0-88c8-00000000000e\"]}",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 0,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": true,
+      "output": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 0,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "rating:number_text=1e400",
+      "input_text": "{\"report_type\":\"soreness\",\"reported_at\":\"2026-01-02T03:04:05.678Z\",\"input_reported_at\":{\"timestamp_text\":\"2026-01-01T21:04:05.678-06:00\",\"utc_offset_text\":\"-06:00\",\"utc_offset_meaning\":\"documented_recording_offset\",\"source_time_zone\":\"America/Chicago\",\"source_time_zone_meaning\":\"apple_health_object_creation_time_zone\",\"timestamp_basis\":\"source_offset_timestamp\"},\"reported_via\":\"voice\",\"rating\":1e400,\"rating_scale\":\"0-10\",\"body_region\":\"left calf\",\"note\":\"Mild soreness after intervals.\",\"duration_seconds\":45,\"attachment_ids\":[\"01890f3e-e7d3-7cc0-88c8-00000000000e\"]}",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": null,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "rating"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "rating_scale:null",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": null,
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "rating_scale"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "rating_scale:wrong_type=number",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": 1,
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "rating_scale"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "rating_scale:empty_string",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "rating_scale"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "body_region:null",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": null,
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "body_region"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "body_region:wrong_type=number",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": 1,
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "body_region"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "body_region:empty_string",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "body_region"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "note:null",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": null,
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "note"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "note:wrong_type=number",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": 1,
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "note"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "note:empty_string",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "note"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "duration_seconds:null",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": null,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "duration_seconds"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "duration_seconds:wrong_type=string",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": "1",
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "duration_seconds"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "duration_seconds:number=-1",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": -1,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "duration_seconds"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "duration_seconds:number=0",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 0,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "duration_seconds"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "duration_seconds:number=1",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 1,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": true,
+      "output": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 1,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "duration_seconds:number=-0.5",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": -0.5,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "duration_seconds"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "duration_seconds:number=0.5",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 0.5,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": true,
+      "output": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 0.5,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "duration_seconds:number=5e-324",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 5e-324,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": true,
+      "output": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 5e-324,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "duration_seconds:number=-5e-324",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": -5e-324,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "duration_seconds"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "duration_seconds:number=1e+308",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 1e+308,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": true,
+      "output": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 1e+308,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "duration_seconds:number_text=-0",
+      "input_text": "{\"report_type\":\"soreness\",\"reported_at\":\"2026-01-02T03:04:05.678Z\",\"input_reported_at\":{\"timestamp_text\":\"2026-01-01T21:04:05.678-06:00\",\"utc_offset_text\":\"-06:00\",\"utc_offset_meaning\":\"documented_recording_offset\",\"source_time_zone\":\"America/Chicago\",\"source_time_zone_meaning\":\"apple_health_object_creation_time_zone\",\"timestamp_basis\":\"source_offset_timestamp\"},\"reported_via\":\"voice\",\"rating\":3,\"rating_scale\":\"0-10\",\"body_region\":\"left calf\",\"note\":\"Mild soreness after intervals.\",\"duration_seconds\":-0,\"attachment_ids\":[\"01890f3e-e7d3-7cc0-88c8-00000000000e\"]}",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 0,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "duration_seconds"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "duration_seconds:number_text=1e400",
+      "input_text": "{\"report_type\":\"soreness\",\"reported_at\":\"2026-01-02T03:04:05.678Z\",\"input_reported_at\":{\"timestamp_text\":\"2026-01-01T21:04:05.678-06:00\",\"utc_offset_text\":\"-06:00\",\"utc_offset_meaning\":\"documented_recording_offset\",\"source_time_zone\":\"America/Chicago\",\"source_time_zone_meaning\":\"apple_health_object_creation_time_zone\",\"timestamp_basis\":\"source_offset_timestamp\"},\"reported_via\":\"voice\",\"rating\":3,\"rating_scale\":\"0-10\",\"body_region\":\"left calf\",\"note\":\"Mild soreness after intervals.\",\"duration_seconds\":1e400,\"attachment_ids\":[\"01890f3e-e7d3-7cc0-88c8-00000000000e\"]}",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": null,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "duration_seconds"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "attachment_ids:null",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "attachment_ids"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received null",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "attachment_ids:wrong_type=object",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": {}
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "attachment_ids"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received object",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "attachment_ids:empty_array",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": []
+      },
+      "valid": true,
+      "output": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": []
+      },
+      "issues": []
+    },
+    {
+      "name": "attachment_ids:element[0]:wrong_type=number",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          1
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "attachment_ids",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "attachment_ids:element[0]:empty_string",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          ""
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "attachment_ids",
+            0
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "attachment_ids:element[1]:wrong_type=number",
+      "input": {
+        "report_type": "soreness",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "voice",
+        "rating": 3,
+        "rating_scale": "0-10",
+        "body_region": "left calf",
+        "note": "Mild soreness after intervals.",
+        "duration_seconds": 45,
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e",
+          1
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "attachment_ids",
+            1
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "two_tier:source_id_key_rejected",
+      "input": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"source_id\"",
+          "keys": [
+            "source_id"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rule:rating_without_scale",
+      "input": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "rating": 3
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "rating_scale"
+          ],
+          "code": "custom",
+          "message": "A rating needs its scale"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R25",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:rating_with_scale",
+      "input": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "rating": 3,
+        "rating_scale": "0-10"
+      },
+      "valid": true,
+      "output": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "rating": 3,
+        "rating_scale": "0-10"
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R25",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:scale_without_rating",
+      "input": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "rating_scale": "0-10"
+      },
+      "valid": true,
+      "output": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "rating_scale": "0-10"
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R25",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:negative_rating_allowed",
+      "input": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "rating": -2.5,
+        "rating_scale": "custom"
+      },
+      "valid": true,
+      "output": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "rating": -2.5,
+        "rating_scale": "custom"
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R25",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "order:empty_scale_still_runs_refinement",
+      "input": {
+        "report_type": "note",
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "rating": 3,
+        "rating_scale": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "rating_scale"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R25",
+          "expect": "satisfy"
+        }
+      ]
+    }
+  ]
+}

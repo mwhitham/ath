@@ -1,0 +1,20 @@
+Examples:
+
+  Predict Fran. Needs a gateway key in a bare terminal:
+    $ ath models
+    $ ath predict fran --model qwen/qwen3-235b-a22b
+
+  Save a usual model, then predict without naming it:
+    $ ath models --default openai/gpt-oss-120b
+    $ ath predict fran
+
+  Evidence for a harness, not a prediction. No key needed:
+    $ ath predict fran --json
+
+A prediction needs a model. In Claude Code, Cursor, or Codex the model
+is already there: pull evidence with --json, reason, write with
+`ath log`. In a bare terminal this command calls the model you chose,
+prints the number, and asks once before writing.
+
+--as-of hides everything after that day and does not write. Replaying
+the past is `ath backtest`.

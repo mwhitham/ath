@@ -1,0 +1,939 @@
+{
+  "schema": "CoachingNoteData",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "note": "Keep easy days easy."
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "note": "Keep easy days easy."
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Recovery",
+        "note": "Keep easy days easy.",
+        "applies_from": "2026-01-01",
+        "applies_to": "2026-03-31"
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Recovery",
+        "note": "Keep easy days easy.",
+        "applies_from": "2026-01-01",
+        "applies_to": "2026-03-31"
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Recovery",
+        "note": "Keep easy days easy.",
+        "applies_from": "2026-01-01",
+        "applies_to": "2026-03-31",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "authorship:missing",
+      "input": {
+        "note": "Keep easy days easy."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:null",
+      "input": {
+        "authorship": null,
+        "note": "Keep easy days easy."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:wrong_type=array",
+      "input": {
+        "authorship": [],
+        "note": "Keep easy days easy."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:wrong_type=string",
+      "input": {
+        "authorship": "x",
+        "note": "Keep easy days easy."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:empty_object",
+      "input": {
+        "authorship": {},
+        "note": "Keep easy days easy."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship",
+            "author"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        },
+        {
+          "path": [
+            "authorship",
+            "authored_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "authorship",
+            "evidence"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received undefined",
+          "expected": "array"
+        },
+        {
+          "path": [
+            "authorship",
+            "content_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        },
+        {
+          "path": [
+            "authorship",
+            "status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"draft\"|\"active\"|\"completed\"|\"superseded\"|\"cancelled\"",
+          "values": [
+            "draft",
+            "active",
+            "completed",
+            "superseded",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "authorship:nested_unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active",
+          "unknown_nested": true
+        },
+        "note": "Keep easy days easy."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "title:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": null,
+        "note": "Keep easy days easy.",
+        "applies_from": "2026-01-01",
+        "applies_to": "2026-03-31"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "title"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "title:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": 1,
+        "note": "Keep easy days easy.",
+        "applies_from": "2026-01-01",
+        "applies_to": "2026-03-31"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "title"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "title:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "",
+        "note": "Keep easy days easy.",
+        "applies_from": "2026-01-01",
+        "applies_to": "2026-03-31"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "title"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "note:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "note"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "note:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "note": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "note"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "note:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "note": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "note"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "note:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "note": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "note"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "applies_from:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Recovery",
+        "note": "Keep easy days easy.",
+        "applies_from": null,
+        "applies_to": "2026-03-31"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "applies_from"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "applies_from:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Recovery",
+        "note": "Keep easy days easy.",
+        "applies_from": 1,
+        "applies_to": "2026-03-31"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "applies_from"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "applies_from:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Recovery",
+        "note": "Keep easy days easy.",
+        "applies_from": "",
+        "applies_to": "2026-03-31"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "applies_from"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "applies_from:format=february_30",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Recovery",
+        "note": "Keep easy days easy.",
+        "applies_from": "2026-02-30",
+        "applies_to": "2026-03-31"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "applies_from"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "applies_from:format=datetime",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Recovery",
+        "note": "Keep easy days easy.",
+        "applies_from": "2026-01-02T03:04:05.678Z",
+        "applies_to": "2026-03-31"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "applies_from"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "applies_to:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Recovery",
+        "note": "Keep easy days easy.",
+        "applies_from": "2026-01-01",
+        "applies_to": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "applies_to"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "applies_to:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Recovery",
+        "note": "Keep easy days easy.",
+        "applies_from": "2026-01-01",
+        "applies_to": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "applies_to"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "applies_to:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Recovery",
+        "note": "Keep easy days easy.",
+        "applies_from": "2026-01-01",
+        "applies_to": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "applies_to"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "applies_to:format=february_30",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Recovery",
+        "note": "Keep easy days easy.",
+        "applies_from": "2026-01-01",
+        "applies_to": "2026-02-30"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "applies_to"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "applies_to:format=datetime",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Recovery",
+        "note": "Keep easy days easy.",
+        "applies_from": "2026-01-01",
+        "applies_to": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "applies_to"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    }
+  ]
+}

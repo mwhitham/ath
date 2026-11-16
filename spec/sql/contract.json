@@ -1,6 +1,6 @@
 {
   "contract": "athleticstandard-sql",
-  "sql_schema_version": 4,
+  "sql_schema_version": 5,
   "minimum_sqlite_version": "3.45.0",
   "user_version_mirror": {
     "description": "On local SQLite files, PRAGMA user_version equals database_metadata.sql_schema_version after creation.",
@@ -36,6 +36,11 @@
       "version": 4,
       "file": "migrations/004-version-2-1.sql",
       "description": "Upgrade the database to software version 2.1.0. No column is added. Records written before this step stay as they are."
+    },
+    {
+      "version": 5,
+      "file": "migrations/005-version-2-1-1.sql",
+      "description": "Upgrade the database to software version 2.1.1. No athlete-owned column changes. Adds internal recovery state for attachment file changes."
     }
   ],
   "metadata_insert": {
@@ -46,7 +51,7 @@
     ],
     "header_pragmas": [
       "PRAGMA application_id = 1096042545;",
-      "PRAGMA user_version = 4;"
+      "PRAGMA user_version = 5;"
     ]
   },
   "file_header_pragmas": {
@@ -181,8 +186,15 @@
   "internal_tables": [
     "database_metadata",
     "record_erasure_markers",
-    "record_import_keys"
+    "record_import_keys",
+    "internal_pending_file_operations"
   ],
+  "internal_table_notes": {
+    "database_metadata": "Written once at creation and by each migration step. Holds the application marker, versions, database ID, and creation time.",
+    "record_erasure_markers": "Written only by privacy erasure. Holds the value-free markers an erasure leaves.",
+    "record_import_keys": "Written only by provider import. Holds provider matching keys, which are separate from record IDs.",
+    "internal_pending_file_operations": "Written only by the ath program, from SQL schema 5. Holds recovery state for attachment files that a SQL transaction cannot include: operation IDs, kinds, relative paths, and times. It holds no health values. It is not athlete-owned history and is never exported in a JSON package. Direct writers must not write it."
+  },
   "collection_replacement": {
     "description": "On every create or correction, ordered child collections and link tables are replaced from the full payload. Delete existing child rows for the parent record_id, then insert the payload order. Omitted children are removed. An empty collection deletes all prior child rows.",
     "tables": [

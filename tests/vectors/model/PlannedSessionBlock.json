@@ -1,0 +1,1568 @@
+{
+  "schema": "PlannedSessionBlock",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m"
+      },
+      "valid": true,
+      "output": {
+        "block_type": "main",
+        "title": "6 x 400 m"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": true,
+      "output": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20,
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "block_type:missing",
+      "input": {
+        "title": "6 x 400 m"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "block_type"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "block_type:null",
+      "input": {
+        "block_type": null,
+        "title": "6 x 400 m"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "block_type"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "block_type:wrong_type=number",
+      "input": {
+        "block_type": 1,
+        "title": "6 x 400 m"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "block_type"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "block_type:empty_string",
+      "input": {
+        "block_type": "",
+        "title": "6 x 400 m"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "block_type"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "title:missing",
+      "input": {
+        "block_type": "main"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "title"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "title:null",
+      "input": {
+        "block_type": "main",
+        "title": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "title"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "title:wrong_type=number",
+      "input": {
+        "block_type": "main",
+        "title": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "title"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "title:empty_string",
+      "input": {
+        "block_type": "main",
+        "title": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "title"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "instructions:null",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": null,
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "instructions"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "instructions:wrong_type=number",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": 1,
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "instructions"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "instructions:empty_string",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "instructions"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "planned_duration_s:null",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": null,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_duration_s"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_duration_s:wrong_type=string",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": "1",
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_duration_s"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_duration_s:number=-1",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": -1,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_duration_s"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_duration_s:number=0",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 0,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_duration_s"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_duration_s:number=1",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": true,
+      "output": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "issues": []
+    },
+    {
+      "name": "planned_duration_s:number=-0.5",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": -0.5,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_duration_s"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_duration_s:number=0.5",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 0.5,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": true,
+      "output": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 0.5,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "issues": []
+    },
+    {
+      "name": "planned_duration_s:number=5e-324",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 5e-324,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": true,
+      "output": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 5e-324,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "issues": []
+    },
+    {
+      "name": "planned_duration_s:number=-5e-324",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": -5e-324,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_duration_s"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_duration_s:number=1e+308",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1e+308,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": true,
+      "output": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1e+308,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "issues": []
+    },
+    {
+      "name": "planned_duration_s:number_text=-0",
+      "input_text": "{\"block_type\":\"main\",\"title\":\"6 x 400 m\",\"instructions\":\"Even splits\",\"planned_duration_s\":-0,\"planned_distance_m\":2400,\"planned_reps\":6,\"planned_weight_kg\":20}",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 0,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_duration_s"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_duration_s:number_text=1e400",
+      "input_text": "{\"block_type\":\"main\",\"title\":\"6 x 400 m\",\"instructions\":\"Even splits\",\"planned_duration_s\":1e400,\"planned_distance_m\":2400,\"planned_reps\":6,\"planned_weight_kg\":20}",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": null,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_duration_s"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "planned_distance_m:null",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": null,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_distance_m"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_distance_m:wrong_type=string",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": "1",
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_distance_m"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_distance_m:number=-1",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": -1,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_distance_m"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_distance_m:number=0",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 0,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_distance_m"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_distance_m:number=1",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 1,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": true,
+      "output": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 1,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "issues": []
+    },
+    {
+      "name": "planned_distance_m:number=-0.5",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": -0.5,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_distance_m"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_distance_m:number=0.5",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 0.5,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": true,
+      "output": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 0.5,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "issues": []
+    },
+    {
+      "name": "planned_distance_m:number=5e-324",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 5e-324,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": true,
+      "output": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 5e-324,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "issues": []
+    },
+    {
+      "name": "planned_distance_m:number=-5e-324",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": -5e-324,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_distance_m"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_distance_m:number=1e+308",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 1e+308,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": true,
+      "output": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 1e+308,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "issues": []
+    },
+    {
+      "name": "planned_distance_m:number_text=-0",
+      "input_text": "{\"block_type\":\"main\",\"title\":\"6 x 400 m\",\"instructions\":\"Even splits\",\"planned_duration_s\":1800,\"planned_distance_m\":-0,\"planned_reps\":6,\"planned_weight_kg\":20}",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 0,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_distance_m"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_distance_m:number_text=1e400",
+      "input_text": "{\"block_type\":\"main\",\"title\":\"6 x 400 m\",\"instructions\":\"Even splits\",\"planned_duration_s\":1800,\"planned_distance_m\":1e400,\"planned_reps\":6,\"planned_weight_kg\":20}",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": null,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_distance_m"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "planned_reps:null",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": null,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_reps"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_reps:wrong_type=string",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": "1",
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_reps"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_reps:number=-1",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": -1,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_reps"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_reps:number=0",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 0,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_reps"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_reps:number=1",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 1,
+        "planned_weight_kg": 20
+      },
+      "valid": true,
+      "output": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 1,
+        "planned_weight_kg": 20
+      },
+      "issues": []
+    },
+    {
+      "name": "planned_reps:number=1.5",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 1.5,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_reps"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "planned_reps:number=9007199254740991",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 9007199254740991,
+        "planned_weight_kg": 20
+      },
+      "valid": true,
+      "output": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 9007199254740991,
+        "planned_weight_kg": 20
+      },
+      "issues": []
+    },
+    {
+      "name": "planned_reps:number=9007199254740992",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 9007199254740992,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_reps"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "planned_reps:number=-9007199254740991",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": -9007199254740991,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_reps"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_reps:number=-9007199254740992",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": -9007199254740992,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_reps"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected int to be >=-9007199254740991",
+          "inclusive": true,
+          "minimum": -9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "planned_reps"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_reps:number=1e+21",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 1e+21,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_reps"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "planned_reps:number_text=-0",
+      "input_text": "{\"block_type\":\"main\",\"title\":\"6 x 400 m\",\"instructions\":\"Even splits\",\"planned_duration_s\":1800,\"planned_distance_m\":2400,\"planned_reps\":-0,\"planned_weight_kg\":20}",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 0,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_reps"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_reps:number_text=6.0",
+      "input_text": "{\"block_type\":\"main\",\"title\":\"6 x 400 m\",\"instructions\":\"Even splits\",\"planned_duration_s\":1800,\"planned_distance_m\":2400,\"planned_reps\":6.0,\"planned_weight_kg\":20}",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": true,
+      "output": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "issues": []
+    },
+    {
+      "name": "planned_reps:number_text=6E0",
+      "input_text": "{\"block_type\":\"main\",\"title\":\"6 x 400 m\",\"instructions\":\"Even splits\",\"planned_duration_s\":1800,\"planned_distance_m\":2400,\"planned_reps\":6E0,\"planned_weight_kg\":20}",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "valid": true,
+      "output": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 20
+      },
+      "issues": []
+    },
+    {
+      "name": "planned_reps:number_text=9007199254740993",
+      "input_text": "{\"block_type\":\"main\",\"title\":\"6 x 400 m\",\"instructions\":\"Even splits\",\"planned_duration_s\":1800,\"planned_distance_m\":2400,\"planned_reps\":9007199254740993,\"planned_weight_kg\":20}",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 9007199254740992,
+        "planned_weight_kg": 20
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_reps"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "planned_weight_kg:null",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_weight_kg"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_weight_kg:wrong_type=string",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": "1"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_weight_kg"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_weight_kg:number=-1",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": -1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_weight_kg"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_weight_kg:number=0",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_weight_kg"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_weight_kg:number=1",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 1
+      },
+      "valid": true,
+      "output": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 1
+      },
+      "issues": []
+    },
+    {
+      "name": "planned_weight_kg:number=-0.5",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": -0.5
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_weight_kg"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_weight_kg:number=0.5",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 0.5
+      },
+      "valid": true,
+      "output": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 0.5
+      },
+      "issues": []
+    },
+    {
+      "name": "planned_weight_kg:number=5e-324",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 5e-324
+      },
+      "valid": true,
+      "output": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 5e-324
+      },
+      "issues": []
+    },
+    {
+      "name": "planned_weight_kg:number=-5e-324",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": -5e-324
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_weight_kg"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_weight_kg:number=1e+308",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 1e+308
+      },
+      "valid": true,
+      "output": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 1e+308
+      },
+      "issues": []
+    },
+    {
+      "name": "planned_weight_kg:number_text=-0",
+      "input_text": "{\"block_type\":\"main\",\"title\":\"6 x 400 m\",\"instructions\":\"Even splits\",\"planned_duration_s\":1800,\"planned_distance_m\":2400,\"planned_reps\":6,\"planned_weight_kg\":-0}",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_weight_kg"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "planned_weight_kg:number_text=1e400",
+      "input_text": "{\"block_type\":\"main\",\"title\":\"6 x 400 m\",\"instructions\":\"Even splits\",\"planned_duration_s\":1800,\"planned_distance_m\":2400,\"planned_reps\":6,\"planned_weight_kg\":1e400}",
+      "input": {
+        "block_type": "main",
+        "title": "6 x 400 m",
+        "instructions": "Even splits",
+        "planned_duration_s": 1800,
+        "planned_distance_m": 2400,
+        "planned_reps": 6,
+        "planned_weight_kg": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "planned_weight_kg"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    }
+  ]
+}

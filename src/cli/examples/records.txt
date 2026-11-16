@@ -1,0 +1,17 @@
+Examples:
+
+  Find stable IDs for all current records:
+    $ ath records list
+
+  List only predictions:
+    $ ath records list --type prediction
+
+  Show one record and its complete revision timeline:
+    $ ath records show 01890f3e-e7d3-7cc0-88c8-000000000010 --history
+
+  Show the records it links to and the records that link to it:
+    $ ath records show 01890f3e-e7d3-7cc0-88c8-000000000010 --links
+
+`ath records list` is for finding stable IDs. `ath records show` reads one
+logical record, a named revision, its history, and its links. Use `ath stats`
+for the fixed overview and `ath series` for dense samples.

@@ -1,0 +1,748 @@
+{
+  "schema": "SuppliedFields",
+  "cases": [
+    {
+      "name": "valid:empty",
+      "input": {},
+      "valid": true,
+      "output": {},
+      "issues": []
+    },
+    {
+      "name": "valid:scalars",
+      "input": {
+        "s": "x",
+        "n": 1.5,
+        "b": false,
+        "z": null
+      },
+      "valid": true,
+      "output": {
+        "s": "x",
+        "n": 1.5,
+        "b": false,
+        "z": null
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:nested",
+      "input": {
+        "outer": {
+          "inner": [
+            1,
+            {
+              "deep": [
+                true,
+                null,
+                "y"
+              ]
+            }
+          ]
+        }
+      },
+      "valid": true,
+      "output": {
+        "outer": {
+          "inner": [
+            1,
+            {
+              "deep": [
+                true,
+                null,
+                "y"
+              ]
+            }
+          ]
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:value_is_array",
+      "input": {
+        "list": []
+      },
+      "valid": true,
+      "output": {
+        "list": []
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:whitespace_key",
+      "input": {
+        " ": 1
+      },
+      "valid": true,
+      "output": {
+        " ": 1
+      },
+      "issues": []
+    },
+    {
+      "name": "keys:integer_like_order",
+      "input_text": "{\"b\":1,\"10\":2,\"2\":3,\"01\":4,\"-1\":5,\"1.5\":6,\"0\":7}",
+      "input": {
+        "0": 7,
+        "2": 3,
+        "10": 2,
+        "b": 1,
+        "01": 4,
+        "-1": 5,
+        "1.5": 6
+      },
+      "valid": true,
+      "output": {
+        "0": 7,
+        "2": 3,
+        "10": 2,
+        "b": 1,
+        "01": 4,
+        "-1": 5,
+        "1.5": 6
+      },
+      "issues": []
+    },
+    {
+      "name": "keys:array_index_limit",
+      "input_text": "{\"z\":0,\"4294967295\":1,\"4294967294\":2,\"9007199254740993\":3}",
+      "input": {
+        "4294967294": 2,
+        "z": 0,
+        "4294967295": 1,
+        "9007199254740993": 3
+      },
+      "valid": true,
+      "output": {
+        "4294967294": 2,
+        "z": 0,
+        "4294967295": 1,
+        "9007199254740993": 3
+      },
+      "issues": []
+    },
+    {
+      "name": "keys:unicode",
+      "input_text": "{\"ﬁ\":1,\"😀\":2,\"é\":3,\"é\":4,\"a\":5}",
+      "input": {
+        "ﬁ": 1,
+        "😀": 2,
+        "é": 3,
+        "é": 4,
+        "a": 5
+      },
+      "valid": true,
+      "output": {
+        "ﬁ": 1,
+        "😀": 2,
+        "é": 3,
+        "é": 4,
+        "a": 5
+      },
+      "issues": []
+    },
+    {
+      "name": "keys:duplicate_last_wins",
+      "input_text": "{\"a\":1,\"b\":2,\"a\":3}",
+      "input": {
+        "a": 3,
+        "b": 2
+      },
+      "valid": true,
+      "output": {
+        "a": 3,
+        "b": 2
+      },
+      "issues": []
+    },
+    {
+      "name": "keys:proto_object_value_dropped",
+      "input_text": "{\"a\":1,\"__proto__\":{\"x\":1},\"b\":2}",
+      "input": {
+        "a": 1,
+        "__proto__": {
+          "x": 1
+        },
+        "b": 2
+      },
+      "valid": true,
+      "output": {
+        "a": 1,
+        "b": 2
+      },
+      "issues": []
+    },
+    {
+      "name": "keys:proto_scalar_value",
+      "input_text": "{\"a\":1,\"__proto__\":5}",
+      "input": {
+        "a": 1,
+        "__proto__": 5
+      },
+      "valid": true,
+      "output": {
+        "a": 1
+      },
+      "issues": []
+    },
+    {
+      "name": "keys:constructor",
+      "input_text": "{\"constructor\":1,\"toString\":2}",
+      "input": {
+        "constructor": 1,
+        "toString": 2
+      },
+      "valid": true,
+      "output": {
+        "constructor": 1,
+        "toString": 2
+      },
+      "issues": []
+    },
+    {
+      "name": "keys:empty_invalid",
+      "input": {
+        "": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            ""
+          ],
+          "code": "invalid_key",
+          "message": "Invalid key in record",
+          "issues": [
+            {
+              "path": [],
+              "code": "too_small",
+              "message": "Too small: expected string to have >=1 characters",
+              "inclusive": true,
+              "minimum": 1,
+              "origin": "string"
+            }
+          ],
+          "origin": "record"
+        }
+      ]
+    },
+    {
+      "name": "keys:empty_and_valid",
+      "input": {
+        "a": 1,
+        "": 2
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            ""
+          ],
+          "code": "invalid_key",
+          "message": "Invalid key in record",
+          "issues": [
+            {
+              "path": [],
+              "code": "too_small",
+              "message": "Too small: expected string to have >=1 characters",
+              "inclusive": true,
+              "minimum": 1,
+              "origin": "string"
+            }
+          ],
+          "origin": "record"
+        }
+      ]
+    },
+    {
+      "name": "values:big_integer",
+      "input_text": "{\"v\":123456789012345678901}",
+      "input": {
+        "v": 123456789012345680000
+      },
+      "valid": true,
+      "output": {
+        "v": 123456789012345680000
+      },
+      "issues": []
+    },
+    {
+      "name": "values:unsafe_integer",
+      "input_text": "{\"v\":9007199254740993}",
+      "input": {
+        "v": 9007199254740992
+      },
+      "valid": true,
+      "output": {
+        "v": 9007199254740992
+      },
+      "issues": []
+    },
+    {
+      "name": "values:negative_zero",
+      "input_text": "{\"v\":-0}",
+      "input": {
+        "v": 0
+      },
+      "valid": true,
+      "output": {
+        "v": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "values:1e21",
+      "input_text": "{\"v\":1e21}",
+      "input": {
+        "v": 1e+21
+      },
+      "valid": true,
+      "output": {
+        "v": 1e+21
+      },
+      "issues": []
+    },
+    {
+      "name": "values:1e-7",
+      "input_text": "{\"v\":1e-7}",
+      "input": {
+        "v": 1e-7
+      },
+      "valid": true,
+      "output": {
+        "v": 1e-7
+      },
+      "issues": []
+    },
+    {
+      "name": "values:min_subnormal",
+      "input_text": "{\"v\":5e-324}",
+      "input": {
+        "v": 5e-324
+      },
+      "valid": true,
+      "output": {
+        "v": 5e-324
+      },
+      "issues": []
+    },
+    {
+      "name": "values:max_double",
+      "input_text": "{\"v\":1.7976931348623157e308}",
+      "input": {
+        "v": 1.7976931348623157e+308
+      },
+      "valid": true,
+      "output": {
+        "v": 1.7976931348623157e+308
+      },
+      "issues": []
+    },
+    {
+      "name": "values:integer_valued_float",
+      "input_text": "{\"v\":100.0}",
+      "input": {
+        "v": 100
+      },
+      "valid": true,
+      "output": {
+        "v": 100
+      },
+      "issues": []
+    },
+    {
+      "name": "values:uppercase_exponent",
+      "input_text": "{\"v\":1E2}",
+      "input": {
+        "v": 100
+      },
+      "valid": true,
+      "output": {
+        "v": 100
+      },
+      "issues": []
+    },
+    {
+      "name": "values:overflow_to_infinity",
+      "input_text": "{\"v\":1e400}",
+      "input": {
+        "v": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "v"
+          ],
+          "code": "invalid_union",
+          "message": "Invalid input",
+          "errors": [
+            [
+              {
+                "path": [],
+                "code": "invalid_type",
+                "message": "Invalid input: expected string, received Infinity",
+                "expected": "string"
+              }
+            ],
+            [
+              {
+                "path": [],
+                "code": "invalid_type",
+                "message": "Invalid input: expected number, received Infinity",
+                "expected": "number",
+                "received": "Infinity"
+              }
+            ],
+            [
+              {
+                "path": [],
+                "code": "invalid_type",
+                "message": "Invalid input: expected boolean, received Infinity",
+                "expected": "boolean"
+              }
+            ],
+            [
+              {
+                "path": [],
+                "code": "invalid_type",
+                "message": "Invalid input: expected null, received Infinity",
+                "expected": "null"
+              }
+            ],
+            [
+              {
+                "path": [],
+                "code": "invalid_type",
+                "message": "Invalid input: expected array, received Infinity",
+                "expected": "array"
+              }
+            ],
+            [
+              {
+                "path": [],
+                "code": "invalid_type",
+                "message": "Invalid input: expected record, received Infinity",
+                "expected": "record"
+              }
+            ]
+          ]
+        }
+      ]
+    },
+    {
+      "name": "values:lone_surrogate_string",
+      "input_text": "{\"v\":\"\\ud800\"}",
+      "valid": true,
+      "output_text": "{\"v\":\"\\ud800\"}",
+      "issues": []
+    },
+    {
+      "name": "values:deep_nesting_64",
+      "input": {
+        "v": [
+          [
+            [
+              [
+                [
+                  [
+                    [
+                      [
+                        [
+                          [
+                            [
+                              [
+                                [
+                                  [
+                                    [
+                                      [
+                                        [
+                                          [
+                                            [
+                                              [
+                                                [
+                                                  [
+                                                    [
+                                                      [
+                                                        [
+                                                          [
+                                                            [
+                                                              [
+                                                                [
+                                                                  [
+                                                                    [
+                                                                      [
+                                                                        [
+                                                                          [
+                                                                            [
+                                                                              [
+                                                                                [
+                                                                                  [
+                                                                                    [
+                                                                                      [
+                                                                                        [
+                                                                                          [
+                                                                                            [
+                                                                                              [
+                                                                                                [
+                                                                                                  [
+                                                                                                    [
+                                                                                                      [
+                                                                                                        [
+                                                                                                          [
+                                                                                                            [
+                                                                                                              [
+                                                                                                                [
+                                                                                                                  [
+                                                                                                                    [
+                                                                                                                      [
+                                                                                                                        [
+                                                                                                                          [
+                                                                                                                            [
+                                                                                                                              [
+                                                                                                                                [
+                                                                                                                                  [
+                                                                                                                                    [
+                                                                                                                                      [
+                                                                                                                                        1
+                                                                                                                                      ]
+                                                                                                                                    ]
+                                                                                                                                  ]
+                                                                                                                                ]
+                                                                                                                              ]
+                                                                                                                            ]
+                                                                                                                          ]
+                                                                                                                        ]
+                                                                                                                      ]
+                                                                                                                    ]
+                                                                                                                  ]
+                                                                                                                ]
+                                                                                                              ]
+                                                                                                            ]
+                                                                                                          ]
+                                                                                                        ]
+                                                                                                      ]
+                                                                                                    ]
+                                                                                                  ]
+                                                                                                ]
+                                                                                              ]
+                                                                                            ]
+                                                                                          ]
+                                                                                        ]
+                                                                                      ]
+                                                                                    ]
+                                                                                  ]
+                                                                                ]
+                                                                              ]
+                                                                            ]
+                                                                          ]
+                                                                        ]
+                                                                      ]
+                                                                    ]
+                                                                  ]
+                                                                ]
+                                                              ]
+                                                            ]
+                                                          ]
+                                                        ]
+                                                      ]
+                                                    ]
+                                                  ]
+                                                ]
+                                              ]
+                                            ]
+                                          ]
+                                        ]
+                                      ]
+                                    ]
+                                  ]
+                                ]
+                              ]
+                            ]
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ]
+      },
+      "valid": true,
+      "output": {
+        "v": [
+          [
+            [
+              [
+                [
+                  [
+                    [
+                      [
+                        [
+                          [
+                            [
+                              [
+                                [
+                                  [
+                                    [
+                                      [
+                                        [
+                                          [
+                                            [
+                                              [
+                                                [
+                                                  [
+                                                    [
+                                                      [
+                                                        [
+                                                          [
+                                                            [
+                                                              [
+                                                                [
+                                                                  [
+                                                                    [
+                                                                      [
+                                                                        [
+                                                                          [
+                                                                            [
+                                                                              [
+                                                                                [
+                                                                                  [
+                                                                                    [
+                                                                                      [
+                                                                                        [
+                                                                                          [
+                                                                                            [
+                                                                                              [
+                                                                                                [
+                                                                                                  [
+                                                                                                    [
+                                                                                                      [
+                                                                                                        [
+                                                                                                          [
+                                                                                                            [
+                                                                                                              [
+                                                                                                                [
+                                                                                                                  [
+                                                                                                                    [
+                                                                                                                      [
+                                                                                                                        [
+                                                                                                                          [
+                                                                                                                            [
+                                                                                                                              [
+                                                                                                                                [
+                                                                                                                                  [
+                                                                                                                                    [
+                                                                                                                                      [
+                                                                                                                                        1
+                                                                                                                                      ]
+                                                                                                                                    ]
+                                                                                                                                  ]
+                                                                                                                                ]
+                                                                                                                              ]
+                                                                                                                            ]
+                                                                                                                          ]
+                                                                                                                        ]
+                                                                                                                      ]
+                                                                                                                    ]
+                                                                                                                  ]
+                                                                                                                ]
+                                                                                                              ]
+                                                                                                            ]
+                                                                                                          ]
+                                                                                                        ]
+                                                                                                      ]
+                                                                                                    ]
+                                                                                                  ]
+                                                                                                ]
+                                                                                              ]
+                                                                                            ]
+                                                                                          ]
+                                                                                        ]
+                                                                                      ]
+                                                                                    ]
+                                                                                  ]
+                                                                                ]
+                                                                              ]
+                                                                            ]
+                                                                          ]
+                                                                        ]
+                                                                      ]
+                                                                    ]
+                                                                  ]
+                                                                ]
+                                                              ]
+                                                            ]
+                                                          ]
+                                                        ]
+                                                      ]
+                                                    ]
+                                                  ]
+                                                ]
+                                              ]
+                                            ]
+                                          ]
+                                        ]
+                                      ]
+                                    ]
+                                  ]
+                                ]
+                              ]
+                            ]
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ]
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected record, received array",
+          "expected": "record"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected record, received string",
+          "expected": "record"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected record, received null",
+          "expected": "record"
+        }
+      ]
+    }
+  ]
+}

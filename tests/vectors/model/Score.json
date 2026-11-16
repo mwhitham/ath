@@ -1,0 +1,997 @@
+{
+  "schema": "Score",
+  "cases": [
+    {
+      "name": "valid:reps_only",
+      "input": {
+        "reps": 1
+      },
+      "valid": true,
+      "output": {
+        "reps": 1
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "duration_s": 300.5,
+        "reps": 21,
+        "weight_kg": 43
+      },
+      "valid": true,
+      "output": {
+        "duration_s": 300.5,
+        "reps": 21,
+        "weight_kg": 43
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:duration_only",
+      "input": {
+        "duration_s": 0.001
+      },
+      "valid": true,
+      "output": {
+        "duration_s": 0.001
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:weight_only",
+      "input": {
+        "weight_kg": 1
+      },
+      "valid": true,
+      "output": {
+        "weight_kg": 1
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "duration_s": 300.5,
+        "reps": 21,
+        "weight_kg": 43,
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "duration_s:null",
+      "input": {
+        "duration_s": null,
+        "reps": 21,
+        "weight_kg": 43
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "duration_s"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "duration_s:wrong_type=string",
+      "input": {
+        "duration_s": "1",
+        "reps": 21,
+        "weight_kg": 43
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "duration_s"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "duration_s:number=-1",
+      "input": {
+        "duration_s": -1,
+        "reps": 21,
+        "weight_kg": 43
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "duration_s"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "duration_s:number=0",
+      "input": {
+        "duration_s": 0,
+        "reps": 21,
+        "weight_kg": 43
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "duration_s"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "duration_s:number=1",
+      "input": {
+        "duration_s": 1,
+        "reps": 21,
+        "weight_kg": 43
+      },
+      "valid": true,
+      "output": {
+        "duration_s": 1,
+        "reps": 21,
+        "weight_kg": 43
+      },
+      "issues": []
+    },
+    {
+      "name": "duration_s:number=-0.5",
+      "input": {
+        "duration_s": -0.5,
+        "reps": 21,
+        "weight_kg": 43
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "duration_s"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "duration_s:number=0.5",
+      "input": {
+        "duration_s": 0.5,
+        "reps": 21,
+        "weight_kg": 43
+      },
+      "valid": true,
+      "output": {
+        "duration_s": 0.5,
+        "reps": 21,
+        "weight_kg": 43
+      },
+      "issues": []
+    },
+    {
+      "name": "duration_s:number=5e-324",
+      "input": {
+        "duration_s": 5e-324,
+        "reps": 21,
+        "weight_kg": 43
+      },
+      "valid": true,
+      "output": {
+        "duration_s": 5e-324,
+        "reps": 21,
+        "weight_kg": 43
+      },
+      "issues": []
+    },
+    {
+      "name": "duration_s:number=-5e-324",
+      "input": {
+        "duration_s": -5e-324,
+        "reps": 21,
+        "weight_kg": 43
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "duration_s"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "duration_s:number=1e+308",
+      "input": {
+        "duration_s": 1e+308,
+        "reps": 21,
+        "weight_kg": 43
+      },
+      "valid": true,
+      "output": {
+        "duration_s": 1e+308,
+        "reps": 21,
+        "weight_kg": 43
+      },
+      "issues": []
+    },
+    {
+      "name": "duration_s:number_text=-0",
+      "input_text": "{\"duration_s\":-0,\"reps\":21,\"weight_kg\":43}",
+      "input": {
+        "duration_s": 0,
+        "reps": 21,
+        "weight_kg": 43
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "duration_s"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "duration_s:number_text=1e400",
+      "input_text": "{\"duration_s\":1e400,\"reps\":21,\"weight_kg\":43}",
+      "input": {
+        "duration_s": null,
+        "reps": 21,
+        "weight_kg": 43
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "duration_s"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "reps:null",
+      "input": {
+        "reps": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "reps:wrong_type=string",
+      "input": {
+        "reps": "1"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "reps:number=-1",
+      "input": {
+        "reps": -1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "reps:number=0",
+      "input": {
+        "reps": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "reps:number=1",
+      "input": {
+        "reps": 1
+      },
+      "valid": true,
+      "output": {
+        "reps": 1
+      },
+      "issues": []
+    },
+    {
+      "name": "reps:number=1.5",
+      "input": {
+        "reps": 1.5
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "reps:number=9007199254740991",
+      "input": {
+        "reps": 9007199254740991
+      },
+      "valid": true,
+      "output": {
+        "reps": 9007199254740991
+      },
+      "issues": []
+    },
+    {
+      "name": "reps:number=9007199254740992",
+      "input": {
+        "reps": 9007199254740992
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "reps:number=-9007199254740991",
+      "input": {
+        "reps": -9007199254740991
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "reps:number=-9007199254740992",
+      "input": {
+        "reps": -9007199254740992
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected int to be >=-9007199254740991",
+          "inclusive": true,
+          "minimum": -9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "reps:number=1e+21",
+      "input": {
+        "reps": 1e+21
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "reps:number_text=-0",
+      "input_text": "{\"reps\":-0}",
+      "input": {
+        "reps": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "reps:number_text=1.0",
+      "input_text": "{\"reps\":1.0}",
+      "input": {
+        "reps": 1
+      },
+      "valid": true,
+      "output": {
+        "reps": 1
+      },
+      "issues": []
+    },
+    {
+      "name": "reps:number_text=1E0",
+      "input_text": "{\"reps\":1E0}",
+      "input": {
+        "reps": 1
+      },
+      "valid": true,
+      "output": {
+        "reps": 1
+      },
+      "issues": []
+    },
+    {
+      "name": "reps:number_text=9007199254740993",
+      "input_text": "{\"reps\":9007199254740993}",
+      "input": {
+        "reps": 9007199254740992
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "weight_kg:null",
+      "input": {
+        "duration_s": 300.5,
+        "reps": 21,
+        "weight_kg": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "weight_kg"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "weight_kg:wrong_type=string",
+      "input": {
+        "duration_s": 300.5,
+        "reps": 21,
+        "weight_kg": "1"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "weight_kg"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "weight_kg:number=-1",
+      "input": {
+        "duration_s": 300.5,
+        "reps": 21,
+        "weight_kg": -1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "weight_kg"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "weight_kg:number=0",
+      "input": {
+        "duration_s": 300.5,
+        "reps": 21,
+        "weight_kg": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "weight_kg"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "weight_kg:number=1",
+      "input": {
+        "duration_s": 300.5,
+        "reps": 21,
+        "weight_kg": 1
+      },
+      "valid": true,
+      "output": {
+        "duration_s": 300.5,
+        "reps": 21,
+        "weight_kg": 1
+      },
+      "issues": []
+    },
+    {
+      "name": "weight_kg:number=-0.5",
+      "input": {
+        "duration_s": 300.5,
+        "reps": 21,
+        "weight_kg": -0.5
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "weight_kg"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "weight_kg:number=0.5",
+      "input": {
+        "duration_s": 300.5,
+        "reps": 21,
+        "weight_kg": 0.5
+      },
+      "valid": true,
+      "output": {
+        "duration_s": 300.5,
+        "reps": 21,
+        "weight_kg": 0.5
+      },
+      "issues": []
+    },
+    {
+      "name": "weight_kg:number=5e-324",
+      "input": {
+        "duration_s": 300.5,
+        "reps": 21,
+        "weight_kg": 5e-324
+      },
+      "valid": true,
+      "output": {
+        "duration_s": 300.5,
+        "reps": 21,
+        "weight_kg": 5e-324
+      },
+      "issues": []
+    },
+    {
+      "name": "weight_kg:number=-5e-324",
+      "input": {
+        "duration_s": 300.5,
+        "reps": 21,
+        "weight_kg": -5e-324
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "weight_kg"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "weight_kg:number=1e+308",
+      "input": {
+        "duration_s": 300.5,
+        "reps": 21,
+        "weight_kg": 1e+308
+      },
+      "valid": true,
+      "output": {
+        "duration_s": 300.5,
+        "reps": 21,
+        "weight_kg": 1e+308
+      },
+      "issues": []
+    },
+    {
+      "name": "weight_kg:number_text=-0",
+      "input_text": "{\"duration_s\":300.5,\"reps\":21,\"weight_kg\":-0}",
+      "input": {
+        "duration_s": 300.5,
+        "reps": 21,
+        "weight_kg": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "weight_kg"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "weight_kg:number_text=1e400",
+      "input_text": "{\"duration_s\":300.5,\"reps\":21,\"weight_kg\":1e400}",
+      "input": {
+        "duration_s": 300.5,
+        "reps": 21,
+        "weight_kg": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "weight_kg"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "rule:empty",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "custom",
+          "message": "A score needs duration_s, reps, or weight_kg"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R22",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:reps",
+      "input": {
+        "reps": 21
+      },
+      "valid": true,
+      "output": {
+        "reps": 21
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R22",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:duration",
+      "input": {
+        "duration_s": 300
+      },
+      "valid": true,
+      "output": {
+        "duration_s": 300
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R22",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:weight",
+      "input": {
+        "weight_kg": 100
+      },
+      "valid": true,
+      "output": {
+        "weight_kg": 100
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R22",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "order:zero_reps_counts_as_present",
+      "input": {
+        "reps": 0
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R22",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "order:fractional_reps_skips_refinement",
+      "input": {
+        "reps": 1.5
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reps"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R22",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "order:null_duration_skips_refinement",
+      "input": {
+        "duration_s": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "duration_s"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R22",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "order:unknown_key_still_runs_refinement",
+      "input": {
+        "seconds": 300
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"seconds\"",
+          "keys": [
+            "seconds"
+          ]
+        },
+        {
+          "path": [],
+          "code": "custom",
+          "message": "A score needs duration_s, reps, or weight_kg"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R22",
+          "expect": "trigger"
+        }
+      ]
+    }
+  ]
+}

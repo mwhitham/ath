@@ -1,0 +1,1161 @@
+{
+  "generated_by": "tools/reference/calculation-golden.ts",
+  "reference_commit": "c6218e88c035708bdd15b3a20888d19713e1df29",
+  "created_at": "2026-01-01T00:00:00.000Z",
+  "steps": [
+    {
+      "write": [
+        {
+          "record_type": "athlete_profile",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000100",
+          "created_at": "2026-01-01T00:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "name": "Invented Athlete",
+            "default_time_zone": "America/Chicago"
+          }
+        },
+        {
+          "record_type": "source",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+          "created_at": "2026-01-01T00:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_type": "wearable",
+            "data_writer": "Device A",
+            "data_route": "test"
+          }
+        },
+        {
+          "record_type": "source",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000102",
+          "created_at": "2026-01-01T00:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_type": "wearable",
+            "data_writer": "Device B",
+            "data_route": "test"
+          }
+        },
+        {
+          "record_type": "source",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000103",
+          "created_at": "2026-01-01T00:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_type": "manual",
+            "data_writer": "ath",
+            "data_route": "test"
+          }
+        }
+      ]
+    },
+    {
+      "write": [
+        {
+          "record_type": "measurement_sample",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000801",
+          "created_at": "2026-10-01T04:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-01T04:00:00.000Z",
+            "received_at_basis": "import_time",
+            "quantity": "heart_rate",
+            "recorded_at": "2026-10-01T04:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-10-01T04:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "value": {
+              "standard_value": 61,
+              "standard_unit": "bpm",
+              "input_value": 61,
+              "input_unit": "bpm"
+            }
+          }
+        },
+        {
+          "record_type": "measurement_sample",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000802",
+          "created_at": "2026-10-01T05:30:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-01T05:30:00.000Z",
+            "received_at_basis": "import_time",
+            "quantity": "heart_rate",
+            "recorded_at": "2026-10-01T05:30:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-10-01T05:30:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "value": {
+              "standard_value": 58,
+              "standard_unit": "bpm",
+              "input_value": 58,
+              "input_unit": "bpm"
+            }
+          }
+        },
+        {
+          "record_type": "measurement_sample",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000803",
+          "created_at": "2026-10-01T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-01T12:00:00.000Z",
+            "received_at_basis": "import_time",
+            "quantity": "heart_rate",
+            "recorded_at": "2026-10-01T12:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-10-01T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "value": {
+              "standard_value": 97.25,
+              "standard_unit": "bpm",
+              "input_value": 97.25,
+              "input_unit": "bpm"
+            }
+          }
+        },
+        {
+          "record_type": "measurement_sample",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000804",
+          "created_at": "2026-10-02T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-02T12:00:00.000Z",
+            "received_at_basis": "import_time",
+            "quantity": "heart_rate",
+            "recorded_at": "2026-10-02T12:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-10-02T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "value": {
+              "standard_value": 70,
+              "standard_unit": "bpm",
+              "input_value": 70,
+              "input_unit": "bpm"
+            }
+          }
+        },
+        {
+          "record_type": "measurement_sample",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000805",
+          "created_at": "2026-10-02T12:00:01.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-02T12:00:01.000Z",
+            "received_at_basis": "import_time",
+            "quantity": "heart_rate",
+            "recorded_at": "2026-10-02T12:00:01.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-10-02T12:00:01.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "value": {
+              "standard_value": 71,
+              "standard_unit": "bpm",
+              "input_value": 71,
+              "input_unit": "bpm"
+            }
+          }
+        },
+        {
+          "record_type": "measurement_sample",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000806",
+          "created_at": "2026-10-01T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000102",
+            "received_at": "2026-10-01T12:00:00.000Z",
+            "received_at_basis": "import_time",
+            "quantity": "heart_rate",
+            "recorded_at": "2026-10-01T12:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-10-01T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "value": {
+              "standard_value": 66,
+              "standard_unit": "bpm",
+              "input_value": 66,
+              "input_unit": "bpm"
+            }
+          }
+        },
+        {
+          "record_type": "measurement_sample",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000807",
+          "created_at": "2026-10-01T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000103",
+            "received_at": "2026-10-01T12:00:00.000Z",
+            "received_at_basis": "import_time",
+            "quantity": "heart_rate",
+            "recorded_at": "2026-10-01T12:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-10-01T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "value": {
+              "standard_value": 150,
+              "standard_unit": "bpm",
+              "input_value": 150,
+              "input_unit": "bpm"
+            }
+          }
+        },
+        {
+          "record_type": "measurement_sample",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000808",
+          "created_at": "2026-10-01T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-01T12:00:00.000Z",
+            "received_at_basis": "import_time",
+            "quantity": "steps",
+            "recorded_at": "2026-10-01T12:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-10-01T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "value": {
+              "standard_value": 420,
+              "standard_unit": "count",
+              "input_value": 420,
+              "input_unit": "count"
+            },
+            "duration_ms": 300000
+          }
+        }
+      ]
+    }
+  ],
+  "cases": [
+    {
+      "name": "days in the profile timezone",
+      "call": "series",
+      "input": {
+        "quantity": "heart_rate",
+        "options": {}
+      },
+      "output": {
+        "view": {
+          "quantity": "heart_rate",
+          "unit": "bpm",
+          "time_zone": "America/Chicago",
+          "truncated": false,
+          "days": [
+            {
+              "date": "2026-09-30",
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "sample_count": 1,
+              "minimum": 61,
+              "maximum": 61,
+              "mean": 61,
+              "first_at": "2026-10-01T04:00:00.000Z",
+              "last_at": "2026-10-01T04:00:00.000Z"
+            },
+            {
+              "date": "2026-10-01",
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "sample_count": 2,
+              "minimum": 58,
+              "maximum": 97.25,
+              "mean": 77.6,
+              "first_at": "2026-10-01T05:30:00.000Z",
+              "last_at": "2026-10-01T12:00:00.000Z"
+            },
+            {
+              "date": "2026-10-01",
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000102",
+              "sample_count": 1,
+              "minimum": 66,
+              "maximum": 66,
+              "mean": 66,
+              "first_at": "2026-10-01T12:00:00.000Z",
+              "last_at": "2026-10-01T12:00:00.000Z"
+            },
+            {
+              "date": "2026-10-02",
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "sample_count": 2,
+              "minimum": 70,
+              "maximum": 71,
+              "mean": 70.5,
+              "first_at": "2026-10-02T12:00:00.000Z",
+              "last_at": "2026-10-02T12:00:01.000Z"
+            }
+          ]
+        },
+        "rendered": "heart_rate (bpm) by calendar day in America/Chicago\ndate        source                                n       mean      min       max\n2026-09-30  01890f3e-e7d3-7cc0-88c8-000000000101       1        61        61        61\n2026-10-01  01890f3e-e7d3-7cc0-88c8-000000000101       2      77.6        58     97.25\n2026-10-01  01890f3e-e7d3-7cc0-88c8-000000000102       1        66        66        66\n2026-10-02  01890f3e-e7d3-7cc0-88c8-000000000101       2      70.5        70        71"
+      }
+    },
+    {
+      "name": "days in UTC",
+      "call": "series",
+      "input": {
+        "quantity": "heart_rate",
+        "options": {
+          "time_zone": "UTC"
+        }
+      },
+      "output": {
+        "view": {
+          "quantity": "heart_rate",
+          "unit": "bpm",
+          "time_zone": "UTC",
+          "truncated": false,
+          "days": [
+            {
+              "date": "2026-10-01",
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "sample_count": 3,
+              "minimum": 58,
+              "maximum": 97.25,
+              "mean": 72.1,
+              "first_at": "2026-10-01T04:00:00.000Z",
+              "last_at": "2026-10-01T12:00:00.000Z"
+            },
+            {
+              "date": "2026-10-01",
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000102",
+              "sample_count": 1,
+              "minimum": 66,
+              "maximum": 66,
+              "mean": 66,
+              "first_at": "2026-10-01T12:00:00.000Z",
+              "last_at": "2026-10-01T12:00:00.000Z"
+            },
+            {
+              "date": "2026-10-02",
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "sample_count": 2,
+              "minimum": 70,
+              "maximum": 71,
+              "mean": 70.5,
+              "first_at": "2026-10-02T12:00:00.000Z",
+              "last_at": "2026-10-02T12:00:01.000Z"
+            }
+          ]
+        },
+        "rendered": "heart_rate (bpm) by calendar day in UTC\ndate        source                                n       mean      min       max\n2026-10-01  01890f3e-e7d3-7cc0-88c8-000000000101       3      72.1        58     97.25\n2026-10-01  01890f3e-e7d3-7cc0-88c8-000000000102       1        66        66        66\n2026-10-02  01890f3e-e7d3-7cc0-88c8-000000000101       2      70.5        70        71"
+      }
+    },
+    {
+      "name": "days in a fixed offset",
+      "call": "series",
+      "input": {
+        "quantity": "heart_rate",
+        "options": {
+          "time_zone": "+05:30"
+        }
+      },
+      "output": {
+        "view": {
+          "quantity": "heart_rate",
+          "unit": "bpm",
+          "time_zone": "+05:30",
+          "truncated": false,
+          "days": [
+            {
+              "date": "2026-10-01",
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "sample_count": 3,
+              "minimum": 58,
+              "maximum": 97.25,
+              "mean": 72.1,
+              "first_at": "2026-10-01T04:00:00.000Z",
+              "last_at": "2026-10-01T12:00:00.000Z"
+            },
+            {
+              "date": "2026-10-01",
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000102",
+              "sample_count": 1,
+              "minimum": 66,
+              "maximum": 66,
+              "mean": 66,
+              "first_at": "2026-10-01T12:00:00.000Z",
+              "last_at": "2026-10-01T12:00:00.000Z"
+            },
+            {
+              "date": "2026-10-02",
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "sample_count": 2,
+              "minimum": 70,
+              "maximum": 71,
+              "mean": 70.5,
+              "first_at": "2026-10-02T12:00:00.000Z",
+              "last_at": "2026-10-02T12:00:01.000Z"
+            }
+          ]
+        },
+        "rendered": "heart_rate (bpm) by calendar day in +05:30\ndate        source                                n       mean      min       max\n2026-10-01  01890f3e-e7d3-7cc0-88c8-000000000101       3      72.1        58     97.25\n2026-10-01  01890f3e-e7d3-7cc0-88c8-000000000102       1        66        66        66\n2026-10-02  01890f3e-e7d3-7cc0-88c8-000000000101       2      70.5        70        71"
+      }
+    },
+    {
+      "name": "raw samples",
+      "call": "series",
+      "input": {
+        "quantity": "heart_rate",
+        "options": {
+          "raw": true
+        }
+      },
+      "output": {
+        "view": {
+          "quantity": "heart_rate",
+          "unit": "bpm",
+          "truncated": false,
+          "samples": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000801",
+              "created_at": "2026-10-01T04:00:00.000Z",
+              "current_revision": 1,
+              "is_deleted": false,
+              "record_type": "measurement_sample",
+              "data": {
+                "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+                "received_at": "2026-10-01T04:00:00.000Z",
+                "received_at_basis": "import_time",
+                "quantity": "heart_rate",
+                "recorded_at": "2026-10-01T04:00:00.000Z",
+                "input_timestamp": {
+                  "timestamp_text": "2026-10-01T04:00:00.000Z",
+                  "utc_offset_text": "Z",
+                  "utc_offset_meaning": "documented_recording_offset",
+                  "timestamp_basis": "source_instant"
+                },
+                "value": {
+                  "standard_value": 61,
+                  "standard_unit": "bpm",
+                  "input_value": 61,
+                  "input_unit": "bpm"
+                }
+              }
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000802",
+              "created_at": "2026-10-01T05:30:00.000Z",
+              "current_revision": 1,
+              "is_deleted": false,
+              "record_type": "measurement_sample",
+              "data": {
+                "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+                "received_at": "2026-10-01T05:30:00.000Z",
+                "received_at_basis": "import_time",
+                "quantity": "heart_rate",
+                "recorded_at": "2026-10-01T05:30:00.000Z",
+                "input_timestamp": {
+                  "timestamp_text": "2026-10-01T05:30:00.000Z",
+                  "utc_offset_text": "Z",
+                  "utc_offset_meaning": "documented_recording_offset",
+                  "timestamp_basis": "source_instant"
+                },
+                "value": {
+                  "standard_value": 58,
+                  "standard_unit": "bpm",
+                  "input_value": 58,
+                  "input_unit": "bpm"
+                }
+              }
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000803",
+              "created_at": "2026-10-01T12:00:00.000Z",
+              "current_revision": 1,
+              "is_deleted": false,
+              "record_type": "measurement_sample",
+              "data": {
+                "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+                "received_at": "2026-10-01T12:00:00.000Z",
+                "received_at_basis": "import_time",
+                "quantity": "heart_rate",
+                "recorded_at": "2026-10-01T12:00:00.000Z",
+                "input_timestamp": {
+                  "timestamp_text": "2026-10-01T12:00:00.000Z",
+                  "utc_offset_text": "Z",
+                  "utc_offset_meaning": "documented_recording_offset",
+                  "timestamp_basis": "source_instant"
+                },
+                "value": {
+                  "standard_value": 97.25,
+                  "standard_unit": "bpm",
+                  "input_value": 97.25,
+                  "input_unit": "bpm"
+                }
+              }
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000806",
+              "created_at": "2026-10-01T12:00:00.000Z",
+              "current_revision": 1,
+              "is_deleted": false,
+              "record_type": "measurement_sample",
+              "data": {
+                "source_id": "01890f3e-e7d3-7cc0-88c8-000000000102",
+                "received_at": "2026-10-01T12:00:00.000Z",
+                "received_at_basis": "import_time",
+                "quantity": "heart_rate",
+                "recorded_at": "2026-10-01T12:00:00.000Z",
+                "input_timestamp": {
+                  "timestamp_text": "2026-10-01T12:00:00.000Z",
+                  "utc_offset_text": "Z",
+                  "utc_offset_meaning": "documented_recording_offset",
+                  "timestamp_basis": "source_instant"
+                },
+                "value": {
+                  "standard_value": 66,
+                  "standard_unit": "bpm",
+                  "input_value": 66,
+                  "input_unit": "bpm"
+                }
+              }
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000804",
+              "created_at": "2026-10-02T12:00:00.000Z",
+              "current_revision": 1,
+              "is_deleted": false,
+              "record_type": "measurement_sample",
+              "data": {
+                "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+                "received_at": "2026-10-02T12:00:00.000Z",
+                "received_at_basis": "import_time",
+                "quantity": "heart_rate",
+                "recorded_at": "2026-10-02T12:00:00.000Z",
+                "input_timestamp": {
+                  "timestamp_text": "2026-10-02T12:00:00.000Z",
+                  "utc_offset_text": "Z",
+                  "utc_offset_meaning": "documented_recording_offset",
+                  "timestamp_basis": "source_instant"
+                },
+                "value": {
+                  "standard_value": 70,
+                  "standard_unit": "bpm",
+                  "input_value": 70,
+                  "input_unit": "bpm"
+                }
+              }
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000805",
+              "created_at": "2026-10-02T12:00:01.000Z",
+              "current_revision": 1,
+              "is_deleted": false,
+              "record_type": "measurement_sample",
+              "data": {
+                "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+                "received_at": "2026-10-02T12:00:01.000Z",
+                "received_at_basis": "import_time",
+                "quantity": "heart_rate",
+                "recorded_at": "2026-10-02T12:00:01.000Z",
+                "input_timestamp": {
+                  "timestamp_text": "2026-10-02T12:00:01.000Z",
+                  "utc_offset_text": "Z",
+                  "utc_offset_meaning": "documented_recording_offset",
+                  "timestamp_basis": "source_instant"
+                },
+                "value": {
+                  "standard_value": 71,
+                  "standard_unit": "bpm",
+                  "input_value": 71,
+                  "input_unit": "bpm"
+                }
+              }
+            }
+          ]
+        },
+        "rendered": "heart_rate (bpm) — raw samples\n2026-10-01T04:00:00.000Z  61bpm  01890f3e-e7d3-7cc0-88c8-000000000101  01890f3e-e7d3-7cc0-88c8-000000000801\n2026-10-01T05:30:00.000Z  58bpm  01890f3e-e7d3-7cc0-88c8-000000000101  01890f3e-e7d3-7cc0-88c8-000000000802\n2026-10-01T12:00:00.000Z  97.25bpm  01890f3e-e7d3-7cc0-88c8-000000000101  01890f3e-e7d3-7cc0-88c8-000000000803\n2026-10-01T12:00:00.000Z  66bpm  01890f3e-e7d3-7cc0-88c8-000000000102  01890f3e-e7d3-7cc0-88c8-000000000806\n2026-10-02T12:00:00.000Z  70bpm  01890f3e-e7d3-7cc0-88c8-000000000101  01890f3e-e7d3-7cc0-88c8-000000000804\n2026-10-02T12:00:01.000Z  71bpm  01890f3e-e7d3-7cc0-88c8-000000000101  01890f3e-e7d3-7cc0-88c8-000000000805"
+      }
+    },
+    {
+      "name": "raw samples in a calendar day",
+      "call": "series",
+      "input": {
+        "quantity": "heart_rate",
+        "options": {
+          "raw": true,
+          "from": "2026-10-01",
+          "to": "2026-10-01"
+        }
+      },
+      "output": {
+        "view": {
+          "quantity": "heart_rate",
+          "unit": "bpm",
+          "time_zone": "America/Chicago",
+          "from": "2026-10-01T05:00:00.000Z",
+          "to": "2026-10-02T04:59:59.999Z",
+          "truncated": false,
+          "samples": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000802",
+              "created_at": "2026-10-01T05:30:00.000Z",
+              "current_revision": 1,
+              "is_deleted": false,
+              "record_type": "measurement_sample",
+              "data": {
+                "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+                "received_at": "2026-10-01T05:30:00.000Z",
+                "received_at_basis": "import_time",
+                "quantity": "heart_rate",
+                "recorded_at": "2026-10-01T05:30:00.000Z",
+                "input_timestamp": {
+                  "timestamp_text": "2026-10-01T05:30:00.000Z",
+                  "utc_offset_text": "Z",
+                  "utc_offset_meaning": "documented_recording_offset",
+                  "timestamp_basis": "source_instant"
+                },
+                "value": {
+                  "standard_value": 58,
+                  "standard_unit": "bpm",
+                  "input_value": 58,
+                  "input_unit": "bpm"
+                }
+              }
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000803",
+              "created_at": "2026-10-01T12:00:00.000Z",
+              "current_revision": 1,
+              "is_deleted": false,
+              "record_type": "measurement_sample",
+              "data": {
+                "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+                "received_at": "2026-10-01T12:00:00.000Z",
+                "received_at_basis": "import_time",
+                "quantity": "heart_rate",
+                "recorded_at": "2026-10-01T12:00:00.000Z",
+                "input_timestamp": {
+                  "timestamp_text": "2026-10-01T12:00:00.000Z",
+                  "utc_offset_text": "Z",
+                  "utc_offset_meaning": "documented_recording_offset",
+                  "timestamp_basis": "source_instant"
+                },
+                "value": {
+                  "standard_value": 97.25,
+                  "standard_unit": "bpm",
+                  "input_value": 97.25,
+                  "input_unit": "bpm"
+                }
+              }
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000806",
+              "created_at": "2026-10-01T12:00:00.000Z",
+              "current_revision": 1,
+              "is_deleted": false,
+              "record_type": "measurement_sample",
+              "data": {
+                "source_id": "01890f3e-e7d3-7cc0-88c8-000000000102",
+                "received_at": "2026-10-01T12:00:00.000Z",
+                "received_at_basis": "import_time",
+                "quantity": "heart_rate",
+                "recorded_at": "2026-10-01T12:00:00.000Z",
+                "input_timestamp": {
+                  "timestamp_text": "2026-10-01T12:00:00.000Z",
+                  "utc_offset_text": "Z",
+                  "utc_offset_meaning": "documented_recording_offset",
+                  "timestamp_basis": "source_instant"
+                },
+                "value": {
+                  "standard_value": 66,
+                  "standard_unit": "bpm",
+                  "input_value": 66,
+                  "input_unit": "bpm"
+                }
+              }
+            }
+          ]
+        },
+        "rendered": "heart_rate (bpm) — raw samples\n2026-10-01T05:30:00.000Z  58bpm  01890f3e-e7d3-7cc0-88c8-000000000101  01890f3e-e7d3-7cc0-88c8-000000000802\n2026-10-01T12:00:00.000Z  97.25bpm  01890f3e-e7d3-7cc0-88c8-000000000101  01890f3e-e7d3-7cc0-88c8-000000000803\n2026-10-01T12:00:00.000Z  66bpm  01890f3e-e7d3-7cc0-88c8-000000000102  01890f3e-e7d3-7cc0-88c8-000000000806"
+      }
+    },
+    {
+      "name": "one source",
+      "call": "series",
+      "input": {
+        "quantity": "heart_rate",
+        "options": {
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000102"
+        }
+      },
+      "output": {
+        "view": {
+          "quantity": "heart_rate",
+          "unit": "bpm",
+          "time_zone": "America/Chicago",
+          "source_id": "01890f3e-e7d3-7cc0-88c8-000000000102",
+          "truncated": false,
+          "days": [
+            {
+              "date": "2026-10-01",
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000102",
+              "sample_count": 1,
+              "minimum": 66,
+              "maximum": 66,
+              "mean": 66,
+              "first_at": "2026-10-01T12:00:00.000Z",
+              "last_at": "2026-10-01T12:00:00.000Z"
+            }
+          ]
+        },
+        "rendered": "heart_rate (bpm) by calendar day in America/Chicago\ndate        source                                n       mean      min       max\n2026-10-01  01890f3e-e7d3-7cc0-88c8-000000000102       1        66        66        66"
+      }
+    },
+    {
+      "name": "calendar bounds",
+      "call": "series",
+      "input": {
+        "quantity": "heart_rate",
+        "options": {
+          "from": "2026-10-01",
+          "to": "2026-10-01"
+        }
+      },
+      "output": {
+        "view": {
+          "quantity": "heart_rate",
+          "unit": "bpm",
+          "time_zone": "America/Chicago",
+          "from": "2026-10-01T05:00:00.000Z",
+          "to": "2026-10-02T04:59:59.999Z",
+          "truncated": false,
+          "days": [
+            {
+              "date": "2026-10-01",
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "sample_count": 2,
+              "minimum": 58,
+              "maximum": 97.25,
+              "mean": 77.6,
+              "first_at": "2026-10-01T05:30:00.000Z",
+              "last_at": "2026-10-01T12:00:00.000Z"
+            },
+            {
+              "date": "2026-10-01",
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000102",
+              "sample_count": 1,
+              "minimum": 66,
+              "maximum": 66,
+              "mean": 66,
+              "first_at": "2026-10-01T12:00:00.000Z",
+              "last_at": "2026-10-01T12:00:00.000Z"
+            }
+          ]
+        },
+        "rendered": "heart_rate (bpm) by calendar day in America/Chicago\ndate        source                                n       mean      min       max\n2026-10-01  01890f3e-e7d3-7cc0-88c8-000000000101       2      77.6        58     97.25\n2026-10-01  01890f3e-e7d3-7cc0-88c8-000000000102       1        66        66        66"
+      }
+    },
+    {
+      "name": "exact bounds",
+      "call": "series",
+      "input": {
+        "quantity": "heart_rate",
+        "options": {
+          "from": "2026-10-01T05:00:00.000Z"
+        }
+      },
+      "output": {
+        "view": {
+          "quantity": "heart_rate",
+          "unit": "bpm",
+          "time_zone": "America/Chicago",
+          "from": "2026-10-01T05:00:00.000Z",
+          "truncated": false,
+          "days": [
+            {
+              "date": "2026-10-01",
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "sample_count": 2,
+              "minimum": 58,
+              "maximum": 97.25,
+              "mean": 77.6,
+              "first_at": "2026-10-01T05:30:00.000Z",
+              "last_at": "2026-10-01T12:00:00.000Z"
+            },
+            {
+              "date": "2026-10-01",
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000102",
+              "sample_count": 1,
+              "minimum": 66,
+              "maximum": 66,
+              "mean": 66,
+              "first_at": "2026-10-01T12:00:00.000Z",
+              "last_at": "2026-10-01T12:00:00.000Z"
+            },
+            {
+              "date": "2026-10-02",
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "sample_count": 2,
+              "minimum": 70,
+              "maximum": 71,
+              "mean": 70.5,
+              "first_at": "2026-10-02T12:00:00.000Z",
+              "last_at": "2026-10-02T12:00:01.000Z"
+            }
+          ]
+        },
+        "rendered": "heart_rate (bpm) by calendar day in America/Chicago\ndate        source                                n       mean      min       max\n2026-10-01  01890f3e-e7d3-7cc0-88c8-000000000101       2      77.6        58     97.25\n2026-10-01  01890f3e-e7d3-7cc0-88c8-000000000102       1        66        66        66\n2026-10-02  01890f3e-e7d3-7cc0-88c8-000000000101       2      70.5        70        71"
+      }
+    },
+    {
+      "name": "a limit",
+      "call": "series",
+      "input": {
+        "quantity": "heart_rate",
+        "options": {
+          "limit": 2
+        }
+      },
+      "output": {
+        "view": {
+          "quantity": "heart_rate",
+          "unit": "bpm",
+          "time_zone": "America/Chicago",
+          "truncated": true,
+          "days": [
+            {
+              "date": "2026-09-30",
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "sample_count": 1,
+              "minimum": 61,
+              "maximum": 61,
+              "mean": 61,
+              "first_at": "2026-10-01T04:00:00.000Z",
+              "last_at": "2026-10-01T04:00:00.000Z"
+            },
+            {
+              "date": "2026-10-01",
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "sample_count": 1,
+              "minimum": 58,
+              "maximum": 58,
+              "mean": 58,
+              "first_at": "2026-10-01T05:30:00.000Z",
+              "last_at": "2026-10-01T05:30:00.000Z"
+            }
+          ]
+        },
+        "rendered": "heart_rate (bpm) by calendar day in America/Chicago\ndate        source                                n       mean      min       max\n2026-09-30  01890f3e-e7d3-7cc0-88c8-000000000101       1        61        61        61\n2026-10-01  01890f3e-e7d3-7cc0-88c8-000000000101       1        58        58        58\nresult reached --limit; narrow the time range or raise the limit"
+      }
+    },
+    {
+      "name": "raw with a limit",
+      "call": "series",
+      "input": {
+        "quantity": "heart_rate",
+        "options": {
+          "raw": true,
+          "limit": 2
+        }
+      },
+      "output": {
+        "view": {
+          "quantity": "heart_rate",
+          "unit": "bpm",
+          "truncated": true,
+          "samples": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000801",
+              "created_at": "2026-10-01T04:00:00.000Z",
+              "current_revision": 1,
+              "is_deleted": false,
+              "record_type": "measurement_sample",
+              "data": {
+                "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+                "received_at": "2026-10-01T04:00:00.000Z",
+                "received_at_basis": "import_time",
+                "quantity": "heart_rate",
+                "recorded_at": "2026-10-01T04:00:00.000Z",
+                "input_timestamp": {
+                  "timestamp_text": "2026-10-01T04:00:00.000Z",
+                  "utc_offset_text": "Z",
+                  "utc_offset_meaning": "documented_recording_offset",
+                  "timestamp_basis": "source_instant"
+                },
+                "value": {
+                  "standard_value": 61,
+                  "standard_unit": "bpm",
+                  "input_value": 61,
+                  "input_unit": "bpm"
+                }
+              }
+            },
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000802",
+              "created_at": "2026-10-01T05:30:00.000Z",
+              "current_revision": 1,
+              "is_deleted": false,
+              "record_type": "measurement_sample",
+              "data": {
+                "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+                "received_at": "2026-10-01T05:30:00.000Z",
+                "received_at_basis": "import_time",
+                "quantity": "heart_rate",
+                "recorded_at": "2026-10-01T05:30:00.000Z",
+                "input_timestamp": {
+                  "timestamp_text": "2026-10-01T05:30:00.000Z",
+                  "utc_offset_text": "Z",
+                  "utc_offset_meaning": "documented_recording_offset",
+                  "timestamp_basis": "source_instant"
+                },
+                "value": {
+                  "standard_value": 58,
+                  "standard_unit": "bpm",
+                  "input_value": 58,
+                  "input_unit": "bpm"
+                }
+              }
+            }
+          ]
+        },
+        "rendered": "heart_rate (bpm) — raw samples\n2026-10-01T04:00:00.000Z  61bpm  01890f3e-e7d3-7cc0-88c8-000000000101  01890f3e-e7d3-7cc0-88c8-000000000801\n2026-10-01T05:30:00.000Z  58bpm  01890f3e-e7d3-7cc0-88c8-000000000101  01890f3e-e7d3-7cc0-88c8-000000000802\nresult reached --limit; narrow the time range or raise the limit"
+      }
+    },
+    {
+      "name": "nothing recorded",
+      "call": "series",
+      "input": {
+        "quantity": "hrv_beats",
+        "options": {}
+      },
+      "output": {
+        "view": {
+          "quantity": "hrv_beats",
+          "unit": "ms",
+          "time_zone": "America/Chicago",
+          "truncated": false,
+          "days": []
+        },
+        "rendered": "no hrv_beats samples matched"
+      }
+    },
+    {
+      "name": "spans",
+      "call": "series",
+      "input": {
+        "quantity": "steps",
+        "options": {}
+      },
+      "output": {
+        "view": {
+          "quantity": "steps",
+          "unit": "count",
+          "time_zone": "America/Chicago",
+          "truncated": false,
+          "days": [
+            {
+              "date": "2026-10-01",
+              "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+              "sample_count": 1,
+              "minimum": 420,
+              "maximum": 420,
+              "mean": 420,
+              "first_at": "2026-10-01T12:00:00.000Z",
+              "last_at": "2026-10-01T12:00:00.000Z"
+            }
+          ]
+        },
+        "rendered": "steps (count) by calendar day in America/Chicago\ndate        source                                n       mean      min       max\n2026-10-01  01890f3e-e7d3-7cc0-88c8-000000000101       1       420       420       420"
+      }
+    },
+    {
+      "name": "an unknown timezone",
+      "call": "series",
+      "input": {
+        "quantity": "heart_rate",
+        "options": {
+          "time_zone": "Mars/Olympus"
+        }
+      },
+      "output": {
+        "error": "'Mars/Olympus' is not an IANA timezone such as America/Chicago"
+      }
+    },
+    {
+      "name": "an invalid calendar date",
+      "call": "series",
+      "input": {
+        "quantity": "heart_rate",
+        "options": {
+          "from": "2026-02-30"
+        }
+      },
+      "output": {
+        "error": "invalid calendar date '2026-02-30'"
+      }
+    },
+    {
+      "name": "a bound that is not a time",
+      "call": "series",
+      "input": {
+        "quantity": "heart_rate",
+        "options": {
+          "from": "yesterday"
+        }
+      },
+      "output": {
+        "error": "record: Invalid ISO datetime"
+      }
+    },
+    {
+      "name": "bounds in the wrong order",
+      "call": "series",
+      "input": {
+        "quantity": "heart_rate",
+        "options": {
+          "from": "2026-10-02",
+          "to": "2026-10-01"
+        }
+      },
+      "output": {
+        "error": "--from must not be after --to"
+      }
+    },
+    {
+      "name": "calendar range uses the profile timezone",
+      "call": "calendar-range",
+      "input": {
+        "from": "2026-03-08",
+        "to": "2026-03-08"
+      },
+      "output": {
+        "from": "2026-03-08T06:00:00.000Z",
+        "to": "2026-03-09T04:59:59.999Z",
+        "time_zone": "America/Chicago"
+      }
+    },
+    {
+      "name": "calendar range across the autumn change",
+      "call": "calendar-range",
+      "input": {
+        "from": "2026-11-01",
+        "to": "2026-11-01",
+        "time_zone": "America/Chicago"
+      },
+      "output": {
+        "from": "2026-11-01T05:00:00.000Z",
+        "to": "2026-11-02T05:59:59.999Z",
+        "time_zone": "America/Chicago"
+      }
+    },
+    {
+      "name": "as-of a calendar day",
+      "call": "as-of",
+      "input": {
+        "value": "2026-10-01"
+      },
+      "output": {
+        "as_of": "2026-10-02T04:59:59.999Z",
+        "time_zone": "America/Chicago"
+      }
+    },
+    {
+      "name": "as-of a calendar day elsewhere",
+      "call": "as-of",
+      "input": {
+        "value": "2026-10-01",
+        "time_zone": "Asia/Kolkata"
+      },
+      "output": {
+        "as_of": "2026-10-01T18:29:59.999Z",
+        "time_zone": "Asia/Kolkata"
+      }
+    },
+    {
+      "name": "as-of an exact time",
+      "call": "as-of",
+      "input": {
+        "value": "2026-10-01T12:00:00.000Z"
+      },
+      "output": {
+        "as_of": "2026-10-01T12:00:00.000Z"
+      }
+    },
+    {
+      "name": "as-of text that is not a time",
+      "call": "as-of",
+      "input": {
+        "value": "noon"
+      },
+      "output": {
+        "error": "record: Invalid ISO datetime"
+      }
+    }
+  ]
+}

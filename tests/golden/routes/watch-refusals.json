@@ -1,0 +1,68 @@
+{
+  "description": "Garmin inputs that refuse the import, each against a fresh database.",
+  "reference": "2.1.0",
+  "steps": [
+    {
+      "command": "import-garmin",
+      "database": {
+        "database_revision": 1,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source garmin garmin_account_export >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "garmin_account_export",
+                  "data_writer": "garmin",
+                  "source_type": "export_file",
+                  "vendor": "garmin"
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "kind": "file",
+        "name": "plain-times.gpx",
+        "text": "<gpx><trk><trkseg><trkpt lat=\"40.0\" lon=\"-105.0\"><time>2026-08-09T15:00:00</time></trkpt></trkseg></trk></gpx>"
+      },
+      "mapping": null,
+      "preview": {
+        "result": {
+          "left_out": [],
+          "preserved": [],
+          "record_ids": [],
+          "source": "garmin",
+          "understood": [
+            "end_at",
+            "name",
+            "route",
+            "start_at"
+          ]
+        }
+      },
+      "pull": null,
+      "write": {
+        "error": "2026-08-09T15:00:00 is not a UTC timestamp"
+      }
+    }
+  ]
+}

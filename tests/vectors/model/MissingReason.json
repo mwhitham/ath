@@ -1,0 +1,181 @@
+{
+  "schema": "MissingReason",
+  "cases": [
+    {
+      "name": "valid:not_provided_by_source",
+      "input": "not_provided_by_source",
+      "valid": true,
+      "output": "not_provided_by_source",
+      "issues": []
+    },
+    {
+      "name": "valid:not_exposed_by_route",
+      "input": "not_exposed_by_route",
+      "valid": true,
+      "output": "not_exposed_by_route",
+      "issues": []
+    },
+    {
+      "name": "valid:not_applicable",
+      "input": "not_applicable",
+      "valid": true,
+      "output": "not_applicable",
+      "issues": []
+    },
+    {
+      "name": "invalid:unknown",
+      "input": "__not_an_option__",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:empty",
+      "input": "",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:uppercase",
+      "input": "NOT_PROVIDED_BY_SOURCE",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:leading_space",
+      "input": " not_provided_by_source",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:trailing_space",
+      "input": "not_provided_by_source ",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:number",
+      "input": 1,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:array",
+      "input": [
+        "not_provided_by_source"
+      ],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:object",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,563 @@
+{
+  "description": "JavaScript JSON behavior. compact = JSON.stringify(JSON.parse(input_text)); stable_compact = JSON.stringify(stableValue(JSON.parse(input_text))); pretty = JSON.stringify(stableValue(JSON.parse(input_text)), null, 2). stableValue is src/db/stable-json.ts. deterministicJson writes pretty plus one newline.",
+  "cases": [
+    {
+      "name": "object:integer_like_keys",
+      "input_text": "{\"b\":1,\"10\":2,\"2\":3,\"01\":4,\"-1\":5,\"1.5\":6,\"0\":7}",
+      "parses": true,
+      "compact": "{\"0\":7,\"2\":3,\"10\":2,\"b\":1,\"01\":4,\"-1\":5,\"1.5\":6}",
+      "stable_compact": "{\"0\":7,\"2\":3,\"10\":2,\"-1\":5,\"01\":4,\"1.5\":6,\"b\":1}",
+      "pretty": "{\n  \"0\": 7,\n  \"2\": 3,\n  \"10\": 2,\n  \"-1\": 5,\n  \"01\": 4,\n  \"1.5\": 6,\n  \"b\": 1\n}"
+    },
+    {
+      "name": "object:array_index_limit_keys",
+      "input_text": "{\"z\":0,\"4294967295\":1,\"4294967294\":2,\"9007199254740993\":3,\"a\":4}",
+      "parses": true,
+      "compact": "{\"4294967294\":2,\"z\":0,\"4294967295\":1,\"9007199254740993\":3,\"a\":4}",
+      "stable_compact": "{\"4294967294\":2,\"4294967295\":1,\"9007199254740993\":3,\"a\":4,\"z\":0}",
+      "pretty": "{\n  \"4294967294\": 2,\n  \"4294967295\": 1,\n  \"9007199254740993\": 3,\n  \"a\": 4,\n  \"z\": 0\n}"
+    },
+    {
+      "name": "object:utf16_vs_code_point_order",
+      "input_text": "{\"ﬁ\":1,\"😀\":2,\"a\":3,\"é\":4,\"Z\":5,\"￿\":6}",
+      "parses": true,
+      "compact": "{\"ﬁ\":1,\"😀\":2,\"a\":3,\"é\":4,\"Z\":5,\"￿\":6}",
+      "stable_compact": "{\"Z\":5,\"a\":3,\"é\":4,\"😀\":2,\"ﬁ\":1,\"￿\":6}",
+      "pretty": "{\n  \"Z\": 5,\n  \"a\": 3,\n  \"é\": 4,\n  \"😀\": 2,\n  \"ﬁ\": 1,\n  \"￿\": 6\n}"
+    },
+    {
+      "name": "object:escaped_key_order",
+      "input_text": "{\"\\ufb01\":1,\"\\ud83d\\ude00\":2,\"\\uffff\":3}",
+      "parses": true,
+      "compact": "{\"ﬁ\":1,\"😀\":2,\"￿\":3}",
+      "stable_compact": "{\"😀\":2,\"ﬁ\":1,\"￿\":3}",
+      "pretty": "{\n  \"😀\": 2,\n  \"ﬁ\": 1,\n  \"￿\": 3\n}"
+    },
+    {
+      "name": "object:case_and_punctuation_order",
+      "input_text": "{\"b\":1,\"B\":2,\"a\":3,\"A\":4,\"_\":5,\"~\":6,\" \":7}",
+      "parses": true,
+      "compact": "{\"b\":1,\"B\":2,\"a\":3,\"A\":4,\"_\":5,\"~\":6,\" \":7}",
+      "stable_compact": "{\" \":7,\"A\":4,\"B\":2,\"_\":5,\"a\":3,\"b\":1,\"~\":6}",
+      "pretty": "{\n  \" \": 7,\n  \"A\": 4,\n  \"B\": 2,\n  \"_\": 5,\n  \"a\": 3,\n  \"b\": 1,\n  \"~\": 6\n}"
+    },
+    {
+      "name": "object:combining_vs_precomposed",
+      "input_text": "{\"é\":1,\"é\":2}",
+      "parses": true,
+      "compact": "{\"é\":1,\"é\":2}",
+      "stable_compact": "{\"é\":1,\"é\":2}",
+      "pretty": "{\n  \"é\": 1,\n  \"é\": 2\n}"
+    },
+    {
+      "name": "object:empty_key",
+      "input_text": "{\"\":1,\"a\":2}",
+      "parses": true,
+      "compact": "{\"\":1,\"a\":2}",
+      "stable_compact": "{\"\":1,\"a\":2}",
+      "pretty": "{\n  \"\": 1,\n  \"a\": 2\n}"
+    },
+    {
+      "name": "object:duplicate_keys",
+      "input_text": "{\"a\":1,\"b\":2,\"a\":3}",
+      "parses": true,
+      "compact": "{\"a\":3,\"b\":2}",
+      "stable_compact": "{\"a\":3,\"b\":2}",
+      "pretty": "{\n  \"a\": 3,\n  \"b\": 2\n}"
+    },
+    {
+      "name": "object:duplicate_keys_nested",
+      "input_text": "{\"a\":{\"x\":1},\"b\":0,\"a\":{\"y\":2}}",
+      "parses": true,
+      "compact": "{\"a\":{\"y\":2},\"b\":0}",
+      "stable_compact": "{\"a\":{\"y\":2},\"b\":0}",
+      "pretty": "{\n  \"a\": {\n    \"y\": 2\n  },\n  \"b\": 0\n}"
+    },
+    {
+      "name": "object:proto_key",
+      "input_text": "{\"__proto__\":{\"x\":1},\"a\":1}",
+      "parses": true,
+      "compact": "{\"__proto__\":{\"x\":1},\"a\":1}",
+      "stable_compact": "{\"__proto__\":{\"x\":1},\"a\":1}",
+      "pretty": "{\n  \"__proto__\": {\n    \"x\": 1\n  },\n  \"a\": 1\n}"
+    },
+    {
+      "name": "object:nested_empty",
+      "input_text": "{\"a\":{},\"b\":[],\"c\":[{}],\"d\":[[]],\"e\":{\"f\":{}}}",
+      "parses": true,
+      "compact": "{\"a\":{},\"b\":[],\"c\":[{}],\"d\":[[]],\"e\":{\"f\":{}}}",
+      "stable_compact": "{\"a\":{},\"b\":[],\"c\":[{}],\"d\":[[]],\"e\":{\"f\":{}}}",
+      "pretty": "{\n  \"a\": {},\n  \"b\": [],\n  \"c\": [\n    {}\n  ],\n  \"d\": [\n    []\n  ],\n  \"e\": {\n    \"f\": {}\n  }\n}"
+    },
+    {
+      "name": "object:whitespace",
+      "input_text": " \t\n\r{ \"a\" : [ 1 , 2 ] ,\n \"b\" : { } }\r\n",
+      "parses": true,
+      "compact": "{\"a\":[1,2],\"b\":{}}",
+      "stable_compact": "{\"a\":[1,2],\"b\":{}}",
+      "pretty": "{\n  \"a\": [\n    1,\n    2\n  ],\n  \"b\": {}\n}"
+    },
+    {
+      "name": "string:control_characters",
+      "input_text": "[\"\\u0000\\u0001\\u001f\",\"\\b\\f\\n\\r\\t\",\"\\u000b\"]",
+      "parses": true,
+      "compact": "[\"\\u0000\\u0001\\u001f\",\"\\b\\f\\n\\r\\t\",\"\\u000b\"]",
+      "stable_compact": "[\"\\u0000\\u0001\\u001f\",\"\\b\\f\\n\\r\\t\",\"\\u000b\"]",
+      "pretty": "[\n  \"\\u0000\\u0001\\u001f\",\n  \"\\b\\f\\n\\r\\t\",\n  \"\\u000b\"\n]"
+    },
+    {
+      "name": "string:del_and_c1",
+      "input_text": "[\"\\u007f\",\"\\u0080\",\"\\u009f\"]",
+      "parses": true,
+      "compact": "[\"\",\"\",\"\"]",
+      "stable_compact": "[\"\",\"\",\"\"]",
+      "pretty": "[\n  \"\",\n  \"\",\n  \"\"\n]"
+    },
+    {
+      "name": "string:line_and_paragraph_separators",
+      "input_text": "[\"\\u2028\",\"\\u2029\",\" \"]",
+      "parses": true,
+      "compact": "[\" \",\" \",\" \"]",
+      "stable_compact": "[\" \",\" \",\" \"]",
+      "pretty": "[\n  \" \",\n  \" \",\n  \" \"\n]"
+    },
+    {
+      "name": "string:no_break_space",
+      "input_text": "[\"\\u00a0\",\" \"]",
+      "parses": true,
+      "compact": "[\" \",\" \"]",
+      "stable_compact": "[\" \",\" \"]",
+      "pretty": "[\n  \" \",\n  \" \"\n]"
+    },
+    {
+      "name": "string:escaped_slash",
+      "input_text": "[\"\\/\",\"a\\/b\"]",
+      "parses": true,
+      "compact": "[\"/\",\"a/b\"]",
+      "stable_compact": "[\"/\",\"a/b\"]",
+      "pretty": "[\n  \"/\",\n  \"a/b\"\n]"
+    },
+    {
+      "name": "string:quote_and_backslash",
+      "input_text": "[\"\\\"\",\"\\\\\"]",
+      "parses": true,
+      "compact": "[\"\\\"\",\"\\\\\"]",
+      "stable_compact": "[\"\\\"\",\"\\\\\"]",
+      "pretty": "[\n  \"\\\"\",\n  \"\\\\\"\n]"
+    },
+    {
+      "name": "string:escaped_letters",
+      "input_text": "[\"\\u0041\\u00e9\\u00E9\"]",
+      "parses": true,
+      "compact": "[\"Aéé\"]",
+      "stable_compact": "[\"Aéé\"]",
+      "pretty": "[\n  \"Aéé\"\n]"
+    },
+    {
+      "name": "string:raw_non_ascii",
+      "input_text": "[\"é中😀\"]",
+      "parses": true,
+      "compact": "[\"é中😀\"]",
+      "stable_compact": "[\"é中😀\"]",
+      "pretty": "[\n  \"é中😀\"\n]"
+    },
+    {
+      "name": "string:surrogate_pair_escape",
+      "input_text": "[\"\\ud83d\\ude00\"]",
+      "parses": true,
+      "compact": "[\"😀\"]",
+      "stable_compact": "[\"😀\"]",
+      "pretty": "[\n  \"😀\"\n]"
+    },
+    {
+      "name": "string:lone_high_surrogate",
+      "input_text": "[\"\\ud800\"]",
+      "parses": true,
+      "compact": "[\"\\ud800\"]",
+      "stable_compact": "[\"\\ud800\"]",
+      "pretty": "[\n  \"\\ud800\"\n]"
+    },
+    {
+      "name": "string:lone_low_surrogate",
+      "input_text": "[\"\\udc00\"]",
+      "parses": true,
+      "compact": "[\"\\udc00\"]",
+      "stable_compact": "[\"\\udc00\"]",
+      "pretty": "[\n  \"\\udc00\"\n]"
+    },
+    {
+      "name": "string:reversed_surrogates",
+      "input_text": "[\"\\ude00\\ud83d\"]",
+      "parses": true,
+      "compact": "[\"\\ude00\\ud83d\"]",
+      "stable_compact": "[\"\\ude00\\ud83d\"]",
+      "pretty": "[\n  \"\\ude00\\ud83d\"\n]"
+    },
+    {
+      "name": "string:lone_surrogate_key",
+      "input_text": "{\"\\ud800\":1,\"a\":2,\"\\udc00\":3}",
+      "parses": true,
+      "compact": "{\"\\ud800\":1,\"a\":2,\"\\udc00\":3}",
+      "stable_compact": "{\"a\":2,\"\\ud800\":1,\"\\udc00\":3}",
+      "pretty": "{\n  \"a\": 2,\n  \"\\ud800\": 1,\n  \"\\udc00\": 3\n}"
+    },
+    {
+      "name": "string:noncharacter",
+      "input_text": "[\"\\uffff\",\"\\ufffe\"]",
+      "parses": true,
+      "compact": "[\"￿\",\"￾\"]",
+      "stable_compact": "[\"￿\",\"￾\"]",
+      "pretty": "[\n  \"￿\",\n  \"￾\"\n]"
+    },
+    {
+      "name": "number:-0",
+      "input_text": "-0",
+      "parses": true,
+      "compact": "0",
+      "stable_compact": "0",
+      "pretty": "0"
+    },
+    {
+      "name": "number:-0.0",
+      "input_text": "-0.0",
+      "parses": true,
+      "compact": "0",
+      "stable_compact": "0",
+      "pretty": "0"
+    },
+    {
+      "name": "number:0.1",
+      "input_text": "0.1",
+      "parses": true,
+      "compact": "0.1",
+      "stable_compact": "0.1",
+      "pretty": "0.1"
+    },
+    {
+      "name": "number:0.30000000000000004",
+      "input_text": "0.30000000000000004",
+      "parses": true,
+      "compact": "0.30000000000000004",
+      "stable_compact": "0.30000000000000004",
+      "pretty": "0.30000000000000004"
+    },
+    {
+      "name": "number:1e21",
+      "input_text": "1e21",
+      "parses": true,
+      "compact": "1e+21",
+      "stable_compact": "1e+21",
+      "pretty": "1e+21"
+    },
+    {
+      "name": "number:1e20",
+      "input_text": "1e20",
+      "parses": true,
+      "compact": "100000000000000000000",
+      "stable_compact": "100000000000000000000",
+      "pretty": "100000000000000000000"
+    },
+    {
+      "name": "number:123456789012345678901",
+      "input_text": "123456789012345678901",
+      "parses": true,
+      "compact": "123456789012345680000",
+      "stable_compact": "123456789012345680000",
+      "pretty": "123456789012345680000"
+    },
+    {
+      "name": "number:1e-7",
+      "input_text": "1e-7",
+      "parses": true,
+      "compact": "1e-7",
+      "stable_compact": "1e-7",
+      "pretty": "1e-7"
+    },
+    {
+      "name": "number:1e-6",
+      "input_text": "1e-6",
+      "parses": true,
+      "compact": "0.000001",
+      "stable_compact": "0.000001",
+      "pretty": "0.000001"
+    },
+    {
+      "name": "number:1.5e-7",
+      "input_text": "1.5e-7",
+      "parses": true,
+      "compact": "1.5e-7",
+      "stable_compact": "1.5e-7",
+      "pretty": "1.5e-7"
+    },
+    {
+      "name": "number:-1e-7",
+      "input_text": "-1e-7",
+      "parses": true,
+      "compact": "-1e-7",
+      "stable_compact": "-1e-7",
+      "pretty": "-1e-7"
+    },
+    {
+      "name": "number:123e-20",
+      "input_text": "123e-20",
+      "parses": true,
+      "compact": "1.23e-18",
+      "stable_compact": "1.23e-18",
+      "pretty": "1.23e-18"
+    },
+    {
+      "name": "number:5e-324",
+      "input_text": "5e-324",
+      "parses": true,
+      "compact": "5e-324",
+      "stable_compact": "5e-324",
+      "pretty": "5e-324"
+    },
+    {
+      "name": "number:2.4703282292062328e-324_rounds_up",
+      "input_text": "2.4703282292062328e-324",
+      "parses": true,
+      "compact": "5e-324",
+      "stable_compact": "5e-324",
+      "pretty": "5e-324"
+    },
+    {
+      "name": "number:1e-400_underflows",
+      "input_text": "1e-400",
+      "parses": true,
+      "compact": "0",
+      "stable_compact": "0",
+      "pretty": "0"
+    },
+    {
+      "name": "number:1.7976931348623157e308",
+      "input_text": "1.7976931348623157e308",
+      "parses": true,
+      "compact": "1.7976931348623157e+308",
+      "stable_compact": "1.7976931348623157e+308",
+      "pretty": "1.7976931348623157e+308"
+    },
+    {
+      "name": "number:1e400_overflows",
+      "input_text": "1e400",
+      "parses": true,
+      "compact": "null",
+      "stable_compact": "null",
+      "pretty": "null"
+    },
+    {
+      "name": "number:-1e400_overflows",
+      "input_text": "-1e400",
+      "parses": true,
+      "compact": "null",
+      "stable_compact": "null",
+      "pretty": "null"
+    },
+    {
+      "name": "number:100.0",
+      "input_text": "100.0",
+      "parses": true,
+      "compact": "100",
+      "stable_compact": "100",
+      "pretty": "100"
+    },
+    {
+      "name": "number:1E2",
+      "input_text": "1E2",
+      "parses": true,
+      "compact": "100",
+      "stable_compact": "100",
+      "pretty": "100"
+    },
+    {
+      "name": "number:1e+2",
+      "input_text": "1e+2",
+      "parses": true,
+      "compact": "100",
+      "stable_compact": "100",
+      "pretty": "100"
+    },
+    {
+      "name": "number:0.1e1",
+      "input_text": "0.1e1",
+      "parses": true,
+      "compact": "1",
+      "stable_compact": "1",
+      "pretty": "1"
+    },
+    {
+      "name": "number:9007199254740993",
+      "input_text": "9007199254740993",
+      "parses": true,
+      "compact": "9007199254740992",
+      "stable_compact": "9007199254740992",
+      "pretty": "9007199254740992"
+    },
+    {
+      "name": "number:9007199254740992.5",
+      "input_text": "9007199254740992.5",
+      "parses": true,
+      "compact": "9007199254740992",
+      "stable_compact": "9007199254740992",
+      "pretty": "9007199254740992"
+    },
+    {
+      "name": "number:4.35",
+      "input_text": "4.35",
+      "parses": true,
+      "compact": "4.35",
+      "stable_compact": "4.35",
+      "pretty": "4.35"
+    },
+    {
+      "name": "number:1.0000000000000002",
+      "input_text": "1.0000000000000002",
+      "parses": true,
+      "compact": "1.0000000000000002",
+      "stable_compact": "1.0000000000000002",
+      "pretty": "1.0000000000000002"
+    },
+    {
+      "name": "number:in_array",
+      "input_text": "[-0,0.1,1e21,1e-7,123456789012345678901,5e-324,1.7976931348623157e308,100.0,1E2]",
+      "parses": true,
+      "compact": "[0,0.1,1e+21,1e-7,123456789012345680000,5e-324,1.7976931348623157e+308,100,100]",
+      "stable_compact": "[0,0.1,1e+21,1e-7,123456789012345680000,5e-324,1.7976931348623157e+308,100,100]",
+      "pretty": "[\n  0,\n  0.1,\n  1e+21,\n  1e-7,\n  123456789012345680000,\n  5e-324,\n  1.7976931348623157e+308,\n  100,\n  100\n]"
+    },
+    {
+      "name": "literal:true_false_null",
+      "input_text": "[true,false,null]",
+      "parses": true,
+      "compact": "[true,false,null]",
+      "stable_compact": "[true,false,null]",
+      "pretty": "[\n  true,\n  false,\n  null\n]"
+    },
+    {
+      "name": "scalar:string",
+      "input_text": "\"x\"",
+      "parses": true,
+      "compact": "\"x\"",
+      "stable_compact": "\"x\"",
+      "pretty": "\"x\""
+    },
+    {
+      "name": "nesting:depth_64",
+      "input_text": "[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[1]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]",
+      "parses": true,
+      "compact": "[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[1]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]",
+      "stable_compact": "[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[1]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]",
+      "pretty": "[\n  [\n    [\n      [\n        [\n          [\n            [\n              [\n                [\n                  [\n                    [\n                      [\n                        [\n                          [\n                            [\n                              [\n                                [\n                                  [\n                                    [\n                                      [\n                                        [\n                                          [\n                                            [\n                                              [\n                                                [\n                                                  [\n                                                    [\n                                                      [\n                                                        [\n                                                          [\n                                                            [\n                                                              [\n                                                                [\n                                                                  [\n                                                                    [\n                                                                      [\n                                                                        [\n                                                                          [\n                                                                            [\n                                                                              [\n                                                                                [\n                                                                                  [\n                                                                                    [\n                                                                                      [\n                                                                                        [\n                                                                                          [\n                                                                                            [\n                                                                                              [\n                                                                                                [\n                                                                                                  [\n                                                                                                    [\n                                                                                                      [\n                                                                                                        [\n                                                                                                          [\n                                                                                                            [\n                                                                                                              [\n                                                                                                                [\n                                                                                                                  [\n                                                                                                                    [\n                                                                                                                      [\n                                                                                                                        [\n                                                                                                                          [\n                                                                                                                            [\n                                                                                                                              [\n                                                                                                                                1\n                                                                                                                              ]\n                                                                                                                            ]\n                                                                                                                          ]\n                                                                                                                        ]\n                                                                                                                      ]\n                                                                                                                    ]\n                                                                                                                  ]\n                                                                                                                ]\n                                                                                                              ]\n                                                                                                            ]\n                                                                                                          ]\n                                                                                                        ]\n                                                                                                      ]\n                                                                                                    ]\n                                                                                                  ]\n                                                                                                ]\n                                                                                              ]\n                                                                                            ]\n                                                                                          ]\n                                                                                        ]\n                                                                                      ]\n                                                                                    ]\n                                                                                  ]\n                                                                                ]\n                                                                              ]\n                                                                            ]\n                                                                          ]\n                                                                        ]\n                                                                      ]\n                                                                    ]\n                                                                  ]\n                                                                ]\n                                                              ]\n                                                            ]\n                                                          ]\n                                                        ]\n                                                      ]\n                                                    ]\n                                                  ]\n                                                ]\n                                              ]\n                                            ]\n                                          ]\n                                        ]\n                                      ]\n                                    ]\n                                  ]\n                                ]\n                              ]\n                            ]\n                          ]\n                        ]\n                      ]\n                    ]\n                  ]\n                ]\n              ]\n            ]\n          ]\n        ]\n      ]\n    ]\n  ]\n]"
+    },
+    {
+      "name": "invalid:nan",
+      "input_text": "NaN",
+      "parses": false
+    },
+    {
+      "name": "invalid:infinity",
+      "input_text": "Infinity",
+      "parses": false
+    },
+    {
+      "name": "invalid:trailing_comma_array",
+      "input_text": "[1,]",
+      "parses": false
+    },
+    {
+      "name": "invalid:trailing_comma_object",
+      "input_text": "{\"a\":1,}",
+      "parses": false
+    },
+    {
+      "name": "invalid:leading_zero",
+      "input_text": "01",
+      "parses": false
+    },
+    {
+      "name": "invalid:trailing_dot",
+      "input_text": "1.",
+      "parses": false
+    },
+    {
+      "name": "invalid:leading_dot",
+      "input_text": ".5",
+      "parses": false
+    },
+    {
+      "name": "invalid:plus_sign",
+      "input_text": "+1",
+      "parses": false
+    },
+    {
+      "name": "invalid:single_quotes",
+      "input_text": "'a'",
+      "parses": false
+    },
+    {
+      "name": "invalid:bad_escape",
+      "input_text": "\"\\x\"",
+      "parses": false
+    },
+    {
+      "name": "invalid:short_unicode_escape",
+      "input_text": "\"\\u12\"",
+      "parses": false
+    },
+    {
+      "name": "invalid:raw_tab_in_string",
+      "input_text": "\"a\tb\"",
+      "parses": false
+    },
+    {
+      "name": "invalid:raw_newline_in_string",
+      "input_text": "\"a\nb\"",
+      "parses": false
+    },
+    {
+      "name": "invalid:byte_order_mark",
+      "input_text": "﻿{}",
+      "parses": false
+    },
+    {
+      "name": "invalid:empty",
+      "input_text": "",
+      "parses": false
+    },
+    {
+      "name": "invalid:whitespace_only",
+      "input_text": " ",
+      "parses": false
+    },
+    {
+      "name": "invalid:two_values",
+      "input_text": "[1] [2]",
+      "parses": false
+    },
+    {
+      "name": "invalid:bare_minus",
+      "input_text": "-",
+      "parses": false
+    },
+    {
+      "name": "invalid:bare_exponent",
+      "input_text": "1e",
+      "parses": false
+    },
+    {
+      "name": "invalid:unquoted_key",
+      "input_text": "{a:1}",
+      "parses": false
+    },
+    {
+      "name": "invalid:comment",
+      "input_text": "[1/*x*/]",
+      "parses": false
+    },
+    {
+      "name": "invalid:non_breaking_space_whitespace",
+      "input_text": "[ 1]",
+      "parses": false
+    }
+  ]
+}

@@ -1,0 +1,189 @@
+{
+  "schema": "Sha256",
+  "cases": [
+    {
+      "name": "valid:lowercase",
+      "input": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "valid": true,
+      "output": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "issues": []
+    },
+    {
+      "name": "valid:all_zero",
+      "input": "0000000000000000000000000000000000000000000000000000000000000000",
+      "valid": true,
+      "output": "0000000000000000000000000000000000000000000000000000000000000000",
+      "issues": []
+    },
+    {
+      "name": "invalid:uppercase",
+      "input": "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "lowercase SHA-256 hex digest",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-f0-9]{64}$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:63_chars",
+      "input": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcde",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "lowercase SHA-256 hex digest",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-f0-9]{64}$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:65_chars",
+      "input": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef0",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "lowercase SHA-256 hex digest",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-f0-9]{64}$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:non_hex",
+      "input": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdeg",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "lowercase SHA-256 hex digest",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-f0-9]{64}$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:prefixed",
+      "input": "sha256:0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "lowercase SHA-256 hex digest",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-f0-9]{64}$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:trailing_newline",
+      "input": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\n",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "lowercase SHA-256 hex digest",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-f0-9]{64}$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:empty",
+      "input": "",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "lowercase SHA-256 hex digest",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-f0-9]{64}$/"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:number",
+      "input": 1,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:boolean",
+      "input": true,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received boolean",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received array",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:object",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received object",
+          "expected": "string"
+        }
+      ]
+    }
+  ]
+}

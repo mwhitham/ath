@@ -1,0 +1,1060 @@
+{
+  "schema": "SourceReportedSummary",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": 0.91,
+        "input_unit": "ratio",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": 0.91,
+        "input_unit": "ratio",
+        "summary_type": "sleep_efficiency"
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": 0.91,
+        "input_unit": "ratio",
+        "summary_type": "sleep_efficiency",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "standard_value:missing",
+      "input": {
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "standard_value"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "standard_value:null",
+      "input": {
+        "standard_value": null,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "standard_value"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "standard_value:wrong_type=string",
+      "input": {
+        "standard_value": "1",
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "standard_value"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "standard_value:number=1e+308",
+      "input": {
+        "standard_value": 1e+308,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 1e+308,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "issues": []
+    },
+    {
+      "name": "standard_value:number=-1e+308",
+      "input": {
+        "standard_value": -1e+308,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": -1e+308,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "issues": []
+    },
+    {
+      "name": "standard_value:number=-1.5",
+      "input": {
+        "standard_value": -1.5,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": -1.5,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "issues": []
+    },
+    {
+      "name": "standard_value:number=0",
+      "input": {
+        "standard_value": 0,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 0,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "issues": []
+    },
+    {
+      "name": "standard_value:number=5e-324",
+      "input": {
+        "standard_value": 5e-324,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 5e-324,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "issues": []
+    },
+    {
+      "name": "standard_value:number_text=-0",
+      "input_text": "{\"standard_value\":-0,\"standard_unit\":\"%\",\"input_value_missing_reason\":\"not_exposed_by_route\",\"input_unit_missing_reason\":\"not_exposed_by_route\",\"summary_type\":\"sleep_efficiency\"}",
+      "input": {
+        "standard_value": 0,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 0,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "issues": []
+    },
+    {
+      "name": "standard_value:number_text=1e400",
+      "input_text": "{\"standard_value\":1e400,\"standard_unit\":\"%\",\"input_value_missing_reason\":\"not_exposed_by_route\",\"input_unit_missing_reason\":\"not_exposed_by_route\",\"summary_type\":\"sleep_efficiency\"}",
+      "input": {
+        "standard_value": null,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "standard_value"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "standard_unit:missing",
+      "input": {
+        "standard_value": 91,
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "standard_unit"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "standard_unit:null",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": null,
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "standard_unit"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "standard_unit:wrong_type=number",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": 1,
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "standard_unit"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "standard_unit:empty_string",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "standard_unit"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "input_value:null",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": null,
+        "input_unit": "ratio",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_value"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "input_value:wrong_type=string",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": "1",
+        "input_unit": "ratio",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_value"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "input_value:number=1e+308",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": 1e+308,
+        "input_unit": "ratio",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": 1e+308,
+        "input_unit": "ratio",
+        "summary_type": "sleep_efficiency"
+      },
+      "issues": []
+    },
+    {
+      "name": "input_value:number=-1e+308",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": -1e+308,
+        "input_unit": "ratio",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": -1e+308,
+        "input_unit": "ratio",
+        "summary_type": "sleep_efficiency"
+      },
+      "issues": []
+    },
+    {
+      "name": "input_value:number=-1.5",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": -1.5,
+        "input_unit": "ratio",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": -1.5,
+        "input_unit": "ratio",
+        "summary_type": "sleep_efficiency"
+      },
+      "issues": []
+    },
+    {
+      "name": "input_value:number=0",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": 0,
+        "input_unit": "ratio",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": 0,
+        "input_unit": "ratio",
+        "summary_type": "sleep_efficiency"
+      },
+      "issues": []
+    },
+    {
+      "name": "input_value:number=5e-324",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": 5e-324,
+        "input_unit": "ratio",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": 5e-324,
+        "input_unit": "ratio",
+        "summary_type": "sleep_efficiency"
+      },
+      "issues": []
+    },
+    {
+      "name": "input_value:number_text=-0",
+      "input_text": "{\"standard_value\":91,\"standard_unit\":\"%\",\"input_value\":-0,\"input_unit\":\"ratio\",\"summary_type\":\"sleep_efficiency\"}",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": 0,
+        "input_unit": "ratio",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": 0,
+        "input_unit": "ratio",
+        "summary_type": "sleep_efficiency"
+      },
+      "issues": []
+    },
+    {
+      "name": "input_value:number_text=1e400",
+      "input_text": "{\"standard_value\":91,\"standard_unit\":\"%\",\"input_value\":1e400,\"input_unit\":\"ratio\",\"summary_type\":\"sleep_efficiency\"}",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": null,
+        "input_unit": "ratio",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_value"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "input_unit:null",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": 0.91,
+        "input_unit": null,
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_unit"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "input_unit:wrong_type=number",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": 0.91,
+        "input_unit": 1,
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_unit"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "input_unit:empty_string",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": 0.91,
+        "input_unit": "",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_unit"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "input_value_missing_reason:null",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value_missing_reason": null,
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_value_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input_value_missing_reason:wrong_type=number",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value_missing_reason": 1,
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_value_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input_value_missing_reason:enum_invalid",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value_missing_reason": "__not_an_option__",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_value_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input_value_missing_reason:empty_string",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value_missing_reason": "",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_value_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input_value_missing_reason:enum_uppercase",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value_missing_reason": "NOT_PROVIDED_BY_SOURCE",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_value_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input_unit_missing_reason:null",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": null,
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_unit_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input_unit_missing_reason:wrong_type=number",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": 1,
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_unit_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input_unit_missing_reason:enum_invalid",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "__not_an_option__",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_unit_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input_unit_missing_reason:empty_string",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_unit_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input_unit_missing_reason:enum_uppercase",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "NOT_PROVIDED_BY_SOURCE",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_unit_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "summary_type:missing",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "summary_type"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "summary_type:null",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "summary_type"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "summary_type:wrong_type=number",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "summary_type"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "summary_type:empty_string",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value_missing_reason": "not_exposed_by_route",
+        "input_unit_missing_reason": "not_exposed_by_route",
+        "summary_type": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "summary_type"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "rule:both_neither",
+      "input": {
+        "standard_value": 1,
+        "standard_unit": "%",
+        "summary_type": "x"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_value_missing_reason"
+          ],
+          "code": "custom",
+          "message": "Provide the input value or one missing reason"
+        },
+        {
+          "path": [
+            "input_unit_missing_reason"
+          ],
+          "code": "custom",
+          "message": "Provide the input unit or one missing reason"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R13",
+          "expect": "trigger"
+        },
+        {
+          "rule": "R14",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:value_and_reason",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": 0.91,
+        "input_unit": "ratio",
+        "summary_type": "sleep_efficiency",
+        "input_value_missing_reason": "not_applicable"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_value_missing_reason"
+          ],
+          "code": "custom",
+          "message": "Provide the input value or one missing reason"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R13",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:satisfied",
+      "input": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": 0.91,
+        "input_unit": "ratio",
+        "summary_type": "sleep_efficiency"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 91,
+        "standard_unit": "%",
+        "input_value": 0.91,
+        "input_unit": "ratio",
+        "summary_type": "sleep_efficiency"
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R13",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R14",
+          "expect": "satisfy"
+        }
+      ]
+    }
+  ]
+}
