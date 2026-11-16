@@ -239,6 +239,46 @@ fn step_five_as_four(text: &str) -> String {
     out
 }
 
+/// The 2.1.1 calculation files, kept in `tests/fixtures/calculations-2-1-1`.
+/// A scenario that applies a calculation gets the 2.1.1 copy installed, as a
+/// person's unchanged copy would be, so the recorded 2.1.0 output describes the
+/// operation that runs (D230). The 2.1.2 methods are tested in
+/// `calculate_methods.rs` and `cli_calculate.rs`.
+fn install_2_1_1_calculations(scenario: &Value, work: &std::path::Path) {
+    let fixtures = repo().join("tests/fixtures/calculations-2-1-1");
+    for step in scenario["steps"].as_array().unwrap() {
+        let argv = step["argv"].as_array().unwrap();
+        if argv.first().and_then(Value::as_str) != Some("apply") {
+            continue;
+        }
+        let name = argv[1].as_str().unwrap().trim_end_matches(".md").rsplit(['/', '\\']).next().unwrap();
+        let source = fixtures.join(name).join("SKILL.md");
+        if source.exists() {
+            let folder = work.join(".agents/skills").join(name);
+            std::fs::create_dir_all(&folder).unwrap();
+            std::fs::copy(&source, folder.join("SKILL.md")).unwrap();
+        }
+    }
+}
+
+/// `apply` output gains the operation name, and a notice for an operation
+/// replaced in 2.1.2 (D230). Both are checked in `calculate_golden.rs`; they
+/// are removed here so the rest is compared with the 2.1.0 output.
+fn without_2_1_2_apply_fields(text: &str) -> String {
+    text.lines()
+        .filter(|line| {
+            let trimmed = line.trim_start();
+            !(trimmed.starts_with("\"operation\": ")
+                || trimmed.starts_with("note: ")
+                || trimmed.starts_with("\"method_notice\": "))
+        })
+        .map(|line| line.to_string())
+        .collect::<Vec<_>>()
+        .join("\n")
+        .replace("\"result\": null,\n}", "\"result\": null\n}")
+        + if text.ends_with('\n') { "\n" } else { "" }
+}
+
 /// `log` lists record data in published field order (deliberate-changes.md
 /// 25); 2.1.0 used the order its planner built. The lines must be the same,
 /// apart from the comma a reordered last field gains or loses.
@@ -527,6 +567,7 @@ fn compare_group(group: &str) -> Vec<String> {
         private_dir(&home);
         let mut window = Window { from: now_millis() - 5_000, to: 0, ids: HashMap::new() };
         prepare(scenario, &work, &home);
+        install_2_1_1_calculations(scenario, &work);
         let mut runs = Vec::new();
         for step in scenario["steps"].as_array().unwrap() {
             let argv: Vec<String> = step["argv"]
@@ -550,7 +591,10 @@ fn compare_group(group: &str) -> Vec<String> {
         window.to = now_millis() + 5_000;
         let work_text = work.display().to_string();
         for (index, (step, (argv, actual))) in scenario["steps"].as_array().unwrap().iter().zip(runs).enumerate() {
-            let stdout = step_five_as_four(&normalize(&actual.stdout, &work_text, &mut window));
+            let mut stdout = step_five_as_four(&normalize(&actual.stdout, &work_text, &mut window));
+            if argv.first().map(String::as_str) == Some("apply") {
+                stdout = without_2_1_2_apply_fields(&stdout);
+            }
             let stderr = step_five_as_four(&normalize(&actual.stderr, &work_text, &mut window));
             let expected_status = step["status"].as_i64().unwrap() as i32;
             let mut expected_stdout = step["stdout"].as_str().unwrap().to_string();
@@ -564,7 +608,6 @@ fn compare_group(group: &str) -> Vec<String> {
                 expected_stderr =
                     "ath: no temporary import conflicts; run ath import <package> to create a preview\n".to_string();
             }
-            let mut stdout = stdout;
             if KEYED_REVISION_SCENARIOS.contains(&name)
                 && matches!(argv.first().map(String::as_str), Some("stats" | "records"))
             {

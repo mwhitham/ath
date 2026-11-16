@@ -114,8 +114,147 @@ pub enum OneRecordCalculation {
     QuantityChange,
     /// A sleep field minus the mean of the other sessions' values.
     SleepChange { field: String },
+
+    // ---- 2.1.2 operations (D230). The operations above keep their 2.1.1
+    // arithmetic so an edited file still gives the answer it gave before.
+    /// The day's value against earlier days, or a main sleep against earlier
+    /// main sleeps, in a bounded window (D232, D233, D234).
+    EarlierWindowChange(WindowChangeSettings),
+    /// The heart-rate drop from the end of effort to a fixed time later (D235).
+    DropAfterEffortEnd(RecoverySettings),
+    /// The Sleep Regularity Index on sleep periods (D236).
+    SleepRegularityIndex { window_days: u32, minimum_day_pairs: u32 },
+    /// Repetitions times load in kilograms, with load basis (D237).
+    VolumeLoad { field: String },
+    /// A session-effort rating times the minutes it covers (D238).
+    SessionEffortLoad { duration_field: String, effort_field: String },
+    /// Banister's TRIMP with sex-specific weighting and covered time only (D240).
+    BanisterTrimp(TrimpSettings),
+    /// Covered seconds between fractions of the maximum (D240).
+    TimeInZones { sample_field: String, maximum_field: String, cuts: Vec<f64>, max_gap_ms: i64 },
+    /// The lowest mean heart rate over a sustained window (D241).
+    LowestRollingMean(RollingMeanSettings),
+    /// Time asleep over time in bed, checked (D242).
+    SleepEfficiency { asleep_field: String, in_bed_field: String },
+    /// Asleep and awake stage minutes apart, with stage shares (D242).
+    SleepStageSplit { field: String },
+    /// Start, midpoint, and end in the athlete's time zone (D242).
+    SleepClockTimes { start_field: String, end_field: String },
+    /// A HYROX result divided into runs, stations, Roxzone, and penalties (D245).
+    HyroxSplits,
+    /// A range calculation, which `ath apply` refuses (D243).
+    Range(String),
     /// An operation this program does not have.
     Unknown(String),
+}
+
+/// Settings for `earlier_window_change`.
+#[derive(Debug, Clone, PartialEq)]
+pub struct WindowChangeSettings {
+    /// A session field such as `asleep_seconds`. None reads a measurement's
+    /// `value.standard_value`.
+    pub field: Option<String>,
+    pub window_days: u32,
+    pub minimum_days: u32,
+    /// A sleep session shorter than this is a nap.
+    pub main_sleep_hours: f64,
+}
+
+/// Settings for `drop_after_effort_end`.
+#[derive(Debug, Clone, PartialEq)]
+pub struct RecoverySettings {
+    pub sample_field: String,
+    pub later_offset_ms: i64,
+    pub tolerance_ms: i64,
+    pub max_interpolation_gap_ms: i64,
+    pub recovery_label: String,
+}
+
+/// Settings for `banister_trimp`.
+#[derive(Debug, Clone, PartialEq)]
+pub struct TrimpSettings {
+    pub sample_field: String,
+    pub rest_field: String,
+    pub maximum_field: String,
+    pub max_gap_ms: i64,
+    pub male: (f64, f64),
+    pub female: (f64, f64),
+}
+
+/// Settings for `lowest_rolling_mean`.
+#[derive(Debug, Clone, PartialEq)]
+pub struct RollingMeanSettings {
+    pub sample_field: String,
+    pub window_ms: i64,
+    pub minimum_samples: usize,
+    pub max_gap_ms: i64,
+}
+
+impl OneRecordCalculation {
+    /// The operation name a result reports.
+    pub fn operation(&self) -> &str {
+        use OneRecordCalculation::*;
+        match self {
+            TimeBetweenCuts { .. } => "time_between_cuts",
+            ValueAfterEnd { .. } => "value_after_end",
+            LowestHeld { .. } => "lowest_held",
+            HeartRateReserveCurve { .. } => "heart_rate_reserve_curve",
+            Multiply { .. } => "multiply",
+            Field { .. } => "field",
+            Divide { .. } => "divide",
+            Midpoint { .. } => "midpoint",
+            SumFields { .. } => "sum_fields",
+            NightAgreement { .. } => "night_agreement",
+            RepsTimesWeight { .. } => "reps_times_weight",
+            QuantityChange | SleepChange { .. } => "subtract_earlier_mean",
+            EarlierWindowChange(_) => "earlier_window_change",
+            DropAfterEffortEnd(_) => "drop_after_effort_end",
+            SleepRegularityIndex { .. } => "sleep_regularity_index",
+            VolumeLoad { .. } => "volume_load",
+            SessionEffortLoad { .. } => "session_effort_load",
+            BanisterTrimp(_) => "banister_trimp",
+            TimeInZones { .. } => "time_in_zones",
+            LowestRollingMean(_) => "lowest_rolling_mean",
+            SleepEfficiency { .. } => "sleep_efficiency",
+            SleepStageSplit { .. } => "sleep_stage_split",
+            SleepClockTimes { .. } => "sleep_clock_times",
+            HyroxSplits => "hyrox_splits",
+            Range(name) | Unknown(name) => name,
+        }
+    }
+
+    /// For an operation replaced in 2.1.2, what replaced it and why (D230).
+    pub fn method_notice(&self) -> Option<String> {
+        use OneRecordCalculation::*;
+        let (replacement, reason) = match self {
+            TimeBetweenCuts { .. } => ("time_in_zones", "it credits long gaps between samples as time in a zone"),
+            ValueAfterEnd { .. } => {
+                ("drop_after_effort_end", "it looks for a sample after the last sample, so it cannot succeed")
+            }
+            LowestHeld { .. } => {
+                ("lowest_rolling_mean", "it needs a heart rate that does not change at all for a minute")
+            }
+            HeartRateReserveCurve { .. } => {
+                ("banister_trimp", "it uses the male weighting without its coefficient for everyone")
+            }
+            Multiply { .. } => ("session_effort_load", "it multiplies any rating, including soreness, by any duration"),
+            Divide { .. } => ("sleep_efficiency", "it accepts more sleep than time in bed"),
+            Midpoint { .. } => ("sleep_clock_times", "it reports UTC times only"),
+            SumFields { .. } => ("sleep_stage_split", "its total adds awake minutes to sleep stages"),
+            NightAgreement { .. } => {
+                ("sleep_regularity_index", "it compares nights at the same clock instant instead of 24 hours apart")
+            }
+            RepsTimesWeight { .. } => ("volume_load", "it adds pounds and kilograms together"),
+            QuantityChange | SleepChange { .. } => {
+                ("earlier_window_change", "it averages later readings into the earlier mean")
+            }
+            _ => return None,
+        };
+        Some(format!(
+            "{} was replaced in 2.1.2 by {replacement}, because {reason}. `ath skill install` updates an unedited copy; an edited copy keeps this method.",
+            self.operation()
+        ))
+    }
 }
 
 /// A calculation file read into typed settings.
@@ -192,9 +331,77 @@ impl CalculationFile {
             }
             "same-quantity-change" | "subtract_earlier_mean" => QuantityChange,
             "sleep-change" => SleepChange { field: text_setting(block, "field", "asleep_seconds") },
+            "earlier_window_change" => EarlierWindowChange(WindowChangeSettings {
+                field: block.first("field").map(str::to_string),
+                window_days: number_setting(block, "window_days", 28),
+                minimum_days: number_setting(block, "minimum_days", 7),
+                main_sleep_hours: number_setting(block, "main_sleep_hours", 3.0),
+            }),
+            "drop_after_effort_end" => DropAfterEffortEnd(RecoverySettings {
+                sample_field: text_setting(block, "sample_field", "heart_rate_samples"),
+                later_offset_ms: number_setting(block, "later_offset_ms", 60_000),
+                tolerance_ms: number_setting(block, "tolerance_ms", 5_000),
+                max_interpolation_gap_ms: number_setting(block, "max_interpolation_gap_ms", 10_000),
+                recovery_label: text_setting(block, "recovery_label", "recovery"),
+            }),
+            "sleep_regularity_index" => SleepRegularityIndex {
+                window_days: number_setting(block, "window_days", 14),
+                minimum_day_pairs: number_setting(block, "minimum_day_pairs", 6),
+            },
+            "volume_load" => VolumeLoad { field: text_setting(block, "field", "sets") },
+            "session_effort_load" => SessionEffortLoad {
+                duration_field: text_setting(block, "duration_field", "duration_seconds"),
+                effort_field: text_setting(block, "effort_field", "rating"),
+            },
+            "banister_trimp" => BanisterTrimp(TrimpSettings {
+                sample_field: text_setting(block, "sample_field", "heart_rate_samples"),
+                rest_field: text_setting(block, "rest_field", "resting_heart_rate_bpm"),
+                maximum_field: text_setting(block, "maximum_field", "maximum_heart_rate_bpm"),
+                max_gap_ms: number_setting(block, "max_gap_ms", 60_000),
+                male: (number_setting(block, "male_coefficient", 0.64), number_setting(block, "male_exponent", 1.92)),
+                female: (
+                    number_setting(block, "female_coefficient", 0.86),
+                    number_setting(block, "female_exponent", 1.67),
+                ),
+            }),
+            "time_in_zones" => TimeInZones {
+                sample_field: text_setting(block, "sample_field", "heart_rate_samples"),
+                maximum_field: text_setting(block, "maximum_field", "maximum_heart_rate_bpm"),
+                cuts: block
+                    .all("zone")
+                    .map(|values| values.iter().filter_map(|value| value.parse().ok()).collect())
+                    .unwrap_or_else(|| vec![0.6, 0.7, 0.8, 0.9]),
+                max_gap_ms: number_setting(block, "max_gap_ms", 60_000),
+            },
+            "lowest_rolling_mean" => LowestRollingMean(RollingMeanSettings {
+                sample_field: text_setting(block, "sample_field", "heart_rate_samples"),
+                window_ms: number_setting(block, "window_ms", 300_000),
+                minimum_samples: number_setting(block, "minimum_samples", 3),
+                max_gap_ms: number_setting(block, "max_gap_ms", 120_000),
+            }),
+            "sleep_efficiency" => SleepEfficiency {
+                asleep_field: text_setting(block, "asleep_field", "asleep_seconds"),
+                in_bed_field: text_setting(block, "in_bed_field", "in_bed_seconds"),
+            },
+            "sleep_stage_split" => SleepStageSplit { field: text_setting(block, "field", "stage_minutes") },
+            "sleep_clock_times" => SleepClockTimes {
+                start_field: text_setting(block, "start_field", "start_at"),
+                end_field: text_setting(block, "end_field", "end_at"),
+            },
+            "hyrox_splits" => HyroxSplits,
+            other if is_range_block(block, other) => Range(block.name.clone()),
             other => Unknown(other.to_string()),
         }
     }
+}
+
+/// A range calculation file names what it needs (`needs:`) or how it groups
+/// (`per:`), or is named after a range operation.
+fn is_range_block(block: &CalculationBlock, action: &str) -> bool {
+    block.settings.contains_key("needs")
+        || block.settings.contains_key("per")
+        || super::range::Operation::parse(&block.name).is_some()
+        || super::range::Operation::parse(action).is_some()
 }
 
 #[cfg(test)]
@@ -219,7 +426,7 @@ mod tests {
         let sleep = CalculationFile::parse(shipped_skill_file("sleep-change").unwrap()).unwrap();
         assert_eq!(sleep.calculation, OneRecordCalculation::SleepChange { field: "asleep_seconds".into() });
         let summary = CalculationFile::parse(shipped_skill_file("summary").unwrap()).unwrap();
-        assert_eq!(summary.calculation, OneRecordCalculation::Unknown("count".into()));
+        assert_eq!(summary.calculation, OneRecordCalculation::Range("summary".into()));
         let calculation_files = crate::assets::skill_files()
             .iter()
             .filter(|file| file.path.ends_with("/SKILL.md") && !file.path.starts_with("athletic-standard/"));

@@ -7,6 +7,8 @@
 //! never writes an athlete record.
 
 pub mod definition;
+pub mod hyrox;
+pub mod methods;
 pub mod range;
 pub mod record;
 #[cfg(test)]
@@ -41,9 +43,32 @@ pub fn apply(store: &Store, calculation: &str, record_id: &str, working_director
     store.read_snapshot(|| {
         let record = record::stored_record(connection, record_id)?;
         let parsed = CalculationFile::parse(&file.text)?;
+        if let OneRecordCalculation::Range(name) = &parsed.calculation {
+            return Err(range_refusal(name));
+        }
         crate::package::failpoint!("calculate.apply_after_target");
         record::apply_to(connection, &parsed, record)
     })
+}
+
+/// `ath apply` on a range calculation (D243): it needs a quantity and a
+/// window, not one record, so name the command that runs it.
+fn range_refusal(name: &str) -> crate::error::Error {
+    let example = match name {
+        "compare-sources" => "ath calculate compare-sources <quantity> --source <id> --compare-source <id>".to_string(),
+        "correlation" => {
+            "ath calculate correlation <quantity> --other-quantity <quantity> --timezone <zone>".to_string()
+        }
+        "workout-drift" => "ath calculate workout-drift heart_rate --session <workout-session-id>".to_string(),
+        "provider-period-summary" => {
+            "ath calculate provider-period-summary <quantity> --period-type <provider-period-type>".to_string()
+        }
+        "coverage" => "ath calculate coverage <quantity> --timezone <zone>".to_string(),
+        other => format!("ath calculate {other} <quantity>"),
+    };
+    crate::error::Error::refused(format!(
+        "{name} is a range calculation over many records, not one record. Run: {example}"
+    ))
 }
 
 /// The human text `ath apply` printed.
@@ -54,6 +79,16 @@ pub fn render_apply_result(result: &ApplyResult) -> String {
     }
     if !result.missing.is_empty() {
         lines.push(format!("missing: {}", result.missing.join(", ")));
+    }
+    if let Some(inputs) = &result.inputs {
+        let plural = if inputs.record_count == 1 { "" } else { "s" };
+        lines.push(format!("compared with: {} other record{plural}", inputs.record_count));
+    }
+    for exclusion in &result.exclusions {
+        lines.push(format!("left out: {exclusion}"));
+    }
+    if let Some(notice) = &result.method_notice {
+        lines.push(format!("note: {notice}"));
     }
     lines.push(crate::json::encode(&result.result));
     lines.join("\n")

@@ -125,9 +125,13 @@ window. It does not judge whether the change matters; the skill explains how to
 read it.
 
 Daily means keep a source that reads many times a day (Apple SDNN) on the same
-footing as one that reads once (a nightly RMSSD). The 28-day window and 7-day
-minimum follow athlete-monitoring practice that compares a recent value with a
-rolling reference of several weeks; see
+footing as one that reads once (a nightly RMSSD). The 28-day window follows
+athlete-monitoring studies that compare a recent value with a reference of several
+weeks: Vesterinen et al. (2016) used a 4-week baseline with a band of ±0.5
+standard deviations, and Plews et al. used a rolling reference with a smallest
+worthwhile change of half the variation. The 7-day minimum is a floor for a
+meaningful spread, not a published threshold. The standardized change lets the
+skill apply those bands without the program judging them. The sources are in
 [appendix/calculation-methods.md](appendix/calculation-methods.md).
 
 This fixes the 2.1.1 behaviour recorded in
@@ -201,7 +205,9 @@ are in the same state. A minute is asleep when it lies inside a sleep session fr
 the same source. Awake time inside a session counts as asleep, because the record
 has no minute-by-minute wake data; the result says so. The window is the 14 days
 ending at the target session's end. A 24-hour day with no session is unobserved,
-and pairs that touch it are left out. At least 5 observed day pairs are needed.
+and pairs that touch it are left out. At least 6 observed day pairs (7 days) are
+needed, the span Lunsford-Avery et al. (2018) used. Phillips et al. used 1-minute
+epochs, as this method does.
 
 Seven identical schedules score 100. The 2.1.1 method compared two nights at the
 same clock instant rather than 24 hours apart, so identical nights scored 0.5.
@@ -275,6 +281,8 @@ uncovered time.
 
 `banister_trimp` is Banister's TRIMP with the published weighting: 0.64 e^(1.92 x)
 for men and 0.86 e^(1.67 x) for women, where x is the heart-rate reserve fraction.
+Every later paper we found gives these constants and cites Morton et al. (1990)
+and Banister (1991); the originals are closed access and were not read.
 It reads `sex` from the athlete profile. Without it, the result says the weighting
 is missing rather than guessing. The 2.1.1 method used e^(1.92 x) without the
 coefficient for everyone.
@@ -292,6 +300,13 @@ Rejected alternatives:
 sleep session it reads `heart_rate` samples from the same source inside the session.
 On a workout it reads the workout's own samples, and the skill explains that this is
 the lowest sustained rate during that workout, not resting heart rate.
+
+The 5-minute window is a stated convention, not a published definition. No research
+source we found defines resting heart rate as a lowest 5-minute mean, and device
+makers differ: Apple estimates the lowest rate at rest, and Garmin is reported to
+use the lowest 30-minute average in a day. The result therefore differs from a
+device's own resting heart rate, and the skill says so. A person can change
+`window_ms` in the file.
 
 Rejected alternatives:
 

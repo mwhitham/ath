@@ -122,7 +122,7 @@ changed (D231).
 | `resting-heart-rate-change` | Same as above. | `earlier_window_change` (D232). |
 | `sleep-change` | Averaged later nights and naps. | `earlier_window_change` on main sleep periods; naps excluded (D234). |
 | `heart-rate-recovery` | Looked for a sample after the last sample, so it always failed. | `drop_after_effort_end`: the drop from the end of effort to 60 s later, anchored at a `recovery` segment or the workout end (D235). |
-| `sleep-regularity` | Compared two nights at the same clock instant, not 24 hours apart. Seven identical nights scored 0.5. | `sleep_regularity_index`: Phillips et al. arithmetic on sleep periods, −100 to 100 (D236). |
+| `sleep-regularity` | Compared two nights at the same clock instant, not 24 hours apart. Seven identical nights scored 0.5. | `sleep_regularity_index`: Phillips et al. arithmetic on sleep periods, −100 to 100, over at least 7 observed days (D236). |
 | `strength-volume` | Added pounds to kilograms. | `volume_load`: converts to kilograms, multiplies per-implement loads, refuses unknown units (D237). |
 | `training-load-effort` | Multiplied any rating, including soreness, by any duration. | `session_effort_load`: a `session_effort` report on a 10-point or 6–20 scale, times the covered minutes (D238). |
 | `training-load-heart-rate` | Used the male weighting for everyone and left out Banister's coefficient. Credited sample gaps in full. | `banister_trimp`: Banister's sex-specific weighting, gap-limited durations (D240). |

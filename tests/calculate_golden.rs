@@ -113,26 +113,70 @@ fn range_calculations_match_the_reference() {
     Scenario::open("calculate/range.json").check(range);
 }
 
+/// The 2.1.1 calculation files, kept so the recorded 2.1.0 results can be
+/// checked against the operations they used (D230).
+fn calculation_2_1_1(name: &str) -> Option<String> {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("tests/fixtures/calculations-2-1-1")
+        .join(name)
+        .join("SKILL.md");
+    std::fs::read_to_string(path).ok()
+}
+
+/// Every recorded 2.1.0 one-record case runs on the 2.1.1 file it used,
+/// installed as the person's copy. The arithmetic and every recorded field
+/// must match. Two fields are new in 2.1.2 and checked on their own: the
+/// operation name, and the notice that names the 2.1.2 replacement.
 #[test]
 fn one_record_calculations_match_the_reference() {
     Scenario::open("calculate/apply.json").check(|store, call, input, directory| {
         assert_eq!(call, "apply");
         let working = temporary_dir("ath-apply-");
-        if let Some(installed) = input.get("installed").and_then(Value::as_object) {
-            for (name, text) in installed {
-                let folder = working.join(".agents/skills").join(name);
-                std::fs::create_dir_all(&folder).unwrap();
-                std::fs::write(folder.join("SKILL.md"), text.as_str().unwrap()).unwrap();
+        let mut installed: Vec<(String, String)> = Vec::new();
+        if let Some(given) = input.get("installed").and_then(Value::as_object) {
+            for (name, text) in given {
+                installed.push((name.clone(), text.as_str().unwrap().to_string()));
             }
         }
+        let calculation = input["calculation"].as_str().unwrap();
+        let name = calculation.trim_end_matches(".md").rsplit(['/', '\\']).next().unwrap();
+        if installed.is_empty() {
+            if let Some(text) = calculation_2_1_1(name) {
+                installed.push((name.to_string(), text));
+            }
+        }
+        for (name, text) in &installed {
+            let folder = working.join(".agents/skills").join(name);
+            std::fs::create_dir_all(&folder).unwrap();
+            std::fs::write(folder.join("SKILL.md"), text).unwrap();
+        }
         let _ = directory;
-        let output = outcome(calculate::apply(
-            store,
-            input["calculation"].as_str().unwrap(),
-            input["record_id"].as_str().unwrap(),
-            &working,
-        ));
+        let record_id = input["record_id"].as_str().unwrap();
+        let mut output = outcome(calculate::apply(store, calculation, record_id, &working));
+        if Operation::parse(name).is_some() {
+            // 2.1.0 ran a range file on one record and reported an unknown
+            // operation. 2.1.2 refuses and names the command to run (D243).
+            let refusal = output["error"].as_str().unwrap_or_default().to_string();
+            assert!(refusal.starts_with(&format!("{name} is a range calculation over many records")), "{refusal}");
+            assert!(refusal.contains(&format!("Run: ath calculate {name}")), "{refusal}");
+            output = athleticstandard::json::parse(&format!(
+                r#"{{"calculation":"{name}","record_id":"{record_id}","fields_read":[],"missing":["unknown calculation count"],"result":null}}"#
+            ))
+            .unwrap();
+        }
         std::fs::remove_dir_all(&working).unwrap();
+        if let Value::Object(map) = &mut output {
+            if let Some(operation) = map.shift_remove("operation") {
+                let operation = operation.as_str().unwrap().to_string();
+                let notice = map.shift_remove("method_notice");
+                // A replaced operation names its replacement; a current one has no notice.
+                let replaced = !matches!(operation.as_str(), "field");
+                assert_eq!(notice.is_some(), replaced, "{calculation}: {operation} notice {notice:?}");
+                if let Some(notice) = notice {
+                    assert!(notice.as_str().unwrap().starts_with(&format!("{operation} was replaced in 2.1.2 by ")));
+                }
+            }
+        }
         (output, Compare::Exact)
     });
 }

@@ -10,9 +10,11 @@ use rusqlite::{params, Connection, OptionalExtension};
 use serde::Serialize;
 
 use super::definition::{CalculationFile, OneRecordCalculation};
+use super::methods::{self, Profile, SeriesSample};
+use super::range::{ReceiptInput, MAX_RECEIPT_REFERENCES};
 use crate::error::{Error, Result};
 use crate::json::{self, Map, Value};
-use crate::model::time;
+use crate::model::{time, EvidenceReference};
 
 /// A record's current stored data.
 #[derive(Debug, Clone, PartialEq)]
@@ -21,6 +23,8 @@ pub struct StoredRecord {
     pub record_type: String,
     pub revision: u64,
     pub data: Value,
+    /// The record's namespaced extensions (D118), when it has any.
+    pub extensions: Option<Value>,
 }
 
 /// One field a calculation looked for.
@@ -48,37 +52,74 @@ pub enum OneRecordResult {
     Volume { volume: f64, weight_unit: Option<String> },
     QuantityChange { quantity: String, change: f64, compared_records: usize },
     Change { change: f64, compared_records: usize },
+    WindowChange(methods::WindowChangeResult),
+    Recovery(methods::RecoveryResult),
+    SleepRegularity(methods::RegularityResult),
+    VolumeLoad(methods::VolumeResult),
+    EffortLoad(methods::EffortLoadResult),
+    Trimp(methods::TrimpResult),
+    TimeInZones(methods::ZonesResult),
+    Resting(methods::RestingResult),
+    SleepEfficiency(methods::EfficiencyResult),
+    StageSplit(methods::StageSplitResult),
+    ClockTimes(methods::ClockTimesResult),
+    HyroxSplits(super::hyrox::HyroxSplitsResult),
 }
 
 /// The `ath apply --json` object.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct ApplyResult {
     pub calculation: String,
+    /// The operation the file named (`use:`), which carries the method (D230).
+    pub operation: String,
     pub record_id: String,
     pub fields_read: Vec<FieldRead>,
     pub missing: Vec<String>,
     /// Null when an input is missing.
     pub result: Option<OneRecordResult>,
+    /// The other records the method read, when it read any.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub inputs: Option<ReceiptInput>,
+    /// What the method left out and why.
+    #[serde(skip_serializing_if = "Vec::is_empty")]
+    pub exclusions: Vec<String>,
+    /// For an operation replaced in 2.1.2: what replaced it and why.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub method_notice: Option<String>,
+}
+
+/// What a method reads besides the target record.
+#[derive(Debug, Clone, Default)]
+pub struct MethodInputs {
+    /// Other current records of the same source, as each method defines them.
+    pub related: Vec<StoredRecord>,
+    pub profile: Profile,
+    /// The workout an athlete report links to.
+    pub linked_workout: Option<StoredRecord>,
+    /// Heart-rate samples from the source during a sleep session.
+    pub heart_rate: Vec<SeriesSample>,
 }
 
 /// A current, not deleted record's stored data.
 pub(crate) fn stored_record(connection: &Connection, record_id: &str) -> Result<StoredRecord> {
-    let row: Option<(String, String, i64, String)> = connection
+    let row: Option<(String, String, i64, String, Option<String>)> = connection
         .query_row(
-            "SELECT records.record_id, records.record_type, records.current_revision, record_revisions.record_json
+            "SELECT records.record_id, records.record_type, records.current_revision, record_revisions.record_json,
+                    record_revisions.extensions_json
              FROM records
              JOIN record_revisions
                ON record_revisions.record_id = records.record_id
               AND record_revisions.revision = records.current_revision
              WHERE records.record_id = ?1 AND records.is_deleted = 0",
             [record_id],
-            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?)),
+            |row| Ok((row.get(0)?, row.get(1)?, row.get(2)?, row.get(3)?, row.get(4)?)),
         )
         .optional()?;
-    let Some((record_id, record_type, revision, record_json)) = row else {
+    let Some((record_id, record_type, revision, record_json, extensions_json)) = row else {
         return Err(Error::not_found(format!("record {record_id} was not found: Query returned no rows")));
     };
-    Ok(StoredRecord { record_id, record_type, revision: revision as u64, data: json::parse(&record_json)? })
+    let extensions = extensions_json.map(|text| json::parse(&text)).transpose()?;
+    Ok(StoredRecord { record_id, record_type, revision: revision as u64, data: json::parse(&record_json)?, extensions })
 }
 
 fn stored_records(connection: &Connection, sql: &str, args: &[&dyn rusqlite::ToSql]) -> Result<Vec<StoredRecord>> {
@@ -127,25 +168,166 @@ pub(crate) fn related_records(connection: &Connection, record: &StoredRecord) ->
     }
 }
 
-fn uses_related(calculation: &OneRecordCalculation) -> bool {
-    matches!(
-        calculation,
-        OneRecordCalculation::NightAgreement { .. }
-            | OneRecordCalculation::QuantityChange
-            | OneRecordCalculation::SleepChange { .. }
-    )
+/// Records of the same source, quantity, and record type for a change
+/// (D233), or same-source sleep sessions, inside the days a method can use.
+fn window_related(connection: &Connection, record: &StoredRecord, days: u32) -> Result<Vec<StoredRecord>> {
+    let Some(source_id) = record.data.get("source_id").and_then(Value::as_str) else {
+        return Ok(Vec::new());
+    };
+    let span = (i64::from(days) + 2) * 86_400_000;
+    let bound = |field: &str, shift: i64| {
+        record
+            .data
+            .get(field)
+            .and_then(Value::as_str)
+            .and_then(parse_millis)
+            .map(|at| time::format_utc_millis(at + shift))
+    };
+    match record.record_type.as_str() {
+        "point_measurement" | "measurement_sample" => {
+            let table =
+                if record.record_type == "point_measurement" { "point_measurements" } else { "measurement_samples" };
+            let quantity = record.data.get("quantity").and_then(Value::as_str).unwrap_or("");
+            let (Some(from), Some(to)) = (bound("recorded_at", -span), bound("recorded_at", 86_400_000)) else {
+                return Ok(Vec::new());
+            };
+            stored_records(
+                connection,
+                &format!(
+                    "SELECT records.record_id
+                     FROM {table}
+                     JOIN records ON records.record_id = {table}.record_id
+                     WHERE {table}.source_id = ?1 AND {table}.quantity = ?2
+                       AND {table}.recorded_at >= ?3 AND {table}.recorded_at <= ?4
+                       AND records.is_deleted = 0
+                     ORDER BY {table}.recorded_at, records.record_id"
+                ),
+                params![source_id, quantity, from, to],
+            )
+        }
+        "sleep_session" => {
+            let (Some(from), Some(to)) = (bound("start_at", -span), bound("end_at", 0)) else {
+                return Ok(Vec::new());
+            };
+            stored_records(
+                connection,
+                "SELECT records.record_id
+                 FROM sleep_sessions
+                 JOIN records ON records.record_id = sleep_sessions.record_id
+                 WHERE sleep_sessions.source_id = ?1
+                   AND sleep_sessions.start_at >= ?2 AND sleep_sessions.start_at <= ?3
+                   AND records.is_deleted = 0
+                 ORDER BY sleep_sessions.start_at, records.record_id",
+                params![source_id, from, to],
+            )
+        }
+        _ => Ok(Vec::new()),
+    }
+}
+
+/// The current athlete profile's time zone and sex.
+fn athlete_profile(connection: &Connection) -> Result<Profile> {
+    let json: Option<String> = connection
+        .query_row(
+            "SELECT record_revisions.record_json
+             FROM records
+             JOIN record_revisions
+               ON record_revisions.record_id = records.record_id
+              AND record_revisions.revision = records.current_revision
+             WHERE records.record_type = 'athlete_profile' AND records.is_deleted = 0
+             ORDER BY records.created_at, records.record_id
+             LIMIT 1",
+            [],
+            |row| row.get(0),
+        )
+        .optional()?;
+    let Some(json) = json else {
+        return Ok(Profile::default());
+    };
+    let data = json::parse(&json)?;
+    let text = |key: &str| data.get(key).and_then(Value::as_str).map(str::to_string);
+    Ok(Profile { time_zone: text("default_time_zone"), sex: text("sex") })
+}
+
+/// Heart-rate samples from the session's source inside the session.
+fn session_heart_rate(connection: &Connection, record: &StoredRecord) -> Result<Vec<SeriesSample>> {
+    let text = |key: &str| record.data.get(key).and_then(Value::as_str).map(str::to_string);
+    let (Some(source_id), Some(start), Some(end)) = (text("source_id"), text("start_at"), text("end_at")) else {
+        return Ok(Vec::new());
+    };
+    let mut statement = connection.prepare(
+        "SELECT measurement_samples.recorded_at, measurement_samples.standard_value,
+                records.record_id, records.current_revision
+         FROM measurement_samples
+         JOIN records ON records.record_id = measurement_samples.record_id
+         WHERE measurement_samples.source_id = ?1 AND measurement_samples.quantity = 'heart_rate'
+           AND measurement_samples.recorded_at >= ?2 AND measurement_samples.recorded_at <= ?3
+           AND records.is_deleted = 0
+         ORDER BY measurement_samples.recorded_at, records.record_id",
+    )?;
+    let rows = statement
+        .query_map(params![source_id, start, end], |row| {
+            Ok((row.get::<_, String>(0)?, row.get::<_, f64>(1)?, row.get::<_, String>(2)?, row.get::<_, i64>(3)?))
+        })?
+        .collect::<std::result::Result<Vec<_>, _>>()?;
+    Ok(rows
+        .into_iter()
+        .filter_map(|(at, bpm, record_id, revision)| {
+            Some(SeriesSample {
+                at_ms: parse_millis(&at)?,
+                bpm,
+                reference: EvidenceReference { record_id, revision: revision as u64 },
+            })
+        })
+        .collect())
+}
+
+/// Read what a method needs besides the target record.
+fn method_inputs(connection: &Connection, file: &CalculationFile, record: &StoredRecord) -> Result<MethodInputs> {
+    use OneRecordCalculation::*;
+    let mut inputs = MethodInputs::default();
+    match &file.calculation {
+        NightAgreement { .. } | QuantityChange | SleepChange { .. } => {
+            inputs.related = related_records(connection, record)?;
+        }
+        EarlierWindowChange(settings) => {
+            inputs.related = window_related(connection, record, settings.window_days)?;
+            inputs.profile = athlete_profile(connection)?;
+        }
+        SleepRegularityIndex { window_days, .. } if record.record_type == "sleep_session" => {
+            inputs.related = window_related(connection, record, *window_days)?;
+        }
+        SessionEffortLoad { .. } => {
+            if let Some(id) = record.data.get("workout_session_id").and_then(Value::as_str) {
+                inputs.linked_workout = stored_record(connection, id).ok();
+            }
+        }
+        BanisterTrimp(_) | SleepClockTimes { .. } => inputs.profile = athlete_profile(connection)?,
+        LowestRollingMean(_) if record.record_type == "sleep_session" => {
+            inputs.heart_rate = session_heart_rate(connection, record)?;
+        }
+        _ => {}
+    }
+    Ok(inputs)
 }
 
 /// Run a calculation file on a record already read. Outside the library,
 /// use `calculate::apply`.
 pub(crate) fn apply_to(connection: &Connection, file: &CalculationFile, record: StoredRecord) -> Result<ApplyResult> {
-    let related = if uses_related(&file.calculation) { related_records(connection, &record)? } else { Vec::new() };
-    Ok(run(file, &record, &related))
+    let inputs = method_inputs(connection, file, &record)?;
+    Ok(run(file, &record, &inputs))
 }
 
-/// Run a calculation on a record and the records it compares against.
-pub fn run(file: &CalculationFile, record: &StoredRecord, related: &[StoredRecord]) -> ApplyResult {
-    let mut context = Context { data: &record.data, fields_read: Vec::new(), missing: Vec::new() };
+/// Run a calculation on a record and what its method reads besides it.
+pub fn run(file: &CalculationFile, record: &StoredRecord, extra: &MethodInputs) -> ApplyResult {
+    let related = extra.related.as_slice();
+    let mut context = Context {
+        data: &record.data,
+        fields_read: Vec::new(),
+        missing: Vec::new(),
+        exclusions: Vec::new(),
+        inputs: Vec::new(),
+    };
     use OneRecordCalculation::*;
     let result = match &file.calculation {
         TimeBetweenCuts { sample_field, maximum_field, cuts } => context.zones(sample_field, maximum_field, cuts),
@@ -163,24 +345,64 @@ pub fn run(file: &CalculationFile, record: &StoredRecord, related: &[StoredRecor
         RepsTimesWeight { field } => context.volume(field),
         QuantityChange => context.quantity_change(record, related),
         SleepChange { field } => context.sleep_change(field, record, related),
-        Unknown(name) => {
+        EarlierWindowChange(settings) => {
+            methods::window_change(&mut context, settings, record, related, &extra.profile)
+        }
+        DropAfterEffortEnd(settings) => methods::drop_after_effort_end(&mut context, settings),
+        SleepRegularityIndex { window_days, minimum_day_pairs } => {
+            methods::sleep_regularity_index(&mut context, *window_days, *minimum_day_pairs, record, related)
+        }
+        VolumeLoad { field } => methods::volume_load(&mut context, field),
+        SessionEffortLoad { duration_field, effort_field } => methods::session_effort_load(
+            &mut context,
+            duration_field,
+            effort_field,
+            record,
+            extra.linked_workout.as_ref(),
+        ),
+        BanisterTrimp(settings) => methods::banister_trimp(&mut context, settings, &extra.profile),
+        TimeInZones { sample_field, maximum_field, cuts, max_gap_ms } => {
+            methods::time_in_zones(&mut context, sample_field, maximum_field, cuts, *max_gap_ms)
+        }
+        LowestRollingMean(settings) => methods::lowest_rolling_mean(&mut context, settings, record, &extra.heart_rate),
+        SleepEfficiency { asleep_field, in_bed_field } => {
+            methods::sleep_efficiency(&mut context, asleep_field, in_bed_field)
+        }
+        SleepStageSplit { field } => methods::sleep_stage_split(&mut context, field),
+        SleepClockTimes { start_field, end_field } => {
+            methods::sleep_clock_times(&mut context, start_field, end_field, &extra.profile)
+        }
+        HyroxSplits => super::hyrox::hyrox_splits(&mut context, record),
+        Range(name) | Unknown(name) => {
             context.missing.push(format!("unknown calculation {name}"));
             None
         }
     };
+    let inputs = (!context.inputs.is_empty()).then(|| ReceiptInput {
+        record_count: context.inputs.len(),
+        record_references: context.inputs.iter().take(MAX_RECEIPT_REFERENCES).cloned().collect(),
+        references_truncated: context.inputs.len() > MAX_RECEIPT_REFERENCES,
+    });
     ApplyResult {
         calculation: file.name.clone(),
+        operation: file.calculation.operation().to_string(),
         record_id: record.record_id.clone(),
         fields_read: context.fields_read,
         missing: context.missing,
         result,
+        inputs,
+        exclusions: context.exclusions,
+        method_notice: file.calculation.method_notice(),
     }
 }
 
-struct Context<'a> {
-    data: &'a Value,
-    fields_read: Vec<FieldRead>,
-    missing: Vec<String>,
+/// What a calculation has read and found missing so far.
+pub(crate) struct Context<'a> {
+    pub data: &'a Value,
+    pub fields_read: Vec<FieldRead>,
+    pub missing: Vec<String>,
+    pub exclusions: Vec<String>,
+    pub inputs: Vec<EvidenceReference>,
 }
 
 fn samples(value: &Value) -> Vec<(i64, f64)> {
@@ -223,7 +445,7 @@ fn round3(value: f64) -> f64 {
 }
 
 impl<'a> Context<'a> {
-    fn lookup(&mut self, field: &str) -> Option<&'a Value> {
+    pub(crate) fn lookup(&mut self, field: &str) -> Option<&'a Value> {
         let value = match field.strip_prefix("supplied:") {
             Some(name) => self.data.get("supplied_fields").and_then(|fields| fields.get(name)),
             None => self.data.get(field),
@@ -569,31 +791,43 @@ mod tests {
             record_type: "workout_session".into(),
             revision: 1,
             data,
+            extensions: None,
         }
     }
 
+    /// The 2.1.1 zone file's block. Its operation keeps its old arithmetic (D230).
+    const ZONES_2_1_1: &str = "```ath-calculation\nname: heart-rate-zones\nuse: time_between_cuts\nsample_field: heart_rate_samples\nmaximum_field: maximum_heart_rate_bpm\nzone: 0.60\nzone: 0.70\nzone: 0.80\nzone: 0.90\n```\n";
+
     #[test]
     fn zones_match_the_worked_example() {
-        let file = CalculationFile::parse(shipped_calculation("heart-rate-zones").unwrap()).unwrap();
+        let file = CalculationFile::parse(ZONES_2_1_1).unwrap();
         let data = json::parse(
             r#"{"maximum_heart_rate_bpm":200,"heart_rate_samples":[
                 {"offset_ms":0,"bpm":100},{"offset_ms":1000,"bpm":130},
                 {"offset_ms":2000,"bpm":160},{"offset_ms":3000,"bpm":190}]}"#,
         )
         .unwrap();
-        let result = run(&file, &record(data), &[]);
+        let result = run(&file, &record(data), &MethodInputs::default());
         assert_eq!(result.result, Some(OneRecordResult::Zones { seconds: vec![1.0, 1.0, 0.0, 1.0, 1.0] }));
         assert!(result.missing.is_empty());
         assert_eq!(
             json::encode(&result),
-            r#"{"calculation":"heart-rate-zones","record_id":"018f0000-0000-7000-8000-000000000001","fields_read":[{"field":"heart_rate_samples","present":true},{"field":"maximum_heart_rate_bpm","present":true}],"missing":[],"result":{"seconds":[1,1,0,1,1]}}"#
+            r#"{"calculation":"heart-rate-zones","operation":"time_between_cuts","record_id":"018f0000-0000-7000-8000-000000000001","fields_read":[{"field":"heart_rate_samples","present":true},{"field":"maximum_heart_rate_bpm","present":true}],"missing":[],"result":{"seconds":[1,1,0,1,1]},"method_notice":"time_between_cuts was replaced in 2.1.2 by time_in_zones, because it credits long gaps between samples as time in a zone. `ath skill install` updates an unedited copy; an edited copy keeps this method."}"#
         );
     }
 
     #[test]
     fn a_missing_maximum_is_reported_not_guessed() {
         let file = CalculationFile::parse(shipped_calculation("heart-rate-zones").unwrap()).unwrap();
-        let result = run(&file, &record(json::parse(r#"{"heart_rate_samples":[]}"#).unwrap()), &[]);
+        // Both the 2.1.1 and the 2.1.2 zone operations report a missing maximum.
+        let old = run(
+            &CalculationFile::parse(ZONES_2_1_1).unwrap(),
+            &record(json::parse(r#"{"heart_rate_samples":[]}"#).unwrap()),
+            &MethodInputs::default(),
+        );
+        assert_eq!(old.missing, vec!["maximum_heart_rate_bpm".to_string()]);
+        let result =
+            run(&file, &record(json::parse(r#"{"heart_rate_samples":[]}"#).unwrap()), &MethodInputs::default());
         assert_eq!(result.missing, vec!["maximum_heart_rate_bpm".to_string()]);
         assert_eq!(json::encode(&result.result), "null");
     }
