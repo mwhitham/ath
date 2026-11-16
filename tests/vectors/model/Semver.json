@@ -1,0 +1,284 @@
+{
+  "schema": "Semver",
+  "cases": [
+    {
+      "name": "valid:plain",
+      "input": "1.0.0",
+      "valid": true,
+      "output": "1.0.0",
+      "issues": []
+    },
+    {
+      "name": "valid:zeros",
+      "input": "0.0.0",
+      "valid": true,
+      "output": "0.0.0",
+      "issues": []
+    },
+    {
+      "name": "valid:leading_zero_accepted",
+      "input": "01.02.03",
+      "valid": true,
+      "output": "01.02.03",
+      "issues": []
+    },
+    {
+      "name": "valid:prerelease",
+      "input": "1.0.0-alpha.1",
+      "valid": true,
+      "output": "1.0.0-alpha.1",
+      "issues": []
+    },
+    {
+      "name": "valid:build",
+      "input": "1.0.0+build.5",
+      "valid": true,
+      "output": "1.0.0+build.5",
+      "issues": []
+    },
+    {
+      "name": "valid:prerelease_and_build",
+      "input": "1.0.0-rc-1+sha.abc",
+      "valid": true,
+      "output": "1.0.0-rc-1+sha.abc",
+      "issues": []
+    },
+    {
+      "name": "valid:large_numbers",
+      "input": "123456789012345678901.0.0",
+      "valid": true,
+      "output": "123456789012345678901.0.0",
+      "issues": []
+    },
+    {
+      "name": "invalid:two_parts",
+      "input": "1.0",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "semantic version",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:four_parts",
+      "input": "1.0.0.0",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "semantic version",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:v_prefix",
+      "input": "v1.0.0",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "semantic version",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:empty_prerelease",
+      "input": "1.0.0-",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "semantic version",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:empty_build",
+      "input": "1.0.0+",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "semantic version",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:space_in_prerelease",
+      "input": "1.0.0-al pha",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "semantic version",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:non_ascii_prerelease",
+      "input": "1.0.0-α",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "semantic version",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:underscore_prerelease",
+      "input": "1.0.0-alpha_1",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "semantic version",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:arabic_indic_digits",
+      "input": "١.0.0",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "semantic version",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:trailing_newline",
+      "input": "1.0.0\n",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "semantic version",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$/"
+        }
+      ]
+    },
+    {
+      "name": "invalid:empty",
+      "input": "",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_format",
+          "message": "semantic version",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$/"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:number",
+      "input": 1,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:boolean",
+      "input": true,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received boolean",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received array",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "wrong_type:object",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received object",
+          "expected": "string"
+        }
+      ]
+    }
+  ]
+}

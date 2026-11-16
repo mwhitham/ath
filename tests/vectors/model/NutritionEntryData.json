@@ -1,0 +1,1189 @@
+{
+  "schema": "NutritionEntryData",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "valid": true,
+      "output": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "photo",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": [
+          {
+            "food_description": "oatmeal",
+            "amount": 80,
+            "amount_unit": "g",
+            "nutrients": [
+              {
+                "nutrient_name": "protein",
+                "amount": 10.5,
+                "unit": "g"
+              }
+            ]
+          }
+        ],
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "valid": true,
+      "output": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "photo",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": [
+          {
+            "food_description": "oatmeal",
+            "amount": 80,
+            "amount_unit": "g",
+            "nutrients": [
+              {
+                "nutrient_name": "protein",
+                "amount": 10.5,
+                "unit": "g"
+              }
+            ]
+          }
+        ],
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "photo",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": [
+          {
+            "food_description": "oatmeal",
+            "amount": 80,
+            "amount_unit": "g",
+            "nutrients": [
+              {
+                "nutrient_name": "protein",
+                "amount": 10.5,
+                "unit": "g"
+              }
+            ]
+          }
+        ],
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e"
+        ],
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reported_at:missing",
+      "input": {
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "reported_at:null",
+      "input": {
+        "reported_at": null,
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "reported_at:wrong_type=number",
+      "input": {
+        "reported_at": 1,
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "reported_at:empty_string",
+      "input": {
+        "reported_at": "",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "reported_at:format=no_milliseconds",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "reported_at:format=offset",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678+00:00",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "input_reported_at:missing",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_reported_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_reported_at:null",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": null,
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_reported_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_reported_at:wrong_type=array",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": [],
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_reported_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_reported_at:wrong_type=string",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": "x",
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_reported_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_reported_at:empty_object",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {},
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_reported_at",
+            "timestamp_missing_reason"
+          ],
+          "code": "custom",
+          "message": "A missing input timestamp needs a reason"
+        },
+        {
+          "path": [
+            "input_reported_at",
+            "utc_offset_missing_reason"
+          ],
+          "code": "custom",
+          "message": "A missing input UTC offset needs a reason"
+        }
+      ]
+    },
+    {
+      "name": "input_reported_at:nested_unknown_key",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source",
+          "unknown_nested": true
+        },
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_reported_at"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reported_via:missing",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_via"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"text\"|\"voice\"|\"photo\"",
+          "values": [
+            "text",
+            "voice",
+            "photo"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reported_via:null",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": null,
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_via"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"text\"|\"voice\"|\"photo\"",
+          "values": [
+            "text",
+            "voice",
+            "photo"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reported_via:wrong_type=number",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": 1,
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_via"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"text\"|\"voice\"|\"photo\"",
+          "values": [
+            "text",
+            "voice",
+            "photo"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reported_via:enum_invalid",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "__not_an_option__",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_via"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"text\"|\"voice\"|\"photo\"",
+          "values": [
+            "text",
+            "voice",
+            "photo"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reported_via:empty_string",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_via"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"text\"|\"voice\"|\"photo\"",
+          "values": [
+            "text",
+            "voice",
+            "photo"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reported_via:enum_uppercase",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "TEXT",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_via"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"text\"|\"voice\"|\"photo\"",
+          "values": [
+            "text",
+            "voice",
+            "photo"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "athlete_description:missing",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "athlete_description"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "athlete_description:null",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "athlete_description": null,
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "athlete_description"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "athlete_description:wrong_type=number",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "athlete_description": 1,
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "athlete_description"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "athlete_description:empty_string",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "athlete_description": "",
+        "reported_items": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "athlete_description"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "reported_items:missing",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_items"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received undefined",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "reported_items:null",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_items"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received null",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "reported_items:wrong_type=object",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": {}
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_items"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received object",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "reported_items:empty_array",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "valid": true,
+      "output": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": []
+      },
+      "issues": []
+    },
+    {
+      "name": "reported_items:element[0]:wrong_type=array",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": [
+          []
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_items",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "reported_items:element[0]:wrong_type=string",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": [
+          "x"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reported_items",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "attachment_ids:null",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "photo",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": [
+          {
+            "food_description": "oatmeal",
+            "amount": 80,
+            "amount_unit": "g",
+            "nutrients": [
+              {
+                "nutrient_name": "protein",
+                "amount": 10.5,
+                "unit": "g"
+              }
+            ]
+          }
+        ],
+        "attachment_ids": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "attachment_ids"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received null",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "attachment_ids:wrong_type=object",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "photo",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": [
+          {
+            "food_description": "oatmeal",
+            "amount": 80,
+            "amount_unit": "g",
+            "nutrients": [
+              {
+                "nutrient_name": "protein",
+                "amount": 10.5,
+                "unit": "g"
+              }
+            ]
+          }
+        ],
+        "attachment_ids": {}
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "attachment_ids"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received object",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "attachment_ids:empty_array",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "photo",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": [
+          {
+            "food_description": "oatmeal",
+            "amount": 80,
+            "amount_unit": "g",
+            "nutrients": [
+              {
+                "nutrient_name": "protein",
+                "amount": 10.5,
+                "unit": "g"
+              }
+            ]
+          }
+        ],
+        "attachment_ids": []
+      },
+      "valid": true,
+      "output": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "photo",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": [
+          {
+            "food_description": "oatmeal",
+            "amount": 80,
+            "amount_unit": "g",
+            "nutrients": [
+              {
+                "nutrient_name": "protein",
+                "amount": 10.5,
+                "unit": "g"
+              }
+            ]
+          }
+        ],
+        "attachment_ids": []
+      },
+      "issues": []
+    },
+    {
+      "name": "attachment_ids:element[0]:wrong_type=number",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "photo",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": [
+          {
+            "food_description": "oatmeal",
+            "amount": 80,
+            "amount_unit": "g",
+            "nutrients": [
+              {
+                "nutrient_name": "protein",
+                "amount": 10.5,
+                "unit": "g"
+              }
+            ]
+          }
+        ],
+        "attachment_ids": [
+          1
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "attachment_ids",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "attachment_ids:element[0]:empty_string",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "photo",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": [
+          {
+            "food_description": "oatmeal",
+            "amount": 80,
+            "amount_unit": "g",
+            "nutrients": [
+              {
+                "nutrient_name": "protein",
+                "amount": 10.5,
+                "unit": "g"
+              }
+            ]
+          }
+        ],
+        "attachment_ids": [
+          ""
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "attachment_ids",
+            0
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "attachment_ids:element[1]:wrong_type=number",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "reported_via": "photo",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": [
+          {
+            "food_description": "oatmeal",
+            "amount": 80,
+            "amount_unit": "g",
+            "nutrients": [
+              {
+                "nutrient_name": "protein",
+                "amount": 10.5,
+                "unit": "g"
+              }
+            ]
+          }
+        ],
+        "attachment_ids": [
+          "01890f3e-e7d3-7cc0-88c8-00000000000e",
+          1
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "attachment_ids",
+            1
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "two_tier:source_id_key_rejected",
+      "input": {
+        "reported_at": "2026-01-02T03:04:05.678Z",
+        "input_reported_at": {
+          "timestamp_missing_reason": "not_provided_by_source",
+          "utc_offset_missing_reason": "not_provided_by_source"
+        },
+        "reported_via": "text",
+        "athlete_description": "Oatmeal with berries",
+        "reported_items": [],
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"source_id\"",
+          "keys": [
+            "source_id"
+          ]
+        }
+      ]
+    }
+  ]
+}

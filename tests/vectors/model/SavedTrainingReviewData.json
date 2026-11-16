@@ -1,0 +1,1095 @@
+{
+  "schema": "SavedTrainingReviewData",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07",
+        "summary": "Consistent week."
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07",
+        "summary": "Consistent week."
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07",
+        "summary": "Consistent week.",
+        "recommendations": [
+          "Add one rest day."
+        ]
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07",
+        "summary": "Consistent week.",
+        "recommendations": [
+          "Add one rest day."
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07",
+        "summary": "Consistent week.",
+        "recommendations": [
+          "Add one rest day."
+        ],
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "authorship:missing",
+      "input": {
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07",
+        "summary": "Consistent week."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:null",
+      "input": {
+        "authorship": null,
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07",
+        "summary": "Consistent week."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:wrong_type=array",
+      "input": {
+        "authorship": [],
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07",
+        "summary": "Consistent week."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:wrong_type=string",
+      "input": {
+        "authorship": "x",
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07",
+        "summary": "Consistent week."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:empty_object",
+      "input": {
+        "authorship": {},
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07",
+        "summary": "Consistent week."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship",
+            "author"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        },
+        {
+          "path": [
+            "authorship",
+            "authored_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "authorship",
+            "evidence"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received undefined",
+          "expected": "array"
+        },
+        {
+          "path": [
+            "authorship",
+            "content_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        },
+        {
+          "path": [
+            "authorship",
+            "status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"draft\"|\"active\"|\"completed\"|\"superseded\"|\"cancelled\"",
+          "values": [
+            "draft",
+            "active",
+            "completed",
+            "superseded",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "authorship:nested_unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active",
+          "unknown_nested": true
+        },
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07",
+        "summary": "Consistent week."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "period_start:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "period_end": "2026-01-07",
+        "summary": "Consistent week."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "period_start"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "period_start:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "period_start": null,
+        "period_end": "2026-01-07",
+        "summary": "Consistent week."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "period_start"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "period_start:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "period_start": 1,
+        "period_end": "2026-01-07",
+        "summary": "Consistent week."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "period_start"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "period_start:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "period_start": "",
+        "period_end": "2026-01-07",
+        "summary": "Consistent week."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "period_start"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "period_start:format=february_30",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "period_start": "2026-02-30",
+        "period_end": "2026-01-07",
+        "summary": "Consistent week."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "period_start"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "period_start:format=datetime",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "period_start": "2026-01-02T03:04:05.678Z",
+        "period_end": "2026-01-07",
+        "summary": "Consistent week."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "period_start"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "period_end:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "period_start": "2026-01-01",
+        "summary": "Consistent week."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "period_end"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "period_end:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "period_start": "2026-01-01",
+        "period_end": null,
+        "summary": "Consistent week."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "period_end"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "period_end:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "period_start": "2026-01-01",
+        "period_end": 1,
+        "summary": "Consistent week."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "period_end"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "period_end:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "period_start": "2026-01-01",
+        "period_end": "",
+        "summary": "Consistent week."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "period_end"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "period_end:format=february_30",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "period_start": "2026-01-01",
+        "period_end": "2026-02-30",
+        "summary": "Consistent week."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "period_end"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "period_end:format=datetime",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-02T03:04:05.678Z",
+        "summary": "Consistent week."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "period_end"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "summary:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "summary"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "summary:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07",
+        "summary": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "summary"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "summary:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07",
+        "summary": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "summary"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "summary:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07",
+        "summary": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "summary"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "recommendations:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07",
+        "summary": "Consistent week.",
+        "recommendations": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "recommendations"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received null",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "recommendations:wrong_type=object",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07",
+        "summary": "Consistent week.",
+        "recommendations": {}
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "recommendations"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received object",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "recommendations:empty_array",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07",
+        "summary": "Consistent week.",
+        "recommendations": []
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07",
+        "summary": "Consistent week.",
+        "recommendations": []
+      },
+      "issues": []
+    },
+    {
+      "name": "recommendations:element[0]:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07",
+        "summary": "Consistent week.",
+        "recommendations": [
+          1
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "recommendations",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "recommendations:element[0]:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07",
+        "summary": "Consistent week.",
+        "recommendations": [
+          ""
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "recommendations",
+            0
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "recommendations:element[1]:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "period_start": "2026-01-01",
+        "period_end": "2026-01-07",
+        "summary": "Consistent week.",
+        "recommendations": [
+          "Add one rest day.",
+          1
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "recommendations",
+            1
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "no_rule:end_before_start",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "period_start": "2026-02-01",
+        "period_end": "2026-01-01",
+        "summary": "Consistent week."
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "period_start": "2026-02-01",
+        "period_end": "2026-01-01",
+        "summary": "Consistent week."
+      },
+      "issues": []
+    }
+  ]
+}

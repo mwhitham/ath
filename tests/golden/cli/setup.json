@@ -1,0 +1,716 @@
+{
+  "generated_by": "tools/reference/cli-golden.ts",
+  "reference_version": "2.1.0",
+  "normalization": [
+    "The scenario's working folder is replaced with <work>.",
+    "The program versions 2.1.0 and 2.1.1 are replaced with <version> (D152, D208).",
+    "SQL schema steps 4 and 5 in \"sql_schema_version\" are replaced with <step>; each program writes its own current step.",
+    "UTC times with milliseconds, and the compact forms in backup and report names, that fall within the scenario's run are replaced with <now>.",
+    "UUIDv7 values whose time falls within the scenario's run are new IDs. Each is replaced with <id-N>, numbered by first appearance in the scenario.",
+    "Package file hashes in an export manifest are replaced with <sha256>: package files name the program version. Package bytes are compared in the package golden tests.",
+    "Native output only: migration step 5 (migrations/005-version-2-1-1.sql) is removed from planned steps, and a source, target, or required step 5 reads 4."
+  ],
+  "environment": {
+    "PATH": "<fake password-store tools>:/usr/bin:/bin",
+    "TZ": "America/Chicago",
+    "ATH_GATEWAY_BASE_URL": "<local test server>"
+  },
+  "scenarios": [
+    {
+      "name": "init_json",
+      "fixture": "none",
+      "steps": [
+        {
+          "argv": [
+            "init",
+            "--yes",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"created\": \"<work>/athlete.ath.sqlite\",\n  \"athleticstandard_version\": \"<version>\",\n  \"database_revision\": 1,\n  \"benchmark_record_ids\": [\n    \"<id-1>\",\n    \"<id-2>\",\n    \"<id-3>\",\n    \"<id-4>\",\n    \"<id-5>\",\n    \"<id-6>\",\n    \"<id-7>\"\n  ],\n  \"skill_installed\": [\n    \"<work>/.agents/skills/athletic-standard\",\n    \"<work>/.agents/skills/baseline\",\n    \"<work>/.agents/skills/compare-sources\",\n    \"<work>/.agents/skills/correlation\",\n    \"<work>/.agents/skills/coverage\",\n    \"<work>/.agents/skills/heart-rate-recovery\",\n    \"<work>/.agents/skills/heart-rate-zones\",\n    \"<work>/.agents/skills/hrv-change\",\n    \"<work>/.agents/skills/provider-period-summary\",\n    \"<work>/.agents/skills/resting-heart-rate\",\n    \"<work>/.agents/skills/resting-heart-rate-change\",\n    \"<work>/.agents/skills/sleep-change\",\n    \"<work>/.agents/skills/sleep-duration\",\n    \"<work>/.agents/skills/sleep-efficiency\",\n    \"<work>/.agents/skills/sleep-interruptions\",\n    \"<work>/.agents/skills/sleep-regularity\",\n    \"<work>/.agents/skills/sleep-stages\",\n    \"<work>/.agents/skills/sleep-timing\",\n    \"<work>/.agents/skills/strength-volume\",\n    \"<work>/.agents/skills/summary\",\n    \"<work>/.agents/skills/training-load-effort\",\n    \"<work>/.agents/skills/training-load-heart-rate\",\n    \"<work>/.agents/skills/trend\",\n    \"<work>/.agents/skills/workout-drift\"\n  ],\n  \"mappings_installed\": [\n    \"<work>/.agents/mappings/junction.md\",\n    \"<work>/.agents/mappings/open-wearables.md\"\n  ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "stats",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"athleticstandard_version\": \"<version>\",\n  \"database_id\": \"<id-8>\",\n  \"database_revision\": 1,\n  \"athlete\": {\n    \"display_units\": \"metric\"\n  },\n  \"current_records\": {\n    \"total\": 9,\n    \"by_type\": {\n      \"athlete_profile\": 1,\n      \"benchmark_definition\": 7,\n      \"source\": 1\n    }\n  },\n  \"sources\": [\n    {\n      \"record_id\": \"<id-9>\",\n      \"source_type\": \"manual\",\n      \"data_writer\": \"ath\",\n      \"data_route\": \"manual_entry\",\n      \"vendor\": null,\n      \"sensor_type\": null,\n      \"current_record_count\": 0,\n      \"first_recorded_at\": null,\n      \"last_recorded_at\": null\n    }\n  ],\n  \"baselines\": [],\n  \"series\": [],\n  \"benchmarks\": {\n    \"defined\": 7,\n    \"results\": 0\n  },\n  \"predictions\": {\n    \"total\": 0,\n    \"graded\": 0,\n    \"by_author\": []\n  }\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "skill",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"shipped\": \"<version>\",\n  \"copies\": [\n    {\n      \"path\": \"<work>/.agents/skills/athletic-standard\",\n      \"installed\": \"<version>\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/baseline\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/compare-sources\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/correlation\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/coverage\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/heart-rate-recovery\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/heart-rate-zones\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/hrv-change\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/provider-period-summary\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/resting-heart-rate\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/resting-heart-rate-change\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/sleep-change\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/sleep-duration\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/sleep-efficiency\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/sleep-interruptions\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/sleep-regularity\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/sleep-stages\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/sleep-timing\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/strength-volume\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/summary\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/training-load-effort\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/training-load-heart-rate\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/trend\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/workout-drift\",\n      \"installed\": \"2.0.0\",\n      \"shipped\": \"<version>\",\n      \"state\": \"installed\"\n    }\n  ]\n}\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "init_profile",
+      "fixture": "none",
+      "steps": [
+        {
+          "argv": [
+            "init",
+            "--yes",
+            "--no-skill",
+            "--name",
+            "Sam Lee",
+            "--birth-year",
+            "1990",
+            "--sex",
+            "female",
+            "--units",
+            "imperial",
+            "--timezone",
+            "America/Chicago"
+          ],
+          "status": 0,
+          "stdout": "created <work>/athlete.ath.sqlite\n  seeded 7 benchmarks: fran, grace, helen, murph, 5k-run, 1-mile-run, hyrox-full\n  next: `ath import <export-file>` to load device data\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "records",
+            "list",
+            "--type",
+            "athlete_profile",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"records\": [\n    {\n      \"record_id\": \"<id-1>\",\n      \"created_at\": \"<now>\",\n      \"current_revision\": 1,\n      \"is_deleted\": false,\n      \"record_type\": \"athlete_profile\",\n      \"data\": {\n        \"name\": \"Sam Lee\",\n        \"birth_year\": 1990,\n        \"sex\": \"female\",\n        \"display_units\": \"imperial\",\n        \"default_time_zone\": \"America/Chicago\"\n      }\n    }\n  ]\n}\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "init_dropped_values",
+      "fixture": "none",
+      "steps": [
+        {
+          "argv": [
+            "init",
+            "--yes",
+            "--no-skill",
+            "--sex",
+            "other",
+            "--units",
+            "furlongs",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"created\": \"<work>/athlete.ath.sqlite\",\n  \"athleticstandard_version\": \"<version>\",\n  \"database_revision\": 1,\n  \"benchmark_record_ids\": [\n    \"<id-1>\",\n    \"<id-2>\",\n    \"<id-3>\",\n    \"<id-4>\",\n    \"<id-5>\",\n    \"<id-6>\",\n    \"<id-7>\"\n  ],\n  \"skill_installed\": [],\n  \"mappings_installed\": []\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "records",
+            "list",
+            "--type",
+            "athlete_profile",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"records\": [\n    {\n      \"record_id\": \"<id-8>\",\n      \"created_at\": \"<now>\",\n      \"current_revision\": 1,\n      \"is_deleted\": false,\n      \"record_type\": \"athlete_profile\",\n      \"data\": {\n        \"display_units\": \"metric\"\n      }\n    }\n  ]\n}\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "init_empty_and_refusals",
+      "fixture": "none",
+      "steps": [
+        {
+          "argv": [
+            "init",
+            "--yes",
+            "--empty",
+            "--no-skill",
+            "--file",
+            "second.ath.sqlite"
+          ],
+          "status": 0,
+          "stdout": "created <work>/second.ath.sqlite\n  empty database, ready for a v1 package restore\n  next: `ath import <export-file>` to load device data\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "init",
+            "--yes",
+            "--empty",
+            "--no-skill",
+            "--file",
+            "second.ath.sqlite"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: <work>/second.ath.sqlite already exists, and overwriting it would lose whatever is in it. Read it with `ath stats`, or start a second file with `--file <name>.ath.sqlite`.\n"
+        },
+        {
+          "argv": [
+            "init",
+            "--yes",
+            "--file",
+            "plain.sqlite"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: the live database name must end in .ath.sqlite: <work>/plain.sqlite\n"
+        },
+        {
+          "argv": [
+            "stats",
+            "--file",
+            "second.ath.sqlite",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"athleticstandard_version\": \"<version>\",\n  \"database_id\": \"<id-1>\",\n  \"database_revision\": 0,\n  \"athlete\": null,\n  \"current_records\": {\n    \"total\": 0,\n    \"by_type\": {}\n  },\n  \"sources\": [],\n  \"baselines\": [],\n  \"series\": [],\n  \"benchmarks\": {\n    \"defined\": 0,\n    \"results\": 0\n  },\n  \"predictions\": {\n    \"total\": 0,\n    \"graded\": 0,\n    \"by_author\": []\n  }\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "init",
+            "--yes",
+            "--empty",
+            "--json",
+            "--no-skill",
+            "--file",
+            "third.ath.sqlite"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"created\": \"<work>/third.ath.sqlite\",\n  \"athleticstandard_version\": \"<version>\",\n  \"database_revision\": 0,\n  \"benchmark_record_ids\": [],\n  \"skill_installed\": [],\n  \"mappings_installed\": []\n}\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "init_with_harness_folder",
+      "fixture": "none",
+      "dirs": [
+        ".claude"
+      ],
+      "steps": [
+        {
+          "argv": [
+            "init",
+            "--yes"
+          ],
+          "status": 0,
+          "stdout": "created <work>/athlete.ath.sqlite\n  seeded 7 benchmarks: fran, grace, helen, murph, 5k-run, 1-mile-run, hyrox-full\n  installed the agent skill into <work>/.agents/skills/athletic-standard\n  installed the agent skill into <work>/.claude/skills/athletic-standard\n  installed the agent skill into <work>/.agents/skills/baseline\n  installed the agent skill into <work>/.claude/skills/baseline\n  installed the agent skill into <work>/.agents/skills/compare-sources\n  installed the agent skill into <work>/.claude/skills/compare-sources\n  installed the agent skill into <work>/.agents/skills/correlation\n  installed the agent skill into <work>/.claude/skills/correlation\n  installed the agent skill into <work>/.agents/skills/coverage\n  installed the agent skill into <work>/.claude/skills/coverage\n  installed the agent skill into <work>/.agents/skills/heart-rate-recovery\n  installed the agent skill into <work>/.claude/skills/heart-rate-recovery\n  installed the agent skill into <work>/.agents/skills/heart-rate-zones\n  installed the agent skill into <work>/.claude/skills/heart-rate-zones\n  installed the agent skill into <work>/.agents/skills/hrv-change\n  installed the agent skill into <work>/.claude/skills/hrv-change\n  installed the agent skill into <work>/.agents/skills/provider-period-summary\n  installed the agent skill into <work>/.claude/skills/provider-period-summary\n  installed the agent skill into <work>/.agents/skills/resting-heart-rate\n  installed the agent skill into <work>/.claude/skills/resting-heart-rate\n  installed the agent skill into <work>/.agents/skills/resting-heart-rate-change\n  installed the agent skill into <work>/.claude/skills/resting-heart-rate-change\n  installed the agent skill into <work>/.agents/skills/sleep-change\n  installed the agent skill into <work>/.claude/skills/sleep-change\n  installed the agent skill into <work>/.agents/skills/sleep-duration\n  installed the agent skill into <work>/.claude/skills/sleep-duration\n  installed the agent skill into <work>/.agents/skills/sleep-efficiency\n  installed the agent skill into <work>/.claude/skills/sleep-efficiency\n  installed the agent skill into <work>/.agents/skills/sleep-interruptions\n  installed the agent skill into <work>/.claude/skills/sleep-interruptions\n  installed the agent skill into <work>/.agents/skills/sleep-regularity\n  installed the agent skill into <work>/.claude/skills/sleep-regularity\n  installed the agent skill into <work>/.agents/skills/sleep-stages\n  installed the agent skill into <work>/.claude/skills/sleep-stages\n  installed the agent skill into <work>/.agents/skills/sleep-timing\n  installed the agent skill into <work>/.claude/skills/sleep-timing\n  installed the agent skill into <work>/.agents/skills/strength-volume\n  installed the agent skill into <work>/.claude/skills/strength-volume\n  installed the agent skill into <work>/.agents/skills/summary\n  installed the agent skill into <work>/.claude/skills/summary\n  installed the agent skill into <work>/.agents/skills/training-load-effort\n  installed the agent skill into <work>/.claude/skills/training-load-effort\n  installed the agent skill into <work>/.agents/skills/training-load-heart-rate\n  installed the agent skill into <work>/.claude/skills/training-load-heart-rate\n  installed the agent skill into <work>/.agents/skills/trend\n  installed the agent skill into <work>/.claude/skills/trend\n  installed the agent skill into <work>/.agents/skills/workout-drift\n  installed the agent skill into <work>/.claude/skills/workout-drift\n  copied 2 mapping files into .agents/mappings\n  .agents/skills is read by Claude Code, Cursor, Codex, and Gemini CLI. `ath skill install` replaces an older tool skill after an upgrade.\n  next: `ath import <export-file>` to load device data\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "skill"
+          ],
+          "status": 0,
+          "stdout": "agent skill, version <version> shipped with this ath\n\n  .agents/skills/athletic-standard         installed (<version>)\n  .claude/skills/athletic-standard         installed (<version>)\n  .agents/skills/baseline                  installed (2.0.0)\n  .claude/skills/baseline                  installed (2.0.0)\n  .agents/skills/compare-sources           installed (2.0.0)\n  .claude/skills/compare-sources           installed (2.0.0)\n  .agents/skills/correlation               installed (2.0.0)\n  .claude/skills/correlation               installed (2.0.0)\n  .agents/skills/coverage                  installed (2.0.0)\n  .claude/skills/coverage                  installed (2.0.0)\n  .agents/skills/heart-rate-recovery       installed (2.0.0)\n  .claude/skills/heart-rate-recovery       installed (2.0.0)\n  .agents/skills/heart-rate-zones          installed (2.0.0)\n  .claude/skills/heart-rate-zones          installed (2.0.0)\n  .agents/skills/hrv-change                installed (2.0.0)\n  .claude/skills/hrv-change                installed (2.0.0)\n  .agents/skills/provider-period-summary   installed (2.0.0)\n  .claude/skills/provider-period-summary   installed (2.0.0)\n  .agents/skills/resting-heart-rate        installed (2.0.0)\n  .claude/skills/resting-heart-rate        installed (2.0.0)\n  .agents/skills/resting-heart-rate-change installed (2.0.0)\n  .claude/skills/resting-heart-rate-change installed (2.0.0)\n  .agents/skills/sleep-change              installed (2.0.0)\n  .claude/skills/sleep-change              installed (2.0.0)\n  .agents/skills/sleep-duration            installed (2.0.0)\n  .claude/skills/sleep-duration            installed (2.0.0)\n  .agents/skills/sleep-efficiency          installed (2.0.0)\n  .claude/skills/sleep-efficiency          installed (2.0.0)\n  .agents/skills/sleep-interruptions       installed (2.0.0)\n  .claude/skills/sleep-interruptions       installed (2.0.0)\n  .agents/skills/sleep-regularity          installed (2.0.0)\n  .claude/skills/sleep-regularity          installed (2.0.0)\n  .agents/skills/sleep-stages              installed (2.0.0)\n  .claude/skills/sleep-stages              installed (2.0.0)\n  .agents/skills/sleep-timing              installed (2.0.0)\n  .claude/skills/sleep-timing              installed (2.0.0)\n  .agents/skills/strength-volume           installed (2.0.0)\n  .claude/skills/strength-volume           installed (2.0.0)\n  .agents/skills/summary                   installed (2.0.0)\n  .claude/skills/summary                   installed (2.0.0)\n  .agents/skills/training-load-effort      installed (2.0.0)\n  .claude/skills/training-load-effort      installed (2.0.0)\n  .agents/skills/training-load-heart-rate  installed (2.0.0)\n  .claude/skills/training-load-heart-rate  installed (2.0.0)\n  .agents/skills/trend                     installed (2.0.0)\n  .claude/skills/trend                     installed (2.0.0)\n  .agents/skills/workout-drift             installed (2.0.0)\n  .claude/skills/workout-drift             installed (2.0.0)\n\nAn older tool skill is replaced by `ath skill install`. A calculation skill that is already installed is left as it is.\n.agents/skills is read by Claude Code, Cursor, Codex, and Gemini CLI.\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "skill_install",
+      "fixture": "none",
+      "steps": [
+        {
+          "argv": [
+            "skill"
+          ],
+          "status": 0,
+          "stdout": "agent skill, version <version> shipped with this ath\n\n  .agents/skills/athletic-standard         missing\n  .agents/skills/baseline                  missing\n  .agents/skills/compare-sources           missing\n  .agents/skills/correlation               missing\n  .agents/skills/coverage                  missing\n  .agents/skills/heart-rate-recovery       missing\n  .agents/skills/heart-rate-zones          missing\n  .agents/skills/hrv-change                missing\n  .agents/skills/provider-period-summary   missing\n  .agents/skills/resting-heart-rate        missing\n  .agents/skills/resting-heart-rate-change missing\n  .agents/skills/sleep-change              missing\n  .agents/skills/sleep-duration            missing\n  .agents/skills/sleep-efficiency          missing\n  .agents/skills/sleep-interruptions       missing\n  .agents/skills/sleep-regularity          missing\n  .agents/skills/sleep-stages              missing\n  .agents/skills/sleep-timing              missing\n  .agents/skills/strength-volume           missing\n  .agents/skills/summary                   missing\n  .agents/skills/training-load-effort      missing\n  .agents/skills/training-load-heart-rate  missing\n  .agents/skills/trend                     missing\n  .agents/skills/workout-drift             missing\n\n`ath skill install` adds skill files that are not already here, and replaces an older tool skill.\n.agents/skills is read by Claude Code, Cursor, Codex, and Gemini CLI.\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "skill",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"shipped\": \"<version>\",\n  \"copies\": [\n    {\n      \"path\": \"<work>/.agents/skills/athletic-standard\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/baseline\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/compare-sources\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/correlation\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/coverage\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/heart-rate-recovery\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/heart-rate-zones\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/hrv-change\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/provider-period-summary\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/resting-heart-rate\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/resting-heart-rate-change\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/sleep-change\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/sleep-duration\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/sleep-efficiency\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/sleep-interruptions\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/sleep-regularity\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/sleep-stages\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/sleep-timing\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/strength-volume\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/summary\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/training-load-effort\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/training-load-heart-rate\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/trend\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    },\n    {\n      \"path\": \"<work>/.agents/skills/workout-drift\",\n      \"installed\": null,\n      \"shipped\": \"<version>\",\n      \"state\": \"missing\"\n    }\n  ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "skill",
+            "install"
+          ],
+          "status": 0,
+          "stdout": "added mapping file <work>/.agents/mappings/junction.md\nadded mapping file <work>/.agents/mappings/open-wearables.md\nadded skill files into <work>/.agents/skills/athletic-standard\nadded skill files into <work>/.agents/skills/baseline\nadded skill files into <work>/.agents/skills/compare-sources\nadded skill files into <work>/.agents/skills/correlation\nadded skill files into <work>/.agents/skills/coverage\nadded skill files into <work>/.agents/skills/heart-rate-recovery\nadded skill files into <work>/.agents/skills/heart-rate-zones\nadded skill files into <work>/.agents/skills/hrv-change\nadded skill files into <work>/.agents/skills/provider-period-summary\nadded skill files into <work>/.agents/skills/resting-heart-rate\nadded skill files into <work>/.agents/skills/resting-heart-rate-change\nadded skill files into <work>/.agents/skills/sleep-change\nadded skill files into <work>/.agents/skills/sleep-duration\nadded skill files into <work>/.agents/skills/sleep-efficiency\nadded skill files into <work>/.agents/skills/sleep-interruptions\nadded skill files into <work>/.agents/skills/sleep-regularity\nadded skill files into <work>/.agents/skills/sleep-stages\nadded skill files into <work>/.agents/skills/sleep-timing\nadded skill files into <work>/.agents/skills/strength-volume\nadded skill files into <work>/.agents/skills/summary\nadded skill files into <work>/.agents/skills/training-load-effort\nadded skill files into <work>/.agents/skills/training-load-heart-rate\nadded skill files into <work>/.agents/skills/trend\nadded skill files into <work>/.agents/skills/workout-drift\nversion <version>\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "skill"
+          ],
+          "status": 0,
+          "stdout": "agent skill, version <version> shipped with this ath\n\n  .agents/skills/athletic-standard         installed (<version>)\n  .agents/skills/baseline                  installed (2.0.0)\n  .agents/skills/compare-sources           installed (2.0.0)\n  .agents/skills/correlation               installed (2.0.0)\n  .agents/skills/coverage                  installed (2.0.0)\n  .agents/skills/heart-rate-recovery       installed (2.0.0)\n  .agents/skills/heart-rate-zones          installed (2.0.0)\n  .agents/skills/hrv-change                installed (2.0.0)\n  .agents/skills/provider-period-summary   installed (2.0.0)\n  .agents/skills/resting-heart-rate        installed (2.0.0)\n  .agents/skills/resting-heart-rate-change installed (2.0.0)\n  .agents/skills/sleep-change              installed (2.0.0)\n  .agents/skills/sleep-duration            installed (2.0.0)\n  .agents/skills/sleep-efficiency          installed (2.0.0)\n  .agents/skills/sleep-interruptions       installed (2.0.0)\n  .agents/skills/sleep-regularity          installed (2.0.0)\n  .agents/skills/sleep-stages              installed (2.0.0)\n  .agents/skills/sleep-timing              installed (2.0.0)\n  .agents/skills/strength-volume           installed (2.0.0)\n  .agents/skills/summary                   installed (2.0.0)\n  .agents/skills/training-load-effort      installed (2.0.0)\n  .agents/skills/training-load-heart-rate  installed (2.0.0)\n  .agents/skills/trend                     installed (2.0.0)\n  .agents/skills/workout-drift             installed (2.0.0)\n\nAn older tool skill is replaced by `ath skill install`. A calculation skill that is already installed is left as it is.\n.agents/skills is read by Claude Code, Cursor, Codex, and Gemini CLI.\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "skill",
+            "install",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"shipped\": \"<version>\",\n  \"skill_installed\": [],\n  \"mappings_installed\": []\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "skill",
+            "--json",
+            "install"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"shipped\": \"<version>\",\n  \"skill_installed\": [],\n  \"mappings_installed\": []\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "skill",
+            "install"
+          ],
+          "status": 0,
+          "stdout": "left installed skill files unchanged\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "migrate_version_2_0_0",
+      "fixture": "v200",
+      "steps": [
+        {
+          "argv": [
+            "migrate",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"migration_needed\": true,\n  \"source_sql_schema_version\": 3,\n  \"target_sql_schema_version\": 4,\n  \"database_id\": \"01890f3e-e7d3-7cc0-88c8-000000000001\",\n  \"planned_steps\": [\n    {\n      \"target_sql_schema_version\": 4,\n      \"migration_file\": \"migrations/004-version-2-1.sql\",\n      \"description\": \"Upgrade the database to software version <version>. No column is added. Records written before this step stay as they are.\"\n    }\n  ],\n  \"planned_backup_path\": \"<work>/athlete.ath.sqlite.migration-backup.<now>-1.sqlite\",\n  \"compatibility_effect\": \"The database will be upgraded in place after a verified SQLite backup. Older direct-SQL clients may need the sql_vN_* views documented for the new schema version.\",\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "migrate"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"migration_needed\": true,\n  \"source_sql_schema_version\": 3,\n  \"target_sql_schema_version\": 4,\n  \"database_id\": \"01890f3e-e7d3-7cc0-88c8-000000000001\",\n  \"planned_steps\": [\n    {\n      \"target_sql_schema_version\": 4,\n      \"migration_file\": \"migrations/004-version-2-1.sql\",\n      \"description\": \"Upgrade the database to software version <version>. No column is added. Records written before this step stay as they are.\"\n    }\n  ],\n  \"planned_backup_path\": \"<work>/athlete.ath.sqlite.migration-backup.<now>-1.sqlite\",\n  \"compatibility_effect\": \"The database will be upgraded in place after a verified SQLite backup. Older direct-SQL clients may need the sql_vN_* views documented for the new schema version.\",\n  \"write_confirmed\": false\n}\nnothing migrated; pass --yes after reviewing this preview\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "migrate",
+            "--dry-run"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"migration_needed\": true,\n  \"source_sql_schema_version\": 3,\n  \"target_sql_schema_version\": 4,\n  \"database_id\": \"01890f3e-e7d3-7cc0-88c8-000000000001\",\n  \"planned_steps\": [\n    {\n      \"target_sql_schema_version\": 4,\n      \"migration_file\": \"migrations/004-version-2-1.sql\",\n      \"description\": \"Upgrade the database to software version <version>. No column is added. Records written before this step stay as they are.\"\n    }\n  ],\n  \"planned_backup_path\": \"<work>/athlete.ath.sqlite.migration-backup.<now>-1.sqlite\",\n  \"compatibility_effect\": \"The database will be upgraded in place after a verified SQLite backup. Older direct-SQL clients may need the sql_vN_* views documented for the new schema version.\",\n  \"write_confirmed\": false\n}\nnothing migrated (--dry-run)\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "migrate",
+            "--yes"
+          ],
+          "status": 1,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"migration_needed\": true,\n  \"source_sql_schema_version\": 3,\n  \"target_sql_schema_version\": 4,\n  \"database_id\": \"01890f3e-e7d3-7cc0-88c8-000000000001\",\n  \"planned_steps\": [\n    {\n      \"target_sql_schema_version\": 4,\n      \"migration_file\": \"migrations/004-version-2-1.sql\",\n      \"description\": \"Upgrade the database to software version <version>. No column is added. Records written before this step stay as they are.\"\n    }\n  ],\n  \"planned_backup_path\": \"<work>/athlete.ath.sqlite.migration-backup.<now>-1.sqlite\",\n  \"compatibility_effect\": \"The database will be upgraded in place after a verified SQLite backup. Older direct-SQL clients may need the sql_vN_* views documented for the new schema version.\",\n  \"write_confirmed\": false\n}\n",
+          "stderr": "ath: second confirmation is required in non-interactive use; pass --confirm-migration 01890f3e-e7d3-7cc0-88c8-000000000001\nath: second confirmation is required in non-interactive use; pass --confirm-migration 01890f3e-e7d3-7cc0-88c8-000000000001\n"
+        },
+        {
+          "argv": [
+            "migrate",
+            "--yes",
+            "--confirm-migration",
+            "wrong"
+          ],
+          "status": 1,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"migration_needed\": true,\n  \"source_sql_schema_version\": 3,\n  \"target_sql_schema_version\": 4,\n  \"database_id\": \"01890f3e-e7d3-7cc0-88c8-000000000001\",\n  \"planned_steps\": [\n    {\n      \"target_sql_schema_version\": 4,\n      \"migration_file\": \"migrations/004-version-2-1.sql\",\n      \"description\": \"Upgrade the database to software version <version>. No column is added. Records written before this step stay as they are.\"\n    }\n  ],\n  \"planned_backup_path\": \"<work>/athlete.ath.sqlite.migration-backup.<now>-1.sqlite\",\n  \"compatibility_effect\": \"The database will be upgraded in place after a verified SQLite backup. Older direct-SQL clients may need the sql_vN_* views documented for the new schema version.\",\n  \"write_confirmed\": false\n}\n",
+          "stderr": "ath: second confirmation did not exactly match the database ID; nothing was migrated\nath: second confirmation did not exactly match the database ID; nothing was migrated\n"
+        },
+        {
+          "argv": [
+            "migrate",
+            "--yes",
+            "--json",
+            "--confirm-migration",
+            "01890f3e-e7d3-7cc0-88c8-000000000001"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"migration_needed\": true,\n  \"source_sql_schema_version\": 3,\n  \"target_sql_schema_version\": 4,\n  \"database_id\": \"01890f3e-e7d3-7cc0-88c8-000000000001\",\n  \"planned_steps\": [\n    {\n      \"target_sql_schema_version\": 4,\n      \"migration_file\": \"migrations/004-version-2-1.sql\",\n      \"description\": \"Upgrade the database to software version <version>. No column is added. Records written before this step stay as they are.\"\n    }\n  ],\n  \"planned_backup_path\": \"<work>/athlete.ath.sqlite.migration-backup.<now>-1.sqlite\",\n  \"compatibility_effect\": \"The database will be upgraded in place after a verified SQLite backup. Older direct-SQL clients may need the sql_vN_* views documented for the new schema version.\",\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "log",
+            "--yes",
+            "slept",
+            "fine"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: Database SQL schema 3 must be upgraded to 4 before other commands can run. Run ath migrate.\n"
+        },
+        {
+          "argv": [
+            "migrate",
+            "--yes",
+            "--confirm-migration",
+            "01890f3e-e7d3-7cc0-88c8-000000000001"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"migration_needed\": true,\n  \"source_sql_schema_version\": 3,\n  \"target_sql_schema_version\": 4,\n  \"database_id\": \"01890f3e-e7d3-7cc0-88c8-000000000001\",\n  \"planned_steps\": [\n    {\n      \"target_sql_schema_version\": 4,\n      \"migration_file\": \"migrations/004-version-2-1.sql\",\n      \"description\": \"Upgrade the database to software version <version>. No column is added. Records written before this step stay as they are.\"\n    }\n  ],\n  \"planned_backup_path\": \"<work>/athlete.ath.sqlite.migration-backup.<now>-1.sqlite\",\n  \"compatibility_effect\": \"The database will be upgraded in place after a verified SQLite backup. Older direct-SQL clients may need the sql_vN_* views documented for the new schema version.\",\n  \"write_confirmed\": false\n}\nmigrated SQL schema 3 to 4 with verified backup at <work>/athlete.ath.sqlite.migration-backup.<now>-1.sqlite\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "migrate"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"migration_needed\": false,\n  \"source_sql_schema_version\": 4,\n  \"target_sql_schema_version\": 4,\n  \"database_id\": \"01890f3e-e7d3-7cc0-88c8-000000000001\",\n  \"planned_steps\": [],\n  \"planned_backup_path\": null,\n  \"compatibility_effect\": \"No migration is required. Direct-read views and writable tables match this ath version.\",\n  \"write_confirmed\": false\n}\nno migration is required\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "check",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"metadata\": {\n    \"application_marker\": \"ATH1\",\n    \"sql_schema_version\": <step>,\n    \"athleticstandard_version\": \"<version>\",\n    \"database_id\": \"01890f3e-e7d3-7cc0-88c8-000000000001\",\n    \"created_at\": \"2026-08-09T12:00:00.000Z\"\n  },\n  \"valid\": true,\n  \"record_count\": 25,\n  \"issues\": [],\n  \"export_validated\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "stats"
+          ],
+          "status": 0,
+          "stdout": "Demo Athlete · Athletic Standard <version>\ndatabase revision: 3\n\ncurrent records: 24\n  athlete_profile: 1\n  attachment: 1\n  benchmark_definition: 1\n  benchmark_result: 1\n  coaching_note: 1\n  goal: 1\n  measurement_sample: 1\n  nutrition_entry: 1\n  nutrition_model_interpretation: 1\n  planned_session: 1\n  point_measurement: 1\n  prediction: 1\n  prediction_error_analysis: 1\n  prediction_grade: 1\n  prediction_result_link: 1\n  provider_score: 1\n  provider_summary: 1\n  saved_training_review: 1\n  sleep_session: 1\n  source: 2\n  source_device: 1\n  training_plan: 1\n  workout_session: 1\n\nsources: 2\n  01890f3e-e7d3-7cc0-88c8-000000000003: WHOOP via whoop_csv (wearable) — 6 records, 2026-08-09 → 2026-08-10\n  01890f3e-e7d3-7cc0-88c8-000000000004: ath via manual_entry (manual) — 1 record, 2026-08-10 → 2026-08-10\n\n90-day device baselines (each source stays separate):\n  01890f3e-e7d3-7cc0-88c8-000000000003 hrv_rmssd: 64ms (sd 0, n=1, 2026-08-09 → 2026-08-09)\n\nsample series:\n  01890f3e-e7d3-7cc0-88c8-000000000003 heart_rate: 1 samples, 2026-08-09T11:12:00.000Z → 2026-08-09T11:12:00.000Z\n\nbenchmarks defined: 1 · results recorded: 1\npredictions: 1 · grades: 1\n  ath-reference-agent running fixture-model: 1\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "migrate_version_1_0_0",
+      "fixture": "npm100",
+      "steps": [
+        {
+          "argv": [
+            "migrate",
+            "athlete.ath.sqlite",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"migration_needed\": true,\n  \"source_sql_schema_version\": 1,\n  \"target_sql_schema_version\": 4,\n  \"database_id\": \"01a1672e-255a-765a-970c-e28eef8e8080\",\n  \"planned_steps\": [\n    {\n      \"target_sql_schema_version\": 2,\n      \"migration_file\": \"migrations/002-provider-encoding-repair.sql\",\n      \"description\": \"Repair typed-table JSON bytes after npm 1.0.0 provider imports without changing record content.\"\n    },\n    {\n      \"target_sql_schema_version\": 3,\n      \"migration_file\": \"migrations/003-version-2.sql\",\n      \"description\": \"Upgrade the database to software version 2.0.0. Adds workout names, text, and route points. History, links, attachments, and deletion records stay.\"\n    },\n    {\n      \"target_sql_schema_version\": 4,\n      \"migration_file\": \"migrations/004-version-2-1.sql\",\n      \"description\": \"Upgrade the database to software version <version>. No column is added. Records written before this step stay as they are.\"\n    }\n  ],\n  \"planned_backup_path\": \"<work>/athlete.ath.sqlite.migration-backup.<now>-1.sqlite\",\n  \"compatibility_effect\": \"The database will be upgraded in place after a verified SQLite backup. Older direct-SQL clients may need the sql_vN_* views documented for the new schema version.\",\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "migrate",
+            "--file",
+            "athlete.ath.sqlite",
+            "--yes",
+            "--confirm-migration",
+            "01a1672e-255a-765a-970c-e28eef8e8080"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"migration_needed\": true,\n  \"source_sql_schema_version\": 1,\n  \"target_sql_schema_version\": 4,\n  \"database_id\": \"01a1672e-255a-765a-970c-e28eef8e8080\",\n  \"planned_steps\": [\n    {\n      \"target_sql_schema_version\": 2,\n      \"migration_file\": \"migrations/002-provider-encoding-repair.sql\",\n      \"description\": \"Repair typed-table JSON bytes after npm 1.0.0 provider imports without changing record content.\"\n    },\n    {\n      \"target_sql_schema_version\": 3,\n      \"migration_file\": \"migrations/003-version-2.sql\",\n      \"description\": \"Upgrade the database to software version 2.0.0. Adds workout names, text, and route points. History, links, attachments, and deletion records stay.\"\n    },\n    {\n      \"target_sql_schema_version\": 4,\n      \"migration_file\": \"migrations/004-version-2-1.sql\",\n      \"description\": \"Upgrade the database to software version <version>. No column is added. Records written before this step stay as they are.\"\n    }\n  ],\n  \"planned_backup_path\": \"<work>/athlete.ath.sqlite.migration-backup.<now>-1.sqlite\",\n  \"compatibility_effect\": \"The database will be upgraded in place after a verified SQLite backup. Older direct-SQL clients may need the sql_vN_* views documented for the new schema version.\",\n  \"write_confirmed\": false\n}\nmigrated SQL schema 1 to 4 with verified backup at <work>/athlete.ath.sqlite.migration-backup.<now>-1.sqlite\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "check"
+          ],
+          "status": 0,
+          "stdout": "<work>/athlete.ath.sqlite: valid Athletic Standard <version> database (231 records)\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "repair_version_1_0_0",
+      "fixture": "npm100",
+      "steps": [
+        {
+          "argv": [
+            "repair",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"repair_candidates\": 110,\n  \"revision_align_candidates\": 0,\n  \"revision_align_record_ids\": [],\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "repair"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"repair_candidates\": 110,\n  \"revision_align_candidates\": 0,\n  \"revision_align_record_ids\": [],\n  \"write_confirmed\": false\n}\nnothing repaired; pass --yes after reviewing this preview\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "repair",
+            "--dry-run"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"repair_candidates\": 110,\n  \"revision_align_candidates\": 0,\n  \"revision_align_record_ids\": [],\n  \"write_confirmed\": false\n}\nnothing repaired (--dry-run)\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "repair",
+            "--yes",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"repair_candidates\": 110,\n  \"revision_align_candidates\": 0,\n  \"revision_align_record_ids\": [],\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "repair",
+            "--yes"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"repair_candidates\": 110,\n  \"revision_align_candidates\": 0,\n  \"revision_align_record_ids\": [],\n  \"write_confirmed\": false\n}\nrepaired 110 record(s); database revision 5 with verified backup at <work>/athlete.ath.sqlite.repair-backup.<now>-1.sqlite\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "repair"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"repair_candidates\": 0,\n  \"revision_align_candidates\": 0,\n  \"revision_align_record_ids\": [],\n  \"write_confirmed\": false\n}\nno provider-encoding repair is required\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "repair_revision_align",
+      "fixture": "demo",
+      "current": true,
+      "sql": [
+        "UPDATE point_measurements SET standard_value = standard_value + 1 WHERE record_id = (SELECT record_id FROM point_measurements ORDER BY record_id LIMIT 1)"
+      ],
+      "steps": [
+        {
+          "argv": [
+            "repair",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"repair_candidates\": 1,\n  \"revision_align_candidates\": 0,\n  \"revision_align_record_ids\": [],\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "repair",
+            "--yes"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"repair_candidates\": 1,\n  \"revision_align_candidates\": 0,\n  \"revision_align_record_ids\": [],\n  \"write_confirmed\": false\n}\nrepaired 1 record(s); database revision 4 with verified backup at <work>/athlete.ath.sqlite.repair-backup.<now>-1.sqlite\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "repair",
+            "--yes",
+            "--from-revision"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"repair_candidates\": 0,\n  \"revision_align_candidates\": 0,\n  \"revision_align_record_ids\": [],\n  \"write_confirmed\": false\n}\nno provider-encoding repair is required\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "repair",
+            "--yes",
+            "--from-revision",
+            "--confirm-revision-align",
+            "wrong"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"repair_candidates\": 0,\n  \"revision_align_candidates\": 0,\n  \"revision_align_record_ids\": [],\n  \"write_confirmed\": false\n}\nno provider-encoding repair is required\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "repair",
+            "--yes",
+            "--from-revision",
+            "--confirm-revision-align",
+            "01890f3e-e7d3-7cc0-88c8-000000000001"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"repair_candidates\": 0,\n  \"revision_align_candidates\": 0,\n  \"revision_align_record_ids\": [],\n  \"write_confirmed\": false\n}\nno provider-encoding repair is required\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "repair"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"file\": \"<work>/athlete.ath.sqlite\",\n  \"repair_candidates\": 0,\n  \"revision_align_candidates\": 0,\n  \"revision_align_record_ids\": [],\n  \"write_confirmed\": false\n}\nno provider-encoding repair is required\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "check"
+          ],
+          "status": 0,
+          "stdout": "<work>/athlete.ath.sqlite: valid Athletic Standard <version> database (25 records)\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "keys",
+      "fixture": "none",
+      "steps": [
+        {
+          "argv": [
+            "key"
+          ],
+          "status": 0,
+          "stdout": "A gateway key is only for calling a model from a bare terminal.\nInside Claude Code, Cursor, or Codex you do not need one.\nThe key never goes in the athlete file.\n\nNo gateway key is saved.\nRun `ath key set vercel` or `ath key set openrouter`, or set\nAI_GATEWAY_API_KEY / OPENROUTER_API_KEY in the environment.\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "key",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"saved\": [],\n  \"environment\": []\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "key"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key"
+          },
+          "status": 0,
+          "stdout": "A gateway key is only for calling a model from a bare terminal.\nInside Claude Code, Cursor, or Codex you do not need one.\nThe key never goes in the athlete file.\n\nSet in the environment: vercel (AI_GATEWAY_API_KEY).\nThe key itself is not printed.\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "key",
+            "--json"
+          ],
+          "env": {
+            "AI_GATEWAY_API_KEY": "test-vercel-key",
+            "OPENROUTER_API_KEY": "test-openrouter-key"
+          },
+          "status": 0,
+          "stdout": "{\n  \"saved\": [],\n  \"environment\": [\n    \"vercel\",\n    \"openrouter\"\n  ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "key",
+            "set",
+            "vercel"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: there is no terminal to paste a key into. Run this somewhere you can type, or set AI_GATEWAY_API_KEY / OPENROUTER_API_KEY in the environment.\n"
+        },
+        {
+          "argv": [
+            "key",
+            "set",
+            "garmin"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: there is no terminal to paste a key into. Run this somewhere you can type, or set AI_GATEWAY_API_KEY / OPENROUTER_API_KEY in the environment.\n"
+        },
+        {
+          "argv": [
+            "key",
+            "set",
+            "nothing"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: unknown gateway 'nothing'. Use vercel or openrouter.\n"
+        },
+        {
+          "argv": [
+            "key",
+            "clear"
+          ],
+          "status": 0,
+          "stdout": "no gateway key was saved.\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "key",
+            "clear",
+            "openrouter"
+          ],
+          "status": 0,
+          "stdout": "no gateway key was saved.\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "key",
+            "clear",
+            "garmin"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: unknown gateway 'garmin'. Use vercel or openrouter.\n"
+        }
+      ]
+    },
+    {
+      "name": "update_and_share",
+      "fixture": "none",
+      "steps": [
+        {
+          "argv": [
+            "--update"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: This ath was not installed globally, so nothing was changed.\n"
+        },
+        {
+          "argv": [
+            "share"
+          ],
+          "status": 0,
+          "stdout": "ath share is not built yet.\nRun `ath backtest` first. The shareable part of a report is its summary.\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "share",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"built\": false,\n  \"latest_report\": null\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [],
+          "status": 0,
+          "stdout": "ath — Athletic Standard, an open file format for your training and recovery data.\n\nThere is no .ath.sqlite file in this folder, so start with one:\n\n  ath init                       make the file, here\n  ath import <export>            load an Apple Health, WHOOP or Oura export into it\n\nThen you can log what you did, read it back, and predict against it:\n\n  ath log slept badly, about 5 hours\n  ath stats\n  ath predict fran --json\n\nEvery command explains itself: `ath <command> --help`, with examples.\nThe whole list: `ath --help`.\n",
+          "stderr": ""
+        }
+      ]
+    }
+  ]
+}

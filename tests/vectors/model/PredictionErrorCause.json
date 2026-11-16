@@ -1,0 +1,293 @@
+{
+  "schema": "PredictionErrorCause",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "evidence": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+          "revision": 1
+        },
+        "explanation": "Slept longer than usual."
+      },
+      "valid": true,
+      "output": {
+        "evidence": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+          "revision": 1
+        },
+        "explanation": "Slept longer than usual."
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "evidence": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+          "revision": 1
+        },
+        "explanation": "Slept longer than usual.",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "evidence:missing",
+      "input": {
+        "explanation": "Slept longer than usual."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "evidence"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "evidence:null",
+      "input": {
+        "evidence": null,
+        "explanation": "Slept longer than usual."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "evidence"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "evidence:wrong_type=array",
+      "input": {
+        "evidence": [],
+        "explanation": "Slept longer than usual."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "evidence"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "evidence:wrong_type=string",
+      "input": {
+        "evidence": "x",
+        "explanation": "Slept longer than usual."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "evidence"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "evidence:empty_object",
+      "input": {
+        "evidence": {},
+        "explanation": "Slept longer than usual."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "evidence",
+            "record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "evidence",
+            "revision"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "evidence:nested_unknown_key",
+      "input": {
+        "evidence": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+          "revision": 1,
+          "unknown_nested": true
+        },
+        "explanation": "Slept longer than usual."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "evidence"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "explanation:missing",
+      "input": {
+        "evidence": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+          "revision": 1
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "explanation"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "explanation:null",
+      "input": {
+        "evidence": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+          "revision": 1
+        },
+        "explanation": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "explanation"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "explanation:wrong_type=number",
+      "input": {
+        "evidence": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+          "revision": 1
+        },
+        "explanation": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "explanation"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "explanation:empty_string",
+      "input": {
+        "evidence": {
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+          "revision": 1
+        },
+        "explanation": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "explanation"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    }
+  ]
+}

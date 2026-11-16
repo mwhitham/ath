@@ -1,0 +1,888 @@
+{
+  "schema": "RecordDeletion",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 1,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 1,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:tool_actor",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 2,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 2,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 2,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0"
+        },
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "record_id:missing",
+      "input": {
+        "record_revision": 1,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "record_id:null",
+      "input": {
+        "record_id": null,
+        "record_revision": 1,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "record_id:wrong_type=number",
+      "input": {
+        "record_id": 1,
+        "record_revision": 1,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "record_id:empty_string",
+      "input": {
+        "record_id": "",
+        "record_revision": 1,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "record_id:format=not_valid",
+      "input": {
+        "record_id": "not valid",
+        "record_revision": 1,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "record_id:format=uppercase",
+      "input": {
+        "record_id": "01890F3E-E7D3-7CC0-88C8-00000000000D",
+        "record_revision": 1,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "record_revision:missing",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_revision"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "record_revision:null",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": null,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_revision"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "record_revision:wrong_type=string",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": "1",
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_revision"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "record_revision:number=-1",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": -1,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_revision"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "record_revision:number=0",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 0,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_revision"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "record_revision:number=1",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 1,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 1,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "record_revision:number=1.5",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 1.5,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_revision"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "record_revision:number=9007199254740991",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 9007199254740991,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 9007199254740991,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "record_revision:number=9007199254740992",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 9007199254740992,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_revision"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "record_revision:number=-9007199254740991",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": -9007199254740991,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_revision"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "record_revision:number=-9007199254740992",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": -9007199254740992,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_revision"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected int to be >=-9007199254740991",
+          "inclusive": true,
+          "minimum": -9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "record_revision"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "record_revision:number=1e+21",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 1e+21,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_revision"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "record_revision:number_text=-0",
+      "input_text": "{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-00000000000d\",\"record_revision\":-0,\"deleted_at\":\"2026-01-02T04:04:05.678Z\",\"deleted_by\":{\"author_type\":\"athlete\"}}",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 0,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_revision"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "record_revision:number_text=1.0",
+      "input_text": "{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-00000000000d\",\"record_revision\":1.0,\"deleted_at\":\"2026-01-02T04:04:05.678Z\",\"deleted_by\":{\"author_type\":\"athlete\"}}",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 1,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 1,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "record_revision:number_text=1E0",
+      "input_text": "{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-00000000000d\",\"record_revision\":1E0,\"deleted_at\":\"2026-01-02T04:04:05.678Z\",\"deleted_by\":{\"author_type\":\"athlete\"}}",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 1,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 1,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "record_revision:number_text=9007199254740993",
+      "input_text": "{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-00000000000d\",\"record_revision\":9007199254740993,\"deleted_at\":\"2026-01-02T04:04:05.678Z\",\"deleted_by\":{\"author_type\":\"athlete\"}}",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 9007199254740992,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_revision"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "deleted_at:missing",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 1,
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deleted_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "deleted_at:null",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 1,
+        "deleted_at": null,
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deleted_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "deleted_at:wrong_type=number",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 1,
+        "deleted_at": 1,
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deleted_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "deleted_at:empty_string",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 1,
+        "deleted_at": "",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deleted_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "deleted_at:format=no_milliseconds",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 1,
+        "deleted_at": "2026-01-02T03:04:05Z",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deleted_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "deleted_at:format=offset",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 1,
+        "deleted_at": "2026-01-02T03:04:05.678+00:00",
+        "deleted_by": {
+          "author_type": "athlete"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deleted_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "deleted_by:missing",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 1,
+        "deleted_at": "2026-01-02T04:04:05.678Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deleted_by"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "deleted_by:null",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 1,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deleted_by"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "deleted_by:wrong_type=array",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 1,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deleted_by"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "deleted_by:empty_object",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 1,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {}
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deleted_by",
+            "author_type"
+          ],
+          "code": "invalid_union",
+          "message": "Invalid discriminator value. Expected 'athlete' | 'agent' | 'tool'",
+          "discriminator": "author_type",
+          "errors": [],
+          "note": "No matching discriminator",
+          "options": [
+            "athlete",
+            "agent",
+            "tool"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "deleted_by:discriminator_invalid",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000d",
+        "record_revision": 1,
+        "deleted_at": "2026-01-02T04:04:05.678Z",
+        "deleted_by": {
+          "author_type": "__other__"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deleted_by",
+            "author_type"
+          ],
+          "code": "invalid_union",
+          "message": "Invalid discriminator value. Expected 'athlete' | 'agent' | 'tool'",
+          "discriminator": "author_type",
+          "errors": [],
+          "note": "No matching discriminator",
+          "options": [
+            "athlete",
+            "agent",
+            "tool"
+          ]
+        }
+      ]
+    }
+  ]
+}

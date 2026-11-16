@@ -1,0 +1,1062 @@
+{
+  "schema": "SourceValue",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "standard_value": 42,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 42,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": 42.5,
+        "input_unit": "ms"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": 42.5,
+        "input_unit": "ms"
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": 42.5,
+        "input_unit": "ms",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "standard_value:missing",
+      "input": {
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "standard_value"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "standard_value:null",
+      "input": {
+        "standard_value": null,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "standard_value"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "standard_value:wrong_type=string",
+      "input": {
+        "standard_value": "1",
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "standard_value"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "standard_value:number=1e+308",
+      "input": {
+        "standard_value": 1e+308,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 1e+308,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "issues": []
+    },
+    {
+      "name": "standard_value:number=-1e+308",
+      "input": {
+        "standard_value": -1e+308,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": -1e+308,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "issues": []
+    },
+    {
+      "name": "standard_value:number=-1.5",
+      "input": {
+        "standard_value": -1.5,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": -1.5,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "issues": []
+    },
+    {
+      "name": "standard_value:number=0",
+      "input": {
+        "standard_value": 0,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 0,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "issues": []
+    },
+    {
+      "name": "standard_value:number=5e-324",
+      "input": {
+        "standard_value": 5e-324,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 5e-324,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "issues": []
+    },
+    {
+      "name": "standard_value:number_text=-0",
+      "input_text": "{\"standard_value\":-0,\"standard_unit\":\"ms\",\"input_value_missing_reason\":\"not_provided_by_source\",\"input_unit_missing_reason\":\"not_provided_by_source\"}",
+      "input": {
+        "standard_value": 0,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 0,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "issues": []
+    },
+    {
+      "name": "standard_value:number_text=1e400",
+      "input_text": "{\"standard_value\":1e400,\"standard_unit\":\"ms\",\"input_value_missing_reason\":\"not_provided_by_source\",\"input_unit_missing_reason\":\"not_provided_by_source\"}",
+      "input": {
+        "standard_value": null,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "standard_value"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "standard_unit:missing",
+      "input": {
+        "standard_value": 42,
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "standard_unit"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "standard_unit:null",
+      "input": {
+        "standard_value": 42,
+        "standard_unit": null,
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "standard_unit"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "standard_unit:wrong_type=number",
+      "input": {
+        "standard_value": 42,
+        "standard_unit": 1,
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "standard_unit"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "standard_unit:empty_string",
+      "input": {
+        "standard_value": 42,
+        "standard_unit": "",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "standard_unit"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "input_value:null",
+      "input": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": null,
+        "input_unit": "ms"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_value"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "input_value:wrong_type=string",
+      "input": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": "1",
+        "input_unit": "ms"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_value"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "input_value:number=1e+308",
+      "input": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": 1e+308,
+        "input_unit": "ms"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": 1e+308,
+        "input_unit": "ms"
+      },
+      "issues": []
+    },
+    {
+      "name": "input_value:number=-1e+308",
+      "input": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": -1e+308,
+        "input_unit": "ms"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": -1e+308,
+        "input_unit": "ms"
+      },
+      "issues": []
+    },
+    {
+      "name": "input_value:number=-1.5",
+      "input": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": -1.5,
+        "input_unit": "ms"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": -1.5,
+        "input_unit": "ms"
+      },
+      "issues": []
+    },
+    {
+      "name": "input_value:number=0",
+      "input": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": 0,
+        "input_unit": "ms"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": 0,
+        "input_unit": "ms"
+      },
+      "issues": []
+    },
+    {
+      "name": "input_value:number=5e-324",
+      "input": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": 5e-324,
+        "input_unit": "ms"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": 5e-324,
+        "input_unit": "ms"
+      },
+      "issues": []
+    },
+    {
+      "name": "input_value:number_text=-0",
+      "input_text": "{\"standard_value\":42.5,\"standard_unit\":\"ms\",\"input_value\":-0,\"input_unit\":\"ms\"}",
+      "input": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": 0,
+        "input_unit": "ms"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": 0,
+        "input_unit": "ms"
+      },
+      "issues": []
+    },
+    {
+      "name": "input_value:number_text=1e400",
+      "input_text": "{\"standard_value\":42.5,\"standard_unit\":\"ms\",\"input_value\":1e400,\"input_unit\":\"ms\"}",
+      "input": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": null,
+        "input_unit": "ms"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_value"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "input_unit:null",
+      "input": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": 42.5,
+        "input_unit": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_unit"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "input_unit:wrong_type=number",
+      "input": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": 42.5,
+        "input_unit": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_unit"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "input_unit:empty_string",
+      "input": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": 42.5,
+        "input_unit": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_unit"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "input_value_missing_reason:null",
+      "input": {
+        "standard_value": 42,
+        "standard_unit": "ms",
+        "input_value_missing_reason": null,
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_value_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input_value_missing_reason:wrong_type=number",
+      "input": {
+        "standard_value": 42,
+        "standard_unit": "ms",
+        "input_value_missing_reason": 1,
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_value_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input_value_missing_reason:enum_invalid",
+      "input": {
+        "standard_value": 42,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "__not_an_option__",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_value_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input_value_missing_reason:empty_string",
+      "input": {
+        "standard_value": 42,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_value_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input_value_missing_reason:enum_uppercase",
+      "input": {
+        "standard_value": 42,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "NOT_PROVIDED_BY_SOURCE",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_value_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input_unit_missing_reason:null",
+      "input": {
+        "standard_value": 42,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_unit_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input_unit_missing_reason:wrong_type=number",
+      "input": {
+        "standard_value": 42,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_unit_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input_unit_missing_reason:enum_invalid",
+      "input": {
+        "standard_value": 42,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "__not_an_option__"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_unit_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input_unit_missing_reason:empty_string",
+      "input": {
+        "standard_value": 42,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_unit_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "input_unit_missing_reason:enum_uppercase",
+      "input": {
+        "standard_value": 42,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "NOT_PROVIDED_BY_SOURCE"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_unit_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rule:input_value_and_reason",
+      "input": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": 42.5,
+        "input_unit": "ms",
+        "input_value_missing_reason": "not_applicable"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_value_missing_reason"
+          ],
+          "code": "custom",
+          "message": "Provide the input value or one missing reason"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R13",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:input_value_neither",
+      "input": {
+        "standard_value": 1,
+        "standard_unit": "ms",
+        "input_unit": "ms"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_value_missing_reason"
+          ],
+          "code": "custom",
+          "message": "Provide the input value or one missing reason"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R13",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:input_unit_and_reason",
+      "input": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": 42.5,
+        "input_unit": "ms",
+        "input_unit_missing_reason": "not_applicable"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_unit_missing_reason"
+          ],
+          "code": "custom",
+          "message": "Provide the input unit or one missing reason"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R14",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:input_unit_neither",
+      "input": {
+        "standard_value": 1,
+        "standard_unit": "ms",
+        "input_value": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_unit_missing_reason"
+          ],
+          "code": "custom",
+          "message": "Provide the input unit or one missing reason"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R14",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:both_neither",
+      "input": {
+        "standard_value": 1,
+        "standard_unit": "ms"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_value_missing_reason"
+          ],
+          "code": "custom",
+          "message": "Provide the input value or one missing reason"
+        },
+        {
+          "path": [
+            "input_unit_missing_reason"
+          ],
+          "code": "custom",
+          "message": "Provide the input unit or one missing reason"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R13",
+          "expect": "trigger"
+        },
+        {
+          "rule": "R14",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:mixed_value_present_unit_missing",
+      "input": {
+        "standard_value": 1,
+        "standard_unit": "ms",
+        "input_value": 0,
+        "input_unit_missing_reason": "not_exposed_by_route"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 1,
+        "standard_unit": "ms",
+        "input_value": 0,
+        "input_unit_missing_reason": "not_exposed_by_route"
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R13",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R14",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "order:empty_input_unit_still_runs_refinements",
+      "input": {
+        "standard_value": 42.5,
+        "standard_unit": "ms",
+        "input_value": 42.5,
+        "input_unit": "",
+        "input_unit_missing_reason": "not_applicable"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_unit"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        },
+        {
+          "path": [
+            "input_unit_missing_reason"
+          ],
+          "code": "custom",
+          "message": "Provide the input unit or one missing reason"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R14",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "no_rule:negative_standard_value",
+      "input": {
+        "standard_value": -3.25,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": -3.25,
+        "standard_unit": "ms",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "issues": []
+    },
+    {
+      "name": "no_rule:any_unit",
+      "input": {
+        "standard_value": 42,
+        "standard_unit": "furlongs",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "valid": true,
+      "output": {
+        "standard_value": 42,
+        "standard_unit": "furlongs",
+        "input_value_missing_reason": "not_provided_by_source",
+        "input_unit_missing_reason": "not_provided_by_source"
+      },
+      "issues": []
+    }
+  ]
+}

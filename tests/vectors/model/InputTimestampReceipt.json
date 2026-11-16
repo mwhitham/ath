@@ -1,0 +1,1545 @@
+{
+  "schema": "InputTimestampReceipt",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "timestamp_missing_reason": "not_provided_by_source",
+        "utc_offset_missing_reason": "not_provided_by_source"
+      },
+      "valid": true,
+      "output": {
+        "timestamp_missing_reason": "not_provided_by_source",
+        "utc_offset_missing_reason": "not_provided_by_source"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "valid": true,
+      "output": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:other_reasons",
+      "input": {
+        "timestamp_missing_reason": "not_exposed_by_route",
+        "utc_offset_missing_reason": "not_applicable"
+      },
+      "valid": true,
+      "output": {
+        "timestamp_missing_reason": "not_exposed_by_route",
+        "utc_offset_missing_reason": "not_applicable"
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "source_offset_timestamp",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "timestamp_text:null",
+      "input": {
+        "timestamp_text": null,
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timestamp_text"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "timestamp_text:wrong_type=number",
+      "input": {
+        "timestamp_text": 1,
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timestamp_text"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "timestamp_text:empty_string",
+      "input": {
+        "timestamp_text": "",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timestamp_text"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "utc_offset_text:null",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": null,
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "utc_offset_text"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "utc_offset_text:wrong_type=number",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": 1,
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "utc_offset_text"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "utc_offset_text:empty_string",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "utc_offset_text"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "utc_offset_meaning:null",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": null,
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "utc_offset_meaning"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"documented_recording_offset\"|\"provider_cycle_offset\"|\"route_rendering_offset\"|\"meaning_not_documented\"",
+          "values": [
+            "documented_recording_offset",
+            "provider_cycle_offset",
+            "route_rendering_offset",
+            "meaning_not_documented"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "utc_offset_meaning:wrong_type=number",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": 1,
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "utc_offset_meaning"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"documented_recording_offset\"|\"provider_cycle_offset\"|\"route_rendering_offset\"|\"meaning_not_documented\"",
+          "values": [
+            "documented_recording_offset",
+            "provider_cycle_offset",
+            "route_rendering_offset",
+            "meaning_not_documented"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "utc_offset_meaning:enum_invalid",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "__not_an_option__",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "utc_offset_meaning"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"documented_recording_offset\"|\"provider_cycle_offset\"|\"route_rendering_offset\"|\"meaning_not_documented\"",
+          "values": [
+            "documented_recording_offset",
+            "provider_cycle_offset",
+            "route_rendering_offset",
+            "meaning_not_documented"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "utc_offset_meaning:empty_string",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "utc_offset_meaning"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"documented_recording_offset\"|\"provider_cycle_offset\"|\"route_rendering_offset\"|\"meaning_not_documented\"",
+          "values": [
+            "documented_recording_offset",
+            "provider_cycle_offset",
+            "route_rendering_offset",
+            "meaning_not_documented"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "utc_offset_meaning:enum_uppercase",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "DOCUMENTED_RECORDING_OFFSET",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "utc_offset_meaning"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"documented_recording_offset\"|\"provider_cycle_offset\"|\"route_rendering_offset\"|\"meaning_not_documented\"",
+          "values": [
+            "documented_recording_offset",
+            "provider_cycle_offset",
+            "route_rendering_offset",
+            "meaning_not_documented"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "source_time_zone:null",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": null,
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_time_zone"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "source_time_zone:wrong_type=number",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": 1,
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_time_zone"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "source_time_zone:empty_string",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_time_zone"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "source_time_zone_meaning:null",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": null,
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_time_zone_meaning"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"apple_health_object_creation_time_zone\"",
+          "values": [
+            "apple_health_object_creation_time_zone"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "source_time_zone_meaning:wrong_type=number",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": 1,
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_time_zone_meaning"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"apple_health_object_creation_time_zone\"",
+          "values": [
+            "apple_health_object_creation_time_zone"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "source_time_zone_meaning:enum_invalid",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "__not_an_option__",
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_time_zone_meaning"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"apple_health_object_creation_time_zone\"",
+          "values": [
+            "apple_health_object_creation_time_zone"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "source_time_zone_meaning:empty_string",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "",
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_time_zone_meaning"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"apple_health_object_creation_time_zone\"",
+          "values": [
+            "apple_health_object_creation_time_zone"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "source_time_zone_meaning:enum_uppercase",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "APPLE_HEALTH_OBJECT_CREATION_TIME_ZONE",
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_time_zone_meaning"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"apple_health_object_creation_time_zone\"",
+          "values": [
+            "apple_health_object_creation_time_zone"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "timestamp_basis:null",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timestamp_basis"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"source_instant\"|\"source_offset_timestamp\"|\"source_local_timestamp_with_documented_offset\"|\"reconstructed_from_series_start\"",
+          "values": [
+            "source_instant",
+            "source_offset_timestamp",
+            "source_local_timestamp_with_documented_offset",
+            "reconstructed_from_series_start"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "timestamp_basis:wrong_type=number",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timestamp_basis"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"source_instant\"|\"source_offset_timestamp\"|\"source_local_timestamp_with_documented_offset\"|\"reconstructed_from_series_start\"",
+          "values": [
+            "source_instant",
+            "source_offset_timestamp",
+            "source_local_timestamp_with_documented_offset",
+            "reconstructed_from_series_start"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "timestamp_basis:enum_invalid",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "__not_an_option__"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timestamp_basis"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"source_instant\"|\"source_offset_timestamp\"|\"source_local_timestamp_with_documented_offset\"|\"reconstructed_from_series_start\"",
+          "values": [
+            "source_instant",
+            "source_offset_timestamp",
+            "source_local_timestamp_with_documented_offset",
+            "reconstructed_from_series_start"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "timestamp_basis:empty_string",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timestamp_basis"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"source_instant\"|\"source_offset_timestamp\"|\"source_local_timestamp_with_documented_offset\"|\"reconstructed_from_series_start\"",
+          "values": [
+            "source_instant",
+            "source_offset_timestamp",
+            "source_local_timestamp_with_documented_offset",
+            "reconstructed_from_series_start"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "timestamp_basis:enum_uppercase",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "SOURCE_INSTANT"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timestamp_basis"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"source_instant\"|\"source_offset_timestamp\"|\"source_local_timestamp_with_documented_offset\"|\"reconstructed_from_series_start\"",
+          "values": [
+            "source_instant",
+            "source_offset_timestamp",
+            "source_local_timestamp_with_documented_offset",
+            "reconstructed_from_series_start"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "timestamp_missing_reason:null",
+      "input": {
+        "timestamp_missing_reason": null,
+        "utc_offset_missing_reason": "not_provided_by_source"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timestamp_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "timestamp_missing_reason:wrong_type=number",
+      "input": {
+        "timestamp_missing_reason": 1,
+        "utc_offset_missing_reason": "not_provided_by_source"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timestamp_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "timestamp_missing_reason:enum_invalid",
+      "input": {
+        "timestamp_missing_reason": "__not_an_option__",
+        "utc_offset_missing_reason": "not_provided_by_source"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timestamp_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "timestamp_missing_reason:empty_string",
+      "input": {
+        "timestamp_missing_reason": "",
+        "utc_offset_missing_reason": "not_provided_by_source"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timestamp_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "timestamp_missing_reason:enum_uppercase",
+      "input": {
+        "timestamp_missing_reason": "NOT_PROVIDED_BY_SOURCE",
+        "utc_offset_missing_reason": "not_provided_by_source"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timestamp_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "utc_offset_missing_reason:null",
+      "input": {
+        "timestamp_missing_reason": "not_provided_by_source",
+        "utc_offset_missing_reason": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "utc_offset_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "utc_offset_missing_reason:wrong_type=number",
+      "input": {
+        "timestamp_missing_reason": "not_provided_by_source",
+        "utc_offset_missing_reason": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "utc_offset_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "utc_offset_missing_reason:enum_invalid",
+      "input": {
+        "timestamp_missing_reason": "not_provided_by_source",
+        "utc_offset_missing_reason": "__not_an_option__"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "utc_offset_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "utc_offset_missing_reason:empty_string",
+      "input": {
+        "timestamp_missing_reason": "not_provided_by_source",
+        "utc_offset_missing_reason": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "utc_offset_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "utc_offset_missing_reason:enum_uppercase",
+      "input": {
+        "timestamp_missing_reason": "not_provided_by_source",
+        "utc_offset_missing_reason": "NOT_PROVIDED_BY_SOURCE"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "utc_offset_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rule:empty_object",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timestamp_missing_reason"
+          ],
+          "code": "custom",
+          "message": "A missing input timestamp needs a reason"
+        },
+        {
+          "path": [
+            "utc_offset_missing_reason"
+          ],
+          "code": "custom",
+          "message": "A missing input UTC offset needs a reason"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R1",
+          "expect": "trigger"
+        },
+        {
+          "rule": "R4",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:no_timestamp_no_reason",
+      "input": {
+        "utc_offset_missing_reason": "not_applicable"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timestamp_missing_reason"
+          ],
+          "code": "custom",
+          "message": "A missing input timestamp needs a reason"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R1",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:timestamp_and_reason",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "source_offset_timestamp",
+        "timestamp_missing_reason": "not_applicable"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timestamp_missing_reason"
+          ],
+          "code": "custom",
+          "message": "An available input timestamp cannot also be marked missing"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R2",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:timestamp_without_basis",
+      "input": {
+        "timestamp_text": "2026-01-02T03:04:05",
+        "utc_offset_missing_reason": "not_provided_by_source"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timestamp_basis"
+          ],
+          "code": "custom",
+          "message": "An input timestamp needs its documented basis"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R3",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:basis_without_timestamp",
+      "input": {
+        "timestamp_missing_reason": "not_provided_by_source",
+        "utc_offset_missing_reason": "not_provided_by_source",
+        "timestamp_basis": "source_instant"
+      },
+      "valid": true,
+      "output": {
+        "timestamp_basis": "source_instant",
+        "timestamp_missing_reason": "not_provided_by_source",
+        "utc_offset_missing_reason": "not_provided_by_source"
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R1",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R2",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R3",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:no_offset_no_reason",
+      "input": {
+        "timestamp_missing_reason": "not_applicable"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "utc_offset_missing_reason"
+          ],
+          "code": "custom",
+          "message": "A missing input UTC offset needs a reason"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R4",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:offset_and_reason",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "source_offset_timestamp",
+        "utc_offset_missing_reason": "not_applicable"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "utc_offset_missing_reason"
+          ],
+          "code": "custom",
+          "message": "An available input UTC offset cannot also be marked missing"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R5",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:offset_without_meaning",
+      "input": {
+        "timestamp_missing_reason": "not_applicable",
+        "utc_offset_text": "+01:00"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "utc_offset_meaning"
+          ],
+          "code": "custom",
+          "message": "An input UTC offset needs its documented meaning"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R6",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:meaning_without_offset",
+      "input": {
+        "timestamp_missing_reason": "not_provided_by_source",
+        "utc_offset_missing_reason": "not_provided_by_source",
+        "utc_offset_meaning": "meaning_not_documented"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "utc_offset_meaning"
+          ],
+          "code": "custom",
+          "message": "UTC offset meaning requires UTC offset text"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R7",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:time_zone_without_meaning",
+      "input": {
+        "timestamp_missing_reason": "not_provided_by_source",
+        "utc_offset_missing_reason": "not_provided_by_source",
+        "source_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_time_zone_meaning"
+          ],
+          "code": "custom",
+          "message": "A source timezone and its documented meaning must be provided together"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R8",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:time_zone_meaning_without_zone",
+      "input": {
+        "timestamp_missing_reason": "not_provided_by_source",
+        "utc_offset_missing_reason": "not_provided_by_source",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "source_time_zone_meaning"
+          ],
+          "code": "custom",
+          "message": "A source timezone and its documented meaning must be provided together"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R8",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:time_zone_not_checked_as_iana",
+      "input": {
+        "timestamp_missing_reason": "not_provided_by_source",
+        "utc_offset_missing_reason": "not_provided_by_source",
+        "source_time_zone": "Not/AZone",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone"
+      },
+      "valid": true,
+      "output": {
+        "source_time_zone": "Not/AZone",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_missing_reason": "not_provided_by_source",
+        "utc_offset_missing_reason": "not_provided_by_source"
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R8",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:all_satisfied_minimal",
+      "input": {
+        "timestamp_missing_reason": "not_provided_by_source",
+        "utc_offset_missing_reason": "not_provided_by_source"
+      },
+      "valid": true,
+      "output": {
+        "timestamp_missing_reason": "not_provided_by_source",
+        "utc_offset_missing_reason": "not_provided_by_source"
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R1",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R2",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R3",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R4",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R5",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R6",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R7",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R8",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:all_satisfied_maximal",
+      "input": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "valid": true,
+      "output": {
+        "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+        "utc_offset_text": "-06:00",
+        "utc_offset_meaning": "documented_recording_offset",
+        "source_time_zone": "America/Chicago",
+        "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+        "timestamp_basis": "source_offset_timestamp"
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R1",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R2",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R3",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R4",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R5",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R6",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R7",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R8",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "rule:every_conflict",
+      "input": {
+        "timestamp_text": "x",
+        "timestamp_missing_reason": "not_applicable",
+        "utc_offset_text": "x",
+        "utc_offset_missing_reason": "not_applicable",
+        "source_time_zone": "UTC"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timestamp_missing_reason"
+          ],
+          "code": "custom",
+          "message": "An available input timestamp cannot also be marked missing"
+        },
+        {
+          "path": [
+            "timestamp_basis"
+          ],
+          "code": "custom",
+          "message": "An input timestamp needs its documented basis"
+        },
+        {
+          "path": [
+            "utc_offset_missing_reason"
+          ],
+          "code": "custom",
+          "message": "An available input UTC offset cannot also be marked missing"
+        },
+        {
+          "path": [
+            "utc_offset_meaning"
+          ],
+          "code": "custom",
+          "message": "An input UTC offset needs its documented meaning"
+        },
+        {
+          "path": [
+            "source_time_zone_meaning"
+          ],
+          "code": "custom",
+          "message": "A source timezone and its documented meaning must be provided together"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R2",
+          "expect": "trigger"
+        },
+        {
+          "rule": "R3",
+          "expect": "trigger"
+        },
+        {
+          "rule": "R5",
+          "expect": "trigger"
+        },
+        {
+          "rule": "R6",
+          "expect": "trigger"
+        },
+        {
+          "rule": "R8",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "order:empty_text_still_runs_refinements",
+      "input": {
+        "timestamp_text": "",
+        "timestamp_missing_reason": "not_applicable",
+        "utc_offset_missing_reason": "not_applicable"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timestamp_text"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        },
+        {
+          "path": [
+            "timestamp_missing_reason"
+          ],
+          "code": "custom",
+          "message": "An available input timestamp cannot also be marked missing"
+        },
+        {
+          "path": [
+            "timestamp_basis"
+          ],
+          "code": "custom",
+          "message": "An input timestamp needs its documented basis"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R2",
+          "expect": "trigger"
+        },
+        {
+          "rule": "R3",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "order:wrong_type_skips_refinements",
+      "input": {
+        "timestamp_text": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timestamp_text"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R1",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R3",
+          "expect": "satisfy"
+        },
+        {
+          "rule": "R4",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "order:unknown_key_still_runs_refinements",
+      "input": {
+        "extra": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"extra\"",
+          "keys": [
+            "extra"
+          ]
+        },
+        {
+          "path": [
+            "timestamp_missing_reason"
+          ],
+          "code": "custom",
+          "message": "A missing input timestamp needs a reason"
+        },
+        {
+          "path": [
+            "utc_offset_missing_reason"
+          ],
+          "code": "custom",
+          "message": "A missing input UTC offset needs a reason"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R1",
+          "expect": "trigger"
+        },
+        {
+          "rule": "R4",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "order:bad_enum_skips_refinements",
+      "input": {
+        "timestamp_missing_reason": "x"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "timestamp_missing_reason"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"not_provided_by_source\"|\"not_exposed_by_route\"|\"not_applicable\"",
+          "values": [
+            "not_provided_by_source",
+            "not_exposed_by_route",
+            "not_applicable"
+          ]
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R4",
+          "expect": "satisfy"
+        }
+      ]
+    }
+  ]
+}

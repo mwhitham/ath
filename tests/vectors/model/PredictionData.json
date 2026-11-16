@@ -1,0 +1,1461 @@
+{
+  "schema": "PredictionData",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "predicted_range": {
+          "low": {
+            "duration_s": 280
+          },
+          "high": {
+            "duration_s": 320
+          }
+        },
+        "confidence": "high",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "predicted_range": {
+          "low": {
+            "duration_s": 280
+          },
+          "high": {
+            "duration_s": 320
+          }
+        },
+        "confidence": "high",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "predicted_range": {
+          "low": {
+            "duration_s": 280
+          },
+          "high": {
+            "duration_s": 320
+          }
+        },
+        "confidence": "high",
+        "reasoning": "Recent intervals trend faster.",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "authorship:missing",
+      "input": {
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:null",
+      "input": {
+        "authorship": null,
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:wrong_type=array",
+      "input": {
+        "authorship": [],
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:wrong_type=string",
+      "input": {
+        "authorship": "x",
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:empty_object",
+      "input": {
+        "authorship": {},
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship",
+            "author"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        },
+        {
+          "path": [
+            "authorship",
+            "authored_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "authorship",
+            "evidence"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received undefined",
+          "expected": "array"
+        },
+        {
+          "path": [
+            "authorship",
+            "content_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        },
+        {
+          "path": [
+            "authorship",
+            "status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"draft\"|\"active\"|\"completed\"|\"superseded\"|\"cancelled\"",
+          "values": [
+            "draft",
+            "active",
+            "completed",
+            "superseded",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "authorship:nested_unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active",
+          "unknown_nested": true
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "benchmark_definition_id:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_definition_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_definition_id:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": null,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_definition_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_definition_id:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": 1,
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_definition_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_definition_id:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_definition_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_definition_id:format=not_valid",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "not valid",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_definition_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_definition_id:format=uppercase",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890F3E-E7D3-7CC0-88C8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_definition_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "predicted_score:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "predicted_score"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "predicted_score:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": null,
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "predicted_score"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "predicted_score:wrong_type=array",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": [],
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "predicted_score"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "predicted_score:wrong_type=string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": "x",
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "predicted_score"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "predicted_score:empty_object",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {},
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "predicted_score"
+          ],
+          "code": "custom",
+          "message": "A score needs duration_s, reps, or weight_kg"
+        }
+      ]
+    },
+    {
+      "name": "predicted_score:nested_unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300,
+          "unknown_nested": true
+        },
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "predicted_score"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "predicted_range:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "predicted_range": null,
+        "confidence": "high",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "predicted_range"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "predicted_range:wrong_type=array",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "predicted_range": [],
+        "confidence": "high",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "predicted_range"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "predicted_range:wrong_type=string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "predicted_range": "x",
+        "confidence": "high",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "predicted_range"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "predicted_range:empty_object",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "predicted_range": {},
+        "confidence": "high",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "predicted_range",
+            "low"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        },
+        {
+          "path": [
+            "predicted_range",
+            "high"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "predicted_range:nested_unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "predicted_range": {
+          "low": {
+            "duration_s": 280
+          },
+          "high": {
+            "duration_s": 320
+          },
+          "unknown_nested": true
+        },
+        "confidence": "high",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "predicted_range"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "confidence:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "confidence"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"low\"|\"moderate\"|\"high\"",
+          "values": [
+            "low",
+            "moderate",
+            "high"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "confidence:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": null,
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "confidence"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"low\"|\"moderate\"|\"high\"",
+          "values": [
+            "low",
+            "moderate",
+            "high"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "confidence:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": 1,
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "confidence"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"low\"|\"moderate\"|\"high\"",
+          "values": [
+            "low",
+            "moderate",
+            "high"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "confidence:enum_invalid",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "__not_an_option__",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "confidence"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"low\"|\"moderate\"|\"high\"",
+          "values": [
+            "low",
+            "moderate",
+            "high"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "confidence:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "confidence"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"low\"|\"moderate\"|\"high\"",
+          "values": [
+            "low",
+            "moderate",
+            "high"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "confidence:enum_uppercase",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "LOW",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "confidence"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"low\"|\"moderate\"|\"high\"",
+          "values": [
+            "low",
+            "moderate",
+            "high"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reasoning:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "moderate"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reasoning"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "reasoning:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "moderate",
+        "reasoning": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reasoning"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "reasoning:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "moderate",
+        "reasoning": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reasoning"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "reasoning:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "moderate",
+        "reasoning": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reasoning"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "no_rule:range_low_above_high",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster.",
+        "predicted_range": {
+          "low": {
+            "duration_s": 400
+          },
+          "high": {
+            "duration_s": 200
+          }
+        }
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "predicted_range": {
+          "low": {
+            "duration_s": 400
+          },
+          "high": {
+            "duration_s": 200
+          }
+        },
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "issues": []
+    },
+    {
+      "name": "rule:empty_predicted_score",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {},
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster."
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "predicted_score"
+          ],
+          "code": "custom",
+          "message": "A score needs duration_s, reps, or weight_kg"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R22",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "rule:empty_range_scores",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "predicted_score": {
+          "duration_s": 300
+        },
+        "confidence": "moderate",
+        "reasoning": "Recent intervals trend faster.",
+        "predicted_range": {
+          "low": {},
+          "high": {}
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "predicted_range",
+            "low"
+          ],
+          "code": "custom",
+          "message": "A score needs duration_s, reps, or weight_kg"
+        },
+        {
+          "path": [
+            "predicted_range",
+            "high"
+          ],
+          "code": "custom",
+          "message": "A score needs duration_s, reps, or weight_kg"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R22",
+          "expect": "trigger"
+        }
+      ]
+    }
+  ]
+}

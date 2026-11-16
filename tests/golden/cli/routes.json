@@ -1,0 +1,522 @@
+{
+  "generated_by": "tools/reference/cli-golden.ts",
+  "reference_version": "2.1.0",
+  "normalization": [
+    "The scenario's working folder is replaced with <work>.",
+    "The program versions 2.1.0 and 2.1.1 are replaced with <version> (D152, D208).",
+    "SQL schema steps 4 and 5 in \"sql_schema_version\" are replaced with <step>; each program writes its own current step.",
+    "UTC times with milliseconds, and the compact forms in backup and report names, that fall within the scenario's run are replaced with <now>.",
+    "UUIDv7 values whose time falls within the scenario's run are new IDs. Each is replaced with <id-N>, numbered by first appearance in the scenario.",
+    "Package file hashes in an export manifest are replaced with <sha256>: package files name the program version. Package bytes are compared in the package golden tests.",
+    "Native output only: migration step 5 (migrations/005-version-2-1-1.sql) is removed from planned steps, and a source, target, or required step 5 reads 4."
+  ],
+  "environment": {
+    "PATH": "<fake password-store tools>:/usr/bin:/bin",
+    "TZ": "America/Chicago",
+    "ATH_GATEWAY_BASE_URL": "<local test server>"
+  },
+  "scenarios": [
+    {
+      "name": "mapped_file",
+      "fixture": "none",
+      "copy": {
+        "summaries.json": "mapped_summaries",
+        "rmssd.md": "rmssd_mapping"
+      },
+      "steps": [
+        {
+          "argv": [
+            "init",
+            "--yes",
+            "--no-skill"
+          ],
+          "status": 0,
+          "stdout": "created <work>/athlete.ath.sqlite\n  seeded 7 benchmarks: fran, grace, helen, murph, 5k-run, 1-mile-run, hyrox-full\n  next: `ath import <export-file>` to load device data\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "summaries.json",
+            "--mapping",
+            "open-wearables"
+          ],
+          "status": 0,
+          "stdout": "open-wearables import\nunderstood: avg_heart_rate_bpm, distance_meters, elevation_gain_meters, max_heart_rate_bpm, name, sleep_duration_seconds, stages.awake_minutes, stages.deep_minutes, stages.light_minutes, time_in_bed_seconds, type, type.garmin_body_battery, type.garmin_stress_level, type.heart_rate_recovery_one_minute, type.heart_rate_variability_rmssd, type.heart_rate_variability_sdnn, type.oxygen_saturation, type.respiratory_rate, type.resting_heart_rate, type.skin_temperature, type.vo2_max\nkept under original names: calories_kcal, duration_seconds, efficiency_percent, hr_zones, intensity, is_nap, start_latitude, start_longitude, zone_offset\nleft out: workout ow-workout-manual: entry_source manual is a personal report\nleft out: timeseries garmin_stress_level 2026-08-09T06:14:00.000Z: window_seconds present without resolution: cannot confirm raw\nleft out: timeseries garmin_stress_level 2026-08-09T06:15:00.000Z: aggregate row, not a raw sample\nleft out: timeseries dietary_caffeine 2026-08-09T06:12:00.000Z: unmapped type dietary_caffeine\nleft out: timeseries workout_effort_score 2026-08-09T06:12:00.000Z: unmapped type workout_effort_score\nleft out: timeseries skin_temperature_deviation 2026-08-09T06:12:00.000Z: unmapped type skin_temperature_deviation\nleft out: timeseries heart_rate_variability_rmssd 2026-08-09T07:00:00.000Z: unit bpm does not match ms\noutcome: 22 new, 0 changed, 0 unchanged\nnothing written; pass --yes after reviewing this preview\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "summaries.json",
+            "--mapping",
+            "open-wearables",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"mapping\": \"open-wearables\",\n  \"record_ids\": [],\n  \"outcome\": {\n    \"new\": 22,\n    \"changed\": 0,\n    \"unchanged\": 0\n  },\n  \"understood\": [\n    \"avg_heart_rate_bpm\",\n    \"distance_meters\",\n    \"elevation_gain_meters\",\n    \"max_heart_rate_bpm\",\n    \"name\",\n    \"sleep_duration_seconds\",\n    \"stages.awake_minutes\",\n    \"stages.deep_minutes\",\n    \"stages.light_minutes\",\n    \"time_in_bed_seconds\",\n    \"type\",\n    \"type.garmin_body_battery\",\n    \"type.garmin_stress_level\",\n    \"type.heart_rate_recovery_one_minute\",\n    \"type.heart_rate_variability_rmssd\",\n    \"type.heart_rate_variability_sdnn\",\n    \"type.oxygen_saturation\",\n    \"type.respiratory_rate\",\n    \"type.resting_heart_rate\",\n    \"type.skin_temperature\",\n    \"type.vo2_max\"\n  ],\n  \"preserved\": [\n    \"calories_kcal\",\n    \"duration_seconds\",\n    \"efficiency_percent\",\n    \"hr_zones\",\n    \"intensity\",\n    \"is_nap\",\n    \"start_latitude\",\n    \"start_longitude\",\n    \"zone_offset\"\n  ],\n  \"left_out\": [\n    \"workout ow-workout-manual: entry_source manual is a personal report\",\n    \"timeseries garmin_stress_level 2026-08-09T06:14:00.000Z: window_seconds present without resolution: cannot confirm raw\",\n    \"timeseries garmin_stress_level 2026-08-09T06:15:00.000Z: aggregate row, not a raw sample\",\n    \"timeseries dietary_caffeine 2026-08-09T06:12:00.000Z: unmapped type dietary_caffeine\",\n    \"timeseries workout_effort_score 2026-08-09T06:12:00.000Z: unmapped type workout_effort_score\",\n    \"timeseries skin_temperature_deviation 2026-08-09T06:12:00.000Z: unmapped type skin_temperature_deviation\",\n    \"timeseries heart_rate_variability_rmssd 2026-08-09T07:00:00.000Z: unit bpm does not match ms\"\n  ],\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "summaries.json",
+            "--mapping",
+            "open-wearables",
+            "--yes",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"mapping\": \"open-wearables\",\n  \"record_ids\": [],\n  \"outcome\": {\n    \"new\": 22,\n    \"changed\": 0,\n    \"unchanged\": 0\n  },\n  \"understood\": [\n    \"avg_heart_rate_bpm\",\n    \"distance_meters\",\n    \"elevation_gain_meters\",\n    \"max_heart_rate_bpm\",\n    \"name\",\n    \"sleep_duration_seconds\",\n    \"stages.awake_minutes\",\n    \"stages.deep_minutes\",\n    \"stages.light_minutes\",\n    \"time_in_bed_seconds\",\n    \"type\",\n    \"type.garmin_body_battery\",\n    \"type.garmin_stress_level\",\n    \"type.heart_rate_recovery_one_minute\",\n    \"type.heart_rate_variability_rmssd\",\n    \"type.heart_rate_variability_sdnn\",\n    \"type.oxygen_saturation\",\n    \"type.respiratory_rate\",\n    \"type.resting_heart_rate\",\n    \"type.skin_temperature\",\n    \"type.vo2_max\"\n  ],\n  \"preserved\": [\n    \"calories_kcal\",\n    \"duration_seconds\",\n    \"efficiency_percent\",\n    \"hr_zones\",\n    \"intensity\",\n    \"is_nap\",\n    \"start_latitude\",\n    \"start_longitude\",\n    \"zone_offset\"\n  ],\n  \"left_out\": [\n    \"workout ow-workout-manual: entry_source manual is a personal report\",\n    \"timeseries garmin_stress_level 2026-08-09T06:14:00.000Z: window_seconds present without resolution: cannot confirm raw\",\n    \"timeseries garmin_stress_level 2026-08-09T06:15:00.000Z: aggregate row, not a raw sample\",\n    \"timeseries dietary_caffeine 2026-08-09T06:12:00.000Z: unmapped type dietary_caffeine\",\n    \"timeseries workout_effort_score 2026-08-09T06:12:00.000Z: unmapped type workout_effort_score\",\n    \"timeseries skin_temperature_deviation 2026-08-09T06:12:00.000Z: unmapped type skin_temperature_deviation\",\n    \"timeseries heart_rate_variability_rmssd 2026-08-09T07:00:00.000Z: unit bpm does not match ms\"\n  ],\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "summaries.json",
+            "--mapping",
+            "open-wearables",
+            "--yes"
+          ],
+          "status": 0,
+          "stdout": "open-wearables import\nunderstood: avg_heart_rate_bpm, distance_meters, elevation_gain_meters, max_heart_rate_bpm, name, sleep_duration_seconds, stages.awake_minutes, stages.deep_minutes, stages.light_minutes, time_in_bed_seconds, type, type.garmin_body_battery, type.garmin_stress_level, type.heart_rate_recovery_one_minute, type.heart_rate_variability_rmssd, type.heart_rate_variability_sdnn, type.oxygen_saturation, type.respiratory_rate, type.resting_heart_rate, type.skin_temperature, type.vo2_max\nkept under original names: calories_kcal, duration_seconds, efficiency_percent, hr_zones, intensity, is_nap, start_latitude, start_longitude, zone_offset\nleft out: workout ow-workout-manual: entry_source manual is a personal report\nleft out: timeseries garmin_stress_level 2026-08-09T06:14:00.000Z: window_seconds present without resolution: cannot confirm raw\nleft out: timeseries garmin_stress_level 2026-08-09T06:15:00.000Z: aggregate row, not a raw sample\nleft out: timeseries dietary_caffeine 2026-08-09T06:12:00.000Z: unmapped type dietary_caffeine\nleft out: timeseries workout_effort_score 2026-08-09T06:12:00.000Z: unmapped type workout_effort_score\nleft out: timeseries skin_temperature_deviation 2026-08-09T06:12:00.000Z: unmapped type skin_temperature_deviation\nleft out: timeseries heart_rate_variability_rmssd 2026-08-09T07:00:00.000Z: unit bpm does not match ms\noutcome: 22 new, 0 changed, 0 unchanged\nrecords: 22. Pass --json to list their IDs.\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "summaries.json",
+            "--mapping",
+            "open-wearables",
+            "--yes"
+          ],
+          "status": 0,
+          "stdout": "open-wearables import\nunderstood: avg_heart_rate_bpm, distance_meters, elevation_gain_meters, max_heart_rate_bpm, name, sleep_duration_seconds, stages.awake_minutes, stages.deep_minutes, stages.light_minutes, time_in_bed_seconds, type, type.garmin_body_battery, type.garmin_stress_level, type.heart_rate_recovery_one_minute, type.heart_rate_variability_rmssd, type.heart_rate_variability_sdnn, type.oxygen_saturation, type.respiratory_rate, type.resting_heart_rate, type.skin_temperature, type.vo2_max\nkept under original names: calories_kcal, duration_seconds, efficiency_percent, hr_zones, intensity, is_nap, start_latitude, start_longitude, zone_offset\nleft out: workout ow-workout-manual: entry_source manual is a personal report\nleft out: timeseries garmin_stress_level 2026-08-09T06:14:00.000Z: window_seconds present without resolution: cannot confirm raw\nleft out: timeseries garmin_stress_level 2026-08-09T06:15:00.000Z: aggregate row, not a raw sample\nleft out: timeseries dietary_caffeine 2026-08-09T06:12:00.000Z: unmapped type dietary_caffeine\nleft out: timeseries workout_effort_score 2026-08-09T06:12:00.000Z: unmapped type workout_effort_score\nleft out: timeseries skin_temperature_deviation 2026-08-09T06:12:00.000Z: unmapped type skin_temperature_deviation\nleft out: timeseries heart_rate_variability_rmssd 2026-08-09T07:00:00.000Z: unit bpm does not match ms\noutcome: 0 new, 0 changed, 22 unchanged\nrecords: 22. Pass --json to list their IDs.\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "summaries.json",
+            "--mapping",
+            "open-wearables",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"mapping\": \"open-wearables\",\n  \"record_ids\": [],\n  \"outcome\": {\n    \"new\": 0,\n    \"changed\": 0,\n    \"unchanged\": 22\n  },\n  \"understood\": [\n    \"avg_heart_rate_bpm\",\n    \"distance_meters\",\n    \"elevation_gain_meters\",\n    \"max_heart_rate_bpm\",\n    \"name\",\n    \"sleep_duration_seconds\",\n    \"stages.awake_minutes\",\n    \"stages.deep_minutes\",\n    \"stages.light_minutes\",\n    \"time_in_bed_seconds\",\n    \"type\",\n    \"type.garmin_body_battery\",\n    \"type.garmin_stress_level\",\n    \"type.heart_rate_recovery_one_minute\",\n    \"type.heart_rate_variability_rmssd\",\n    \"type.heart_rate_variability_sdnn\",\n    \"type.oxygen_saturation\",\n    \"type.respiratory_rate\",\n    \"type.resting_heart_rate\",\n    \"type.skin_temperature\",\n    \"type.vo2_max\"\n  ],\n  \"preserved\": [\n    \"calories_kcal\",\n    \"duration_seconds\",\n    \"efficiency_percent\",\n    \"hr_zones\",\n    \"intensity\",\n    \"is_nap\",\n    \"start_latitude\",\n    \"start_longitude\",\n    \"zone_offset\"\n  ],\n  \"left_out\": [\n    \"workout ow-workout-manual: entry_source manual is a personal report\",\n    \"timeseries garmin_stress_level 2026-08-09T06:14:00.000Z: window_seconds present without resolution: cannot confirm raw\",\n    \"timeseries garmin_stress_level 2026-08-09T06:15:00.000Z: aggregate row, not a raw sample\",\n    \"timeseries dietary_caffeine 2026-08-09T06:12:00.000Z: unmapped type dietary_caffeine\",\n    \"timeseries workout_effort_score 2026-08-09T06:12:00.000Z: unmapped type workout_effort_score\",\n    \"timeseries skin_temperature_deviation 2026-08-09T06:12:00.000Z: unmapped type skin_temperature_deviation\",\n    \"timeseries heart_rate_variability_rmssd 2026-08-09T07:00:00.000Z: unit bpm does not match ms\"\n  ],\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "summaries.json",
+            "--mapping",
+            "missing"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: no mapping file named missing\n"
+        },
+        {
+          "argv": [
+            "import",
+            "summaries.json",
+            "--mapping",
+            "./missing.md"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: no mapping file at <work>/missing.md\n"
+        },
+        {
+          "argv": [
+            "import",
+            "summaries.json",
+            "--mapping",
+            "./rmssd.md",
+            "--yes"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: refusing to map LastNightAvg onto hrv_rmssd; the field does not name the statistic\n"
+        },
+        {
+          "argv": [
+            "check"
+          ],
+          "status": 0,
+          "stdout": "<work>/athlete.ath.sqlite: valid Athletic Standard <version> database (35 records)\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "mapped_file_second_mapping_and_installed_copy",
+      "fixture": "none",
+      "dirs": [
+        ".agents/mappings"
+      ],
+      "copy": {
+        "summaries.json": "mapped_summaries",
+        "junction.json": "junction_summaries",
+        ".agents/mappings/open-wearables.md": "rmssd_mapping"
+      },
+      "steps": [
+        {
+          "argv": [
+            "init",
+            "--yes",
+            "--no-skill"
+          ],
+          "status": 0,
+          "stdout": "created <work>/athlete.ath.sqlite\n  seeded 7 benchmarks: fran, grace, helen, murph, 5k-run, 1-mile-run, hyrox-full\n  next: `ath import <export-file>` to load device data\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "junction.json",
+            "--mapping",
+            "junction",
+            "--yes"
+          ],
+          "status": 0,
+          "stdout": "junction import\nunderstood: average_hrv, hr_resting, recovery_readiness_score, respiratory_rate, score, stage_asleep_second, stage_awake_second, stage_deep_second, stage_light_second, total\nkept under original names: LastNightAvg, average_hrv, awake, deep, duration, efficiency, light, rem, total, type\nleft out: activity: no mapping section\noutcome: 11 new, 0 changed, 0 unchanged\nrecords: 11. Pass --json to list their IDs.\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "summaries.json",
+            "--mapping",
+            "open-wearables",
+            "--yes"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: refusing to map LastNightAvg onto hrv_rmssd; the field does not name the statistic\n"
+        },
+        {
+          "argv": [
+            "stats"
+          ],
+          "status": 0,
+          "stdout": "unnamed athlete · Athletic Standard <version>\ndatabase revision: 7\n\ncurrent records: 22\n  athlete_profile: 1\n  benchmark_definition: 7\n  point_measurement: 3\n  provider_score: 2\n  sleep_session: 4\n  source: 3\n  source_device: 2\n\nsources: 3\n  <id-1>: apple_health_kit via junction (export_file) — 1 record, 2026-08-11 → 2026-08-11\n  <id-2>: ath via manual_entry (manual) — 0 records\n  <id-3>: oura via junction (export_file) — 8 records, 2026-08-09 → 2026-08-10\n\n90-day device baselines (each source stays separate):\n  <id-3> hrv_rmssd: 55.5ms (sd 0, n=1, 2026-08-09 → 2026-08-09)\n  <id-3> respiratory_rate: 14brpm (sd 0, n=1, 2026-08-09 → 2026-08-09)\n  <id-3> resting_heart_rate: 47bpm (sd 0, n=1, 2026-08-09 → 2026-08-09)\n\nbenchmarks defined: 7 · results recorded: 0\npredictions: 0 · grades: 0\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "activity_files",
+      "fixture": "none",
+      "copy": {
+        "loop.json": "activity_json",
+        "track.gpx": "gpx_track",
+        "ride.fit": "fit_file",
+        "rides": "ride_folder"
+      },
+      "steps": [
+        {
+          "argv": [
+            "init",
+            "--yes",
+            "--no-skill"
+          ],
+          "status": 0,
+          "stdout": "created <work>/athlete.ath.sqlite\n  seeded 7 benchmarks: fran, grace, helen, murph, 5k-run, 1-mile-run, hyrox-full\n  next: `ath import <export-file>` to load device data\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "loop.json"
+          ],
+          "status": 0,
+          "stdout": "garmin import\nunderstood: activity_type, description, end_at, heart_rate_samples, max_heart_rate, name, provider_record_id, start_at\nkept under original names: Feeling\nnothing written; pass --yes after reviewing this preview\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "loop.json",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"source\": \"garmin\",\n  \"record_ids\": [],\n  \"understood\": [\n    \"activity_type\",\n    \"description\",\n    \"end_at\",\n    \"heart_rate_samples\",\n    \"max_heart_rate\",\n    \"name\",\n    \"provider_record_id\",\n    \"start_at\"\n  ],\n  \"preserved\": [\n    \"Feeling\"\n  ],\n  \"left_out\": [],\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "loop.json",
+            "--yes"
+          ],
+          "status": 0,
+          "stdout": "imported garmin: {\"source\":\"garmin\",\"record_ids\":[\"<id-1>\",\"<id-2>\"],\"understood\":[\"activity_type\",\"description\",\"end_at\",\"heart_rate_samples\",\"max_heart_rate\",\"name\",\"provider_record_id\",\"start_at\"],\"preserved\":[\"Feeling\"],\"left_out\":[]}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "loop.json",
+            "--yes"
+          ],
+          "status": 0,
+          "stdout": "imported garmin: {\"source\":\"garmin\",\"record_ids\":[\"<id-1>\",\"<id-2>\"],\"understood\":[\"activity_type\",\"description\",\"end_at\",\"heart_rate_samples\",\"max_heart_rate\",\"name\",\"provider_record_id\",\"start_at\"],\"preserved\":[\"Feeling\"],\"left_out\":[]}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "track.gpx",
+            "--yes",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"source\": \"garmin\",\n  \"record_ids\": [],\n  \"understood\": [\n    \"end_at\",\n    \"heart_rate_samples\",\n    \"name\",\n    \"route\",\n    \"start_at\"\n  ],\n  \"preserved\": [],\n  \"left_out\": [\n    \"track.gpx: 1 track point had no time\"\n  ],\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "track.gpx",
+            "--yes"
+          ],
+          "status": 0,
+          "stdout": "imported garmin: {\"source\":\"garmin\",\"record_ids\":[\"<id-3>\"],\"understood\":[\"end_at\",\"heart_rate_samples\",\"name\",\"route\",\"start_at\"],\"preserved\":[],\"left_out\":[\"track.gpx: 1 track point had no time\"]}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "ride.fit"
+          ],
+          "status": 0,
+          "stdout": "garmin import\nunderstood: heart_rate_samples, name, route\nkept under original names: none\nnothing written; pass --yes after reviewing this preview\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "ride.fit",
+            "--yes"
+          ],
+          "status": 0,
+          "stdout": "imported garmin: {\"source\":\"garmin\",\"record_ids\":[\"<id-4>\"],\"understood\":[\"heart_rate_samples\",\"name\",\"route\"],\"preserved\":[],\"left_out\":[]}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "rides"
+          ],
+          "status": 0,
+          "stdout": "strava import\nunderstood: activity_type, end_at, heart_rate_samples, name, route, start_at\nkept under original names: Gear\nnothing written; pass --yes after reviewing this preview\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "rides",
+            "--yes"
+          ],
+          "status": 0,
+          "stdout": "imported strava: {\"source\":\"strava\",\"record_ids\":[\"<id-5>\"],\"understood\":[\"activity_type\",\"end_at\",\"heart_rate_samples\",\"name\",\"route\",\"start_at\"],\"preserved\":[\"Gear\"],\"left_out\":[]}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "stats"
+          ],
+          "status": 0,
+          "stdout": "unnamed athlete · Athletic Standard <version>\ndatabase revision: 10\n\ncurrent records: 16\n  athlete_profile: 1\n  benchmark_definition: 7\n  provider_summary: 1\n  source: 3\n  workout_session: 4\n\nsources: 3\n  <id-6>: ath via manual_entry (manual) — 0 records\n  <id-7>: garmin via garmin_account_export (export_file) — 4 records, 2026-01-02 → 2026-08-09\n  <id-8>: strava via strava_bulk (export_file) — 1 record, 2026-01-03 → 2026-01-03\n\nbenchmarks defined: 7 · results recorded: 0\npredictions: 0 · grades: 0\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "check"
+          ],
+          "status": 0,
+          "stdout": "<work>/athlete.ath.sqlite: valid Athletic Standard <version> database (16 records)\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "ring_csv",
+      "fixture": "none",
+      "copy": {
+        "ring": "ring_csv"
+      },
+      "steps": [
+        {
+          "argv": [
+            "init",
+            "--yes",
+            "--no-skill"
+          ],
+          "status": 0,
+          "stdout": "created <work>/athlete.ath.sqlite\n  seeded 7 benchmarks: fran, grace, helen, murph, 5k-run, 1-mile-run, hyrox-full\n  next: `ath import <export-file>` to load device data\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "ring",
+            "--json"
+          ],
+          "status": 0,
+          "stdout": "{\n  \"provider\": \"oura\",\n  \"imported\": \"Oura export\",\n  \"destination_database_revision\": 1,\n  \"new_records\": [\n    {\n      \"record_id\": \"<id-1>\",\n      \"record_type\": \"source\"\n    },\n    {\n      \"record_id\": \"<id-2>\",\n      \"record_type\": \"point_measurement\"\n    },\n    {\n      \"record_id\": \"<id-3>\",\n      \"record_type\": \"provider_score\"\n    },\n    {\n      \"record_id\": \"<id-4>\",\n      \"record_type\": \"provider_score\"\n    },\n    {\n      \"record_id\": \"<id-5>\",\n      \"record_type\": \"provider_score\"\n    },\n    {\n      \"record_id\": \"<id-6>\",\n      \"record_type\": \"provider_score\"\n    },\n    {\n      \"record_id\": \"<id-7>\",\n      \"record_type\": \"provider_score\"\n    },\n    {\n      \"record_id\": \"<id-8>\",\n      \"record_type\": \"provider_score\"\n    },\n    {\n      \"record_id\": \"<id-9>\",\n      \"record_type\": \"provider_score\"\n    },\n    {\n      \"record_id\": \"<id-10>\",\n      \"record_type\": \"provider_score\"\n    },\n    {\n      \"record_id\": \"<id-11>\",\n      \"record_type\": \"provider_score\"\n    },\n    {\n      \"record_id\": \"<id-12>\",\n      \"record_type\": \"point_measurement\"\n    },\n    {\n      \"record_id\": \"<id-13>\",\n      \"record_type\": \"provider_score\"\n    },\n    {\n      \"record_id\": \"<id-14>\",\n      \"record_type\": \"provider_score\"\n    },\n    {\n      \"record_id\": \"<id-15>\",\n      \"record_type\": \"provider_score\"\n    },\n    {\n      \"record_id\": \"<id-16>\",\n      \"record_type\": \"provider_score\"\n    },\n    {\n      \"record_id\": \"<id-17>\",\n      \"record_type\": \"provider_score\"\n    },\n    {\n      \"record_id\": \"<id-18>\",\n      \"record_type\": \"provider_score\"\n    },\n    {\n      \"record_id\": \"<id-19>\",\n      \"record_type\": \"provider_score\"\n    },\n    {\n      \"record_id\": \"<id-20>\",\n      \"record_type\": \"provider_score\"\n    },\n    {\n      \"record_id\": \"<id-21>\",\n      \"record_type\": \"provider_score\"\n    },\n    {\n      \"record_id\": \"<id-22>\",\n      \"record_type\": \"point_measurement\"\n    },\n    {\n      \"record_id\": \"<id-23>\",\n      \"record_type\": \"point_measurement\"\n    },\n    {\n      \"record_id\": \"<id-24>\",\n      \"record_type\": \"point_measurement\"\n    },\n    {\n      \"record_id\": \"<id-25>\",\n      \"record_type\": \"sleep_session\"\n    },\n    {\n      \"record_id\": \"<id-26>\",\n      \"record_type\": \"provider_score\"\n    },\n    {\n      \"record_id\": \"<id-27>\",\n      \"record_type\": \"point_measurement\"\n    },\n    {\n      \"record_id\": \"<id-28>\",\n      \"record_type\": \"point_measurement\"\n    },\n    {\n      \"record_id\": \"<id-29>\",\n      \"record_type\": \"point_measurement\"\n    },\n    {\n      \"record_id\": \"<id-30>\",\n      \"record_type\": \"sleep_session\"\n    },\n    {\n      \"record_id\": \"<id-31>\",\n      \"record_type\": \"provider_score\"\n    }\n  ],\n  \"matching_records\": [],\n  \"changed_records\": [],\n  \"conflicts\": [],\n  \"skipped\": {},\n  \"route_points_stored\": 0,\n  \"write_confirmed\": false\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "ring"
+          ],
+          "status": 0,
+          "stdout": "Oura export preview\n  destination revision: 1\n  new records:         31\n  matching records:    0\n  changed records:     0\n  conflicts:           0\n  skipped rows:        0\nnothing written; pass --yes after reviewing this preview\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "ring",
+            "--yes"
+          ],
+          "status": 0,
+          "stdout": "Oura export preview\n  destination revision: 1\n  new records:         31\n  matching records:    0\n  changed records:     0\n  conflicts:           0\n  skipped rows:        0\nimported Oura export: 31 new, 0 changed, 0 matching at database revision 2\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "import",
+            "ring"
+          ],
+          "status": 0,
+          "stdout": "Oura export preview\n  destination revision: 2\n  new records:         0\n  matching records:    31\n  changed records:     0\n  conflicts:           0\n  skipped rows:        0\nnothing written; pass --yes after reviewing this preview\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "stats"
+          ],
+          "status": 0,
+          "stdout": "unnamed athlete · Athletic Standard <version>\ndatabase revision: 2\n\ncurrent records: 40\n  athlete_profile: 1\n  benchmark_definition: 7\n  point_measurement: 8\n  provider_score: 20\n  sleep_session: 2\n  source: 2\n\nsources: 2\n  <id-32>: Oura via oura_csv (export_file) — 30 records, 2026-08-09 → 2026-08-10\n  <id-33>: ath via manual_entry (manual) — 0 records\n\n90-day device baselines (each source stays separate):\n  <id-32> hrv_rmssd: 67ms (sd 5.7, n=2, 2026-08-09 → 2026-08-10)\n  <id-32> respiratory_rate: 14.4brpm (sd 0.4, n=2, 2026-08-09 → 2026-08-10)\n  <id-32> resting_heart_rate: 47bpm (sd 1.4, n=2, 2026-08-09 → 2026-08-10)\n\nbenchmarks defined: 7 · results recorded: 0\npredictions: 0 · grades: 0\n",
+          "stderr": ""
+        }
+      ]
+    },
+    {
+      "name": "personal_connection",
+      "fixture": "none",
+      "steps": [
+        {
+          "argv": [
+            "init",
+            "--yes",
+            "--no-skill"
+          ],
+          "status": 0,
+          "stdout": "created <work>/athlete.ath.sqlite\n  seeded 7 benchmarks: fran, grace, helen, murph, 5k-run, 1-mile-run, hyrox-full\n  next: `ath import <export-file>` to load device data\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "pull",
+            "garmin",
+            "--date",
+            "2026-08-09",
+            "--base-url",
+            "<server>/personal"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: no Garmin key is saved. Run ath key set garmin, or set GARMIN_PERSONAL_API_KEY.\n"
+        },
+        {
+          "argv": [
+            "pull",
+            "strava",
+            "--date",
+            "2026-08-09"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: pull currently reads garmin\n"
+        },
+        {
+          "argv": [
+            "pull",
+            "garmin",
+            "--date",
+            "2026-08-09",
+            "--base-url",
+            "<server>/personal"
+          ],
+          "env": {
+            "GARMIN_PERSONAL_API_KEY": "test-personal-key"
+          },
+          "status": 0,
+          "stdout": "pulled garmin for 2026-08-09\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "pull",
+            "garmin",
+            "--date",
+            "2026-08-09",
+            "--base-url",
+            "<server>/personal",
+            "--json"
+          ],
+          "env": {
+            "GARMIN_PERSONAL_API_KEY": "test-personal-key"
+          },
+          "status": 0,
+          "stdout": "{\n  \"source\": \"garmin_personal\",\n  \"record_ids\": [\n    \"<id-1>\",\n    \"<id-2>\"\n  ],\n  \"understood\": [\n    \"LastNightAvg\",\n    \"activity_type\",\n    \"end_at\",\n    \"name\",\n    \"provider_record_id\",\n    \"start_at\"\n  ],\n  \"preserved\": [\n    \"distance\",\n    \"status\",\n    \"summaryOnly\",\n    \"weeklyAvg\"\n  ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "pull",
+            "garmin",
+            "--date",
+            "2026-08-10",
+            "--base-url",
+            "<server>/personal",
+            "--json"
+          ],
+          "env": {
+            "GARMIN_PERSONAL_API_KEY": "test-personal-key"
+          },
+          "status": 0,
+          "stdout": "{\n  \"source\": \"garmin_personal\",\n  \"record_ids\": [\n    \"<id-1>\"\n  ],\n  \"understood\": [\n    \"activity_type\",\n    \"end_at\",\n    \"name\",\n    \"provider_record_id\",\n    \"start_at\"\n  ],\n  \"preserved\": [\n    \"distance\",\n    \"summaryOnly\"\n  ]\n}\n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "records",
+            "list",
+            "--type",
+            "workout_session"
+          ],
+          "status": 0,
+          "stdout": "record ID                             revision  type                         summary\n<id-1>         3  workout_session              \n",
+          "stderr": ""
+        },
+        {
+          "argv": [
+            "key",
+            "set",
+            "garmin"
+          ],
+          "status": 1,
+          "stdout": "",
+          "stderr": "ath: there is no terminal to paste a key into. Run this somewhere you can type, or set AI_GATEWAY_API_KEY / OPENROUTER_API_KEY in the environment.\n"
+        }
+      ]
+    }
+  ]
+}

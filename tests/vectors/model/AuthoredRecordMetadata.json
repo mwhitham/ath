@@ -1,0 +1,1153 @@
+{
+  "schema": "AuthoredRecordMetadata",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": true,
+      "output": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "author": {
+          "author_type": "agent",
+          "agent": "reference-agent",
+          "agent_version": "2.1.0",
+          "model": "example-model",
+          "model_version": "2026-01"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+            "revision": 1
+          }
+        ],
+        "content_version": 2,
+        "status": "completed"
+      },
+      "valid": true,
+      "output": {
+        "author": {
+          "author_type": "agent",
+          "agent": "reference-agent",
+          "agent_version": "2.1.0",
+          "model": "example-model",
+          "model_version": "2026-01"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+            "revision": 1
+          }
+        ],
+        "content_version": 2,
+        "status": "completed"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:tool_author",
+      "input": {
+        "author": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0",
+          "calculation_version": "1"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": true,
+      "output": {
+        "author": {
+          "author_type": "tool",
+          "tool": "ath",
+          "tool_version": "2.1.0",
+          "calculation_version": "1"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "author": {
+          "author_type": "agent",
+          "agent": "reference-agent",
+          "agent_version": "2.1.0",
+          "model": "example-model",
+          "model_version": "2026-01"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+            "revision": 1
+          }
+        ],
+        "content_version": 2,
+        "status": "completed",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "author:missing",
+      "input": {
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "author"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "author:null",
+      "input": {
+        "author": null,
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "author"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "author:wrong_type=array",
+      "input": {
+        "author": [],
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "author"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "author:empty_object",
+      "input": {
+        "author": {},
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "author",
+            "author_type"
+          ],
+          "code": "invalid_union",
+          "message": "Invalid discriminator value. Expected 'athlete' | 'agent' | 'tool'",
+          "discriminator": "author_type",
+          "errors": [],
+          "note": "No matching discriminator",
+          "options": [
+            "athlete",
+            "agent",
+            "tool"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "author:discriminator_invalid",
+      "input": {
+        "author": {
+          "author_type": "__other__"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "author",
+            "author_type"
+          ],
+          "code": "invalid_union",
+          "message": "Invalid discriminator value. Expected 'athlete' | 'agent' | 'tool'",
+          "discriminator": "author_type",
+          "errors": [],
+          "note": "No matching discriminator",
+          "options": [
+            "athlete",
+            "agent",
+            "tool"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "authored_at:missing",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authored_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "authored_at:null",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": null,
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authored_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "authored_at:wrong_type=number",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": 1,
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authored_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "authored_at:empty_string",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "",
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authored_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "authored_at:format=no_milliseconds",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authored_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "authored_at:format=offset",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678+00:00",
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authored_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "evidence:missing",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "evidence"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received undefined",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "evidence:null",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": null,
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "evidence"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received null",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "evidence:wrong_type=object",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": {},
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "evidence"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received object",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "evidence:empty_array",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": true,
+      "output": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "issues": []
+    },
+    {
+      "name": "evidence:element[0]:wrong_type=array",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [
+          []
+        ],
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "evidence",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "evidence:element[0]:wrong_type=string",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [
+          "x"
+        ],
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "evidence",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "content_version:missing",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "content_version:null",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": null,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "content_version:wrong_type=string",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": "1",
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "content_version:number=-1",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": -1,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "content_version:number=0",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 0,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "content_version:number=1",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": true,
+      "output": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "issues": []
+    },
+    {
+      "name": "content_version:number=1.5",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1.5,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "content_version:number=9007199254740991",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 9007199254740991,
+        "status": "active"
+      },
+      "valid": true,
+      "output": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 9007199254740991,
+        "status": "active"
+      },
+      "issues": []
+    },
+    {
+      "name": "content_version:number=9007199254740992",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 9007199254740992,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "content_version:number=-9007199254740991",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": -9007199254740991,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "content_version:number=-9007199254740992",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": -9007199254740992,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected int to be >=-9007199254740991",
+          "inclusive": true,
+          "minimum": -9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "content_version:number=1e+21",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1e+21,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "content_version:number_text=-0",
+      "input_text": "{\"author\":{\"author_type\":\"athlete\"},\"authored_at\":\"2026-01-02T03:04:05.678Z\",\"evidence\":[],\"content_version\":-0,\"status\":\"active\"}",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 0,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "content_version:number_text=1.0",
+      "input_text": "{\"author\":{\"author_type\":\"athlete\"},\"authored_at\":\"2026-01-02T03:04:05.678Z\",\"evidence\":[],\"content_version\":1.0,\"status\":\"active\"}",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": true,
+      "output": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "issues": []
+    },
+    {
+      "name": "content_version:number_text=1E0",
+      "input_text": "{\"author\":{\"author_type\":\"athlete\"},\"authored_at\":\"2026-01-02T03:04:05.678Z\",\"evidence\":[],\"content_version\":1E0,\"status\":\"active\"}",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "valid": true,
+      "output": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": "active"
+      },
+      "issues": []
+    },
+    {
+      "name": "content_version:number_text=9007199254740993",
+      "input_text": "{\"author\":{\"author_type\":\"athlete\"},\"authored_at\":\"2026-01-02T03:04:05.678Z\",\"evidence\":[],\"content_version\":9007199254740993,\"status\":\"active\"}",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 9007199254740992,
+        "status": "active"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "content_version"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "status:missing",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"draft\"|\"active\"|\"completed\"|\"superseded\"|\"cancelled\"",
+          "values": [
+            "draft",
+            "active",
+            "completed",
+            "superseded",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "status:null",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"draft\"|\"active\"|\"completed\"|\"superseded\"|\"cancelled\"",
+          "values": [
+            "draft",
+            "active",
+            "completed",
+            "superseded",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "status:wrong_type=number",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"draft\"|\"active\"|\"completed\"|\"superseded\"|\"cancelled\"",
+          "values": [
+            "draft",
+            "active",
+            "completed",
+            "superseded",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "status:enum_invalid",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": "__not_an_option__"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"draft\"|\"active\"|\"completed\"|\"superseded\"|\"cancelled\"",
+          "values": [
+            "draft",
+            "active",
+            "completed",
+            "superseded",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "status:empty_string",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"draft\"|\"active\"|\"completed\"|\"superseded\"|\"cancelled\"",
+          "values": [
+            "draft",
+            "active",
+            "completed",
+            "superseded",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "status:enum_uppercase",
+      "input": {
+        "author": {
+          "author_type": "athlete"
+        },
+        "authored_at": "2026-01-02T03:04:05.678Z",
+        "evidence": [],
+        "content_version": 1,
+        "status": "DRAFT"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"draft\"|\"active\"|\"completed\"|\"superseded\"|\"cancelled\"",
+          "values": [
+            "draft",
+            "active",
+            "completed",
+            "superseded",
+            "cancelled"
+          ]
+        }
+      ]
+    }
+  ]
+}

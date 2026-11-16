@@ -1,0 +1,19 @@
+Examples:
+
+  Save a Vercel or OpenRouter key in the computer's password store:
+    $ ath key set vercel
+    $ ath key set openrouter
+
+  See which gateway is saved, not the key itself:
+    $ ath key
+
+  Delete it:
+    $ ath key clear
+
+There is no Athletic Standard subscription. A key is only for calling a
+model from a bare terminal. Inside a harness you do not need one.
+
+The key never goes in the athlete file. Agents read that file. If the
+password store is missing, the command refuses. It will not write a
+plaintext file. A key already in AI_GATEWAY_API_KEY or OPENROUTER_API_KEY
+still works, for scripts.

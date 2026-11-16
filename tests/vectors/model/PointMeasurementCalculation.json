@@ -1,0 +1,2265 @@
+{
+  "schema": "PointMeasurementCalculation",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": []
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": []
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95,
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95,
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "from_quantity:missing",
+      "input": {
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "from_quantity"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "from_quantity:null",
+      "input": {
+        "from_quantity": null,
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "from_quantity"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "from_quantity:wrong_type=number",
+      "input": {
+        "from_quantity": 1,
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "from_quantity"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "from_quantity:empty_string",
+      "input": {
+        "from_quantity": "",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "from_quantity"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "method:missing",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "calculation_version": "1.0.0",
+        "input_records": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "method"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "method:null",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": null,
+        "calculation_version": "1.0.0",
+        "input_records": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "method"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "method:wrong_type=number",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": 1,
+        "calculation_version": "1.0.0",
+        "input_records": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "method"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "method:empty_string",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "",
+        "calculation_version": "1.0.0",
+        "input_records": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "method"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "calculation_version:missing",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "input_records": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "calculation_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "calculation_version:null",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": null,
+        "input_records": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "calculation_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "calculation_version:wrong_type=number",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": 1,
+        "input_records": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "calculation_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "calculation_version:empty_string",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "",
+        "input_records": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "calculation_version"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "window_s:null",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": null,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "window_s"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "window_s:wrong_type=string",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": "1",
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "window_s"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "window_s:number=-1",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": -1,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "window_s"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "window_s:number=0",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 0,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "window_s"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "window_s:number=1",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 1,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "window_s": 1,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95,
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "window_s:number=-0.5",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": -0.5,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "window_s"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "window_s:number=0.5",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 0.5,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "window_s": 0.5,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95,
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "window_s:number=5e-324",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 5e-324,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "window_s": 5e-324,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95,
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "window_s:number=-5e-324",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": -5e-324,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "window_s"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "window_s:number=1e+308",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 1e+308,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "window_s": 1e+308,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95,
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "window_s:number_text=-0",
+      "input_text": "{\"from_quantity\":\"hrv_beats\",\"method\":\"rmssd\",\"calculation_version\":\"1.0.0\",\"input_records\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000008\",\"revision\":1}],\"window_s\":-0,\"usable_sample_count\":280,\"dropped_sample_count\":3,\"signal_quality\":0.95}",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 0,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "window_s"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "window_s:number_text=1e400",
+      "input_text": "{\"from_quantity\":\"hrv_beats\",\"method\":\"rmssd\",\"calculation_version\":\"1.0.0\",\"input_records\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000008\",\"revision\":1}],\"window_s\":1e400,\"usable_sample_count\":280,\"dropped_sample_count\":3,\"signal_quality\":0.95}",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": null,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "window_s"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "usable_sample_count:null",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": null,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "usable_sample_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "usable_sample_count:wrong_type=string",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": "1",
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "usable_sample_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "usable_sample_count:number=-1",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": -1,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "usable_sample_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "usable_sample_count:number=0",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 0,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "usable_sample_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "usable_sample_count:number=1",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 1,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "window_s": 300,
+        "usable_sample_count": 1,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95,
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "usable_sample_count:number=1.5",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 1.5,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "usable_sample_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "usable_sample_count:number=9007199254740991",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 9007199254740991,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "window_s": 300,
+        "usable_sample_count": 9007199254740991,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95,
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "usable_sample_count:number=9007199254740992",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 9007199254740992,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "usable_sample_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "usable_sample_count:number=-9007199254740991",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": -9007199254740991,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "usable_sample_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "usable_sample_count:number=-9007199254740992",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": -9007199254740992,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "usable_sample_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected int to be >=-9007199254740991",
+          "inclusive": true,
+          "minimum": -9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "usable_sample_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "usable_sample_count:number=1e+21",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 1e+21,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "usable_sample_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "usable_sample_count:number_text=-0",
+      "input_text": "{\"from_quantity\":\"hrv_beats\",\"method\":\"rmssd\",\"calculation_version\":\"1.0.0\",\"input_records\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000008\",\"revision\":1}],\"window_s\":300,\"usable_sample_count\":-0,\"dropped_sample_count\":3,\"signal_quality\":0.95}",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 0,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "usable_sample_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >0",
+          "inclusive": false,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "usable_sample_count:number_text=280.0",
+      "input_text": "{\"from_quantity\":\"hrv_beats\",\"method\":\"rmssd\",\"calculation_version\":\"1.0.0\",\"input_records\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000008\",\"revision\":1}],\"window_s\":300,\"usable_sample_count\":280.0,\"dropped_sample_count\":3,\"signal_quality\":0.95}",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95,
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "usable_sample_count:number_text=280E0",
+      "input_text": "{\"from_quantity\":\"hrv_beats\",\"method\":\"rmssd\",\"calculation_version\":\"1.0.0\",\"input_records\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000008\",\"revision\":1}],\"window_s\":300,\"usable_sample_count\":280E0,\"dropped_sample_count\":3,\"signal_quality\":0.95}",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95,
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "usable_sample_count:number_text=9007199254740993",
+      "input_text": "{\"from_quantity\":\"hrv_beats\",\"method\":\"rmssd\",\"calculation_version\":\"1.0.0\",\"input_records\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000008\",\"revision\":1}],\"window_s\":300,\"usable_sample_count\":9007199254740993,\"dropped_sample_count\":3,\"signal_quality\":0.95}",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 9007199254740992,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "usable_sample_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "dropped_sample_count:null",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": null,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "dropped_sample_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "dropped_sample_count:wrong_type=string",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": "1",
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "dropped_sample_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "dropped_sample_count:number=-1",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": -1,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "dropped_sample_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "dropped_sample_count:number=0",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 0,
+        "signal_quality": 0.95
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 0,
+        "signal_quality": 0.95,
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "dropped_sample_count:number=1",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 1,
+        "signal_quality": 0.95
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 1,
+        "signal_quality": 0.95,
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "dropped_sample_count:number=1.5",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 1.5,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "dropped_sample_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "dropped_sample_count:number=9007199254740991",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 9007199254740991,
+        "signal_quality": 0.95
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 9007199254740991,
+        "signal_quality": 0.95,
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "dropped_sample_count:number=9007199254740992",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 9007199254740992,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "dropped_sample_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "dropped_sample_count:number=-9007199254740991",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": -9007199254740991,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "dropped_sample_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "dropped_sample_count:number=-9007199254740992",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": -9007199254740992,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "dropped_sample_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected int to be >=-9007199254740991",
+          "inclusive": true,
+          "minimum": -9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "dropped_sample_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "dropped_sample_count:number=1e+21",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 1e+21,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "dropped_sample_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "dropped_sample_count:number_text=-0",
+      "input_text": "{\"from_quantity\":\"hrv_beats\",\"method\":\"rmssd\",\"calculation_version\":\"1.0.0\",\"input_records\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000008\",\"revision\":1}],\"window_s\":300,\"usable_sample_count\":280,\"dropped_sample_count\":-0,\"signal_quality\":0.95}",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 0,
+        "signal_quality": 0.95
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 0,
+        "signal_quality": 0.95,
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "dropped_sample_count:number_text=3.0",
+      "input_text": "{\"from_quantity\":\"hrv_beats\",\"method\":\"rmssd\",\"calculation_version\":\"1.0.0\",\"input_records\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000008\",\"revision\":1}],\"window_s\":300,\"usable_sample_count\":280,\"dropped_sample_count\":3.0,\"signal_quality\":0.95}",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95,
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "dropped_sample_count:number_text=3E0",
+      "input_text": "{\"from_quantity\":\"hrv_beats\",\"method\":\"rmssd\",\"calculation_version\":\"1.0.0\",\"input_records\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000008\",\"revision\":1}],\"window_s\":300,\"usable_sample_count\":280,\"dropped_sample_count\":3E0,\"signal_quality\":0.95}",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.95,
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "dropped_sample_count:number_text=9007199254740993",
+      "input_text": "{\"from_quantity\":\"hrv_beats\",\"method\":\"rmssd\",\"calculation_version\":\"1.0.0\",\"input_records\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000008\",\"revision\":1}],\"window_s\":300,\"usable_sample_count\":280,\"dropped_sample_count\":9007199254740993,\"signal_quality\":0.95}",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 9007199254740992,
+        "signal_quality": 0.95
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "dropped_sample_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "signal_quality:null",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "signal_quality"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "signal_quality:wrong_type=string",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": "1"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "signal_quality"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "signal_quality:number=-1",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": -1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "signal_quality"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "signal_quality:number=0",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0,
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "signal_quality:number=1",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 1
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 1,
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "signal_quality:number=-0.5",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": -0.5
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "signal_quality"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "signal_quality:number=0.5",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.5
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0.5,
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "signal_quality:number=5e-324",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 5e-324
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 5e-324,
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "signal_quality:number=-5e-324",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": -5e-324
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "signal_quality"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "signal_quality:number=1e+308",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 1e+308
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 1e+308,
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "signal_quality:number_text=-0",
+      "input_text": "{\"from_quantity\":\"hrv_beats\",\"method\":\"rmssd\",\"calculation_version\":\"1.0.0\",\"input_records\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000008\",\"revision\":1}],\"window_s\":300,\"usable_sample_count\":280,\"dropped_sample_count\":3,\"signal_quality\":-0}",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": 0,
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "signal_quality:number_text=1e400",
+      "input_text": "{\"from_quantity\":\"hrv_beats\",\"method\":\"rmssd\",\"calculation_version\":\"1.0.0\",\"input_records\":[{\"record_id\":\"01890f3e-e7d3-7cc0-88c8-000000000008\",\"revision\":1}],\"window_s\":300,\"usable_sample_count\":280,\"dropped_sample_count\":3,\"signal_quality\":1e400}",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          {
+            "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+            "revision": 1
+          }
+        ],
+        "window_s": 300,
+        "usable_sample_count": 280,
+        "dropped_sample_count": 3,
+        "signal_quality": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "signal_quality"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "input_records:missing",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_records"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received undefined",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "input_records:null",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_records"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received null",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "input_records:wrong_type=object",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": {}
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_records"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received object",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "input_records:empty_array",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": []
+      },
+      "valid": true,
+      "output": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": []
+      },
+      "issues": []
+    },
+    {
+      "name": "input_records:element[0]:wrong_type=array",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          []
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_records",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_records:element[0]:wrong_type=string",
+      "input": {
+        "from_quantity": "hrv_beats",
+        "method": "rmssd",
+        "calculation_version": "1.0.0",
+        "input_records": [
+          "x"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_records",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    }
+  ]
+}

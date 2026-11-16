@@ -1,0 +1,15 @@
+Examples:
+
+  Replay history with the models you name:
+    $ ath backtest --model qwen/qwen3-235b-a22b --model openai/gpt-oss-120b
+
+  Every live text model that can reason, after showing the count:
+    $ ath backtest --all
+
+A prediction needs a model, so a key is required. No key → refuse. In a
+harness, daily predictions use the harness model; this command is for
+comparing models on a history you already have.
+
+A result is replayed only when an earlier result on the same benchmark
+exists. Evidence is as of the day before. The athlete file is not
+written. The report's summary is the later share payload.

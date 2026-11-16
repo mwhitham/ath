@@ -1,0 +1,337 @@
+{
+  "schema": "ToolActor",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "2.1.0"
+      },
+      "valid": true,
+      "output": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "2.1.0"
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "2.1.0",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "author_type:missing",
+      "input": {
+        "tool": "ath",
+        "tool_version": "2.1.0"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "author_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"tool\"",
+          "values": [
+            "tool"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "author_type:null",
+      "input": {
+        "author_type": null,
+        "tool": "ath",
+        "tool_version": "2.1.0"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "author_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"tool\"",
+          "values": [
+            "tool"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "author_type:literal_other",
+      "input": {
+        "author_type": "__other__",
+        "tool": "ath",
+        "tool_version": "2.1.0"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "author_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"tool\"",
+          "values": [
+            "tool"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "author_type:wrong_type=number",
+      "input": {
+        "author_type": 1,
+        "tool": "ath",
+        "tool_version": "2.1.0"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "author_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid input: expected \"tool\"",
+          "values": [
+            "tool"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "tool:missing",
+      "input": {
+        "author_type": "tool",
+        "tool_version": "2.1.0"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "tool"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "tool:null",
+      "input": {
+        "author_type": "tool",
+        "tool": null,
+        "tool_version": "2.1.0"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "tool"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "tool:wrong_type=number",
+      "input": {
+        "author_type": "tool",
+        "tool": 1,
+        "tool_version": "2.1.0"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "tool"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "tool:empty_string",
+      "input": {
+        "author_type": "tool",
+        "tool": "",
+        "tool_version": "2.1.0"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "tool"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "tool_version:missing",
+      "input": {
+        "author_type": "tool",
+        "tool": "ath"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "tool_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "tool_version:null",
+      "input": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "tool_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "tool_version:wrong_type=number",
+      "input": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "tool_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "tool_version:empty_string",
+      "input": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "tool_version"
+          ],
+          "code": "invalid_format",
+          "message": "semantic version",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$/"
+        }
+      ]
+    },
+    {
+      "name": "tool_version:format=not_valid",
+      "input": {
+        "author_type": "tool",
+        "tool": "ath",
+        "tool_version": "not valid"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "tool_version"
+          ],
+          "code": "invalid_format",
+          "message": "semantic version",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^\\d+\\.\\d+\\.\\d+(?:-[0-9A-Za-z.-]+)?(?:\\+[0-9A-Za-z.-]+)?$/"
+        }
+      ]
+    }
+  ]
+}

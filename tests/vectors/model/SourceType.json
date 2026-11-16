@@ -1,0 +1,197 @@
+{
+  "schema": "SourceType",
+  "cases": [
+    {
+      "name": "valid:wearable",
+      "input": "wearable",
+      "valid": true,
+      "output": "wearable",
+      "issues": []
+    },
+    {
+      "name": "valid:export_file",
+      "input": "export_file",
+      "valid": true,
+      "output": "export_file",
+      "issues": []
+    },
+    {
+      "name": "valid:connector",
+      "input": "connector",
+      "valid": true,
+      "output": "connector",
+      "issues": []
+    },
+    {
+      "name": "valid:manual",
+      "input": "manual",
+      "valid": true,
+      "output": "manual",
+      "issues": []
+    },
+    {
+      "name": "invalid:unknown",
+      "input": "__not_an_option__",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"wearable\"|\"export_file\"|\"connector\"|\"manual\"",
+          "values": [
+            "wearable",
+            "export_file",
+            "connector",
+            "manual"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:empty",
+      "input": "",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"wearable\"|\"export_file\"|\"connector\"|\"manual\"",
+          "values": [
+            "wearable",
+            "export_file",
+            "connector",
+            "manual"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:uppercase",
+      "input": "WEARABLE",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"wearable\"|\"export_file\"|\"connector\"|\"manual\"",
+          "values": [
+            "wearable",
+            "export_file",
+            "connector",
+            "manual"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:leading_space",
+      "input": " wearable",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"wearable\"|\"export_file\"|\"connector\"|\"manual\"",
+          "values": [
+            "wearable",
+            "export_file",
+            "connector",
+            "manual"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:trailing_space",
+      "input": "wearable ",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"wearable\"|\"export_file\"|\"connector\"|\"manual\"",
+          "values": [
+            "wearable",
+            "export_file",
+            "connector",
+            "manual"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:number",
+      "input": 1,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"wearable\"|\"export_file\"|\"connector\"|\"manual\"",
+          "values": [
+            "wearable",
+            "export_file",
+            "connector",
+            "manual"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"wearable\"|\"export_file\"|\"connector\"|\"manual\"",
+          "values": [
+            "wearable",
+            "export_file",
+            "connector",
+            "manual"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:array",
+      "input": [
+        "wearable"
+      ],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"wearable\"|\"export_file\"|\"connector\"|\"manual\"",
+          "values": [
+            "wearable",
+            "export_file",
+            "connector",
+            "manual"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:object",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"wearable\"|\"export_file\"|\"connector\"|\"manual\"",
+          "values": [
+            "wearable",
+            "export_file",
+            "connector",
+            "manual"
+          ]
+        }
+      ]
+    }
+  ]
+}

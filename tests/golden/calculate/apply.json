@@ -1,0 +1,1586 @@
+{
+  "generated_by": "tools/reference/calculation-golden.ts",
+  "reference_commit": "c6218e88c035708bdd15b3a20888d19713e1df29",
+  "created_at": "2026-01-01T00:00:00.000Z",
+  "steps": [
+    {
+      "write": [
+        {
+          "record_type": "source",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+          "created_at": "2026-01-01T00:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_type": "wearable",
+            "data_writer": "Device A",
+            "data_route": "test"
+          }
+        },
+        {
+          "record_type": "source",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000102",
+          "created_at": "2026-01-01T00:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_type": "wearable",
+            "data_writer": "Device B",
+            "data_route": "test"
+          }
+        }
+      ]
+    },
+    {
+      "write": [
+        {
+          "record_type": "workout_session",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000601",
+          "created_at": "2026-10-01T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-01T12:00:03.000Z",
+            "received_at_basis": "import_time",
+            "start_at": "2026-10-01T12:00:00.000Z",
+            "end_at": "2026-10-01T12:00:03.000Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-10-01T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-10-01T12:00:03.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "activity_type": "running",
+            "maximum_heart_rate_bpm": 200,
+            "resting_heart_rate_bpm": 50,
+            "heart_rate_samples": [
+              {
+                "offset_ms": 0,
+                "bpm": 100
+              },
+              {
+                "offset_ms": 1000,
+                "bpm": 130
+              },
+              {
+                "offset_ms": 2000,
+                "bpm": 160
+              },
+              {
+                "offset_ms": 3000,
+                "bpm": 190
+              }
+            ],
+            "source_reported_summaries": []
+          }
+        },
+        {
+          "record_type": "workout_session",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000602",
+          "created_at": "2026-10-02T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-02T12:02:00.000Z",
+            "received_at_basis": "import_time",
+            "start_at": "2026-10-02T12:00:00.000Z",
+            "end_at": "2026-10-02T12:02:00.000Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-10-02T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-10-02T12:02:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "activity_type": "running",
+            "heart_rate_samples": [
+              {
+                "offset_ms": 0,
+                "bpm": 55
+              },
+              {
+                "offset_ms": 10000,
+                "bpm": 55
+              },
+              {
+                "offset_ms": 20000,
+                "bpm": 55
+              },
+              {
+                "offset_ms": 30000,
+                "bpm": 55
+              },
+              {
+                "offset_ms": 40000,
+                "bpm": 55
+              },
+              {
+                "offset_ms": 50000,
+                "bpm": 55
+              },
+              {
+                "offset_ms": 60000,
+                "bpm": 55
+              },
+              {
+                "offset_ms": 70000,
+                "bpm": 55
+              },
+              {
+                "offset_ms": 80000,
+                "bpm": 78
+              },
+              {
+                "offset_ms": 90000,
+                "bpm": 79
+              }
+            ],
+            "source_reported_summaries": []
+          }
+        },
+        {
+          "record_type": "workout_session",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000603",
+          "created_at": "2026-10-03T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-03T12:30:00.000Z",
+            "received_at_basis": "import_time",
+            "start_at": "2026-10-03T12:00:00.000Z",
+            "end_at": "2026-10-03T12:30:00.000Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-10-03T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-10-03T12:30:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "activity_type": "strength",
+            "sets": [
+              {
+                "reps": 5,
+                "weight": 100,
+                "weight_unit": "kg"
+              },
+              {
+                "reps": 5,
+                "weight": 110.5,
+                "weight_unit": "kg"
+              }
+            ],
+            "source_reported_summaries": []
+          }
+        },
+        {
+          "record_type": "workout_session",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000604",
+          "created_at": "2026-10-04T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-04T12:30:00.000Z",
+            "received_at_basis": "import_time",
+            "start_at": "2026-10-04T12:00:00.000Z",
+            "end_at": "2026-10-04T12:30:00.000Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-10-04T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-10-04T12:30:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "activity_type": "running",
+            "text_result": "5 rounds and 3 reps",
+            "source_reported_summaries": []
+          }
+        },
+        {
+          "record_type": "workout_session",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000605",
+          "created_at": "2026-10-05T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-05T12:30:00.000Z",
+            "received_at_basis": "import_time",
+            "supplied_fields": {
+              "Calories": 512,
+              "Gear": "road bike"
+            },
+            "start_at": "2026-10-05T12:00:00.000Z",
+            "end_at": "2026-10-05T12:30:00.000Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-10-05T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-10-05T12:30:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "activity_type": "running",
+            "source_reported_summaries": []
+          }
+        },
+        {
+          "record_type": "athlete_report",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000606",
+          "created_at": "2026-10-05T18:00:00.000Z",
+          "changed_by": {
+            "author_type": "athlete"
+          },
+          "data": {
+            "report_type": "note",
+            "reported_at": "2026-10-05T18:00:00.000Z",
+            "input_reported_at": {
+              "timestamp_text": "2026-10-05T18:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "reported_via": "text",
+            "rating": 7,
+            "rating_scale": "1-10",
+            "duration_seconds": 3600
+          }
+        },
+        {
+          "record_type": "sleep_session",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000501",
+          "created_at": "2026-10-01T09:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-01T09:00:00.000Z",
+            "received_at_basis": "import_time",
+            "start_at": "2026-10-01T01:30:00.000Z",
+            "end_at": "2026-10-01T09:00:00.000Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-10-01T01:30:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-10-01T09:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "source_reported_summaries": [],
+            "asleep_seconds": 25800,
+            "in_bed_seconds": 27600,
+            "interruptions": 1,
+            "stage_minutes": {
+              "deep": 61,
+              "rem": 90,
+              "light": 199
+            }
+          }
+        },
+        {
+          "record_type": "sleep_session",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000502",
+          "created_at": "2026-10-02T09:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-02T09:00:00.000Z",
+            "received_at_basis": "import_time",
+            "start_at": "2026-10-02T02:00:00.000Z",
+            "end_at": "2026-10-02T09:00:00.000Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-10-02T02:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-10-02T09:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "source_reported_summaries": [],
+            "asleep_seconds": 26400,
+            "in_bed_seconds": 28200,
+            "interruptions": 2,
+            "stage_minutes": {
+              "deep": 62,
+              "rem": 90,
+              "light": 198
+            }
+          }
+        },
+        {
+          "record_type": "sleep_session",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000503",
+          "created_at": "2026-10-03T09:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-03T09:00:00.000Z",
+            "received_at_basis": "import_time",
+            "start_at": "2026-10-03T00:30:00.000Z",
+            "end_at": "2026-10-03T09:00:00.000Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-10-03T00:30:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-10-03T09:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "source_reported_summaries": [],
+            "asleep_seconds": 27000,
+            "in_bed_seconds": 28800,
+            "interruptions": 3,
+            "stage_minutes": {
+              "deep": 63,
+              "rem": 90,
+              "light": 197
+            }
+          }
+        },
+        {
+          "record_type": "sleep_session",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000504",
+          "created_at": "2026-10-04T09:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-04T09:00:00.000Z",
+            "received_at_basis": "import_time",
+            "start_at": "2026-10-04T01:00:00.000Z",
+            "end_at": "2026-10-04T09:00:00.000Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-10-04T01:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-10-04T09:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "source_reported_summaries": [],
+            "asleep_seconds": 27600,
+            "in_bed_seconds": 29400,
+            "interruptions": 0,
+            "stage_minutes": {
+              "deep": 64,
+              "rem": 90,
+              "light": 196
+            }
+          }
+        },
+        {
+          "record_type": "sleep_session",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000505",
+          "created_at": "2026-10-05T09:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-05T09:00:00.000Z",
+            "received_at_basis": "import_time",
+            "start_at": "2026-10-05T02:30:00.000Z",
+            "end_at": "2026-10-05T09:00:00.000Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-10-05T02:30:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-10-05T09:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "source_reported_summaries": [],
+            "asleep_seconds": 28200,
+            "in_bed_seconds": 30000,
+            "interruptions": 1,
+            "stage_minutes": {
+              "deep": 65,
+              "rem": 90,
+              "light": 195
+            }
+          }
+        },
+        {
+          "record_type": "sleep_session",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000506",
+          "created_at": "2026-10-06T09:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-06T09:00:00.000Z",
+            "received_at_basis": "import_time",
+            "start_at": "2026-10-06T00:00:00.000Z",
+            "end_at": "2026-10-06T09:00:00.000Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-10-06T00:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-10-06T09:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "source_reported_summaries": [],
+            "asleep_seconds": 28800,
+            "in_bed_seconds": 30600,
+            "interruptions": 2,
+            "stage_minutes": {
+              "deep": 66,
+              "rem": 90,
+              "light": 194
+            }
+          }
+        },
+        {
+          "record_type": "sleep_session",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000507",
+          "created_at": "2026-10-07T09:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-07T09:00:00.000Z",
+            "received_at_basis": "import_time",
+            "start_at": "2026-10-07T01:30:00.000Z",
+            "end_at": "2026-10-07T09:00:00.000Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-10-07T01:30:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-10-07T09:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "source_reported_summaries": [],
+            "asleep_seconds": 29400,
+            "in_bed_seconds": 31200,
+            "interruptions": 3,
+            "stage_minutes": {
+              "deep": 67,
+              "rem": 90,
+              "light": 193
+            }
+          }
+        },
+        {
+          "record_type": "sleep_session",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000508",
+          "created_at": "2026-10-08T09:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-08T09:00:00.000Z",
+            "received_at_basis": "import_time",
+            "start_at": "2026-10-08T02:00:00.000Z",
+            "end_at": "2026-10-08T09:00:00.000Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-10-08T02:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-10-08T09:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "source_reported_summaries": [],
+            "asleep_seconds": 30000,
+            "in_bed_seconds": 31800,
+            "interruptions": 0,
+            "stage_minutes": {
+              "deep": 68,
+              "rem": 90,
+              "light": 192
+            }
+          }
+        },
+        {
+          "record_type": "sleep_session",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000509",
+          "created_at": "2026-10-04T11:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000102",
+            "received_at": "2026-10-04T11:00:00.000Z",
+            "received_at_basis": "import_time",
+            "start_at": "2026-10-04T04:00:00.000Z",
+            "end_at": "2026-10-04T11:00:00.000Z",
+            "input_start_timestamp": {
+              "timestamp_text": "2026-10-04T04:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "input_end_timestamp": {
+              "timestamp_text": "2026-10-04T11:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "source_reported_summaries": [],
+            "asleep_seconds": 20000
+          }
+        },
+        {
+          "record_type": "point_measurement",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000701",
+          "created_at": "2026-10-01T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-01T12:00:00.000Z",
+            "received_at_basis": "import_time",
+            "quantity": "hrv_rmssd",
+            "recorded_at": "2026-10-01T12:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-10-01T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "value": {
+              "standard_value": 60,
+              "standard_unit": "ms",
+              "input_value": 60,
+              "input_unit": "ms"
+            }
+          }
+        },
+        {
+          "record_type": "point_measurement",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000702",
+          "created_at": "2026-10-02T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-02T12:00:00.000Z",
+            "received_at_basis": "import_time",
+            "quantity": "hrv_rmssd",
+            "recorded_at": "2026-10-02T12:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-10-02T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "value": {
+              "standard_value": 66,
+              "standard_unit": "ms",
+              "input_value": 66,
+              "input_unit": "ms"
+            }
+          }
+        },
+        {
+          "record_type": "point_measurement",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000703",
+          "created_at": "2026-10-03T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-03T12:00:00.000Z",
+            "received_at_basis": "import_time",
+            "quantity": "hrv_rmssd",
+            "recorded_at": "2026-10-03T12:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-10-03T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "value": {
+              "standard_value": 70.123,
+              "standard_unit": "ms",
+              "input_value": 70.123,
+              "input_unit": "ms"
+            }
+          }
+        },
+        {
+          "record_type": "point_measurement",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000704",
+          "created_at": "2026-10-03T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-03T12:00:00.000Z",
+            "received_at_basis": "import_time",
+            "quantity": "hrv_sdnn",
+            "recorded_at": "2026-10-03T12:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-10-03T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "value": {
+              "standard_value": 40,
+              "standard_unit": "ms",
+              "input_value": 40,
+              "input_unit": "ms"
+            }
+          }
+        },
+        {
+          "record_type": "point_measurement",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000705",
+          "created_at": "2026-10-03T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000102",
+            "received_at": "2026-10-03T12:00:00.000Z",
+            "received_at_basis": "import_time",
+            "quantity": "resting_heart_rate",
+            "recorded_at": "2026-10-03T12:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-10-03T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "value": {
+              "standard_value": 50,
+              "standard_unit": "bpm",
+              "input_value": 50,
+              "input_unit": "bpm"
+            }
+          }
+        },
+        {
+          "record_type": "point_measurement",
+          "record_id": "01890f3e-e7d3-7cc0-88c8-000000000706",
+          "created_at": "2026-10-04T12:00:00.000Z",
+          "changed_by": {
+            "author_type": "tool",
+            "tool": "test",
+            "tool_version": "1.0.0"
+          },
+          "data": {
+            "source_id": "01890f3e-e7d3-7cc0-88c8-000000000101",
+            "received_at": "2026-10-04T12:00:00.000Z",
+            "received_at_basis": "import_time",
+            "quantity": "resting_heart_rate",
+            "recorded_at": "2026-10-04T12:00:00.000Z",
+            "input_timestamp": {
+              "timestamp_text": "2026-10-04T12:00:00.000Z",
+              "utc_offset_text": "Z",
+              "utc_offset_meaning": "documented_recording_offset",
+              "timestamp_basis": "source_instant"
+            },
+            "value": {
+              "standard_value": 48,
+              "standard_unit": "bpm",
+              "input_value": 48,
+              "input_unit": "bpm"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "delete": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000706",
+        "expected_revision": 1,
+        "deleted_by": {
+          "author_type": "tool",
+          "tool": "test",
+          "tool_version": "1.0.0"
+        },
+        "deleted_at": "2026-10-08T00:00:00.000Z"
+      }
+    }
+  ],
+  "cases": [
+    {
+      "name": "zones worked example",
+      "call": "apply",
+      "input": {
+        "calculation": "heart-rate-zones",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000601"
+      },
+      "output": {
+        "calculation": "heart-rate-zones",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000601",
+        "fields_read": [
+          {
+            "field": "heart_rate_samples",
+            "present": true
+          },
+          {
+            "field": "maximum_heart_rate_bpm",
+            "present": true
+          }
+        ],
+        "missing": [],
+        "result": {
+          "seconds": [
+            1,
+            1,
+            0,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "name": "zones without a maximum",
+      "call": "apply",
+      "input": {
+        "calculation": "heart-rate-zones",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000602"
+      },
+      "output": {
+        "calculation": "heart-rate-zones",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000602",
+        "fields_read": [
+          {
+            "field": "heart_rate_samples",
+            "present": true
+          },
+          {
+            "field": "maximum_heart_rate_bpm",
+            "present": false
+          }
+        ],
+        "missing": [
+          "maximum_heart_rate_bpm"
+        ],
+        "result": null
+      }
+    },
+    {
+      "name": "zones by path and suffix",
+      "call": "apply",
+      "input": {
+        "calculation": "skills/heart-rate-zones.md",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000601"
+      },
+      "output": {
+        "calculation": "heart-rate-zones",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000601",
+        "fields_read": [
+          {
+            "field": "heart_rate_samples",
+            "present": true
+          },
+          {
+            "field": "maximum_heart_rate_bpm",
+            "present": true
+          }
+        ],
+        "missing": [],
+        "result": {
+          "seconds": [
+            1,
+            1,
+            0,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "name": "recovery needs a later sample",
+      "call": "apply",
+      "input": {
+        "calculation": "heart-rate-recovery",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000601"
+      },
+      "output": {
+        "calculation": "heart-rate-recovery",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000601",
+        "fields_read": [
+          {
+            "field": "heart_rate_samples",
+            "present": true
+          }
+        ],
+        "missing": [
+          "heart_rate_samples at offset 63000"
+        ],
+        "result": null
+      }
+    },
+    {
+      "name": "resting heart rate held for a minute",
+      "call": "apply",
+      "input": {
+        "calculation": "resting-heart-rate",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000602"
+      },
+      "output": {
+        "calculation": "resting-heart-rate",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000602",
+        "fields_read": [
+          {
+            "field": "heart_rate_samples",
+            "present": true
+          }
+        ],
+        "missing": [],
+        "result": {
+          "bpm": 55
+        }
+      }
+    },
+    {
+      "name": "resting heart rate never held",
+      "call": "apply",
+      "input": {
+        "calculation": "resting-heart-rate",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000601"
+      },
+      "output": {
+        "calculation": "resting-heart-rate",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000601",
+        "fields_read": [
+          {
+            "field": "heart_rate_samples",
+            "present": true
+          }
+        ],
+        "missing": [
+          "heart_rate_samples held for 60000 ms"
+        ],
+        "result": null
+      }
+    },
+    {
+      "name": "training load from heart rate",
+      "call": "apply",
+      "input": {
+        "calculation": "training-load-heart-rate",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000601"
+      },
+      "output": {
+        "calculation": "training-load-heart-rate",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000601",
+        "fields_read": [
+          {
+            "field": "heart_rate_samples",
+            "present": true
+          },
+          {
+            "field": "resting_heart_rate_bpm",
+            "present": true
+          },
+          {
+            "field": "maximum_heart_rate_bpm",
+            "present": true
+          }
+        ],
+        "missing": [],
+        "result": {
+          "load": 0.179
+        }
+      }
+    },
+    {
+      "name": "training load needs rest and maximum",
+      "call": "apply",
+      "input": {
+        "calculation": "training-load-heart-rate",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000602"
+      },
+      "output": {
+        "calculation": "training-load-heart-rate",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000602",
+        "fields_read": [
+          {
+            "field": "heart_rate_samples",
+            "present": true
+          },
+          {
+            "field": "resting_heart_rate_bpm",
+            "present": false
+          },
+          {
+            "field": "maximum_heart_rate_bpm",
+            "present": false
+          }
+        ],
+        "missing": [
+          "resting_heart_rate_bpm",
+          "maximum_heart_rate_bpm"
+        ],
+        "result": null
+      }
+    },
+    {
+      "name": "training load from effort",
+      "call": "apply",
+      "input": {
+        "calculation": "training-load-effort",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000606"
+      },
+      "output": {
+        "calculation": "training-load-effort",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000606",
+        "fields_read": [
+          {
+            "field": "duration_seconds",
+            "present": true
+          },
+          {
+            "field": "rating",
+            "present": true
+          }
+        ],
+        "missing": [],
+        "result": {
+          "load": 420
+        }
+      }
+    },
+    {
+      "name": "training load effort on a workout",
+      "call": "apply",
+      "input": {
+        "calculation": "training-load-effort",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000601"
+      },
+      "output": {
+        "calculation": "training-load-effort",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000601",
+        "fields_read": [
+          {
+            "field": "duration_seconds",
+            "present": false
+          },
+          {
+            "field": "rating",
+            "present": false
+          }
+        ],
+        "missing": [
+          "duration_seconds",
+          "rating"
+        ],
+        "result": null
+      }
+    },
+    {
+      "name": "sleep duration",
+      "call": "apply",
+      "input": {
+        "calculation": "sleep-duration",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000503"
+      },
+      "output": {
+        "calculation": "sleep-duration",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000503",
+        "fields_read": [
+          {
+            "field": "asleep_seconds",
+            "present": true
+          }
+        ],
+        "missing": [],
+        "result": {
+          "value": 27000
+        }
+      }
+    },
+    {
+      "name": "sleep interruptions",
+      "call": "apply",
+      "input": {
+        "calculation": "sleep-interruptions",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000503"
+      },
+      "output": {
+        "calculation": "sleep-interruptions",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000503",
+        "fields_read": [
+          {
+            "field": "interruptions",
+            "present": true
+          }
+        ],
+        "missing": [],
+        "result": {
+          "value": 3
+        }
+      }
+    },
+    {
+      "name": "sleep efficiency",
+      "call": "apply",
+      "input": {
+        "calculation": "sleep-efficiency",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000503"
+      },
+      "output": {
+        "calculation": "sleep-efficiency",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000503",
+        "fields_read": [
+          {
+            "field": "asleep_seconds",
+            "present": true
+          },
+          {
+            "field": "in_bed_seconds",
+            "present": true
+          }
+        ],
+        "missing": [],
+        "result": {
+          "efficiency": 0.9375
+        }
+      }
+    },
+    {
+      "name": "sleep timing",
+      "call": "apply",
+      "input": {
+        "calculation": "sleep-timing",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000503"
+      },
+      "output": {
+        "calculation": "sleep-timing",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000503",
+        "fields_read": [
+          {
+            "field": "start_at",
+            "present": true
+          },
+          {
+            "field": "end_at",
+            "present": true
+          }
+        ],
+        "missing": [],
+        "result": {
+          "start_at": "2026-10-03T00:30:00.000Z",
+          "midpoint_at": "2026-10-03T04:45:00.000Z"
+        }
+      }
+    },
+    {
+      "name": "sleep stages",
+      "call": "apply",
+      "input": {
+        "calculation": "sleep-stages",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000503"
+      },
+      "output": {
+        "calculation": "sleep-stages",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000503",
+        "fields_read": [
+          {
+            "field": "stage_minutes",
+            "present": true
+          }
+        ],
+        "missing": [],
+        "result": {
+          "stages": {
+            "deep": 63,
+            "rem": 90,
+            "light": 197
+          },
+          "total_minutes": 350
+        }
+      }
+    },
+    {
+      "name": "sleep regularity",
+      "call": "apply",
+      "input": {
+        "calculation": "sleep-regularity",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000508"
+      },
+      "output": {
+        "calculation": "sleep-regularity",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000508",
+        "fields_read": [
+          {
+            "field": "asleep window",
+            "present": true
+          }
+        ],
+        "missing": [],
+        "result": {
+          "nights": 8,
+          "regularity": 0.513
+        }
+      }
+    },
+    {
+      "name": "sleep regularity needs seven nights",
+      "call": "apply",
+      "input": {
+        "calculation": "sleep-regularity",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000509"
+      },
+      "output": {
+        "calculation": "sleep-regularity",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000509",
+        "fields_read": [
+          {
+            "field": "asleep window",
+            "present": true
+          }
+        ],
+        "missing": [
+          "found 1 nights, need 7"
+        ],
+        "result": null
+      }
+    },
+    {
+      "name": "sleep change",
+      "call": "apply",
+      "input": {
+        "calculation": "sleep-change",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000508"
+      },
+      "output": {
+        "calculation": "sleep-change",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000508",
+        "fields_read": [
+          {
+            "field": "asleep_seconds",
+            "present": true
+          }
+        ],
+        "missing": [],
+        "result": {
+          "change": 2400,
+          "compared_records": 7
+        }
+      }
+    },
+    {
+      "name": "sleep change with no other night",
+      "call": "apply",
+      "input": {
+        "calculation": "sleep-change",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000509"
+      },
+      "output": {
+        "calculation": "sleep-change",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000509",
+        "fields_read": [
+          {
+            "field": "asleep_seconds",
+            "present": true
+          }
+        ],
+        "missing": [
+          "earlier asleep_seconds"
+        ],
+        "result": null
+      }
+    },
+    {
+      "name": "hrv change",
+      "call": "apply",
+      "input": {
+        "calculation": "hrv-change",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000703"
+      },
+      "output": {
+        "calculation": "same-quantity-change",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000703",
+        "fields_read": [
+          {
+            "field": "quantity",
+            "present": true,
+            "value": "hrv_rmssd"
+          },
+          {
+            "field": "value.standard_value",
+            "present": true
+          }
+        ],
+        "missing": [],
+        "result": {
+          "quantity": "hrv_rmssd",
+          "change": 7.123,
+          "compared_records": 2
+        }
+      }
+    },
+    {
+      "name": "hrv change keeps SDNN apart",
+      "call": "apply",
+      "input": {
+        "calculation": "hrv-change",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000704"
+      },
+      "output": {
+        "calculation": "same-quantity-change",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000704",
+        "fields_read": [
+          {
+            "field": "quantity",
+            "present": true,
+            "value": "hrv_sdnn"
+          },
+          {
+            "field": "value.standard_value",
+            "present": true
+          }
+        ],
+        "missing": [
+          "earlier hrv_sdnn records"
+        ],
+        "result": null
+      }
+    },
+    {
+      "name": "resting heart rate change",
+      "call": "apply",
+      "input": {
+        "calculation": "resting-heart-rate-change",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000705"
+      },
+      "output": {
+        "calculation": "same-quantity-change",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000705",
+        "fields_read": [
+          {
+            "field": "quantity",
+            "present": true,
+            "value": "resting_heart_rate"
+          },
+          {
+            "field": "value.standard_value",
+            "present": true
+          }
+        ],
+        "missing": [
+          "earlier resting_heart_rate records"
+        ],
+        "result": null
+      }
+    },
+    {
+      "name": "strength volume",
+      "call": "apply",
+      "input": {
+        "calculation": "strength-volume",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000603"
+      },
+      "output": {
+        "calculation": "strength-volume",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000603",
+        "fields_read": [
+          {
+            "field": "sets",
+            "present": true
+          }
+        ],
+        "missing": [],
+        "result": {
+          "volume": 1052.5,
+          "weight_unit": "kg"
+        }
+      }
+    },
+    {
+      "name": "strength volume from text",
+      "call": "apply",
+      "input": {
+        "calculation": "strength-volume",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000604"
+      },
+      "output": {
+        "calculation": "strength-volume",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000604",
+        "fields_read": [
+          {
+            "field": "sets",
+            "present": false
+          }
+        ],
+        "missing": [
+          "sets",
+          "text_result is text, so volume cannot be made"
+        ],
+        "result": null
+      }
+    },
+    {
+      "name": "a range calculation on one record",
+      "call": "apply",
+      "input": {
+        "calculation": "summary",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000601"
+      },
+      "output": {
+        "calculation": "summary",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000601",
+        "fields_read": [],
+        "missing": [
+          "unknown calculation count"
+        ],
+        "result": null
+      }
+    },
+    {
+      "name": "the tool skill is not a calculation",
+      "call": "apply",
+      "input": {
+        "calculation": "athletic-standard",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000601"
+      },
+      "output": {
+        "error": "the skill file has no ath-calculation block"
+      }
+    },
+    {
+      "name": "an unknown calculation name",
+      "call": "apply",
+      "input": {
+        "calculation": "no-such-calculation",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000601"
+      },
+      "output": {
+        "error": "no calculation skill named no-such-calculation"
+      }
+    },
+    {
+      "name": "a deleted record",
+      "call": "apply",
+      "input": {
+        "calculation": "hrv-change",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000706"
+      },
+      "output": {
+        "error": "record 01890f3e-e7d3-7cc0-88c8-000000000706 was not found: Query returned no rows"
+      }
+    },
+    {
+      "name": "a missing record",
+      "call": "apply",
+      "input": {
+        "calculation": "hrv-change",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000fff"
+      },
+      "output": {
+        "error": "record 01890f3e-e7d3-7cc0-88c8-000000000fff was not found: Query returned no rows"
+      }
+    },
+    {
+      "name": "an installed copy wins",
+      "call": "apply",
+      "input": {
+        "calculation": "heart-rate-zones",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000601",
+        "installed": {
+          "heart-rate-zones": "---\nname: heart-rate-zones\ndescription: Computes five heart-rate zones from samples and a known maximum heart rate. Use when asking how long one workout spent in each zone.\nlicense: MIT\ncompatibility: Requires the ath CLI and an Athletic Standard 2.0.0 database. The calculation runs with ath apply heart-rate-zones --record <record-id>.\nmetadata:\n  version: \"2.0.0\"\n---\n\n# Heart-rate zones\n\nFive zones, split at 60, 70, 80, and 90 percent of a known maximum heart rate.\nEach sample lasts until the next sample. The last sample lasts as long as the\ngap before it. If the maximum is missing, the result says so. Do not guess a\nmaximum from age.\n\n```ath-calculation\nname: heart-rate-zones\nuse: time_between_cuts\nsample_field: heart_rate_samples\nmaximum_field: maximum_heart_rate_bpm\nzone: 0.50\nzone: 0.70\nzone: 0.80\nzone: 0.90\n```\n"
+        }
+      },
+      "output": {
+        "calculation": "heart-rate-zones",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000601",
+        "fields_read": [
+          {
+            "field": "heart_rate_samples",
+            "present": true
+          },
+          {
+            "field": "maximum_heart_rate_bpm",
+            "present": true
+          }
+        ],
+        "missing": [],
+        "result": {
+          "seconds": [
+            0,
+            2,
+            0,
+            1,
+            1
+          ]
+        }
+      }
+    },
+    {
+      "name": "an installed calculation reads a supplied field",
+      "call": "apply",
+      "input": {
+        "calculation": "calories",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000605",
+        "installed": {
+          "calories": "```ath-calculation\nname: calories\nuse: field\nfield: supplied:Calories\n```\n"
+        }
+      },
+      "output": {
+        "calculation": "calories",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000605",
+        "fields_read": [
+          {
+            "field": "supplied:Calories",
+            "present": true
+          }
+        ],
+        "missing": [],
+        "result": {
+          "value": 512
+        }
+      }
+    },
+    {
+      "name": "an installed calculation cannot read a source label",
+      "call": "apply",
+      "input": {
+        "calculation": "feeling",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000605",
+        "installed": {
+          "feeling": "```ath-calculation\nname: feeling\nuse: field\nfield: supplied:Feeling\n```\n"
+        }
+      },
+      "output": {
+        "error": "a calculation cannot read supplied:Feeling"
+      }
+    },
+    {
+      "name": "an installed file without a block",
+      "call": "apply",
+      "input": {
+        "calculation": "broken",
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000605",
+        "installed": {
+          "broken": "# no block\n"
+        }
+      },
+      "output": {
+        "error": "the skill file has no ath-calculation block"
+      }
+    }
+  ]
+}

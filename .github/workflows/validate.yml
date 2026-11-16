@@ -1,0 +1,255 @@
+# The full check (D225; build-history/v2.1.1/spec.md sections 13.2 and 15), as
+# one reusable workflow. release-cross-platform.yml runs it for every version
+# tag before it publishes anything, and on any branch by hand. Pull requests
+# and main run the quick check in ci.yml instead. No job here holds a
+# publication credential.
+#
+# Each release executable is built once, in native-release. Every later job
+# uses those exact files: the archives and the npm tarball hold them, and the
+# smoke tests run them. Release builds and smoke tests run on the oldest
+# supported runner images: Ubuntu 22.04 (glibc 2.35), macOS 15 on arm64, and
+# Windows Server 2022.
+name: Validate
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+
+jobs:
+  # Formatting, Clippy, and every Rust test, including the public-data check
+  # (tests/public_data.rs) and the generated-file check (tests/generated.rs).
+  native:
+    name: native (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v5
+      # rust-toolchain.toml pins the compiler; rustup installs it on first use.
+      - run: rustup show active-toolchain || rustup toolchain install
+      - run: cargo fmt --check
+      - run: cargo clippy --locked --all-targets -- -D warnings
+      # Report every failing test program, not only the first.
+      - run: cargo test --locked --no-fail-fast
+      # The real Credential Manager, under a test service name. The test is
+      # ignored elsewhere because it writes to the password store of whoever
+      # runs it; this runner is discarded after the job.
+      - name: Credential Manager on the Windows runner
+        if: runner.os == 'Windows'
+        run: cargo test --locked --test runtime_keyring -- --ignored credential_manager_saves_reads_and_clears_a_key_on_windows
+
+  native-release:
+    name: release build (${{ matrix.target }})
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            target: linux-x64
+            triple: x86_64-unknown-linux-gnu
+            executable: ath
+          - os: macos-15
+            target: darwin-arm64
+            triple: aarch64-apple-darwin
+            executable: ath
+          - os: windows-2022
+            target: win32-x64
+            triple: x86_64-pc-windows-msvc
+            executable: ath.exe
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v5
+      - run: rustup show active-toolchain || rustup toolchain install
+      - run: cargo build --release --locked
+      - name: Check the executable reports the Cargo and npm version
+        shell: bash
+        run: |
+          cargo_version="$(cargo metadata --no-deps --format-version 1 | node -e "process.stdout.write(JSON.parse(require('fs').readFileSync(0, 'utf8')).packages[0].version)")"
+          npm_version="$(node -p "require('./packages/npm/package.json').version")"
+          actual="$(target/release/${{ matrix.executable }} --version)"
+          if [ "$actual" != "$cargo_version" ] || [ "$actual" != "$npm_version" ]; then
+            echo "ath --version printed '$actual'; Cargo.toml has '$cargo_version'; package.json has '$npm_version'"
+            exit 1
+          fi
+          echo "version=$actual" >> "$GITHUB_ENV"
+      - name: Stage the executable and its release archive
+        shell: bash
+        run: |
+          mkdir -p native-artifact/${{ matrix.target }} archive-artifact
+          cp target/release/${{ matrix.executable }} native-artifact/${{ matrix.target }}/
+          name="ath-${version}-${{ matrix.triple }}"
+          mkdir -p "archive-work/$name"
+          cp target/release/${{ matrix.executable }} LICENSE README.md "archive-work/$name/"
+          if [ "${{ runner.os }}" = "Windows" ]; then
+            (cd archive-work && 7z a -tzip "../archive-artifact/$name.zip" "$name" > /dev/null)
+          else
+            tar -C archive-work -czf "archive-artifact/$name.tar.gz" "$name"
+          fi
+          node -e "const fs = require('fs'); const crypto = require('crypto'); for (const file of process.argv.slice(1)) console.log(crypto.createHash('sha256').update(fs.readFileSync(file)).digest('hex') + '  ' + file)" \
+            native-artifact/${{ matrix.target }}/${{ matrix.executable }} archive-artifact/*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.target }}
+          path: native-artifact
+          if-no-files-found: error
+      - uses: actions/upload-artifact@v4
+        with:
+          name: archive-${{ matrix.target }}
+          path: archive-artifact
+          if-no-files-found: error
+
+  # Each archive is unpacked on its own system and used with no Node.js, Rust
+  # toolchain, sqlite3 program, or source tree on PATH. Only the smoke script
+  # and the synthetic fixtures are checked out.
+  archive-smoke:
+    name: archive smoke (${{ matrix.target }})
+    needs: native-release
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-22.04
+            target: linux-x64
+          - os: macos-15
+            target: darwin-arm64
+          - os: windows-2022
+            target: win32-x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: |
+            tools/archive-smoke.sh
+            tests/fixtures
+          sparse-checkout-cone-mode: false
+      - uses: actions/download-artifact@v4
+        with:
+          name: archive-${{ matrix.target }}
+          path: archive
+      - name: Unpack the archive and use it
+        shell: bash
+        run: |
+          mkdir unpacked
+          for file in archive/*; do
+            case "$file" in
+              *.zip) (cd unpacked && 7z x "../$file" > /dev/null) ;;
+              *.tar.gz) tar -C unpacked -xzf "$file" ;;
+            esac
+          done
+          executable="$(find unpacked -type f \( -name ath -o -name ath.exe \) | head -n 1)"
+          chmod 755 "$executable"
+          mkdir smoke && cd smoke
+          bash ../tools/archive-smoke.sh "../$executable" ../tests/fixtures
+
+  # The type check and the client and launcher tests, against the Linux
+  # executable from native-release.
+  npm-client:
+    name: npm client (Node ${{ matrix.node-version }})
+    needs: native-release
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version: [22, 24]
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: packages/npm
+    env:
+      ATH_NATIVE_EXECUTABLE: ${{ github.workspace }}/native-artifacts/linux-x64/ath
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+          cache-dependency-path: packages/npm/package-lock.json
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: native-linux-x64
+          path: native-artifacts
+      - run: chmod 755 "$ATH_NATIVE_EXECUTABLE"
+      - run: npm run typecheck
+      - run: npm test
+
+  # The launcher tests on Windows: package-manager lookup with PATHEXT, a real
+  # batch file run through cmd.exe, and the Windows executable through the launcher.
+  npm-launcher-windows:
+    needs: native-release
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: packages/npm
+    env:
+      ATH_NATIVE_EXECUTABLE: ${{ github.workspace }}\native-artifacts\win32-x64\ath.exe
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: packages/npm/package-lock.json
+      - run: npm ci
+      - uses: actions/download-artifact@v4
+        with:
+          name: native-win32-x64
+          path: native-artifacts
+      - run: npx vitest run test/launcher.test.ts
+
+  # Packs the three executables above without building one. The download
+  # gives pack.mjs its required layout: native-artifacts/linux-x64/ath,
+  # native-artifacts/darwin-arm64/ath, and native-artifacts/win32-x64/ath.exe.
+  npm-pack:
+    needs: native-release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: packages/npm/package-lock.json
+      - run: npm ci
+        working-directory: packages/npm
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: native-*
+          path: native-artifacts
+          merge-multiple: true
+      - run: node packages/npm/scripts/pack.mjs --native-dir native-artifacts --out npm-tarball
+      - uses: actions/upload-artifact@v4
+        with:
+          name: npm-tarball
+          path: npm-tarball
+          if-no-files-found: error
+
+  # Each system installs the same packed tarball into an empty folder. Only the
+  # smoke scripts are checked out; the source tree and build tools stay out of reach.
+  npm-smoke:
+    name: npm smoke (${{ matrix.os }})
+    needs: npm-pack
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, macos-15, windows-2022]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: packages/npm/scripts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          name: npm-tarball
+          path: npm-tarball
+      - name: Install and use the packed tarball
+        shell: bash
+        run: node packages/npm/scripts/smoke.mjs npm-tarball/athleticstandard-*.tgz
