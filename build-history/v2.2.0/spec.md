@@ -6,7 +6,7 @@ Status: **plan only. The maintainer has not approved it. Not approved for build.
 Wearables server they run. When `--vendor-workouts` is passed, it also
 reads the live workout list and detail. It writes the stored reads with
 the mapping this release ships. It writes a live original only when that
-flag is on and the person confirms the write. The proposals are D198 through D215 in
+flag is on and the person confirms the write. The proposals are D227 through D244 in
 [decisions.md](decisions.md). They are not adopted. The evidence is
 [appendix/open-wearables-api.md](appendix/open-wearables-api.md), checked on
 6, 7, 8, and 14 November 2026.
@@ -51,7 +51,10 @@ environment when both are set.
 
 `--vendor-workouts` is off unless the person passes it. Without it, the
 command does not call the connections route or either live workout route.
-With it, those calls run, including on a preview and on `--json`.
+With it, those calls run, including on a preview and on `--json`. The
+server may then refresh and save vendor tokens, revoke a connection, and
+wait about 105 seconds on a rate limit. The help text and every run with
+the flag say so (section 2).
 
 The first run writes nothing. `--json` writes nothing, including when
 `--yes` is also present. That is the same rule as `ath import --mapping`.
@@ -65,8 +68,8 @@ committed result is the text of `--yes` without `--json`. A writing JSON
 report would be a different choice. It is not this proposal.
 
 Preview text, and every `--json` result, labels counts `estimated`. Each
-page is counted against the database as it was before this command, then
-rolled back. A match key that appears on two pages, or a server that changes
+page is previewed against the database as it was before this command. A
+preview writes nothing. A match key that appears on two pages, or a server that changes
 between the preview and `--yes`, can make the estimate differ from the
 write. The estimate is not a promise of the final new, changed, and
 unchanged split. Exact equality would need a command-wide overlay. This
@@ -76,16 +79,21 @@ Preview text prints:
 
 - one line that a date-only bound is sent as typed, and Open Wearables decides
   what that day means
-- `preview only; nothing stored`
+- `preview only; nothing stored in this database`
 - `reads finished` or `reads incomplete`
 - one line each for the twelve reads in section 2: `completed`, `failed`,
   or `not_attempted`
 - one line each for the live workout providers: `completed`, `incomplete`,
-  or `not_attempted`, whether that limit covers the requested range, and
-  whether more data exists
+  or `not_attempted`, the connection status when it is not `active`,
+  whether that limit covers the requested range, whether more data exists,
+  and the detail and left-out counts in section 2
+- when `--vendor-workouts` is on, before the first live request: the three
+  sentences about server changes in section 2
 - when `--vendor-workouts` is on: `vendor requests were made`
 - when `--vendor-workouts` is on: `vendor workout originals` with new,
   changed, and unchanged counts
+- when a credential-shaped value was withheld: the count and up to 20
+  paths, as section 4 says
 - when `--vendor-workouts` is on, this sentence: a workout can appear twice,
   once as the vendor original and once as the stored session. The original
   is the source report whose subject is `vendor_workout`. It is never a
@@ -98,11 +106,15 @@ Preview text prints:
   measurement samples, summaries, scores, and source reports
 - committed counts of zero on a preview
 - the coverage lines in section 2
-- `left_out` as a total plus at most 20 example lines
-- `nothing written; pass --yes after reviewing this preview`
+- `left_out` as a total, a count for each reason, and at most 20 example
+  lines. When there are more lines, it says the list was shortened, as
+  2.1.1 previews do with `MAX_PREVIEW_RECORD_IDS`
+- `nothing written to this database; pass --yes after reviewing this preview`.
+  The shared `NOTHING_WRITTEN` line in `src/cli/commands/routes.rs` stays
+  as it is for the other commands
 
 `--yes` without `--json` commits each successful page. That commit is one
-`MappedReader` transaction (D189). It is not a completed pull. The text
+`ProviderPreview::apply` transaction (D189). It is not a completed pull. The text
 prints actual committed counts for pages kept. It prints `requested range
 <from> through <to> is complete` only when every stored ranged read in
 section 2 reached that read's terminal condition. A live workout line does
@@ -125,10 +137,10 @@ complete and names the snapshot that failed. It names any read that is
 in both cases. The success sentence is not printed. A failed read says to
 run the same command again. An identity refusal uses the sentence in
 section 3, which says a rerun cannot
-repair the device id. It does not print the success sentence. The
-protected transaction of a refused page makes no database changes.
+repair the device id. It does not print the success sentence. A refused
+page is not applied, so it makes no database changes.
 Records already stored stay, including their revisions. An archive, when
-section 2 allows one, is a later pull-only transaction. It does not print
+section 2 allows one, is a later pull-only preview and apply. It does not print
 the success sentence. `written` is true when any protected transaction
 in this command created or revised a counted record. An archive does not
 make `written` true. `database_changed` is true when any protected
@@ -177,23 +189,41 @@ the text. The object has no key, server, user id, or request path.
   "archive_committed": {
     "source_report": { "new": 0, "changed": 0, "unchanged": 0 }
   },
-  "left_out": { "total": 0, "examples": [] },
+  "left_out": { "total": 0, "by_reason": {}, "examples": [], "shortened": false },
+  "withheld": { "total": 0, "paths": [], "shortened": false },
   "vendor_workouts": {
     "requested": false,
     "requests_made": false,
+    "notice": [],
     "originals": { "new": 0, "changed": 0, "unchanged": 0 },
     "providers": {
       "garmin": {
         "status": "not_attempted",
+        "connection_status": null,
         "covers_requested_range": false,
         "more": false,
-        "deferred": 0,
-        "limit": "not requested"
+        "limit": "not requested",
+        "details": {
+          "stored": 0,
+          "kept": 0,
+          "deferred": 0,
+          "failed": 0,
+          "mismatch": 0,
+          "thinner": 0,
+          "not_available": 0
+        },
+        "left_out": { "total": 0, "by_reason": {} }
       }
     }
   }
 }
 ```
+
+`notice` is empty without the flag. With it, `notice` holds the three
+sentences about server changes in section 2, on every run, including a
+preview. `connection_status` is `active`, `revoked`, `expired`,
+`unknown status`, or `null` when the server listed no connection for that
+provider.
 
 The same record types are present for workouts, points, summaries, scores,
 and source reports. The example above is shortened. Polar, Suunto, Whoop,
@@ -220,15 +250,29 @@ protected counts. An earlier change keeps both flags true. A failed ranged page 
 failed snapshot after a finished range has `range_complete` true and
 `snapshots_complete` false. The command prints sentences from this outcome.
 It does not print the outcome as public JSON. Public `--json`, with or
-without `--yes`, commits neither the protected transaction nor the
-archive transaction.
+without `--yes`, applies neither the protected preview nor the archive
+preview.
 
-`--date` stays required only for `garmin`. `--from` and `--to` are required
+`--date` stays required only for `garmin`. In 2.1.1, `PULL` in
+`src/cli/spec.rs` marks `--date` mandatory, so the parser refuses any pull
+without it: `error: required option '--date <day>' not specified`. The
+build drops that mark. `pull` in `src/cli/commands/routes.rs` then checks
+`--date` for `garmin` and prints that same text, so `ath pull garmin`
+without a date fails as it does today. `--from` and `--to` are required
 only for `openwearables`, and they are flags, not environment variables.
 `--base-url` and `--user` are required for `openwearables` unless the
-environment named above supplies them. `ath pull garmin --date YYYY-MM-DD` is
-otherwise unchanged. `ath pull` with any other name still fails. The failure
-text becomes `pull reads garmin or openwearables`.
+environment named above supplies them. `--base-url` already exists for
+`garmin`, where it names a test server's API root. For `openwearables` it
+names the server origin, as D229 says. `ath pull garmin --date YYYY-MM-DD`
+is otherwise unchanged, and it still writes without a preview.
+`ath pull` with any other name still fails. The failure text
+`pull currently reads garmin` becomes `pull reads garmin or openwearables`.
+
+The flag's help in `src/cli/spec.rs` says: also read live vendor workouts;
+the server may refresh and save vendor tokens, revoke a connection, and
+wait about 105 seconds on a rate limit. `src/cli/examples/pull.txt` repeats
+those three effects and says that "nothing stored" means this database
+only.
 
 The saved key can read every user on that server. `ath key` shows whether a
 key is saved in the password store and whether `OPEN_WEARABLES_API_KEY` is
@@ -254,21 +298,21 @@ gateway commands they are today.
 
 ## 2. What this pull stores
 
-D208 is the storage rule. D203 keeps these values in this pull. D204
-corrected source, time, and score direction. D205 corrects units, day
+D237 is the storage rule. D232 keeps these values in this pull. D233
+corrected source, time, and score direction. D234 corrects units, day
 windows, sleep bounds, identity encoding, reported records, and child
-withdrawal. D206 corrects the root record type, numberless calculation
+withdrawal. D235 corrects the root record type, numberless calculation
 inputs, recovery scales, required ids, workout provenance, hydration,
-and the archive of a refused original. D207 corrects the migration
+and the archive of a refused original. D236 corrects the migration
 dependencies, the command counts, the archive capsule, and null-source
-report routing. D208 corrects when the archive reads the database, and
-the failed-init sentence. D209 stores a workout the person typed as a
-workout session. D210 keeps a body skin-temperature time unknown when the
-response does not say it is an instant. D211 keeps a finite
-`hr_recovery`, including zero and a negative number. D212 keeps the
-current manual-session calculation rule. D213 stores the live
-workout list and detail as originals. D214 is the live-read procedure.
-D215 keeps each vendor object whole. An earlier draft
+report routing. D237 corrects when the archive reads the database, and
+the failed-init sentence. D238 stores a workout the person typed as a
+workout session. D239 keeps a body skin-temperature time unknown when the
+response does not say it is an instant. D240 keeps a finite
+`hr_recovery`, including zero and a negative number. D241 keeps the
+current manual-session calculation rule. D242 stores the live
+workout list and detail as originals. D243 is the live-read procedure.
+D244 keeps each vendor object whole. An earlier draft
 left day values, the heart-rate stream, summaries, and workout segments for
 a later version. That draft is superseded. File imports stay. The Garmin pull stays. A Junction pull is proposed as
 2.3.0. Automatic sync, retries, token refresh, and backfill are proposed as
@@ -338,13 +382,14 @@ is not `left_out`. Paging continues until `has_more` is false. The server
 still applies its own start bound, so a cycle that started before `--from`
 is not returned. That is the server's filter.
 
-A page over 8 MiB is not mapped. On a cursor or offset read, the same
+A page over the response cap, `MAX_PULL_RESPONSE_BYTES` (10 MiB), is not
+mapped. On a cursor or offset read, the same
 cursor or the same offset is sent again with `limit` halved, down to 1.
 The discarded response writes nothing and does not advance the cursor or
 the offset. A transport failure is not retried. Day `limit` counts periods.
 A `limit` of 1 can still hold many rows, one for each source and series in
 that period. The server also floors that period count at 1. If the minimum
-page is still over 8 MiB, the read is incomplete. The message names the
+page is still over the cap, the read is incomplete. The message names the
 read and, for timeseries, the resolution. It does not name a series type,
 and it does not say one row was too large. Body and the personal record
 have no limit. An oversized response fails that read and names the read.
@@ -397,8 +442,9 @@ Sleep, workout, meal, cycle, and health-score objects need a `id` that is
 a UUID string. Missing, null, blank, and any other shape refuse the
 protected page before a source, a row, or hardware changes. The row is not
 `left_out`. No empty or time-based id is invented. A valid neighbor on
-that page is not stored. A later page of the same command still rolls
-back only the failed page, and earlier committed pages stay.
+that page is not stored. Each page of the command is its own preview and
+apply, so only the failed page is refused, and earlier committed pages
+stay.
 
 A new sensor is the prefix `ow1:` plus a JSON array. The array has no
 spaces. A missing part is JSON `null`. An empty string and the text `-`
@@ -418,6 +464,8 @@ The array shapes are:
 - Measured series with `source: null`: `["unattributed", "timeseries"]`. A reported series does not use this sensor.
 - Archive originals: `["archive"]`
 - Personal record: `["personal_record"]`
+- Vendor originals: `["vendor_workout", provider]`. `provider` is the
+  provider name in the route path, such as `garmin` or `suunto`.
 
 The writer is `source.provider` when that string is nonempty. A health
 score uses its top-level `provider` when that string is nonempty. The
@@ -440,10 +488,10 @@ and, for a day row, `period_end`. A raw row at midnight and a day window
 that starts at that midnight are different keys. Two rows with one key
 are one normalized record only when the whole returned row is equal. A
 different value, in the same page or a later confirmed call, refuses the
-protected transaction. The stored normalized row stays. The text says the
+protected page. The stored normalized row stays. The text says the
 rows are ambiguous and a rerun cannot choose the normalized row. `ath
-correct` remains the owner's way to replace that row. Preview
-pages roll back, and the command memory holds device-binding facts only.
+correct` remains the owner's way to replace that row. A preview page
+writes nothing, and the command memory holds device-binding facts only.
 A preview therefore does not claim to see a null-source conflict from an
 earlier preview page. A confirmed `--yes` page does see an earlier
 committed page.
@@ -460,9 +508,9 @@ appendix table, fails before any request.
 | Manual workout | `{ "workout": data }` | `source.provider` | not the device sensor | `workout_session` on the manual source, server id | same typed fields, zones, and segments as an automatic workout |
 | Unknown, null, or omitted `entry_source` | `{ "workout": data }` | `source.provider` | `ow1` event | `source_report` `unknown_workout`, server id | none. The original object is the record |
 | Measured raw series with `device_id` | timeseries object, `resolution` `raw` | `source.provider` | legacy device | the raw class in the appendix, D181 time key | none |
-| Measured raw or day series, source present, no `device_id` | timeseries object | `source.provider` | legacy device, then the protected transaction is refused | no measured row. Section 2 may archive the original | none |
+| Measured raw or day series, source present, no `device_id` | timeseries object | `source.provider` | legacy device, then the protected page is refused | no measured row. Section 2 may archive the original | none |
 | Reported series, source present or null | timeseries object | `source.provider`, or `open_wearables` when that string is missing | `ow1` report only | `source_report`, appendix subject | none. The amount is the reported pair |
-| Measured series, `source` null | timeseries object | `open_wearables` | `ow1` unattributed only | the raw class, full match key | none. An unequal payload refuses the protected transaction and may be archived |
+| Measured series, `source` null | timeseries object | `open_wearables` | `ow1` unattributed only | the raw class, full match key | none. An unequal payload refuses the protected page and may be archived |
 | Day series | timeseries object, `resolution` `1day` | same as the raw row | same as the raw row | window form in the appendix. Key adds `1day` and `period_end` | none |
 | Sleep, activity, or recovery summary | `{ "sleep_summary": data }`, `{ "activity_summary": data }`, or `{ "recovery_summary": data }` | `source.provider` | `ow1` summary | `source_report` subject `object`, date | one measured child per numeric field, field path in the key |
 | Body | the object | umbrella `source.provider`, or `open_wearables` when it is missing | `ow1` summary, family `body` | `source_report` subject `object` | slow-changing weight, height, fat, and muscle are time-unknown provider summaries; averaged heart rate and HRV use the server window; body temperature and blood pressure use their own times; skin temperature is time-unknown; age and BMI are source reports |
@@ -470,15 +518,15 @@ appendix table, fails before any request.
 | Meal | `{ "meal": data }` | `source.provider` | `ow1` event | `source_report` subject `object`, meal id | one `source_report` per numeric field path |
 | Cycle | `{ "cycle": data }` | `source.provider` | `ow1` event | `source_report` subject `object`, cycle id | one `source_report` per numeric reported length |
 | Personal record | the object after `user_id` is removed | `open_wearables` | `ow1` personal | `source_report` subject `personal_record` | none |
-| Vendor workout | one combined list and detail object | `open_wearables` | `ow1:["vendor_workout", provider]` | `source_report` subject `vendor_workout`, key is provider plus vendor id | none. The whole vendor object is the record |
+| Vendor workout | the vendor envelope in the vendor section below | `open_wearables` | `ow1:["vendor_workout", provider]` | `source_report` kind `original`, subject `vendor_workout`. The key ends with the provider and the vendor id | none. The whole envelope is the record |
 
 `source_report` is not one of the seven measured record types in SPEC
 section 5.4. It has a source, so it is not an athlete report and it is
 not a nutrition entry. Nutrition entries have no source. D161 still says
 a mapping cannot turn a personal report into a measured record. A source
-report stores that report without making it a measurement. The eight range calculations and
-`provider-period-summary` do not read it. Step 5 creates the
-`source_reports` table. Value and unit are both present or both absent.
+report stores that report without making it a measurement. The eight
+range calculations in `src/calculate/range.rs`, `provider-period-summary`
+among them, do not read it. Step 6 creates the `source_reports` table. Value and unit are both present or both absent.
 `report_kind` is one of `intake`, `account`, `predicted`, `code`, `text`,
 `unknown_workout`, `index`, or `original`. Gender uses
 `account`. It is not copied into `sex` or the athlete profile. The
@@ -493,7 +541,12 @@ One source report has this JSON shape. Extra fields are refused.
   "subject": "hydration",
   "provider_record_id": "optional server id",
   "reported_at": "optional UTC timestamp",
-  "input_timestamp": { "timestamp_text": "the server timestamp" },
+  "input_timestamp": {
+    "timestamp_text": "the server timestamp, as sent",
+    "utc_offset_text": "the offset at the end of that text",
+    "utc_offset_meaning": "meaning_not_documented",
+    "timestamp_basis": "source_offset_timestamp"
+  },
   "provider_reporting_periods": [],
   "amount": {
     "input_value": 250,
@@ -502,7 +555,7 @@ One source report has this JSON shape. Extra fields are refused.
     "standard_unit": "mL"
   },
   "received_at": "when this program first stored it",
-  "received_at_basis": "provider_import",
+  "received_at_basis": "import_time",
   "supplied_fields": {}
 }
 ```
@@ -512,10 +565,16 @@ standard fields are present. It is a reported pair. It is not a measured
 `SourceValue`, and `field_basis` is absent. A day report omits
 `reported_at` and uses `open_wearables_reporting_window` for the server's
 timestamp and `period_end`. Kind `original` omits `amount` and omits
-reporting periods. `input_timestamp` is either a timestamp text or
-`timestamp_missing_reason`. The record is registered on `RecordType`, the
-current and revision unions, the package schema, `typedTables`, repair,
-and the root SQL check. It is not added to the seven measured types or to
+reporting periods. `input_timestamp` is the receipt that `input_receipt`
+in `src/import/mapping.rs` writes for a timestamp text. A `Z` text is
+`source_instant` with `documented_recording_offset`. Any other offset is
+`source_offset_timestamp` with `meaning_not_documented`. When the server
+gave no time, it is `missing_timestamp_receipt` in
+`src/import/candidate.rs`. `received_at_basis` is `import_time`, as every
+2.1.1 mapped import writes. A vendor original's start follows the rule in
+the vendor section below. The record is registered on `RecordType`, the
+current and revision unions, the package schema, the table description in
+`src/store/encode.rs`, repair, and the root SQL check. It is not added to the seven measured types or to
 the point, sample, or session readers.
 
 Match keys for the new records are the writer, the sensor, the resource,
@@ -665,50 +724,62 @@ both absent. The record id, the revisions, and the first `received_at`
 stay. D182 copies the stored `received_at` onto the new revision.
 `became_known_at` is when that revision was written. A later number
 returns on the same child. A range that does not return the object does
-not withdraw its children. A refused page rolls the withdrawals back
-with the page.
+not withdraw its children. A refused page writes nothing, so its
+withdrawals are not written either.
 
-A protected refusal rolls that transaction back. It does not become a
-successful pull. The archive is pull-only. `ath import --mapping` uses
-the same protected envelopes and the same refusal, and it does not start
-the archive transaction. A refused file import keeps no original.
+A page is one 2.1.1 import. `preview_route` in `src/import/provider.rs`
+stages the page and matches it against the database in one read
+transaction, at one database revision. It writes nothing. With `--yes`,
+`ProviderPreview::apply` writes that plan in one write transaction. The
+apply refuses the plan when the database revision moved after the
+preview, when a corrected record's revision moved, or when a match key
+now names another record. A protected refusal is found by the preview,
+so the page is not applied. It does not become a successful pull. The
+archive is pull-only. `ath import --mapping` uses the same protected
+envelopes and the same refusal, and it does not build an archive. A
+refused file import keeps no original.
 
-Before either transaction, the pull checks the page itself. The order of
-the rows does not matter. The privacy scan is first. A hit starts
-neither transaction. A missing or malformed required UUID, a supplied
+Before the preview, the pull checks the page itself. The order of
+the rows does not matter. The privacy scan is first. A hit builds
+no preview. A missing or malformed required UUID, a supplied
 field whose name is not allowed, and any other decoded-field failure are
 the same kind of check. They use the returned JSON. They do not use the
-database. One such failure starts neither transaction. A timeseries row
+database. One such failure builds no preview. A timeseries row
 has no required UUID. A query-bucket `left_out` row is not one of these
 failures, and it is not archived.
 
-The database facts are read later, inside the protected
-`BEGIN IMMEDIATE`, before any insert, update, or delete. The read covers
-every row on the page, including a row the mapping would leave out. For
-each named source it reads the receipt, the binding, deletion, and
-history, and history includes tombstones. For each named record and
-import key it reads deletion, the current revision, and, for a workout,
-the stored kind. For each null-source full key it reads the stored
-payload. That set of facts is the safety snapshot. An unlocked read
-taken before this transaction is not the snapshot.
+The database facts are read in the page's matching step, inside the read
+transaction above. The read covers every row on the page, including a row
+the mapping would leave out. For each named source it reads the receipt,
+the binding, deletion, and history, and history includes tombstones. For
+each named record and import key it reads deletion, the current revision,
+and, for a workout, the stored kind. For each null-source full key it
+reads the stored payload. That set of facts is the safety snapshot. It
+belongs to the database revision the preview read. The apply refuses a
+moved revision, so a page is never written against facts it did not read.
 
-One database veto anywhere in that snapshot refuses the protected page
-before any mutation. The vetoes are a conflicting device id, a deleted
-source, unbound history, a malformed receipt, a workout kind that
-differs from the stored record, and a deleted record or import key the
-page would copy. A deleted-source row that the mapping would leave out
-is still a veto. The protected transaction rolls back. The archive is
-not attempted. The veto stands even when an earlier unlocked read saw
-no veto. A missing device id on a timeseries row is not this veto.
+One database veto anywhere in that snapshot refuses the protected page.
+The vetoes are a conflicting device id, unbound history, a malformed
+receipt, and a workout kind that differs from the stored record. The
+archive is not attempted after a veto. A missing device id on a
+timeseries row is not this veto.
 
-The archive is allowed only when that snapshot has no veto and it has
-one of these eligible facts: a device-targeted series row whose source
-has no device id, or a null-source series row, measured or reported,
-whose full match key has a different payload in this page or already
-stored. An eligible row does not authorize the archive when a veto is
-also on the page. A confirmed command keeps this snapshot for the
-archive transaction. It does not keep a lock after the protected
-rollback. A preview discards the snapshot with that rollback.
+A deleted source or a deleted record is not a veto. A row whose source the
+person deleted is left out, and the line says so (D190). A row whose
+match key names a record the person deleted is left out, and the line
+says so (D182). The rest of the page is written. These are the 2.1.1
+keyed-import rules, and a deleted row is never recreated. A deleted source
+or a deleted record named anywhere on the page still forbids the archive
+of that page.
+
+The archive is allowed only when that snapshot has no veto, names no
+deleted source or record, and has one of these eligible facts: a
+device-targeted series row whose source has no device id, or a
+null-source series row, measured or reported, whose full match key has a
+different payload in this page or already stored. An eligible row does not
+authorize the archive when a veto is also on the page. A confirmed command
+keeps the snapshot's database revision for the archive. A preview never
+applies an archive.
 
 When the archive revalidation below matches the safety snapshot, the
 archive stores one capsule per returned series row on that page, not a
@@ -733,35 +804,43 @@ canonical capsule, with keys sorted and no extra whitespace. The same
 capsule is one record. A raw capsule and a day capsule are different
 even when the row bodies match. The hash is not a sample id. This plan
 does not claim that two different capsules cannot hash equal. If the key
-is already stored and the stored capsule differs, the archive transaction
-fails before any insert and does not revise the old capsule.
+is already stored and the stored capsule differs, the archive fails before
+it writes and does not revise the old capsule.
 
 The archive source uses writer `open_wearables`, sensor `ow1:["archive"]`,
 and `source_type` `connector`. The receipt operations are not called, and
 `device_binding` is not written.
 
-The archive transaction starts with its own `BEGIN IMMEDIATE`, after the
-protected rollback. The re-read and any archive writes are that same
-transaction, so another writer cannot commit between them. Before it
-inserts a source or a capsule, it reads
-the same safety facts again, including a `left_out` neighbor. It also
-reads the archive source and each target capsule, including a tombstone.
-It compares those facts with the safety snapshot. A new veto, a
-different binding, a new or missing history row, a source or record
-tombstone, or a different safety revision means the snapshot is stale.
-`archive` is then `not_attempted`. The transaction rolls back with no
-writes. The fetched payload is not stored under the archive source, and
-it is not given a new identity. A deleted archive source is not
-recreated. A deleted capsule is not replaced. If the pull cannot name
-this bounded set for a row, it does not archive the page. There is no
-retry. A page that committed an archive still sees that archive. A
-deletion after this archive commits is a later command.
+The archive is its own preview and apply, after the protected refusal. Its
+preview stages one capsule per returned series row. It matches them
+against the archive source and each target capsule, including a deleted
+one. It goes ahead only when its database revision is still the one the
+protected preview read. Otherwise `archive` is `not_attempted` and nothing
+is written. Its apply refuses a moved revision, as every 2.1.1 apply does,
+and `archive` is then `not_attempted` too.
+
+The archive does not read the safety facts a second time. Every write to a
+database moves its revision: `Store::apply` in `src/store/write.rs`,
+`ProviderPreview::apply`, repair in `src/store/repair.rs`, restore in
+`src/package/restore.rs`, and erase in `src/package/erase.rs` all advance
+it. So an unchanged revision means the binding, the history, the
+tombstones, and the vetoes are the ones the protected preview read. The
+fetched payload is not stored under the archive source, and it is not
+given a new identity.
+
+A deleted archive source leaves every capsule out and is not recreated
+(D190). A deleted capsule is left out and is not replaced (D182). The
+archive refuses its own plan when that plan would revise a stored capsule,
+so a stored capsule is never revised. If the pull cannot name this bounded
+set for a row, it does not archive the page. There is no retry. A page that
+committed an archive still sees that archive. A deletion after this archive
+commits is a later command.
 
 `protected_write` is `committed` or `refused`. `archive` is
 `not_attempted`, `stored`, `unchanged`, or `failed`. `committed` is the
 protected counts. `archive_committed` is the archive counts. A record is
 not in both. `written` follows section 1 and is not set by the archive
-alone. `database_changed` is true when this command's archive transaction
+alone. `database_changed` is true when this command's archive apply
 committed a new source or a new capsule, and it stays true if an earlier
 page already changed the database. A later refusal does not clear the
 earlier counts. When the archive stores N new capsules and the command
@@ -773,7 +852,7 @@ unchanged only when no earlier page changed it. The unchanged text is
 incomplete.` After an earlier change it is `Protected write refused; 0
 originals archived; database changed; pull incomplete.` A third payload
 adds its own new count and does not replace the earlier capsule. If the
-archive transaction fails, it rolls back entirely, `archive` is `failed`,
+archive apply fails, its transaction writes nothing, `archive` is `failed`,
 the protected refusal remains, earlier commits remain, the success
 sentence is not printed, and the exit is nonzero. The text is `Protected
 write refused; archive failed; database unchanged; pull incomplete.`
@@ -782,17 +861,16 @@ partial archive count. When the archive is `not_attempted` after a
 protected refusal, the text is `Protected write refused; archive not
 attempted; database unchanged; pull incomplete.` After an earlier change
 it says `database changed`. That result adds no archive count. A
-preview, including `--json` and `--json --yes`, rolls the protected
-transaction back and does not start the archive transaction.
-`estimated_archive` comes from that rolled-back read and is labeled
-estimated.
+preview, including `--json` and `--json --yes`, applies neither the
+protected plan nor the archive. `estimated_archive` comes from the
+archive's own preview and is labeled estimated.
 
 A page of only reported series, with no device id, is an ordinary source
 report write. It is not an archive, and it does not refuse the device
 check. A normalized row is not revised from an archive.
 
 A provider summary or provider score may omit `value` only together with
-its unit. One without the other is refused. Step 5 rebuilds both typed
+its unit. One without the other is refused. Step 6 rebuilds both typed
 tables so the pair can be null, copies every existing row, and keeps
 record ids, `data_json`, import keys, revisions, tombstones, and reporting
 periods. Scale on a provider score stays required. No number is invented.
@@ -814,114 +892,347 @@ The following are not requested. Each line is the reason.
   `/sync/historical` are not called. The connections list is called only
   when `--vendor-workouts` is on.
 
+### Live vendor workouts
+
 `--vendor-workouts` is off by default. Off, the command makes no request
 to `/api/v1/users/{user_id}/connections` and no request to either live
 workout route. Preview and `--json` without the flag make those zero
 requests. On, the same preview and `--json` do make them, write nothing
-in this database, and print `vendor requests were made`.
+in this database, and print `vendor requests were made`. "Nothing stored"
+and "nothing written" always mean this database. The server can still
+change, as the next paragraph says.
 
 A live call can change the server. `api_client.py` at
 the pinned commit can refresh a vendor token and save it, revoke a
 connection when refresh is missing or auth has failed for a day, and emit
 `connection.revoked`. It writes the Redis keys `token_refresh_lock` and
 `provider_auth_failing_since`. On HTTP 429 it sleeps 15, then 30, then 60
-seconds, up to three retries. This pull does not add its own retry. It
-does not add a vendor token or a new scope. The server may still do the
-work above while answering the GET.
+seconds, up to three retries, so one request can wait about 105 seconds.
+This pull does not add its own retry. It does not add a vendor token or a
+new scope. The server may still do the work above while answering the GET.
 
-With the flag on, the pull reads connections first. It then calls only a
-connected provider whose live list method exists. The order is fixed:
-Garmin, Polar, Suunto, Whoop, Fitbit, Oura, Strava, Withings, Sensorbio.
-A provider that is not connected, and a connected provider with no live
-list method, is `not_attempted`. That is not a failure. One provider's
-failure leaves its line `incomplete` and the other providers still run.
-Apple, Samsung, Health Connect, Ultrahuman, and Google Health have no
-live list method. Their stored workouts still come from `/events/workouts`.
+Every run with the flag says this in three sentences, before its first
+live request. The server may refresh and save vendor tokens. It may revoke
+a connection. It may wait about 105 seconds on a rate limit. A preview and
+a `--yes` run print the sentences. A `--json` run puts them in
+`vendor_workouts.notice`, so its output stays one JSON value. The flag's
+help text says the same.
 
-The list and the detail for one vendor id are combined in memory. The
-command writes that one original once. A second pull of the same object
-reports the original unchanged and does not change the database for that
-row. A failed detail keeps the list object, marks that detail incomplete,
-and still writes the list object when no richer original is already
-stored. A later payload that lacks a samples, zones, or route array the
-stored original already has is not written. The richer original stays.
+With the flag on, the pull reads the connections list first. It checks
+that each item's `user_id` is the selected user. Any other value refuses
+the list, because it is not this user's list. The pull then keeps only
+`provider` and `status` from each item and drops every other field,
+including `linked_user_ids`, which holds other users' ids. The list is
+never stored. Nothing from it is printed except a provider name from the
+table below and a status. So the privacy scan in section 4 does not run on
+this list, and the selected user id inside it does not refuse it. A
+refused list makes every provider `not_attempted`, and the vendor read is
+`incomplete`.
+
+A provider is called only when its item has `status` `active`. The
+pinned `ConnectionStatus` also has `revoked` and `expired`. Those
+providers are `not_attempted`, and their line shows that status. They are
+never called, because a call could make the server try a refresh or a
+revoke. A provider with no item is `not_attempted`, and its status is
+`null`. A status the pin does not define is not active, and it is printed
+as `unknown status`.
+
+The order is fixed: Garmin, Polar, Suunto, Whoop, Fitbit, Oura, Strava,
+Withings, Sensorbio. An active provider with no live list method is
+`not_attempted`. That is not a failure. One provider's failure leaves its
+line `incomplete`, and the other providers still run. Apple, Samsung,
+Health Connect, Ultrahuman, and Google Health have no live list method.
+Their stored workouts still come from `/events/workouts`.
+
+Live requests go one at a time. Each starts at least one second after the
+previous live request started. The connect timeout is 30 seconds. The read
+timeout is 360 seconds. The server's own provider timeout,
+`provider_request_timeout_seconds`, defaults to 30 seconds. So one GET can
+take four attempts and three waits, about 225 seconds, plus any token
+refresh under the server's lock. The longer read timeout lets the server
+finish those retries first. If a live request still times out, the server
+may still be working on it. The pull then sends no other request to that
+provider in this command, so two requests to one provider never overlap.
+That provider is `incomplete`. The next provider still runs, and it uses
+a different vendor account and limit. A server whose provider timeout is
+raised can outlast this timeout. The same rule covers that case. The
+stored reads keep 30 seconds to connect and 120 seconds to read, the values
+`src/runtime/garmin_pull.rs` uses.
+
+Budgets keep one command inside the providers' limits:
+
+- The pace above keeps this command at 60 live requests a minute or
+  fewer. The review cited about 100 a minute for Garmin. This study did
+  not find that number in Garmin's public docs.
+- Garmin is read in windows of 86,400 seconds or less, one call each.
+  Every window is sent. A one-year range is 365 windows, so it takes at
+  least six minutes before any detail call.
+- A command makes at most 100 detail calls to one provider, and at most 20
+  to Strava. Ids past the budget are `deferred`. The next paragraphs say
+  which ids go first.
+- Strava's limit is per application, so the deployment's own sync shares
+  it. Strava's rate-limit page, fetched 15 November 2026, gives a default
+  of 100 read requests per 15 minutes and 1,000 a day. Strava calls them
+  non-upload requests. One list call and 20 detail calls can become 84
+  requests when the server retries each one three times. That leaves 16
+  for the deployment's own sync in the same 15 minutes. The Strava line
+  says that its limit is shared.
+
+The routes are
+`GET /api/v1/providers/{provider}/users/{user_id}/workouts` and
+`GET /api/v1/providers/{provider}/users/{user_id}/workouts/{workout_id}`.
+At the pinned commit both return the provider's raw response. The server
+does not reshape it. The table below is the whole provider logic. Every
+live request has the 30-second connect timeout and the 360-second read
+timeout above.
+
+| Provider | List unwrap | Id | Start | Detail key | Detail unwrap | Detail fields | Budget | Read timeout |
+|---|---|---|---|---|---|---|---|---|
+| Garmin | the JSON array | `activityId` | `startTimeInSeconds`, Unix seconds | `activityId` | the object | none named | every window; 100 details | 360 s |
+| Polar | the JSON array | `id` | `start_time`, text with no offset | `id` | the object | `samples`, `zones`, `route` | 1 list; 100 details | 360 s |
+| Suunto | `payload` | `workoutId` | `startTime`, Unix milliseconds | `workoutKey`, else `workoutId` | `payload` | none named | list pages of 100; 100 details | 360 s |
+| Whoop | `records` | `id` | `start`, text with offset | `id` | the object | none named | 1 list; 100 details | 360 s |
+| Fitbit | the JSON array. The method reads `activities` | `logId` | `startTime`, text with offset | no detail call | none | none | 1 list | 360 s |
+| Oura | `data` | `id` | `start_datetime`, text with offset | `id` | the object | none named | 1 list; 100 details | 360 s |
+| Strava | the JSON array | `id` | `start_date`, text with `Z` | `id` | the object | `laps`, `splits_metric`, `splits_standard`, `segment_efforts`, `best_efforts`, `map` | 1 list; 20 details | 360 s |
+| Withings | the JSON array. The method reads `series` | `id` | `startdate`, Unix seconds | no detail call | none | none | 1 list | 360 s |
+| Sensorbio | `data[].activities[]`. The parent is kept as `list_parent` | `id` on the nested activity | `start_time`, Unix milliseconds | no detail call | none | none | 1 list | 360 s |
+
+- Garmin. The pull splits the range into windows and sends
+  `summary_start_time` and `summary_end_time` as integer Unix seconds. The
+  server puts those values in `uploadStartTimeInSeconds` and
+  `uploadEndTimeInSeconds`, so a window selects by upload time, not by
+  start. A window longer than 24 hours is never sent, because the pinned
+  server then splits it itself and drops a failed piece without saying so.
+  A failed window makes Garmin `incomplete`, and later windows still run.
+  The pinned code calls detail at
+  `/wellness-api/rest/activities/{activity_id}`. This study did not find
+  that path in Garmin's public docs. A failed Garmin detail is counted as
+  `failed`, like any other.
+- Polar. The list sends `samples`, `zones`, and `route` false, the route's
+  default, so the list stays small. Detail sends all three true. A list
+  over the response cap fails that list, because the route has no smaller
+  page.
+- Suunto. The list sends `since` as the requested start in Unix
+  milliseconds, `filter_by_modification_time=false`, and `limit` 100, and
+  pages `offset` until a short page. False means creation time. A page
+  over the response cap is asked again with a smaller `limit`, down to 1.
+  The record key is `workoutId`. Detail is called at `workoutKey` when the
+  list object has one, and at `workoutId` otherwise. Detail unwraps
+  `payload`. A detail matches when its `workoutId` or its `workoutKey`
+  equals the list object's. The pinned `WorkoutJSON` model has no
+  `workoutKey`. The pinned tests and Suunto's own API use it, so the list
+  object may carry it. Detail sends no `extensions` parameter.
+- Whoop. One call. The method caps `limit` at 25. The response's
+  next-page field is `next_token`. The request parameter is `nextToken`,
+  and the route does not send it. `more` is true when the response has
+  `next_token`.
+- Oura. One call with no date and no `next_token`. `more` is true when the
+  response has `next_token`.
+- Strava. One list call at page 1. `per_page` is the server setting
+  `strava_events_per_page`, default 200. `more` is true when the page
+  length equals `per_page`. The detail object also carries `embed_token`.
+  Section 4 withholds that value.
+- Fitbit. The list uses the last 30 days when the route sends no dates.
+  Detail is not implemented and is not called.
+- Withings. The list uses `pull_sync_lookback` or 30 days, widens each
+  edge by one local day, and pages inside the method. Detail is not called.
+- Sensorbio. The method sends `last-timestamp` 0 and `limit` at most 50,
+  and it does not follow `links.next`. So it reads only the oldest 50
+  entries. `more` is true when `links.next` is present. Detail is not
+  called. Each nested activity is one object. Its parent entry, without
+  the `activities` array, is kept beside it as `list_parent`, so the
+  parent's `timestamp` and `name` are not lost.
 
 Every returned original is stored, including one whose start is outside
 `--from` and `--to`. The same rule is used for every provider. The count
 is `vendor workout originals`. `range_complete` uses only the stored
 ranged reads. Each live line names its limit, says whether that limit
-covers the requested range, and sets `more` when the response shows
-another page. Whoop sets `more` when `next_token` is present. Oura sets
-`more` when `next_token` is present. Sensorbio sets `more` when
-`links.next` is present. Strava sets `more` when the page length equals
-`per_page`. Those tokens are not followed. The published route does not
-accept them as the next request. `covers_requested_range` is false for
-every provider in this pin. None of the live methods filter by the
-workout's start inside `--from` and `--to`.
+covers the requested range, and sets `more` as the notes above say. Those
+next-page values are not followed. The published route does not accept
+them as the next request. `covers_requested_range` is false for every
+provider in this pin. None of the live methods filter by the workout's
+start inside `--from` and `--to`.
 
-The routes are
-`GET /api/v1/providers/{provider}/users/{user_id}/workouts` and
-`GET /api/v1/providers/{provider}/users/{user_id}/workouts/{workout_id}`.
-The original is a `source_report` of kind `original`, subject
-`vendor_workout`, writer `open_wearables`, sensor
-`ow1:["vendor_workout", provider]`. The key is the provider name plus the
-vendor id. The start field is stored and is not a filter. A missing id
-refuses that one object and does not archive it. The other objects from
-that provider are still stored. The original is not a workout session.
-The stored session stays matched by the Open Wearables workout id. The
-public stored workout has no `external_id`, so the two records are not
-joined by time, distance, or device. A device id inside the vendor object
-does not set `device_binding`. Nested samples stay inside the original.
-The eight range calculations do not read it.
+The pull converts the range once for Garmin and Suunto, because their
+parameters are numbers. A date `--from` is midnight UTC that day. A date
+`--to` ends at midnight UTC after that day. That is the rule the Open
+Wearables API introduction gives for a date-only bound. A timestamp bound
+converts exactly. A fraction of a second rounds down for the start and up
+for the end, so the windows cover the whole range. The stored reads still
+send `--from` and `--to` unchanged.
 
-| Provider | List unwrap | Id | Start field |
-|---|---|---|---|
-| Polar | the JSON array | `id` | `start_time` |
-| Garmin | the JSON array | `activityId` | `startTimeInSeconds` |
-| Suunto | `payload` | `workoutId` on the list. Detail may name the same value `workoutKey`. A different `workoutKey` is a mismatch and that detail is not stored | `startTime` |
-| Whoop | `records` | `id` | `start` |
-| Oura | `data` | `id` | `start_datetime` |
-| Strava | the JSON array | `id` | `start_date` |
-| Fitbit | the JSON array. The method reads `activities` and returns the rows | `logId` | `startTime` |
-| Withings | the JSON array. The method reads `series` and returns the rows | `id` | `startdate` |
-| Sensorbio | `data[].activities[]` | `id` on the nested activity | `start_time` |
+A vendor id is text. A JSON string is used as it is, unless it is empty.
+A JSON integer is written in decimal. So `123` and `"123"` are one id and
+one record. An integer above 9007199254740991 is refused. D213 stores every
+number the way JavaScript does, so its digits would change. Any other
+number, and any other JSON type, is refused as an id. An object that holds
+an integer above that size anywhere inside it is refused for the same
+reason. A refused object refuses only itself, and the count says why. Two
+different objects with one id in one provider's response refuse both,
+because the pull cannot tell which is right. Two equal objects are one.
 
-- Polar's list omits `samples`, `zones`, and `route`, so the route sends
-  false and the list stays under the 8 MiB cap when it can. Detail sends
-  all three true, one call per exercise id. A list over 8 MiB fails that
-  list. Detail is also called for Suunto, Whoop, and Oura. It is not
-  called for Fitbit, Withings, or Sensorbio. A provider with no detail
-  stores the list object alone.
-- Garmin is split by this program into windows of 24 hours or less, one
-  call each. A longer window is not sent. Each call sends
-  `summary_start_time` and `summary_end_time`. The server puts those
-  values in `uploadStartTimeInSeconds` and `uploadEndTimeInSeconds`. The
-  read timeout for each window is 120 seconds. Any failed window makes
-  Garmin `incomplete`. A later window still runs. The server's own
-  provider timeout is a separate setting. Its default is 30 seconds.
-  Detail is called for each stored id.
-- Suunto sends `since` as the requested start in Unix milliseconds,
-  `filter_by_modification_time=false`, `limit` 100, and pages `offset`
-  until a short page. False means creation time. Detail sends no
-  `extensions` parameter. A page over 8 MiB is asked again with a smaller
-  `limit`, down to 1.
-- Whoop is one call. The method caps `limit` at 25 and sends no
-  `nextToken`. Oura is one call with no date and no `next_token`. Strava
-  is one list call at page 1. The method's `per_page` default is 200.
-- Strava detail calls stop at 20 per command. The server can retry one
-  call three times, so 20 calls can become 80 provider requests. That
-  stays under 100 per 15 minutes, and under the 200 per 15 minutes on the
-  pinned Strava page. Ids past the budget are `deferred`. Their list
-  objects are stored. The detail is not called.
-- Fitbit's list uses the last 30 days when the route sends no dates.
-  Detail is not implemented and is not called. Withings uses
-  `pull_sync_lookback` or 30 days, widens each edge by one local day, and
-  pages inside the method. Detail is not called. Sensorbio uses `limit`
-  50 and `last-timestamp` 0. Detail is not called.
+The start column names one field and how to read it:
 
-A saved file imports the same envelope. Export and import keep one
-original id. The per-provider unwrap lives in
-`src/runtime/vendor_workouts.rs`, driven by one provider table.
+- Text with an offset or `Z`. The receipt is the one `input_receipt` in
+  `src/import/mapping.rs` writes. `reported_at` is that instant in UTC.
+- Text with no offset, such as Polar's `start_time`. The receipt is
+  `offset_timestamp_receipt` in `src/import/candidate.rs` with
+  `meaning_not_documented`. It keeps the text and says the source gave no
+  offset. There is no `reported_at`. Polar's separate
+  `start_time_utc_offset` stays in `list`. This pull does not join the two.
+- Unix seconds or milliseconds. The receipt keeps the digits as
+  `timestamp_text`, with `timestamp_basis` `source_instant` and
+  `utc_offset_missing_reason` `not_applicable`. `reported_at` is that
+  instant in UTC, with milliseconds. A new helper beside
+  `offset_timestamp_receipt` writes this receipt. It passes the 2.1.1
+  receipt checks: a text has a basis, and the missing offset has a reason.
+- Missing, or any other value. The receipt is `missing_timestamp_receipt`.
+  There is no `reported_at`.
+
+The start is stored and is not a filter.
+
+For each listed id, the pull first reads the stored original, if there is
+one. That read is crate-private and lives in `src/import/provider.rs`. It
+returns whether the original exists, whether it is deleted, whether it
+holds a detail, and its stored `list`.
+
+The pull calls detail only when the provider has a detail call and its
+budget allows. It spends the budget in this order. First come ids with no
+stored detail. Then come ids whose list object differs from the stored
+`list`. Inside each group the oldest start goes first. An id without a
+start instant goes last, in list order. An id whose original holds a
+detail and whose list object is unchanged gets no detail call. A deleted
+original gets no detail call. A detail is fetched again only when the list
+object changed. A provider that changes a detail without changing the
+list object is not seen, and the line does not claim it.
+
+The detail must name the same id. A detail that names another id is a
+`mismatch`, and it is not stored.
+
+What is written for one id depends on what this command got:
+
+- A new detail that is not thinner than the stored one. The original is
+  written with this list object and this detail. The id counts as
+  `stored`.
+- A new detail that is thinner. Nothing is written for that id, and the
+  stored original stays. The id counts as `thinner`. A detail is thinner
+  when one of the provider's detail fields in the table is a nonempty value
+  in the stored detail and is missing, null, or empty in the new one. A
+  provider with no named detail field has no thinner detail.
+- No new detail call, because the stored detail is current. The pull sends
+  the envelope with the stored detail, so the original counts as
+  `unchanged` and nothing is written. The id counts as `kept`.
+- No new detail, and none stored. The original is written with the list
+  object alone. `detail_status` says why: `deferred`, `failed`,
+  `mismatch`, or `not_available`. The id counts under the same word.
+- No new detail, but one is stored, and the list object changed. Nothing
+  is written for that id, and no revision is added. The stored detail
+  stays. The id counts as `deferred`, `failed`, or `mismatch`.
+
+A list-only object therefore never replaces a stored detail. A `failed`
+or `mismatch` detail makes the provider `incomplete`, and the exit is
+nonzero. A `deferred` detail leaves the provider `completed`, with the
+deferred count on its line, and the next command details those ids first.
+A deferred id that the provider stops listing is never detailed by a later
+command. The deferred count shows how many are waiting.
+
+Each original is one envelope. The pull builds it, and a saved file holds
+the same object:
+
+```json
+{
+  "provider": "suunto",
+  "vendor_id": "1001",
+  "start": 1767254400000,
+  "start_kind": "unix_milliseconds",
+  "list": { "workoutId": 1001, "workoutKey": "abc", "startTime": 1767254400000 },
+  "detail": { "workoutId": 1001, "workoutKey": "abc", "startTime": 1767254400000 },
+  "detail_status": "stored"
+}
+```
+
+- `provider` is the provider name in the route path.
+- `vendor_id` is the id from the table's id column, as text.
+- `start` is the value at the table's start column, copied unchanged. It
+  is absent when the object has none. `start_kind` is `text`,
+  `unix_seconds`, or `unix_milliseconds`, from the table. It is absent
+  when `start` is.
+- `list` is the list object. `list_parent` is present only for Sensorbio.
+- `detail` is the detail object after the table's detail unwrap. It is
+  absent when no detail is stored.
+- `detail_status` is `stored`, `deferred`, `failed`, `mismatch`, or
+  `not_available`.
+- A value that section 4 withholds is replaced in place by its marker.
+  Nothing else in `list`, `list_parent`, or `detail` is changed.
+
+The record is a `source_report` of kind `original` and subject
+`vendor_workout`. Its writer is `open_wearables`, its sensor is
+`ow1:["vendor_workout", provider]`, and its `source_type` is `connector`.
+`provider_record_id` is `vendor_id`. `input_timestamp` and `reported_at`
+follow the start rule above. `received_at_basis` is `import_time`. The
+whole envelope is kept in `supplied_fields`, including the fields the
+mapping reads. The match key is the writer, the sensor, the resource
+`vendor_workout`, the provider, and the vendor id, escaped by D181. So the
+Suunto record in section 7 has a key that ends `suunto|1001`.
+
+The pull writes one provider's originals as one page, after that
+provider's list and detail calls finish. The page is one preview at one
+database revision. With `--yes` and without `--json`, it is then one
+`ProviderPreview::apply`, which refuses a moved revision as every 2.1.1
+apply does. A stored page and an archive never hold a vendor original, and
+a vendor original is never a capsule. A vendor page that fails or is
+refused leaves that provider `incomplete`. It does not change a stored
+page or an archive in the same command, and a refused stored page does not
+change the vendor page.
+
+The vendor page uses the 2.1.1 keyed rules. If the person deleted an
+original, a later pull leaves that object out, says so on its line, and
+does not recreate it (D182). That happens on every later pull. If the
+person deleted a provider's `vendor_workout` source, every object from
+that provider is left out (D190). If the person corrected an original with
+`ath correct`, a later pull whose envelope differs adds a revision with
+the server's envelope, because a mapped import replaces the whole object
+(D182). The person's revision stays in the history. A pull whose envelope
+equals the current record adds nothing. To keep a pull from changing an
+original, the person deletes it.
+
+Each provider's line, and its object in `--json`, counts:
+
+- `originals`: new, changed, and unchanged records.
+- `details`: `stored`, `kept`, `deferred`, `failed`, `mismatch`,
+  `thinner`, and `not_available`.
+- `left_out`: objects not written, by reason: `missing_id`,
+  `unusable_id`, `unsafe_number`, `duplicate_id`, `deleted_record`,
+  `deleted_source`, and `response_refused`.
+- `withheld`: values that section 4 withheld, with up to 20 paths.
+
+Each listed object is in exactly one detail count or one left-out count.
+A list response that fails or that the privacy scan refuses stores nothing
+from that response. Its objects count as `response_refused` when they
+could be read, and the provider is `incomplete`.
+
+The original is not a workout session. The stored session stays matched
+by the Open Wearables workout id. The public stored workout has no
+`external_id`, so the two records are not joined by time, distance, or
+device. A device id inside the vendor object does not set
+`device_binding`. Nested samples stay inside the original. The eight
+range calculations do not read it.
+
+The rewritten `mappings/open-wearables.md` gains a section named
+`vendor_workout`. It declares the record type `source_report`, kind
+`original`, and subject `vendor_workout`. It names the writer
+`open_wearables`, the sensor from `provider`, the key from `provider` and
+`vendor_id`, and the start from `start` and `start_kind`. It keeps the
+whole envelope in `supplied_fields`. A saved file of envelopes, under
+`vendor_workout`, imports through that section with `ath import --mapping
+open-wearables`. File import does not apply the detail rules above. It
+writes each envelope as the file holds it, as D182 does for every mapped
+import. Export and import keep one original id.
+
+The provider table, the detail rules, and the thinner check live in
+`src/runtime/vendor_workouts.rs`. They run before the mapping engine sees
+an envelope, so the mapping engine has no vendor exception.
 `open_wearables.rs` calls that module. It does not grow a provider branch.
 
 Day rows are one selected row per source, series, and local day. The
@@ -948,15 +1259,17 @@ Body passes the object. JSON `null` is not mapped. The personal record
 passes the object after `user_id` is removed. Pagination and health-score
 `metadata` are not records.
 
-Everything after that is the mapping engine from 2.1.0: match keys (D181),
-replace on change (D182), source and device (D183), one transaction per call
-(D189), a deleted source left out (D190), and field names refused when they
-are empty or `__proto__` (D191). A Garmin file import remains a different
-`data_route`, so both copies of one workout stay (D161). A second pull of the
-same Open Wearables object, or an `ath import --mapping open-wearables` of a
-saved copy of that object, keeps the same rows. An identical vendor
-original changes no row. A changed object replaces the stored one, except
-a thinner vendor workout, which section 2 refuses.
+Everything after that is the mapping engine that 2.1.1 carries over from
+2.1.0: match keys (D181), replace on change (D182), source and device
+(D183), one write transaction per page (D189), a deleted source left out
+(D190), and field names refused when they are empty or `__proto__` (D191).
+A Garmin file import remains a different `data_route`, so both copies of
+one workout stay (D161). A second pull of the same Open Wearables object,
+or an `ath import --mapping open-wearables` of a saved copy of that object,
+keeps the same rows. An identical vendor original changes no row. A
+changed object replaces the stored one. The mapping engine has no vendor
+exception. Section 2's detail rules decide which vendor envelopes reach
+it.
 
 On a device source, the writer is `source.provider`. The sensor string is
 `source.device_type`, `source.device`, and `source.source`. Section 2's
@@ -992,12 +1305,15 @@ are one record. The sensor join uses `|`, so a `device_id` that contains
 the join is encoded. That identity change is not this proposal. Old rows
 are not rewritten, moved, or deleted.
 
-Both `ath import --mapping` and `ath pull` call `MappedReader`. The check
-lives there, for route `open_wearables` only, inside the same transaction
-as the write and before `insert_group` changes a device source or a
-timeseries record on that source. Summary, event, score, and unattributed
-sensors do not enter it. Other routes are not checked. A pull-only check would
-leave import-after-pull able to replace the point. The check reads every
+Both `ath import --mapping` and `ath pull` go through `preview_route` and
+`ProviderPreview::apply` in `src/import/provider.rs`. The check lives in the
+matching step there, for route `open_wearables` only. It reads its facts in
+the read transaction, at the preview's database revision, and decides
+before a staged plan can change a device source or a timeseries record on
+that source. The apply refuses a moved revision, so the write sees the
+facts the check read. Summary, event, score, and unattributed sensors do
+not enter it. Other routes are not checked. A pull-only check would leave
+import-after-pull able to replace the point. The check reads every
 accepted row, including a row after the first source device.
 
 The receipt is the source object's own key `device_binding`. The 2.2.0
@@ -1066,33 +1382,37 @@ The call is one of these states:
   `source.device_id` store that string on the source in the same
   transaction as the first accepted write. That source may be created in
   this call, or it may already exist with no receipt and no history. A call
-  that accepts no rows creates no binding. A source created or first-bound
-  inside a refused call is rolled back with the call.
+  that accepts no rows creates no binding. A refused call is not applied,
+  so it creates no source and binds none.
 
 A second device is refused rather than merged. That refusal is not
 archived. On `--yes`, an earlier committed page stays, the failed page
 makes no database changes, the range is not complete, and the exit is
-nonzero. File import rolls back the whole
-call. `--json` and `--json --yes` make no database changes. Device reads
+nonzero. File import refuses the whole call and writes nothing.
+`--json` and `--json --yes` make no database changes. Device reads
 that have `filter_by_priority` send `false`. Summary routes have no such
 switch. Section 2 states that limit.
 
 Preview keeps two facts in memory for this command, for each source sensor:
 the binding it would have stored, and an unbound source it would have
 created once that source has accepted history. A summary sensor does not
-supply a binding for the device sensor. A later preview page uses those facts, including a
-later page that adds an id after an id-less sleep page. The memory is
-discarded with the process. It does not hold null-source payloads, so a
-preview does not use it to judge those conflicts. It does not change the
-estimated record counts.
-A second command reads the committed source inside its own `BEGIN IMMEDIATE`
-transaction.
+supply a binding for the device sensor. The pull passes those facts to the
+next preview page's matching step, including a later page that adds an id
+after an id-less sleep page. The memory is discarded with the process. It
+does not hold null-source payloads, so a preview does not use it to judge
+those conflicts. It does not change the estimated record counts. A second
+command's matching reads the committed source.
 
-Three owner operations store a whole source record and do not run this
-device-id guard. `ath correct` stores the source `data` the person
-supplied, after the schema check. Native package restore copies the
-package's records. A package merge the person accepts for a changed source
-stores that source record. A 2.2.0 record keeps `device_binding` when the
+Owner and library writes store a whole source record and do not run this
+device-id guard. In 2.1.1 they are `ath correct` in
+`src/cli/commands/edit.rs`, the protocol operations `records.write`,
+`records.write_changes`, and `records.correct` in
+`src/protocol/ops/records.rs`, native package restore, and a package merge
+the person accepts, both in `src/package/restore.rs`. `ath correct` and the
+protocol operations store the source `data` the caller supplied, after the
+schema check. Native package restore copies the package's records. A
+package merge the person accepts for a changed source stores that source
+record. A 2.2.0 record keeps `device_binding` when the
 record has it. A 2.1.0 record does not gain the key, and a supplied field
 of the same name stays a supplied field. The next mapped pull or mapped
 import then uses the source key that those operations left behind. A 2.2.0
@@ -1101,42 +1421,52 @@ correct a point and a different id is refused. No signature is added. A
 person who replaces the database file is outside this rule.
 
 `Store::apply` in `src/store/write.rs` writes a whole source record. There
-is no partial `revise`. A source write that is not one of the three owner
-operations cannot set, change, or clear `device_binding`, including when
-the key is absent from the new record. A write that contains
-`device_binding` and is not one of those owner operations is refused. The
+is no partial `revise`. In 2.1.1, every `Store::apply` caller that can
+write a source is one of the owner and library writes above. The one
+automatic source writer is `ProviderPreview::apply`. A keyed import there
+only creates sources. It never revises one. So the binding rule is
+enforced in `ProviderPreview::apply`. A staged source for route
+`open_wearables` may carry `device_binding` only as the checked rule above
+set it. The first bind of an existing source is a source correction in
+that plan, with the source's expected revision. No other staged change may
+set, change, or clear `device_binding`. Such a plan is refused, and the
 source stays unchanged. Other record types are unchanged.
 
-The store connection is private. `Mapping::source` in `src/import/mapping.rs`
-asks `route_source` for the writer, route, and sensor. That call takes no
-receipt. The mapping receives a source id. It does not hold the source
-JSON, and it cannot read deleted rows through the private connection. A
-later whole-record write that is not an owner operation cannot fill the
-receipt in, because a write that contains `device_binding` is refused.
+The store connection is private (D223). `Run::source` in
+`src/import/mapping.rs` asks `CandidateSink::route_source` in
+`src/import/provider.rs` for a source by writer, route, and sensor. That
+call takes no receipt. The mapping receives a provisional source id. It
+does not hold the source JSON, and it does not read the database. The
+facts come from the matching step. A later automatic write cannot fill
+the receipt in, because `ProviderPreview::apply` refuses any staged change
+to `device_binding` that the checked rule did not make.
 
-`src/store/write.rs` therefore gains three source operations besides that
-refusal, the typed writes in section 6, and the bounded archive
-safety read in section 2. It gains nothing beyond those:
+`src/import/provider.rs` therefore gains these source reads and writes,
+besides the typed writes in section 6. It gains nothing beyond those:
 
-- Read the committed receipt, and whether any record or source device for
-  that source exists, including a deleted row.
-- Create a source with the checked receipt already in its JSON.
-- Write the checked receipt on an existing source only when the receipt is
-  absent and that same read shows no accepted or deleted record and no
-  source device. Every other source field stays. The write uses the normal
-  revision and `data_json` bookkeeping. Writer, route, sensor, import keys,
-  and baselines stay.
-- Read the sources, records, import keys, and archive keys named by one
-  page, including tombstones and the current revision. This is the safety
-  read in section 2. It does not scan the database.
+- In matching, read the committed receipt, and whether any record or
+  source device for that source exists, including a deleted row.
+- In matching, read the sources, records, import keys, and archive keys
+  named by one page, including tombstones and the current revision. This is
+  the safety snapshot in section 2. It does not scan the database.
+- In the staged plan, create a source with the checked receipt already in
+  its JSON.
+- In the staged plan, write the checked receipt on an existing source only
+  when the receipt is absent and the same matching read shows no accepted
+  or deleted record and no source device. Every other source field stays.
+  The write is a correction with the source's expected revision. Writer,
+  route, sensor, import keys, and baselines stay.
+- In `ProviderPreview::apply`, refuse any other staged change to
+  `device_binding`.
 
-The three receipt operations run inside the caller's `BEGIN IMMEDIATE`
-transaction. The safety read runs in that same transaction, before any
-mutation, and again at the start of the archive transaction.
-A refused call rolls them back with the call. Other routes do not call
-them. The build may extend `route_source` or add a narrow operation
-beside it. It does not add a table, a trait, or a file split. The automatic
-path does not replace `detail`, `vendor`, or `supplied_fields`.
+The reads run in the matching step's read transaction. The writes run in
+the page's one apply transaction. A refused call writes none of them.
+Other routes do not call them. The build may extend `route_source` or add
+a narrow operation beside it. It does not add a table or a trait. The
+binding check and the safety snapshot go in one new file,
+`src/import/binding.rs`, because `src/import/provider.rs` is already 1297
+lines. The automatic path does not replace `detail`, `vendor`, or
+`supplied_fields`.
 
 `zone_offset` is not copied into `start_at`. It remains in `supplied_fields`
 when the server sends it. The timestamp text is the server's `start_time`,
@@ -1150,7 +1480,7 @@ built without that field. Day rows carry it, and those rows are stored.
 
 ## 4. Credentials, privacy, and the network
 
-D200 is the rule. The key never enters the athlete database, the export, the
+D229 is the rule. The key never enters the athlete database, the export, the
 preview, or an error line. The pull reads the paths in section 2. Connections and the two live
 workout routes are included only when `--vendor-workouts` is on.
 It does not list users. A raw HTTP personal-record response includes `user_id`. That field must
@@ -1165,22 +1495,41 @@ gender, and sex are stored. They are account health data, not the API key.
 
 The process refuses a base URL that could carry the key in the URL itself.
 It refuses plain `http` except to loopback. It does not follow a redirect, so
-the key cannot be sent to a second host. One attempt, then stop. Timeouts are
-10 seconds to connect and 30 seconds to read. A Garmin live window may
-take 120 seconds to read. One response may be at most
-8 MiB. One read may be at most 1000 pages.
+the key cannot be sent to a second host. One attempt per request, then
+stop. The stored reads use 30 seconds to connect and 120 seconds to read,
+as `src/runtime/garmin_pull.rs` does. A live vendor request uses 30
+seconds to connect and 360 seconds to read, for the reason in section 2.
+The timeouts are named constants in `src/runtime/open_wearables.rs`. One
+response may be at most `MAX_PULL_RESPONSE_BYTES`, which is 10 MiB. One
+read may be at most 1000 pages. Those limits are named constants in
+`src/input_policy.rs`, where 2.1.1 keeps every limit on untrusted input.
 
-The body is read inside that cap and parsed before any `MappedReader` call.
-The guard is in `open_wearables.rs`. It walks every decoded object key and
-every decoded string. A value that contains the API key, the selected
-origin, or the selected user id rejects the whole page. A key whose
-letters, after dropping `_` and `-` and ignoring case, are
-`useraccesstoken`, `accesstoken`, `refreshtoken`, `apikey`,
-`authorization`, `password`, `secret`, or `clientsecret` also rejects
-the page. `polar_user` and a route coordinate are not those keys. D215
-keeps the rest of the vendor object, including account ids, Polar user
-URLs, and full routes. The matching personal-record `user_id` is the only field that is dropped
-before this walk. Any other copy of the user id still rejects the page.
+The body is read inside that cap and parsed before the page reaches
+`MappedPage`. The guard is in `open_wearables.rs`. It walks every decoded
+object key and every decoded string. A value that contains the API key,
+the selected origin, or the selected user id rejects the whole page, even
+under a credential-shaped key.
+
+A credential-shaped key does not reject the page. Its value is withheld.
+A key is credential-shaped when its letters and digits, with case ignored
+and every other character dropped, end in `token` or `secret`, or are
+`apikey`, `authorization`, or `password`. That covers `userAccessToken`,
+`access_token`, `refresh-token`, `id_token`, `session_token`, `token`,
+`embed_token`, `client_secret`, and `apiKey`. The value is replaced by the
+text `[withheld by ath]`, whatever type it had. A string that is an
+absolute URL keeps its address. Each query parameter in it whose name is
+credential-shaped has its value replaced by the same text. The pull
+records the JSON path of each withheld value and counts them. It prints
+the count and up to 20 paths, and it says when that list was shortened.
+Nothing else in the object changes. The rule applies to every page,
+stored reads and vendor reads alike. Garmin's list objects can carry an
+optional `userAccessToken`, so refusing the page would refuse every such
+Garmin page. `polar_user` and a route coordinate are not credential-shaped.
+D244 keeps the rest of the vendor object, including account ids, Polar
+user URLs, and full routes. The matching personal-record `user_id` is the
+only field of a stored read that is dropped before this walk. Any other
+copy of the user id still rejects the page. The connections list is not
+walked, as section 2 says.
 A raw personal-record `user_id` that is absent, null, the wrong type, or
 not the selected user refuses the page before the drop. The page is not
 rewritten and it is not mapped. A Unicode escape such as `\u0073` is visible
@@ -1194,10 +1543,10 @@ problem `code` is printed only when it is a single token of letters, digits,
 `_`, or `-`, at most 64 characters, and it does not contain the key, the
 origin, or the user id. Any other code is withheld. A transport error or a
 parser error is replaced with a fixed sentence. The sentence has no URL, no
-path, and no user id. The result keeps a `left_out` total and at most 20
-example lines. It does not keep every id or every source string. The 64 MiB
-stdout buffer in `src/ath-core.ts` is gone with the TypeScript bridge.
-The command prints from this process. The 20 example lines are the bound.
+path, and no user id. The result keeps a `left_out` total, a count for
+each reason, and at most 20 example lines. It does not keep every id or
+every source string. The command prints from this process, as every 2.1.1
+command does. The 20 example lines are the bound.
 
 There is no Athletic Standard telemetry on this command. The server the person
 named is the only host contacted.
@@ -1232,16 +1581,20 @@ attachments, reporting periods, and the other child tables, use
 `configure` in `src/store/mod.rs` requires foreign keys on before
 `install_schema` runs. A `DROP TABLE records` inside that transaction
 would fail or cascade through the children. Step 6 does not do that.
+`write_transaction` in the same file refuses to write when foreign keys
+are off. `Store::transaction` uses it, and every 2.1.1 migration runs
+through `Store::transaction`.
 
-`install_schema` runs steps 1 through 5 in one transaction and commits it.
-Today that same transaction sets `user_version` to `SQL_SCHEMA_VERSION`.
-The step 1 through 5 transaction sets `user_version` 5. Step 6 is not
-inside that transaction, and step 6 sets `user_version` 6. Target 6 does
-not use the ordinary write transaction.
+Today `install_schema` runs the whole chain, steps 1 through 5, in one
+transaction. That transaction sets `user_version` to `SQL_SCHEMA_VERSION`
+and commits. With step 6, that transaction stops after step 5, sets
+`user_version` 5, and commits. Step 6 then runs in its own transaction and
+sets `user_version` 6.
 
-Step 6 uses one connection that ordinary writes do not reuse. Before
-`BEGIN`, it sets `PRAGMA foreign_keys=OFF` and reads the pragma back. The
-value must be 0. Turning foreign keys off does not turn off the schema
+Step 6 runs on the store's own connection, in a transaction that
+`src/store/migrate.rs` opens itself rather than through
+`Store::transaction`. Before `BEGIN IMMEDIATE`, it sets
+`PRAGMA foreign_keys=OFF` and reads the pragma back. The value must be 0. Turning foreign keys off does not turn off the schema
 check SQLite runs during `ALTER TABLE`. `sql_v1_current_records` and
 `sql_v1_active_records` select from `records`. The triggers
 `record_revisions_record_type_matches_parent_insert` and
@@ -1281,25 +1634,32 @@ Inside that one transaction the order is fixed.
 `sql_v1_database_info`, `sql_v1_record_revisions`, and
 `sql_v1_record_deletions` do not name `records`, so they stay through the
 gap. Then the transaction commits. After commit, and after a rollback or
-a thrown error, the connection sets `PRAGMA foreign_keys=ON` and reads it
-back. The value must be 1. If that read fails, the connection is closed
-and is not reused. A later ordinary open still refuses to write while
-foreign keys are off. A failure before commit restores the views, the
+an error, the runner sets `PRAGMA foreign_keys=ON` and reads it back. The
+value must be 1. If it is not, the command fails and closes the store.
+`write_transaction` would refuse a later write on that connection anyway,
+and the next open turns foreign keys on in `configure`. A failure before
+commit restores the views, the
 cross-table triggers, the old check, the rows, and the version. The D124
 backup is already on disk. Device receipts stay in the copied source
 JSON. They are not rewritten.
 
-A new database commits steps 1 through 5, then runs this step 6 path.
-Step 9 sets `user_version`. If step 6 fails during init, that transaction
+A new database commits migration steps 1 through 5, then runs step 6.
+Item 9 in the list above sets `user_version`. If step 6 fails during init, that transaction
 rolls back to the committed step 5 schema before the existing failed-init
 cleanup runs. Init reports failure. `Store::create` still calls
 `remove_partial_database`, which deletes the new file, the wal file, and
-the shm file. D202 leaves that cleanup in place, and this build does not
+the shm file. D231 leaves that cleanup in place, and this build does not
 change it. A file that cleanup does not delete is not left with the views
 dropped. A migrate of a database that already existed is a separate case.
-Its step 6 rollback leaves that file in place, at the old schema, with
-foreign keys on. `apply_step` in `src/store/migrate.rs` gains this arm for
-target 6 and does not use the ordinary write transaction for it.
+`apply_after_backup` and `apply_pending_without_backup` in
+`src/store/migrate.rs` run the steps up to 5 in `Store::transaction`, as
+2.1.1 does, and commit. They then run step 6 in its own transaction. For a
+2.1.1 database, a step 6 rollback leaves the file at schema 5 with foreign
+keys on. For an older database, the earlier steps stay committed, so the
+file is now a 2.1.1 database. The message says which schema the file is
+at and names the verified backup. Running `ath migrate` again runs only
+step 6. `apply_step` keeps its signature for steps 2 through 5. Step 6 is
+a separate function in that file.
 `MIGRATION_CHAIN` in that file and `spec/sql/contract.json` gain the step.
 The native tests check that the contract matches the embedded SQL.
 `packages/npm/package.json` exports and `packages/npm/test/public-api.test.ts`
@@ -1338,8 +1698,9 @@ regenerated because the stored version is inside it. The demo is
 `tests/fixtures/version-0-4-3/` is not regenerated. `tests/fixtures/version-2-0-0/` is not
 regenerated.
 
-`package.json` `files` already includes `mappings`. The build rewrites
-`mappings/open-wearables.md` so it implements section 2. Other mapping
+`build.rs` compiles every file under `mappings/` into the program, and
+`src/assets/mod.rs` reads the compiled copy. No package list changes. The
+build rewrites `mappings/open-wearables.md` so it implements section 2. Other mapping
 files stay as they are. `ATH_WRITE_GENERATED=1 cargo test --test generated`
 runs because help text, the schema, and the demo change (D80, and the 2.1.1
 generator decision). `AGENTS.md`, `build-history/README.md`, and `SPEC.md` are
@@ -1359,46 +1720,51 @@ interactive open can preview, back up, ask, and then migrate.
 
 | Piece | Place |
 |---|---|
-| HTTP, page loop, envelope split, call `MappedReader` | `src/runtime/open_wearables.rs` |
-| Live provider table, unwrap, windows, and detail budget | `src/runtime/vendor_workouts.rs` |
-| Command `pull openwearables` | `src/cli/spec.rs` and `src/cli/commands/routes.rs` |
-| Flags, key, preview text, refusal if the key appears | `src/cli/`, `src/cli/help.rs`, `src/runtime/keyring.rs` |
-| Mapping names and field rules | the existing file `mappings/open-wearables.md` |
-| Stored records | the existing store and mapping engine |
-| Keep `device_binding` on a source write that is not the owner's whole record | `Store::apply` in `src/store/write.rs`, sources only |
-| Read receipt and tombstone history; create or first-bind with the checked receipt | three source operations in `src/store/write.rs`, inside the caller's transaction |
+| HTTP, timeouts, page loop, envelope split, privacy walk, and withheld values | `src/runtime/open_wearables.rs` |
+| Live provider table, unwrap, windows, pacing, detail budget and rules, and the vendor envelope | `src/runtime/vendor_workouts.rs` |
+| Command `pull openwearables`, and the `--date` check for `garmin` | `src/cli/spec.rs` and `src/cli/commands/routes.rs` |
+| Flags, key, preview text, refusal if the key appears | `src/cli/`, `src/cli/help.rs`, `src/runtime/keyring.rs`, and `key_clear` in `src/cli/commands/model.rs` |
+| Reader for one decoded page | `MappedPage`, beside `MappedReader` in `src/import/mapping.rs` |
+| Mapping names and field rules, including the `vendor_workout` section | the existing file `mappings/open-wearables.md` |
+| Stage, match, and write each page | `preview_route` and `ProviderPreview::apply` in `src/import/provider.rs` |
+| Device-binding facts and the safety snapshot | new `src/import/binding.rs`, called from the matching step in `src/import/provider.rs` for route `open_wearables` |
+| Create or first-bind with the checked receipt, and refuse any other `device_binding` change | the staged plan and `ProviderPreview::apply` in `src/import/provider.rs` |
+| Stored-original read for the vendor detail rules | a crate-private read in `src/import/provider.rs` |
+| Response cap and page cap | named constants in `src/input_policy.rs` |
+| Receipt for a start in Unix seconds or milliseconds | a helper beside `offset_timestamp_receipt` in `src/import/candidate.rs` |
 | Measurement samples, source reports, paired null value and unit, and child withdrawal | `write_current_state` and `typed_columns` in `src/store/encode.rs`. Package restore, repair, and the record check use that encoder |
-| Whole source record from the owner | existing `ath correct`, package restore, and an accepted package merge |
+| Step 6 with foreign keys off | its own transaction in `src/store/migrate.rs`, and `install_schema` in `src/store/mod.rs` |
+| Whole source record from the owner or a library caller | existing `ath correct`, protocol `records.write`, `records.write_changes`, and `records.correct`, package restore, and an accepted package merge |
 
 `src/store/`, `src/import/mapping.rs`, and `src/runtime/garmin_pull.rs` are
 not the home for this client. `garmin_pull.rs` remains the Garmin pull.
 The two clients may each call `ureq`.
 A shared trait is the later connector work, and this release does not add it.
 
-`mapping.rs` changes for the counts, the device check, and the preservation
-writes in section 2. The mapped-import report in `src/import/provider.rs`
-keeps its `outcome` field. `MappedReader` adds counts by record type.
-For route `open_wearables` only, it also runs the device-binding check in
-section 3 before it mutates a source device or a timeseries record. That
-check is the shared mapped-import and pull enforcement. It is not a new
-match key and it does not apply to any other route. It also gains the
-measurement-sample target, the reporting-window write, and the segment
-copy from section 2. HTTP stays out of `mapping.rs`. `src/store/write.rs`
-keeps the receipt refusal and adds the three source operations in section 3: the
-receipt and tombstone read, creation with the checked receipt, and a
-first bind on an existing source that has no history. The archive
-transaction adds a bounded read of the sources, records, import keys,
-and archive keys named by that page, including tombstones and the
-current revision. It does not scan the database. It also inserts and
-updates `measurement_sample` and `source_report`, and it accepts a provider
+`mapping.rs` changes for `MappedPage` and for the preservation writes in
+section 2: the measurement-sample target, the reporting-window write, the
+segment copy, and the `vendor_workout` section. HTTP stays out of
+`mapping.rs`. The mapped-import report from `report_value` in
+`src/import/provider.rs` keeps its `outcome` field. The pull counts each
+page by record type from its staged plan. For route `open_wearables` only,
+the matching step runs the device-binding check in section 3 before a
+staged plan can change a source device or a timeseries record. That check
+is the shared mapped-import and pull enforcement. It is not a new match
+key and it does not apply to any other route. The matching step also
+reads the page's safety snapshot: the sources, records, import keys, and
+archive keys named by that page, including tombstones and the current
+revision. It does not scan the database. `ProviderPreview::apply` refuses
+any `device_binding` change the checked rule did not make. The store
+inserts and updates `measurement_sample` and `source_report`, and it
+accepts a provider
 summary or provider score whose `value` and unit are both present or both
 absent. A half-null pair is refused. When an anchor in this response no
 longer emits a child, that child is revised to the absent pair in the same
 transaction. `write_current_state` in `src/store/encode.rs` writes that
 pair and the new table. Package restore, repair, and the record check use
 that encoder. `RecordType` in `src/model/` gains the `source_report` entry.
-The eight range calculations and
-`provider-period-summary` do not read `source_reports`. `read_inputs` and
+The eight range calculations, `provider-period-summary` among them, do not
+read `source_reports`. `read_inputs` and
 `read_period` also exclude `source_type` `manual`, and they have no
 `include_manual` switch. `workout-drift` loads the named session first,
 including a manual session, and uses that session's start and end as the
@@ -1415,26 +1781,26 @@ before the limit, the count, the grouping, and the numeric decode. A null
 is not stored as zero and is not replaced by an older revision. The
 session-summary branch of `read_period` uses the same filter on the
 extracted number and unit. Formulas and source grouping stay as they are.
-The archive insert is the pull-only transaction in section 2. It is not
-inside `MappedReader`, and a mapped file import does not call it. It
-revalidates the safety snapshot before any insert. It does
-not call the receipt operations. No other store behavior changes. `ath correct`,
-package restore, and an accepted package merge stay whole-record owner
-writes. They are named in section 3 so the binding survives a 2.2.0 round
-trip. They are not a new importer. The pull sums only `sleep_session`, `workout_session`,
+The archive is the pull-only preview and apply in section 2. A mapped file
+import does not build it. It goes ahead only at the database revision the
+protected preview read, and its apply refuses a moved revision. It does
+not call the receipt operations. No other store behavior changes. The
+owner and library writes in section 3 stay whole-record writes. They are
+named there so the binding survives a 2.2.0 round trip. They are not a
+new importer. The pull sums only `sleep_session`, `workout_session`,
 `point_measurement`, `measurement_sample`, `provider_summary`,
 `provider_score`, and `source_report`. A committed protected page adds
 those counts to `committed`. A committed archive page adds its counts
-only to `archive_committed`. A rolled-back preview page adds its
-protected estimates to `estimated` and its archive estimates to
-`estimated_archive`. It does not add
-`outcome` across pages. `outcome` counts the source-device row in the same
-group. Filtering that row out of the totals does not make a preview equal a
-write. Each preview page is rolled back, so page two does not see page one.
+only to `archive_committed`. A preview page adds its protected estimates
+to `estimated` and its archive estimates to `estimated_archive`. It does
+not add `outcome` across pages. `outcome` counts the source-device row in
+the same group. Filtering that row out of the totals does not make a
+preview equal a write. A preview page writes nothing, so page two does not
+see page one.
 
 The command reads the saved key and `OPEN_WEARABLES_API_KEY` in this
 process, in `src/runtime/keyring.rs`. It has no `--key` flag. The
-decoded-key walk in section 4 runs before `MappedReader`. The command
+decoded-key walk in section 4 runs before `MappedPage`. The command
 checks its own text before printing.
 
 The command returns the preview outcome from section 1 when the mode is a
@@ -1480,7 +1846,7 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   counts two new rows, and `--yes` counts one new and one changed
 - a valid page, then a failing page, under `--yes`. The failure is one of a
   401, a 429, a repeated or null cursor, a vetoed page, or a minimum page
-  that is still over 8 MiB. Page 1 remains. Page 2 adds no rows and no revisions. No later read
+  that is still over the response cap. Page 1 remains. Page 2 adds no rows and no revisions. No later read
   runs. The exit is nonzero. The success sentence is absent. The text gives
   the retained counts. The same command run again stores no second copy
 - the same failure sequence with no `--yes`, and again with `--json --yes`,
@@ -1490,7 +1856,7 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
 - an installed mapping that does not implement section 2 fails before any
   request. The server sees no request. Raw and day timeseries requests omit
   `types`. A comma-joined type string is not sent
-- a cursor or offset page fails before `MappedReader` when the object is
+- a cursor or offset page fails before `MappedPage` when the object is
   missing, `data` is not an array, `pagination` is missing, or `has_more`
   is not a boolean. That failure is not an empty success. A body response
   of JSON `null` is a completed empty snapshot and writes nothing. A body
@@ -1537,10 +1903,10 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   pull of that same raw point stay one record. A heart-rate sample from
   device B does not replace device A's sample. A negative latitude and a
   negative longitude are stored
-- a response larger than 8 MiB on a cursor or offset read is requested
-  again with a smaller limit, the same cursor or offset, and the rows are
-  stored. A day page at `limit` 1 that holds many small rows and is still
-  over 8 MiB leaves that read incomplete and names the read and
+- a response larger than the response cap on a cursor or offset read is
+  requested again with a smaller limit, the same cursor or offset, and the
+  rows are stored. A day page at `limit` 1 that holds many small rows and is
+  still over the cap leaves that read incomplete and names the read and
   `resolution=1day`. It does not name a series type. An oversized body
   response names `body` and writes nothing. The export after a pull, and a
   native package import, keep period bounds, units, `computed_by`,
@@ -1550,7 +1916,7 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   points stay. The same summary stored first does not block a later raw
   page from binding its device source. File import then pull, pull then
   file import, and import then import keep one summary id. A refused
-  device page rolls back only that page. Two meals with one timestamp and
+  device page refuses only that page. Two meals with one timestamp and
   different ids stay two records. Two summary fields on one date stay two
   records. A page with one bound heart-rate row and one same-triple row
   whose `device_id` is missing refuses the protected page. Neither row
@@ -1562,7 +1928,7 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   import keep the resolution. A raw capsule and a day capsule of the same
   row body stay two records. A sleep id that
   is missing, beside a valid workout, refuses the page before any write
-  and is not archived. The next page still rolls back on its own failure.
+  and is not archived. The next page is still refused on its own failure.
   A measured timeseries row with
   `source: null` is stored on the unattributed sensor when the payload
   matches. A reported row with `source: null` uses the report sensor
@@ -1571,15 +1937,18 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   the new original. A mapped file import of that changed payload writes
   nothing. A raw midnight row and a day window that starts then
   stay two records. A preview of those two pages does not claim the
-  conflict, because the first preview page was rolled back. A confirmed
+  conflict, because the first preview page wrote nothing. A confirmed
   second page does.
 - a missing device id beside a conflicting device id, in either row order,
   refuses the protected page and stores no capsule and no revision. The
-  same veto holds for a deleted source, an unbound legacy history, and a
-  missing workout UUID on the same page as an eligible row, including when
-  the deleted-source row would otherwise be `left_out`. A credential on a
-  neighboring object starts neither transaction. A deleted archive source
-  is not recreated. An existing device receipt is unchanged. On an empty
+  same veto holds for an unbound legacy history and a missing workout UUID
+  on the same page as an eligible row. A deleted source on a page with an
+  eligible row leaves that source's rows out with the D190 line. The
+  eligible row still refuses the protected page, and the deleted source
+  stops the archive, so no capsule is stored. The API key, the server
+  origin, or the selected user id on a neighboring object builds no
+  preview. A deleted archive source is not recreated. An existing device
+  receipt is unchanged. On an empty
   database, the first eligible archive sets
   `written` false, `database_changed` true, `archive` `stored`, and the
   text `Protected write refused; N originals archived; database changed;
@@ -1587,7 +1956,7 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   `unchanged`, `written` false, `database_changed` false, and the text
   `Protected write refused; 0 originals archived; database unchanged; pull
   incomplete.` A third payload adds one archive count and
-  leaves the earlier capsule. An archive-transaction failure on that
+  leaves the earlier capsule. An archive apply failure on that
   empty database sets `archive` `failed`, keeps the refusal, adds no
   archive row, leaves `written` false and `database_changed` false, and
   uses the text `Protected write refused; archive failed; database
@@ -1595,26 +1964,32 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   committed sleep page keep that page's `written` true, its `committed`
   counts, and `database_changed` true. The failure text then says
   `database changed`.
-  Preview and `--json --yes` commit neither transaction
-- two connections, both row orders. Before the protected `BEGIN IMMEDIATE`,
-  the other connection commits a binding of device C on source S. The page
-  has a series for S with device B and a missing-id neighbor. The
-  protected transaction refuses. `archive` is `not_attempted`. No capsule,
-  source revision, or receipt change is written. The same refusal holds
-  when the other connection commits a tombstone or history on S instead
-  of the binding. A page whose safety snapshot has no veto, then a
-  deletion of S after the protected rollback, does not archive S's
-  payload. A deletion of the normalized record or its import key between
-  the two transactions does not create a capsule. A deletion of the
-  archive source, or of an existing capsule, does not recreate it and
-  does not store a second identity. An owner correction that changes the
-  binding, the history, or the safety revision after the protected
-  rollback leaves `archive` `not_attempted` and writes nothing. An
-  already deleted neighbor, in either row order, is a protected veto and
-  is not archived. A credential on the page starts neither transaction.
-  An earlier committed sleep page keeps `written` true, its `committed`
-  counts, and `database_changed` true. The text is `Protected write
-  refused; archive not attempted; database changed; pull incomplete.`
+  Preview and `--json --yes` apply neither plan
+- two connections, both row orders. After the protected preview and before
+  its apply, the other connection commits a binding of device C on source
+  S. The page has a series for S with device B. The protected apply
+  refuses because the database revision moved. `archive` is
+  `not_attempted`. No capsule, source revision, or receipt change is
+  written. The same refusal holds when the other connection commits a
+  tombstone or history on S instead of the binding. A page whose safety
+  snapshot has no veto and whose protected preview refused it, then a
+  deletion of S before the archive, leaves `archive` `not_attempted` and
+  does not archive S's payload. The same holds when the other connection
+  deletes the normalized record or its import key, deletes the archive
+  source or an existing capsule, or makes an owner correction, between
+  the protected preview and the archive apply. Nothing is recreated, and
+  no second identity is stored. An already deleted neighbor, in either
+  row order, is left out with its line, and the page is not archived. The
+  API key on the page builds no preview. An earlier committed sleep page
+  keeps `written` true, its `committed` counts, and `database_changed`
+  true. The text is `Protected write refused; archive not attempted;
+  database changed; pull incomplete.`
+- every athlete-data write moves the database revision: `Store::apply`,
+  `ProviderPreview::apply`, repair, erase, and a package merge. A restore
+  into an empty database sets the package's revision and database ID, and
+  the apply refuses another database ID. A test commits each of these
+  between a protected preview and an archive apply, and each one makes the
+  archive `not_attempted`
 - sensors `ow1:["summary","sleep",null]` and a colon inside a provider
   name stay different from a shifted tuple. The text `-` is not the same
   sensor as a missing part. A score whose input source changes from null
@@ -1723,11 +2098,12 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   not create a binding. The first preview page is id-less sleep and the
   second preview page has an id for that same source: the preview refuses
   and writes nothing
-- a partial source update changes `detail` and leaves `device_binding`
-  unchanged. A partial update that includes `device_binding` changes
-  nothing. `ath correct` with a complete source object replaces that object.
-  After that correction, a mapped write follows the source key the
-  correction stored
+- a mapped page never revises a stored source except by the checked first
+  bind. A staged plan that would set, change, or clear `device_binding`
+  any other way is refused by `ProviderPreview::apply`, and the source is
+  unchanged. `ath correct` with a complete source object replaces that
+  object, and protocol `records.correct` does the same. After that
+  correction, a mapped write follows the source key the correction stored
 - export a 2.2.0 database that has an established binding, import that
   package, and the source key and the import keys are still there. The same
   id can correct the point. A different id is refused, with no new point
@@ -1767,43 +2143,121 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   include `Z`. The test does not add `Z`
 - a deleted mapped source is left out. A Garmin file import of a different
   workout remains a second source
-- `left_out` in the result is a total and at most 20 examples
+- `left_out` in the result is a total, a count for each reason, and at
+  most 20 example lines. With 21 lines it says the list was shortened
 - a synthetic Polar list without samples, zones, and route, then one
-  detail with all three true, stores one original. The nested samples are
-  not measurement samples. A second identical pull changes no row and
-  reports no database change for that original. A thinner detail does not
-  replace a stored original that already has samples, zones, or a route.
-  A failed detail keeps the list object and marks that detail incomplete.
+  detail with all three true, stores one original with `detail_status`
+  `stored`. The nested samples are not measurement samples. A second
+  identical pull makes no detail call for that id, counts it `kept`,
+  changes no row, and reports no database change for that original. A
+  changed list object whose new detail has an empty `route` writes
+  nothing for that id, counts it `thinner`, and keeps the stored original.
   The stored workout with a different Open Wearables id stays a separate
   session. A device id on the vendor object does not set `device_binding`.
   The result text does not print a route coordinate. It does say the
   originals keep account ids, user URLs, and full routes
+- a Strava detail with `laps`, `splits_metric`, `segment_efforts`, and
+  `map` is stored. A later changed list object whose detail has no
+  `segment_efforts` is `thinner` and writes nothing. A Whoop detail is
+  never `thinner`, because the table names no Whoop detail field
+- a failed Polar detail for a new id stores the list object with
+  `detail_status` `failed`. Polar is `incomplete`, and the command exits
+  nonzero. The same failure for an id that has a stored detail and a
+  changed list object writes nothing and adds no revision. A detail that
+  names another id is `mismatch`, is not stored, and also makes Polar
+  `incomplete`
+- 45 Strava ids with no stored detail. The first pull details the 20
+  oldest starts and stores the other 25 with `detail_status` `deferred`.
+  Strava stays `completed`, its line counts 25 deferred, and the exit is
+  zero when nothing else failed. A second pull details ids 21 to 40 in
+  start order. A third pull details the last five. A deferred id whose
+  original already has a detail, and whose list object changed, keeps
+  that detail, writes nothing, and adds no revision
 - without `--vendor-workouts`, preview and `--json` make zero requests to
   the connections route and to both workout routes. `requests_made` is
-  false and every live line is `not_attempted`. With the flag, preview
-  and `--json` still write nothing, `requests_made` is true, and the text
-  says vendor requests were made
+  false, `notice` is empty, and every live line is `not_attempted`. With
+  the flag, preview and `--json` still write nothing, `requests_made` is
+  true, and the text says vendor requests were made
+- every run with the flag, as a preview, under `--yes`, and with `--json`,
+  says before its first live request that the server may refresh and save
+  vendor tokens, may revoke a connection, and may wait about 105 seconds
+  on a rate limit. `--json` holds those three sentences in
+  `vendor_workouts.notice` and is still one JSON value. The help text of
+  `--vendor-workouts` and `src/cli/examples/pull.txt` say the same, and
+  the generated `skills/athletic-standard/references/cli.md` matches them
+- a connections list for the selected user whose items carry `user_id`,
+  `linked_user_ids`, `id`, `provider`, `status`, and other fields passes.
+  It is not stored, and no other user's id is printed. One item whose
+  `user_id` is another user refuses the list, and every provider is
+  `not_attempted`
+- an active Garmin connection and a revoked Polar connection call only
+  Garmin. Polar is `not_attempted` with `connection_status` `revoked`, and
+  the fixture server sees no Polar request. `expired` is the same. A
+  status the pin does not define prints `unknown status` and is not
+  called
 - a connections list with only Garmin completes Garmin and marks Polar,
   Suunto, Whoop, Fitbit, Oura, Strava, Withings, and Sensorbio
   `not_attempted`. A failed Polar list does not stop Garmin
-- one failed Garmin window makes Garmin `incomplete` and never
+- a Suunto list object `{"workoutId": 1001, "workoutKey": "abc"}` calls
+  detail at `abc`. The detail's `payload` is unwrapped. One record is
+  stored, and its key ends `suunto|1001`. A detail that names 1001 or
+  `abc` matches. A list object with no `workoutKey` calls detail at 1001
+- a Garmin `activityId` of `123` and a later `"123"` are one record. An
+  integer above 9007199254740991 refuses only that object and counts it
+  as `unsafe_number`. A fractional id refuses only that object and counts
+  it as `unusable_id`. Two different objects with one id are both
+  refused as `duplicate_id`
+- a three-day Garmin range sends three windows. Each window sends
+  `summary_start_time` and `summary_end_time` as integer Unix seconds, and
+  no window is longer than 86,400 seconds. A date `--from` starts at
+  midnight UTC. One failed window makes Garmin `incomplete` and never
   `completed`. A later window still runs
-- a Sensorbio body stores `data[].activities[].id`. A missing id refuses
-  that object and keeps the others. File import of the saved original,
-  then export, keeps one record id
+- live requests go one at a time, at least one second apart by the
+  fixture server's clock. A live request that times out, with the read
+  timeout shortened for the test, stops every later request to that
+  provider in the command. The next provider still runs. The 360-second
+  value is checked as a named constant
+- a Garmin list object with `userAccessToken` stores that original with
+  the value `[withheld by ath]`. The record, the export, the text, and
+  `--json` do not hold the token. `withheld` counts 1 and names the path.
+  The same holds for `access_token`, `refresh-token`, `id_token`,
+  `session_token`, `token`, `embed_token`, `client_secret`, `apiKey`,
+  `authorization`, and `password`, and for a `token` query parameter in a
+  URL string. The URL keeps its address and its other parameters. The API
+  key under a credential-shaped key still refuses the page. A `polar_user`
+  URL and a route coordinate are stored unchanged
+- a Sensorbio body stores `data[].activities[].id`, with the parent entry
+  as `list_parent`. A missing id refuses that object, counts it as
+  `missing_id`, and keeps the others. File import of the saved original,
+  then export, keeps one record id. Sensorbio's line says it reads only
+  the oldest 50 entries
 - a Polar exercise whose start is outside `--from` and `--to` is stored
   and counted under `vendor workout originals`. `range_complete` still
-  follows the stored ranged reads
-- Whoop `next_token`, Oura `next_token`, Sensorbio `links.next`, and a
-  Strava page whose length equals `per_page` set `more` true.
-  `covers_requested_range` is false. The 21st Strava detail id is
-  `deferred`. Its list object is stored
+  follows the stored ranged reads. A Polar `start_time` with no offset has
+  no `reported_at`, and its receipt says the source gave no offset. A
+  Suunto start in Unix milliseconds keeps the digits and stores
+  `reported_at` with milliseconds. Both receipts pass `ath check`
+- a Whoop response with `next_token`, an Oura response with
+  `next_token`, a Sensorbio response with `links.next`, and a Strava page
+  whose length equals `per_page` set `more` true. The fixture server sees
+  no `nextToken` sent to Whoop. `covers_requested_range` is false
+- a vendor original that the person deleted is left out on every later
+  pull, counted as `deleted_record`, and not recreated. A deleted
+  `vendor_workout` source leaves out every object from that provider as
+  `deleted_source`. An original that the person corrected gains a
+  revision with the server's envelope when a later envelope differs, and
+  the correction stays in its history. An equal envelope adds nothing
+- with the flag on, a run whose protected page is refused and archived
+  still writes the vendor page and keeps its counts apart. A refused
+  vendor page leaves the archive and the stored pages as they were
+- a vendor list response that the privacy scan refuses stores nothing
+  from that response, counts its readable objects as `response_refused`,
+  and makes the provider `incomplete`. In every vendor test, each listed
+  object is in exactly one detail count or one left-out count
 - `--json` includes `vendor_workouts.requested`, `requests_made`,
-  `originals`, and each provider's `status`, `covers_requested_range`,
-  `more`, `deferred`, and `limit`
-- a page whose key is `userAccessToken`, `access_token`, `refresh-token`,
-  `apiKey`, `authorization`, `password`, `secret`, or `client_secret` is
-  refused. A `polar_user` URL and a route coordinate are stored
+  `notice`, `originals`, and each provider's `status`,
+  `connection_status`, `covers_requested_range`, `more`, `limit`,
+  `details`, and `left_out`
 
 Migration tests, in the build gate:
 
@@ -1828,11 +2282,19 @@ Migration tests, in the build gate:
   `user_version` 6, and `ath check` exits 0. The fresh database accepts a
   source report, the same two views are queryable, and a mismatched
   revision type is rejected. A failed init rolls step 6 back and then the
-  existing cleanup removes the new file. A failed migrate of a populated
-  database leaves that file, the old schema, the views, and foreign-key
-  enforcement. Step 5 still
+  existing cleanup removes the new file. A failed step 6 migrate of a
+  populated 2.1.1 database leaves that file, schema 5, the views, and
+  foreign-key enforcement. Step 5 still
   writes `2.1.1` and schema 5, and `install_schema` commits that
   transaction before step 6
+- a 2.0.0 database whose step 6 is made to fail after steps 3 to 5
+  committed is a 2.1.1 database at schema 5. The message says so and names
+  the verified backup. A second `ath migrate` runs only step 6 and
+  finishes. `Store::transaction` still refuses a write while foreign keys
+  are off, and step 6 does not use it
+- `ath migrate` re-checks the file, the database ID, the schema, and the
+  revision its earlier steps left before step 6. A change made between the
+  two transactions stops step 6 and changes nothing more
 - databases at `1.0.0`, `2.0.0`, and `2.1.0` still open for migrate. Packages at
   `2.0.0`, `2.1.0`, and `2.1.1` still import. `spec/sql/migrations/004-version-2-1.sql`,
   `spec/sql/migrations/005-version-2-1-1.sql`, and the folders `schema/2.0.0/`,
@@ -1850,6 +2312,9 @@ open the real password store. They cover:
 - `ath key clear` with no name, when no Open Wearables key is saved, keeps
   today's gateway sentences
 - `ath key clear vercel` does not remove a saved Open Wearables key
+- `ath key clear garmin` is still refused, as in 2.1.1
+- `OPEN_WEARABLES_API_KEY` is used before the saved key, as
+  `GARMIN_PERSONAL_API_KEY` is for Garmin
 - `ath key clear openwearables` removes the saved key and, when
   `OPEN_WEARABLES_API_KEY` is set, says that variable is still available. The
   variable is still set afterward
@@ -1858,8 +2323,12 @@ open the real password store. They cover:
 - a preview `--json` has `written: false`, protected and archive
   committed zeros, `estimated` counts, and `range_complete: false`
 - `--json --yes` is a preview. After a later-page failure, and after a
-  readable range, neither transaction commits and the database is
+  readable range, neither preview is applied and the database is
   unchanged
+- `ath pull garmin` with no `--date` fails with `error: required option
+  '--date <day>' not specified`, as in 2.1.1. `ath pull openwearables`
+  needs no `--date`. `ath pull other` fails with `pull reads garmin or
+  openwearables`
 
 `cargo fmt --check`, `cargo clippy --all-targets -- -D warnings`, and
 `cargo test` pass. In `packages/npm`, `npm ci`, `npm run typecheck`, and
@@ -1891,8 +2360,9 @@ the fixture key once into `ath key set openwearables`.
 4. Repeat. Success: `--yes` again reports the stored rows unchanged.
    Failure: a second copy of a sleep session or a point appears.
 5. Compatibility. Success: one synthetic Apple, WHOOP, or Oura import still
-   passes `ath check`, and `ath pull garmin` with no date still asks for
-   `--date`. Failure: that import or the Garmin command breaks.
+   passes `ath check`, and `ath pull garmin` with no date still fails with
+   `error: required option '--date <day>' not specified`. Failure: that
+   import or the Garmin command breaks.
 
 The automated cases in section 7 are not extra card steps.
 
@@ -1907,7 +2377,7 @@ This plan pull request has no screenshots and no video.
 
 ## 9. Separate follow-ups
 
-D202 records the check. None of these is a prerequisite for the pull, and none
+D231 records the check. None of these is a prerequisite for the pull, and none
 is in the build pull request.
 
 - Failed `ath init` and failed `Store::create` still delete the database
@@ -1916,20 +2386,28 @@ is in the build pull request.
   fail with `EBUSY`. Version 2.1.0 spec section 12 left it out
   and named no later version. Version 2.1.1 did not take it. A failed step 6
   rolls back before that cleanup. This build does not replace the cleanup.
-- `src/import/mapping.rs` is 1703 lines. `src/store/check.rs` is 1044. The
-  pull does not add HTTP to them. `mapping.rs` gains the counts, the
-  open-wearables binding check, and the preservation writes in section 2.
-  `src/store/write.rs` gains the receipt refusal, the three source
-  operations in section 3, and the sample, source-report, withdrawal,
-  null-filter, archive, and paired-null writes in section 6. Splitting
-  `mapping.rs` stays out.
+- `src/import/mapping.rs` is 1703 lines, `src/import/provider.rs` is 1297,
+  and `src/store/check.rs` is 1044. The pull does not add HTTP to them.
+  `mapping.rs` gains `MappedPage`, the `vendor_workout` section, and the
+  preservation writes in section 2. `provider.rs` gains the staged first
+  bind, the `device_binding` refusal in `ProviderPreview::apply`, and the
+  stored-original read. The binding check and the safety snapshot go in
+  the new `src/import/binding.rs`. `src/store/encode.rs` gains the sample,
+  source-report, withdrawal, and paired-null writes in section 6, and
+  `src/calculate/range.rs` gains the null filter. Splitting `mapping.rs`
+  stays out.
+- `ath key clear garmin` is refused in 2.1.1, because `key_clear` in
+  `src/cli/commands/model.rs` accepts only gateway names. `ath key set
+  garmin` works. This pull leaves that as it is. Making the Garmin key
+  removable is separate work.
 - `persist.rs` and `ath-core persist` are gone. A name check outside import
   is separate work. The pull does not add one.
 - The mapping path rule is already `is_mapping_path` in `src/assets/mod.rs`.
   There is no duplicate to delete.
 
-No maintainability note under another name was found in the 2.1.0 decision
-log. The sizes above are the current code, not a recorded D-number.
+No maintainability note under another name was found in the 2.1.0 or
+2.1.1 decision logs. The sizes above are the code at 2.1.1, not a
+recorded D-number.
 
 ## 10. Risks and the approval
 
@@ -1939,7 +2417,7 @@ measured run for this pull.
 Risks:
 
 - A server newer than 0.11.0 can add a default that hides a second device.
-  Current `main` does not, when the queries in D201 are sent. The client is
+  Current `main` does not, when the queries in D230 are sent. The client is
   tested against the stored fixture. That fixture is not a live response, and
   a live timestamp without an offset is left out. A breaking envelope needs a
   new fixture before the pull trusts it.
@@ -1972,15 +2450,15 @@ mapping engine and `mappings/open-wearables.md`. Then the reads, the
 cycle filter, the smaller-page split, and the tests in section 7. The laptop card and the phone proof are
 part of that same pull request. This plan pull request has no media.
 
-The maintainer approves or rejects this plan before any build. D198 through
-D215 are the proposal. They are not adopted. The stored workout and the
+The maintainer approves or rejects this plan before any build. D227 through
+D244 are the proposal. They are not adopted. The stored workout and the
 live original stay separate records, because the public stored
-workout has no vendor id. That split is part of this proposal. D215 is the
+workout has no vendor id. That split is part of this proposal. D244 is the
 privacy choice, and the maintainer can change it before approval. Reviews of earlier heads were
 incorporated here. None of those reviews approves this revision. The next
 head needs re-review. An earlier review accepted a
 migration with no new column, under D152 and D184. That acceptance does not
-adopt D198. The
+adopt D227. The
 optional source key adds no column.
 
 1. One number, 2.2.0. Readable sets keep `1.0.0`. Step 6 runs on create and
@@ -1997,18 +2475,18 @@ optional source key adds no column.
    back on after every exit. A
    `2.1.1` database does not open until `ath migrate`. This release does
    not schedule a pull, add its own token refresh, backfill, or store a
-   cursor (D198, D208). A live read can still make the server refresh a
-   vendor token (D214).
+   cursor (D227, D237). A live read can still make the server refresh a
+   vendor token (D243).
 2. Store the returned representations in section 2. Device receipts stay
    on device sources. Summaries without a device id use their own sensors.
    Null stays null. A missing response is not called provider-unavailable.
-   The omissions in section 2 are the ones with a reason (D203, D208).
+   The omissions in section 2 are the ones with a reason (D232, D237).
 3. The key, the selected origin, and the selected user id are rejected in
    decoded JSON before a page is mapped. Failure text uses a fixed sentence.
    `ath key clear` with no name still clears only the gateway keys and says
    when the Open Wearables key remains. Named clear removes the saved key
    only. It does not unset the environment and it does not revoke the server
-   key (D200).
+   key (D229).
 4. Preview is the default and its counts are estimates. `--json` does not
    write. `--yes` commits each successful page under D189, and a committed
    page is not a completed pull. The text of `--yes` shows retained counts
@@ -2020,7 +2498,7 @@ optional source key adds no column.
    The receipt is the source key `device_binding`. A 2.1.0 supplied field of
    that name does not become the receipt. Unbound history is refused and
    left in place. `ath correct` and a native 2.2.0 package restore are the
-   owner's whole source record (D201).
+   owner's whole source record (D230).
 5. The Windows cleanup and the maintainability notes stay separate.
    `src/import/mapping.rs` gains counts by record type, the open-wearables binding
    check, and the preservation writes in section 2. `src/store/write.rs`
@@ -2030,4 +2508,4 @@ optional source key adds no column.
    writes in section 6, including the null filter in the calculation
    readers and the bounded archive safety read. The pull command owns the
    archive transaction and calls the store. `mapping.rs` does not start
-   it. Failed-init cleanup stays as it is (D202, D208).
+   it. Failed-init cleanup stays as it is (D231, D237).
