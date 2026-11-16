@@ -132,6 +132,8 @@ These edits answer the review of this plan at `d636d7a`:
 - D243. For Garmin, Suunto, Whoop, and Oura, which name no detail field, a
   new detail with fewer fields replaces the stored one, and the stored
   detail stays in the record's history.
+- D230. Each of the four page refusals names the owner's fix, or says
+  2.2 has none.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -485,7 +487,13 @@ A failed read says to run the same command again. An identity refusal uses
 the sentence in the specification's section 3: a replacement id is blocked
 even at a new time, a 2.1.0 Open Wearables history cannot be refreshed until
 reconciliation, and
-a rerun cannot repair either one. A preview that fails makes no database
+a rerun cannot repair either one. Each page refusal also names the
+owner's fix where 2.2 has one. `ath correct` on the source can set a new
+`device_binding`, bind history that one device wrote, or replace a
+malformed receipt. A changed workout kind has no fix that keeps the
+record. `ath erase` removes it, and the next pull stores the new kind. A
+bound source that receives rows with no id, and history from more than
+one device, have no fix in 2.2. A preview that fails makes no database
 changes, including for pages that had already been counted.
 
 Before `MappedPage`, a cursor page and an offset page must be a JSON

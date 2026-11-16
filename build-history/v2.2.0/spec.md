@@ -788,6 +788,28 @@ receipt, and a workout kind that differs from the stored record. The
 archive is not attempted after a veto. A missing device id on a
 timeseries row is not this veto.
 
+Each refusal names what the owner can do, and the text says the same:
+
+- A conflicting device id. If the new device replaces the old one, the
+  owner runs `ath correct` on the source and sets `device_binding` to the
+  new id. Later rows from the new device are then accepted. A new row
+  replaces an old one only where both have the same match key, which
+  includes the time. When the incoming id is missing, null, or blank,
+  2.2 has no fix that keeps the source. Removing the key would make the
+  source unbound history, which is refused too. Deleting the source
+  leaves out every later row from it (D190).
+- Unbound history. If one device wrote all of that history, the owner
+  runs `ath correct` on the source and adds `device_binding` with that
+  device's id. Nothing checks that claim. When more than one device wrote
+  it, 2.2 has no fix. Splitting that history is the later reconciliation.
+- A malformed receipt. The owner runs `ath correct` on the source and
+  sets `device_binding` to the device's id as a nonempty string.
+- A workout kind that differs from the stored record. 2.2 has no fix that
+  keeps the stored record. `ath erase` removes the record, its revisions,
+  and its import key, and the next pull stores the workout as a new
+  record of the new kind. Erase cannot be undone, and the skill describes
+  it as privacy removal. The refusal text says both.
+
 A deleted source or a deleted record is not a veto. A row whose source the
 person deleted is left out, and the line says so (D190). A row whose
 match key names a record the person deleted is left out, and the line
@@ -1559,7 +1581,9 @@ The call is one of these states:
   point values with a different id are still refused. A new timestamp does
   not make the new id acceptable. The text says the replacement device is
   blocked, including when the sample time is new, and that running the
-  command again cannot change the id.
+  command again cannot change the id. It names the fix in section 2:
+  when the new device replaces the old one, `ath correct` on the source
+  sets `device_binding` to the new id.
 - The source exists, the source key is absent, and any history exists.
   History includes a deleted record and a deleted source device, not only
   live rows. `existing_source` in `src/import/provider.rs` keeps
@@ -1568,11 +1592,14 @@ The call is one of these states:
   refused. Hardware is not promoted. The text
   says this Open Wearables history cannot be refreshed until a separate
   reconciliation exists, and that running the command again cannot create
-  the binding. This is the block for 2.1.0 history. It is not the coverage
+  the binding. It also says that when one device wrote that history,
+  `ath correct` on the source can add `device_binding` with that device's
+  id. This is the block for 2.1.0 history. It is not the coverage
   choice in section 2.
 - The source key is present and is not a nonempty string. The call is
   refused. The stored value is left as it is. The text says this command
-  cannot use that binding, and a rerun cannot repair it.
+  cannot use that binding, a rerun cannot repair it, and `ath correct` on
+  the source can set it to the device's id.
 - The source is new for this call, or it already exists with the source key
   absent and with no history. Accepted rows that are only sleep and
   workouts, and that all lack an id, are stored. The source has no
@@ -2219,6 +2246,17 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   stay two records. A preview of those two pages does not claim the
   conflict, because the first preview page wrote nothing. A confirmed
   second page does.
+- each of the four page refusals prints the owner's fix from section 2,
+  and each fix works. After `ath correct` sets `device_binding` on a bound
+  source to a new id, the next pull accepts rows with that id, and a new
+  row replaces an old one only where the match keys are equal. After
+  `ath correct` adds `device_binding` to an unbound source written by
+  2.1.0, the next pull refreshes that history. After `ath correct`
+  replaces a malformed receipt with a nonempty string, the next pull
+  goes on. A bound source that receives rows with no id stays refused,
+  and its text names no rebinding fix. After `ath erase` of a workout
+  whose kind changed, the next pull stores the new kind as a new record
+  with a new record id.
 - a missing device id beside a conflicting device id, in either row order,
   refuses the protected page and stores no capsule and no revision. The
   same veto holds for an unbound legacy history and a missing workout UUID
