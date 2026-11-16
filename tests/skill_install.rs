@@ -2,11 +2,14 @@
 //! calculation copies are updated, edited ones are kept and reported, and
 //! coaching skills are installed only when named.
 
+mod calculation_support;
+
 use std::fs;
 use std::path::{Path, PathBuf};
 
 use athleticstandard::assets::skill::{
-    install_named_skills, install_skill, skill_status, SkillKind, PREVIOUSLY_SHIPPED_CALCULATIONS,
+    install_named_skills, install_skill, shipped_kind, skill_names, skill_status, SkillKind, SkillState,
+    PREVIOUSLY_SHIPPED_CALCULATIONS,
 };
 use sha2::{Digest, Sha256};
 
@@ -78,4 +81,47 @@ fn an_unknown_name_installs_nothing() {
     let error = install_named_skills(dir.path(), &["hrv-change".into(), "no-such-skill".into()]).unwrap_err();
     assert!(error.to_string().starts_with("no shipped skill named no-such-skill. Shipped skills: "), "{error}");
     assert!(!dir.path().join(".agents").exists(), "nothing was written");
+}
+
+#[test]
+fn coaching_skills_are_installed_only_when_named() {
+    let coaching: Vec<&str> =
+        skill_names().into_iter().filter(|name| shipped_kind(name) == SkillKind::Coaching).collect();
+    assert_eq!(coaching, ["crossfit", "hyrox"]);
+    let dir = tempfile::tempdir().unwrap();
+    fs::create_dir(dir.path().join(".claude")).unwrap();
+    install_skill(dir.path()).unwrap();
+    for name in &coaching {
+        assert!(!installed(dir.path(), name).exists(), "{name} is not installed by default");
+    }
+    let status = skill_status(dir.path()).unwrap();
+    for copy in status.iter().filter(|copy| copy.kind == SkillKind::Coaching) {
+        assert_eq!(copy.state, SkillState::Available, "{}", copy.path.display());
+    }
+
+    let written = install_named_skills(dir.path(), &["hyrox".into()]).unwrap();
+    assert_eq!(written.len(), 2, "into .agents and .claude: {written:?}");
+    assert!(installed(dir.path(), "hyrox").exists());
+    assert!(dir.path().join(".claude/skills/hyrox/SKILL.md").exists());
+    assert!(!installed(dir.path(), "crossfit").exists());
+
+    // An older installed coaching skill is refreshed by a default install.
+    let file = installed(dir.path(), "hyrox");
+    let older = fs::read_to_string(&file).unwrap().replace("version: \"2.1.2\"", "version: \"2.1.1\"");
+    fs::write(&file, older).unwrap();
+    install_skill(dir.path()).unwrap();
+    assert!(fs::read_to_string(&file).unwrap().contains("version: \"2.1.2\""));
+    assert!(!installed(dir.path(), "crossfit").exists(), "still not installed by default");
+}
+
+#[test]
+fn applying_a_coaching_skill_says_what_it_is() {
+    let dir = tempfile::tempdir().unwrap();
+    install_named_skills(dir.path(), &["crossfit".into()]).unwrap();
+    let mut lab = calculation_support::Lab::new();
+    lab.write_one(&serde_json::json!({ "id": "night", "record_type": "sleep_session",
+        "start": "2026-10-01T23:00:00.000Z", "end": "2026-10-02T07:00:00.000Z" }));
+    let id = lab.id("night");
+    let error = athleticstandard::calculate::apply(&lab.store, "crossfit", &id, dir.path()).unwrap_err();
+    assert!(error.to_string().starts_with("crossfit is a coaching skill, not a calculation."), "{error}");
 }
