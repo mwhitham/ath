@@ -1,0 +1,385 @@
+# v2.1.2 decisions
+
+Decisions continue after D226. Earlier decisions stay as they are. The plan is
+[spec.md](spec.md).
+
+## D227. Calculation repairs, session effort, and coaching skills ship as 2.1.2
+
+The program, npm package, record package, and database metadata use 2.1.2. D152's
+single version rule stays. The SQL migration step becomes 6.
+
+The number moves because the record gains optional fields and a new report type
+(D238, D239), and because calculation methods change. Minor and patch versions may
+add optional fields (D96, D184). The maintainer chose 2.1.2 for this work on
+2026-11-15.
+
+Rejected alternatives:
+
+- Ship the repairs as a later 2.1.1 build. Rejected because 2.1.1 promised
+  unchanged methods and fields (D209), and the repairs change both.
+- Use 2.2.0. Rejected because the maintainer chose 2.1.2.
+
+## D228. Three kinds of skill; coaching advice is authored
+
+`skills/` holds three kinds of skill. The tool skill reads and writes the record.
+A calculation skill produces one reproducible result. A coaching skill assesses,
+plans, adapts, and reviews training for one sport.
+
+The record and the tool skill stay "not a coach": they describe what the data
+shows and do not prescribe training. A coaching skill is the only place advice is
+given. Its advice is saved as an authored record (`training_plan`,
+`planned_session`, `coaching_note`, `saved_training_review`, or `goal`) with agent
+authorship and exact evidence revisions. It is never written as a measured record
+or an athlete report. No skill gives medical advice; pain, injury, and illness go
+to a qualified person.
+
+Each shipped `SKILL.md` names its kind in `metadata.kind`: `tool`, `calculation`,
+or `coaching`.
+
+Rejected alternatives:
+
+- Let the tool skill coach. Rejected because the record format would then imply
+  that one coaching method is part of the standard.
+- Keep coaching out of the repository. Rejected because the maintainer wants
+  official CrossFit and HYROX skills held to the same tests as the calculations.
+
+## D229. A coaching skill is installed only when named
+
+`ath init`, `ath skill install`, and `ath --update` install the tool skill and the
+calculation skills. A coaching skill is installed only when a person or agent names
+it: `ath skill install crossfit`. A coaching skill that is already installed is
+refreshed when an older version is there, as the tool skill is (D164), because an
+agent would otherwise keep reading old advice. `ath skill` lists coaching skills
+that are available and not installed.
+
+This follows D120: a person chooses to receive coaching advice. A named install
+of a skill this program does not ship is refused.
+
+Rejected alternatives:
+
+- Install every shipped skill by default. Rejected because coaching advice should
+  be a choice, and a future set of sports would fill every project.
+- Never refresh an installed coaching skill. Rejected because coaching guidance,
+  such as a season's rules, goes out of date.
+
+## D230. A changed calculation method gets a new operation name
+
+When a calculation method changes, the shipped file uses a new `use:` operation
+name. The old operation name keeps its exact old arithmetic. A file that still
+names it gives the same answer it gave before. Its result adds `method_notice`,
+which says the method was replaced and why.
+
+This refines D157. D157 required a new file name for a different method. The
+file name is the skill name that people and agents ask for, so it stays. The
+operation name inside the file carries the method instead.
+
+Rejected alternatives:
+
+- Change the arithmetic behind the old operation name. Rejected because an edited
+  file would silently give a different answer for the same records.
+- Rename the skills, for example `hrv-change-2`. Rejected because agents and
+  people find calculations by their plain names.
+- Delete the old operations. Rejected because an edited file would stop working.
+
+## D231. An unedited installed calculation file is replaced
+
+`ath skill install` and `ath --update` replace an installed calculation skill when
+its `SKILL.md` bytes exactly match a file that an earlier release shipped. The
+program carries the SHA-256 of every shipped calculation file since 2.0.0. Those
+copies were never edited, so replacing them loses nothing. A copy with other bytes
+was edited. It is kept, and `ath skill --json` marks it `edited` with the shipped
+version, so the person can see that the shipped method changed.
+
+This supersedes D157's rule that an installed file is never replaced, for unedited
+copies only. D157's rule that the program runs the installed copy stays.
+
+Rejected alternatives:
+
+- Never replace an installed calculation. Rejected because every 2.1.1 user would
+  keep the methods this release repairs, with no warning.
+- Replace every copy. Rejected because a person's edit is a deliberate choice.
+- Compare versions instead of bytes. Rejected because an edited file keeps its old
+  version line.
+
+## D232. A change compares the day with earlier days from a bounded window
+
+`hrv-change` and `resting-heart-rate-change` use `earlier_window_change`. The
+target value is the mean of the target record's local day, using only readings at
+or before the target. The comparison is the mean of earlier daily means from the
+28 days before that day. At least 7 earlier days are needed. Only readings from the
+same source, quantity, record type, and basis count. Days use the athlete's
+`default_time_zone`, or UTC when there is none, and the result names the zone.
+
+The result gives the change, the percentage change, the comparison mean and
+standard deviation, the change in standard deviations, the days used, and the
+window. It does not judge whether the change matters; the skill explains how to
+read it.
+
+Daily means keep a source that reads many times a day (Apple SDNN) on the same
+footing as one that reads once (a nightly RMSSD). The 28-day window and 7-day
+minimum follow athlete-monitoring practice that compares a recent value with a
+rolling reference of several weeks; see
+[appendix/calculation-methods.md](appendix/calculation-methods.md).
+
+This fixes the 2.1.1 behaviour recorded in
+[deliberate changes](../v2.1.1/appendix/deliberate-changes.md), where later readings
+entered the "earlier" mean.
+
+Rejected alternatives:
+
+- Every earlier reading, unbounded. Rejected because a reading from a year ago
+  says little about this week, and readings per day differ by device.
+- Compare one spot reading with earlier spot readings. Rejected because a single
+  intraday SDNN sample varies more than a daily mean.
+- Report a verdict such as "recovered". Rejected by D159: there is no Athletic
+  Standard recovery score.
+
+## D233. A comparison keeps record types and bases apart
+
+Within one statistic, a change or baseline compares only readings of the same
+record type and the same `field_basis.value`. A nightly point measurement and an
+intraday sample are recorded differently. A provider value and a value calculated
+during import are made differently. A record without a basis forms its own group.
+
+RMSSD and SDNN stay separate everywhere (D158). Both work through every
+calculation that reads a measurement, including samples.
+
+Rejected alternatives:
+
+- Mix point measurements and samples of one statistic. Rejected because recording
+  conditions change what the number means.
+
+## D234. Sleep change compares main sleep periods
+
+`sleep-change` uses `earlier_window_change` on sleep sessions. A session counts as
+a main sleep when its span is at least 3 hours. The target must be a main sleep.
+Earlier main sleeps from the same source that ended before the target started, in
+the 28 days before it, form the comparison. At least 7 are needed. Shorter sessions
+are naps and are excluded, and the result counts them.
+
+Rejected alternatives:
+
+- Include naps. Rejected because a 20-minute nap pulls down the mean of nightly
+  sleep.
+- Sum all sleep in a calendar day. Rejected for this skill because the question it
+  answers is about one night. Total daily sleep is a separate question.
+
+## D235. Heart-rate recovery starts at the end of effort
+
+`heart-rate-recovery` uses `drop_after_effort_end`. The end of effort is the start
+of a workout segment labelled `recovery`, or else the workout end. The heart rate
+at that moment comes from the nearest sample at or before it, within 5 seconds.
+The heart rate 60 seconds later comes from a sample within 5 seconds of that time,
+or from straight-line interpolation between samples no more than 10 seconds apart.
+If there are no samples after the end of effort, the result says so.
+
+Many devices stop recording when the workout stops. The skill tells the athlete to
+keep recording and mark a `recovery` lap, and to prefer a device's own one-minute
+recovery reading (`hr_recovery`) when there is one.
+
+Rejected alternatives:
+
+- Keep the 2.1.1 rule. Rejected because it looked for a sample after the last
+  sample and could never succeed.
+- Use the peak heart rate instead of the end of effort. Rejected because the peak
+  can occur well before the effort ends.
+
+## D236. Sleep regularity uses the Sleep Regularity Index on sleep periods
+
+`sleep-regularity` uses `sleep_regularity_index`. It applies the Phillips et al.
+(2017) formula: −100 plus 200 times the share of minute pairs, 24 hours apart, that
+are in the same state. A minute is asleep when it lies inside a sleep session from
+the same source. Awake time inside a session counts as asleep, because the record
+has no minute-by-minute wake data; the result says so. The window is the 14 days
+ending at the target session's end. A 24-hour day with no session is unobserved,
+and pairs that touch it are left out. At least 5 observed day pairs are needed.
+
+Seven identical schedules score 100. The 2.1.1 method compared two nights at the
+same clock instant rather than 24 hours apart, so identical nights scored 0.5.
+
+Rejected alternatives:
+
+- Keep nightly agreement under a new name. Rejected because it does not measure
+  regularity.
+- Claim the published index exactly. Rejected because the published index uses
+  sleep and wake epochs inside the night.
+
+## D237. Strength volume converts units and load basis
+
+`strength-volume` uses `volume_load`. Each set adds repetitions times load in
+kilograms. A pound is 0.45359237 kg. `kg` and `lb`, with common spellings, are
+recognised; any other unit stops the calculation and names the set. A
+`per_implement` load is multiplied by `implement_count`. A set without a load basis
+is counted as written, and the result says how many such sets there were. Volume is
+also split by movement when sets name one.
+
+Rejected alternatives:
+
+- Add numbers in whatever unit they came in. Rejected because 100 kg plus 100 lb
+  is not 200 kg.
+- Refuse a set without a load basis. Rejected because older records never had one.
+
+## D238. Session effort is its own report type, linked to its workout
+
+`athlete_report.report_type` gains `session_effort`, which needs `rating` and
+`rating_scale`. `athlete_report` gains optional `workout_session_id`, stored as a
+SQLite column with a foreign key (D104) added by migration step 6. Erasing a workout
+erases the reports that name it (D107).
+
+`training-load-effort` uses `session_effort_load` (Foster et al., 2001). It needs a
+`session_effort` report. It accepts a 10-point scale (`0-10` or `1-10`) or the Borg
+`6-20` scale, and the rating must lie on that scale. The duration is the report's
+`duration_seconds`, or else the linked workout's span. Load is rating times
+minutes, in arbitrary units, and the result names the scale family and where the
+duration came from. Loads on different scales are never comparable.
+
+A soreness, mood, or other rating can never become training load.
+
+Rejected alternatives:
+
+- Keep reading any report's `rating`. Rejected because a soreness score is not
+  session effort.
+- Store the effort on the workout. Rejected by the two-tier wall: a workout is a
+  measured record and the effort is the athlete's report.
+- Link through an extension. Rejected because D104 requires every logical link to
+  have a foreign key.
+
+## D239. A strength set names its movement and load basis
+
+`StrengthSet` gains optional `movement`, `load_basis` (`total` or
+`per_implement`), and `implement_count`. `implement_count` is required with
+`per_implement` and refused otherwise. The fields live in the stored JSON; no SQL
+column changes.
+
+Rejected alternatives:
+
+- Put movement and basis in an extension. Rejected because volume, CrossFit, and
+  HYROX all need them, and D118's conditions for an official field are met by the
+  calculation that reads them.
+
+## D240. Heart-rate load and zones credit only covered time
+
+`heart-rate-zones` uses `time_in_zones` and `training-load-heart-rate` uses
+`banister_trimp`. A sample lasts until the next sample, or until the workout end
+for the last one, but never longer than 60 seconds. Longer gaps are reported as
+uncovered time.
+
+`banister_trimp` is Banister's TRIMP with the published weighting: 0.64 e^(1.92 x)
+for men and 0.86 e^(1.67 x) for women, where x is the heart-rate reserve fraction.
+It reads `sex` from the athlete profile. Without it, the result says the weighting
+is missing rather than guessing. The 2.1.1 method used e^(1.92 x) without the
+coefficient for everyone.
+
+Rejected alternatives:
+
+- Treat every gap as covered. Rejected because a lost sensor signal is not time in
+  a zone.
+- Default to the male weighting. Rejected because it overstates load for women.
+
+## D241. Resting heart rate is the lowest sustained mean
+
+`resting-heart-rate` uses `lowest_rolling_mean`. It is the lowest mean over any
+5-minute window that has at least 3 samples and no gap longer than 2 minutes. On a
+sleep session it reads `heart_rate` samples from the same source inside the session.
+On a workout it reads the workout's own samples, and the skill explains that this is
+the lowest sustained rate during that workout, not resting heart rate.
+
+Rejected alternatives:
+
+- Keep the 2.1.1 rule. Rejected because it needed a heart rate that did not change
+  at all for a minute, which real data almost never shows.
+
+## D242. Sleep denominators, stages, and clock times are defined
+
+`sleep-efficiency` uses `sleep_efficiency`: time asleep over time in bed. It refuses
+a night with more sleep than time in bed. `sleep-stages` uses `sleep_stage_split`:
+a stage named `awake` is counted apart from asleep minutes, and each sleep stage is
+reported as a share of asleep minutes. `sleep-timing` uses `sleep_clock_times`: the
+start, midpoint, and end in the athlete's time zone, else the offset the source
+wrote, else UTC, with the basis named.
+
+## D243. `ath apply` refuses a range calculation with the command to run
+
+A range calculation such as `baseline` needs a quantity and a window, not one
+record. `ath apply baseline --record <id>` now refuses and prints the
+`ath calculate` command to run. In 2.1.1 it returned "unknown calculation mean",
+while the skill advertised `ath apply`.
+
+## D244. Range receipts are version 2
+
+`calculation_version` becomes `ath-runtime-v2`. Results gain fields: a daily-mean
+summary in `baseline`, days spanned and slope standard error in `trend`, a coverage
+share in `coverage`, a paired-day comparison in `compare-sources`, and sample counts
+in `workout-drift`. `correlation` needs three paired days and gives a reason when it
+returns null. Existing fields keep their meaning.
+
+Rejected alternatives:
+
+- Leave the range methods alone. Rejected because the plan requires daily weighting
+  and honest minimums.
+- Change existing fields in place. Rejected because callers read them.
+
+## D245. HYROX splits are a calculation; sport details are extensions
+
+`hyrox-race-splits` is a calculation skill with the `hyrox_splits` operation. It
+reads a `benchmark_result` whose segments use the labels in its skill. It adds runs,
+stations, Roxzone, and penalties, refuses a result whose parts add up to more than
+the total, and reports any unaccounted time. Doing this in code keeps an agent from
+counting time twice.
+
+HYROX season, format, division, and penalties are written in the
+`org.athleticstandard/hyrox-race` extension. CrossFit variant, loads, substitutions,
+time cap, capped status, and tiebreak are written in
+`org.athleticstandard/crossfit-score`. Both follow D118: they are documented
+conventions with tests, not official fields.
+
+Rejected alternatives:
+
+- Let the agent add the splits. Rejected because a convincing answer can still
+  count Roxzone time inside run time.
+- Add HYROX and CrossFit fields to the record. Rejected until D118's conditions are
+  met across builders.
+
+## D246. Every worked example in a calculation skill runs in a test
+
+A calculation skill's worked example is a fenced `ath-example` block: the records,
+the record to run on, and the expected result. `tests/skill_examples.rs` writes the
+records to a new database, runs the shipped file, and compares the result. A skill
+whose example and program disagree fails the build.
+
+Rejected alternatives:
+
+- Prose examples checked by review. Rejected because the 2.1.1 skills advertised
+  commands that did not work.
+
+## D247. Agent evaluations are recorded; human coaching review is separate
+
+Agent behaviour is evaluated in fresh sessions on synthetic databases with the new
+skills, the 2.1.1 skills, and no skill. The tool calls, saved records, and claims are
+inspected, not only the final prose. Results are recorded in
+[appendix/agent-evaluation.md](appendix/agent-evaluation.md). Automated tests never
+call a model service.
+
+Independent review by qualified CrossFit and HYROX coaches is a release requirement.
+An AI review does not satisfy it. Until it is done, the release evidence lists it as
+outstanding.
+
+## D248. skills.sh is prepared, not published
+
+The repository gains `skills.sh.json`, which groups the page into the tool skill,
+coaching, and calculations. Nothing is published, submitted, or listed. Local
+installation tests set `DISABLE_TELEMETRY=1` and `DO_NOT_TRACK=1` and give the
+skills CLI no network route to skills.sh, whose listings come from install
+telemetry. The maintainer publishes manually.
+
+## D249. A zero-repetition result is not a benchmark score
+
+`Score.reps` stays positive. Grading divides by the actual score, so a zero would
+make the error undefined. A capped "for time" attempt stores the repetitions
+completed in `score.reps` and the cap in `org.athleticstandard/crossfit-score`. An
+attempt with no completed repetitions is logged as a note.
+
+Rejected alternatives:
+
+- Allow zero repetitions. Rejected because grades and predictions would need a
+  second error rule.

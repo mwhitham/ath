@@ -39,6 +39,7 @@ build-history/
 | [v2.0.0](v2.0.0/spec.md) | Released. |
 | [v2.1.0](v2.1.0/spec.md) | Released. This is the installed software until 2.1.1 is released. |
 | [v2.1.1](v2.1.1/spec.md) | Built, not yet released: the complete native rebuild. See its [decisions](v2.1.1/decisions.md), [progress](v2.1.1/progress.md), and [release evidence](v2.1.1/appendix/release-evidence.md). |
+| [v2.1.2](v2.1.2/spec.md) | In progress: calculation repairs, session effort, and the CrossFit and HYROX coaching skills. See its [decisions](v2.1.2/decisions.md) and [progress](v2.1.2/progress.md). |
 
 ## Drafts that were not approved
 
