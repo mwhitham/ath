@@ -145,7 +145,13 @@ the success sentence. `written` is true when any protected transaction
 in this command created or revised a counted record. An archive does not
 make `written` true. `database_changed` is true when any protected
 transaction or any archive transaction in this command committed a
-change, including the first insert of the archive source. A later page
+change, including the first insert of the archive source. A vendor page
+in section 2 is a protected transaction. Its originals are `source_report`
+records, so they add to `committed.source_report` as well as to
+`vendor_workouts.originals` and that provider's counts. A committed vendor
+page that creates or revises an original makes `written` true and
+`database_changed` true, even when every stored page was unchanged. A
+first `vendor_workout` source counts as a database change. A later page
 does not reset either flag or the counts from an earlier page. An empty
 ranged result can still store the personal record or the body snapshot.
 Those writes are counted as protected rows. They are not ranged rows.
@@ -995,7 +1001,16 @@ finish those retries first. If a live request still times out, the server
 may still be working on it. The pull then sends no other request to that
 provider in this command, so two requests to one provider never overlap.
 That provider is `incomplete`. The next provider still runs, and it uses
-a different vendor account and limit. A server whose provider timeout is
+a different vendor account and limit. An HTTP 429 from a live request
+stops that provider the same way. The server has already waited and
+retried three times, so the vendor's limit is spent. No later list call,
+window, or detail call goes to that provider in this command. The detail
+call that got 429 counts as `failed`. Every listed id that had not had its
+detail call yet counts as `deferred`, and a later command details it by
+the order below. What the provider already returned is still written as that
+provider's page: the list objects, and the details already fetched. A
+later Garmin window after a 429 or a timeout is not sent, unlike a window
+that failed another way. A server whose provider timeout is
 raised can outlast this timeout. The same rule covers that case. The
 stored reads keep 30 seconds to connect and 120 seconds to read, the values
 `src/runtime/garmin_pull.rs` uses.
@@ -1143,6 +1158,13 @@ The start column names one field and how to read it:
   There is no `reported_at`.
 
 The start is stored and is not a filter.
+
+The pull withholds credential values, by the rule in section 4, in each
+list object and each detail before it compares anything. The detail
+order, the `kept` check, the thinner check, and the owner-correction rule
+all compare withheld copies. So a Garmin list object whose
+`userAccessToken` changed between pulls still equals its stored copy, and
+it gets no detail call.
 
 For each listed id, the pull first reads the stored original, if there is
 one. That read is crate-private and lives in `src/import/provider.rs`. It
@@ -1921,7 +1943,8 @@ to `estimated` and its archive estimates to `estimated_archive`. It does
 not add `outcome` across pages. `outcome` counts the source-device row in
 the same group. Filtering that row out of the totals does not make a
 preview equal a write. A preview page writes nothing, so page two does not
-see page one.
+see page one. A vendor page is a protected page. Its originals add to
+`committed.source_report` and to the vendor counts.
 
 The command reads the saved key and `OPEN_WEARABLES_API_KEY` in this
 process, in `src/runtime/keyring.rs`. It has no `--key` flag. The
@@ -2373,6 +2396,21 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   timeout shortened for the test, stops every later request to that
   provider in the command. The next provider still runs. The 360-second
   value is checked as a named constant
+- five Strava ids with no stored detail, where the third detail call
+  answers HTTP 429. The fixture server sees no later Strava request. Ids
+  one and two store their details. Id three is `failed`. Ids four and five
+  are `deferred`. All five list objects are stored. Strava is
+  `incomplete`, the next provider still runs, and the exit is nonzero. A
+  429 on a Garmin window sends no later window
+- a Garmin list object with `userAccessToken` is pulled twice, with a
+  different token value the second time. The second pull counts it
+  `kept`, makes no detail call, and writes nothing for it
+- an empty database is pulled once without `--vendor-workouts`, which
+  stores the personal record. A second pull of the same stored data with
+  the flag, whose only new rows are two Garmin originals, reports
+  `written` true and `database_changed` true, `committed.source_report`
+  new 2, and Garmin `originals` new 2. A third identical pull reports both
+  flags false
 - a Garmin list object with `userAccessToken` stores that original with
   the value `[withheld by ath]`. The record, the export, the text, and
   `--json` do not hold the token. `withheld` counts 1 and names the path.

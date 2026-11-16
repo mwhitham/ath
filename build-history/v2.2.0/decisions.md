@@ -100,6 +100,11 @@ These edits answer the review of this plan at `d636d7a`:
   Each replaced correction is counted per provider and for stored records,
   in the text, in `--json`, and in the preview. The skill says where a
   workout fix belongs.
+- D243. An HTTP 429 stops that provider for the command, as a timeout
+  does. Credential values are withheld before any comparison.
+- D230 and D236. A committed vendor page is a protected write. It sets
+  `written` and `database_changed`, and its originals add to
+  `committed.source_report`.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -433,7 +438,9 @@ confirmed `--yes` has the actual protected and archive counts. `written` is
 true when a protected transaction in the command created or revised a
 counted record. An archive does not make it true. `database_changed` is
 true when a protected transaction or an archive transaction committed a
-change. A successful repeat of an unchanged command has both flags false.
+change. A vendor page (D242) is a protected transaction, so a committed
+vendor original makes both flags true even when every stored page was
+unchanged. A successful repeat of an unchanged command has both flags false.
 The command prints the
 confirmed outcome as text. It prints the preview outcome as public JSON.
 On a partial failure it keeps the confirmed outcome and then exits
@@ -978,7 +985,9 @@ store. A failure before commit restores the old schema, the old rows,
 and the old version. `writable_schema` is not used. Files 001 through
 005 stay unchanged.
 
-`written` counts protected creates and revisions across the command. An
+`written` counts protected creates and revisions across the command,
+including vendor originals. Those are `source_report` records, so they
+also add to `committed.source_report`. An
 archive-only change leaves it false and sets `database_changed` true.
 Archive counts are separate from protected counts. A later page does not
 clear either. A failed archive apply keeps the refusal, writes nothing,
@@ -1342,7 +1351,9 @@ next page `next_token`. The request name, `nextToken`, is not sent.
 Sensorbio reads only the oldest 50 entries, and its line says so.
 
 A stored detail is never lost. A detail is fetched for an id with no
-stored detail, and again only when the list object changed. A list-only
+stored detail, and again only when the list object changed. Credential
+values (D244) are withheld before any comparison, so a token that changed
+between pulls does not make a list object look changed. A list-only
 object never replaces a stored detail. A new detail that is thinner than
 the stored one writes nothing. Thinner means a detail field the
 specification's table names for that provider is filled in the stored
@@ -1355,7 +1366,11 @@ Live requests go one at a time, at least one second apart. The read
 timeout is 360 seconds. The server's own retries can take about 225
 seconds, so the client waits for them. A live request that still times
 out ends that provider for the command, so two requests to one provider
-never overlap. A command makes at most 100 detail calls to one provider
+never overlap. An HTTP 429 ends that provider the same way, because the
+server has already spent its three retries on the vendor's limit. The
+detail call that got 429 is `failed`. Ids whose detail was not yet called
+are `deferred`. What the provider already returned is still written, and
+the provider is `incomplete`. A command makes at most 100 detail calls to one provider
 and at most 20 to Strava. Ids with no stored detail go first, oldest
 start first. Strava's limit belongs to the whole application, so the
 deployment's own sync shares it. The review cited about 100 requests a
@@ -1399,6 +1414,9 @@ Rejected alternatives:
   longer. The client would give up, and a rerun could send a second
   request while the first still runs.
 - Retry a live request that timed out. Rejected for the same reason.
+- Keep calling a provider after a 429. Rejected. The server has already
+  waited about 105 seconds and retried three times, and more calls would
+  spend a limit the deployment's own sync shares.
 
 - Leave live reads on by default. Rejected. The server can change a token
   and revoke a connection while answering the GET.
