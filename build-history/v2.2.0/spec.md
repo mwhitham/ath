@@ -1254,7 +1254,12 @@ What is written for one id depends on what this command got:
   stored original stays. The id counts as `thinner`. A detail is thinner
   when one of the provider's detail fields in the table is a nonempty value
   in the stored detail and is missing, null, or empty in the new one. A
-  provider with no named detail field has no thinner detail.
+  provider with no named detail field has no thinner detail. Garmin,
+  Suunto, Whoop, and Oura name none, so a new detail from them replaces
+  the stored one even when it has fewer fields. The stored detail is not
+  lost. It stays in the record's history as the earlier revision, and
+  `ath records show <record-id> --history` shows it. The line does not
+  claim the new detail is complete.
 - No new detail call, because the stored detail is current. The pull sends
   the envelope with the stored detail, so the original counts as
   `unchanged` and nothing is written. The id counts as `kept`.
@@ -2437,7 +2442,10 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
 - a Strava detail with `laps`, `splits_metric`, `segment_efforts`, and
   `map` is stored. A later changed list object whose detail has no
   `segment_efforts` is `thinner` and writes nothing. A Whoop detail is
-  never `thinner`, because the table names no Whoop detail field
+  never `thinner`, because the table names no Whoop detail field. After a
+  changed Whoop list object, a new detail with fewer fields replaces the
+  stored one, and the earlier detail is still in the record's history.
+  Garmin, Suunto, and Oura behave the same
 - a failed Polar detail for a new id stores the list object with
   `detail_status` `failed`. Polar is `incomplete`, and the command exits
   nonzero. The same failure for an id that has a stored detail and a

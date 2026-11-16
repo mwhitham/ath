@@ -129,6 +129,9 @@ These edits answer the review of this plan at `d636d7a`:
 - D231. The `__proto__` citation names `check_supplied_fields`, which
   still refuses the key at any depth on import. D214 in 2.1.1 changed only
   the native reader.
+- D243. For Garmin, Suunto, Whoop, and Oura, which name no detail field, a
+  new detail with fewer fields replaces the stored one, and the stored
+  detail stays in the record's history.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -1415,7 +1418,10 @@ between pulls does not make a list object look changed. A list-only
 object never replaces a stored detail. A new detail that is thinner than
 the stored one writes nothing. Thinner means a detail field the
 specification's table names for that provider is filled in the stored
-detail and empty in the new one. A deferred or failed detail keeps the
+detail and empty in the new one. Garmin, Suunto, Whoop, and Oura name no
+detail field, so a new detail from them replaces the stored one even when
+it has fewer fields. The stored detail stays in the record's history as
+the earlier revision. A deferred or failed detail keeps the
 stored detail and adds no revision. A detail over the 10 MiB response cap
 is `too_large`, because the detail route has no smaller page. A detail
 the privacy scan refuses is `refused`. Neither is stored. A failed,
