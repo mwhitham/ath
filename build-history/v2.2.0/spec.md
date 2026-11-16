@@ -1121,10 +1121,10 @@ timeout above.
   object may carry it. Detail sends no `extensions` parameter.
 - Whoop. One call. The method caps `limit` at 25. The response's
   next-page field is `next_token`. The request parameter is `nextToken`,
-  and the route does not send it. `more` is true when the response has
-  `next_token`.
+  and the route does not send it. `more` is true when the response has a
+  `next_token` that is not null.
 - Oura. One call with no date and no `next_token`. `more` is true when the
-  response has `next_token`.
+  response has a `next_token` that is not null.
 - Strava. One list call at page 1. `per_page` is the server setting
   `strava_events_per_page`, default 200. `more` is true when the page
   length equals `per_page`. The detail object also carries `embed_token`.
@@ -1727,10 +1727,23 @@ A key is credential-shaped when its letters and digits, with case ignored
 and every other character dropped, end in `token` or `secret`, or are
 `apikey`, `authorization`, or `password`. That covers `userAccessToken`,
 `access_token`, `refresh-token`, `id_token`, `session_token`, `token`,
-`embed_token`, `client_secret`, and `apiKey`. The value is replaced by the
+`embed_token`, `client_secret`, and `apiKey`. Two names that end in
+`token` are page cursors, not credentials: `next_token` and `nextToken`,
+matched exactly. Whoop's and Oura's responses name their next page
+`next_token`. Whoop's model at the pin reads that key with no alias, and
+Whoop's request parameter is `nextToken`. Those two keys keep their
+values. The scan for the key, the origin, and the user id still covers
+them. The pull reads `more` from the response before it withholds
+anything, so a null `next_token` stays null.
+
+A withheld value is replaced by the
 text `[withheld by ath]`, whatever type it had. A string that is an
-absolute URL keeps its address. Each query parameter in it whose name is
-credential-shaped has its value replaced by the same text. The pull
+absolute URL keeps its scheme, host, port, and path. A user name or
+password in it, before the `@`, is replaced by the same text. Each query
+parameter, and each `name=value` pair in the fragment after `#`, whose
+name is credential-shaped has its value replaced by the same text. So
+`#access_token=...` is withheld. A URL that does not parse keeps its
+text, and the scan above still runs on it. The pull
 records the JSON path of each withheld value and counts them. It prints
 the count and up to 20 paths, and it says when that list was shortened.
 Nothing else in the object changes. The rule applies to every page,
@@ -2551,9 +2564,16 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   The same holds for `access_token`, `refresh-token`, `id_token`,
   `session_token`, `token`, `embed_token`, `client_secret`, `apiKey`,
   `authorization`, and `password`, and for a `token` query parameter in a
-  URL string. The URL keeps its address and its other parameters. The API
+  URL string. The URL keeps its address and its other parameters. A user
+  name and password before the `@` in a URL, and an `access_token` pair in
+  a URL fragment, are withheld the same way. The API
   key under a credential-shaped key still refuses the page. A `polar_user`
   URL and a route coordinate are stored unchanged
+- a Whoop response whose `next_token` is `"abc"` keeps that value, does
+  not count it as withheld, and sets `more` true. A null `next_token`
+  stays null and sets `more` false. An Oura response does the same. A key
+  named `NEXT_TOKEN` is still withheld, because the exemption matches the
+  two names exactly
 - a Sensorbio body stores `data[].activities[].id`, with the parent entry
   as `list_parent`. A missing id refuses that object, counts it as
   `missing_id`, and keeps the others. File import of the saved original,

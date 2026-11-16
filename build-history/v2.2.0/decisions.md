@@ -119,6 +119,9 @@ These edits answer the review of this plan at `d636d7a`:
   then `--yes` reads each list twice and makes each detail call once. One
   command sends at most 100 Suunto list requests. A detail can come
   minutes after its list object, and the plan says so.
+- D244. The page cursors `next_token` and `nextToken` are not
+  credential-shaped. A user name or password in a URL, and a
+  credential-shaped pair in a URL fragment, are withheld too.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -1512,8 +1515,12 @@ The value is replaced by the text `[withheld by ath]`, and the pull
 records the JSON path and counts it. A key is credential-shaped when its
 letters and digits, with case ignored and every other character dropped,
 end in `token` or `secret`, or are `apikey`, `authorization`, or
-`password`. A query parameter with such a name inside a URL string is
-withheld the same way, and the URL keeps its address. `polar_user` and a
+`password`. The page cursors `next_token` and `nextToken`, matched
+exactly, are not credential-shaped. Whoop and Oura name their next page
+`next_token`, and withholding it would turn a null into text. A query
+parameter or a fragment pair with a credential-shaped name inside a URL
+string is withheld the same way, and so is a user name or password before
+the `@`. The URL keeps its scheme, host, port, and path. `polar_user` and a
 coordinate are not credential-shaped. The rule covers stored reads and
 vendor reads alike.
 
