@@ -593,8 +593,11 @@ is at most 24 local hours where the clock moves by one hour. In
 is 25 local hours. Those numbers come from Python's
 `datetime.fromtimestamp` with `TZ` set to `America/Chicago` and to
 `Antarctica/Troll`, run on 15 November 2026 across the 2026 changes.
-So this plan sends windows of 82,800 seconds, 23 hours, or less. A
-one-year range is 381 windows. Detail calls
+So this plan sends windows of exactly 82,800 seconds, 23 hours, on a
+fixed grid that starts at the Unix epoch. A one-year range is 381 or 382
+windows. A window of 24 local hours or less is sent to Garmin as
+`uploadStartTimeInSeconds` and `uploadEndTimeInSeconds` with both
+integers unchanged, so the grid reaches Garmin as sent. Detail calls
 `/wellness-api/rest/activities/{activity_id}`. This study did not find that
 path in Garmin's public docs. `ActivityJSON` types `activityId` as an
 integer or a string. The Garmin wellness models declare an optional

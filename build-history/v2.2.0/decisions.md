@@ -202,6 +202,20 @@ number is added:
   covers every record the `open_wearables` pull writes, and other routes
   keep D182. The maintainer still has to confirm that scope.
 
+## Changes after the reviews at `57838e1`
+
+These edits answer the reviews of this plan at `57838e1`. No decision
+number is added:
+
+- D243. Garmin windows sit on a fixed grid. Each starts at a multiple of
+  82,800 seconds after the Unix epoch, and the first and last windows are
+  widened to whole grid windows. So two commands send equal windows or
+  windows that do not overlap, and the earlier-window test always
+  applies to a pull. A pull's new read of the stored window is a change.
+  Any other overlap, which only a saved file can carry, counts as
+  `ambiguous_window`. The stored copy is kept, and no owner correction
+  is replaced.
+
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
 `ath pull openwearables` reads the stored representations D232 lists from an
@@ -1534,10 +1548,19 @@ call could make the server try a refresh or a revoke. The order is
 Garmin, Polar, Suunto, Whoop, Fitbit, Oura, Strava, Withings, Sensorbio.
 One failure leaves that line `incomplete`. The others still run.
 
-Garmin is split by this program into windows of 82,800 seconds, 23
-hours, or less, one call each. Each window sends integer Unix seconds.
-The pinned server splits a window it sees as longer than 24 hours and
-drops a failed piece without saying so. It measures in naive local time.
+Garmin is read by this program in windows on a fixed grid, one call
+each. Each window starts at a multiple of 82,800 seconds, 23 hours,
+after the Unix epoch, and lasts 82,800 seconds. The first and last
+windows are the grid windows that hold the range's first and last
+seconds, so they can reach up to 23 hours past the range. Every command
+uses the same grid, so windows from two commands are equal or do not
+overlap. Windows that started at `--from`, as the earlier text had them,
+overlapped only partly when two commands had different ranges. Each
+window sends integer Unix seconds. The pinned server passes a window it
+does not split to Garmin unchanged, so a grid window still reaches Garmin
+as one 23-hour read. The pinned server splits a window it sees as longer
+than 24 hours and drops a failed piece without saying so. It measures in
+naive local time.
 When the server's clock moves forward an hour, 24 real hours read as 25
 local hours, and the server would split the window. When the clock moves
 back, they read as 23. A 23-hour window reads as 24 at most where the
@@ -1624,11 +1647,20 @@ different objects with one id are both refused. Each Garmin envelope
 keeps its `upload_window`, so the rule also holds across commands. A copy
 from a window that ends at or before the start of the stored copy's
 window was uploaded first. It is `superseded`, it writes nothing, and it
-is not a server change, so it replaces no owner correction. Comparisons
-leave `upload_window` out, because windows depend on `--from`. The start becomes `input_timestamp` by the
-rules in the specification: text keeps its offset or says it has none,
-and Unix seconds or milliseconds keep their digits. The start is stored
-and is not a filter.
+is not a server change, so it replaces no owner correction. A copy from a
+window that starts at or after the stored window's end was uploaded
+later, and a pull's new read of the stored window is a later read. Both
+are changes. Any other pair of windows overlaps, or is equal in a mapped
+import of saved envelopes, whose read time is unknown. Then the order of
+the copies is unknown. The candidate counts as `ambiguous_window`, the
+stored copy is kept, nothing is written, and no owner correction is
+replaced. The grid means a pull never makes such a pair, but a saved
+file can carry any window. Comparisons leave `upload_window` out, because
+Garmin can return an unchanged object in a later window.
+
+The start becomes `input_timestamp` by the rules in the specification:
+text keeps its offset or says it has none, and Unix seconds or
+milliseconds keep their digits. The start is stored and is not a filter.
 
 A vendor object with a `__proto__` key at any depth is refused alone as
 `unusable_name`, and the provider stays `completed`. The import check
@@ -1707,9 +1739,17 @@ Rejected alternatives:
   did. Rejected. A later command that reads only an earlier window would
   store the older copy again, and it would count that as a server change
   that replaces an owner correction.
-- Count a different `upload_window` as a change. Rejected. Windows depend
-  on `--from`, so every pull with another range would revise every Garmin
-  original.
+- Count a different `upload_window` as a change. Rejected. Garmin can
+  return an unchanged object in a later window, and that would revise an
+  original the vendor did not change.
+- Start the windows at `--from`, as the earlier text did. Rejected. Two
+  commands with different ranges then send windows that overlap only
+  partly, and the earlier-window test cannot order the copies. A command
+  that read the older copy would replace the newer one and an owner
+  correction with it.
+- Treat a partly overlapping window as a change. Rejected. Which copy is
+  newer is unknown, and a change would replace an owner correction with
+  what may be the older copy.
 - Drop an original whose start is outside the requested range. Rejected.
   The live methods do not filter by workout start, so a drop would hide a
   returned object.

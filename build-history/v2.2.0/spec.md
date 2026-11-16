@@ -1138,9 +1138,9 @@ Budgets keep one command inside the providers' limits:
 - The pace above keeps this command at 60 live requests a minute or
   fewer. The review cited about 100 a minute for Garmin. This study did
   not find that number in Garmin's public docs.
-- Garmin is read in windows of 82,800 seconds, 23 hours, or less, one
-  call each. Every window is sent. A one-year range is 381 windows, so it
-  takes more than six minutes before any detail call.
+- Garmin is read in windows of exactly 82,800 seconds, 23 hours, one
+  call each. Every window is sent. A one-year range is 381 or 382
+  windows, so it takes more than six minutes before any detail call.
 - A command makes at most 100 detail calls to one provider, and at most 20
   to Strava. Ids past the budget are `deferred`. The next paragraphs say
   which ids go first.
@@ -1178,13 +1178,22 @@ timeout above.
 | Withings | the JSON array. The method reads `series` | `id` | `startdate`, Unix seconds | no detail call | none | none | 1 list | 360 s |
 | Sensorbio | `data[].activities[]`. The parent is kept as `list_parent` | `id` on the nested activity | `start_time`, Unix milliseconds | no detail call | none | none | 1 list | 360 s |
 
-- Garmin. The pull splits the range into windows and sends
-  `summary_start_time` and `summary_end_time` as integer Unix seconds. The
-  server puts those values in `uploadStartTimeInSeconds` and
+- Garmin. The pull reads the range in windows on a fixed grid. Each
+  window starts at a multiple of 82,800 seconds after the Unix epoch and
+  lasts 82,800 seconds. The first window holds the range's first second,
+  and the last window holds its last second. So the first can start up
+  to 23 hours early, and the last can end up to 23 hours late. Every
+  command uses the same grid, so a window from one command either equals
+  a window from another or does not overlap it. The pull
+  sends `summary_start_time` and `summary_end_time` as integer Unix
+  seconds. The server puts those values in `uploadStartTimeInSeconds` and
   `uploadEndTimeInSeconds`, so a window selects by upload time, not by
-  start. Each window ends where the next begins. The pinned server splits
-  a window it sees as longer than 24 hours, and it drops a failed piece
-  without saying so. It measures the window in naive local time. When the
+  start. Each window ends where the next begins. The last window can end
+  after the command runs, as a date `--to` of today already does. The
+  pinned server sends a window it does not split to Garmin with both
+  numbers unchanged, so Garmin gets the grid as sent. It splits a window
+  it sees as longer than 24 hours, and it drops a failed piece without
+  saying so. It measures the window in naive local time. When the
   server's clock moves forward an hour, as in spring, 24 real hours read
   as 25 local hours, so a 24-hour window would be split. When the clock
   moves back, as in autumn, 24 real hours read as 23. A 23-hour window
@@ -1274,8 +1283,9 @@ parameters are numbers. A date `--from` is midnight UTC that day. A date
 `--to` ends at midnight UTC after that day. That is the rule the Open
 Wearables API introduction gives for a date-only bound. A timestamp bound
 converts exactly. A fraction of a second rounds down for the start and up
-for the end, so the windows cover the whole range. The stored reads still
-send `--from` and `--to` unchanged.
+for the end, so the windows cover the whole range. Garmin then widens the
+range to whole grid windows, as the Garmin row above says. The stored
+reads still send `--from` and `--to` unchanged.
 
 A vendor id is text. A JSON string is used as it is, unless it is empty.
 A JSON integer is written in decimal. So `123` and `"123"` are one id and
@@ -1312,22 +1322,36 @@ still refuse both as `duplicate_id`.
 Each Garmin envelope keeps the window its object came from, as
 `upload_window`, so the same rule holds across commands. Take a Garmin
 candidate that differs from the newest `provider_import` revision of its
-original. When its window ends at or before the start of that revision's
-window, the candidate is the older copy. A window holds only objects
-uploaded inside it, so that copy was uploaded first. It counts as
-`superseded`, and nothing is written. The stored-original read returns
-the stored window, so the pull makes no detail call for it. It is not a
-server change, so it never replaces an owner correction. When either side
-has no `upload_window`, this rule does not apply. The rule runs in
-matching for route `open_wearables`, so a mapped import of saved
-envelopes follows it too.
+original, when both have an `upload_window`. A window holds only objects
+uploaded inside it, so the windows order the two copies:
+
+- The candidate's window ends at or before the start of the stored
+  window. The candidate was uploaded first. It counts as `superseded`,
+  and nothing is written.
+- The candidate's window starts at or after the end of the stored window.
+  The candidate was uploaded later, and it is a change.
+- A pull reads the stored window again. The candidate is a later read of
+  the same window, and it is a change.
+- Any other pair of windows. They overlap, or they are equal in a mapped
+  import of saved envelopes, whose read time is unknown. The pull's grid
+  never makes such a pair, but a saved file can carry any window. The
+  order of the two copies is unknown. The candidate counts as
+  `ambiguous_window`, the stored copy is kept, and nothing is written.
+
+A `superseded` or `ambiguous_window` candidate is not a server change, so
+it never replaces an owner correction. The stored-original read returns
+the stored window, so the pull makes no detail call for that candidate.
+When either side has no `upload_window`, this rule does not apply. The
+rule runs in matching for route `open_wearables`, so a mapped import of
+saved envelopes follows it too.
 
 Every comparison of a vendor original on that route leaves
 `upload_window` out: the 2.1.1 equality test, the owner-correction rule,
-and the difference test above. The windows depend on `--from`, so an
-unchanged object read through another window writes nothing. The stored
-original keeps the window it was stored with, and that window still
-holds its upload.
+and the difference test above. Garmin can return an unchanged object in a
+later window, and a saved file can carry any window. So an unchanged
+object read through another window writes nothing. The stored original
+keeps the window it was stored with, and that window still holds its
+upload.
 
 The start column names one field and how to read it:
 
@@ -1391,7 +1415,8 @@ list object is not seen, and the line does not claim it.
 A list object and its detail are not read at the same moment. The pull
 reads a provider's whole list first, then its details one second apart,
 so a detail can come minutes after its list object. A one-year Garmin
-range sends 381 windows, more than six minutes, before its first detail.
+range sends 381 or 382 windows, more than six minutes, before its first
+detail.
 The vendor can change the workout in between. A `kept` detail was read by
 an earlier command. The envelope does not record when each part was read,
 and the pull does not claim the two parts are one moment's copy.
@@ -1465,8 +1490,8 @@ the same object:
   when `start` is.
 - `list` is the list object. `list_parent` is present only for Sensorbio.
 - `upload_window` is present only for Garmin. It holds `start` and `end`,
-  the integer Unix seconds of the window the list object came from, such
-  as `{ "start": 1767225600, "end": 1767308400 }`.
+  the integer Unix seconds of the grid window the list object came from,
+  such as `{ "start": 1767200400, "end": 1767283200 }`.
 - `detail` is the detail object after the table's detail unwrap. It is
   absent when no detail is stored.
 - `detail_status` is `stored`, `deferred`, `failed`, `mismatch`,
@@ -1611,8 +1636,8 @@ preview they are estimates under `estimated`, as section 1 says.
   `too_large`, and `refused`.
 - `left_out`: objects not written, by reason: `missing_id`,
   `unusable_id`, `unsafe_number`, `unusable_name`, `duplicate_id`,
-  `superseded`, `deleted_record`, `deleted_source`, `response_refused`,
-  and `size_cap`.
+  `superseded`, `ambiguous_window`, `deleted_record`, `deleted_source`,
+  `response_refused`, and `size_cap`.
 - `withheld`: values that section 4 withheld, with up to 20 paths.
 
 Each listed object is in exactly one detail count or one left-out count.
@@ -2856,13 +2881,42 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   When the person had corrected that original, the correction stays
   current, and `owner_corrections_replaced` is 0. In the other order, the
   second command's later copy replaces the stored earlier copy as a
-  change. A third command with a different `--from` reads the unchanged
-  1860 copy through a different window and writes nothing
-- a three-day Garmin range sends four windows, three of 82,800 seconds and
-  one of 10,800 seconds. Each window sends `summary_start_time` and
-  `summary_end_time` as integer Unix seconds, and each starts where the
-  last one ended. A date `--from` starts at midnight UTC. One failed
-  window makes Garmin `incomplete` and never `completed`. A later window
+  change. A third command reads the unchanged 1860 copy through a later
+  window, as when Garmin received it again, and writes nothing
+- a Garmin fixture with two ranges one day apart. Activity 557 was
+  uploaded at 22:30 UTC on 16 January 2026, and again with a different
+  `durationInSeconds` at 06:00 UTC on 17 January. The first command,
+  `--from 2026-01-16 --to 2026-01-17`, sends four windows, from 02:00 UTC
+  on 15 January to 22:00 UTC on 18 January. It stores the 06:00 copy with
+  the window from 00:00 to 23:00 UTC on 17 January, and it counts the
+  22:30 copy `superseded`. The person then corrects that original. The
+  second command, `--from 2026-01-15 --to 2026-01-16`, sends three
+  windows, from 03:00 UTC on 14 January to 00:00 UTC on 17 January. Its
+  last window returns the 22:30 copy and ends where the stored window
+  starts. That copy counts 1 `superseded` and gets no detail call.
+  Nothing is written, and `owner_corrections_replaced` is 0
+- two Garmin commands whose `--from` timestamps are 12 hours apart,
+  `2026-01-16T00:00:00Z` and `2026-01-16T12:00:00Z`, each for two days.
+  Each window both commands send has the same `summary_start_time` and
+  `summary_end_time` in both, and each is a multiple of 82,800. The
+  second command gets activity 558 with a different object in one of
+  those windows. Its copy is a later read of the same window, so it
+  replaces the stored copy as a change. When an owner correction was
+  current, it is replaced, and `owner_corrections_replaced` is 1
+- a mapped import of a saved Garmin envelope with a different object,
+  whose `upload_window` overlaps the stored copy's window without being
+  equal. It counts 1 `ambiguous_window`, writes nothing, and keeps the
+  stored copy and any owner correction, so `owner_corrections_replaced`
+  is 0. A saved envelope with a different object and the stored window
+  counts the same way
+- a three-day Garmin range, `--from 2026-01-01 --to 2026-01-03`, sends
+  four windows of 82,800 seconds. The first starts at 1767200400, 17:00
+  UTC on 31 December 2025, and the last ends at 13:00 UTC on 4 January.
+  Each window sends `summary_start_time` and `summary_end_time` as
+  integer Unix seconds. Each start is a multiple of 82,800, and each
+  window starts where the last one ended. A date `--from` starts at
+  midnight UTC. One failed window makes Garmin `incomplete` and never
+  `completed`. A later window
   still runs
 - three Garmin ids are due a detail call, and the first detail call
   answers HTTP 404. The fixture server sees no second Garmin detail
