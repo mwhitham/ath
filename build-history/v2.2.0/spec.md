@@ -1450,7 +1450,15 @@ Everything after that is the mapping engine that 2.1.1 carries over from
 2.1.0: match keys (D181), replace on change (D182) except for the owner
 corrections section 2 keeps, source and device
 (D183), one write transaction per page (D189), a deleted source left out
-(D190), and field names refused when they are empty or `__proto__` (D191).
+(D190), and the supplied-field check (D191). `keyed_candidate` in
+`src/import/shared.rs` calls `check_supplied_fields` for every mapped
+record, and a failure refuses the import. It refuses an empty name, and a key named
+`__proto__` at any depth, in a record's `supplied_fields` and in each
+route point's `supplied_fields`. Version 2.1.1's D214 changed only the
+native reader, which now keeps a `__proto__` key and checks it like any
+other key. D214 did not lift this import refusal, so it still applies.
+A vendor original keeps its whole envelope in `supplied_fields`, so the
+same check covers every vendor object.
 A Garmin file import remains a different `data_route`, so both copies of
 one workout stay (D161). A second pull of the same Open Wearables object,
 or an `ath import --mapping open-wearables` of a saved copy of that object,
@@ -2395,7 +2403,10 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   `page-raw.json` is stored.
   RMSSD and SDNN stay different quantities
 - a changed end time keeps the record id and increases the revision
-- a `__proto__` supplied field fails the page
+- a `__proto__` key nested inside a supplied field fails the page, because
+  `check_supplied_fields` refuses it (D191). An empty supplied-field name
+  fails it too. A package that holds a `__proto__` key still restores,
+  because D214 keeps the key in the native reader
 - a literal key, a Unicode-escaped key in a nested unconsumed field, the
   key used as an object key, the selected origin, and the selected user id
   each reject the page before mapping. The database, its revisions, and the

@@ -126,6 +126,9 @@ These edits answer the review of this plan at `d636d7a`:
   change makes 24 real hours read as 25 local hours, and a backward change
   makes them read as 23. A zone that moves its clock by two hours is not
   covered by the 23-hour window.
+- D231. The `__proto__` citation names `check_supplied_fields`, which
+  still refuses the key at any depth on import. D214 in 2.1.1 changed only
+  the native reader.
 
 ## D227. Version 2.2.0 is one manual pull, and the program and the record share that number
 
@@ -626,7 +629,10 @@ separate work. It is not required to make the pull correct.
 Making the Garmin key removable is separate work.
 
 `check_supplied_fields` is in `src/import/shared.rs`. A keyed import calls
-it before it builds a candidate (D191). There is no `persist.rs` and no
+it before it builds a candidate (D191). It refuses an empty name and a
+`__proto__` key at any depth. Version 2.1.1's D214 changed only the
+native reader, which keeps such a key and checks it, so the import
+refusal still applies. There is no `persist.rs` and no
 `ath-core persist` command. The pull writes through `MappedPage` and the
 2.1.1 import, so the import check covers it. A name check outside import
 is separate work.
