@@ -219,6 +219,55 @@ See [format.md](format.md) for other measured fields and units.
 Athlete reports and nutrition entries have no `source_id`. Unknown fields are
 rejected by their v1 data schemas.
 
+## Strength sets (2.1.2)
+
+A workout's `sets` can name the movement and how the load was carried, so
+`strength-volume` converts and counts it correctly:
+
+```json
+"sets": [
+  { "reps": 5, "weight": 100, "weight_unit": "kg", "movement": "back squat", "load_basis": "total" },
+  { "reps": 10, "weight": 22.5, "weight_unit": "kg", "movement": "dumbbell bench press",
+    "load_basis": "per_implement", "implement_count": 2 }
+]
+```
+
+`load_basis` is `total` (the whole load) or `per_implement` (each implement's
+load). `implement_count` is required with `per_implement` and refused otherwise.
+`weight_unit` should be `kg` or `lb`.
+
+## Session effort (2.1.2)
+
+A session-RPE rating is the athlete's report, not a measurement. Ask about 30
+minutes after the session, on one scale the athlete keeps using:
+
+```json
+{
+  "record_type": "athlete_report",
+  "data": {
+    "report_type": "session_effort",
+    "reported_at": "2026-10-13T18:30:00.000Z",
+    "input_reported_at": {
+      "timestamp_text": "2026-10-13T18:30:00.000Z",
+      "utc_offset_text": "Z",
+      "utc_offset_meaning": "documented_recording_offset",
+      "timestamp_basis": "source_instant"
+    },
+    "reported_via": "text",
+    "rating": 7,
+    "rating_scale": "0-10",
+    "duration_seconds": 3600,
+    "workout_session_id": "01890f3e-e7d3-7cc0-88c8-00000000000a"
+  }
+}
+```
+
+A `session_effort` report needs `rating` and `rating_scale`. `duration_seconds` is
+the time the rating covers; leave it out to use the linked workout's span.
+`workout_session_id` must name an existing workout; it can be used on any report
+type, such as soreness after a session. Erasing the workout erases reports that
+name it.
+
 ## Authored records
 
 Predictions, grades, error analyses, plans, planned sessions, coaching notes, saved
