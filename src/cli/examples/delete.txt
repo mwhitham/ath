@@ -1,0 +1,11 @@
+Examples:
+
+  Preview a normal deletion:
+    $ ath delete <record-id> --revision 2 --json
+
+  Hide it from current views after review:
+    $ ath delete <record-id> --revision 2 --yes
+
+Normal deletion retains the complete record and revision history. Privacy
+erasure is a different command because it removes values and cannot be
+undone from the database.

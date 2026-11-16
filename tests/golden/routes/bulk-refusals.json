@@ -1,0 +1,29 @@
+{
+  "description": "A Strava export without activities.csv.",
+  "reference": "2.1.0",
+  "steps": [
+    {
+      "command": "import-strava",
+      "database": {
+        "database_revision": 0,
+        "records": []
+      },
+      "delete_before": null,
+      "input": {
+        "files": {
+          "activities/river.gpx": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx>\n  <trk>\n    <trkseg>\n      <trkpt lat=\"40.0\" lon=\"-105.0\">\n        <time>2026-01-03T16:00:00.000Z</time>\n        <extensions><hr>110</hr></extensions>\n      </trkpt>\n      <trkpt lat=\"40.001\" lon=\"-105.001\">\n        <time>2026-01-03T16:00:02.000Z</time>\n        <extensions><hr>130</hr></extensions>\n      </trkpt>\n    </trkseg>\n  </trk>\n</gpx>\n",
+          "my_activities.csv": "x\n"
+        },
+        "kind": "directory"
+      },
+      "mapping": null,
+      "preview": {
+        "error": "Strava export is missing activities.csv"
+      },
+      "pull": null,
+      "write": {
+        "error": "Strava export is missing activities.csv"
+      }
+    }
+  ]
+}

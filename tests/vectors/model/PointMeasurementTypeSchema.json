@@ -1,0 +1,421 @@
+{
+  "schema": "PointMeasurementTypeSchema",
+  "cases": [
+    {
+      "name": "valid:hrv_rmssd",
+      "input": "hrv_rmssd",
+      "valid": true,
+      "output": "hrv_rmssd",
+      "issues": []
+    },
+    {
+      "name": "valid:hrv_sdnn",
+      "input": "hrv_sdnn",
+      "valid": true,
+      "output": "hrv_sdnn",
+      "issues": []
+    },
+    {
+      "name": "valid:resting_heart_rate",
+      "input": "resting_heart_rate",
+      "valid": true,
+      "output": "resting_heart_rate",
+      "issues": []
+    },
+    {
+      "name": "valid:body_weight",
+      "input": "body_weight",
+      "valid": true,
+      "output": "body_weight",
+      "issues": []
+    },
+    {
+      "name": "valid:respiratory_rate",
+      "input": "respiratory_rate",
+      "valid": true,
+      "output": "respiratory_rate",
+      "issues": []
+    },
+    {
+      "name": "valid:vo2_max",
+      "input": "vo2_max",
+      "valid": true,
+      "output": "vo2_max",
+      "issues": []
+    },
+    {
+      "name": "valid:hr_recovery",
+      "input": "hr_recovery",
+      "valid": true,
+      "output": "hr_recovery",
+      "issues": []
+    },
+    {
+      "name": "valid:walking_heart_rate",
+      "input": "walking_heart_rate",
+      "valid": true,
+      "output": "walking_heart_rate",
+      "issues": []
+    },
+    {
+      "name": "valid:oxygen_saturation",
+      "input": "oxygen_saturation",
+      "valid": true,
+      "output": "oxygen_saturation",
+      "issues": []
+    },
+    {
+      "name": "valid:body_temperature",
+      "input": "body_temperature",
+      "valid": true,
+      "output": "body_temperature",
+      "issues": []
+    },
+    {
+      "name": "valid:skin_temperature",
+      "input": "skin_temperature",
+      "valid": true,
+      "output": "skin_temperature",
+      "issues": []
+    },
+    {
+      "name": "valid:wrist_temperature_sleeping",
+      "input": "wrist_temperature_sleeping",
+      "valid": true,
+      "output": "wrist_temperature_sleeping",
+      "issues": []
+    },
+    {
+      "name": "valid:temperature_deviation",
+      "input": "temperature_deviation",
+      "valid": true,
+      "output": "temperature_deviation",
+      "issues": []
+    },
+    {
+      "name": "valid:height",
+      "input": "height",
+      "valid": true,
+      "output": "height",
+      "issues": []
+    },
+    {
+      "name": "valid:lean_body_mass",
+      "input": "lean_body_mass",
+      "valid": true,
+      "output": "lean_body_mass",
+      "issues": []
+    },
+    {
+      "name": "valid:body_fat_percentage",
+      "input": "body_fat_percentage",
+      "valid": true,
+      "output": "body_fat_percentage",
+      "issues": []
+    },
+    {
+      "name": "valid:blood_pressure_systolic",
+      "input": "blood_pressure_systolic",
+      "valid": true,
+      "output": "blood_pressure_systolic",
+      "issues": []
+    },
+    {
+      "name": "valid:blood_pressure_diastolic",
+      "input": "blood_pressure_diastolic",
+      "valid": true,
+      "output": "blood_pressure_diastolic",
+      "issues": []
+    },
+    {
+      "name": "invalid:unknown",
+      "input": "__not_an_option__",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"hrv_rmssd\"|\"hrv_sdnn\"|\"resting_heart_rate\"|\"body_weight\"|\"respiratory_rate\"|\"vo2_max\"|\"hr_recovery\"|\"walking_heart_rate\"|\"oxygen_saturation\"|\"body_temperature\"|\"skin_temperature\"|\"wrist_temperature_sleeping\"|\"temperature_deviation\"|\"height\"|\"lean_body_mass\"|\"body_fat_percentage\"|\"blood_pressure_systolic\"|\"blood_pressure_diastolic\"",
+          "values": [
+            "hrv_rmssd",
+            "hrv_sdnn",
+            "resting_heart_rate",
+            "body_weight",
+            "respiratory_rate",
+            "vo2_max",
+            "hr_recovery",
+            "walking_heart_rate",
+            "oxygen_saturation",
+            "body_temperature",
+            "skin_temperature",
+            "wrist_temperature_sleeping",
+            "temperature_deviation",
+            "height",
+            "lean_body_mass",
+            "body_fat_percentage",
+            "blood_pressure_systolic",
+            "blood_pressure_diastolic"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:empty",
+      "input": "",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"hrv_rmssd\"|\"hrv_sdnn\"|\"resting_heart_rate\"|\"body_weight\"|\"respiratory_rate\"|\"vo2_max\"|\"hr_recovery\"|\"walking_heart_rate\"|\"oxygen_saturation\"|\"body_temperature\"|\"skin_temperature\"|\"wrist_temperature_sleeping\"|\"temperature_deviation\"|\"height\"|\"lean_body_mass\"|\"body_fat_percentage\"|\"blood_pressure_systolic\"|\"blood_pressure_diastolic\"",
+          "values": [
+            "hrv_rmssd",
+            "hrv_sdnn",
+            "resting_heart_rate",
+            "body_weight",
+            "respiratory_rate",
+            "vo2_max",
+            "hr_recovery",
+            "walking_heart_rate",
+            "oxygen_saturation",
+            "body_temperature",
+            "skin_temperature",
+            "wrist_temperature_sleeping",
+            "temperature_deviation",
+            "height",
+            "lean_body_mass",
+            "body_fat_percentage",
+            "blood_pressure_systolic",
+            "blood_pressure_diastolic"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:uppercase",
+      "input": "HRV_RMSSD",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"hrv_rmssd\"|\"hrv_sdnn\"|\"resting_heart_rate\"|\"body_weight\"|\"respiratory_rate\"|\"vo2_max\"|\"hr_recovery\"|\"walking_heart_rate\"|\"oxygen_saturation\"|\"body_temperature\"|\"skin_temperature\"|\"wrist_temperature_sleeping\"|\"temperature_deviation\"|\"height\"|\"lean_body_mass\"|\"body_fat_percentage\"|\"blood_pressure_systolic\"|\"blood_pressure_diastolic\"",
+          "values": [
+            "hrv_rmssd",
+            "hrv_sdnn",
+            "resting_heart_rate",
+            "body_weight",
+            "respiratory_rate",
+            "vo2_max",
+            "hr_recovery",
+            "walking_heart_rate",
+            "oxygen_saturation",
+            "body_temperature",
+            "skin_temperature",
+            "wrist_temperature_sleeping",
+            "temperature_deviation",
+            "height",
+            "lean_body_mass",
+            "body_fat_percentage",
+            "blood_pressure_systolic",
+            "blood_pressure_diastolic"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:leading_space",
+      "input": " hrv_rmssd",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"hrv_rmssd\"|\"hrv_sdnn\"|\"resting_heart_rate\"|\"body_weight\"|\"respiratory_rate\"|\"vo2_max\"|\"hr_recovery\"|\"walking_heart_rate\"|\"oxygen_saturation\"|\"body_temperature\"|\"skin_temperature\"|\"wrist_temperature_sleeping\"|\"temperature_deviation\"|\"height\"|\"lean_body_mass\"|\"body_fat_percentage\"|\"blood_pressure_systolic\"|\"blood_pressure_diastolic\"",
+          "values": [
+            "hrv_rmssd",
+            "hrv_sdnn",
+            "resting_heart_rate",
+            "body_weight",
+            "respiratory_rate",
+            "vo2_max",
+            "hr_recovery",
+            "walking_heart_rate",
+            "oxygen_saturation",
+            "body_temperature",
+            "skin_temperature",
+            "wrist_temperature_sleeping",
+            "temperature_deviation",
+            "height",
+            "lean_body_mass",
+            "body_fat_percentage",
+            "blood_pressure_systolic",
+            "blood_pressure_diastolic"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:trailing_space",
+      "input": "hrv_rmssd ",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"hrv_rmssd\"|\"hrv_sdnn\"|\"resting_heart_rate\"|\"body_weight\"|\"respiratory_rate\"|\"vo2_max\"|\"hr_recovery\"|\"walking_heart_rate\"|\"oxygen_saturation\"|\"body_temperature\"|\"skin_temperature\"|\"wrist_temperature_sleeping\"|\"temperature_deviation\"|\"height\"|\"lean_body_mass\"|\"body_fat_percentage\"|\"blood_pressure_systolic\"|\"blood_pressure_diastolic\"",
+          "values": [
+            "hrv_rmssd",
+            "hrv_sdnn",
+            "resting_heart_rate",
+            "body_weight",
+            "respiratory_rate",
+            "vo2_max",
+            "hr_recovery",
+            "walking_heart_rate",
+            "oxygen_saturation",
+            "body_temperature",
+            "skin_temperature",
+            "wrist_temperature_sleeping",
+            "temperature_deviation",
+            "height",
+            "lean_body_mass",
+            "body_fat_percentage",
+            "blood_pressure_systolic",
+            "blood_pressure_diastolic"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:number",
+      "input": 1,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"hrv_rmssd\"|\"hrv_sdnn\"|\"resting_heart_rate\"|\"body_weight\"|\"respiratory_rate\"|\"vo2_max\"|\"hr_recovery\"|\"walking_heart_rate\"|\"oxygen_saturation\"|\"body_temperature\"|\"skin_temperature\"|\"wrist_temperature_sleeping\"|\"temperature_deviation\"|\"height\"|\"lean_body_mass\"|\"body_fat_percentage\"|\"blood_pressure_systolic\"|\"blood_pressure_diastolic\"",
+          "values": [
+            "hrv_rmssd",
+            "hrv_sdnn",
+            "resting_heart_rate",
+            "body_weight",
+            "respiratory_rate",
+            "vo2_max",
+            "hr_recovery",
+            "walking_heart_rate",
+            "oxygen_saturation",
+            "body_temperature",
+            "skin_temperature",
+            "wrist_temperature_sleeping",
+            "temperature_deviation",
+            "height",
+            "lean_body_mass",
+            "body_fat_percentage",
+            "blood_pressure_systolic",
+            "blood_pressure_diastolic"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"hrv_rmssd\"|\"hrv_sdnn\"|\"resting_heart_rate\"|\"body_weight\"|\"respiratory_rate\"|\"vo2_max\"|\"hr_recovery\"|\"walking_heart_rate\"|\"oxygen_saturation\"|\"body_temperature\"|\"skin_temperature\"|\"wrist_temperature_sleeping\"|\"temperature_deviation\"|\"height\"|\"lean_body_mass\"|\"body_fat_percentage\"|\"blood_pressure_systolic\"|\"blood_pressure_diastolic\"",
+          "values": [
+            "hrv_rmssd",
+            "hrv_sdnn",
+            "resting_heart_rate",
+            "body_weight",
+            "respiratory_rate",
+            "vo2_max",
+            "hr_recovery",
+            "walking_heart_rate",
+            "oxygen_saturation",
+            "body_temperature",
+            "skin_temperature",
+            "wrist_temperature_sleeping",
+            "temperature_deviation",
+            "height",
+            "lean_body_mass",
+            "body_fat_percentage",
+            "blood_pressure_systolic",
+            "blood_pressure_diastolic"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:array",
+      "input": [
+        "hrv_rmssd"
+      ],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"hrv_rmssd\"|\"hrv_sdnn\"|\"resting_heart_rate\"|\"body_weight\"|\"respiratory_rate\"|\"vo2_max\"|\"hr_recovery\"|\"walking_heart_rate\"|\"oxygen_saturation\"|\"body_temperature\"|\"skin_temperature\"|\"wrist_temperature_sleeping\"|\"temperature_deviation\"|\"height\"|\"lean_body_mass\"|\"body_fat_percentage\"|\"blood_pressure_systolic\"|\"blood_pressure_diastolic\"",
+          "values": [
+            "hrv_rmssd",
+            "hrv_sdnn",
+            "resting_heart_rate",
+            "body_weight",
+            "respiratory_rate",
+            "vo2_max",
+            "hr_recovery",
+            "walking_heart_rate",
+            "oxygen_saturation",
+            "body_temperature",
+            "skin_temperature",
+            "wrist_temperature_sleeping",
+            "temperature_deviation",
+            "height",
+            "lean_body_mass",
+            "body_fat_percentage",
+            "blood_pressure_systolic",
+            "blood_pressure_diastolic"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:object",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"hrv_rmssd\"|\"hrv_sdnn\"|\"resting_heart_rate\"|\"body_weight\"|\"respiratory_rate\"|\"vo2_max\"|\"hr_recovery\"|\"walking_heart_rate\"|\"oxygen_saturation\"|\"body_temperature\"|\"skin_temperature\"|\"wrist_temperature_sleeping\"|\"temperature_deviation\"|\"height\"|\"lean_body_mass\"|\"body_fat_percentage\"|\"blood_pressure_systolic\"|\"blood_pressure_diastolic\"",
+          "values": [
+            "hrv_rmssd",
+            "hrv_sdnn",
+            "resting_heart_rate",
+            "body_weight",
+            "respiratory_rate",
+            "vo2_max",
+            "hr_recovery",
+            "walking_heart_rate",
+            "oxygen_saturation",
+            "body_temperature",
+            "skin_temperature",
+            "wrist_temperature_sleeping",
+            "temperature_deviation",
+            "height",
+            "lean_body_mass",
+            "body_fat_percentage",
+            "blood_pressure_systolic",
+            "blood_pressure_diastolic"
+          ]
+        }
+      ]
+    }
+  ]
+}

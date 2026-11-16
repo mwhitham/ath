@@ -1,0 +1,229 @@
+{
+  "schema": "ValueBasis",
+  "cases": [
+    {
+      "name": "valid:provider_or_aggregator",
+      "input": "provider_or_aggregator",
+      "valid": true,
+      "output": "provider_or_aggregator",
+      "issues": []
+    },
+    {
+      "name": "valid:provider",
+      "input": "provider",
+      "valid": true,
+      "output": "provider",
+      "issues": []
+    },
+    {
+      "name": "valid:hrv_mean_rmssd",
+      "input": "hrv_mean_rmssd",
+      "valid": true,
+      "output": "hrv_mean_rmssd",
+      "issues": []
+    },
+    {
+      "name": "valid:provider_documented_rmssd",
+      "input": "provider_documented_rmssd",
+      "valid": true,
+      "output": "provider_documented_rmssd",
+      "issues": []
+    },
+    {
+      "name": "valid:calculated_on_import",
+      "input": "calculated_on_import",
+      "valid": true,
+      "output": "calculated_on_import",
+      "issues": []
+    },
+    {
+      "name": "valid:entered_by_hand",
+      "input": "entered_by_hand",
+      "valid": true,
+      "output": "entered_by_hand",
+      "issues": []
+    },
+    {
+      "name": "invalid:unknown",
+      "input": "__not_an_option__",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_or_aggregator\"|\"provider\"|\"hrv_mean_rmssd\"|\"provider_documented_rmssd\"|\"calculated_on_import\"|\"entered_by_hand\"",
+          "values": [
+            "provider_or_aggregator",
+            "provider",
+            "hrv_mean_rmssd",
+            "provider_documented_rmssd",
+            "calculated_on_import",
+            "entered_by_hand"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:empty",
+      "input": "",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_or_aggregator\"|\"provider\"|\"hrv_mean_rmssd\"|\"provider_documented_rmssd\"|\"calculated_on_import\"|\"entered_by_hand\"",
+          "values": [
+            "provider_or_aggregator",
+            "provider",
+            "hrv_mean_rmssd",
+            "provider_documented_rmssd",
+            "calculated_on_import",
+            "entered_by_hand"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:uppercase",
+      "input": "PROVIDER_OR_AGGREGATOR",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_or_aggregator\"|\"provider\"|\"hrv_mean_rmssd\"|\"provider_documented_rmssd\"|\"calculated_on_import\"|\"entered_by_hand\"",
+          "values": [
+            "provider_or_aggregator",
+            "provider",
+            "hrv_mean_rmssd",
+            "provider_documented_rmssd",
+            "calculated_on_import",
+            "entered_by_hand"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:leading_space",
+      "input": " provider_or_aggregator",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_or_aggregator\"|\"provider\"|\"hrv_mean_rmssd\"|\"provider_documented_rmssd\"|\"calculated_on_import\"|\"entered_by_hand\"",
+          "values": [
+            "provider_or_aggregator",
+            "provider",
+            "hrv_mean_rmssd",
+            "provider_documented_rmssd",
+            "calculated_on_import",
+            "entered_by_hand"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:trailing_space",
+      "input": "provider_or_aggregator ",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_or_aggregator\"|\"provider\"|\"hrv_mean_rmssd\"|\"provider_documented_rmssd\"|\"calculated_on_import\"|\"entered_by_hand\"",
+          "values": [
+            "provider_or_aggregator",
+            "provider",
+            "hrv_mean_rmssd",
+            "provider_documented_rmssd",
+            "calculated_on_import",
+            "entered_by_hand"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:number",
+      "input": 1,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_or_aggregator\"|\"provider\"|\"hrv_mean_rmssd\"|\"provider_documented_rmssd\"|\"calculated_on_import\"|\"entered_by_hand\"",
+          "values": [
+            "provider_or_aggregator",
+            "provider",
+            "hrv_mean_rmssd",
+            "provider_documented_rmssd",
+            "calculated_on_import",
+            "entered_by_hand"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_or_aggregator\"|\"provider\"|\"hrv_mean_rmssd\"|\"provider_documented_rmssd\"|\"calculated_on_import\"|\"entered_by_hand\"",
+          "values": [
+            "provider_or_aggregator",
+            "provider",
+            "hrv_mean_rmssd",
+            "provider_documented_rmssd",
+            "calculated_on_import",
+            "entered_by_hand"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:array",
+      "input": [
+        "provider_or_aggregator"
+      ],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_or_aggregator\"|\"provider\"|\"hrv_mean_rmssd\"|\"provider_documented_rmssd\"|\"calculated_on_import\"|\"entered_by_hand\"",
+          "values": [
+            "provider_or_aggregator",
+            "provider",
+            "hrv_mean_rmssd",
+            "provider_documented_rmssd",
+            "calculated_on_import",
+            "entered_by_hand"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:object",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_or_aggregator\"|\"provider\"|\"hrv_mean_rmssd\"|\"provider_documented_rmssd\"|\"calculated_on_import\"|\"entered_by_hand\"",
+          "values": [
+            "provider_or_aggregator",
+            "provider",
+            "hrv_mean_rmssd",
+            "provider_documented_rmssd",
+            "calculated_on_import",
+            "entered_by_hand"
+          ]
+        }
+      ]
+    }
+  ]
+}

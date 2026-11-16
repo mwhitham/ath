@@ -1,0 +1,460 @@
+{
+  "schema": "RecordErasureMarker",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000063",
+        "erased_at": "2026-01-02T03:04:05.678Z",
+        "reason_code": "athlete_request"
+      },
+      "valid": true,
+      "output": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000063",
+        "erased_at": "2026-01-02T03:04:05.678Z",
+        "reason_code": "athlete_request"
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000063",
+        "erased_at": "2026-01-02T03:04:05.678Z",
+        "reason_code": "athlete_request",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "record_id:missing",
+      "input": {
+        "erased_at": "2026-01-02T03:04:05.678Z",
+        "reason_code": "athlete_request"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "record_id:null",
+      "input": {
+        "record_id": null,
+        "erased_at": "2026-01-02T03:04:05.678Z",
+        "reason_code": "athlete_request"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "record_id:wrong_type=number",
+      "input": {
+        "record_id": 1,
+        "erased_at": "2026-01-02T03:04:05.678Z",
+        "reason_code": "athlete_request"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "record_id:empty_string",
+      "input": {
+        "record_id": "",
+        "erased_at": "2026-01-02T03:04:05.678Z",
+        "reason_code": "athlete_request"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "record_id:format=not_valid",
+      "input": {
+        "record_id": "not valid",
+        "erased_at": "2026-01-02T03:04:05.678Z",
+        "reason_code": "athlete_request"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "record_id:format=uppercase",
+      "input": {
+        "record_id": "01890F3E-E7D3-7CC0-88C8-000000000063",
+        "erased_at": "2026-01-02T03:04:05.678Z",
+        "reason_code": "athlete_request"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "record_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "erased_at:missing",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000063",
+        "reason_code": "athlete_request"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "erased_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "erased_at:null",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000063",
+        "erased_at": null,
+        "reason_code": "athlete_request"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "erased_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "erased_at:wrong_type=number",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000063",
+        "erased_at": 1,
+        "reason_code": "athlete_request"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "erased_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "erased_at:empty_string",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000063",
+        "erased_at": "",
+        "reason_code": "athlete_request"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "erased_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "erased_at:format=no_milliseconds",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000063",
+        "erased_at": "2026-01-02T03:04:05Z",
+        "reason_code": "athlete_request"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "erased_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "erased_at:format=offset",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000063",
+        "erased_at": "2026-01-02T03:04:05.678+00:00",
+        "reason_code": "athlete_request"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "erased_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "reason_code:missing",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000063",
+        "erased_at": "2026-01-02T03:04:05.678Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reason_code"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_request\"|\"legal_requirement\"|\"recorded_in_error\"|\"other\"",
+          "values": [
+            "athlete_request",
+            "legal_requirement",
+            "recorded_in_error",
+            "other"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reason_code:null",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000063",
+        "erased_at": "2026-01-02T03:04:05.678Z",
+        "reason_code": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reason_code"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_request\"|\"legal_requirement\"|\"recorded_in_error\"|\"other\"",
+          "values": [
+            "athlete_request",
+            "legal_requirement",
+            "recorded_in_error",
+            "other"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reason_code:wrong_type=number",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000063",
+        "erased_at": "2026-01-02T03:04:05.678Z",
+        "reason_code": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reason_code"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_request\"|\"legal_requirement\"|\"recorded_in_error\"|\"other\"",
+          "values": [
+            "athlete_request",
+            "legal_requirement",
+            "recorded_in_error",
+            "other"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reason_code:enum_invalid",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000063",
+        "erased_at": "2026-01-02T03:04:05.678Z",
+        "reason_code": "__not_an_option__"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reason_code"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_request\"|\"legal_requirement\"|\"recorded_in_error\"|\"other\"",
+          "values": [
+            "athlete_request",
+            "legal_requirement",
+            "recorded_in_error",
+            "other"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reason_code:empty_string",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000063",
+        "erased_at": "2026-01-02T03:04:05.678Z",
+        "reason_code": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reason_code"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_request\"|\"legal_requirement\"|\"recorded_in_error\"|\"other\"",
+          "values": [
+            "athlete_request",
+            "legal_requirement",
+            "recorded_in_error",
+            "other"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "reason_code:enum_uppercase",
+      "input": {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000063",
+        "erased_at": "2026-01-02T03:04:05.678Z",
+        "reason_code": "ATHLETE_REQUEST"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "reason_code"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_request\"|\"legal_requirement\"|\"recorded_in_error\"|\"other\"",
+          "values": [
+            "athlete_request",
+            "legal_requirement",
+            "recorded_in_error",
+            "other"
+          ]
+        }
+      ]
+    }
+  ]
+}

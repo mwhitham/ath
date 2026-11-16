@@ -1,0 +1,517 @@
+{
+  "schema": "RecordType",
+  "cases": [
+    {
+      "name": "valid:athlete_profile",
+      "input": "athlete_profile",
+      "valid": true,
+      "output": "athlete_profile",
+      "issues": []
+    },
+    {
+      "name": "valid:source",
+      "input": "source",
+      "valid": true,
+      "output": "source",
+      "issues": []
+    },
+    {
+      "name": "valid:source_device",
+      "input": "source_device",
+      "valid": true,
+      "output": "source_device",
+      "issues": []
+    },
+    {
+      "name": "valid:point_measurement",
+      "input": "point_measurement",
+      "valid": true,
+      "output": "point_measurement",
+      "issues": []
+    },
+    {
+      "name": "valid:measurement_sample",
+      "input": "measurement_sample",
+      "valid": true,
+      "output": "measurement_sample",
+      "issues": []
+    },
+    {
+      "name": "valid:sleep_session",
+      "input": "sleep_session",
+      "valid": true,
+      "output": "sleep_session",
+      "issues": []
+    },
+    {
+      "name": "valid:workout_session",
+      "input": "workout_session",
+      "valid": true,
+      "output": "workout_session",
+      "issues": []
+    },
+    {
+      "name": "valid:benchmark_result",
+      "input": "benchmark_result",
+      "valid": true,
+      "output": "benchmark_result",
+      "issues": []
+    },
+    {
+      "name": "valid:provider_summary",
+      "input": "provider_summary",
+      "valid": true,
+      "output": "provider_summary",
+      "issues": []
+    },
+    {
+      "name": "valid:provider_score",
+      "input": "provider_score",
+      "valid": true,
+      "output": "provider_score",
+      "issues": []
+    },
+    {
+      "name": "valid:athlete_report",
+      "input": "athlete_report",
+      "valid": true,
+      "output": "athlete_report",
+      "issues": []
+    },
+    {
+      "name": "valid:nutrition_entry",
+      "input": "nutrition_entry",
+      "valid": true,
+      "output": "nutrition_entry",
+      "issues": []
+    },
+    {
+      "name": "valid:attachment",
+      "input": "attachment",
+      "valid": true,
+      "output": "attachment",
+      "issues": []
+    },
+    {
+      "name": "valid:benchmark_definition",
+      "input": "benchmark_definition",
+      "valid": true,
+      "output": "benchmark_definition",
+      "issues": []
+    },
+    {
+      "name": "valid:prediction",
+      "input": "prediction",
+      "valid": true,
+      "output": "prediction",
+      "issues": []
+    },
+    {
+      "name": "valid:prediction_result_link",
+      "input": "prediction_result_link",
+      "valid": true,
+      "output": "prediction_result_link",
+      "issues": []
+    },
+    {
+      "name": "valid:prediction_grade",
+      "input": "prediction_grade",
+      "valid": true,
+      "output": "prediction_grade",
+      "issues": []
+    },
+    {
+      "name": "valid:prediction_error_analysis",
+      "input": "prediction_error_analysis",
+      "valid": true,
+      "output": "prediction_error_analysis",
+      "issues": []
+    },
+    {
+      "name": "valid:training_plan",
+      "input": "training_plan",
+      "valid": true,
+      "output": "training_plan",
+      "issues": []
+    },
+    {
+      "name": "valid:planned_session",
+      "input": "planned_session",
+      "valid": true,
+      "output": "planned_session",
+      "issues": []
+    },
+    {
+      "name": "valid:coaching_note",
+      "input": "coaching_note",
+      "valid": true,
+      "output": "coaching_note",
+      "issues": []
+    },
+    {
+      "name": "valid:saved_training_review",
+      "input": "saved_training_review",
+      "valid": true,
+      "output": "saved_training_review",
+      "issues": []
+    },
+    {
+      "name": "valid:goal",
+      "input": "goal",
+      "valid": true,
+      "output": "goal",
+      "issues": []
+    },
+    {
+      "name": "valid:nutrition_model_interpretation",
+      "input": "nutrition_model_interpretation",
+      "valid": true,
+      "output": "nutrition_model_interpretation",
+      "issues": []
+    },
+    {
+      "name": "invalid:unknown",
+      "input": "__not_an_option__",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_profile\"|\"source\"|\"source_device\"|\"point_measurement\"|\"measurement_sample\"|\"sleep_session\"|\"workout_session\"|\"benchmark_result\"|\"provider_summary\"|\"provider_score\"|\"athlete_report\"|\"nutrition_entry\"|\"attachment\"|\"benchmark_definition\"|\"prediction\"|\"prediction_result_link\"|\"prediction_grade\"|\"prediction_error_analysis\"|\"training_plan\"|\"planned_session\"|\"coaching_note\"|\"saved_training_review\"|\"goal\"|\"nutrition_model_interpretation\"",
+          "values": [
+            "athlete_profile",
+            "source",
+            "source_device",
+            "point_measurement",
+            "measurement_sample",
+            "sleep_session",
+            "workout_session",
+            "benchmark_result",
+            "provider_summary",
+            "provider_score",
+            "athlete_report",
+            "nutrition_entry",
+            "attachment",
+            "benchmark_definition",
+            "prediction",
+            "prediction_result_link",
+            "prediction_grade",
+            "prediction_error_analysis",
+            "training_plan",
+            "planned_session",
+            "coaching_note",
+            "saved_training_review",
+            "goal",
+            "nutrition_model_interpretation"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:empty",
+      "input": "",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_profile\"|\"source\"|\"source_device\"|\"point_measurement\"|\"measurement_sample\"|\"sleep_session\"|\"workout_session\"|\"benchmark_result\"|\"provider_summary\"|\"provider_score\"|\"athlete_report\"|\"nutrition_entry\"|\"attachment\"|\"benchmark_definition\"|\"prediction\"|\"prediction_result_link\"|\"prediction_grade\"|\"prediction_error_analysis\"|\"training_plan\"|\"planned_session\"|\"coaching_note\"|\"saved_training_review\"|\"goal\"|\"nutrition_model_interpretation\"",
+          "values": [
+            "athlete_profile",
+            "source",
+            "source_device",
+            "point_measurement",
+            "measurement_sample",
+            "sleep_session",
+            "workout_session",
+            "benchmark_result",
+            "provider_summary",
+            "provider_score",
+            "athlete_report",
+            "nutrition_entry",
+            "attachment",
+            "benchmark_definition",
+            "prediction",
+            "prediction_result_link",
+            "prediction_grade",
+            "prediction_error_analysis",
+            "training_plan",
+            "planned_session",
+            "coaching_note",
+            "saved_training_review",
+            "goal",
+            "nutrition_model_interpretation"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:uppercase",
+      "input": "ATHLETE_PROFILE",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_profile\"|\"source\"|\"source_device\"|\"point_measurement\"|\"measurement_sample\"|\"sleep_session\"|\"workout_session\"|\"benchmark_result\"|\"provider_summary\"|\"provider_score\"|\"athlete_report\"|\"nutrition_entry\"|\"attachment\"|\"benchmark_definition\"|\"prediction\"|\"prediction_result_link\"|\"prediction_grade\"|\"prediction_error_analysis\"|\"training_plan\"|\"planned_session\"|\"coaching_note\"|\"saved_training_review\"|\"goal\"|\"nutrition_model_interpretation\"",
+          "values": [
+            "athlete_profile",
+            "source",
+            "source_device",
+            "point_measurement",
+            "measurement_sample",
+            "sleep_session",
+            "workout_session",
+            "benchmark_result",
+            "provider_summary",
+            "provider_score",
+            "athlete_report",
+            "nutrition_entry",
+            "attachment",
+            "benchmark_definition",
+            "prediction",
+            "prediction_result_link",
+            "prediction_grade",
+            "prediction_error_analysis",
+            "training_plan",
+            "planned_session",
+            "coaching_note",
+            "saved_training_review",
+            "goal",
+            "nutrition_model_interpretation"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:leading_space",
+      "input": " athlete_profile",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_profile\"|\"source\"|\"source_device\"|\"point_measurement\"|\"measurement_sample\"|\"sleep_session\"|\"workout_session\"|\"benchmark_result\"|\"provider_summary\"|\"provider_score\"|\"athlete_report\"|\"nutrition_entry\"|\"attachment\"|\"benchmark_definition\"|\"prediction\"|\"prediction_result_link\"|\"prediction_grade\"|\"prediction_error_analysis\"|\"training_plan\"|\"planned_session\"|\"coaching_note\"|\"saved_training_review\"|\"goal\"|\"nutrition_model_interpretation\"",
+          "values": [
+            "athlete_profile",
+            "source",
+            "source_device",
+            "point_measurement",
+            "measurement_sample",
+            "sleep_session",
+            "workout_session",
+            "benchmark_result",
+            "provider_summary",
+            "provider_score",
+            "athlete_report",
+            "nutrition_entry",
+            "attachment",
+            "benchmark_definition",
+            "prediction",
+            "prediction_result_link",
+            "prediction_grade",
+            "prediction_error_analysis",
+            "training_plan",
+            "planned_session",
+            "coaching_note",
+            "saved_training_review",
+            "goal",
+            "nutrition_model_interpretation"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:trailing_space",
+      "input": "athlete_profile ",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_profile\"|\"source\"|\"source_device\"|\"point_measurement\"|\"measurement_sample\"|\"sleep_session\"|\"workout_session\"|\"benchmark_result\"|\"provider_summary\"|\"provider_score\"|\"athlete_report\"|\"nutrition_entry\"|\"attachment\"|\"benchmark_definition\"|\"prediction\"|\"prediction_result_link\"|\"prediction_grade\"|\"prediction_error_analysis\"|\"training_plan\"|\"planned_session\"|\"coaching_note\"|\"saved_training_review\"|\"goal\"|\"nutrition_model_interpretation\"",
+          "values": [
+            "athlete_profile",
+            "source",
+            "source_device",
+            "point_measurement",
+            "measurement_sample",
+            "sleep_session",
+            "workout_session",
+            "benchmark_result",
+            "provider_summary",
+            "provider_score",
+            "athlete_report",
+            "nutrition_entry",
+            "attachment",
+            "benchmark_definition",
+            "prediction",
+            "prediction_result_link",
+            "prediction_grade",
+            "prediction_error_analysis",
+            "training_plan",
+            "planned_session",
+            "coaching_note",
+            "saved_training_review",
+            "goal",
+            "nutrition_model_interpretation"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:number",
+      "input": 1,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_profile\"|\"source\"|\"source_device\"|\"point_measurement\"|\"measurement_sample\"|\"sleep_session\"|\"workout_session\"|\"benchmark_result\"|\"provider_summary\"|\"provider_score\"|\"athlete_report\"|\"nutrition_entry\"|\"attachment\"|\"benchmark_definition\"|\"prediction\"|\"prediction_result_link\"|\"prediction_grade\"|\"prediction_error_analysis\"|\"training_plan\"|\"planned_session\"|\"coaching_note\"|\"saved_training_review\"|\"goal\"|\"nutrition_model_interpretation\"",
+          "values": [
+            "athlete_profile",
+            "source",
+            "source_device",
+            "point_measurement",
+            "measurement_sample",
+            "sleep_session",
+            "workout_session",
+            "benchmark_result",
+            "provider_summary",
+            "provider_score",
+            "athlete_report",
+            "nutrition_entry",
+            "attachment",
+            "benchmark_definition",
+            "prediction",
+            "prediction_result_link",
+            "prediction_grade",
+            "prediction_error_analysis",
+            "training_plan",
+            "planned_session",
+            "coaching_note",
+            "saved_training_review",
+            "goal",
+            "nutrition_model_interpretation"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_profile\"|\"source\"|\"source_device\"|\"point_measurement\"|\"measurement_sample\"|\"sleep_session\"|\"workout_session\"|\"benchmark_result\"|\"provider_summary\"|\"provider_score\"|\"athlete_report\"|\"nutrition_entry\"|\"attachment\"|\"benchmark_definition\"|\"prediction\"|\"prediction_result_link\"|\"prediction_grade\"|\"prediction_error_analysis\"|\"training_plan\"|\"planned_session\"|\"coaching_note\"|\"saved_training_review\"|\"goal\"|\"nutrition_model_interpretation\"",
+          "values": [
+            "athlete_profile",
+            "source",
+            "source_device",
+            "point_measurement",
+            "measurement_sample",
+            "sleep_session",
+            "workout_session",
+            "benchmark_result",
+            "provider_summary",
+            "provider_score",
+            "athlete_report",
+            "nutrition_entry",
+            "attachment",
+            "benchmark_definition",
+            "prediction",
+            "prediction_result_link",
+            "prediction_grade",
+            "prediction_error_analysis",
+            "training_plan",
+            "planned_session",
+            "coaching_note",
+            "saved_training_review",
+            "goal",
+            "nutrition_model_interpretation"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:array",
+      "input": [
+        "athlete_profile"
+      ],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_profile\"|\"source\"|\"source_device\"|\"point_measurement\"|\"measurement_sample\"|\"sleep_session\"|\"workout_session\"|\"benchmark_result\"|\"provider_summary\"|\"provider_score\"|\"athlete_report\"|\"nutrition_entry\"|\"attachment\"|\"benchmark_definition\"|\"prediction\"|\"prediction_result_link\"|\"prediction_grade\"|\"prediction_error_analysis\"|\"training_plan\"|\"planned_session\"|\"coaching_note\"|\"saved_training_review\"|\"goal\"|\"nutrition_model_interpretation\"",
+          "values": [
+            "athlete_profile",
+            "source",
+            "source_device",
+            "point_measurement",
+            "measurement_sample",
+            "sleep_session",
+            "workout_session",
+            "benchmark_result",
+            "provider_summary",
+            "provider_score",
+            "athlete_report",
+            "nutrition_entry",
+            "attachment",
+            "benchmark_definition",
+            "prediction",
+            "prediction_result_link",
+            "prediction_grade",
+            "prediction_error_analysis",
+            "training_plan",
+            "planned_session",
+            "coaching_note",
+            "saved_training_review",
+            "goal",
+            "nutrition_model_interpretation"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:object",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"athlete_profile\"|\"source\"|\"source_device\"|\"point_measurement\"|\"measurement_sample\"|\"sleep_session\"|\"workout_session\"|\"benchmark_result\"|\"provider_summary\"|\"provider_score\"|\"athlete_report\"|\"nutrition_entry\"|\"attachment\"|\"benchmark_definition\"|\"prediction\"|\"prediction_result_link\"|\"prediction_grade\"|\"prediction_error_analysis\"|\"training_plan\"|\"planned_session\"|\"coaching_note\"|\"saved_training_review\"|\"goal\"|\"nutrition_model_interpretation\"",
+          "values": [
+            "athlete_profile",
+            "source",
+            "source_device",
+            "point_measurement",
+            "measurement_sample",
+            "sleep_session",
+            "workout_session",
+            "benchmark_result",
+            "provider_summary",
+            "provider_score",
+            "athlete_report",
+            "nutrition_entry",
+            "attachment",
+            "benchmark_definition",
+            "prediction",
+            "prediction_result_link",
+            "prediction_grade",
+            "prediction_error_analysis",
+            "training_plan",
+            "planned_session",
+            "coaching_note",
+            "saved_training_review",
+            "goal",
+            "nutrition_model_interpretation"
+          ]
+        }
+      ]
+    }
+  ]
+}

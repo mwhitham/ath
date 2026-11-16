@@ -1,0 +1,1687 @@
+{
+  "schema": "BenchmarkDefinitionData",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups",
+        "tags": [
+          "couplet",
+          "classic"
+        ]
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups",
+        "tags": [
+          "couplet",
+          "classic"
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups",
+        "tags": [
+          "couplet",
+          "classic"
+        ],
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "authorship:missing",
+      "input": {
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:null",
+      "input": {
+        "authorship": null,
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:wrong_type=array",
+      "input": {
+        "authorship": [],
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:wrong_type=string",
+      "input": {
+        "authorship": "x",
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:empty_object",
+      "input": {
+        "authorship": {},
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship",
+            "author"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        },
+        {
+          "path": [
+            "authorship",
+            "authored_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "authorship",
+            "evidence"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received undefined",
+          "expected": "array"
+        },
+        {
+          "path": [
+            "authorship",
+            "content_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        },
+        {
+          "path": [
+            "authorship",
+            "status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"draft\"|\"active\"|\"completed\"|\"superseded\"|\"cancelled\"",
+          "values": [
+            "draft",
+            "active",
+            "completed",
+            "superseded",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "authorship:nested_unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active",
+          "unknown_nested": true
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "benchmark_key:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_key"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_key:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": null,
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_key"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_key:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": 1,
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_key"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_key:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_key"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase key with hyphens or underscores",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z0-9][a-z0-9_-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_key:format=not_valid",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "not valid",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_key"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase key with hyphens or underscores",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z0-9][a-z0-9_-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_key:format=uppercase",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "FRAN",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_key"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase key with hyphens or underscores",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z0-9][a-z0-9_-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_type:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"named_wod\"|\"run\"|\"hyrox\"|\"lift\"|\"custom\"",
+          "values": [
+            "named_wod",
+            "run",
+            "hyrox",
+            "lift",
+            "custom"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "benchmark_type:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": null,
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"named_wod\"|\"run\"|\"hyrox\"|\"lift\"|\"custom\"",
+          "values": [
+            "named_wod",
+            "run",
+            "hyrox",
+            "lift",
+            "custom"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "benchmark_type:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": 1,
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"named_wod\"|\"run\"|\"hyrox\"|\"lift\"|\"custom\"",
+          "values": [
+            "named_wod",
+            "run",
+            "hyrox",
+            "lift",
+            "custom"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "benchmark_type:enum_invalid",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "__not_an_option__",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"named_wod\"|\"run\"|\"hyrox\"|\"lift\"|\"custom\"",
+          "values": [
+            "named_wod",
+            "run",
+            "hyrox",
+            "lift",
+            "custom"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "benchmark_type:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"named_wod\"|\"run\"|\"hyrox\"|\"lift\"|\"custom\"",
+          "values": [
+            "named_wod",
+            "run",
+            "hyrox",
+            "lift",
+            "custom"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "benchmark_type:enum_uppercase",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "NAMED_WOD",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"named_wod\"|\"run\"|\"hyrox\"|\"lift\"|\"custom\"",
+          "values": [
+            "named_wod",
+            "run",
+            "hyrox",
+            "lift",
+            "custom"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "score_type:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "score_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"time\"|\"reps\"|\"load\"",
+          "values": [
+            "time",
+            "reps",
+            "load"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "score_type:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": null,
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "score_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"time\"|\"reps\"|\"load\"",
+          "values": [
+            "time",
+            "reps",
+            "load"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "score_type:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": 1,
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "score_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"time\"|\"reps\"|\"load\"",
+          "values": [
+            "time",
+            "reps",
+            "load"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "score_type:enum_invalid",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "__not_an_option__",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "score_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"time\"|\"reps\"|\"load\"",
+          "values": [
+            "time",
+            "reps",
+            "load"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "score_type:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "score_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"time\"|\"reps\"|\"load\"",
+          "values": [
+            "time",
+            "reps",
+            "load"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "score_type:enum_uppercase",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "TIME",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "score_type"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"time\"|\"reps\"|\"load\"",
+          "values": [
+            "time",
+            "reps",
+            "load"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "definition:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "definition"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "definition:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "definition"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "definition:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "definition"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "definition:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "definition"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "tags:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups",
+        "tags": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "tags"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received null",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "tags:wrong_type=object",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups",
+        "tags": {}
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "tags"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received object",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "tags:empty_array",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups",
+        "tags": []
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups",
+        "tags": []
+      },
+      "issues": []
+    },
+    {
+      "name": "tags:element[0]:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups",
+        "tags": [
+          1
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "tags",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "tags:element[0]:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups",
+        "tags": [
+          ""
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "tags",
+            0
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "tags:element[1]:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "benchmark_key": "fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups",
+        "tags": [
+          "couplet",
+          1
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "tags",
+            1
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_key:Fran",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "Fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_key"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase key with hyphens or underscores",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z0-9][a-z0-9_-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_key:-fran",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "-fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_key"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase key with hyphens or underscores",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z0-9][a-z0-9_-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_key:_fran",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "_fran",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_key"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase key with hyphens or underscores",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z0-9][a-z0-9_-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_key:fran 2",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran 2",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_key"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase key with hyphens or underscores",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z0-9][a-z0-9_-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_key:frán",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "frán",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_key"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase key with hyphens or underscores",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z0-9][a-z0-9_-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_key:ﬁ",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "ﬁ",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "benchmark_key"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase key with hyphens or underscores",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-z0-9][a-z0-9_-]*$/"
+        }
+      ]
+    },
+    {
+      "name": "benchmark_key:f",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "f",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "f",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "issues": []
+    },
+    {
+      "name": "benchmark_key:0",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "0",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "0",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "issues": []
+    },
+    {
+      "name": "benchmark_key:fran-2",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran-2",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran-2",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "issues": []
+    },
+    {
+      "name": "benchmark_key:fran_2",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran_2",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran_2",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "issues": []
+    },
+    {
+      "name": "benchmark_key:fran--",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran--",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "benchmark_key": "fran--",
+        "benchmark_type": "named_wod",
+        "score_type": "time",
+        "definition": "21-15-9 thrusters and pull-ups"
+      },
+      "issues": []
+    }
+  ]
+}

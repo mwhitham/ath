@@ -1,0 +1,1435 @@
+{
+  "schema": "AthleteProfileData",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {},
+      "valid": true,
+      "output": {},
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1990,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": true,
+      "output": {
+        "name": "Sample Athlete",
+        "birth_year": 1990,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1990,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "name:null",
+      "input": {
+        "name": null,
+        "birth_year": 1990,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "name"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "name:wrong_type=number",
+      "input": {
+        "name": 1,
+        "birth_year": 1990,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "name"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "name:empty_string",
+      "input": {
+        "name": "",
+        "birth_year": 1990,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "name"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "birth_year:null",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": null,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "birth_year"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "birth_year:wrong_type=string",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": "1",
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "birth_year"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "birth_year:number=1899",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1899,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "birth_year"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=1900",
+          "inclusive": true,
+          "minimum": 1900,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "birth_year:number=1900",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1900,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": true,
+      "output": {
+        "name": "Sample Athlete",
+        "birth_year": 1900,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "issues": []
+    },
+    {
+      "name": "birth_year:number=1901",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1901,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": true,
+      "output": {
+        "name": "Sample Athlete",
+        "birth_year": 1901,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "issues": []
+    },
+    {
+      "name": "birth_year:number=2099",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 2099,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": true,
+      "output": {
+        "name": "Sample Athlete",
+        "birth_year": 2099,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "issues": []
+    },
+    {
+      "name": "birth_year:number=2100",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 2100,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": true,
+      "output": {
+        "name": "Sample Athlete",
+        "birth_year": 2100,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "issues": []
+    },
+    {
+      "name": "birth_year:number=2101",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 2101,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "birth_year"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected number to be <=2100",
+          "inclusive": true,
+          "maximum": 2100,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "birth_year:number=1.5",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1.5,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "birth_year"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "birth_year:number=9007199254740991",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 9007199254740991,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "birth_year"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected number to be <=2100",
+          "inclusive": true,
+          "maximum": 2100,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "birth_year:number=9007199254740992",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 9007199254740992,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "birth_year"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "birth_year"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected number to be <=2100",
+          "inclusive": true,
+          "maximum": 2100,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "birth_year:number=-9007199254740991",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": -9007199254740991,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "birth_year"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=1900",
+          "inclusive": true,
+          "minimum": 1900,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "birth_year:number=-9007199254740992",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": -9007199254740992,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "birth_year"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected int to be >=-9007199254740991",
+          "inclusive": true,
+          "minimum": -9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "birth_year"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=1900",
+          "inclusive": true,
+          "minimum": 1900,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "birth_year:number=1e+21",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1e+21,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "birth_year"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "birth_year"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected number to be <=2100",
+          "inclusive": true,
+          "maximum": 2100,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "birth_year:number_text=-0",
+      "input_text": "{\"name\":\"Sample Athlete\",\"birth_year\":-0,\"sex\":\"female\",\"display_units\":\"metric\",\"default_time_zone\":\"America/Chicago\"}",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 0,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "birth_year"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=1900",
+          "inclusive": true,
+          "minimum": 1900,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "birth_year:number_text=1990.0",
+      "input_text": "{\"name\":\"Sample Athlete\",\"birth_year\":1990.0,\"sex\":\"female\",\"display_units\":\"metric\",\"default_time_zone\":\"America/Chicago\"}",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1990,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": true,
+      "output": {
+        "name": "Sample Athlete",
+        "birth_year": 1990,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "issues": []
+    },
+    {
+      "name": "birth_year:number_text=1990E0",
+      "input_text": "{\"name\":\"Sample Athlete\",\"birth_year\":1990E0,\"sex\":\"female\",\"display_units\":\"metric\",\"default_time_zone\":\"America/Chicago\"}",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1990,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": true,
+      "output": {
+        "name": "Sample Athlete",
+        "birth_year": 1990,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "issues": []
+    },
+    {
+      "name": "birth_year:number_text=9007199254740993",
+      "input_text": "{\"name\":\"Sample Athlete\",\"birth_year\":9007199254740993,\"sex\":\"female\",\"display_units\":\"metric\",\"default_time_zone\":\"America/Chicago\"}",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 9007199254740992,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "birth_year"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "birth_year"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected number to be <=2100",
+          "inclusive": true,
+          "maximum": 2100,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "sex:null",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1990,
+        "sex": null,
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sex"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"male\"|\"female\"",
+          "values": [
+            "male",
+            "female"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sex:wrong_type=number",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1990,
+        "sex": 1,
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sex"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"male\"|\"female\"",
+          "values": [
+            "male",
+            "female"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sex:enum_invalid",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1990,
+        "sex": "__not_an_option__",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sex"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"male\"|\"female\"",
+          "values": [
+            "male",
+            "female"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sex:empty_string",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1990,
+        "sex": "",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sex"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"male\"|\"female\"",
+          "values": [
+            "male",
+            "female"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "sex:enum_uppercase",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1990,
+        "sex": "MALE",
+        "display_units": "metric",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sex"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"male\"|\"female\"",
+          "values": [
+            "male",
+            "female"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "display_units:null",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1990,
+        "sex": "female",
+        "display_units": null,
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "display_units"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"metric\"|\"imperial\"",
+          "values": [
+            "metric",
+            "imperial"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "display_units:wrong_type=number",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1990,
+        "sex": "female",
+        "display_units": 1,
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "display_units"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"metric\"|\"imperial\"",
+          "values": [
+            "metric",
+            "imperial"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "display_units:enum_invalid",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1990,
+        "sex": "female",
+        "display_units": "__not_an_option__",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "display_units"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"metric\"|\"imperial\"",
+          "values": [
+            "metric",
+            "imperial"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "display_units:empty_string",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1990,
+        "sex": "female",
+        "display_units": "",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "display_units"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"metric\"|\"imperial\"",
+          "values": [
+            "metric",
+            "imperial"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "display_units:enum_uppercase",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1990,
+        "sex": "female",
+        "display_units": "METRIC",
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "display_units"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"metric\"|\"imperial\"",
+          "values": [
+            "metric",
+            "imperial"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "default_time_zone:null",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1990,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "default_time_zone"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "default_time_zone:wrong_type=number",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1990,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "default_time_zone"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "default_time_zone:empty_string",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1990,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "default_time_zone"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        },
+        {
+          "path": [
+            "default_time_zone"
+          ],
+          "code": "custom",
+          "message": "IANA timezone"
+        }
+      ]
+    },
+    {
+      "name": "default_time_zone:refine_invalid",
+      "input": {
+        "name": "Sample Athlete",
+        "birth_year": 1990,
+        "sex": "female",
+        "display_units": "metric",
+        "default_time_zone": "Not/AZone"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "default_time_zone"
+          ],
+          "code": "custom",
+          "message": "IANA timezone"
+        }
+      ]
+    },
+    {
+      "name": "two_tier:source_id_key_rejected",
+      "input": {
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"source_id\"",
+          "keys": [
+            "source_id"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "time_zone:UTC",
+      "input": {
+        "default_time_zone": "UTC"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "UTC"
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R15",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "time_zone:utc",
+      "input": {
+        "default_time_zone": "utc"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "utc"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:Etc/UTC",
+      "input": {
+        "default_time_zone": "Etc/UTC"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "Etc/UTC"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:GMT",
+      "input": {
+        "default_time_zone": "GMT"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "GMT"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:UCT",
+      "input": {
+        "default_time_zone": "UCT"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "UCT"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:Zulu",
+      "input": {
+        "default_time_zone": "Zulu"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "Zulu"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:Z",
+      "input": {
+        "default_time_zone": "Z"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "default_time_zone"
+          ],
+          "code": "custom",
+          "message": "IANA timezone"
+        }
+      ]
+    },
+    {
+      "name": "time_zone:America/Chicago",
+      "input": {
+        "default_time_zone": "America/Chicago"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "America/Chicago"
+      },
+      "issues": [],
+      "rules": [
+        {
+          "rule": "R15",
+          "expect": "satisfy"
+        }
+      ]
+    },
+    {
+      "name": "time_zone:america/chicago",
+      "input": {
+        "default_time_zone": "america/chicago"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "america/chicago"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:AMERICA/CHICAGO",
+      "input": {
+        "default_time_zone": "AMERICA/CHICAGO"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "AMERICA/CHICAGO"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:EST5EDT",
+      "input": {
+        "default_time_zone": "EST5EDT"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "EST5EDT"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:EST",
+      "input": {
+        "default_time_zone": "EST"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "EST"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:Etc/GMT+5",
+      "input": {
+        "default_time_zone": "Etc/GMT+5"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "Etc/GMT+5"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:Etc/GMT-14",
+      "input": {
+        "default_time_zone": "Etc/GMT-14"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "Etc/GMT-14"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:Etc/GMT+13",
+      "input": {
+        "default_time_zone": "Etc/GMT+13"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "default_time_zone"
+          ],
+          "code": "custom",
+          "message": "IANA timezone"
+        }
+      ]
+    },
+    {
+      "name": "time_zone:US/Eastern",
+      "input": {
+        "default_time_zone": "US/Eastern"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "US/Eastern"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:Asia/Calcutta",
+      "input": {
+        "default_time_zone": "Asia/Calcutta"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "Asia/Calcutta"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:Asia/Kolkata",
+      "input": {
+        "default_time_zone": "Asia/Kolkata"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "Asia/Kolkata"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:Europe/Kyiv",
+      "input": {
+        "default_time_zone": "Europe/Kyiv"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "Europe/Kyiv"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:Europe/Kiev",
+      "input": {
+        "default_time_zone": "Europe/Kiev"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "Europe/Kiev"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:America/Ciudad_Juarez",
+      "input": {
+        "default_time_zone": "America/Ciudad_Juarez"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "America/Ciudad_Juarez"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:America/Argentina/Buenos_Aires",
+      "input": {
+        "default_time_zone": "America/Argentina/Buenos_Aires"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "America/Argentina/Buenos_Aires"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:Antarctica/Troll",
+      "input": {
+        "default_time_zone": "Antarctica/Troll"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "Antarctica/Troll"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:Factory",
+      "input": {
+        "default_time_zone": "Factory"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "default_time_zone"
+          ],
+          "code": "custom",
+          "message": "IANA timezone"
+        }
+      ]
+    },
+    {
+      "name": "time_zone:+05:00",
+      "input": {
+        "default_time_zone": "+05:00"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "+05:00"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:-08:00",
+      "input": {
+        "default_time_zone": "-08:00"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "-08:00"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:+0530",
+      "input": {
+        "default_time_zone": "+0530"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "+0530"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:+05",
+      "input": {
+        "default_time_zone": "+05"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "+05"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:+14:00",
+      "input": {
+        "default_time_zone": "+14:00"
+      },
+      "valid": true,
+      "output": {
+        "default_time_zone": "+14:00"
+      },
+      "issues": []
+    },
+    {
+      "name": "time_zone:+24:00",
+      "input": {
+        "default_time_zone": "+24:00"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "default_time_zone"
+          ],
+          "code": "custom",
+          "message": "IANA timezone"
+        }
+      ]
+    },
+    {
+      "name": "time_zone:Not/AZone",
+      "input": {
+        "default_time_zone": "Not/AZone"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "default_time_zone"
+          ],
+          "code": "custom",
+          "message": "IANA timezone"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R15",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "time_zone:Etc/Unknown",
+      "input": {
+        "default_time_zone": "Etc/Unknown"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "default_time_zone"
+          ],
+          "code": "custom",
+          "message": "IANA timezone"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R15",
+          "expect": "trigger"
+        }
+      ]
+    },
+    {
+      "name": "time_zone:local",
+      "input": {
+        "default_time_zone": "local"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "default_time_zone"
+          ],
+          "code": "custom",
+          "message": "IANA timezone"
+        }
+      ]
+    },
+    {
+      "name": "time_zone: UTC",
+      "input": {
+        "default_time_zone": " UTC"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "default_time_zone"
+          ],
+          "code": "custom",
+          "message": "IANA timezone"
+        }
+      ]
+    },
+    {
+      "name": "time_zone:UTC ",
+      "input": {
+        "default_time_zone": "UTC "
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "default_time_zone"
+          ],
+          "code": "custom",
+          "message": "IANA timezone"
+        }
+      ]
+    },
+    {
+      "name": "time_zone:America/Chicago\\n",
+      "input": {
+        "default_time_zone": "America/Chicago\n"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "default_time_zone"
+          ],
+          "code": "custom",
+          "message": "IANA timezone"
+        }
+      ]
+    },
+    {
+      "name": "time_zone:empty",
+      "input": {
+        "default_time_zone": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "default_time_zone"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        },
+        {
+          "path": [
+            "default_time_zone"
+          ],
+          "code": "custom",
+          "message": "IANA timezone"
+        }
+      ]
+    }
+  ]
+}

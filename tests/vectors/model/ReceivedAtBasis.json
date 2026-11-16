@@ -1,0 +1,213 @@
+{
+  "schema": "ReceivedAtBasis",
+  "cases": [
+    {
+      "name": "valid:provider_supplied",
+      "input": "provider_supplied",
+      "valid": true,
+      "output": "provider_supplied",
+      "issues": []
+    },
+    {
+      "name": "valid:connector_received_time",
+      "input": "connector_received_time",
+      "valid": true,
+      "output": "connector_received_time",
+      "issues": []
+    },
+    {
+      "name": "valid:file_modified_time",
+      "input": "file_modified_time",
+      "valid": true,
+      "output": "file_modified_time",
+      "issues": []
+    },
+    {
+      "name": "valid:import_time",
+      "input": "import_time",
+      "valid": true,
+      "output": "import_time",
+      "issues": []
+    },
+    {
+      "name": "valid:local_write_time",
+      "input": "local_write_time",
+      "valid": true,
+      "output": "local_write_time",
+      "issues": []
+    },
+    {
+      "name": "invalid:unknown",
+      "input": "__not_an_option__",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_supplied\"|\"connector_received_time\"|\"file_modified_time\"|\"import_time\"|\"local_write_time\"",
+          "values": [
+            "provider_supplied",
+            "connector_received_time",
+            "file_modified_time",
+            "import_time",
+            "local_write_time"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:empty",
+      "input": "",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_supplied\"|\"connector_received_time\"|\"file_modified_time\"|\"import_time\"|\"local_write_time\"",
+          "values": [
+            "provider_supplied",
+            "connector_received_time",
+            "file_modified_time",
+            "import_time",
+            "local_write_time"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:uppercase",
+      "input": "PROVIDER_SUPPLIED",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_supplied\"|\"connector_received_time\"|\"file_modified_time\"|\"import_time\"|\"local_write_time\"",
+          "values": [
+            "provider_supplied",
+            "connector_received_time",
+            "file_modified_time",
+            "import_time",
+            "local_write_time"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:leading_space",
+      "input": " provider_supplied",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_supplied\"|\"connector_received_time\"|\"file_modified_time\"|\"import_time\"|\"local_write_time\"",
+          "values": [
+            "provider_supplied",
+            "connector_received_time",
+            "file_modified_time",
+            "import_time",
+            "local_write_time"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:trailing_space",
+      "input": "provider_supplied ",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_supplied\"|\"connector_received_time\"|\"file_modified_time\"|\"import_time\"|\"local_write_time\"",
+          "values": [
+            "provider_supplied",
+            "connector_received_time",
+            "file_modified_time",
+            "import_time",
+            "local_write_time"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:number",
+      "input": 1,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_supplied\"|\"connector_received_time\"|\"file_modified_time\"|\"import_time\"|\"local_write_time\"",
+          "values": [
+            "provider_supplied",
+            "connector_received_time",
+            "file_modified_time",
+            "import_time",
+            "local_write_time"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_supplied\"|\"connector_received_time\"|\"file_modified_time\"|\"import_time\"|\"local_write_time\"",
+          "values": [
+            "provider_supplied",
+            "connector_received_time",
+            "file_modified_time",
+            "import_time",
+            "local_write_time"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:array",
+      "input": [
+        "provider_supplied"
+      ],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_supplied\"|\"connector_received_time\"|\"file_modified_time\"|\"import_time\"|\"local_write_time\"",
+          "values": [
+            "provider_supplied",
+            "connector_received_time",
+            "file_modified_time",
+            "import_time",
+            "local_write_time"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:object",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"provider_supplied\"|\"connector_received_time\"|\"file_modified_time\"|\"import_time\"|\"local_write_time\"",
+          "values": [
+            "provider_supplied",
+            "connector_received_time",
+            "file_modified_time",
+            "import_time",
+            "local_write_time"
+          ]
+        }
+      ]
+    }
+  ]
+}

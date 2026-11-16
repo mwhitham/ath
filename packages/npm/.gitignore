@@ -1,0 +1,10 @@
+# Build output and packed files. The packing script fills native/, skills/,
+# schema/, and dist/ from tested binaries and the repository's committed
+# skill and schema files; they are not source here.
+dist/
+native/
+schema/
+skills/
+*.tgz
+node_modules/
+pack-output/

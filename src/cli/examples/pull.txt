@@ -1,0 +1,7 @@
+Examples:
+
+  Read one day from Garmin after the key is saved:
+    $ ath key set garmin
+    $ ath pull garmin --date 2026-01-02
+
+The key stays in the password store. It is not written into the athlete file.

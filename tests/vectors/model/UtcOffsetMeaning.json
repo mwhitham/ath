@@ -1,0 +1,197 @@
+{
+  "schema": "UtcOffsetMeaning",
+  "cases": [
+    {
+      "name": "valid:documented_recording_offset",
+      "input": "documented_recording_offset",
+      "valid": true,
+      "output": "documented_recording_offset",
+      "issues": []
+    },
+    {
+      "name": "valid:provider_cycle_offset",
+      "input": "provider_cycle_offset",
+      "valid": true,
+      "output": "provider_cycle_offset",
+      "issues": []
+    },
+    {
+      "name": "valid:route_rendering_offset",
+      "input": "route_rendering_offset",
+      "valid": true,
+      "output": "route_rendering_offset",
+      "issues": []
+    },
+    {
+      "name": "valid:meaning_not_documented",
+      "input": "meaning_not_documented",
+      "valid": true,
+      "output": "meaning_not_documented",
+      "issues": []
+    },
+    {
+      "name": "invalid:unknown",
+      "input": "__not_an_option__",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"documented_recording_offset\"|\"provider_cycle_offset\"|\"route_rendering_offset\"|\"meaning_not_documented\"",
+          "values": [
+            "documented_recording_offset",
+            "provider_cycle_offset",
+            "route_rendering_offset",
+            "meaning_not_documented"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:empty",
+      "input": "",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"documented_recording_offset\"|\"provider_cycle_offset\"|\"route_rendering_offset\"|\"meaning_not_documented\"",
+          "values": [
+            "documented_recording_offset",
+            "provider_cycle_offset",
+            "route_rendering_offset",
+            "meaning_not_documented"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:uppercase",
+      "input": "DOCUMENTED_RECORDING_OFFSET",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"documented_recording_offset\"|\"provider_cycle_offset\"|\"route_rendering_offset\"|\"meaning_not_documented\"",
+          "values": [
+            "documented_recording_offset",
+            "provider_cycle_offset",
+            "route_rendering_offset",
+            "meaning_not_documented"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:leading_space",
+      "input": " documented_recording_offset",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"documented_recording_offset\"|\"provider_cycle_offset\"|\"route_rendering_offset\"|\"meaning_not_documented\"",
+          "values": [
+            "documented_recording_offset",
+            "provider_cycle_offset",
+            "route_rendering_offset",
+            "meaning_not_documented"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:trailing_space",
+      "input": "documented_recording_offset ",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"documented_recording_offset\"|\"provider_cycle_offset\"|\"route_rendering_offset\"|\"meaning_not_documented\"",
+          "values": [
+            "documented_recording_offset",
+            "provider_cycle_offset",
+            "route_rendering_offset",
+            "meaning_not_documented"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:number",
+      "input": 1,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"documented_recording_offset\"|\"provider_cycle_offset\"|\"route_rendering_offset\"|\"meaning_not_documented\"",
+          "values": [
+            "documented_recording_offset",
+            "provider_cycle_offset",
+            "route_rendering_offset",
+            "meaning_not_documented"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"documented_recording_offset\"|\"provider_cycle_offset\"|\"route_rendering_offset\"|\"meaning_not_documented\"",
+          "values": [
+            "documented_recording_offset",
+            "provider_cycle_offset",
+            "route_rendering_offset",
+            "meaning_not_documented"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:array",
+      "input": [
+        "documented_recording_offset"
+      ],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"documented_recording_offset\"|\"provider_cycle_offset\"|\"route_rendering_offset\"|\"meaning_not_documented\"",
+          "values": [
+            "documented_recording_offset",
+            "provider_cycle_offset",
+            "route_rendering_offset",
+            "meaning_not_documented"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "invalid:object",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"documented_recording_offset\"|\"provider_cycle_offset\"|\"route_rendering_offset\"|\"meaning_not_documented\"",
+          "values": [
+            "documented_recording_offset",
+            "provider_cycle_offset",
+            "route_rendering_offset",
+            "meaning_not_documented"
+          ]
+        }
+      ]
+    }
+  ]
+}

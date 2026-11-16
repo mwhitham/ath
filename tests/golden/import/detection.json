@@ -1,0 +1,42 @@
+{
+  "cases": [
+    {
+      "message": "no such file or directory: <dir>/missing",
+      "name": "missing"
+    },
+    {
+      "message": "<dir>/input does not look like an Apple Health, WHOOP, or Oura export. Expected export.xml, physiological_cycles.csv, or Oura CSVs.",
+      "name": "empty_directory"
+    },
+    {
+      "message": "input looks like WHOOP's older privacy-portal archive, which stores sleep in a different shape. Use the export from the WHOOP app (More → Data Export); it contains physiological_cycles.csv.",
+      "name": "privacy_portal_directory"
+    },
+    {
+      "message": "table.csv is a CSV we cannot place. Oura exports carry columns like average_hrv or bedtime_start; WHOOP exports carry \"Cycle start time\".",
+      "name": "unknown_csv"
+    },
+    {
+      "message": "notes.txt is not a supported export. Pass an Apple Health export.zip, a WHOOP CSV export, or an Oura CSV export.",
+      "name": "unsupported_file"
+    },
+    {
+      "message": "data.zip is a zip, but not one we recognize. Expected an Apple Health export.xml, WHOOP's physiological_cycles.csv, or Oura CSVs inside it.",
+      "name": "unknown_zip"
+    },
+    {
+      "message": "data.zip looks like WHOOP's older privacy-portal archive, which stores sleep in a different shape. Use the export from the WHOOP app (More → Data Export); it contains physiological_cycles.csv.",
+      "name": "privacy_portal_zip"
+    },
+    {
+      "message": "refusing provider input through a symbolic link: <dir>/link",
+      "name": "symbolic_link"
+    },
+    {
+      "message": "refusing provider input that is not a regular file: <dir>/input/a.csv",
+      "name": "linked_csv_in_directory"
+    }
+  ],
+  "description": "Provider export detection refusals. <dir> is the temporary directory.",
+  "reference": "2.1.0"
+}

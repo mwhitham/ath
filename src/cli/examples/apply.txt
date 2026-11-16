@@ -1,0 +1,10 @@
+Examples:
+
+  Run the shipped heart-rate zones calculation on one workout:
+    $ ath apply heart-rate-zones --record 018f6b2a-6c3a-7c2e-8f1a-6a0d9e2b7c31
+
+  Run the same calculation on a different device's record:
+    $ ath apply heart-rate-zones --record 018f6b2a-6c3a-7c2e-8f1a-6a0d9e2b7c32
+
+The calculation file lives in the skill folder. Edit that file to change
+the zones. The result names the file, the record, and the fields it read.

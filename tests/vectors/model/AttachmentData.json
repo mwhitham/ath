@@ -1,0 +1,807 @@
+{
+  "schema": "AttachmentData",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": true,
+      "output": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "description": "Meal photo"
+      },
+      "valid": true,
+      "output": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "description": "Meal photo"
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "description": "Meal photo",
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "file_name:missing",
+      "input": {
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "file_name"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "file_name:null",
+      "input": {
+        "file_name": null,
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "file_name"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "file_name:wrong_type=number",
+      "input": {
+        "file_name": 1,
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "file_name"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "file_name:empty_string",
+      "input": {
+        "file_name": "",
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "file_name"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "media_type:missing",
+      "input": {
+        "file_name": "meal.png",
+        "byte_count": 1024,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "media_type"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "media_type:null",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": null,
+        "byte_count": 1024,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "media_type"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "media_type:wrong_type=number",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": 1,
+        "byte_count": 1024,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "media_type"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "media_type:empty_string",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "",
+        "byte_count": 1024,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "media_type"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "byte_count:missing",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "byte_count:null",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": null,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "byte_count:wrong_type=string",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": "1",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "byte_count:number=-1",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": -1,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "byte_count:number=0",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 0,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": true,
+      "output": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 0,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "issues": []
+    },
+    {
+      "name": "byte_count:number=1",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": true,
+      "output": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "issues": []
+    },
+    {
+      "name": "byte_count:number=1.5",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1.5,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "byte_count:number=9007199254740991",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 9007199254740991,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": true,
+      "output": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 9007199254740991,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "issues": []
+    },
+    {
+      "name": "byte_count:number=9007199254740992",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 9007199254740992,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "byte_count:number=-9007199254740991",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": -9007199254740991,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "byte_count:number=-9007199254740992",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": -9007199254740992,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected int to be >=-9007199254740991",
+          "inclusive": true,
+          "minimum": -9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "byte_count:number=1e+21",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1e+21,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "byte_count:number_text=-0",
+      "input_text": "{\"file_name\":\"meal.png\",\"media_type\":\"image/png\",\"byte_count\":-0,\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"}",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 0,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": true,
+      "output": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 0,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "issues": []
+    },
+    {
+      "name": "byte_count:number_text=1024.0",
+      "input_text": "{\"file_name\":\"meal.png\",\"media_type\":\"image/png\",\"byte_count\":1024.0,\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"}",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": true,
+      "output": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "issues": []
+    },
+    {
+      "name": "byte_count:number_text=1024E0",
+      "input_text": "{\"file_name\":\"meal.png\",\"media_type\":\"image/png\",\"byte_count\":1024E0,\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"}",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": true,
+      "output": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "issues": []
+    },
+    {
+      "name": "byte_count:number_text=9007199254740993",
+      "input_text": "{\"file_name\":\"meal.png\",\"media_type\":\"image/png\",\"byte_count\":9007199254740993,\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\"}",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 9007199254740992,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "sha256:missing",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1024
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sha256"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "sha256:null",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sha256"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "sha256:wrong_type=number",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sha256"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "sha256:empty_string",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sha256"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase SHA-256 hex digest",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-f0-9]{64}$/"
+        }
+      ]
+    },
+    {
+      "name": "sha256:format=not_valid",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": "not valid"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sha256"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase SHA-256 hex digest",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-f0-9]{64}$/"
+        }
+      ]
+    },
+    {
+      "name": "sha256:format=uppercase",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sha256"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase SHA-256 hex digest",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-f0-9]{64}$/"
+        }
+      ]
+    },
+    {
+      "name": "description:null",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "description": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "description"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "description:wrong_type=number",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "description": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "description"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "description:empty_string",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "description": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "description"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "two_tier:source_id_key_rejected",
+      "input": {
+        "file_name": "meal.png",
+        "media_type": "image/png",
+        "byte_count": 1024,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "source_id": "01890f3e-e7d3-7cc0-88c8-000000000003"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"source_id\"",
+          "keys": [
+            "source_id"
+          ]
+        }
+      ]
+    }
+  ]
+}

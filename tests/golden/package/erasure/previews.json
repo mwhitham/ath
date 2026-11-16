@@ -1,0 +1,157 @@
+{
+  "01890f3e-e7d3-7cc0-88c8-00000000000b": {
+    "root_record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+    "root_expected_revision": 1,
+    "database_revision": 3,
+    "records": [
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+        "record_type": "benchmark_result",
+        "current_revision": 1
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+        "record_type": "prediction_result_link",
+        "current_revision": 1
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+        "record_type": "prediction_grade",
+        "current_revision": 1
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000013",
+        "record_type": "prediction_error_analysis",
+        "current_revision": 1
+      }
+    ],
+    "attachments": []
+  },
+  "01890f3e-e7d3-7cc0-88c8-00000000000e": {
+    "root_record_id": "01890f3e-e7d3-7cc0-88c8-00000000000e",
+    "root_expected_revision": 1,
+    "database_revision": 3,
+    "records": [
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000e",
+        "record_type": "attachment",
+        "current_revision": 1
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000f",
+        "record_type": "nutrition_entry",
+        "current_revision": 1
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000019",
+        "record_type": "nutrition_model_interpretation",
+        "current_revision": 1
+      }
+    ],
+    "attachments": [
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000e",
+        "path": "attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png",
+        "present": true
+      }
+    ]
+  },
+  "01890f3e-e7d3-7cc0-88c8-000000000003": {
+    "root_record_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+    "root_expected_revision": 1,
+    "database_revision": 3,
+    "records": [
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000003",
+        "record_type": "source",
+        "current_revision": 1
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000005",
+        "record_type": "source_device",
+        "current_revision": 1
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+        "record_type": "point_measurement",
+        "current_revision": 2
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000008",
+        "record_type": "measurement_sample",
+        "current_revision": 1
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000009",
+        "record_type": "sleep_session",
+        "current_revision": 1
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000c",
+        "record_type": "provider_score",
+        "current_revision": 1
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000001a",
+        "record_type": "provider_summary",
+        "current_revision": 1
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000010",
+        "record_type": "prediction",
+        "current_revision": 1
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000014",
+        "record_type": "training_plan",
+        "current_revision": 1
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000015",
+        "record_type": "planned_session",
+        "current_revision": 1
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000a",
+        "record_type": "workout_session",
+        "current_revision": 1
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-00000000000b",
+        "record_type": "benchmark_result",
+        "current_revision": 1
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000011",
+        "record_type": "prediction_result_link",
+        "current_revision": 1
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000012",
+        "record_type": "prediction_grade",
+        "current_revision": 1
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000013",
+        "record_type": "prediction_error_analysis",
+        "current_revision": 1
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000016",
+        "record_type": "coaching_note",
+        "current_revision": 1
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000017",
+        "record_type": "saved_training_review",
+        "current_revision": 1
+      },
+      {
+        "record_id": "01890f3e-e7d3-7cc0-88c8-000000000018",
+        "record_type": "goal",
+        "current_revision": 1
+      }
+    ],
+    "attachments": []
+  }
+}
