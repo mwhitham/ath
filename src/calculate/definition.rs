@@ -414,25 +414,46 @@ mod tests {
         let zones = CalculationFile::parse(shipped_skill_file("heart-rate-zones").unwrap()).unwrap();
         assert_eq!(
             zones.calculation,
-            OneRecordCalculation::TimeBetweenCuts {
+            OneRecordCalculation::TimeInZones {
                 sample_field: "heart_rate_samples".into(),
                 maximum_field: "maximum_heart_rate_bpm".into(),
                 cuts: vec![0.6, 0.7, 0.8, 0.9],
+                max_gap_ms: 60_000,
             }
         );
         let change = CalculationFile::parse(shipped_skill_file("hrv-change").unwrap()).unwrap();
-        assert_eq!(change.name, "same-quantity-change");
-        assert_eq!(change.calculation, OneRecordCalculation::QuantityChange);
+        assert_eq!(change.name, "hrv-change");
+        assert_eq!(
+            change.calculation,
+            OneRecordCalculation::EarlierWindowChange(WindowChangeSettings {
+                field: None,
+                window_days: 28,
+                minimum_days: 7,
+                main_sleep_hours: 3.0,
+            })
+        );
         let sleep = CalculationFile::parse(shipped_skill_file("sleep-change").unwrap()).unwrap();
-        assert_eq!(sleep.calculation, OneRecordCalculation::SleepChange { field: "asleep_seconds".into() });
+        assert!(matches!(
+            sleep.calculation,
+            OneRecordCalculation::EarlierWindowChange(WindowChangeSettings { field: Some(ref field), .. }) if field == "asleep_seconds"
+        ));
         let summary = CalculationFile::parse(shipped_skill_file("summary").unwrap()).unwrap();
         assert_eq!(summary.calculation, OneRecordCalculation::Range("summary".into()));
-        let calculation_files = crate::assets::skill_files()
-            .iter()
-            .filter(|file| file.path.ends_with("/SKILL.md") && !file.path.starts_with("athletic-standard/"));
+        let calculation_files = crate::assets::skill_files().iter().filter(|file| {
+            file.path.ends_with("/SKILL.md") && std::str::from_utf8(file.bytes).unwrap().contains("```ath-calculation")
+        });
         for file in calculation_files {
-            CalculationFile::parse(std::str::from_utf8(file.bytes).unwrap()).unwrap();
+            let parsed = CalculationFile::parse(std::str::from_utf8(file.bytes).unwrap()).unwrap();
+            assert!(parsed.calculation.method_notice().is_none(), "{} ships a replaced operation", file.path);
         }
+    }
+
+    #[test]
+    fn the_2_1_1_operations_still_read_their_settings() {
+        let text = "```ath-calculation\nname: same-quantity-change\nuse: subtract_earlier_mean\n```\n";
+        let old = CalculationFile::parse(text).unwrap();
+        assert_eq!(old.calculation, OneRecordCalculation::QuantityChange);
+        assert!(old.calculation.method_notice().unwrap().starts_with("subtract_earlier_mean was replaced in 2.1.2"));
     }
 
     #[test]

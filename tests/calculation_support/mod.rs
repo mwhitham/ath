@@ -167,6 +167,9 @@ impl Lab {
                     "input_timestamp": receipt(&when),
                     "value": { "standard_value": value, "standard_unit": unit, "input_value": value, "input_unit": unit }
                 });
+                for (key, extra) in rest(record, &["id", "record_type", "quantity", "at", "value", "basis", "source"]) {
+                    data[key] = extra;
+                }
                 if let Some(basis) = record.get("basis") {
                     data["field_basis"] = json!({ "value": basis });
                 }
@@ -268,6 +271,58 @@ impl Lab {
     fn run(&self, working: &Path, name: &str, id: &str) -> serde_json::Value {
         match calculate::apply(&self.store, name, id, working) {
             Ok(result) => serde_json::from_str(&json::encode(&result)).unwrap(),
+            Err(error) => json!({ "error": error.to_string() }),
+        }
+    }
+
+    /// Replace every record ID the lab made with its short name; a source
+    /// becomes its name, such as `a`.
+    pub fn shorten(&self, value: &serde_json::Value) -> serde_json::Value {
+        match value {
+            serde_json::Value::String(text) => {
+                match self.ids.iter().find(|(short, id)| *id == text && !short.starts_with("written:")) {
+                    Some((short, _)) => json!(short.strip_prefix("source:").unwrap_or(short)),
+                    None => value.clone(),
+                }
+            }
+            serde_json::Value::Array(items) => {
+                serde_json::Value::Array(items.iter().map(|item| self.shorten(item)).collect())
+            }
+            serde_json::Value::Object(map) => {
+                serde_json::Value::Object(map.iter().map(|(key, item)| (key.clone(), self.shorten(item))).collect())
+            }
+            other => other.clone(),
+        }
+    }
+
+    /// Run a range calculation from a short request: `operation`,
+    /// `quantity`, and optional `record_kind`, `source` and `compare_source`
+    /// (names), `other_quantity`, `session` (a short ID), `from`, `to`,
+    /// `time_zone`, `group`, and `period_type`.
+    pub fn calculate(&mut self, request: &serde_json::Value) -> serde_json::Value {
+        use athleticstandard::calculate::{CalculateOptions, Group, Operation, RecordKind};
+        let text = |key: &str| request.get(key).and_then(|value| value.as_str()).map(str::to_string);
+        let mut options = CalculateOptions::new(
+            Operation::parse(&text("operation").unwrap()).expect("a range operation"),
+            text("quantity").unwrap(),
+        );
+        if let Some(kind) = text("record_kind") {
+            options.record_kind = RecordKind::parse(&kind).unwrap();
+        }
+        options.source_id = text("source").map(|name| self.source(&name));
+        options.compare_source_id = text("compare_source").map(|name| self.source(&name));
+        options.other_quantity = text("other_quantity");
+        options.workout_session_id = text("session").map(|short| self.id(&short));
+        options.from = text("from");
+        options.to = text("to");
+        options.time_zone = text("time_zone");
+        if let Some(group) = text("group") {
+            options.group = Group::parse(&group).unwrap();
+        }
+        options.provider_period_type =
+            text("period_type").map(|kind| athleticstandard::model::ProviderReportingPeriodType::parse(&kind).unwrap());
+        match calculate::calculate_range(&self.store, &options) {
+            Ok(receipt) => serde_json::from_str(&json::encode(&receipt)).unwrap(),
             Err(error) => json!({ "error": error.to_string() }),
         }
     }

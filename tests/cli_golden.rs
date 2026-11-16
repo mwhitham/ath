@@ -279,6 +279,28 @@ fn without_2_1_2_apply_fields(text: &str) -> String {
         + if text.ends_with('\n') { "\n" } else { "" }
 }
 
+/// Calculation skills added after 2.1.0. `ath init` installs them too; the
+/// lines and entries that name them are removed so the rest of the 2.1.0
+/// output is compared exactly. They are tested in `skill_examples.rs`.
+const SKILLS_ADDED_AFTER_2_1_0: &[&str] = &["hyrox-race-splits"];
+
+fn without_new_skills(text: &str) -> String {
+    let names_new = |line: &str| SKILLS_ADDED_AFTER_2_1_0.iter().any(|name| line.contains(&format!("/skills/{name}")));
+    if text.trim_start().starts_with('{') {
+        let mut value: Value = serde_json::from_str(text).unwrap();
+        if let Some(Value::Array(items)) = value.get_mut("skill_installed") {
+            items.retain(|item| !names_new(item.as_str().unwrap_or("")));
+        }
+        return format!("{}\n", serde_json::to_string_pretty(&value).unwrap());
+    }
+    let kept: Vec<&str> = text.lines().filter(|line| !names_new(line)).collect();
+    let mut out = kept.join("\n");
+    if text.ends_with('\n') {
+        out.push('\n');
+    }
+    out
+}
+
 /// `ath skill` and `ath skill install` describe more in 2.1.2: each copy's
 /// kind, an edited flag, new skills, and coaching skills that are available
 /// (v2.1.2 cli-changes.md, changes 1 and 2). The recorded promises must still
@@ -639,6 +661,9 @@ fn compare_group(group: &str) -> Vec<String> {
             let mut stdout = step_five_as_four(&normalize(&actual.stdout, &work_text, &mut window));
             if argv.first().map(String::as_str) == Some("apply") {
                 stdout = without_2_1_2_apply_fields(&stdout);
+            }
+            if argv.first().map(String::as_str) == Some("init") {
+                stdout = without_new_skills(&stdout);
             }
             if argv.first().map(String::as_str) == Some("calculate") {
                 // Receipt version 2 (D244); its additions are tested in calculate_range_v2.rs.
