@@ -327,6 +327,14 @@ impl Lab {
         }
     }
 
+    /// Save a verified copy of the database to `destination`.
+    pub fn save_copy(&self, destination: &Path) {
+        if destination.exists() {
+            std::fs::remove_file(destination).unwrap();
+        }
+        self.store.create_verified_backup(destination).unwrap();
+    }
+
     /// A one-line calculation block with settings.
     pub fn block(operation: &str, settings: &[(&str, &str)]) -> String {
         let mut text = format!("```ath-calculation\nname: lab-calculation\nuse: {operation}\n");

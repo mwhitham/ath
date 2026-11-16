@@ -43,6 +43,13 @@ Set both variables for any install you do not want counted. The skills CLI sends
 anonymous install telemetry to skills.sh by default, and skills.sh lists skills from
 that telemetry.
 
+The skills CLI puts each agent's copy in that agent's folder: `.agents/skills/` for
+Codex and similar agents, `.claude/skills/` for Claude Code. `ath apply` runs the
+calculation in `.agents/skills/<name>/SKILL.md` when it exists, else the copy built
+into `ath`. A copy in `.claude/skills/` is read by the agent as instructions; an
+edit there does not change what `ath apply` calculates. Run `ath skill install` to
+put the calculation files where `ath apply` reads them.
+
 ## The skills
 
 ### Tool
