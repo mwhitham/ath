@@ -1,9 +1,5 @@
 node_modules/
 dist/
-crates/ath-core/target/
-# Built ath-core binaries are packed into the npm package by the check.
-# They are not source.
-/vendor/
 *.log
 .DS_Store
 
@@ -22,8 +18,9 @@ validation-data/
 *.csv
 
 # These fixtures are approved synthetic data. Keep each exception explicit.
-!examples/demo-athlete/athlete.ath.json
 !examples/demo-athlete/athlete.ath.sqlite
+!tests/fixtures/version-0-4-3/athlete.ath.json
+!tests/fixtures/version-2-1-0/athlete.ath.sqlite
 !tests/fixtures/exports/apple/export.xml
 !tests/fixtures/exports/apple-inline-route/export.xml
 !tests/fixtures/exports/apple-file-reference/export.xml
@@ -57,8 +54,26 @@ validation-data/
 !tests/fixtures/version-2-0-0/database.ath.sqlite
 !tests/fixtures/version-2-0-0/package/athlete.ath.json
 !tests/fixtures/version-2-0-0/package/export-manifest.json
+!tests/vectors/model/AthleteActor.json
+!tests/vectors/model/AthleteProfileData.json
+!tests/vectors/model/AthleteProfileRecord.json
+!tests/vectors/model/AthleteProfileRevision.json
+!tests/vectors/model/AthleteReportData.json
+!tests/vectors/model/AthleteReportRecord.json
+!tests/vectors/model/AthleteReportRevision.json
+!tests/vectors/model/AthleteReportType.json
+!tests/vectors/model/ExportManifest.json
+!tests/golden/routes/invented-refusal-athlete-maximum.json
 
 # Large deterministic release fixtures are generated locally or in the release job.
 /performance/generated/
 /performance/results/local/
 
+# Rust build output.
+/target/
+
+# The npm package build copies these in; pack.mjs removes them after packing.
+packages/npm/native/
+packages/npm/schema/
+packages/npm/skills/
+packages/npm/pack-output/

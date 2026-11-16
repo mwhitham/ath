@@ -1,0 +1,2051 @@
+{
+  "description": "The Garmin personal connection: a day, the same day again, then a changed name and HRV.",
+  "reference": "2.1.0",
+  "steps": [
+    {
+      "command": "pull-garmin",
+      "database": {
+        "database_revision": 4,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "LastNightAvg:2026-08-09",
+                "method": "garmin_personal/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_summary garmin_personal/v1 LastNightAvg:2026-08-09>",
+            "record_type": "provider_summary",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T00:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T00:00:00.000Z",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "summary_type": "LastNightAvg",
+                  "supplied_fields": {
+                    "status": "BALANCED",
+                    "weeklyAvg": 44
+                  },
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 41,
+                    "standard_unit": "ms",
+                    "standard_value": 41
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source garmin garmin_personal_api >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "garmin_personal_api",
+                  "data_writer": "garmin",
+                  "source_type": "export_file",
+                  "vendor": "garmin"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "\"7002\"",
+                "method": "garmin_personal/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_personal/v1 \"7002\">",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "end_at": "2026-08-09T18:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Second",
+                  "provider_record_id": "7002",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T18:00:00.000Z"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "7001",
+                "method": "garmin_personal/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_personal/v1 7001>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "activity_type": "running",
+                  "end_at": "2026-08-09T15:10:00.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:10:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Invented personal loop",
+                  "provider_record_id": "7001",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T15:00:00.000Z",
+                  "supplied_fields": {
+                    "Feeling": "steady"
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": null,
+      "mapping": null,
+      "preview": null,
+      "pull": {
+        "activities": [
+          {
+            "Feeling": "steady",
+            "activityId": 7001,
+            "activityName": "Invented personal loop",
+            "activityType": {
+              "typeKey": "running"
+            },
+            "duration": 600,
+            "startTimeGMT": "2026-08-09T15:00:00.000Z"
+          },
+          {
+            "activityId": "7002",
+            "name": "Second",
+            "start_at": "2026-08-09T18:00:00.000Z"
+          },
+          {
+            "distance": 5,
+            "summaryOnly": true
+          },
+          7
+        ],
+        "date": "2026-08-09",
+        "hrv": {
+          "LastNightAvg": 41,
+          "status": "BALANCED",
+          "weeklyAvg": 44
+        }
+      },
+      "write": {
+        "result": {
+          "preserved": [
+            "Feeling",
+            "distance",
+            "status",
+            "summaryOnly",
+            "weeklyAvg"
+          ],
+          "record_ids": [
+            "<workout_session garmin_personal/v1 7001>",
+            "<workout_session garmin_personal/v1 \"7002\">",
+            "<provider_summary garmin_personal/v1 LastNightAvg:2026-08-09>"
+          ],
+          "source": "garmin_personal",
+          "understood": [
+            "LastNightAvg",
+            "activity_type",
+            "end_at",
+            "name",
+            "provider_record_id",
+            "start_at"
+          ]
+        }
+      }
+    },
+    {
+      "command": "pull-garmin",
+      "database": {
+        "database_revision": 7,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 2,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "LastNightAvg:2026-08-09",
+                "method": "garmin_personal/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_summary garmin_personal/v1 LastNightAvg:2026-08-09>",
+            "record_type": "provider_summary",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T00:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T00:00:00.000Z",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "summary_type": "LastNightAvg",
+                  "supplied_fields": {
+                    "status": "BALANCED",
+                    "weeklyAvg": 44
+                  },
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 41,
+                    "standard_unit": "ms",
+                    "standard_value": 41
+                  }
+                },
+                "revision": 1
+              },
+              {
+                "became_known_at": "<step 1>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 1,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T00:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "received_at": "<step 1>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T00:00:00.000Z",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "summary_type": "LastNightAvg",
+                  "supplied_fields": {
+                    "status": "BALANCED",
+                    "weeklyAvg": 44
+                  },
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 41,
+                    "standard_unit": "ms",
+                    "standard_value": 41
+                  }
+                },
+                "revision": 2
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source garmin garmin_personal_api >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "garmin_personal_api",
+                  "data_writer": "garmin",
+                  "source_type": "export_file",
+                  "vendor": "garmin"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 2,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "\"7002\"",
+                "method": "garmin_personal/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_personal/v1 \"7002\">",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "end_at": "2026-08-09T18:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Second",
+                  "provider_record_id": "7002",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T18:00:00.000Z"
+                },
+                "revision": 1
+              },
+              {
+                "became_known_at": "<step 1>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 1,
+                "record": {
+                  "end_at": "2026-08-09T18:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Second",
+                  "provider_record_id": "7002",
+                  "received_at": "<step 1>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T18:00:00.000Z"
+                },
+                "revision": 2
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 2,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "7001",
+                "method": "garmin_personal/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_personal/v1 7001>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "activity_type": "running",
+                  "end_at": "2026-08-09T15:10:00.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:10:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Invented personal loop",
+                  "provider_record_id": "7001",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T15:00:00.000Z",
+                  "supplied_fields": {
+                    "Feeling": "steady"
+                  }
+                },
+                "revision": 1
+              },
+              {
+                "became_known_at": "<step 1>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 1,
+                "record": {
+                  "activity_type": "running",
+                  "end_at": "2026-08-09T15:10:00.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:10:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Invented personal loop",
+                  "provider_record_id": "7001",
+                  "received_at": "<step 1>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T15:00:00.000Z",
+                  "supplied_fields": {
+                    "Feeling": "steady"
+                  }
+                },
+                "revision": 2
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": null,
+      "mapping": null,
+      "preview": null,
+      "pull": {
+        "activities": [
+          {
+            "Feeling": "steady",
+            "activityId": 7001,
+            "activityName": "Invented personal loop",
+            "activityType": {
+              "typeKey": "running"
+            },
+            "duration": 600,
+            "startTimeGMT": "2026-08-09T15:00:00.000Z"
+          },
+          {
+            "activityId": "7002",
+            "name": "Second",
+            "start_at": "2026-08-09T18:00:00.000Z"
+          },
+          {
+            "distance": 5,
+            "summaryOnly": true
+          },
+          7
+        ],
+        "date": "2026-08-09",
+        "hrv": {
+          "LastNightAvg": 41,
+          "status": "BALANCED",
+          "weeklyAvg": 44
+        }
+      },
+      "write": {
+        "result": {
+          "preserved": [
+            "Feeling",
+            "distance",
+            "status",
+            "summaryOnly",
+            "weeklyAvg"
+          ],
+          "record_ids": [
+            "<workout_session garmin_personal/v1 7001>",
+            "<workout_session garmin_personal/v1 \"7002\">",
+            "<provider_summary garmin_personal/v1 LastNightAvg:2026-08-09>"
+          ],
+          "source": "garmin_personal",
+          "understood": [
+            "LastNightAvg",
+            "activity_type",
+            "end_at",
+            "name",
+            "provider_record_id",
+            "start_at"
+          ]
+        }
+      }
+    },
+    {
+      "command": "pull-garmin",
+      "database": {
+        "database_revision": 9,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 3,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "LastNightAvg:2026-08-09",
+                "method": "garmin_personal/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_summary garmin_personal/v1 LastNightAvg:2026-08-09>",
+            "record_type": "provider_summary",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T00:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T00:00:00.000Z",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "summary_type": "LastNightAvg",
+                  "supplied_fields": {
+                    "status": "BALANCED",
+                    "weeklyAvg": 44
+                  },
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 41,
+                    "standard_unit": "ms",
+                    "standard_value": 41
+                  }
+                },
+                "revision": 1
+              },
+              {
+                "became_known_at": "<step 1>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 1,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T00:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "received_at": "<step 1>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T00:00:00.000Z",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "summary_type": "LastNightAvg",
+                  "supplied_fields": {
+                    "status": "BALANCED",
+                    "weeklyAvg": 44
+                  },
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 41,
+                    "standard_unit": "ms",
+                    "standard_value": 41
+                  }
+                },
+                "revision": 2
+              },
+              {
+                "became_known_at": "<step 2>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 2,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T00:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "received_at": "<step 2>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T00:00:00.000Z",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "summary_type": "LastNightAvg",
+                  "supplied_fields": {
+                    "weeklyAvg": 44
+                  },
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 43,
+                    "standard_unit": "ms",
+                    "standard_value": 43
+                  }
+                },
+                "revision": 3
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source garmin garmin_personal_api >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "garmin_personal_api",
+                  "data_writer": "garmin",
+                  "source_type": "export_file",
+                  "vendor": "garmin"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 2,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "\"7002\"",
+                "method": "garmin_personal/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_personal/v1 \"7002\">",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "end_at": "2026-08-09T18:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Second",
+                  "provider_record_id": "7002",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T18:00:00.000Z"
+                },
+                "revision": 1
+              },
+              {
+                "became_known_at": "<step 1>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 1,
+                "record": {
+                  "end_at": "2026-08-09T18:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Second",
+                  "provider_record_id": "7002",
+                  "received_at": "<step 1>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T18:00:00.000Z"
+                },
+                "revision": 2
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 3,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "7001",
+                "method": "garmin_personal/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_personal/v1 7001>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "activity_type": "running",
+                  "end_at": "2026-08-09T15:10:00.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:10:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Invented personal loop",
+                  "provider_record_id": "7001",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T15:00:00.000Z",
+                  "supplied_fields": {
+                    "Feeling": "steady"
+                  }
+                },
+                "revision": 1
+              },
+              {
+                "became_known_at": "<step 1>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 1,
+                "record": {
+                  "activity_type": "running",
+                  "end_at": "2026-08-09T15:10:00.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:10:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Invented personal loop",
+                  "provider_record_id": "7001",
+                  "received_at": "<step 1>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T15:00:00.000Z",
+                  "supplied_fields": {
+                    "Feeling": "steady"
+                  }
+                },
+                "revision": 2
+              },
+              {
+                "became_known_at": "<step 2>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 2,
+                "record": {
+                  "activity_type": "running",
+                  "end_at": "2026-08-09T15:10:00.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:10:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Renamed loop",
+                  "provider_record_id": "7001",
+                  "received_at": "<step 2>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T15:00:00.000Z",
+                  "supplied_fields": {
+                    "Feeling": "steady"
+                  }
+                },
+                "revision": 3
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": null,
+      "mapping": null,
+      "preview": null,
+      "pull": {
+        "activities": [
+          {
+            "Feeling": "steady",
+            "activityId": 7001,
+            "activityName": "Renamed loop",
+            "activityType": {
+              "typeKey": "running"
+            },
+            "duration": 600,
+            "startTimeGMT": "2026-08-09T15:00:00.000Z"
+          }
+        ],
+        "date": "2026-08-09",
+        "hrv": {
+          "LastNightAvg": 43,
+          "weeklyAvg": 44
+        }
+      },
+      "write": {
+        "result": {
+          "preserved": [
+            "Feeling",
+            "weeklyAvg"
+          ],
+          "record_ids": [
+            "<workout_session garmin_personal/v1 7001>",
+            "<provider_summary garmin_personal/v1 LastNightAvg:2026-08-09>"
+          ],
+          "source": "garmin_personal",
+          "understood": [
+            "LastNightAvg",
+            "activity_type",
+            "end_at",
+            "name",
+            "provider_record_id",
+            "start_at"
+          ]
+        }
+      }
+    },
+    {
+      "command": "pull-garmin",
+      "database": {
+        "database_revision": 10,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 3,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "LastNightAvg:2026-08-09",
+                "method": "garmin_personal/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_summary garmin_personal/v1 LastNightAvg:2026-08-09>",
+            "record_type": "provider_summary",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T00:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T00:00:00.000Z",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "summary_type": "LastNightAvg",
+                  "supplied_fields": {
+                    "status": "BALANCED",
+                    "weeklyAvg": 44
+                  },
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 41,
+                    "standard_unit": "ms",
+                    "standard_value": 41
+                  }
+                },
+                "revision": 1
+              },
+              {
+                "became_known_at": "<step 1>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 1,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T00:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "received_at": "<step 1>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T00:00:00.000Z",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "summary_type": "LastNightAvg",
+                  "supplied_fields": {
+                    "status": "BALANCED",
+                    "weeklyAvg": 44
+                  },
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 41,
+                    "standard_unit": "ms",
+                    "standard_value": 41
+                  }
+                },
+                "revision": 2
+              },
+              {
+                "became_known_at": "<step 2>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 2,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T00:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "received_at": "<step 2>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T00:00:00.000Z",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "summary_type": "LastNightAvg",
+                  "supplied_fields": {
+                    "weeklyAvg": 44
+                  },
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 43,
+                    "standard_unit": "ms",
+                    "standard_value": 43
+                  }
+                },
+                "revision": 3
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source garmin garmin_personal_api >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "garmin_personal_api",
+                  "data_writer": "garmin",
+                  "source_type": "export_file",
+                  "vendor": "garmin"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 2,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "\"7002\"",
+                "method": "garmin_personal/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_personal/v1 \"7002\">",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "end_at": "2026-08-09T18:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Second",
+                  "provider_record_id": "7002",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T18:00:00.000Z"
+                },
+                "revision": 1
+              },
+              {
+                "became_known_at": "<step 1>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 1,
+                "record": {
+                  "end_at": "2026-08-09T18:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Second",
+                  "provider_record_id": "7002",
+                  "received_at": "<step 1>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T18:00:00.000Z"
+                },
+                "revision": 2
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 3,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "7001",
+                "method": "garmin_personal/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_personal/v1 7001>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "activity_type": "running",
+                  "end_at": "2026-08-09T15:10:00.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:10:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Invented personal loop",
+                  "provider_record_id": "7001",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T15:00:00.000Z",
+                  "supplied_fields": {
+                    "Feeling": "steady"
+                  }
+                },
+                "revision": 1
+              },
+              {
+                "became_known_at": "<step 1>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 1,
+                "record": {
+                  "activity_type": "running",
+                  "end_at": "2026-08-09T15:10:00.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:10:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Invented personal loop",
+                  "provider_record_id": "7001",
+                  "received_at": "<step 1>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T15:00:00.000Z",
+                  "supplied_fields": {
+                    "Feeling": "steady"
+                  }
+                },
+                "revision": 2
+              },
+              {
+                "became_known_at": "<step 2>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 2,
+                "record": {
+                  "activity_type": "running",
+                  "end_at": "2026-08-09T15:10:00.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:10:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Renamed loop",
+                  "provider_record_id": "7001",
+                  "received_at": "<step 2>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T15:00:00.000Z",
+                  "supplied_fields": {
+                    "Feeling": "steady"
+                  }
+                },
+                "revision": 3
+              }
+            ]
+          },
+          {
+            "created_at": "<step 3>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 3>",
+                "key": "7003",
+                "method": "garmin_personal/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_personal/v1 7003>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 3>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "end_at": "2026-08-10T15:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-10T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-10T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "7003",
+                  "received_at": "<step 3>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-10T15:00:00.000Z"
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": null,
+      "mapping": null,
+      "preview": null,
+      "pull": {
+        "activities": {
+          "activityId": 7003,
+          "startTimeGMT": "2026-08-10T15:00:00.000Z"
+        },
+        "date": "2026-08-10",
+        "hrv": {
+          "status": "NONE"
+        }
+      },
+      "write": {
+        "result": {
+          "preserved": [
+            "status"
+          ],
+          "record_ids": [
+            "<workout_session garmin_personal/v1 7003>"
+          ],
+          "source": "garmin_personal",
+          "understood": [
+            "end_at",
+            "provider_record_id",
+            "start_at"
+          ]
+        }
+      }
+    },
+    {
+      "command": "pull-garmin",
+      "database": {
+        "database_revision": 10,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 3,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "LastNightAvg:2026-08-09",
+                "method": "garmin_personal/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<provider_summary garmin_personal/v1 LastNightAvg:2026-08-09>",
+            "record_type": "provider_summary",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T00:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T00:00:00.000Z",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "summary_type": "LastNightAvg",
+                  "supplied_fields": {
+                    "status": "BALANCED",
+                    "weeklyAvg": 44
+                  },
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 41,
+                    "standard_unit": "ms",
+                    "standard_value": 41
+                  }
+                },
+                "revision": 1
+              },
+              {
+                "became_known_at": "<step 1>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 1,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T00:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "received_at": "<step 1>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T00:00:00.000Z",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "summary_type": "LastNightAvg",
+                  "supplied_fields": {
+                    "status": "BALANCED",
+                    "weeklyAvg": 44
+                  },
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 41,
+                    "standard_unit": "ms",
+                    "standard_value": 41
+                  }
+                },
+                "revision": 2
+              },
+              {
+                "became_known_at": "<step 2>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 2,
+                "record": {
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T00:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "received_at": "<step 2>",
+                  "received_at_basis": "import_time",
+                  "recorded_at": "2026-08-09T00:00:00.000Z",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "summary_type": "LastNightAvg",
+                  "supplied_fields": {
+                    "weeklyAvg": 44
+                  },
+                  "value": {
+                    "input_unit": "ms",
+                    "input_value": 43,
+                    "standard_unit": "ms",
+                    "standard_value": 43
+                  }
+                },
+                "revision": 3
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source garmin garmin_personal_api >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "garmin_personal_api",
+                  "data_writer": "garmin",
+                  "source_type": "export_file",
+                  "vendor": "garmin"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 2,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "\"7002\"",
+                "method": "garmin_personal/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_personal/v1 \"7002\">",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "end_at": "2026-08-09T18:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Second",
+                  "provider_record_id": "7002",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T18:00:00.000Z"
+                },
+                "revision": 1
+              },
+              {
+                "became_known_at": "<step 1>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 1,
+                "record": {
+                  "end_at": "2026-08-09T18:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T18:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Second",
+                  "provider_record_id": "7002",
+                  "received_at": "<step 1>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T18:00:00.000Z"
+                },
+                "revision": 2
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 3,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "7001",
+                "method": "garmin_personal/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_personal/v1 7001>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "activity_type": "running",
+                  "end_at": "2026-08-09T15:10:00.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:10:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Invented personal loop",
+                  "provider_record_id": "7001",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T15:00:00.000Z",
+                  "supplied_fields": {
+                    "Feeling": "steady"
+                  }
+                },
+                "revision": 1
+              },
+              {
+                "became_known_at": "<step 1>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 1,
+                "record": {
+                  "activity_type": "running",
+                  "end_at": "2026-08-09T15:10:00.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:10:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Invented personal loop",
+                  "provider_record_id": "7001",
+                  "received_at": "<step 1>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T15:00:00.000Z",
+                  "supplied_fields": {
+                    "Feeling": "steady"
+                  }
+                },
+                "revision": 2
+              },
+              {
+                "became_known_at": "<step 2>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 2,
+                "record": {
+                  "activity_type": "running",
+                  "end_at": "2026-08-09T15:10:00.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:10:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-09T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Renamed loop",
+                  "provider_record_id": "7001",
+                  "received_at": "<step 2>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-09T15:00:00.000Z",
+                  "supplied_fields": {
+                    "Feeling": "steady"
+                  }
+                },
+                "revision": 3
+              }
+            ]
+          },
+          {
+            "created_at": "<step 3>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 3>",
+                "key": "7003",
+                "method": "garmin_personal/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session garmin_personal/v1 7003>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 3>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "end_at": "2026-08-10T15:00:00.000Z",
+                  "field_basis": {
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-10T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-08-10T15:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "provider_record_id": "7003",
+                  "received_at": "<step 3>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source garmin garmin_personal_api >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-08-10T15:00:00.000Z"
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": null,
+      "mapping": null,
+      "preview": null,
+      "pull": {
+        "activities": [],
+        "date": "2026-08-11",
+        "hrv": null
+      },
+      "write": {
+        "result": {
+          "preserved": [],
+          "record_ids": [],
+          "source": "garmin_personal",
+          "understood": []
+        }
+      }
+    }
+  ]
+}

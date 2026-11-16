@@ -1,0 +1,625 @@
+{
+  "schema": "ManifestFile",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 2048
+      },
+      "valid": true,
+      "output": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 2048
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 2048,
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "file:missing",
+      "input": {
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 2048
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "file"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "file:null",
+      "input": {
+        "file": null,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 2048
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "file"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "file:wrong_type=number",
+      "input": {
+        "file": 1,
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 2048
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "file"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "file:empty_string",
+      "input": {
+        "file": "",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 2048
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "file"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        },
+        {
+          "path": [
+            "file"
+          ],
+          "code": "invalid_format",
+          "message": "Package path must be relative and cannot traverse parent directories",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^(?!\\/)(?!.*\\\\)(?!.*(?:^|\\/)\\.\\.(?:\\/|$)).+$/"
+        }
+      ]
+    },
+    {
+      "name": "file:format=not_valid",
+      "input": {
+        "file": "not valid",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 2048
+      },
+      "valid": true,
+      "output": {
+        "file": "not valid",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 2048
+      },
+      "issues": []
+    },
+    {
+      "name": "file:format=uppercase",
+      "input": {
+        "file": "ATHLETE.ATH.JSON",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 2048
+      },
+      "valid": true,
+      "output": {
+        "file": "ATHLETE.ATH.JSON",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 2048
+      },
+      "issues": []
+    },
+    {
+      "name": "sha256:missing",
+      "input": {
+        "file": "athlete.ath.json",
+        "byte_count": 2048
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sha256"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "sha256:null",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": null,
+        "byte_count": 2048
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sha256"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "sha256:wrong_type=number",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": 1,
+        "byte_count": 2048
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sha256"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "sha256:empty_string",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": "",
+        "byte_count": 2048
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sha256"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase SHA-256 hex digest",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-f0-9]{64}$/"
+        }
+      ]
+    },
+    {
+      "name": "sha256:format=not_valid",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": "not valid",
+        "byte_count": 2048
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sha256"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase SHA-256 hex digest",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-f0-9]{64}$/"
+        }
+      ]
+    },
+    {
+      "name": "sha256:format=uppercase",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF",
+        "byte_count": 2048
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "sha256"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase SHA-256 hex digest",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[a-f0-9]{64}$/"
+        }
+      ]
+    },
+    {
+      "name": "byte_count:missing",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "byte_count:null",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "byte_count:wrong_type=string",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": "1"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "byte_count:number=-1",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": -1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "byte_count:number=0",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "byte_count:number=1",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 1
+      },
+      "valid": true,
+      "output": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 1
+      },
+      "issues": []
+    },
+    {
+      "name": "byte_count:number=1.5",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 1.5
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected int, received number",
+          "expected": "int",
+          "format": "safeint"
+        }
+      ]
+    },
+    {
+      "name": "byte_count:number=9007199254740991",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 9007199254740991
+      },
+      "valid": true,
+      "output": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 9007199254740991
+      },
+      "issues": []
+    },
+    {
+      "name": "byte_count:number=9007199254740992",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 9007199254740992
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "byte_count:number=-9007199254740991",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": -9007199254740991
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "byte_count:number=-9007199254740992",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": -9007199254740992
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected int to be >=-9007199254740991",
+          "inclusive": true,
+          "minimum": -9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        },
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "byte_count:number=1e+21",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 1e+21
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    },
+    {
+      "name": "byte_count:number_text=-0",
+      "input_text": "{\"file\":\"athlete.ath.json\",\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"byte_count\":-0}",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 0
+      },
+      "valid": true,
+      "output": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "byte_count:number_text=2048.0",
+      "input_text": "{\"file\":\"athlete.ath.json\",\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"byte_count\":2048.0}",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 2048
+      },
+      "valid": true,
+      "output": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 2048
+      },
+      "issues": []
+    },
+    {
+      "name": "byte_count:number_text=2048E0",
+      "input_text": "{\"file\":\"athlete.ath.json\",\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"byte_count\":2048E0}",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 2048
+      },
+      "valid": true,
+      "output": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 2048
+      },
+      "issues": []
+    },
+    {
+      "name": "byte_count:number_text=9007199254740993",
+      "input_text": "{\"file\":\"athlete.ath.json\",\"sha256\":\"0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef\",\"byte_count\":9007199254740993}",
+      "input": {
+        "file": "athlete.ath.json",
+        "sha256": "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
+        "byte_count": 9007199254740992
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "byte_count"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected int to be <=9007199254740991",
+          "inclusive": true,
+          "maximum": 9007199254740991,
+          "note": "Integers must be within the safe integer range.",
+          "origin": "int"
+        }
+      ]
+    }
+  ]
+}

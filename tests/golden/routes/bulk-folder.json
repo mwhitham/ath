@@ -1,0 +1,1360 @@
+{
+  "description": "A Strava export folder: a fresh import, an unchanged repeat, and changed gear.",
+  "reference": "2.1.0",
+  "steps": [
+    {
+      "command": "import-strava",
+      "database": {
+        "database_revision": 4,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source strava strava_bulk >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "strava_bulk",
+                  "data_writer": "strava",
+                  "source_type": "export_file",
+                  "vendor": "strava"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "2002",
+                "method": "strava_bulk/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session strava_bulk/v1 2002>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "activity_type": "Ride",
+                  "end_at": "2026-01-03T16:00:02.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "heart_rate_samples": [
+                    {
+                      "bpm": 110,
+                      "offset_ms": 0
+                    },
+                    {
+                      "bpm": 130,
+                      "offset_ms": 2000
+                    }
+                  ],
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-03T16:00:02.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-03T16:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "River Path",
+                  "provider_record_id": "2002",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "route": [
+                    {
+                      "latitude_deg": 40,
+                      "longitude_deg": -105,
+                      "recorded_at": "2026-01-03T16:00:00.000Z"
+                    },
+                    {
+                      "latitude_deg": 40.001,
+                      "longitude_deg": -105.001,
+                      "recorded_at": "2026-01-03T16:00:02.000Z"
+                    }
+                  ],
+                  "source_id": "<source strava strava_bulk >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-03T16:00:00.000Z",
+                  "supplied_fields": {
+                    "Commute": "false",
+                    "Gear": "Blue bike"
+                  },
+                  "text_result": "Easy, flat"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "2004",
+                "method": "strava_bulk/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session strava_bulk/v1 2004>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "activity_type": "Swim",
+                  "end_at": "2026-01-05T06:00:00.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-05T06:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-05T06:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Swim",
+                  "provider_record_id": "2004",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source strava strava_bulk >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-05T06:00:00.000Z",
+                  "supplied_fields": {
+                    "Commute": "true",
+                    "Gear": ""
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "2026-01-04T16:05:06.000Z",
+                "method": "strava_bulk/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session strava_bulk/v1 2026-01-04T16:05:06.000Z>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "activity_type": "Walk",
+                  "end_at": "2026-01-04T16:06:36.500Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-04T16:06:36.500Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-04T16:05:06.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Lunch Walk",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source strava strava_bulk >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-04T16:05:06.000Z",
+                  "supplied_fields": {
+                    "Commute": "",
+                    "Gear": ""
+                  }
+                },
+                "revision": 1
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "files": {
+          "activities.csv": "Activity ID,Activity Date,Activity Name,Activity Type,Elapsed Time,Filename,Gear,Activity Description,,Commute\r\n2002,2026-01-03T16:00:00.000Z,River Path,Ride,2,activities/river.gpx,Blue bike,\"Easy, flat\",x,false\r\n,\"Jan 4, 2026, 4:05:06 PM\",Lunch Walk,Walk,90.5,activities/missing.gpx,,,,\r\n2004,2026-01-05T07:00:00+01:00,Swim,Swim,abc,activities/swim.fit.gz,,,,true\r\n,,,,,,,,,",
+          "activities/river.gpx": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx>\n  <trk>\n    <trkseg>\n      <trkpt lat=\"40.0\" lon=\"-105.0\">\n        <time>2026-01-03T16:00:00.000Z</time>\n        <extensions><hr>110</hr></extensions>\n      </trkpt>\n      <trkpt lat=\"40.001\" lon=\"-105.001\">\n        <time>2026-01-03T16:00:02.000Z</time>\n        <extensions><hr>130</hr></extensions>\n      </trkpt>\n    </trkseg>\n  </trk>\n</gpx>\n",
+          "activities/swim.fit.gz": "base64:AAAA",
+          "profile.csv": "a\n"
+        },
+        "kind": "directory"
+      },
+      "mapping": null,
+      "preview": {
+        "result": {
+          "left_out": [
+            "activities/missing.gpx: named in activities.csv and not in the export",
+            "profile.csv: not a training or recovery file"
+          ],
+          "preserved": [
+            "Commute",
+            "Gear"
+          ],
+          "record_ids": [],
+          "source": "strava",
+          "understood": [
+            "activity_type",
+            "end_at",
+            "heart_rate_samples",
+            "name",
+            "route",
+            "start_at",
+            "text_result"
+          ]
+        }
+      },
+      "pull": null,
+      "write": {
+        "result": {
+          "left_out": [
+            "activities/missing.gpx: named in activities.csv and not in the export",
+            "profile.csv: not a training or recovery file"
+          ],
+          "preserved": [
+            "Commute",
+            "Gear"
+          ],
+          "record_ids": [
+            "<workout_session strava_bulk/v1 2002>",
+            "<workout_session strava_bulk/v1 2026-01-04T16:05:06.000Z>",
+            "<workout_session strava_bulk/v1 2004>"
+          ],
+          "source": "strava",
+          "understood": [
+            "activity_type",
+            "end_at",
+            "heart_rate_samples",
+            "name",
+            "route",
+            "start_at",
+            "text_result"
+          ]
+        }
+      }
+    },
+    {
+      "command": "import-strava",
+      "database": {
+        "database_revision": 7,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source strava strava_bulk >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "strava_bulk",
+                  "data_writer": "strava",
+                  "source_type": "export_file",
+                  "vendor": "strava"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 2,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "2002",
+                "method": "strava_bulk/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session strava_bulk/v1 2002>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "activity_type": "Ride",
+                  "end_at": "2026-01-03T16:00:02.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "heart_rate_samples": [
+                    {
+                      "bpm": 110,
+                      "offset_ms": 0
+                    },
+                    {
+                      "bpm": 130,
+                      "offset_ms": 2000
+                    }
+                  ],
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-03T16:00:02.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-03T16:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "River Path",
+                  "provider_record_id": "2002",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "route": [
+                    {
+                      "latitude_deg": 40,
+                      "longitude_deg": -105,
+                      "recorded_at": "2026-01-03T16:00:00.000Z"
+                    },
+                    {
+                      "latitude_deg": 40.001,
+                      "longitude_deg": -105.001,
+                      "recorded_at": "2026-01-03T16:00:02.000Z"
+                    }
+                  ],
+                  "source_id": "<source strava strava_bulk >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-03T16:00:00.000Z",
+                  "supplied_fields": {
+                    "Commute": "false",
+                    "Gear": "Blue bike"
+                  },
+                  "text_result": "Easy, flat"
+                },
+                "revision": 1
+              },
+              {
+                "became_known_at": "<step 1>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 1,
+                "record": {
+                  "activity_type": "Ride",
+                  "end_at": "2026-01-03T16:00:02.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "heart_rate_samples": [
+                    {
+                      "bpm": 110,
+                      "offset_ms": 0
+                    },
+                    {
+                      "bpm": 130,
+                      "offset_ms": 2000
+                    }
+                  ],
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-03T16:00:02.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-03T16:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "River Path",
+                  "provider_record_id": "2002",
+                  "received_at": "<step 1>",
+                  "received_at_basis": "import_time",
+                  "route": [
+                    {
+                      "latitude_deg": 40,
+                      "longitude_deg": -105,
+                      "recorded_at": "2026-01-03T16:00:00.000Z"
+                    },
+                    {
+                      "latitude_deg": 40.001,
+                      "longitude_deg": -105.001,
+                      "recorded_at": "2026-01-03T16:00:02.000Z"
+                    }
+                  ],
+                  "source_id": "<source strava strava_bulk >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-03T16:00:00.000Z",
+                  "supplied_fields": {
+                    "Commute": "false",
+                    "Gear": "Blue bike"
+                  },
+                  "text_result": "Easy, flat"
+                },
+                "revision": 2
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 2,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "2004",
+                "method": "strava_bulk/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session strava_bulk/v1 2004>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "activity_type": "Swim",
+                  "end_at": "2026-01-05T06:00:00.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-05T06:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-05T06:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Swim",
+                  "provider_record_id": "2004",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source strava strava_bulk >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-05T06:00:00.000Z",
+                  "supplied_fields": {
+                    "Commute": "true",
+                    "Gear": ""
+                  }
+                },
+                "revision": 1
+              },
+              {
+                "became_known_at": "<step 1>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 1,
+                "record": {
+                  "activity_type": "Swim",
+                  "end_at": "2026-01-05T06:00:00.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-05T06:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-05T06:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Swim",
+                  "provider_record_id": "2004",
+                  "received_at": "<step 1>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source strava strava_bulk >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-05T06:00:00.000Z",
+                  "supplied_fields": {
+                    "Commute": "true",
+                    "Gear": ""
+                  }
+                },
+                "revision": 2
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 2,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "2026-01-04T16:05:06.000Z",
+                "method": "strava_bulk/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session strava_bulk/v1 2026-01-04T16:05:06.000Z>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "activity_type": "Walk",
+                  "end_at": "2026-01-04T16:06:36.500Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-04T16:06:36.500Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-04T16:05:06.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Lunch Walk",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source strava strava_bulk >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-04T16:05:06.000Z",
+                  "supplied_fields": {
+                    "Commute": "",
+                    "Gear": ""
+                  }
+                },
+                "revision": 1
+              },
+              {
+                "became_known_at": "<step 1>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 1,
+                "record": {
+                  "activity_type": "Walk",
+                  "end_at": "2026-01-04T16:06:36.500Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-04T16:06:36.500Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-04T16:05:06.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Lunch Walk",
+                  "received_at": "<step 1>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source strava strava_bulk >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-04T16:05:06.000Z",
+                  "supplied_fields": {
+                    "Commute": "",
+                    "Gear": ""
+                  }
+                },
+                "revision": 2
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "files": {
+          "activities.csv": "Activity ID,Activity Date,Activity Name,Activity Type,Elapsed Time,Filename,Gear,Activity Description,,Commute\r\n2002,2026-01-03T16:00:00.000Z,River Path,Ride,2,activities/river.gpx,Blue bike,\"Easy, flat\",x,false\r\n,\"Jan 4, 2026, 4:05:06 PM\",Lunch Walk,Walk,90.5,activities/missing.gpx,,,,\r\n2004,2026-01-05T07:00:00+01:00,Swim,Swim,abc,activities/swim.fit.gz,,,,true\r\n,,,,,,,,,",
+          "activities/river.gpx": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx>\n  <trk>\n    <trkseg>\n      <trkpt lat=\"40.0\" lon=\"-105.0\">\n        <time>2026-01-03T16:00:00.000Z</time>\n        <extensions><hr>110</hr></extensions>\n      </trkpt>\n      <trkpt lat=\"40.001\" lon=\"-105.001\">\n        <time>2026-01-03T16:00:02.000Z</time>\n        <extensions><hr>130</hr></extensions>\n      </trkpt>\n    </trkseg>\n  </trk>\n</gpx>\n",
+          "activities/swim.fit.gz": "base64:AAAA",
+          "profile.csv": "a\n"
+        },
+        "kind": "directory"
+      },
+      "mapping": null,
+      "preview": {
+        "result": {
+          "left_out": [
+            "activities/missing.gpx: named in activities.csv and not in the export",
+            "profile.csv: not a training or recovery file"
+          ],
+          "preserved": [
+            "Commute",
+            "Gear"
+          ],
+          "record_ids": [],
+          "source": "strava",
+          "understood": [
+            "activity_type",
+            "end_at",
+            "heart_rate_samples",
+            "name",
+            "route",
+            "start_at",
+            "text_result"
+          ]
+        }
+      },
+      "pull": null,
+      "write": {
+        "result": {
+          "left_out": [
+            "activities/missing.gpx: named in activities.csv and not in the export",
+            "profile.csv: not a training or recovery file"
+          ],
+          "preserved": [
+            "Commute",
+            "Gear"
+          ],
+          "record_ids": [
+            "<workout_session strava_bulk/v1 2002>",
+            "<workout_session strava_bulk/v1 2026-01-04T16:05:06.000Z>",
+            "<workout_session strava_bulk/v1 2004>"
+          ],
+          "source": "strava",
+          "understood": [
+            "activity_type",
+            "end_at",
+            "heart_rate_samples",
+            "name",
+            "route",
+            "start_at",
+            "text_result"
+          ]
+        }
+      }
+    },
+    {
+      "command": "import-strava",
+      "database": {
+        "database_revision": 10,
+        "records": [
+          {
+            "created_at": "<step 0>",
+            "current_revision": 1,
+            "deletions": [],
+            "import_keys": [],
+            "is_deleted": false,
+            "label": "<source strava strava_bulk >",
+            "record_type": "source",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "data_route": "strava_bulk",
+                  "data_writer": "strava",
+                  "source_type": "export_file",
+                  "vendor": "strava"
+                },
+                "revision": 1
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 3,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "2002",
+                "method": "strava_bulk/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session strava_bulk/v1 2002>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "activity_type": "Ride",
+                  "end_at": "2026-01-03T16:00:02.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "heart_rate_samples": [
+                    {
+                      "bpm": 110,
+                      "offset_ms": 0
+                    },
+                    {
+                      "bpm": 130,
+                      "offset_ms": 2000
+                    }
+                  ],
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-03T16:00:02.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-03T16:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "River Path",
+                  "provider_record_id": "2002",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "route": [
+                    {
+                      "latitude_deg": 40,
+                      "longitude_deg": -105,
+                      "recorded_at": "2026-01-03T16:00:00.000Z"
+                    },
+                    {
+                      "latitude_deg": 40.001,
+                      "longitude_deg": -105.001,
+                      "recorded_at": "2026-01-03T16:00:02.000Z"
+                    }
+                  ],
+                  "source_id": "<source strava strava_bulk >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-03T16:00:00.000Z",
+                  "supplied_fields": {
+                    "Commute": "false",
+                    "Gear": "Blue bike"
+                  },
+                  "text_result": "Easy, flat"
+                },
+                "revision": 1
+              },
+              {
+                "became_known_at": "<step 1>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 1,
+                "record": {
+                  "activity_type": "Ride",
+                  "end_at": "2026-01-03T16:00:02.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "heart_rate_samples": [
+                    {
+                      "bpm": 110,
+                      "offset_ms": 0
+                    },
+                    {
+                      "bpm": 130,
+                      "offset_ms": 2000
+                    }
+                  ],
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-03T16:00:02.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-03T16:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "River Path",
+                  "provider_record_id": "2002",
+                  "received_at": "<step 1>",
+                  "received_at_basis": "import_time",
+                  "route": [
+                    {
+                      "latitude_deg": 40,
+                      "longitude_deg": -105,
+                      "recorded_at": "2026-01-03T16:00:00.000Z"
+                    },
+                    {
+                      "latitude_deg": 40.001,
+                      "longitude_deg": -105.001,
+                      "recorded_at": "2026-01-03T16:00:02.000Z"
+                    }
+                  ],
+                  "source_id": "<source strava strava_bulk >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-03T16:00:00.000Z",
+                  "supplied_fields": {
+                    "Commute": "false",
+                    "Gear": "Blue bike"
+                  },
+                  "text_result": "Easy, flat"
+                },
+                "revision": 2
+              },
+              {
+                "became_known_at": "<step 2>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 2,
+                "record": {
+                  "activity_type": "Ride",
+                  "end_at": "2026-01-03T16:00:02.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "heart_rate_samples": [
+                    {
+                      "bpm": 110,
+                      "offset_ms": 0
+                    },
+                    {
+                      "bpm": 130,
+                      "offset_ms": 2000
+                    }
+                  ],
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-03T16:00:02.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-03T16:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "River Path",
+                  "provider_record_id": "2002",
+                  "received_at": "<step 2>",
+                  "received_at_basis": "import_time",
+                  "route": [
+                    {
+                      "latitude_deg": 40,
+                      "longitude_deg": -105,
+                      "recorded_at": "2026-01-03T16:00:00.000Z"
+                    },
+                    {
+                      "latitude_deg": 40.001,
+                      "longitude_deg": -105.001,
+                      "recorded_at": "2026-01-03T16:00:02.000Z"
+                    }
+                  ],
+                  "source_id": "<source strava strava_bulk >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-03T16:00:00.000Z",
+                  "supplied_fields": {
+                    "Commute": "false",
+                    "Gear": "Red bike"
+                  },
+                  "text_result": "Easy, flat"
+                },
+                "revision": 3
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 3,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "2004",
+                "method": "strava_bulk/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session strava_bulk/v1 2004>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "activity_type": "Swim",
+                  "end_at": "2026-01-05T06:00:00.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-05T06:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-05T06:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Swim",
+                  "provider_record_id": "2004",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source strava strava_bulk >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-05T06:00:00.000Z",
+                  "supplied_fields": {
+                    "Commute": "true",
+                    "Gear": ""
+                  }
+                },
+                "revision": 1
+              },
+              {
+                "became_known_at": "<step 1>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 1,
+                "record": {
+                  "activity_type": "Swim",
+                  "end_at": "2026-01-05T06:00:00.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-05T06:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-05T06:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Swim",
+                  "provider_record_id": "2004",
+                  "received_at": "<step 1>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source strava strava_bulk >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-05T06:00:00.000Z",
+                  "supplied_fields": {
+                    "Commute": "true",
+                    "Gear": ""
+                  }
+                },
+                "revision": 2
+              },
+              {
+                "became_known_at": "<step 2>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 2,
+                "record": {
+                  "activity_type": "Swim",
+                  "end_at": "2026-01-05T06:00:00.000Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-05T06:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-05T06:00:00.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Swim",
+                  "provider_record_id": "2004",
+                  "received_at": "<step 2>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source strava strava_bulk >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-05T06:00:00.000Z",
+                  "supplied_fields": {
+                    "Commute": "true",
+                    "Gear": ""
+                  }
+                },
+                "revision": 3
+              }
+            ]
+          },
+          {
+            "created_at": "<step 0>",
+            "current_revision": 3,
+            "deletions": [],
+            "import_keys": [
+              {
+                "imported_at": "<step 0>",
+                "key": "2026-01-04T16:05:06.000Z",
+                "method": "strava_bulk/v1"
+              }
+            ],
+            "is_deleted": false,
+            "label": "<workout_session strava_bulk/v1 2026-01-04T16:05:06.000Z>",
+            "record_type": "workout_session",
+            "revisions": [
+              {
+                "became_known_at": "<step 0>",
+                "became_known_at_basis": "provider_import",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": null,
+                "record": {
+                  "activity_type": "Walk",
+                  "end_at": "2026-01-04T16:06:36.500Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-04T16:06:36.500Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-04T16:05:06.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Lunch Walk",
+                  "received_at": "<step 0>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source strava strava_bulk >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-04T16:05:06.000Z",
+                  "supplied_fields": {
+                    "Commute": "",
+                    "Gear": ""
+                  }
+                },
+                "revision": 1
+              },
+              {
+                "became_known_at": "<step 1>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 1,
+                "record": {
+                  "activity_type": "Walk",
+                  "end_at": "2026-01-04T16:06:36.500Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-04T16:06:36.500Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-04T16:05:06.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Lunch Walk",
+                  "received_at": "<step 1>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source strava strava_bulk >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-04T16:05:06.000Z",
+                  "supplied_fields": {
+                    "Commute": "",
+                    "Gear": ""
+                  }
+                },
+                "revision": 2
+              },
+              {
+                "became_known_at": "<step 2>",
+                "became_known_at_basis": "local_write",
+                "changed_by": {
+                  "author_type": "tool",
+                  "tool": "ath-core",
+                  "tool_version": "<ath version>"
+                },
+                "extensions_json": null,
+                "previous_revision": 2,
+                "record": {
+                  "activity_type": "Walk",
+                  "end_at": "2026-01-04T16:06:36.500Z",
+                  "field_basis": {
+                    "activity_type": "provider_label",
+                    "value": "provider"
+                  },
+                  "input_end_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-04T16:06:36.500Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "input_start_timestamp": {
+                    "timestamp_basis": "source_instant",
+                    "timestamp_text": "2026-01-04T16:05:06.000Z",
+                    "utc_offset_meaning": "documented_recording_offset",
+                    "utc_offset_text": "Z"
+                  },
+                  "name": "Lunch Walk",
+                  "received_at": "<step 2>",
+                  "received_at_basis": "import_time",
+                  "source_id": "<source strava strava_bulk >",
+                  "source_reported_summaries": [],
+                  "start_at": "2026-01-04T16:05:06.000Z",
+                  "supplied_fields": {
+                    "Commute": "",
+                    "Gear": ""
+                  }
+                },
+                "revision": 3
+              }
+            ]
+          }
+        ]
+      },
+      "delete_before": null,
+      "input": {
+        "files": {
+          "activities.csv": "Activity ID,Activity Date,Activity Name,Activity Type,Elapsed Time,Filename,Gear,Activity Description,,Commute\r\n2002,2026-01-03T16:00:00.000Z,River Path,Ride,2,activities/river.gpx,Red bike,\"Easy, flat\",x,false\r\n,\"Jan 4, 2026, 4:05:06 PM\",Lunch Walk,Walk,90.5,activities/missing.gpx,,,,\r\n2004,2026-01-05T07:00:00+01:00,Swim,Swim,abc,activities/swim.fit.gz,,,,true\r\n,,,,,,,,,",
+          "activities/river.gpx": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<gpx>\n  <trk>\n    <trkseg>\n      <trkpt lat=\"40.0\" lon=\"-105.0\">\n        <time>2026-01-03T16:00:00.000Z</time>\n        <extensions><hr>110</hr></extensions>\n      </trkpt>\n      <trkpt lat=\"40.001\" lon=\"-105.001\">\n        <time>2026-01-03T16:00:02.000Z</time>\n        <extensions><hr>130</hr></extensions>\n      </trkpt>\n    </trkseg>\n  </trk>\n</gpx>\n"
+        },
+        "kind": "zip"
+      },
+      "mapping": null,
+      "preview": {
+        "result": {
+          "left_out": [
+            "activities/missing.gpx: named in activities.csv and not in the export",
+            "activities/swim.fit.gz: named in activities.csv and not in the export"
+          ],
+          "preserved": [
+            "Commute",
+            "Gear"
+          ],
+          "record_ids": [],
+          "source": "strava",
+          "understood": [
+            "activity_type",
+            "end_at",
+            "heart_rate_samples",
+            "name",
+            "route",
+            "start_at",
+            "text_result"
+          ]
+        }
+      },
+      "pull": null,
+      "write": {
+        "result": {
+          "left_out": [
+            "activities/missing.gpx: named in activities.csv and not in the export",
+            "activities/swim.fit.gz: named in activities.csv and not in the export"
+          ],
+          "preserved": [
+            "Commute",
+            "Gear"
+          ],
+          "record_ids": [
+            "<workout_session strava_bulk/v1 2002>",
+            "<workout_session strava_bulk/v1 2026-01-04T16:05:06.000Z>",
+            "<workout_session strava_bulk/v1 2004>"
+          ],
+          "source": "strava",
+          "understood": [
+            "activity_type",
+            "end_at",
+            "heart_rate_samples",
+            "name",
+            "route",
+            "start_at",
+            "text_result"
+          ]
+        }
+      }
+    }
+  ]
+}

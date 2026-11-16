@@ -1,0 +1,1218 @@
+{
+  "schema": "GoalData",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Sub-5 Fran"
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Sub-5 Fran"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Sub-5 Fran",
+        "description": "Finish under five minutes",
+        "target_date": "2026-06-01",
+        "target_benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "target_score": {
+          "duration_s": 299
+        }
+      },
+      "valid": true,
+      "output": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Sub-5 Fran",
+        "description": "Finish under five minutes",
+        "target_date": "2026-06-01",
+        "target_benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "target_score": {
+          "duration_s": 299
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Sub-5 Fran",
+        "description": "Finish under five minutes",
+        "target_date": "2026-06-01",
+        "target_benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "target_score": {
+          "duration_s": 299
+        },
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "authorship:missing",
+      "input": {
+        "title": "Sub-5 Fran"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:null",
+      "input": {
+        "authorship": null,
+        "title": "Sub-5 Fran"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:wrong_type=array",
+      "input": {
+        "authorship": [],
+        "title": "Sub-5 Fran"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:wrong_type=string",
+      "input": {
+        "authorship": "x",
+        "title": "Sub-5 Fran"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "authorship:empty_object",
+      "input": {
+        "authorship": {},
+        "title": "Sub-5 Fran"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship",
+            "author"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received undefined",
+          "expected": "object"
+        },
+        {
+          "path": [
+            "authorship",
+            "authored_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        },
+        {
+          "path": [
+            "authorship",
+            "evidence"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received undefined",
+          "expected": "array"
+        },
+        {
+          "path": [
+            "authorship",
+            "content_version"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        },
+        {
+          "path": [
+            "authorship",
+            "status"
+          ],
+          "code": "invalid_value",
+          "message": "Invalid option: expected one of \"draft\"|\"active\"|\"completed\"|\"superseded\"|\"cancelled\"",
+          "values": [
+            "draft",
+            "active",
+            "completed",
+            "superseded",
+            "cancelled"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "authorship:nested_unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active",
+          "unknown_nested": true
+        },
+        "title": "Sub-5 Fran"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "authorship"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "title:missing",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "title"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "title:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "title"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "title:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "title"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "title:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "title"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "description:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Sub-5 Fran",
+        "description": null,
+        "target_date": "2026-06-01",
+        "target_benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "target_score": {
+          "duration_s": 299
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "description"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "description:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Sub-5 Fran",
+        "description": 1,
+        "target_date": "2026-06-01",
+        "target_benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "target_score": {
+          "duration_s": 299
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "description"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "description:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Sub-5 Fran",
+        "description": "",
+        "target_date": "2026-06-01",
+        "target_benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "target_score": {
+          "duration_s": 299
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "description"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "target_date:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Sub-5 Fran",
+        "description": "Finish under five minutes",
+        "target_date": null,
+        "target_benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "target_score": {
+          "duration_s": 299
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "target_date"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "target_date:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Sub-5 Fran",
+        "description": "Finish under five minutes",
+        "target_date": 1,
+        "target_benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "target_score": {
+          "duration_s": 299
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "target_date"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "target_date:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Sub-5 Fran",
+        "description": "Finish under five minutes",
+        "target_date": "",
+        "target_benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "target_score": {
+          "duration_s": 299
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "target_date"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "target_date:format=february_30",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Sub-5 Fran",
+        "description": "Finish under five minutes",
+        "target_date": "2026-02-30",
+        "target_benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "target_score": {
+          "duration_s": 299
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "target_date"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "target_date:format=datetime",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Sub-5 Fran",
+        "description": "Finish under five minutes",
+        "target_date": "2026-01-02T03:04:05.678Z",
+        "target_benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "target_score": {
+          "duration_s": 299
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "target_date"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO date",
+          "format": "date",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$/"
+        }
+      ]
+    },
+    {
+      "name": "target_benchmark_definition_id:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Sub-5 Fran",
+        "description": "Finish under five minutes",
+        "target_date": "2026-06-01",
+        "target_benchmark_definition_id": null,
+        "target_score": {
+          "duration_s": 299
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "target_benchmark_definition_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "target_benchmark_definition_id:wrong_type=number",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Sub-5 Fran",
+        "description": "Finish under five minutes",
+        "target_date": "2026-06-01",
+        "target_benchmark_definition_id": 1,
+        "target_score": {
+          "duration_s": 299
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "target_benchmark_definition_id"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "target_benchmark_definition_id:empty_string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Sub-5 Fran",
+        "description": "Finish under five minutes",
+        "target_date": "2026-06-01",
+        "target_benchmark_definition_id": "",
+        "target_score": {
+          "duration_s": 299
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "target_benchmark_definition_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "target_benchmark_definition_id:format=not_valid",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Sub-5 Fran",
+        "description": "Finish under five minutes",
+        "target_date": "2026-06-01",
+        "target_benchmark_definition_id": "not valid",
+        "target_score": {
+          "duration_s": 299
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "target_benchmark_definition_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "target_benchmark_definition_id:format=uppercase",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Sub-5 Fran",
+        "description": "Finish under five minutes",
+        "target_date": "2026-06-01",
+        "target_benchmark_definition_id": "01890F3E-E7D3-7CC0-88C8-000000000006",
+        "target_score": {
+          "duration_s": 299
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "target_benchmark_definition_id"
+          ],
+          "code": "invalid_format",
+          "message": "lowercase UUIDv7",
+          "format": "regex",
+          "origin": "string",
+          "pattern": "/^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/"
+        }
+      ]
+    },
+    {
+      "name": "target_score:null",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Sub-5 Fran",
+        "description": "Finish under five minutes",
+        "target_date": "2026-06-01",
+        "target_benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "target_score": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "target_score"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "target_score:wrong_type=array",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Sub-5 Fran",
+        "description": "Finish under five minutes",
+        "target_date": "2026-06-01",
+        "target_benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "target_score": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "target_score"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "target_score:wrong_type=string",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Sub-5 Fran",
+        "description": "Finish under five minutes",
+        "target_date": "2026-06-01",
+        "target_benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "target_score": "x"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "target_score"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "target_score:empty_object",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Sub-5 Fran",
+        "description": "Finish under five minutes",
+        "target_date": "2026-06-01",
+        "target_benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "target_score": {}
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "target_score"
+          ],
+          "code": "custom",
+          "message": "A score needs duration_s, reps, or weight_kg"
+        }
+      ]
+    },
+    {
+      "name": "target_score:nested_unknown_key",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "agent",
+            "agent": "reference-agent",
+            "agent_version": "2.1.0",
+            "model": "example-model",
+            "model_version": "2026-01"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [
+            {
+              "record_id": "01890f3e-e7d3-7cc0-88c8-000000000007",
+              "revision": 1
+            }
+          ],
+          "content_version": 2,
+          "status": "completed"
+        },
+        "title": "Sub-5 Fran",
+        "description": "Finish under five minutes",
+        "target_date": "2026-06-01",
+        "target_benchmark_definition_id": "01890f3e-e7d3-7cc0-88c8-000000000006",
+        "target_score": {
+          "duration_s": 299,
+          "unknown_nested": true
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "target_score"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rule:empty_target_score",
+      "input": {
+        "authorship": {
+          "author": {
+            "author_type": "athlete"
+          },
+          "authored_at": "2026-01-02T03:04:05.678Z",
+          "evidence": [],
+          "content_version": 1,
+          "status": "active"
+        },
+        "title": "Sub-5 Fran",
+        "target_score": {}
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "target_score"
+          ],
+          "code": "custom",
+          "message": "A score needs duration_s, reps, or weight_kg"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R22",
+          "expect": "trigger"
+        }
+      ]
+    }
+  ]
+}

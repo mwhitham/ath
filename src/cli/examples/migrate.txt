@@ -1,0 +1,14 @@
+Examples:
+
+  Preview the SQL schema migration plan:
+    $ ath migrate
+
+  Apply after reviewing the preview:
+    $ ath migrate -y --confirm-migration <database-id>
+
+  Return the preview as JSON for an agent:
+    $ ath migrate --json
+
+Migration never runs silently. A verified SQLite backup is created before the
+first schema write. Non-interactive commands refuse an outdated database and
+point here.

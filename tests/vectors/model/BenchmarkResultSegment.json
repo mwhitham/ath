@@ -1,0 +1,278 @@
+{
+  "schema": "BenchmarkResultSegment",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "label": "round 1"
+      },
+      "valid": true,
+      "output": {
+        "label": "round 1"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "label": "round 1",
+        "score": {
+          "reps": 21
+        }
+      },
+      "valid": true,
+      "output": {
+        "label": "round 1",
+        "score": {
+          "reps": 21
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "label": "round 1",
+        "score": {
+          "reps": 21
+        },
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "label:missing",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "label"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "label:null",
+      "input": {
+        "label": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "label"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "label:wrong_type=number",
+      "input": {
+        "label": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "label"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "label:empty_string",
+      "input": {
+        "label": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "label"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "score:null",
+      "input": {
+        "label": "round 1",
+        "score": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "score"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "score:wrong_type=array",
+      "input": {
+        "label": "round 1",
+        "score": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "score"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "score:wrong_type=string",
+      "input": {
+        "label": "round 1",
+        "score": "x"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "score"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "score:empty_object",
+      "input": {
+        "label": "round 1",
+        "score": {}
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "score"
+          ],
+          "code": "custom",
+          "message": "A score needs duration_s, reps, or weight_kg"
+        }
+      ]
+    },
+    {
+      "name": "score:nested_unknown_key",
+      "input": {
+        "label": "round 1",
+        "score": {
+          "reps": 21,
+          "unknown_nested": true
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "score"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "rule:empty_score",
+      "input": {
+        "label": "round 1",
+        "score": {}
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "score"
+          ],
+          "code": "custom",
+          "message": "A score needs duration_s, reps, or weight_kg"
+        }
+      ],
+      "rules": [
+        {
+          "rule": "R22",
+          "expect": "trigger"
+        }
+      ]
+    }
+  ]
+}

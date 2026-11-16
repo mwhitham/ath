@@ -1,11 +1,13 @@
-# Athletic Standard Format Specification v2.1.0
+# Athletic Standard Format Specification v2.1.1
 
 **Status:** current format
 **Live local file:** `athlete.ath.sqlite`
 **Portable package:** `athlete.ath.json` plus generated files
-**Normative schemas:** [`src/v1/schema.ts`](src/v1/schema.ts)
-**Generated JSON Schemas:** [`schema/2.1.0/`](schema/2.1.0/). The published
-2.0.0 schemas stay in [`schema/2.0.0/`](schema/2.0.0/).
+**Normative model:** the Rust record model in [`src/model/`](src/model/) and its
+semantic checks
+**Generated JSON Schemas:** [`schema/2.1.1/`](schema/2.1.1/), generated from that
+model. The published 2.0.0 and 2.1.0 schemas stay in [`schema/2.0.0/`](schema/2.0.0/)
+and [`schema/2.1.0/`](schema/2.1.0/).
 
 Version 2.0.0 adds workout names, descriptions, text results, heart-rate
 samples, strength sets, route points, and `supplied_fields` for names the
@@ -17,6 +19,11 @@ a JSON file through a mapping file. A version 1.0.0 or 2.0.0 database upgrades
 with `ath migrate`. The behavior is in
 [`build-history/v2.1.0/spec.md`](build-history/v2.1.0/spec.md).
 
+Version 2.1.1 changes no record field. It replaces the program with one Rust
+library and one native `ath` executable. A version 2.1.0 database upgrades with
+`ath migrate` to SQL schema step 5, which adds one internal table. The behavior is
+in [`build-history/v2.1.1/spec.md`](build-history/v2.1.1/spec.md).
+
 Athletic Standard is an open, local-first record for one athlete's training and
 recovery data. SQLite is the sole live local record. JSON is an explicit, complete
 package for export, import, inspection, and backup.
@@ -25,8 +32,11 @@ Local use needs no account, network connection, subscription, or hosted service.
 
 ## 1. One logical model, two encodings
 
-The Zod schemas in `src/v1/schema.ts` define athlete-owned records. SQLite and the
-JSON package encode the same logical records.
+The Rust model in `src/model/` defines athlete-owned records. Each record shape is
+declared once there, and its checks include the rules JSON Schema cannot express
+([semantic rules](build-history/v2.1.1/appendix/semantic-rules.md)). The npm package
+keeps Zod schemas with the same accepted and refused inputs for JavaScript callers.
+SQLite and the JSON package encode the same logical records.
 
 | Encoding | Use |
 |---|---|
@@ -758,7 +768,7 @@ The athlete's original nutrition claim remains in the linked source-free
 |---|---|
 | `application_marker` | `ATH1` |
 | `sql_schema_version` | Positive SQL migration version |
-| `athleticstandard_version` | `2.1.0` |
+| `athleticstandard_version` | `2.1.1` |
 | `database_id` | Stable UUIDv7 database ID |
 | `created_at` | Database creation timestamp |
 
@@ -961,11 +971,13 @@ Validation refuses:
 
 The generated JSON Schemas give exhaustive object validation:
 
-- [`schema/2.1.0/athleticstandard.schema.json`](schema/2.1.0/athleticstandard.schema.json)
-- [`schema/2.1.0/measurement-series.schema.json`](schema/2.1.0/measurement-series.schema.json)
-- [`schema/2.1.0/export-manifest.schema.json`](schema/2.1.0/export-manifest.schema.json)
+- [`schema/2.1.1/athleticstandard.schema.json`](schema/2.1.1/athleticstandard.schema.json)
+- [`schema/2.1.1/measurement-series.schema.json`](schema/2.1.1/measurement-series.schema.json)
+- [`schema/2.1.1/export-manifest.schema.json`](schema/2.1.1/export-manifest.schema.json)
 
-The published 2.0.0 schemas stay in [`schema/2.0.0/`](schema/2.0.0/).
+The published 2.0.0 and 2.1.0 schemas stay in [`schema/2.0.0/`](schema/2.0.0/) and
+[`schema/2.1.0/`](schema/2.1.0/). A schema checks structure only. It cannot show that
+a package's history or relationships are valid; the import checks those.
 
 ## 9. Source separation and the two-tier wall
 
@@ -995,7 +1007,7 @@ A v1 package import:
   and erasure markers;
 - refuses unknown fields and records it cannot represent;
 - does not delete a local record merely because the package omits it;
-- accepts a `2.0.0` or `2.1.0` package;
+- accepts a `2.0.0`, `2.1.0`, or `2.1.1` package;
 - refuses prerelease Athletic Standard versions below `1.0.0`.
 
 An empty destination at database revision zero adopts the package database ID and
@@ -1062,13 +1074,14 @@ backup operation. A closed, checkpointed database may be copied.
 
 ## 13. Version behavior
 
-The program, the record, and the database use one version, `2.1.0` (D152, D184).
-The portable document, generated series files, export manifest, and live database
-metadata all carry that version.
+The program, the record, and the database use one version, `2.1.1` (D152, D184,
+D208). The portable document, generated series files, export manifest, and live
+database metadata all carry that version.
 
-A minor version only adds optional fields. A `2.0.0` record has no `field_basis`
-and stays valid. `ath migrate` moves a `2.0.0` database to `2.1.0` without
-changing its records.
+A minor version only adds optional fields. A patch version adds no field. A `2.0.0`
+record has no `field_basis` and stays valid. `ath migrate` moves a `2.0.0` or
+`2.1.0` database to `2.1.1` without changing its records. Software before 2.1.1
+refuses a database at SQL schema step 5.
 
 Normative package and record data objects are strict. Unknown fields are rejected.
 The v1 importer refuses Athletic Standard `0.x` documents without modifying them.

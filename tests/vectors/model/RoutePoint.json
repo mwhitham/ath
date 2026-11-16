@@ -1,0 +1,1101 @@
+{
+  "schema": "RoutePoint",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25
+      },
+      "valid": true,
+      "output": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25,
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "supplied_fields": {
+          "altitude_m": 12.5
+        }
+      },
+      "valid": true,
+      "output": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25,
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "supplied_fields": {
+          "altitude_m": 12.5
+        }
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25,
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "supplied_fields": {
+          "altitude_m": 12.5
+        },
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "recorded_at:missing",
+      "input": {
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "recorded_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "recorded_at:null",
+      "input": {
+        "recorded_at": null,
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "recorded_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "recorded_at:wrong_type=number",
+      "input": {
+        "recorded_at": 1,
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "recorded_at"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "recorded_at:empty_string",
+      "input": {
+        "recorded_at": "",
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "recorded_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "recorded_at:format=no_milliseconds",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "recorded_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "recorded_at:format=offset",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678+00:00",
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "recorded_at"
+          ],
+          "code": "invalid_format",
+          "message": "Invalid ISO datetime",
+          "format": "datetime",
+          "origin": "string",
+          "pattern": "/^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$/"
+        }
+      ]
+    },
+    {
+      "name": "latitude_deg:missing",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "longitude_deg": -20.25
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "latitude_deg"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "latitude_deg:null",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": null,
+        "longitude_deg": -20.25
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "latitude_deg"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "latitude_deg:wrong_type=string",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": "1",
+        "longitude_deg": -20.25
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "latitude_deg"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "latitude_deg:number=-91",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": -91,
+        "longitude_deg": -20.25
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "latitude_deg"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=-90",
+          "inclusive": true,
+          "minimum": -90,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "latitude_deg:number=-90",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": -90,
+        "longitude_deg": -20.25
+      },
+      "valid": true,
+      "output": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": -90,
+        "longitude_deg": -20.25
+      },
+      "issues": []
+    },
+    {
+      "name": "latitude_deg:number=-89",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": -89,
+        "longitude_deg": -20.25
+      },
+      "valid": true,
+      "output": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": -89,
+        "longitude_deg": -20.25
+      },
+      "issues": []
+    },
+    {
+      "name": "latitude_deg:number=-90.5",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": -90.5,
+        "longitude_deg": -20.25
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "latitude_deg"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=-90",
+          "inclusive": true,
+          "minimum": -90,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "latitude_deg:number=-89.5",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": -89.5,
+        "longitude_deg": -20.25
+      },
+      "valid": true,
+      "output": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": -89.5,
+        "longitude_deg": -20.25
+      },
+      "issues": []
+    },
+    {
+      "name": "latitude_deg:number=89",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 89,
+        "longitude_deg": -20.25
+      },
+      "valid": true,
+      "output": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 89,
+        "longitude_deg": -20.25
+      },
+      "issues": []
+    },
+    {
+      "name": "latitude_deg:number=90",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 90,
+        "longitude_deg": -20.25
+      },
+      "valid": true,
+      "output": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 90,
+        "longitude_deg": -20.25
+      },
+      "issues": []
+    },
+    {
+      "name": "latitude_deg:number=91",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 91,
+        "longitude_deg": -20.25
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "latitude_deg"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected number to be <=90",
+          "inclusive": true,
+          "maximum": 90,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "latitude_deg:number=89.5",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 89.5,
+        "longitude_deg": -20.25
+      },
+      "valid": true,
+      "output": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 89.5,
+        "longitude_deg": -20.25
+      },
+      "issues": []
+    },
+    {
+      "name": "latitude_deg:number=90.5",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 90.5,
+        "longitude_deg": -20.25
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "latitude_deg"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected number to be <=90",
+          "inclusive": true,
+          "maximum": 90,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "latitude_deg:number_text=-0",
+      "input_text": "{\"recorded_at\":\"2026-01-02T03:04:05.678Z\",\"latitude_deg\":-0,\"longitude_deg\":-20.25}",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 0,
+        "longitude_deg": -20.25
+      },
+      "valid": true,
+      "output": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 0,
+        "longitude_deg": -20.25
+      },
+      "issues": []
+    },
+    {
+      "name": "latitude_deg:number_text=1e400",
+      "input_text": "{\"recorded_at\":\"2026-01-02T03:04:05.678Z\",\"latitude_deg\":1e400,\"longitude_deg\":-20.25}",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": null,
+        "longitude_deg": -20.25
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "latitude_deg"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "longitude_deg:missing",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "longitude_deg"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received undefined",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "longitude_deg:null",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "longitude_deg"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "longitude_deg:wrong_type=string",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": "1"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "longitude_deg"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "longitude_deg:number=-181",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -181
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "longitude_deg"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=-180",
+          "inclusive": true,
+          "minimum": -180,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "longitude_deg:number=-180",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -180
+      },
+      "valid": true,
+      "output": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -180
+      },
+      "issues": []
+    },
+    {
+      "name": "longitude_deg:number=-179",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -179
+      },
+      "valid": true,
+      "output": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -179
+      },
+      "issues": []
+    },
+    {
+      "name": "longitude_deg:number=-180.5",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -180.5
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "longitude_deg"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=-180",
+          "inclusive": true,
+          "minimum": -180,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "longitude_deg:number=-179.5",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -179.5
+      },
+      "valid": true,
+      "output": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -179.5
+      },
+      "issues": []
+    },
+    {
+      "name": "longitude_deg:number=179",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": 179
+      },
+      "valid": true,
+      "output": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": 179
+      },
+      "issues": []
+    },
+    {
+      "name": "longitude_deg:number=180",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": 180
+      },
+      "valid": true,
+      "output": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": 180
+      },
+      "issues": []
+    },
+    {
+      "name": "longitude_deg:number=181",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": 181
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "longitude_deg"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected number to be <=180",
+          "inclusive": true,
+          "maximum": 180,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "longitude_deg:number=179.5",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": 179.5
+      },
+      "valid": true,
+      "output": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": 179.5
+      },
+      "issues": []
+    },
+    {
+      "name": "longitude_deg:number=180.5",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": 180.5
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "longitude_deg"
+          ],
+          "code": "too_big",
+          "message": "Too big: expected number to be <=180",
+          "inclusive": true,
+          "maximum": 180,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "longitude_deg:number_text=-0",
+      "input_text": "{\"recorded_at\":\"2026-01-02T03:04:05.678Z\",\"latitude_deg\":10.5,\"longitude_deg\":-0}",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": 0
+      },
+      "valid": true,
+      "output": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "longitude_deg:number_text=1e400",
+      "input_text": "{\"recorded_at\":\"2026-01-02T03:04:05.678Z\",\"latitude_deg\":10.5,\"longitude_deg\":1e400}",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "longitude_deg"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "input_timestamp:null",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25,
+        "input_timestamp": null,
+        "supplied_fields": {
+          "altitude_m": 12.5
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_timestamp"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_timestamp:wrong_type=array",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25,
+        "input_timestamp": [],
+        "supplied_fields": {
+          "altitude_m": 12.5
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_timestamp"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_timestamp:wrong_type=string",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25,
+        "input_timestamp": "x",
+        "supplied_fields": {
+          "altitude_m": 12.5
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_timestamp"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "input_timestamp:empty_object",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25,
+        "input_timestamp": {},
+        "supplied_fields": {
+          "altitude_m": 12.5
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_timestamp",
+            "timestamp_missing_reason"
+          ],
+          "code": "custom",
+          "message": "A missing input timestamp needs a reason"
+        },
+        {
+          "path": [
+            "input_timestamp",
+            "utc_offset_missing_reason"
+          ],
+          "code": "custom",
+          "message": "A missing input UTC offset needs a reason"
+        }
+      ]
+    },
+    {
+      "name": "input_timestamp:nested_unknown_key",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25,
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp",
+          "unknown_nested": true
+        },
+        "supplied_fields": {
+          "altitude_m": 12.5
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "input_timestamp"
+          ],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_nested\"",
+          "keys": [
+            "unknown_nested"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "supplied_fields:null",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25,
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "supplied_fields": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "supplied_fields"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected record, received null",
+          "expected": "record"
+        }
+      ]
+    },
+    {
+      "name": "supplied_fields:wrong_type=array",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25,
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "supplied_fields": []
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "supplied_fields"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected record, received array",
+          "expected": "record"
+        }
+      ]
+    },
+    {
+      "name": "supplied_fields:wrong_type=string",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25,
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "supplied_fields": "x"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "supplied_fields"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected record, received string",
+          "expected": "record"
+        }
+      ]
+    },
+    {
+      "name": "supplied_fields:empty_object",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25,
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "supplied_fields": {}
+      },
+      "valid": true,
+      "output": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25,
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "supplied_fields": {}
+      },
+      "issues": []
+    },
+    {
+      "name": "supplied_fields:empty_key",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 10.5,
+        "longitude_deg": -20.25,
+        "input_timestamp": {
+          "timestamp_text": "2026-01-01T21:04:05.678-06:00",
+          "utc_offset_text": "-06:00",
+          "utc_offset_meaning": "documented_recording_offset",
+          "source_time_zone": "America/Chicago",
+          "source_time_zone_meaning": "apple_health_object_creation_time_zone",
+          "timestamp_basis": "source_offset_timestamp"
+        },
+        "supplied_fields": {
+          "": 12.5
+        }
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "supplied_fields",
+            ""
+          ],
+          "code": "invalid_key",
+          "message": "Invalid key in record",
+          "issues": [
+            {
+              "path": [],
+              "code": "too_small",
+              "message": "Too small: expected string to have >=1 characters",
+              "inclusive": true,
+              "minimum": 1,
+              "origin": "string"
+            }
+          ],
+          "origin": "record"
+        }
+      ]
+    },
+    {
+      "name": "bounds:north_pole",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 90,
+        "longitude_deg": 180
+      },
+      "valid": true,
+      "output": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": 90,
+        "longitude_deg": 180
+      },
+      "issues": []
+    },
+    {
+      "name": "bounds:south_pole",
+      "input": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": -90,
+        "longitude_deg": -180
+      },
+      "valid": true,
+      "output": {
+        "recorded_at": "2026-01-02T03:04:05.678Z",
+        "latitude_deg": -90,
+        "longitude_deg": -180
+      },
+      "issues": []
+    }
+  ]
+}

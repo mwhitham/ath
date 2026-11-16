@@ -1,0 +1,193 @@
+{
+  "schema": "SleepStageMinutes",
+  "cases": [
+    {
+      "name": "valid:empty",
+      "input": {},
+      "valid": true,
+      "output": {},
+      "issues": []
+    },
+    {
+      "name": "valid:stages",
+      "input": {
+        "awake": 5,
+        "light": 30.5,
+        "deep": 0,
+        "rem": 10
+      },
+      "valid": true,
+      "output": {
+        "awake": 5,
+        "light": 30.5,
+        "deep": 0,
+        "rem": 10
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:free_stage_names",
+      "input": {
+        "N3 (deep)": 15
+      },
+      "valid": true,
+      "output": {
+        "N3 (deep)": 15
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:integer_like_keys",
+      "input_text": "{\"rem\":1,\"3\":2,\"1\":3}",
+      "input": {
+        "1": 3,
+        "3": 2,
+        "rem": 1
+      },
+      "valid": true,
+      "output": {
+        "1": 3,
+        "3": 2,
+        "rem": 1
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:negative_zero",
+      "input_text": "{\"deep\":-0}",
+      "input": {
+        "deep": 0
+      },
+      "valid": true,
+      "output": {
+        "deep": 0
+      },
+      "issues": []
+    },
+    {
+      "name": "invalid:negative",
+      "input": {
+        "deep": -1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deep"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected number to be >=0",
+          "inclusive": true,
+          "minimum": 0,
+          "origin": "number"
+        }
+      ]
+    },
+    {
+      "name": "invalid:string_value",
+      "input": {
+        "deep": "1"
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deep"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "invalid:null_value",
+      "input": {
+        "deep": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deep"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "invalid:empty_key",
+      "input": {
+        "": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            ""
+          ],
+          "code": "invalid_key",
+          "message": "Invalid key in record",
+          "issues": [
+            {
+              "path": [],
+              "code": "too_small",
+              "message": "Too small: expected string to have >=1 characters",
+              "inclusive": true,
+              "minimum": 1,
+              "origin": "string"
+            }
+          ],
+          "origin": "record"
+        }
+      ]
+    },
+    {
+      "name": "invalid:infinity",
+      "input_text": "{\"deep\":1e400}",
+      "input": {
+        "deep": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "deep"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected record, received array",
+          "expected": "record"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected record, received null",
+          "expected": "record"
+        }
+      ]
+    }
+  ]
+}

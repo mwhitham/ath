@@ -1,0 +1,645 @@
+{
+  "schema": "ReportedNutritionItem",
+  "cases": [
+    {
+      "name": "valid:minimal",
+      "input": {
+        "food_description": "oatmeal"
+      },
+      "valid": true,
+      "output": {
+        "food_description": "oatmeal"
+      },
+      "issues": []
+    },
+    {
+      "name": "valid:maximal",
+      "input": {
+        "food_description": "oatmeal",
+        "amount": 80,
+        "amount_unit": "g",
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "food_description": "oatmeal",
+        "amount": 80,
+        "amount_unit": "g",
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "root:wrong_type=null",
+      "input": null,
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received null",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=array",
+      "input": [],
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "root:wrong_type=string",
+      "input": "x",
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "unknown_key",
+      "input": {
+        "food_description": "oatmeal",
+        "amount": 80,
+        "amount_unit": "g",
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          }
+        ],
+        "unknown_field": true
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [],
+          "code": "unrecognized_keys",
+          "message": "Unrecognized key: \"unknown_field\"",
+          "keys": [
+            "unknown_field"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "food_description:missing",
+      "input": {},
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "food_description"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received undefined",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "food_description:null",
+      "input": {
+        "food_description": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "food_description"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "food_description:wrong_type=number",
+      "input": {
+        "food_description": 1
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "food_description"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "food_description:empty_string",
+      "input": {
+        "food_description": ""
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "food_description"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "amount:null",
+      "input": {
+        "food_description": "oatmeal",
+        "amount": null,
+        "amount_unit": "g",
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "amount"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received null",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "amount:wrong_type=string",
+      "input": {
+        "food_description": "oatmeal",
+        "amount": "1",
+        "amount_unit": "g",
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "amount"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received string",
+          "expected": "number"
+        }
+      ]
+    },
+    {
+      "name": "amount:number=1e+308",
+      "input": {
+        "food_description": "oatmeal",
+        "amount": 1e+308,
+        "amount_unit": "g",
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "food_description": "oatmeal",
+        "amount": 1e+308,
+        "amount_unit": "g",
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "amount:number=-1e+308",
+      "input": {
+        "food_description": "oatmeal",
+        "amount": -1e+308,
+        "amount_unit": "g",
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "food_description": "oatmeal",
+        "amount": -1e+308,
+        "amount_unit": "g",
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "amount:number=-1.5",
+      "input": {
+        "food_description": "oatmeal",
+        "amount": -1.5,
+        "amount_unit": "g",
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "food_description": "oatmeal",
+        "amount": -1.5,
+        "amount_unit": "g",
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "amount:number=0",
+      "input": {
+        "food_description": "oatmeal",
+        "amount": 0,
+        "amount_unit": "g",
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "food_description": "oatmeal",
+        "amount": 0,
+        "amount_unit": "g",
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "amount:number=5e-324",
+      "input": {
+        "food_description": "oatmeal",
+        "amount": 5e-324,
+        "amount_unit": "g",
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "food_description": "oatmeal",
+        "amount": 5e-324,
+        "amount_unit": "g",
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "amount:number_text=-0",
+      "input_text": "{\"food_description\":\"oatmeal\",\"amount\":-0,\"amount_unit\":\"g\",\"nutrients\":[{\"nutrient_name\":\"protein\",\"amount\":10.5,\"unit\":\"g\"}]}",
+      "input": {
+        "food_description": "oatmeal",
+        "amount": 0,
+        "amount_unit": "g",
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          }
+        ]
+      },
+      "valid": true,
+      "output": {
+        "food_description": "oatmeal",
+        "amount": 0,
+        "amount_unit": "g",
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          }
+        ]
+      },
+      "issues": []
+    },
+    {
+      "name": "amount:number_text=1e400",
+      "input_text": "{\"food_description\":\"oatmeal\",\"amount\":1e400,\"amount_unit\":\"g\",\"nutrients\":[{\"nutrient_name\":\"protein\",\"amount\":10.5,\"unit\":\"g\"}]}",
+      "input": {
+        "food_description": "oatmeal",
+        "amount": null,
+        "amount_unit": "g",
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "amount"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected number, received Infinity",
+          "expected": "number",
+          "received": "Infinity"
+        }
+      ]
+    },
+    {
+      "name": "amount_unit:null",
+      "input": {
+        "food_description": "oatmeal",
+        "amount": 80,
+        "amount_unit": null,
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "amount_unit"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received null",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "amount_unit:wrong_type=number",
+      "input": {
+        "food_description": "oatmeal",
+        "amount": 80,
+        "amount_unit": 1,
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "amount_unit"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected string, received number",
+          "expected": "string"
+        }
+      ]
+    },
+    {
+      "name": "amount_unit:empty_string",
+      "input": {
+        "food_description": "oatmeal",
+        "amount": 80,
+        "amount_unit": "",
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          }
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "amount_unit"
+          ],
+          "code": "too_small",
+          "message": "Too small: expected string to have >=1 characters",
+          "inclusive": true,
+          "minimum": 1,
+          "origin": "string"
+        }
+      ]
+    },
+    {
+      "name": "nutrients:null",
+      "input": {
+        "food_description": "oatmeal",
+        "amount": 80,
+        "amount_unit": "g",
+        "nutrients": null
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "nutrients"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received null",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "nutrients:wrong_type=object",
+      "input": {
+        "food_description": "oatmeal",
+        "amount": 80,
+        "amount_unit": "g",
+        "nutrients": {}
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "nutrients"
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected array, received object",
+          "expected": "array"
+        }
+      ]
+    },
+    {
+      "name": "nutrients:empty_array",
+      "input": {
+        "food_description": "oatmeal",
+        "amount": 80,
+        "amount_unit": "g",
+        "nutrients": []
+      },
+      "valid": true,
+      "output": {
+        "food_description": "oatmeal",
+        "amount": 80,
+        "amount_unit": "g",
+        "nutrients": []
+      },
+      "issues": []
+    },
+    {
+      "name": "nutrients:element[0]:wrong_type=array",
+      "input": {
+        "food_description": "oatmeal",
+        "amount": 80,
+        "amount_unit": "g",
+        "nutrients": [
+          []
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "nutrients",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "nutrients:element[0]:wrong_type=string",
+      "input": {
+        "food_description": "oatmeal",
+        "amount": 80,
+        "amount_unit": "g",
+        "nutrients": [
+          "x"
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "nutrients",
+            0
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received string",
+          "expected": "object"
+        }
+      ]
+    },
+    {
+      "name": "nutrients:element[1]:wrong_type=array",
+      "input": {
+        "food_description": "oatmeal",
+        "amount": 80,
+        "amount_unit": "g",
+        "nutrients": [
+          {
+            "nutrient_name": "protein",
+            "amount": 10.5,
+            "unit": "g"
+          },
+          []
+        ]
+      },
+      "valid": false,
+      "issues": [
+        {
+          "path": [
+            "nutrients",
+            1
+          ],
+          "code": "invalid_type",
+          "message": "Invalid input: expected object, received array",
+          "expected": "object"
+        }
+      ]
+    }
+  ]
+}
