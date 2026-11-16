@@ -1181,10 +1181,15 @@ The start column names one field and how to read it:
 
 - Text with an offset or `Z`. The receipt is the one `input_receipt` in
   `src/import/mapping.rs` writes. `reported_at` is that instant in UTC.
-- Text with no offset, such as Polar's `start_time`. The receipt is
-  `offset_timestamp_receipt` in `src/import/candidate.rs` with
-  `meaning_not_documented`. It keeps the text and says the source gave no
-  offset. There is no `reported_at`. Polar's separate
+- Text with no offset, such as Polar's `start_time`. The receipt is the
+  one `offset_timestamp_receipt` in `src/import/candidate.rs` writes for
+  such text. `timestamp_text` is the text, and `timestamp_basis` is
+  `source_offset_timestamp`, the basis 2.1.1 writes for provider text with
+  or without an offset. `utc_offset_missing_reason` is
+  `not_provided_by_source`. The receipt has no `utc_offset_text` and no
+  `utc_offset_meaning`, because the 2.1.1 receipt check refuses a meaning
+  without offset text, so the helper drops the meaning it is given. There
+  is no `reported_at`, because the text names no instant. Polar's separate
   `start_time_utc_offset` stays in `list`. This pull does not join the two.
 - Unix seconds or milliseconds. The receipt keeps the digits as
   `timestamp_text`, with `timestamp_basis` `source_instant` and
