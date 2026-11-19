@@ -16,7 +16,7 @@ with `ath --version`.
   than 2.0.0 cannot refresh its skill files when it updates itself, so the old tool
   skill stays until this runs. Until then, 2.1.2 prints "the agent skill in
   .agents/skills is from 1.1.0 …; run ath skill install to update it" on each
-  command (D251).
+  command (D252).
 - A 1.x database upgrades with `ath migrate` (below). A prerelease `0.x` JSON
   record is not imported (D101).
 
