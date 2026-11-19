@@ -54,3 +54,12 @@ A calculation skill whose `use:` names an operation this `ath` does not have sti
 returns a null result. Its `missing` entry keeps "unknown calculation X" and adds
 "this skill file may need a newer ath (ath --update)". The check is
 `tests/calculate.rs`.
+
+## 7. A tool skill left by an older `ath` is noted (D252)
+
+When a folder's `athletic-standard` skill is older than this `ath`, every command
+except bare `ath`, `ath --update`, `init`, and `skill` prints one line on standard
+error: "ath: the agent skill in .agents/skills is from 1.1.0, older than this ath
+(2.1.2); run ath skill install to update it". It also prints on `--json` runs; the
+JSON on standard output is unchanged. 2.0.0 to 2.1.1 printed nothing (D164). The
+checks are `tests/assets_skill.rs` and `tests/cli_executable.rs`.

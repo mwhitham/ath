@@ -64,6 +64,9 @@ executable on your `PATH`. The executable carries the agent skills and mapping f
 
 Run `ath --update` to update. An npm, pnpm, or bun global install updates through the
 same package manager. An archive install prints the steps to replace the executable.
+Versions before 0.4.3 have no `--update`; run `npm install -g athleticstandard@latest`.
+After updating from 0.x or 1.x, run `ath skill install` in each folder with agent
+skills ([upgrading to 2.1.2](docs/upgrading-to-2-1-2.md)).
 Run `ath skill install` to refresh the local agent skills without updating `ath`. It
 updates a calculation skill you never edited and keeps one you edited.
 

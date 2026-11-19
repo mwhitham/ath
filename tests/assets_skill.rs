@@ -327,16 +327,43 @@ fn install_adds_a_missing_file_to_an_existing_copy() {
 }
 
 #[test]
-fn the_stale_warning_is_never_shown() {
+fn an_older_tool_skill_is_noted_until_it_is_replaced() {
+    // D252: no copy, or a current copy, gives no notice.
     let none = dir_with_agents(&[]);
     assert_eq!(stale_skill_warning(none.path()), None);
     assert!(!skill_present(none.path()).unwrap());
+    let dir = dir_with_agents(&[".cursor"]);
+    install_skill(dir.path()).unwrap();
+    assert_eq!(stale_skill_warning(dir.path()), None);
 
-    let edited = dir_with_agents(&[".cursor"]);
-    install_skill(edited.path()).unwrap();
-    age_copy(edited.path(), ".cursor", "0.3.0");
-    assert_eq!(stale_skill_warning(edited.path()), None);
-    assert!(skill_present(edited.path()).unwrap());
+    // A copy left by an older ath is named, with its version.
+    let shipped = athleticstandard::assets::skill::shipped_skill_version();
+    age_copy(dir.path(), ".cursor", "1.1.0");
+    assert_eq!(
+        stale_skill_warning(dir.path()).as_deref(),
+        Some(
+            format!(
+                "ath: the agent skill in .cursor/skills is from 1.1.0, older than this ath ({shipped}); run ath skill install to update it"
+            )
+            .as_str()
+        )
+    );
+    age_copy(dir.path(), ALWAYS_DIR, "0.4.3");
+    let both = stale_skill_warning(dir.path()).unwrap();
+    assert!(both.starts_with("ath: the agent skill in .agents/skills and 1 more is from 0.4.3"), "{both}");
+
+    // A copy with no version is older than any shipped version.
+    let file = skill_file(dir.path(), ALWAYS_DIR, "SKILL.md");
+    let text = fs::read_to_string(&file).unwrap();
+    fs::write(&file, text.replacen("  version: \"0.4.3\"\n", "", 1)).unwrap();
+    assert!(stale_skill_warning(dir.path()).unwrap().contains(&format!("is older than {shipped}")));
+
+    // A newer or edited copy at this version is the person's own file.
+    install_skill(dir.path()).unwrap();
+    assert_eq!(stale_skill_warning(dir.path()), None);
+    age_copy(dir.path(), ".cursor", "9.0.0");
+    assert_eq!(stale_skill_warning(dir.path()), None);
+    assert!(skill_present(dir.path()).unwrap());
 }
 
 // Mapping files (D178, D179).

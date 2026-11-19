@@ -615,15 +615,37 @@ pub fn skill_present(cwd: &Path) -> Result<bool> {
     Ok(skill_status(cwd)?.iter().any(|copy| copy.state == SkillState::Installed))
 }
 
-/// The one-line notice a command would print on standard error when an
-/// installed skill copy is older than the shipped one (D79).
+/// The one-line notice printed on standard error when the tool skill in
+/// `cwd` is older than the one this `ath` ships (D79, D252).
 ///
-/// Version 2.1.0 never prints it: an older tool skill is replaced by
-/// `ath skill install` and `ath --update`, and an edited calculation skill is
-/// the person's own file. This returns None for every directory. The command
-/// layer still skips the check for `init`, `skill`, and `--json` runs.
-pub fn stale_skill_warning(_cwd: &Path) -> Option<String> {
-    None
+/// `ath skill install` and this `ath`'s `--update` replace an older tool skill
+/// (D164). An `ath` from 0.x or 1.x cannot: when it updates itself, it copies
+/// its own skill folder, which the update has just removed. So the first update
+/// from those versions leaves the old instructions in place, and this notice
+/// says so (D252). Only the tool skill is checked, because it is the only skill
+/// those versions installed and the first one an agent reads. The test is the
+/// one `ath skill install` uses to decide on replacing it.
+pub fn stale_skill_warning(cwd: &Path) -> Option<String> {
+    let shipped = shipped_skill_version();
+    let older: Vec<(PathBuf, String)> = skill_targets(cwd, SKILL_NAME)
+        .into_iter()
+        .filter_map(|path| {
+            let installed = skill_version(&path).ok()??;
+            version_is_older(&installed, &shipped).then_some((path, installed))
+        })
+        .collect();
+    let (first, installed) = older.first()?;
+    let folder = first.parent().and_then(|skills| skills.strip_prefix(cwd).ok()).unwrap_or(first);
+    let more = match older.len() {
+        1 => String::new(),
+        count => format!(" and {} more", count - 1),
+    };
+    let age = if installed == UNVERSIONED {
+        format!("is older than {shipped}")
+    } else {
+        format!("is from {installed}, older than this ath ({shipped})")
+    };
+    Some(format!("ath: the agent skill in {}{more} {age}; run ath skill install to update it", folder.display()))
 }
 
 /// The human `ath skill` status text.

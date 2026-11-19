@@ -4,6 +4,22 @@ Version 2.1.2 repairs the calculation skills, adds session effort and strength-s
 fields to the record, and adds the CrossFit and HYROX coaching skills. The plan and
 its decisions are in [build-history/v2.1.2](../build-history/v2.1.2/spec.md).
 
+## From the version you have installed
+
+2.1.2 is the first 2.x version on npm, so an installed `ath` is 0.x or 1.x. Check
+with `ath --version`.
+
+- From 0.4.3, 1.0.0, or 1.1.0, run `ath --update`.
+- From an earlier version, which has no `--update`, run
+  `npm install -g athleticstandard@latest`.
+- Then run `ath skill install` in each folder that has agent skills. An `ath` older
+  than 2.0.0 cannot refresh its skill files when it updates itself, so the old tool
+  skill stays until this runs. Until then, 2.1.2 prints "the agent skill in
+  .agents/skills is from 1.1.0 …; run ath skill install to update it" on each
+  command (D251).
+- A 1.x database upgrades with `ath migrate` (below). A prerelease `0.x` JSON
+  record is not imported (D101).
+
 ## A database
 
 A 2.1.1 database is at SQL schema step 5; 2.1.2 writes step 6. Run `ath migrate`. It
