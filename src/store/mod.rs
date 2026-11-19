@@ -242,7 +242,7 @@ fn check_header(connection: &Connection, metadata: &DatabaseMetadata) -> Result<
     }
     if metadata.sql_schema_version > SQL_SCHEMA_VERSION {
         return Err(Error::refused(format!(
-            "Database SQL schema {} is newer than supported schema {SQL_SCHEMA_VERSION}",
+            "Database SQL schema {} is newer than supported schema {SQL_SCHEMA_VERSION}. A newer ath wrote this database. Update ath to open it, for example with ath --update.",
             metadata.sql_schema_version
         )));
     }

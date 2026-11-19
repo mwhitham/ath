@@ -347,7 +347,12 @@ fn foreign_and_mismatched_headers_are_refused_without_change() {
         )
         .unwrap();
     let error = inspect_migration(&path, None).unwrap_err().to_string();
-    assert_eq!(error, format!("Database SQL schema 7 is newer than supported schema {SQL_SCHEMA_VERSION}"));
+    assert_eq!(
+        error,
+        format!(
+            "Database SQL schema 7 is newer than supported schema {SQL_SCHEMA_VERSION}. A newer ath wrote this database. Update ath to open it, for example with ath --update."
+        )
+    );
 }
 
 #[test]

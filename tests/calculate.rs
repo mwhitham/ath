@@ -5,7 +5,7 @@
 mod common;
 
 use athleticstandard::calculate::range::SourceSummary;
-use athleticstandard::calculate::{self, CalculateOptions, CalculationResult, Operation};
+use athleticstandard::calculate::{self, CalculateOptions, CalculationResult, Operation, UNKNOWN_OPERATION_HINT};
 use athleticstandard::json::{self, Value};
 use athleticstandard::store::Store;
 use athleticstandard::view::calendar::{resolve_calendar_range, CalendarRangeRequest};
@@ -468,7 +468,7 @@ fn an_installed_calculation_file_cannot_run_an_expression() {
     for text in &commands {
         let unknown = installed(&format!("use: {text}"));
         assert_eq!(unknown.result, None, "{text}");
-        assert_eq!(unknown.missing, [format!("unknown calculation {text}")]);
+        assert_eq!(unknown.missing, [format!("unknown calculation {text}; {UNKNOWN_OPERATION_HINT}")]);
 
         let field = installed(&format!("use: lowest_held\nsample_field: {text}"));
         assert_eq!(field.result, None, "{text}");

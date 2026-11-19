@@ -16,6 +16,10 @@ use crate::error::{Error, Result};
 use crate::json::{self, Map, Value};
 use crate::model::{time, EvidenceReference};
 
+/// Added to "unknown calculation" when a skill file names an operation this
+/// `ath` does not have, as a skill written for a newer `ath` does (D250).
+pub const UNKNOWN_OPERATION_HINT: &str = "this skill file may need a newer ath (ath --update)";
+
 /// A record's current stored data.
 #[derive(Debug, Clone, PartialEq)]
 pub struct StoredRecord {
@@ -373,8 +377,14 @@ pub fn run(file: &CalculationFile, record: &StoredRecord, extra: &MethodInputs) 
             methods::sleep_clock_times(&mut context, start_field, end_field, &extra.profile)
         }
         HyroxSplits => super::hyrox::hyrox_splits(&mut context, record),
-        Range(name) | Unknown(name) => {
+        Range(name) => {
             context.missing.push(format!("unknown calculation {name}"));
+            None
+        }
+        // A skill file written for a newer `ath` names an operation this one
+        // does not have (D250).
+        Unknown(name) => {
+            context.missing.push(format!("unknown calculation {name}; {UNKNOWN_OPERATION_HINT}"));
             None
         }
     };

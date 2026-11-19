@@ -42,3 +42,15 @@ skill, not a calculation. The tool skill keeps its 2.1.0 refusal.
 lists. Every recorded 2.1.0 receipt still matches once those fields are set
 aside: `tests/calculate_golden.rs`, `tests/cli_golden.rs`, and
 `tests/calculate_range_v2.rs` for the additions.
+
+## 6. Two messages say when `ath` is older than what it reads (D250)
+
+A database written by a newer `ath` was refused with "Database SQL schema N is newer
+than supported schema 6" and no next step. The message keeps that wording and adds
+"A newer ath wrote this database. Update ath to open it, for example with ath
+--update." The check is `tests/migration.rs`.
+
+A calculation skill whose `use:` names an operation this `ath` does not have still
+returns a null result. Its `missing` entry keeps "unknown calculation X" and adds
+"this skill file may need a newer ath (ath --update)". The check is
+`tests/calculate.rs`.

@@ -21,7 +21,7 @@ pub use range::{
     render_calculation, CalculateOptions, CalculationReceipt, CalculationResult, Group, Operation, RecordKind,
     MAX_RECEIPT_REFERENCES, MAX_RUNTIME_INPUTS,
 };
-pub use record::{ApplyResult, FieldRead, OneRecordResult};
+pub use record::{ApplyResult, FieldRead, OneRecordResult, UNKNOWN_OPERATION_HINT};
 
 use crate::error::Result;
 use crate::store::Store;
