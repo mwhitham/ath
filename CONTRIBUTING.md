@@ -44,12 +44,16 @@ npm test
   runs formatting, Clippy, every Rust test, and the npm tests on Node 24.
   macOS and Windows run Clippy and every Rust test. The `checks passed` job
   must pass before a merge. A new push cancels the run for the push before it.
-- **A version tag, such as `v2.1.1`:** the full check on Linux, macOS, and
-  Windows, with release builds, archive and npm install checks, and Node 22
-  and 24. If everything passes, it stages the package on npm and creates the
+- **A release:** the full check on Linux, macOS, and Windows, with release
+  builds, archive and npm install checks, and Node 22 and 24. If everything
+  passes, it tags the tested commit, stages the package on npm, and creates the
   GitHub release. The package is public only after the maintainer approves the
-  staged version with their two-factor code (D251). To run the full check on a
-  branch without publishing, use Actions > Release cross-platform > Run workflow.
+  staged version with their two-factor code (D251). The maintainer starts a
+  release by commenting `/release` on a merged pull request, by Actions >
+  Release cross-platform > Run workflow on `main` with `publish` ticked, or by
+  pushing a version tag (D252). Comments from anyone but a repository admin
+  start nothing. To run the full check on a branch without publishing, use Run
+  workflow without `publish`.
 - **The speed comparison with 2.1.0** runs only by hand: Actions > Release
   performance > Run workflow.
 

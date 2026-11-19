@@ -1,0 +1,131 @@
+# Release commands (D252).
+#
+# After a merge to `main`, if the version in packages/npm/package.json has no
+# tag yet, this workflow comments on the merged pull request with how to
+# release it.
+#
+# When a repository admin comments `/release` on a merged pull request, it
+# starts Release cross-platform on `main` with `publish` set. That run does the
+# full check, tags the tested commit, stages the npm package for the admin to
+# approve, and comments with the result. Comments from anyone else are ignored:
+# GitHub's author association filters out people outside the repository, and
+# the repository permission API must then report `admin`.
+#
+# npm refuses trusted publishing from a run started by a comment, so this
+# workflow never publishes. It starts a separate workflow_dispatch run, which
+# npm accepts. It never checks out or runs code from a pull request; it reads
+# only packages/npm/package.json from `main`, and passes the comment text
+# through an environment variable, never into the script.
+name: Release commands
+
+on:
+  push:
+    branches: [main]
+  issue_comment:
+    types: [created]
+
+permissions: {}
+
+jobs:
+  announce:
+    name: Say how to release a new version
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: packages/npm/package.json
+      - name: Comment on the merged pull request when its version has no tag
+        run: |
+          version="$(node -p "require('./packages/npm/package.json').version")"
+          tag="v$version"
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --silent 2>/dev/null; then
+            echo "$tag already exists; there is nothing new to release."
+            exit 0
+          fi
+          pr="$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq '[.[] | select(.merged_at != null)][0].number // empty')"
+          if [ -z "$pr" ]; then
+            echo "No merged pull request contains $GITHUB_SHA."
+            exit 0
+          fi
+          IFS= read -r -d '' body <<'EOF' || true
+          **@TAG@ is ready to release.** `main` now holds version @VERSION@, which has no tag yet.
+
+          To release it, comment `/release` on this pull request. Only a repository admin's comment works.
+
+          The release then runs by itself:
+
+          1. The full check runs on Linux, macOS, and Windows. This takes a while.
+          2. The tested commit is tagged `@TAG@`, and the native archives become a GitHub release.
+          3. The npm package is staged. Nobody can install it yet.
+          4. This pull request gets a comment saying how to approve it on npm with your two-factor code.
+
+          You can also start it from **Actions → Release cross-platform → Run workflow** on `main`, with **publish** ticked, on the website or in GitHub Mobile.
+          EOF
+          body="${body//@TAG@/$tag}"
+          body="${body//@VERSION@/$version}"
+          gh pr comment "$pr" --repo "$GITHUB_REPOSITORY" --body "$body"
+
+  release:
+    name: Start a release
+    if: >-
+      github.event_name == 'issue_comment'
+      && github.event.issue.pull_request
+      && startsWith(github.event.comment.body, '/release')
+      && contains(fromJSON('["OWNER", "MEMBER", "COLLABORATOR"]'), github.event.comment.author_association)
+    runs-on: ubuntu-latest
+    permissions:
+      actions: write
+      contents: read
+      pull-requests: write
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      PR: ${{ github.event.issue.number }}
+      COMMENTER: ${{ github.event.comment.user.login }}
+      COMMENT_ID: ${{ github.event.comment.id }}
+      COMMENT_BODY: ${{ github.event.comment.body }}
+      RUNS_URL: ${{ github.server_url }}/${{ github.repository }}/actions/workflows/release-cross-platform.yml
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: main
+          sparse-checkout: packages/npm/package.json
+      - name: Check the request and start the release
+        run: |
+          reply() { gh pr comment "$PR" --repo "$GITHUB_REPOSITORY" --body "$1"; }
+          if [ "$(printf '%s' "$COMMENT_BODY" | tr -d '[:space:]')" != /release ]; then
+            echo "The comment is not exactly /release."
+            exit 0
+          fi
+          permission="$(gh api "repos/$GITHUB_REPOSITORY/collaborators/$COMMENTER/permission" --jq .permission)"
+          if [ "$permission" != admin ]; then
+            reply "Only a repository admin can start a release. Nothing was started."
+            exit 0
+          fi
+          gh api "repos/$GITHUB_REPOSITORY/issues/comments/$COMMENT_ID/reactions" -f content=eyes --silent
+          base="$(gh pr view "$PR" --repo "$GITHUB_REPOSITORY" --json mergedAt,baseRefName --jq 'select(.mergedAt != null) | .baseRefName')"
+          if [ "$base" != main ]; then
+            reply 'Merge this pull request into `main` first, then comment `/release` again. Nothing was started.'
+            exit 0
+          fi
+          version="$(node -p "require('./packages/npm/package.json').version")"
+          tag="v$version"
+          commit="$(git rev-parse HEAD)"
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --silent 2>/dev/null; then
+            reply "\`$tag\` already exists, so there is nothing new to release. Raise the version in \`packages/npm/package.json\` to release again."
+            exit 0
+          fi
+          running="$(gh run list --repo "$GITHUB_REPOSITORY" --workflow release-cross-platform.yml --branch main --limit 20 --json status,url --jq '[.[] | select(.status != "completed")][0].url // empty')"
+          if [ -n "$running" ]; then
+            reply "A release from \`main\` is already running: $running. Nothing new was started."
+            exit 0
+          fi
+          gh workflow run release-cross-platform.yml --repo "$GITHUB_REPOSITORY" --ref main -f publish=true
+          reply "Started the release of \`$tag\` from \`main\` ($commit). Follow it under [Release cross-platform]($RUNS_URL). The full check takes a while. When it finishes, this pull request gets a comment saying how to approve the npm package."

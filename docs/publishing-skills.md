@@ -31,24 +31,30 @@ that report when `DISABLE_TELEMETRY` or `DO_NOT_TRACK` is set
 
 ## Publishing the npm package
 
-The npm package must be public before the skills are listed (step 5 above).
+The npm package must be public before the skills are listed (step 5 above). No
+terminal is needed (D251, D252).
 
-1. Merge to the default branch.
-2. Push the version tag from `main`, for example
-   `git tag v2.1.2 && git push origin v2.1.2`. The tag must match the version in
-   `packages/npm/package.json`.
-3. The release workflow runs the full check, stages the tested tarball on npm, and
-   creates the GitHub release with the native archives. It stores no npm token: it
-   signs in through npm's trusted publishing (D251).
-4. Approve the staged version on npmjs.com, or run
-   `npm stage list athleticstandard` and `npm stage approve <stage-id>`. npm asks
-   for your two-factor code, then the version is public.
+1. Merge the pull request that sets the new version in
+   `packages/npm/package.json`. A comment on it then says the version is ready.
+2. Comment `/release` on that pull request. Only a repository admin's comment
+   starts anything. Run workflow on `main` with `publish` ticked does the same, on
+   the website or in GitHub Mobile.
+3. The release run does the full check, tags the tested commit, stages the tarball
+   on npm, and creates the GitHub release with the native archives. It stores no
+   npm token: it signs in through npm's trusted publishing.
+4. When it finishes, a comment on the pull request says how to approve. Approve the
+   staged version on npmjs.com, or run `npm stage list athleticstandard` and
+   `npm stage approve <stage-id>`. npm asks for your two-factor code, then the
+   version is public.
 5. Check from a clean folder: `npx -y athleticstandard@<version> --version`.
+
+Pushing a version tag, such as `v2.1.2`, from a terminal still starts the same
+release.
 
 The trust link on npmjs.com (package settings, Trusted Publisher) names GitHub
 Actions, `mwhitham/ath`, `release-cross-platform.yml`, and the `release` environment,
 and allows staging only. npm expires a new link that is not used within 2 days. If
-it expires, delete it, create it again, and push the tag within 2 days.
+it expires, delete it, create it again, and release within 2 days.
 
 ## Listing the skills
 

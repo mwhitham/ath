@@ -498,3 +498,49 @@ Rejected alternatives:
 - Use `npm@latest`. Rejected because a future major version could change its Node
   requirement or behaviour without a change to this file. npm 12 is pinned by major
   version.
+
+## D252. The maintainer starts a release from a pull request comment
+
+A release no longer needs a terminal. After a merge to `main`, if the version in
+`packages/npm/package.json` has no tag, `.github/workflows/release-commands.yml`
+comments on the merged pull request with how to release it. When a repository admin
+comments `/release` on that pull request, the workflow starts Release cross-platform
+on `main` with `publish` set. The same run can be started by hand from Actions > Run
+workflow, on the website or in GitHub Mobile.
+
+A release from `main` runs the full check, then tags the tested commit with the
+version, stages the npm package (D251), and creates the GitHub release. The tag is
+made only after every check has passed, so a failed check leaves no tag. Pushing a
+version tag still works as before. The last job comments on the merged pull request
+with the result: how to approve the staged package, or which run failed.
+
+Only an admin can start a release this way. The job runs only for comments whose
+author association is owner, member, or collaborator, and then asks GitHub's
+permission API whether the commenter is an admin. Anyone else gets no release. The
+comment workflow never checks out or runs pull request code, and it passes the
+comment text through an environment variable, so a comment cannot inject commands.
+Starting a run by hand needs write access, which GitHub enforces.
+
+The comment workflow does not publish. npm has refused trusted publishing from runs
+started by `issue_comment` since October 2026. The comment workflow starts a
+separate `workflow_dispatch` run, which npm accepts, and that run's workflow file,
+`release-cross-platform.yml`, is the one the npm trust link names.
+
+Rejected alternatives:
+
+- Publish from the comment workflow itself. Rejected because npm refuses tokens
+  from `issue_comment` runs.
+- Tag from the comment workflow and let the tag start the release. Rejected because
+  a tag pushed with the workflow's own token starts no other workflow, and the tag
+  would exist before the check passed.
+- Create the release in the GitHub web interface. Rejected because the release job
+  creates the release from the tested archives, and the two would conflict.
+- Let any collaborator start a release. Rejected because a release publishes under
+  the maintainer's name.
+- A personal access token for the comment workflow. Rejected because it is a stored
+  secret that would outlive its use, and the workflow's own token can start a
+  `workflow_dispatch` run.
+
+Verified before merging: shell syntax of every step, and each decision path with a
+stand-in for the `gh` command. The workflows themselves run only on GitHub, so the
+first real release is their first full test.

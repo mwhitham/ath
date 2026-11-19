@@ -1,28 +1,35 @@
-# Releases (D225). Pushing a version tag, such as v2.1.1, runs the full check
-# in validate.yml on Linux, macOS, and Windows: every Rust test, release
-# builds, archive smoke tests, and the npm tarball packed from the tested
-# executables and installed on each system. Then it checks that the archives
-# and the tarball hold the same executables, and publishes only those checked
-# files: the tarball to npm and the archives as the GitHub release. Nothing is
-# rebuilt after testing.
+# Releases (D225, D251, D252). A release runs the full check in validate.yml
+# on Linux, macOS, and Windows: every Rust test, release builds, archive smoke
+# tests, and the npm tarball packed from the tested executables and installed
+# on each system. Then it checks that the archives and the tarball hold the
+# same executables, and releases only those checked files. Nothing is rebuilt
+# after testing.
+#
+# A release starts in one of three ways:
+# - the maintainer comments `/release` on a merged pull request, and
+#   release-commands.yml starts this workflow on `main` with `publish` set;
+# - Actions > Release cross-platform > Run workflow on `main`, with `publish`
+#   set, from the website or GitHub Mobile;
+# - pushing a version tag, such as v2.1.2.
+# A release from `main` tags the tested commit with the version in
+# packages/npm/package.json, after every check has passed.
 #
 # The tarball is staged on npm, not published (D251). npm's trusted publishing
 # lets this job stage it with a short-lived identity token from GitHub, so no
 # npm token is stored. The package goes public only when the maintainer
 # approves it on npmjs.com or with `npm stage approve`, which needs their
-# two-factor code.
+# two-factor code. The archives become the GitHub release. The last job
+# comments on the merged pull request with the result.
 #
-# A manual run (Actions > Release cross-platform > Run workflow) runs the same
-# full check on any branch. It publishes only when it starts from a version
-# tag with `publish` set. The speed comparison is separate and runs by hand
-# (release-performance.yml).
+# Run workflow without `publish`, on any branch, runs the full check only. The
+# speed comparison is separate and runs by hand (release-performance.yml).
 name: Release cross-platform
 
 on:
   workflow_dispatch:
     inputs:
       publish:
-        description: Publish the checked npm tarball and native archives (the run must start from a version tag)
+        description: Release after the full check (from main or a version tag)
         type: boolean
         default: false
   push:
@@ -32,22 +39,68 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
+  version:
+    name: Decide what to release
+    runs-on: ubuntu-latest
+    outputs:
+      tag: ${{ steps.decide.outputs.tag }}
+      release: ${{ steps.decide.outputs.release }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          sparse-checkout: packages/npm/package.json
+      - id: decide
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PUBLISH: ${{ github.event_name == 'push' || inputs.publish }}
+        run: |
+          version="$(node -p "require('./packages/npm/package.json').version")"
+          tag="v$version"
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+          if [ "$PUBLISH" != true ]; then
+            echo "release=false" >> "$GITHUB_OUTPUT"
+            echo "Full check only; nothing will be released."
+            exit 0
+          fi
+          if [ "$GITHUB_REF_TYPE" = tag ]; then
+            if [ "$GITHUB_REF_NAME" != "$tag" ]; then
+              echo "::error::The tag $GITHUB_REF_NAME does not name version $version."
+              exit 1
+            fi
+          elif [ "$GITHUB_REF" = refs/heads/main ]; then
+            existing="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq .object.sha 2>/dev/null || true)"
+            if [ -n "$existing" ] && [ "$existing" != "$GITHUB_SHA" ]; then
+              echo "::error::$tag already names commit $existing. Raise the version in packages/npm/package.json to release $GITHUB_SHA."
+              exit 1
+            fi
+          else
+            echo "::error::A release starts only from main or a version tag, not $GITHUB_REF."
+            exit 1
+          fi
+          echo "release=true" >> "$GITHUB_OUTPUT"
+          echo "Releasing $tag from $GITHUB_SHA after the full check."
+
   validate:
+    needs: version
     uses: ./.github/workflows/validate.yml
 
   publish:
-    needs: validate
-    if: github.ref_type == 'tag' && (github.event_name == 'push' || inputs.publish)
+    name: Stage on npm and create the GitHub release
+    needs: [version, validate]
+    if: needs.version.outputs.release == 'true'
     runs-on: ubuntu-latest
     environment: release
     permissions:
       contents: write
       id-token: write
+    env:
+      TAG: ${{ needs.version.outputs.tag }}
     steps:
-      - uses: actions/checkout@v5
-        with:
-          sparse-checkout: packages/npm/package.json
       - uses: actions/setup-node@v4
         with:
           node-version: 24
@@ -62,13 +115,9 @@ jobs:
           pattern: archive-*
           path: archives
           merge-multiple: true
-      - name: Check the tag, the archives, and the tarball agree
+      - name: Check the archives and the tarball agree
         run: |
-          version="$(node -p "require('./packages/npm/package.json').version")"
-          if [ "$GITHUB_REF_NAME" != "v$version" ]; then
-            echo "The tag $GITHUB_REF_NAME does not name version $version"
-            exit 1
-          fi
+          version="${TAG#v}"
           mkdir unpacked
           for archive in archives/*.tar.gz; do tar -C unpacked -xzf "$archive"; done
           for archive in archives/*.zip; do (cd unpacked && unzip -q "../$archive"); done
@@ -96,9 +145,73 @@ jobs:
           }
           EOF
           (cd archives && sha256sum * > SHA256SUMS && cat SHA256SUMS)
+      - name: Tag the tested commit
+        if: github.ref_type != 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          existing="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" --jq .object.sha 2>/dev/null || true)"
+          if [ -z "$existing" ]; then
+            gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$GITHUB_SHA" --silent
+            echo "Tagged $GITHUB_SHA as $TAG."
+          elif [ "$existing" != "$GITHUB_SHA" ]; then
+            echo "::error::$TAG already names commit $existing."
+            exit 1
+          fi
       - name: Stage the checked tarball on npm for the maintainer to approve
         run: npm stage publish "npm-tarball/$(node -p "require('./npm-tarball/pack-summary.json').tarball")"
       - name: Publish the checked archives as the GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" archives/* --repo "$GITHUB_REPOSITORY" --verify-tag --title "$GITHUB_REF_NAME"
+        run: gh release create "$TAG" archives/* --repo "$GITHUB_REPOSITORY" --verify-tag --title "$TAG"
+
+  report:
+    name: Report on the pull request
+    needs: [version, validate, publish]
+    if: always() && needs.version.outputs.release == 'true'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: write
+    env:
+      GH_TOKEN: ${{ github.token }}
+      TAG: ${{ needs.version.outputs.tag }}
+      RESULT: ${{ needs.publish.result }}
+      RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+    steps:
+      - name: Comment with the result and the approval steps
+        run: |
+          pr="$(gh api "repos/$GITHUB_REPOSITORY/commits/$GITHUB_SHA/pulls" --jq '[.[] | select(.merged_at != null)][0].number // empty')"
+          if [ -z "$pr" ]; then
+            echo "No merged pull request contains $GITHUB_SHA, so there is nowhere to comment."
+            exit 0
+          fi
+          if [ "$RESULT" = success ]; then
+            IFS= read -r -d '' body <<'EOF' || true
+          **@TAG@ is staged on npm and waiting for your approval.**
+
+          The full check passed. `@TAG@` now names the tested commit, and the [GitHub release](@SERVER@/@REPO@/releases/tag/@TAG@) holds the native archives. Nobody can install @TAG@ from npm until you approve it.
+
+          Approve it in one of two ways. Both ask for your two-factor code.
+
+          - **On npmjs.com:** sign in, open [athleticstandard](https://www.npmjs.com/package/athleticstandard), and approve the staged version.
+          - **In a terminal:** `npm stage list athleticstandard`, then `npm stage approve <stage-id>`.
+
+          Then check it from any folder: `npx -y athleticstandard@@VERSION@ --version`
+
+          [Release run](@RUN@)
+          EOF
+          else
+            IFS= read -r -d '' body <<'EOF' || true
+          **The release of @TAG@ did not finish.** Nothing is public on npm.
+
+          Open the [release run](@RUN@) to see which step failed. Fix it in a new pull request, merge it, and comment `/release` on that pull request.
+          EOF
+          fi
+          body="${body//@TAG@/$TAG}"
+          body="${body//@VERSION@/${TAG#v}}"
+          body="${body//@RUN@/$RUN_URL}"
+          body="${body//@SERVER@/$GITHUB_SERVER_URL}"
+          body="${body//@REPO@/$GITHUB_REPOSITORY}"
+          gh pr comment "$pr" --repo "$GITHUB_REPOSITORY" --body "$body"
