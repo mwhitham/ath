@@ -645,7 +645,14 @@ pub fn stale_skill_warning(cwd: &Path) -> Option<String> {
     } else {
         format!("is from {installed}, older than this ath ({shipped})")
     };
-    Some(format!("ath: the agent skill in {}{more} {age}; run ath skill install to update it", folder.display()))
+    // A folder inside `cwd` is written with forward slashes on every system, so
+    // the notice reads the same on Windows.
+    let folder = if folder.is_relative() {
+        folder.components().map(|part| part.as_os_str().to_string_lossy()).collect::<Vec<_>>().join("/")
+    } else {
+        folder.display().to_string()
+    };
+    Some(format!("ath: the agent skill in {folder}{more} {age}; run ath skill install to update it"))
 }
 
 /// The human `ath skill` status text.
