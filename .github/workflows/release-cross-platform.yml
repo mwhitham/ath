@@ -6,6 +6,12 @@
 # files: the tarball to npm and the archives as the GitHub release. Nothing is
 # rebuilt after testing.
 #
+# The tarball is staged on npm, not published (D251). npm's trusted publishing
+# lets this job stage it with a short-lived identity token from GitHub, so no
+# npm token is stored. The package goes public only when the maintainer
+# approves it on npmjs.com or with `npm stage approve`, which needs their
+# two-factor code.
+#
 # A manual run (Actions > Release cross-platform > Run workflow) runs the same
 # full check on any branch. It publishes only when it starts from a version
 # tag with `publish` set. The speed comparison is separate and runs by hand
@@ -37,14 +43,16 @@ jobs:
     environment: release
     permissions:
       contents: write
+      id-token: write
     steps:
       - uses: actions/checkout@v5
         with:
           sparse-checkout: packages/npm/package.json
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
-          registry-url: https://registry.npmjs.org
+          node-version: 24
+      - name: Use an npm that can stage through trusted publishing
+        run: npm install -g npm@12 && npm --version
       - uses: actions/download-artifact@v4
         with:
           name: npm-tarball
@@ -88,10 +96,8 @@ jobs:
           }
           EOF
           (cd archives && sha256sum * > SHA256SUMS && cat SHA256SUMS)
-      - name: Publish the checked tarball to npm
-        run: npm publish "npm-tarball/$(node -p "require('./npm-tarball/pack-summary.json').tarball")"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+      - name: Stage the checked tarball on npm for the maintainer to approve
+        run: npm stage publish "npm-tarball/$(node -p "require('./npm-tarball/pack-summary.json').tarball")"
       - name: Publish the checked archives as the GitHub release
         env:
           GH_TOKEN: ${{ github.token }}

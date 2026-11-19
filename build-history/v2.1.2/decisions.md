@@ -460,3 +460,41 @@ Rejected alternatives:
   generator keeps them identical.
 - Change the no-database message. Rejected for now because the baseline agent
   found the database and used it, and never offered `ath init`.
+
+## D251. A version tag stages the npm package; the maintainer approves it
+
+A version tag still runs the full check and builds nothing after it (D225). The
+release job now stages the checked tarball with `npm stage publish` instead of
+publishing it. It signs in to npm through trusted publishing: GitHub gives the job a
+short-lived identity token (`id-token: write`), and npm accepts it only from
+`release-cross-platform.yml` in the `release` environment of this repository. No npm
+token is stored in GitHub. The trust link on npmjs.com allows staging only, not
+`npm publish`.
+
+A staged version cannot be installed. It becomes public when the maintainer approves
+it on npmjs.com or with `npm stage approve <stage-id>`, and both ask for the
+maintainer's two-factor code. The GitHub release with the native archives is still
+created by the same job.
+
+The job uses Node 24 and npm 12. Node 22 ships npm 10, which has neither trusted
+publishing (npm 11.5.1) nor staging. A dry run of npm 12.2.3 confirmed that
+`npm stage publish` accepts a tarball path, as `npm publish` does, so the tested
+tarball is the one staged.
+
+npm expires a new trust link that has not been used within 2 days. The maintainer
+creates it, or recreates an expired one, and pushes the version tag within those 2
+days. A link that has been used does not expire.
+
+Rejected alternatives:
+
+- Keep `npm publish` with the `NPM_TOKEN` secret. Rejected because a stored token
+  can publish without the maintainer, and npm advises deleting tokens that bypass
+  two-factor sign-in.
+- Allow `npm publish` on the trust link. Rejected because a pushed tag would then
+  make the package public with no human step. Staging keeps the maintainer's
+  approval that D248 and the onboarding rules require.
+- Publish from the maintainer's computer. Rejected because the tarball would not be
+  the one the full check tested on three systems.
+- Use `npm@latest`. Rejected because a future major version could change its Node
+  requirement or behaviour without a change to this file. npm 12 is pinned by major
+  version.

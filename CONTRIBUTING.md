@@ -46,9 +46,10 @@ npm test
   must pass before a merge. A new push cancels the run for the push before it.
 - **A version tag, such as `v2.1.1`:** the full check on Linux, macOS, and
   Windows, with release builds, archive and npm install checks, and Node 22
-  and 24. If everything passes, it publishes to npm and creates the GitHub
-  release. To run the full check on a branch without publishing, use Actions >
-  Release cross-platform > Run workflow.
+  and 24. If everything passes, it stages the package on npm and creates the
+  GitHub release. The package is public only after the maintainer approves the
+  staged version with their two-factor code (D251). To run the full check on a
+  branch without publishing, use Actions > Release cross-platform > Run workflow.
 - **The speed comparison with 2.1.0** runs only by hand: Actions > Release
   performance > Run workflow.
 

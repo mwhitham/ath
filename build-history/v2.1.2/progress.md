@@ -15,6 +15,7 @@ Status: **built; not released**. The plan is [spec.md](spec.md).
 | 9 | skills.sh preparation and contribution standard | done |
 | 10 | Agent evaluations, installation tests, repository checks | done |
 | 11 | Setup guidance in every skill, from one generated source (D250) | done |
+| 12 | Release job stages the npm package for approval (D251) | done |
 
 Step 10 results are in the [agent evaluation](appendix/agent-evaluation.md). Every
 required check passed on 2026-11-16: `cargo fmt --check`, `cargo clippy
@@ -40,4 +41,6 @@ Outstanding outside this build:
 
 - Independent review by qualified CrossFit and HYROX coaches (D247). An AI review
   does not count.
-- Publication to npm and listing on skills.sh. The maintainer does both manually.
+- Publication. A `v2.1.2` tag stages the npm package and creates the GitHub
+  release; the maintainer then approves the staged package (D251). The skills.sh
+  listing follows, by hand, as in [publishing-skills.md](../../docs/publishing-skills.md).
