@@ -55,7 +55,7 @@ returns a null result. Its `missing` entry keeps "unknown calculation X" and add
 "this skill file may need a newer ath (ath --update)". The check is
 `tests/calculate.rs`.
 
-## 7. A tool skill left by an older `ath` is noted (D252)
+## 7. A tool skill left by an older `ath` is noted (D253)
 
 When a folder's `athletic-standard` skill is older than this `ath`, every command
 except bare `ath`, `ath --update`, `init`, and `skill` prints one line on standard

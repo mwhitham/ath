@@ -616,13 +616,13 @@ pub fn skill_present(cwd: &Path) -> Result<bool> {
 }
 
 /// The one-line notice printed on standard error when the tool skill in
-/// `cwd` is older than the one this `ath` ships (D79, D252).
+/// `cwd` is older than the one this `ath` ships (D79, D253).
 ///
 /// `ath skill install` and this `ath`'s `--update` replace an older tool skill
 /// (D164). An `ath` from 0.x or 1.x cannot: when it updates itself, it copies
 /// its own skill folder, which the update has just removed. So the first update
 /// from those versions leaves the old instructions in place, and this notice
-/// says so (D252). Only the tool skill is checked, because it is the only skill
+/// says so (D253). Only the tool skill is checked, because it is the only skill
 /// those versions installed and the first one an agent reads. The test is the
 /// one `ath skill install` uses to decide on replacing it.
 pub fn stale_skill_warning(cwd: &Path) -> Option<String> {

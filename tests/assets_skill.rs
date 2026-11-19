@@ -328,7 +328,7 @@ fn install_adds_a_missing_file_to_an_existing_copy() {
 
 #[test]
 fn an_older_tool_skill_is_noted_until_it_is_replaced() {
-    // D252: no copy, or a current copy, gives no notice.
+    // D253: no copy, or a current copy, gives no notice.
     let none = dir_with_agents(&[]);
     assert_eq!(stale_skill_warning(none.path()), None);
     assert!(!skill_present(none.path()).unwrap());

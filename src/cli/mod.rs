@@ -43,7 +43,7 @@ pub fn run(argv: &[String], io: Io<'_>, services: Services) -> i32 {
 }
 
 /// Say once, on standard error, when this folder's tool skill is older than
-/// this `ath` (D252). It also prints on `--json` runs, which agents use; the
+/// this `ath` (D253). It also prints on `--json` runs, which agents use; the
 /// JSON on standard output is unchanged. It is skipped for bare `ath` and
 /// `ath --update`, `init`, and `skill`, which show or replace the copy.
 fn note_older_tool_skill(context: &mut Context<'_>, path: &[&str]) {

@@ -415,7 +415,7 @@ fn progress_never_reaches_standard_output() {
 
 #[test]
 fn a_tool_skill_left_by_an_older_ath_is_noted_until_ath_skill_install() {
-    // D252: an ath from 0.x or 1.x cannot refresh its skill when it updates
+    // D253: an ath from 0.x or 1.x cannot refresh its skill when it updates
     // itself, so 2.1.2 says so on standard error, even on --json runs.
     let folder = private_folder();
     demo_copy(folder.path());
