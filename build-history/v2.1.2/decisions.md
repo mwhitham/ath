@@ -544,3 +544,46 @@ Rejected alternatives:
 Verified before merging: shell syntax of every step, and each decision path with a
 stand-in for the `gh` command. The workflows themselves run only on GitHub, so the
 first real release is their first full test.
+
+## D253. A tool skill left by an older `ath` is noted until it is replaced
+
+When a folder's `athletic-standard` skill is older than this `ath`, every command
+prints one line on standard error: "ath: the agent skill in .agents/skills is from
+1.1.0, older than this ath (2.1.2); run ath skill install to update it". It prints on
+`--json` runs too, because agents use them; the JSON on standard output does not
+change. Bare `ath`, `ath --update`, `init`, and `skill` skip it, because they show or
+replace the copy. Only the tool skill is checked: it is the only skill 0.x and 1.x
+installed, and the first file an agent reads.
+
+D164 removed D79's warning because `ath skill install` and `ath --update` replace an
+older tool skill. That holds when this `ath` does the update. 2.1.2 is the first 2.x
+version on npm, so everyone who has `ath` today has 0.x or 1.x, and their first
+update runs through the old program:
+
+- 0.1.0 to 0.4.1 have no `--update`. People run `npm install -g`, which copies no
+  skill files.
+- 0.4.3, 1.0.0, and 1.1.0 install the new version and then copy their own `skill/`
+  folder into the project. The install has just removed that folder, so nothing is
+  copied.
+
+So the old tool skill stays, and before this decision 2.1.2 said nothing. Given only
+"Where did I lose time in my HYROX race?", an agent in such a folder followed the
+1.1.0 instructions. It never learned that `hyrox-race-splits` exists, and it did the
+arithmetic itself. With the notice, the agent saw the line on its first command,
+refreshed the skills, and used the calculation. The runs are in
+[skill-prerequisites.md](appendix/skill-prerequisites.md), section 6.
+
+This supersedes D164 only where D164 says there is no warning. D164's replacement
+rules stand.
+
+Rejected alternatives:
+
+- Rely on D164's replacement. Rejected because no 0.x or 1.x updater runs it.
+- Replace the old tool skill automatically when any command runs. Rejected for the
+  reason D79 gave: a command that reads should not write into the project folder.
+- Keep the old rule of skipping `--json` runs. Rejected because agents use `--json`.
+  The note goes to standard error, so the JSON is unchanged.
+- Add a line to the D250 section in every skill. Rejected because an agent in such a
+  folder reads the old 1.x tool skill, not the new section.
+- Upgrade guide only. Rejected because agents in old folders do not read it. The guide
+  now says it as well.

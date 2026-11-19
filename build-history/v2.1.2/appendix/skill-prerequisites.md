@@ -97,3 +97,32 @@ Because the no-database baseline passed, its message was left unchanged.
 - The `npx -y athleticstandard@<version>` form was not run. It cannot resolve until
   2.1.2 is published. `docs/publishing-skills.md` now asks for that check before the
   skills are listed.
+
+## 6. Updating from the versions people have installed (D253)
+
+This section was added on 2026-11-19, once the maintainer set 2.1.2 to be released
+that day. No 2.x version had reached npm, so everyone with `ath` has 0.x or 1.x.
+
+What the published packages do, read from each tarball on npm:
+
+| Versions | `--update` | After the update |
+|---|---|---|
+| 0.1.0 to 0.4.1 | none | `npm install -g` copies no skill files. |
+| 0.4.3, 1.0.0, 1.1.0 | runs `npm install -g athleticstandard@latest` | Copies its own `skill/` folder into the project. The install has just replaced the package, and 2.1.2 ships `skills/`, so nothing is copied. |
+
+0.x used prerelease JSON records, which 2.x does not import (D101). A 1.x database
+upgrades with `ath migrate`.
+
+Runs, with the criteria written first. All used the `hyrox` and `hyrox-race-splits`
+skills and the HYROX database:
+
+| Case | Setup | Result |
+|---|---|---|
+| u1 | Simulated 1.1.0 whose `--update` succeeds; the athlete allows updates. D250 text. | Updated, checked the version again, and answered with `apply hyrox-race-splits`. No `ath skill install`, which made no difference here: the skills came from the skills CLI and were already 2.1.2 text. |
+| u2 | Simulated 0.4.1 with no `--update`; the athlete allows updates. D250 text. | After "unknown option", ran `npm install -g athleticstandard@latest` by itself, which is the right package because the D250 text names it. Checked the version again and answered correctly. So the D250 text needs no fallback line. |
+| o1 | A folder set up by `ath init` 1.1.0, `ath` already 2.1.2. The athlete allows updates. | Without the notice and with it: both ran `ath skill`, saw the 1.1.0 copy, ran `ath skill install`, and answered with the calculation. The request's invitation may have prompted the check. |
+| o2 | The same folder; the athlete asks only "Where did I lose time in my HYROX race on 18 October?" | Without the notice: never learned that the skill was old, never found `hyrox-race-splits`, and added the splits itself. With the notice: saw it on the first command, ran `ath skill install`, and answered with the calculation. It ran the install without asking, and said it should have asked. |
+
+The D250 section cannot reach an agent in an old folder, because that agent reads the
+old tool skill. The notice in `ath` can. That is why D253 is a program change and not
+a skill change. One run per case; one model.

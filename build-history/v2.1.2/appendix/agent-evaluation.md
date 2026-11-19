@@ -144,6 +144,21 @@ In six runs the agent read the wrapper script that stood in for `ath`. The
 not-installed case had no wrapper. What the D250 text changed, reading the database
 by hand, was never blocked by a wrapper.
 
+### Update cases (D253)
+
+Run on 2026-11-19 after 2.1.2 was set for release that day. The criteria were written
+before each pair of runs. The setup, every result, and why each case was run are in
+[skill-prerequisites.md](skill-prerequisites.md), section 6.
+
+| Case | Text or program | Result |
+|---|---|---|
+| u1, old `ath` with `--update`, updates allowed | D250 text | Pass, except no `ath skill install` (no effect in that folder) |
+| u2, old `ath` without `--update`, updates allowed | D250 text | Pass, except no `ath skill install`; used `npm install -g athleticstandard@latest` unprompted |
+| o1, folder from `ath init` 1.1.0, updates allowed | 2.1.2 without the notice | Pass |
+| o1, the same | 2.1.2 with the notice | Pass |
+| o2, the same, plain question | 2.1.2 without the notice | **Fail**: added the splits itself; never learned the skill was old |
+| o2, the same, plain question | 2.1.2 with the notice | Pass, but ran `ath skill install` without asking |
+
 ## Local installation with the skills CLI
 
 The `skills` CLI 1.8.1 was run with `DISABLE_TELEMETRY=1` and `DO_NOT_TRACK=1`, in a

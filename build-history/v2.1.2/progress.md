@@ -17,6 +17,7 @@ Status: **built; not released**. The plan is [spec.md](spec.md).
 | 11 | Setup guidance in every skill, from one generated source (D250) | done |
 | 12 | Release job stages the npm package for approval (D251) | done |
 | 13 | Release from a `/release` comment, with progress comments (D252) | done |
+| 14 | Updating from 0.x and 1.x: notice for an older tool skill, upgrade guide (D253) | done |
 
 Step 10 results are in the [agent evaluation](appendix/agent-evaluation.md). Every
 required check passed on 2026-11-16: `cargo fmt --check`, `cargo clippy
