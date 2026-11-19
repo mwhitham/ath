@@ -23,9 +23,13 @@ examples. A starting file is in
 
 - `SKILL.md`: frontmatter with `name`, a `description` that says when to use and
   when not to use the skill (300–700 characters), `license: MIT`, a
-  `compatibility` line naming the Athletic Standard version, and
-  `metadata.version` and `metadata.kind: coaching`. The body states the purpose,
-  the workflow, safety, how to save work, and which reference to open for what.
+  `compatibility` line naming the minimum `ath` version and the `athleticstandard`
+  npm package, and `metadata.version` and `metadata.kind: coaching`. The body states
+  the purpose, the workflow, safety, how to save work, and which reference to open
+  for what.
+- A `## Before the first ath command` section before the first `ath` command, as in
+  the template. Do not write its text by hand: add the heading, then run
+  `ATH_WRITE_GENERATED=1 cargo test --test generated` (D250).
 - `references/`: the depth, one topic per file, each linked from `SKILL.md` with
   when to read it. Every relative link must resolve.
 - No `ath-calculation` block. A calculation the sport needs is its own calculation

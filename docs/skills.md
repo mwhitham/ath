@@ -43,6 +43,15 @@ Set both variables for any install you do not want counted. The skills CLI sends
 anonymous install telemetry to skills.sh by default, and skills.sh lists skills from
 that telemetry.
 
+The skills CLI copies only the skill text. Every skill runs `ath`, so install `ath`
+as well: `npm install -g athleticstandard`, or another way in the
+[README](../README.md#install). The npm package named `ath` is a different program.
+Each skill starts with a "Before the first ath command" section. It tells the agent
+to check `ath --version`, to ask before installing or updating `ath`, and to stop
+rather than work around a missing `ath` (D250). That section is generated from one
+source in `src/assets/skill.rs`; `cargo test --test generated` fails if a copy
+differs.
+
 The skills CLI puts each agent's copy in that agent's folder: `.agents/skills/` for
 Codex and similar agents, `.claude/skills/` for Claude Code. `ath apply` runs the
 calculation in `.agents/skills/<name>/SKILL.md` when it exists, else the copy built

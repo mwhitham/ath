@@ -23,6 +23,11 @@ that report when `DISABLE_TELEMETRY` or `DO_NOT_TRACK` is set
    (`tests/skill_examples.rs` checks this).
 4. The repository is public on its default branch, because skills.sh reads
    `skills.sh.json` from there ([customising a page](https://skills.sh/docs/customize)).
+5. The npm package and the release archives for this version are published first.
+   Every skill tells the agent to install `athleticstandard` and to need this version
+   or later. Until it is published, `npm install -g athleticstandard` installs an
+   older version, and the skills tell the agent to stop. Check from a clean folder
+   that `npx -y athleticstandard@<version> --version` prints the version.
 
 ## Publishing
 

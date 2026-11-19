@@ -32,6 +32,10 @@ The `ath` executable carries three kinds of [Agent Skills](https://agentskills.i
 Coaching skills are installed only when named: `ath skill install hyrox`.
 [`docs/skills.md`](docs/skills.md) lists every skill and what was verified.
 
+Every skill runs `ath`. A skill installed another way, such as with the skills CLI,
+needs `ath` installed too (see [Install](#install)). Each skill tells the agent how to
+check for `ath`, and to ask before installing it.
+
 ## Security
 
 The database contains sensitive health and training data. Athletic Standard creates
