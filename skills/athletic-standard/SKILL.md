@@ -2,7 +2,7 @@
 name: athletic-standard
 description: Reads and writes an athlete's Athletic Standard SQLite database (.ath.sqlite) with the ath CLI. Applies when someone logs a workout, lift, named benchmark such as Fran, HRV as RMSSD or SDNN, resting heart rate, sleep, soreness, nutrition, or another athlete report; asks what training or recovery data shows; asks for a benchmark prediction or backtest; reports a result to grade; imports Apple Health, WHOOP, Oura, Garmin, or Strava, or an Athletic Standard 2.0.0, 2.1.0, 2.1.1, or 2.1.2 package; reads an Open Wearables or Junction JSON file through a mapping file; exports a complete package; runs ath apply on one record; or asks about Athletic Standard records, revisions, calculations, deletion, or privacy erasure.
 license: MIT
-compatibility: Requires the ath CLI 2.1.2 on PATH, from the athleticstandard npm package or a native release archive. Local database use needs no network. Optional terminal model calls need a configured gateway.
+compatibility: Requires the ath CLI 2.1.2 or later on PATH, from the athleticstandard npm package or a native release archive. Local database use needs no network. Optional terminal model calls need a configured gateway.
 metadata:
   version: "2.1.2"
   kind: tool
@@ -29,6 +29,25 @@ Not an app, not a coach, not medical advice. This skill describes what the data
 shows. It does not prescribe training or diagnose a condition. Training advice comes
 only from a coaching skill the athlete chose to install (below), and is saved as an
 authored record.
+
+## Before the first ath command
+
+This skill runs `ath`, the Athletic Standard program, version 2.1.2 or later.
+Check it once with `ath --version`.
+
+- If `ath` is not found, it is not installed. It comes from the npm package
+  `athleticstandard`. The npm package named `ath` is a different program. Install it
+  with `npm install -g athleticstandard`, which needs Node.js 22 or later. Other ways
+  to install it are at https://www.npmjs.com/package/athleticstandard.
+- If the version is older than 2.1.2, update it with `ath --update`.
+- Install or update only after the person agrees. Then run `ath --version` again. If
+  it is still older than 2.1.2, say so and stop.
+
+If the answer needs the athlete's records or a calculation and `ath` cannot run, stop.
+Tell the person what is missing and how to fix it. Do not read the database another
+way or do the calculation yourself: the calculations and their checks run only in
+`ath`. For any other message from `ath`, follow what it says, and ask before anything
+that creates or changes a file.
 
 ## Three kinds of skill
 

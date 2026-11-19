@@ -2,7 +2,7 @@
 name: trend
 description: Fits a straight-line trend to one measurement over time, separately for each device, and reports the slope per day with its standard error. Use when someone asks whether their HRV, resting heart rate, body weight, or another reading is going up or down over weeks, or how fast it is changing. Not for one day against normal (use hrv-change), an average (use baseline), or cause and effect (no calculation shows that).
 license: MIT
-compatibility: Requires the ath CLI and an Athletic Standard 2.1.2 database. Runs with ath calculate trend <quantity>.
+compatibility: Requires the ath CLI 2.1.2 or later (npm package athleticstandard) and an Athletic Standard database. Runs with ath calculate trend <quantity>.
 metadata:
   version: "2.1.2"
   kind: calculation
@@ -12,6 +12,25 @@ metadata:
 
 An ordinary least-squares line through one quantity against elapsed days, for each
 source.
+
+## Before the first ath command
+
+This skill runs `ath`, the Athletic Standard program, version 2.1.2 or later.
+Check it once with `ath --version`.
+
+- If `ath` is not found, it is not installed. It comes from the npm package
+  `athleticstandard`. The npm package named `ath` is a different program. Install it
+  with `npm install -g athleticstandard`, which needs Node.js 22 or later. Other ways
+  to install it are at https://www.npmjs.com/package/athleticstandard.
+- If the version is older than 2.1.2, update it with `ath --update`.
+- Install or update only after the person agrees. Then run `ath --version` again. If
+  it is still older than 2.1.2, say so and stop.
+
+If the answer needs the athlete's records or a calculation and `ath` cannot run, stop.
+Tell the person what is missing and how to fix it. Do not read the database another
+way or do the calculation yourself: the calculations and their checks run only in
+`ath`. For any other message from `ath`, follow what it says, and ask before anything
+that creates or changes a file.
 
 ## Run it
 

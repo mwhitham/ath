@@ -2,7 +2,7 @@
 name: compare-sources
 description: Compares the same measurement from two devices, such as a ring and a watch, by their separate averages and, when the day is known, on the days both devices read. Use when someone asks why two devices disagree on HRV, resting heart rate, or another reading, how far apart they are, or before switching devices. Never merges the two sources. Not for a single device's normal (use baseline).
 license: MIT
-compatibility: Requires the ath CLI and an Athletic Standard 2.1.2 database. Runs with ath calculate compare-sources <quantity> --source <id> --compare-source <id>.
+compatibility: Requires the ath CLI 2.1.2 or later (npm package athleticstandard) and an Athletic Standard database. Runs with ath calculate compare-sources <quantity> --source <id> --compare-source <id>.
 metadata:
   version: "2.1.2"
   kind: calculation
@@ -12,6 +12,25 @@ metadata:
 
 Two devices' summaries of one quantity, the difference between their means, and,
 with a time zone, the mean difference on days both devices read.
+
+## Before the first ath command
+
+This skill runs `ath`, the Athletic Standard program, version 2.1.2 or later.
+Check it once with `ath --version`.
+
+- If `ath` is not found, it is not installed. It comes from the npm package
+  `athleticstandard`. The npm package named `ath` is a different program. Install it
+  with `npm install -g athleticstandard`, which needs Node.js 22 or later. Other ways
+  to install it are at https://www.npmjs.com/package/athleticstandard.
+- If the version is older than 2.1.2, update it with `ath --update`.
+- Install or update only after the person agrees. Then run `ath --version` again. If
+  it is still older than 2.1.2, say so and stop.
+
+If the answer needs the athlete's records or a calculation and `ath` cannot run, stop.
+Tell the person what is missing and how to fix it. Do not read the database another
+way or do the calculation yourself: the calculations and their checks run only in
+`ath`. For any other message from `ath`, follow what it says, and ask before anything
+that creates or changes a file.
 
 ## Run it
 

@@ -2,7 +2,7 @@
 name: summary
 description: Counts and summarises one measurement over a period, separately for each device, with optional day, week, or month groups. Use when someone asks for their average, minimum, maximum, or number of readings of one quantity, such as RMSSD, SDNN, resting heart rate, heart rate, or body weight, over a period, or per week. Not for a change on one day (use hrv-change), a trend (use trend), or missing days (use coverage).
 license: MIT
-compatibility: Requires the ath CLI and an Athletic Standard 2.1.2 database. Runs with ath calculate summary <quantity>.
+compatibility: Requires the ath CLI 2.1.2 or later (npm package athleticstandard) and an Athletic Standard database. Runs with ath calculate summary <quantity>.
 metadata:
   version: "2.1.2"
   kind: calculation
@@ -12,6 +12,25 @@ metadata:
 
 Count, minimum, maximum, mean, sum, and population standard deviation of one
 quantity, for each source separately.
+
+## Before the first ath command
+
+This skill runs `ath`, the Athletic Standard program, version 2.1.2 or later.
+Check it once with `ath --version`.
+
+- If `ath` is not found, it is not installed. It comes from the npm package
+  `athleticstandard`. The npm package named `ath` is a different program. Install it
+  with `npm install -g athleticstandard`, which needs Node.js 22 or later. Other ways
+  to install it are at https://www.npmjs.com/package/athleticstandard.
+- If the version is older than 2.1.2, update it with `ath --update`.
+- Install or update only after the person agrees. Then run `ath --version` again. If
+  it is still older than 2.1.2, say so and stop.
+
+If the answer needs the athlete's records or a calculation and `ath` cannot run, stop.
+Tell the person what is missing and how to fix it. Do not read the database another
+way or do the calculation yourself: the calculations and their checks run only in
+`ath`. For any other message from `ath`, follow what it says, and ask before anything
+that creates or changes a file.
 
 ## Run it
 

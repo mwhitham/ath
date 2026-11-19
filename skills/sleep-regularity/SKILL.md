@@ -2,7 +2,7 @@
 name: sleep-regularity
 description: Scores how regular sleep timing has been over the last 14 days with the Sleep Regularity Index, from -100 to 100, using the sleep sessions from one device. Use when someone asks whether they keep a consistent sleep schedule, how irregular their bedtimes are, or whether shifting sleep around weekends or shifts is showing. Needs at least 7 consecutive recorded days. Not for one night's times (use sleep-timing) or amount (use sleep-duration).
 license: MIT
-compatibility: Requires the ath CLI and an Athletic Standard 2.1.2 database. Runs with ath apply sleep-regularity --record <sleep-session-id>.
+compatibility: Requires the ath CLI 2.1.2 or later (npm package athleticstandard) and an Athletic Standard database. Runs with ath apply sleep-regularity --record <sleep-session-id>.
 metadata:
   version: "2.1.2"
   kind: calculation
@@ -14,6 +14,25 @@ The Sleep Regularity Index (Phillips et al., 2017) asks: at each minute of the d
 is the athlete in the same state, asleep or awake, as at the same minute 24 hours
 later? 100 means the same pattern every day; 0 means no relation; −100 means the
 opposite pattern.
+
+## Before the first ath command
+
+This skill runs `ath`, the Athletic Standard program, version 2.1.2 or later.
+Check it once with `ath --version`.
+
+- If `ath` is not found, it is not installed. It comes from the npm package
+  `athleticstandard`. The npm package named `ath` is a different program. Install it
+  with `npm install -g athleticstandard`, which needs Node.js 22 or later. Other ways
+  to install it are at https://www.npmjs.com/package/athleticstandard.
+- If the version is older than 2.1.2, update it with `ath --update`.
+- Install or update only after the person agrees. Then run `ath --version` again. If
+  it is still older than 2.1.2, say so and stop.
+
+If the answer needs the athlete's records or a calculation and `ath` cannot run, stop.
+Tell the person what is missing and how to fix it. Do not read the database another
+way or do the calculation yourself: the calculations and their checks run only in
+`ath`. For any other message from `ath`, follow what it says, and ask before anything
+that creates or changes a file.
 
 ## Run it
 

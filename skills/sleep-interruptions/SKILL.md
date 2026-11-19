@@ -2,7 +2,7 @@
 name: sleep-interruptions
 description: Reads how many times sleep was interrupted on one sleep session, as the source counted it. Use when someone asks how broken or restless a night was, or how often they woke up. Reads the interruptions field. Not for minutes awake (use sleep-stages or sleep-efficiency) or comparison with other nights (use summary or sleep-change).
 license: MIT
-compatibility: Requires the ath CLI and an Athletic Standard 2.1.2 database. Runs with ath apply sleep-interruptions --record <sleep-session-id>.
+compatibility: Requires the ath CLI 2.1.2 or later (npm package athleticstandard) and an Athletic Standard database. Runs with ath apply sleep-interruptions --record <sleep-session-id>.
 metadata:
   version: "2.1.2"
   kind: calculation
@@ -11,6 +11,25 @@ metadata:
 # Sleep interruptions
 
 How many times the source says sleep was interrupted during one session.
+
+## Before the first ath command
+
+This skill runs `ath`, the Athletic Standard program, version 2.1.2 or later.
+Check it once with `ath --version`.
+
+- If `ath` is not found, it is not installed. It comes from the npm package
+  `athleticstandard`. The npm package named `ath` is a different program. Install it
+  with `npm install -g athleticstandard`, which needs Node.js 22 or later. Other ways
+  to install it are at https://www.npmjs.com/package/athleticstandard.
+- If the version is older than 2.1.2, update it with `ath --update`.
+- Install or update only after the person agrees. Then run `ath --version` again. If
+  it is still older than 2.1.2, say so and stop.
+
+If the answer needs the athlete's records or a calculation and `ath` cannot run, stop.
+Tell the person what is missing and how to fix it. Do not read the database another
+way or do the calculation yourself: the calculations and their checks run only in
+`ath`. For any other message from `ath`, follow what it says, and ask before anything
+that creates or changes a file.
 
 ## Run it
 

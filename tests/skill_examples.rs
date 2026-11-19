@@ -103,6 +103,12 @@ fn every_skill_file_has_a_valid_shape() {
             compatibility.contains(ATHLETIC_STANDARD_VERSION),
             "{name}: compatibility names {ATHLETIC_STANDARD_VERSION}"
         );
+        // The npm package named `ath` is a different program (D250).
+        assert!(
+            compatibility.contains(&format!("ath CLI {ATHLETIC_STANDARD_VERSION} or later"))
+                && compatibility.contains("athleticstandard"),
+            "{name}: compatibility names the minimum ath version and the athleticstandard package"
+        );
         for link in relative_links(&text) {
             assert!(dir.join(&link).exists(), "{name}: link {link} does not resolve");
         }

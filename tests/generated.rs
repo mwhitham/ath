@@ -15,6 +15,10 @@
 //!   module, from the operation definitions in `src/protocol/`.
 //! - `skills/athletic-standard/references/cli.md`: the command reference, from
 //!   the command table (D80).
+//! - The `## Before the first ath command` section of every `skills/*/SKILL.md`
+//!   and of the coaching skill template, from
+//!   `assets::skill::prerequisite_section` (D250). The rest of each file is
+//!   written by hand.
 //! - `examples/demo-athlete/`: the demo database and its attachment, from
 //!   `tests/demo_support/history.json`.
 //!
@@ -139,6 +143,28 @@ fn the_skill_lists_every_top_level_command() {
             !next.is_some_and(|character| character.is_alphanumeric() || character == '-')
         });
         assert!(listed, "SKILL.md has no table row for ath {}", command.name);
+    }
+}
+
+#[test]
+fn every_skill_carries_the_prerequisite_section() {
+    use athleticstandard::assets::skill::{with_prerequisite_section, PREREQUISITE_HEADING};
+    let mut skills: Vec<String> = fs::read_dir(repository().join("skills"))
+        .unwrap()
+        .map(|entry| entry.unwrap().path())
+        .filter(|path| path.join("SKILL.md").is_file())
+        .map(|path| format!("skills/{}/SKILL.md", path.file_name().unwrap().to_string_lossy()))
+        .collect();
+    skills.sort();
+    assert!(skills.len() >= 27, "found {} skills", skills.len());
+    let template = "docs/templates/coaching-skill/SKILL.template.md";
+    for (relative, version) in
+        skills.iter().map(|path| (path.as_str(), package::ATHLETIC_STANDARD_VERSION)).chain([(template, "<version>")])
+    {
+        let committed = fs::read_to_string(repository().join(relative)).unwrap();
+        let expected = with_prerequisite_section(&committed, version)
+            .unwrap_or_else(|| panic!("{relative} has no `{PREREQUISITE_HEADING}` section"));
+        check_text(relative, &expected);
     }
 }
 

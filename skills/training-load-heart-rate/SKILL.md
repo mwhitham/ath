@@ -2,7 +2,7 @@
 name: training-load-heart-rate
 description: Computes Banister's heart-rate training load (TRIMP) for one workout from its heart-rate samples, the athlete's resting and maximum heart rate, and their sex-specific weighting. Use when someone asks how much load a session put on them by heart rate, or wants to compare the internal load of two sessions or weeks. Not for load from the athlete's own effort rating (use training-load-effort) or time in zones (use heart-rate-zones).
 license: MIT
-compatibility: Requires the ath CLI and an Athletic Standard 2.1.2 database. Runs with ath apply training-load-heart-rate --record <workout-session-id>.
+compatibility: Requires the ath CLI 2.1.2 or later (npm package athleticstandard) and an Athletic Standard database. Runs with ath apply training-load-heart-rate --record <workout-session-id>.
 metadata:
   version: "2.1.2"
   kind: calculation
@@ -12,6 +12,25 @@ metadata:
 
 Banister's training impulse (TRIMP): minutes of exercise weighted by how high the
 heart rate sat between resting and maximum. Harder minutes count more.
+
+## Before the first ath command
+
+This skill runs `ath`, the Athletic Standard program, version 2.1.2 or later.
+Check it once with `ath --version`.
+
+- If `ath` is not found, it is not installed. It comes from the npm package
+  `athleticstandard`. The npm package named `ath` is a different program. Install it
+  with `npm install -g athleticstandard`, which needs Node.js 22 or later. Other ways
+  to install it are at https://www.npmjs.com/package/athleticstandard.
+- If the version is older than 2.1.2, update it with `ath --update`.
+- Install or update only after the person agrees. Then run `ath --version` again. If
+  it is still older than 2.1.2, say so and stop.
+
+If the answer needs the athlete's records or a calculation and `ath` cannot run, stop.
+Tell the person what is missing and how to fix it. Do not read the database another
+way or do the calculation yourself: the calculations and their checks run only in
+`ath`. For any other message from `ath`, follow what it says, and ask before anything
+that creates or changes a file.
 
 ## Run it
 

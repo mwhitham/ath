@@ -142,6 +142,54 @@ pub fn skill_names() -> Vec<&'static str> {
     names
 }
 
+/// The heading of the section every shipped skill carries (D250).
+pub const PREREQUISITE_HEADING: &str = "## Before the first ath command";
+
+/// The section every shipped skill carries, for skills of `version` (D250).
+///
+/// A skill installed with the skills CLI arrives without `ath`, so each skill
+/// says how to check for `ath`, where it really comes from, and to ask before
+/// installing it. What `ath` can say for itself, such as a missing database,
+/// stays in its own messages. `tests/generated.rs` writes this text into every
+/// `SKILL.md` and fails when a copy differs.
+pub fn prerequisite_section(version: &str) -> String {
+    format!(
+        "{PREREQUISITE_HEADING}
+
+This skill runs `ath`, the Athletic Standard program, version {version} or later.
+Check it once with `ath --version`.
+
+- If `ath` is not found, it is not installed. It comes from the npm package
+  `athleticstandard`. The npm package named `ath` is a different program. Install it
+  with `npm install -g athleticstandard`, which needs Node.js 22 or later. Other ways
+  to install it are at https://www.npmjs.com/package/athleticstandard.
+- If the version is older than {version}, update it with `ath --update`.
+- Install or update only after the person agrees. Then run `ath --version` again. If
+  it is still older than {version}, say so and stop.
+
+If the answer needs the athlete's records or a calculation and `ath` cannot run, stop.
+Tell the person what is missing and how to fix it. Do not read the database another
+way or do the calculation yourself: the calculations and their checks run only in
+`ath`. For any other message from `ath`, follow what it says, and ask before anything
+that creates or changes a file.
+"
+    )
+}
+
+/// `text` with its prerequisite section replaced by [`prerequisite_section`].
+/// The section runs from its heading to the next `## ` heading. `None` when
+/// the text has no such heading.
+pub fn with_prerequisite_section(text: &str, version: &str) -> Option<String> {
+    let start = text.match_indices(PREREQUISITE_HEADING).find_map(|(index, _)| {
+        let at_line_start = index == 0 || text[..index].ends_with('\n');
+        let line_end = text[index + PREREQUISITE_HEADING.len()..].chars().next();
+        (at_line_start && matches!(line_end, None | Some('\n' | '\r'))).then_some(index)
+    })?;
+    let body_start = start + PREREQUISITE_HEADING.len();
+    let end = text[body_start..].find("\n## ").map_or(text.len(), |offset| body_start + offset + 1);
+    Some(format!("{}{}\n{}", &text[..start], prerequisite_section(version), &text[end..]))
+}
+
 fn files_of(skill: &str) -> impl Iterator<Item = (&'static str, &'static EmbeddedFile)> + '_ {
     SKILL_FILES.iter().filter_map(move |file| {
         file.path.strip_prefix(skill).and_then(|rest| rest.strip_prefix('/')).map(|relative| (relative, file))
@@ -631,6 +679,23 @@ pub fn render_skill_status(cwd: &Path, copies: &[SkillCopy]) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn the_prerequisite_section_replaces_only_its_own_text() {
+        let text = format!("# Skill\n\nIntro.\n\n{PREREQUISITE_HEADING}\n\nold text\n\n## Run it\n\nbody\n");
+        let written = with_prerequisite_section(&text, "9.9.9").unwrap();
+        assert!(written.starts_with("# Skill\n\nIntro.\n\n## Before the first ath command\n\n"));
+        assert!(written.ends_with(".\n\n## Run it\n\nbody\n"), "{written}");
+        assert!(!written.contains("old text"));
+        assert!(written.contains("version 9.9.9 or later"));
+        assert_eq!(with_prerequisite_section(&written, "9.9.9").as_deref(), Some(written.as_str()));
+        let last = format!("# Skill\n\n{PREREQUISITE_HEADING}\nold\n");
+        assert!(with_prerequisite_section(&last, "9.9.9")
+            .unwrap()
+            .ends_with("ask before anything\nthat creates or changes a file.\n\n"));
+        assert_eq!(with_prerequisite_section("# Skill\n\n## Before the first ath commands\n", "1"), None);
+        assert_eq!(with_prerequisite_section("# Skill\n", "1"), None);
+    }
 
     #[test]
     fn frontmatter_reads_top_level_and_one_nested_level() {

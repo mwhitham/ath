@@ -2,7 +2,7 @@
 name: crossfit
 description: Coaches one CrossFit athlete from their Athletic Standard record. Assesses goals, training age, and movement competence; plans weeks and blocks across strength, gymnastics, and conditioning; scales workouts to keep the intended stimulus; fits extra work around gym classes; compares benchmark attempts only when the versions match; prepares for the CrossFit Open under the named season's rules; and reviews a training week. Use when someone asks for a CrossFit plan, scaling advice, a benchmark comparison such as Fran or Helen, Open preparation, or a weekly review. Not for HYROX (use hyrox), one calculation (use the calculation skills), or medical questions.
 license: MIT
-compatibility: Requires the ath CLI and an Athletic Standard 2.1.2 database. Install with ath skill install crossfit.
+compatibility: Requires the ath CLI 2.1.2 or later (npm package athleticstandard) and an Athletic Standard database. Install with ath skill install crossfit.
 metadata:
   version: "2.1.2"
   kind: coaching
@@ -74,6 +74,25 @@ and in what you save.
 Official guidance is CrossFit's own position. It is not proof that a method works.
 What research supports, and what it does not, is in
 [references/evidence.md](references/evidence.md).
+
+## Before the first ath command
+
+This skill runs `ath`, the Athletic Standard program, version 2.1.2 or later.
+Check it once with `ath --version`.
+
+- If `ath` is not found, it is not installed. It comes from the npm package
+  `athleticstandard`. The npm package named `ath` is a different program. Install it
+  with `npm install -g athleticstandard`, which needs Node.js 22 or later. Other ways
+  to install it are at https://www.npmjs.com/package/athleticstandard.
+- If the version is older than 2.1.2, update it with `ath --update`.
+- Install or update only after the person agrees. Then run `ath --version` again. If
+  it is still older than 2.1.2, say so and stop.
+
+If the answer needs the athlete's records or a calculation and `ath` cannot run, stop.
+Tell the person what is missing and how to fix it. Do not read the database another
+way or do the calculation yourself: the calculations and their checks run only in
+`ath`. For any other message from `ath`, follow what it says, and ask before anything
+that creates or changes a file.
 
 ## Start every task
 

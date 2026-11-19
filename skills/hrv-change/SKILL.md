@@ -2,7 +2,7 @@
 name: hrv-change
 description: Compares one day's heart-rate variability with the athlete's own earlier days, keeping RMSSD and SDNN apart. Use when someone asks whether their HRV is up or down, how today's or last night's HRV compares with normal, or whether HRV has dropped after hard training, travel, illness, or poor sleep. Works for nightly RMSSD (WHOOP, Oura) and intraday SDNN samples (Apple Watch). Not for a long-run HRV trend (use trend) or a plain average (use baseline).
 license: MIT
-compatibility: Requires the ath CLI and an Athletic Standard 2.1.2 database. Runs with ath apply hrv-change --record <record-id>.
+compatibility: Requires the ath CLI 2.1.2 or later (npm package athleticstandard) and an Athletic Standard database. Runs with ath apply hrv-change --record <record-id>.
 metadata:
   version: "2.1.2"
   kind: calculation
@@ -12,6 +12,25 @@ metadata:
 
 This answers one question: is this day's HRV different from this athlete's own
 recent normal, measured the same way by the same device?
+
+## Before the first ath command
+
+This skill runs `ath`, the Athletic Standard program, version 2.1.2 or later.
+Check it once with `ath --version`.
+
+- If `ath` is not found, it is not installed. It comes from the npm package
+  `athleticstandard`. The npm package named `ath` is a different program. Install it
+  with `npm install -g athleticstandard`, which needs Node.js 22 or later. Other ways
+  to install it are at https://www.npmjs.com/package/athleticstandard.
+- If the version is older than 2.1.2, update it with `ath --update`.
+- Install or update only after the person agrees. Then run `ath --version` again. If
+  it is still older than 2.1.2, say so and stop.
+
+If the answer needs the athlete's records or a calculation and `ath` cannot run, stop.
+Tell the person what is missing and how to fix it. Do not read the database another
+way or do the calculation yourself: the calculations and their checks run only in
+`ath`. For any other message from `ath`, follow what it says, and ask before anything
+that creates or changes a file.
 
 ## Run it
 

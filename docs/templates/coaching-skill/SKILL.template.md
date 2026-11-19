@@ -2,7 +2,7 @@
 name: <sport>
 description: <What the skill does for this sport.> Use when <the athlete asks for a plan, an adaptation, a result analysis, race or competition preparation, or a review for this sport; name concrete triggers>. Not for <near misses, and which skill to use instead>.
 license: MIT
-compatibility: Requires the ath CLI and an Athletic Standard <version> database. Install with ath skill install <sport>.
+compatibility: Requires the ath CLI <version> or later (npm package athleticstandard) and an Athletic Standard database. Install with ath skill install <sport>.
 metadata:
   version: "<version>"
   kind: coaching
@@ -32,6 +32,25 @@ saved as authored records; not medical advice.>
 
 - Pain, injury, illness, and medical conditions go to a qualified clinician.
 - <Sport-specific red flags.>
+
+## Before the first ath command
+
+This skill runs `ath`, the Athletic Standard program, version <version> or later.
+Check it once with `ath --version`.
+
+- If `ath` is not found, it is not installed. It comes from the npm package
+  `athleticstandard`. The npm package named `ath` is a different program. Install it
+  with `npm install -g athleticstandard`, which needs Node.js 22 or later. Other ways
+  to install it are at https://www.npmjs.com/package/athleticstandard.
+- If the version is older than <version>, update it with `ath --update`.
+- Install or update only after the person agrees. Then run `ath --version` again. If
+  it is still older than <version>, say so and stop.
+
+If the answer needs the athlete's records or a calculation and `ath` cannot run, stop.
+Tell the person what is missing and how to fix it. Do not read the database another
+way or do the calculation yourself: the calculations and their checks run only in
+`ath`. For any other message from `ath`, follow what it says, and ask before anything
+that creates or changes a file.
 
 ## Workflow
 
