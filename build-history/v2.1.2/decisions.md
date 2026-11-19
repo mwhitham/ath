@@ -407,3 +407,56 @@ Rejected alternatives:
 
 - Allow zero repetitions. Rejected because grades and predictions would need a
   second error rule.
+
+## D250. Every skill says how to check for `ath`, from one generated source
+
+Every skill runs `ath`, but a skill installed with the skills CLI arrives as text
+only, and any subset can be installed. So every `SKILL.md` carries a section,
+`## Before the first ath command`, that says:
+
+- the skill needs `ath` at this version or later, checked with `ath --version`;
+- `ath` comes from the npm package `athleticstandard`, and the npm package named
+  `ath` is a different program;
+- install or update only after the person agrees, then check the version again,
+  and stop if it is still too old;
+- when the answer needs records or a calculation and `ath` cannot run, stop and say
+  how to fix it, rather than reading the database another way or calculating by
+  hand.
+
+The text has one source, `assets::skill::prerequisite_section`.
+`tests/generated.rs` writes it into every skill and the coaching template and fails
+when a copy differs. The version comes from `ATHLETIC_STANDARD_VERSION`, so a release
+updates every copy. `compatibility` also names the minimum version and the package.
+
+What `ath` can say for itself stays in its own messages. The no-database message
+already names `--file` and `ath init`. A database written by a newer `ath`, and a
+skill that names an operation this `ath` lacks, now say to update `ath`
+([cli-changes.md](appendix/cli-changes.md), item 6).
+
+Before the change, fresh agents with today's text read the database with `sqlite3`
+and did the arithmetic by hand when `ath` was missing or was 1.1.0. They never named
+the package. After the change, all six runs stopped, named the right package, and
+asked before installing. The study and the runs are in
+[skill-prerequisites.md](appendix/skill-prerequisites.md) and the
+[agent evaluation](appendix/agent-evaluation.md).
+
+Rejected alternatives:
+
+- Rely on `compatibility`. Rejected because Claude Code accepts the field but does
+  not act on it, and Cursor has no such field.
+- Point every skill to the tool skill. Rejected because the tool skill may not be
+  installed. The skills CLI has no way to declare one skill's need for another.
+- A table of every `ath` error in every skill. Rejected because `ath` already
+  explains the errors it can see. Repeating them costs tokens on every use.
+- Install `ath` automatically, as some published skills do. Rejected because this
+  project asks before every write, and Anthropic advises against global installs
+  from skills.
+- Offer a pinned `npx -y athleticstandard@<version>` in every skill. Rejected
+  because every command would then have to change. The README and the npm page
+  keep it.
+- Put the requirement in `description`. Rejected because the description is loaded
+  in every session and is for choosing a skill.
+- Write the section by hand in each skill. Rejected because 27 copies drift. The
+  generator keeps them identical.
+- Change the no-database message. Rejected for now because the baseline agent
+  found the database and used it, and never offered `ath init`.

@@ -14,6 +14,7 @@ Status: **built; not released**. The plan is [spec.md](spec.md).
 | 8 | CrossFit and HYROX skills, `hyrox-race-splits` | done |
 | 9 | skills.sh preparation and contribution standard | done |
 | 10 | Agent evaluations, installation tests, repository checks | done |
+| 11 | Setup guidance in every skill, from one generated source (D250) | done |
 
 Step 10 results are in the [agent evaluation](appendix/agent-evaluation.md). Every
 required check passed on 2026-11-16: `cargo fmt --check`, `cargo clippy
@@ -29,6 +30,11 @@ Known limits of this build:
   The 2026/27 rulebooks give 100 reps in every Singles division. The `hyrox` skill
   tells agents to follow the rulebook. Changing seeded text is left for a later
   version.
+
+Step 11 is in D250 and [skill-prerequisites.md](appendix/skill-prerequisites.md).
+Agents without a working `ath` now stop and say how to install it, instead of
+reading the database by hand. npm's `latest` is still 1.1.0, so 2.1.2 must be
+published to npm before the skills are listed.
 
 Outstanding outside this build:
 

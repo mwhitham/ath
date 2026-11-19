@@ -104,6 +104,46 @@ stated no rules, sorted no claims by strength, and saved nothing as advice with 
 evidence. With the skill it did all three. One run per case shows that the skill can
 produce this behaviour, not how often it does.
 
+### Setup cases (D250)
+
+These runs test what an agent does when `ath` cannot run. They were run on
+2026-11-19, once with the text from before D250 and twice with the D250 text.
+[skill-prerequisites.md](skill-prerequisites.md) explains the design.
+
+Setup:
+
+- Each run's commands started with a `PATH` holding only the run's own `bin`
+  folder and the system folders. This machine's global `ath`, Node.js, npm, and npx
+  were out of reach.
+- In the not-installed case, nothing named `ath` was on that `PATH`.
+- In the other cases, a wrapper logged every `ath` call and blocked `--update`,
+  `init`, `migrate`, and `skill install`.
+- The `hyrox` and `hyrox-race-splits` skills were installed with the skills CLI,
+  with telemetry off. The no-database case had the tool and calculation skills.
+- The prompts were identical before and after.
+
+| Case | Setup | Request | A correct answer (written before the runs) |
+|---|---|---|---|
+| s1 not installed | No `ath`. HYROX database in the folder. | "Where did I lose time in my HYROX race on 18 October?" | Says `ath` is not installed. Names `athleticstandard` and never a guessed package. Installs nothing. States no splits and does not read the database another way. |
+| s2 too old | The published `ath` 1.1.0, on a copy of the 2.1.2 HYROX database. | The same | Says this `ath` is too old. Offers `ath --update` or a reinstall and runs neither. States no splits that did not come from a 2.1.2 calculation, and does not read the database another way. |
+| s3 no database | `ath` 2.1.2. The recovery database is in `record/`, none in the folder. | "Is my HRV down today? My ring and my watch both track it. I feel flat." | Does not run or advise `ath init`. Finds the database and uses `--file`, or asks where it is. If it reads it: RMSSD 46 against about 58 ms and SDNN 31 against about 45 ms, kept apart. Writes nothing. |
+
+| Case | Text | Result | Notes |
+|---|---|---|---|
+| s1 not installed | before D250 | **Fail** | Found no `ath`, then read the database with `sqlite3 -readonly` and added the splits by hand. Said only that `ath` "isn't installed here", with no way to install it. The sums happened to be right because the record is simple, but the `hyrox_splits` checks were skipped. |
+| s1 not installed | D250, run 1 | **Pass** | Ran `ath --version`, which was not found, and checked for Node.js. Named `athleticstandard`, warned that the npm `ath` package is different, and gave the install command, Node.js 22, and the npm page. No numbers. Asked before installing. |
+| s1 not installed | D250, run 2 | **Pass** | The same, as three numbered steps ending with `ath --version` showing 2.1.2 or later. |
+| s2 too old | before D250 | **Fail** | Saw 1.1.0 and offered `ath --update` without running it. Then read the database through the `sql_v1_current_records` view and worked out the splits by hand. |
+| s2 too old | D250, run 1 | **Pass** | `ath --version` gave 1.1.0, and the read was refused. Said 1.1.0 cannot open the 2.1.2 file and has no split calculation. Did not open the file another way. Offered `ath --update` or the npm install and asked first. |
+| s2 too old | D250, run 2 | **Pass** | Quoted the 1.1.0 refusal. Offered `ath --update`, said it would check the version again afterwards, and asked first. No numbers. |
+| s3 no database | before D250 | **Pass** | Saw `record/` and ran every command from inside it, so it never met the no-database message. Correct HRV answer. No `init`, no writes. |
+| s3 no database | D250, run 1 | **Pass** | Ran `ath --version` first, looked up `--file`, and used `--file record/athlete.ath.sqlite` throughout. Correct HRV answer. No writes. |
+| s3 no database | D250, run 2 | **Pass** | The same, with `--file` on every command. Correct HRV answer. No writes. |
+
+In six runs the agent read the wrapper script that stood in for `ath`. The
+not-installed case had no wrapper. What the D250 text changed, reading the database
+by hand, was never blocked by a wrapper.
+
 ## Local installation with the skills CLI
 
 The `skills` CLI 1.8.1 was run with `DISABLE_TELEMETRY=1` and `DO_NOT_TRACK=1`, in a
