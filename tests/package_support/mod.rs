@@ -119,16 +119,17 @@ pub fn sha256(bytes: &[u8]) -> String {
     files::durable::sha256_hex(bytes)
 }
 
-const NEW_VERSION_LINE: &str = "\n  \"athleticstandard_version\": \"2.1.1\",\n";
 const OLD_VERSION_LINE: &str = "\n  \"athleticstandard_version\": \"2.1.0\",\n";
 
 fn replace_version_line(text: &str, name: &str) -> String {
-    assert_eq!(text.matches(NEW_VERSION_LINE).count(), 1, "{name} must name version 2.1.1 once at the top level");
-    assert!(text.starts_with(&format!("{{{NEW_VERSION_LINE}")), "{name} must start with its version");
-    text.replacen(NEW_VERSION_LINE, OLD_VERSION_LINE, 1)
+    let version = athleticstandard::model::package::ATHLETIC_STANDARD_VERSION;
+    let new_version_line = format!("\n  \"athleticstandard_version\": \"{version}\",\n");
+    assert_eq!(text.matches(&new_version_line).count(), 1, "{name} must name version {version} once at the top level");
+    assert!(text.starts_with(&format!("{{{new_version_line}")), "{name} must start with its version");
+    text.replacen(&new_version_line, OLD_VERSION_LINE, 1)
 }
 
-/// Undo the one documented 2.1.1 difference in a package: the top-level
+/// Undo the one documented difference since 2.1.0 in a package: the top-level
 /// version of each JSON document, and the hashes that change with it. Byte
 /// counts do not change, because both versions have the same length.
 pub fn as_version_2_1_0(package: &BTreeMap<String, Vec<u8>>) -> BTreeMap<String, Vec<u8>> {
@@ -260,12 +261,35 @@ pub const TABLES: &[&str] = &[
 ];
 
 /// Every athlete-table row as a JSON array, sorted, as the generator dumps them.
+/// Columns added after 2.1.0. The golden row dumps come from 2.1.0, so these
+/// are left out of them; the records in those dumps never fill them.
+pub const COLUMNS_ADDED_AFTER_2_1_0: &[(&str, &str)] = &[("athlete_reports", "workout_session_id")];
+
+/// `SELECT` every 2.1.0 column of `table` in order, after checking that each
+/// later column is empty.
+pub fn select_columns_of_2_1_0(connection: &rusqlite::Connection, table: &str) -> String {
+    let mut statement = connection.prepare(&format!("SELECT name FROM pragma_table_info('{table}')")).unwrap();
+    let names: Vec<String> = statement.query_map([], |row| row.get(0)).unwrap().map(Result::unwrap).collect();
+    let mut kept = Vec::new();
+    for name in names {
+        if COLUMNS_ADDED_AFTER_2_1_0.contains(&(table, name.as_str())) {
+            let filled: i64 = connection
+                .query_row(&format!("SELECT count(*) FROM {table} WHERE {name} IS NOT NULL"), [], |row| row.get(0))
+                .unwrap();
+            assert_eq!(filled, 0, "{table}.{name} is filled, so the 2.1.0 row dump cannot describe it");
+        } else {
+            kept.push(format!("\"{name}\""));
+        }
+    }
+    format!("SELECT {} FROM {table}", kept.join(", "))
+}
+
 pub fn dump_rows(path: &Path) -> String {
     let connection = rusqlite::Connection::open_with_flags(path, rusqlite::OpenFlags::SQLITE_OPEN_READ_ONLY).unwrap();
     let mut out = String::new();
     for table in TABLES {
         out.push_str(&format!("## {table}\n"));
-        let mut statement = connection.prepare(&format!("SELECT * FROM {table}")).unwrap();
+        let mut statement = connection.prepare(&select_columns_of_2_1_0(&connection, table)).unwrap();
         let columns = statement.column_count();
         let mut rows: Vec<String> = statement
             .query_map([], |row| {

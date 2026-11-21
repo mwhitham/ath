@@ -21,8 +21,8 @@ export const WORKER_ARGUMENT = "__client" as const;
 
 /** Values the native library defines and the JavaScript exports repeat. */
 export const NATIVE_CONSTANTS = {
-  ATHLETIC_STANDARD_VERSION: "2.1.1",
-  SQL_SCHEMA_VERSION: 5,
+  ATHLETIC_STANDARD_VERSION: "2.1.2",
+  SQL_SCHEMA_VERSION: 6,
   SQLITE_APPLICATION_ID: 1096042545,
   SQLITE_APPLICATION_MARKER: "ATH1",
   MAX_ATTACHMENT_BYTES: 26214400,

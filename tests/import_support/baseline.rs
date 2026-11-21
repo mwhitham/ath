@@ -65,6 +65,7 @@ const LINK_COLUMNS: &[(&str, &str, &str, &str, Option<&str>)] = &[
     ),
     ("planned_sessions", "record_id", "training_plan_id", "training_plan", None),
     ("planned_sessions", "record_id", "completed_workout_session_id", "completed_workout_session", None),
+    ("athlete_reports", "record_id", "workout_session_id", "workout_session", None),
     ("goals", "record_id", "target_benchmark_definition_id", "target_benchmark_definition", None),
     ("nutrition_model_interpretations", "record_id", "nutrition_entry_id", "nutrition_entry", None),
     (

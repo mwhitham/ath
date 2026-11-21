@@ -45,8 +45,14 @@ fn probes_match_through_the_executable() {
         let argv: Vec<&str> = probe["argv"].as_array().unwrap().iter().map(|word| word.as_str().unwrap()).collect();
         let expected = Output {
             status: probe["exit_status"].as_i64().unwrap() as i32,
-            stdout: probe["stdout"].as_str().unwrap().replace("2.1.0", "2.1.1"),
-            stderr: probe["stderr"].as_str().unwrap().replace("2.1.0", "2.1.1"),
+            stdout: probe["stdout"]
+                .as_str()
+                .unwrap()
+                .replace("2.1.0", athleticstandard::model::package::ATHLETIC_STANDARD_VERSION),
+            stderr: probe["stderr"]
+                .as_str()
+                .unwrap()
+                .replace("2.1.0", athleticstandard::model::package::ATHLETIC_STANDARD_VERSION),
         };
         assert_eq!(ath(folder.path(), &argv, b""), expected, "{argv:?}");
     }
@@ -62,6 +68,13 @@ fn help_through_the_executable_matches_the_inventory() {
         let mut argv: Vec<&str> = command["path"].as_str().unwrap().split(' ').collect();
         argv.push("-h");
         let output = ath(folder.path(), &argv, b"");
+        if argv[0] == "skill" {
+            // 2.1.2 changes the skill help (v2.1.2 cli-changes.md, change 1);
+            // tests/cli_inventory.rs checks its new words.
+            assert_eq!(output.status, 0, "{argv:?}");
+            assert!(output.stdout.contains("hyrox"), "{argv:?}: {}", output.stdout);
+            continue;
+        }
         // The `sqlite3` sentence left the migrate help (cli-changes.md, change 6).
         let expected = command["help_text"].as_str().unwrap().replace(
             "\n\nRequires the `sqlite3` command-line tool on PATH for verified backups (same as\n`ath repair` when repair candidates exist).",
@@ -101,7 +114,10 @@ fn a_piped_delete_previews_refuses_and_writes_with_yes() {
 #[test]
 fn version_guide_and_refusals_through_the_executable() {
     let folder = private_folder();
-    assert_eq!(ath(folder.path(), &["-V"], b"").stdout, "2.1.1\n");
+    assert_eq!(
+        ath(folder.path(), &["-V"], b"").stdout,
+        format!("{}\n", athleticstandard::model::package::ATHLETIC_STANDARD_VERSION)
+    );
     let guide = ath(folder.path(), &[], b"");
     assert_eq!(guide.status, 0);
     assert!(guide.stdout.contains("ath init                       make the file, here\n"));
@@ -395,4 +411,38 @@ fn progress_never_reaches_standard_output() {
         assert!(!has_progress_text(&output.stdout), "{argv:?} stdout: {:?}", output.stdout);
         assert!(serde_json::from_str::<serde_json::Value>(&output.stdout).is_ok(), "{argv:?}: {:?}", output.stdout);
     }
+}
+
+#[test]
+fn a_tool_skill_left_by_an_older_ath_is_noted_until_ath_skill_install() {
+    // D253: an ath from 0.x or 1.x cannot refresh its skill when it updates
+    // itself, so 2.1.2 says so on standard error, even on --json runs.
+    let folder = private_folder();
+    demo_copy(folder.path());
+    let skill = folder.path().join(".agents/skills/athletic-standard/SKILL.md");
+    std::fs::create_dir_all(skill.parent().unwrap()).unwrap();
+    std::fs::write(
+        &skill,
+        "---\nname: athletic-standard\nmetadata:\n  version: \"1.1.0\"\n---\n\n# Old instructions\n",
+    )
+    .unwrap();
+    let shipped = athleticstandard::assets::skill::shipped_skill_version();
+    let notice = format!(
+        "ath: the agent skill in .agents/skills is from 1.1.0, older than this ath ({shipped}); run ath skill install to update it\n"
+    );
+
+    let stats = ath(folder.path(), &["stats", "--json"], b"");
+    assert_eq!((stats.status, stats.stderr.as_str()), (0, notice.as_str()));
+    assert!(serde_json::from_str::<serde_json::Value>(&stats.stdout).is_ok(), "{}", stats.stdout);
+
+    let version = ath(folder.path(), &["--version"], b"");
+    assert_eq!((version.status, version.stderr.as_str()), (0, ""));
+    let status = ath(folder.path(), &["skill"], b"");
+    assert!(!status.stderr.contains("run ath skill install to update it"), "{}", status.stderr);
+
+    let install = ath(folder.path(), &["skill", "install"], b"");
+    assert_eq!(install.status, 0, "{}", install.stderr);
+    assert!(!install.stderr.contains("older than this ath"), "{}", install.stderr);
+    let after = ath(folder.path(), &["stats", "--json"], b"");
+    assert_eq!((after.status, after.stderr.as_str()), (0, ""));
 }

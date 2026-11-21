@@ -26,7 +26,8 @@ fn demo_export_matches_the_2_1_0_bytes_after_the_version_change() {
     assert_eq!(result.directory, output.display().to_string());
     assert_eq!(result.database_id, "01890f3e-e7d3-7cc0-88c8-000000000001");
     assert_eq!(result.database_revision, 3);
-    assert_eq!(result.manifest.athleticstandard_version, RecordFormatVersion::V2_1_1);
+    assert_eq!(result.manifest.athleticstandard_version, RecordFormatVersion::current());
+    assert_eq!(RecordFormatVersion::current().as_str(), athleticstandard::model::package::ATHLETIC_STANDARD_VERSION);
     assert_eq!(result.manifest.exported_at.as_deref(), Some(EXPORTED_AT));
 
     let written = files_below(&output);

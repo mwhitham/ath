@@ -25,18 +25,34 @@ pub fn run(argv: &[String], io: Io<'_>, services: Services) -> i32 {
     let mut context = Context { io, services };
     let status = match parse::parse(argv) {
         Parsed::Done(outcome) => finish(&mut context, outcome),
-        Parsed::Run(args) => match commands::handler(&args.path)(&mut context, &args) {
-            Ok(()) => 0,
-            Err(Failure::Refused(message)) | Err(Failure::NotConnected(message)) => {
-                context.note(&format!("ath: {message}"));
-                1
+        Parsed::Run(args) => {
+            note_older_tool_skill(&mut context, &args.path);
+            match commands::handler(&args.path)(&mut context, &args) {
+                Ok(()) => 0,
+                Err(Failure::Refused(message)) | Err(Failure::NotConnected(message)) => {
+                    context.note(&format!("ath: {message}"));
+                    1
+                }
+                Err(Failure::Exit(status)) => status,
             }
-            Err(Failure::Exit(status)) => status,
-        },
+        }
     };
     let _ = context.io.stdout.flush();
     let _ = context.io.stderr.flush();
     status
+}
+
+/// Say once, on standard error, when this folder's tool skill is older than
+/// this `ath` (D253). It also prints on `--json` runs, which agents use; the
+/// JSON on standard output is unchanged. It is skipped for bare `ath` and
+/// `ath --update`, `init`, and `skill`, which show or replace the copy.
+fn note_older_tool_skill(context: &mut Context<'_>, path: &[&str]) {
+    if matches!(path, [] | ["init"] | ["skill", ..]) {
+        return;
+    }
+    if let Some(notice) = crate::assets::skill::stale_skill_warning(&context.io.cwd) {
+        context.note(&notice);
+    }
 }
 
 /// Print what the words asked for when no command runs.

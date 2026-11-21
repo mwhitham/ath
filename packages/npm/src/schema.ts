@@ -1,9 +1,12 @@
 /**
  * Versioned compatibility code: the published 2.1.x Zod schemas.
  *
- * This file is src/v1/schema.ts from 2.1.0 with only the version declarations
- * changed: ATHLETIC_STANDARD_VERSION, ACCEPTED_RECORD_VERSIONS, and
- * IMPORTABLE_PACKAGE_VERSIONS. Do not design record changes here. The native
+ * This file is src/v1/schema.ts from 2.1.0 with the version declarations
+ * changed (ATHLETIC_STANDARD_VERSION, ACCEPTED_RECORD_VERSIONS, and
+ * IMPORTABLE_PACKAGE_VERSIONS) and the 2.1.2 optional fields copied from the
+ * Rust model: session_effort, athlete_report.workout_session_id, and the
+ * strength-set movement and load basis (D238, D239). Do not design record
+ * changes here. The native
  * Rust model is the source of truth, and test/zod-native-vectors.test.ts
  * requires the same verdicts from both. Native writes never call this file.
  *
@@ -16,16 +19,16 @@
 import { z } from "zod";
 import { RecordExtensions, validateExtensionsForRecordType } from "./extensions.js";
 
-export const ATHLETIC_STANDARD_VERSION = "2.1.1";
+export const ATHLETIC_STANDARD_VERSION = "2.1.2";
 
 /** Record files this software can read. New writes use ATHLETIC_STANDARD_VERSION. */
-export const ACCEPTED_RECORD_VERSIONS = ["1.0.0", "2.0.0", "2.1.0", "2.1.1"] as const;
+export const ACCEPTED_RECORD_VERSIONS = ["1.0.0", "2.0.0", "2.1.0", "2.1.1", "2.1.2"] as const;
 
 /**
  * Package versions `ath import` restores. A minor version only adds optional
  * fields, so a 2.0.0 package is valid 2.1.0 data.
  */
-export const IMPORTABLE_PACKAGE_VERSIONS = ["2.0.0", "2.1.0", ATHLETIC_STANDARD_VERSION] as const;
+export const IMPORTABLE_PACKAGE_VERSIONS = ["2.0.0", "2.1.0", "2.1.1", ATHLETIC_STANDARD_VERSION] as const;
 
 export const RecordFormatVersion = z.enum(ACCEPTED_RECORD_VERSIONS);
 
@@ -403,11 +406,35 @@ export const HeartRateSample = z.strictObject({
   bpm: z.number().positive(),
 });
 
-export const StrengthSet = z.strictObject({
-  reps: z.number().positive(),
-  weight: z.number().positive(),
-  weight_unit: z.string().min(1),
-});
+export const StrengthSet = z
+  .strictObject({
+    reps: z.number().positive(),
+    weight: z.number().positive(),
+    weight_unit: z.string().min(1),
+    /** The exercise, such as `back squat`. */
+    movement: z.string().min(1).optional(),
+    /** What `weight` measures: the whole load, or each implement's load (D239). */
+    load_basis: z.enum(["total", "per_implement"]).optional(),
+    /** How many implements carried `weight` each. Only with `per_implement`. */
+    implement_count: z.number().int().positive().optional(),
+  })
+  .superRefine((value, context) => {
+    const perImplement = value.load_basis === "per_implement";
+    if (perImplement && value.implement_count === undefined) {
+      context.addIssue({
+        code: "custom",
+        path: ["implement_count"],
+        message: "A per-implement load needs implement_count",
+      });
+    }
+    if (!perImplement && value.implement_count !== undefined) {
+      context.addIssue({
+        code: "custom",
+        path: ["implement_count"],
+        message: "implement_count is used only with a per_implement load_basis",
+      });
+    }
+  });
 
 export const RoutePoint = z.strictObject({
   recorded_at: UtcTimestamp,
@@ -724,6 +751,7 @@ export const AthleteReportType = z.enum([
   "mood",
   "energy",
   "note",
+  "session_effort",
 ]);
 
 export const AthleteReportData = z
@@ -738,10 +766,16 @@ export const AthleteReportData = z
     note: z.string().min(1).optional(),
     duration_seconds: z.number().positive().optional(),
     attachment_ids: z.array(RecordId).optional(),
+    /** The workout this report describes (D238). */
+    workout_session_id: RecordId.optional(),
   })
-  .refine((value) => value.rating === undefined || value.rating_scale !== undefined, {
-    path: ["rating_scale"],
-    message: "A rating needs its scale",
+  .superRefine((value, context) => {
+    if (value.rating !== undefined && value.rating_scale === undefined) {
+      context.addIssue({ code: "custom", path: ["rating_scale"], message: "A rating needs its scale" });
+    }
+    if (value.report_type === "session_effort" && value.rating === undefined) {
+      context.addIssue({ code: "custom", path: ["rating"], message: "A session effort report needs a rating" });
+    }
   });
 
 export const ReportedNutrient = z.strictObject({

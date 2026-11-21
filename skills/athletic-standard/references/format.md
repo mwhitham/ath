@@ -8,7 +8,7 @@ JSON exists only as an explicit complete export or import package. It is not a l
 copy and does not stay synchronized.
 
 The full public field reference is `SPEC.md`. Exhaustive generated schemas are in
-`schema/2.1.1/`.
+`schema/2.1.2/`.
 
 ## Common record fields
 
@@ -88,11 +88,11 @@ The remaining records are `athlete_profile`, `source`, `source_device`, and
 | `point_measurement` | measured fields, `quantity`, optional `recorded_at`, input timestamp receipt, source value, optional calculations |
 | `measurement_sample` | measured fields, `quantity`, `recorded_at`, input timestamp receipt, source value, optional duration and reconstruction receipt |
 | `sleep_session` | measured fields, start/end and input receipts, source summaries |
-| `workout_session` | measured fields, start/end and input receipts, activity, source summaries, optional segments |
+| `workout_session` | measured fields, start/end and input receipts, activity, name, description, text result, known maximum and resting heart rate, heart-rate samples, strength sets (with `movement` and `load_basis` since 2.1.2), route, source summaries, optional segments |
 | `benchmark_result` | measured fields, benchmark ID, time receipt, score, scaling, optional workout ID and segments |
 | `provider_summary` | measured fields, summary type, source value, instant or provider period |
 | `provider_score` | measured fields, metric, source value, scale, instant or provider period |
-| `athlete_report` | report type, report time receipt, text/voice/photo route, optional rating, region, note, attachments |
+| `athlete_report` | report type (`sleep_quality`, `soreness`, `stress`, `mood`, `energy`, `note`, `session_effort`), report time receipt, text/voice/photo route, optional rating with scale, region, note, duration, attachments, and `workout_session_id` (2.1.2) |
 | `nutrition_entry` | report time receipt, route, athlete description, reported items, attachments |
 | `attachment` | file name, media type, byte count, SHA-256, optional description |
 | `benchmark_definition` | authorship, key, kind, score type, definition, optional tags |

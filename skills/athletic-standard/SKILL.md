@@ -1,10 +1,11 @@
 ---
 name: athletic-standard
-description: Reads and writes an athlete's Athletic Standard SQLite database (.ath.sqlite) with the ath CLI. Applies when someone logs a workout, lift, named benchmark such as Fran, HRV as RMSSD or SDNN, resting heart rate, sleep, soreness, nutrition, or another athlete report; asks what training or recovery data shows; asks for a benchmark prediction or backtest; reports a result to grade; imports Apple Health, WHOOP, Oura, Garmin, or Strava, or an Athletic Standard 2.0.0, 2.1.0, or 2.1.1 package; reads an Open Wearables or Junction JSON file through a mapping file; exports a complete package; runs ath apply on one record; or asks about Athletic Standard records, revisions, calculations, deletion, or privacy erasure.
+description: Reads and writes an athlete's Athletic Standard SQLite database (.ath.sqlite) with the ath CLI. Applies when someone logs a workout, lift, named benchmark such as Fran, HRV as RMSSD or SDNN, resting heart rate, sleep, soreness, nutrition, or another athlete report; asks what training or recovery data shows; asks for a benchmark prediction or backtest; reports a result to grade; imports Apple Health, WHOOP, Oura, Garmin, or Strava, or an Athletic Standard 2.0.0, 2.1.0, 2.1.1, or 2.1.2 package; reads an Open Wearables or Junction JSON file through a mapping file; exports a complete package; runs ath apply on one record; or asks about Athletic Standard records, revisions, calculations, deletion, or privacy erasure.
 license: MIT
-compatibility: Requires the ath CLI on PATH, from the athleticstandard npm package or a native release archive. Local database use needs no network. Optional terminal model calls need a configured gateway.
+compatibility: Requires the ath CLI 2.1.2 or later on PATH, from the athleticstandard npm package or a native release archive. Local database use needs no network. Optional terminal model calls need a configured gateway.
 metadata:
-  version: "2.1.1"
+  version: "2.1.2"
+  kind: tool
 ---
 
 # Athletic Standard
@@ -13,8 +14,8 @@ The live local record is one SQLite database named `athlete.ath.sqlite`. `ath` r
 and writes it. A JSON package is an explicit complete snapshot. It is not a second
 live copy.
 
-This skill expects Athletic Standard **2.1.1**. A version 1.0.0, 2.0.0, or 2.1.0
-database upgrades with `ath migrate`. A 2.0.0 or 2.1.0 package still imports.
+This skill expects Athletic Standard **2.1.2**. A version 1.0.0, 2.0.0, 2.1.0, or 2.1.1
+database upgrades with `ath migrate`. A 2.0.0, 2.1.0, or 2.1.1 package still imports.
 Prerelease `0.x` JSON documents are not imported.
 
 Local use needs no account, network connection, subscription, or hosted service.
@@ -24,14 +25,55 @@ The database contains sensitive health data. It is not encrypted by `ath`. Recom
 operating-system disk encryption. Anyone who can read the file can read the athlete
 record.
 
-Not an app, not a coach, not medical advice. Describe what the data shows. Do not
-prescribe training or diagnose a condition.
+Not an app, not a coach, not medical advice. This skill describes what the data
+shows. It does not prescribe training or diagnose a condition. Training advice comes
+only from a coaching skill the athlete chose to install (below), and is saved as an
+authored record.
+
+## Before the first ath command
+
+This skill runs `ath`, the Athletic Standard program, version 2.1.2 or later.
+Check it once with `ath --version`.
+
+- If `ath` is not found, it is not installed. It comes from the npm package
+  `athleticstandard`. The npm package named `ath` is a different program. Install it
+  with `npm install -g athleticstandard`, which needs Node.js 22 or later. Other ways
+  to install it are at https://www.npmjs.com/package/athleticstandard.
+- If the version is older than 2.1.2, update it with `ath --update`.
+- Install or update only after the person agrees. Then run `ath --version` again. If
+  it is still older than 2.1.2, say so and stop.
+
+If the answer needs the athlete's records or a calculation and `ath` cannot run, stop.
+Tell the person what is missing and how to fix it. Do not read the database another
+way or do the calculation yourself: the calculations and their checks run only in
+`ath`. For any other message from `ath`, follow what it says, and ask before anything
+that creates or changes a file.
+
+## Three kinds of skill
+
+| Kind | Skills | Use it to |
+|---|---|---|
+| Tool | `athletic-standard` (this skill) | Find, read, log, correct, import, and export records. |
+| Calculation | `hrv-change`, `resting-heart-rate-change`, `sleep-change`, `heart-rate-recovery`, `heart-rate-zones`, `training-load-heart-rate`, `training-load-effort`, `resting-heart-rate`, `sleep-duration`, `sleep-efficiency`, `sleep-interruptions`, `sleep-regularity`, `sleep-stages`, `sleep-timing`, `strength-volume`, `hyrox-race-splits`; range: `summary`, `baseline`, `trend`, `coverage`, `compare-sources`, `correlation`, `workout-drift`, `provider-period-summary` | Get one reproducible number, with its method, inputs, and limits. |
+| Coaching | `crossfit`, `hyrox` | Assess, plan, adapt, and review training for one sport. |
+
+When a question needs a number, open the matching calculation skill and run it
+rather than doing the arithmetic yourself. Each calculation skill states its
+method, minimum data, how to read the result, and a worked example.
+
+Coaching skills are installed only when named: `ath skill install crossfit` or
+`ath skill install hyrox`. If the athlete asks for a plan and no coaching skill is
+installed, say so and offer to install the matching one; do not improvise a
+program under this skill.
 
 ## Start here
 
 1. Run `ath stats --json`. It reports current counts, sources, coverage, and
    baselines.
-2. Use `ath records list --json` when stable record IDs are needed.
+2. Use `ath records list --type <record-type> --limit 10000 --json` when stable
+   record IDs are needed. It lists records in creation order, oldest first, and
+   returns 100 by default, so without `--limit` the most recent records can be
+   missing.
 3. Choose a command below. Full options and examples are in
    [references/cli.md](references/cli.md).
 4. Pass `--json` for structured output. On commands that require confirmation,
@@ -62,10 +104,47 @@ only as "the source said". Never use them as evidence. A calculation cannot read
 them.
 
 Authored records are separate again. Predictions, grades, plans, goals, reviews, and
-model interpretations name their author and exact evidence record revisions.
+model interpretations name their author and exact evidence record revisions. Coaching
+advice is always an authored record: never write it as a measurement or as an
+athlete report.
+
+A link from an athlete report to a workout (`workout_session_id`) is allowed. It
+says which session the report describes. The report still has no source.
 
 Use measured records for the predicted number. Athlete reports may change confidence
 and may support a later explanation. Keep the distinction explicit.
+
+## Heart-rate variability
+
+RMSSD (`hrv_rmssd`) and SDNN (`hrv_sdnn`) are different statistics. Never compare,
+average, or trend them together, and never say "HRV" without naming which.
+
+| Device | What is stored |
+|---|---|
+| Apple Health | SDNN as intraday `measurement_sample` records, taken at moments while still. `ath` also calculates RMSSD from Apple beat data (`field_basis.value: calculated_on_import`). |
+| WHOOP | Nightly RMSSD (`point_measurement`). |
+| Oura | Nightly RMSSD (`point_measurement`), with Oura's sleep day. |
+| Garmin | The overnight value does not name its statistic, so it is not stored as RMSSD or SDNN. |
+
+`hrv-change` compares one day with the same device's earlier days, keeping record
+type and basis apart. `baseline` with a time zone gives a daily-mean normal. Use
+`coverage` before describing a week.
+
+## Session effort and strength sets
+
+Log a session-RPE rating as an athlete report with `report_type: session_effort`,
+`rating`, `rating_scale` (`0-10`, `1-10`, or `6-20`), `duration_seconds` for the
+time it covers, and `workout_session_id` when a workout record exists.
+`training-load-effort` turns it into load; any other report type is refused.
+
+Log strength sets with `movement` and `load_basis` (`total` or `per_implement` with
+`implement_count`), so `strength-volume` counts two dumbbells as two. Templates are
+in [references/logging.md](references/logging.md).
+
+CrossFit and HYROX result details (variant, time cap, tiebreak, season, format,
+division, race splits) go in the `org.athleticstandard/crossfit-score` and
+`org.athleticstandard/hyrox-race` extensions on a benchmark result. The coaching
+skills and `hyrox-race-splits` describe them.
 
 ## Stable IDs and revisions
 
@@ -82,7 +161,7 @@ When a correction replaces a measured value with one a person typed, set
 Use:
 
 ```sh
-ath records list --type <record-type> --json
+ath records list --type <record-type> --limit 10000 --json
 ath records show <record-id> --history --links --json
 ```
 
@@ -96,9 +175,10 @@ Set up:
 |---|---|
 | `ath init` | Create `athlete.ath.sqlite`, a manual source, and standard benchmarks |
 | `ath init --empty` | Create a revision-zero restore destination |
-| `ath skill` | Show installed skill copies |
-| `ath skill install` | Add skill files that are not already installed, and replace an older tool skill |
-| `ath --update` | Update `ath`, replace an older tool skill, and add missing skill files |
+| `ath skill` | Show installed skill copies, their kind, and edited calculation copies |
+| `ath skill install` | Add missing skill files, replace an older tool or coaching skill, and update an unedited calculation skill |
+| `ath skill install <name>` | Install one named skill, such as the `crossfit` or `hyrox` coaching skill |
+| `ath --update` | Update `ath` and refresh skills as `ath skill install` does |
 | `ath key` | Manage an optional terminal model-gateway key outside athlete data |
 | `ath models` | List gateway models or save a terminal default |
 | `ath migrate` | Preview and apply a SQL schema migration after a verified backup |
@@ -130,7 +210,7 @@ Read and calculate:
 |---|---|
 | `ath check [file]` | Check SQLite integrity, schema versions, foreign keys, revisions, relationships, domain rules, sessions, and attachments |
 | `ath stats [file]` | Show the fixed overview |
-| `ath records list` | Find current stable IDs in stable order |
+| `ath records list` | Find current stable IDs, oldest first; pass `--limit`, because the default is 100 |
 | `ath records show <record-id>` | Read a current record, revision, history, and links |
 | `ath series <quantity>` | Read dense samples from SQLite |
 | `ath calculate <operation> <quantity>` | Run named arithmetic without writing athlete data |
@@ -148,16 +228,18 @@ period into a calendar day.
 Results remain separate by source. Manual sources are excluded. RMSSD and SDNN are
 different quantities and never share a calculation. A receipt lists at most 1,000
 input revisions and says when the list was shortened. Arithmetic refuses more than
-100,000 inputs until the request is narrowed.
+100,000 inputs until the request is narrowed. Receipts are `ath-runtime-v2`: a
+baseline adds daily means, a trend its standard error, and a correlation needs three
+paired days.
 
-`ath apply <name>` runs the skill with that name, such as `heart-rate-zones`.
-Each calculation is its own skill. The program reads the installed `SKILL.md`.
-Editing that file changes the result. An older copy of this tool skill is
-replaced by `ath skill install`, so an agent does not keep reading old
-instructions. A calculation skill that is already installed is not replaced.
-Point `--record` at one record, then run
-it again on another record to see which fields were read. A day total uses the
-record you selected.
+`ath apply <name>` runs the calculation skill with that name, such as
+`heart-rate-zones`. The program reads the installed `SKILL.md`; editing that file
+changes the result. The result names the `operation` that ran, the other records it
+read (`inputs`), what it left out (`exclusions`), and, for an operation replaced in
+2.1.2, a `method_notice`. If you see a notice, tell the athlete the copy uses an
+older method and that `ath skill install` updates an unedited copy. An edited copy
+is kept and `ath skill` marks it edited. `ath apply` refuses a range calculation
+(run `ath calculate`) and a coaching skill.
 
 Predict and grade:
 
