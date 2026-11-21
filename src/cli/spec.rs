@@ -312,7 +312,7 @@ pub const SKILL_INSTALL: CommandSpec = CommandSpec {
     name: "install",
     description: "copy the skill into .agents/skills and every harness folder here",
     group: None,
-    arguments: &[],
+    arguments: &[optional_variadic("name", "install only these skills, such as a coaching skill: crossfit or hyrox")],
     options: &[flag("json", "--json", "structured output, for an agent rather than a person")],
     subcommands: &[],
     action: true,

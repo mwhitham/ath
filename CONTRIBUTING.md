@@ -44,11 +44,16 @@ npm test
   runs formatting, Clippy, every Rust test, and the npm tests on Node 24.
   macOS and Windows run Clippy and every Rust test. The `checks passed` job
   must pass before a merge. A new push cancels the run for the push before it.
-- **A version tag, such as `v2.1.1`:** the full check on Linux, macOS, and
-  Windows, with release builds, archive and npm install checks, and Node 22
-  and 24. If everything passes, it publishes to npm and creates the GitHub
-  release. To run the full check on a branch without publishing, use Actions >
-  Release cross-platform > Run workflow.
+- **A release:** the full check on Linux, macOS, and Windows, with release
+  builds, archive and npm install checks, and Node 22 and 24. If everything
+  passes, it tags the tested commit, stages the package on npm, and creates the
+  GitHub release. The package is public only after the maintainer approves the
+  staged version with their two-factor code (D251). The maintainer starts a
+  release by commenting `/release` on a merged pull request, by Actions >
+  Release cross-platform > Run workflow on `main` with `publish` ticked, or by
+  pushing a version tag (D252). Comments from anyone but a repository admin
+  start nothing. To run the full check on a branch without publishing, use Run
+  workflow without `publish`.
 - **The speed comparison with 2.1.0** runs only by hand: Actions > Release
   performance > Run workflow.
 
@@ -61,3 +66,21 @@ ATH_WRITE_GENERATED=1 cargo test --test generated
 ```
 
 Do not edit a generated file by hand. Published historical schemas, the SQL files in `spec/sql/`, and the fixtures in `tests/fixtures/` are never regenerated.
+
+## Skills
+
+A change to a calculation skill keeps its worked example true:
+`tests/skill_examples.rs` runs every `ath-example` block against the program. A
+changed method gets a new operation name (`use:`); the old name keeps its
+arithmetic so an edited file still gives its old answer (D230). Add the shipped
+file's previous SHA-256 to `PREVIOUSLY_SHIPPED_CALCULATIONS` so `ath skill install`
+can update unedited copies (D231).
+
+A new coaching skill, such as running or cycling, must meet
+[`docs/coaching-skill-standard.md`](docs/coaching-skill-standard.md), including an
+independent review by a qualified coach. Start from
+[`docs/templates/coaching-skill/SKILL.template.md`](docs/templates/coaching-skill/SKILL.template.md).
+
+Never publish a skill or list it on skills.sh from a pull request. Test installs
+locally with `DISABLE_TELEMETRY=1 DO_NOT_TRACK=1`. Publishing is a manual step for
+the maintainer: [`docs/publishing-skills.md`](docs/publishing-skills.md).

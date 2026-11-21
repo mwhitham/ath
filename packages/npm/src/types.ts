@@ -85,7 +85,8 @@ export type CalculationOperation = (typeof NATIVE_CONSTANTS.CALCULATION_OPERATIO
 export type CalculationRecordKind = (typeof NATIVE_CONSTANTS.CALCULATION_RECORD_KINDS)[number];
 
 export interface CalculationResult {
-  calculation_version: "ath-runtime-v1";
+  /** 2.1.2 writes `ath-runtime-v2`, which adds result fields (D244). */
+  calculation_version: "ath-runtime-v1" | "ath-runtime-v2";
   operation: CalculationOperation;
   record_kind: CalculationRecordKind;
   provider_period_type?: ProviderPeriodType;

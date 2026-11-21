@@ -29,7 +29,11 @@ use crate::model::{point_measurement_unit, series_quantity_unit, EvidenceReferen
 use crate::model::{ProviderReportingPeriodType, SeriesQuantity};
 use crate::view::calendar::{resolve_calendar_range_in, CalendarRangeRequest};
 
-pub const CALCULATION_VERSION: &str = "ath-runtime-v1";
+/// `ath-runtime-v2` adds daily means, trend precision, paired source days,
+/// a correlation minimum, and drift sample counts (D244).
+pub const CALCULATION_VERSION: &str = "ath-runtime-v2";
+/// A correlation needs at least this many paired days (D244).
+pub const MINIMUM_CORRELATION_DAYS: usize = 3;
 /// A calculation that matches more inputs than this is refused.
 pub const MAX_RUNTIME_INPUTS: usize = 100_000;
 /// A receipt lists at most this many input references.
@@ -178,6 +182,16 @@ pub struct GroupSummary {
     pub summary: NumericSummary,
 }
 
+/// A baseline of calendar-day means, so a source that reads many times a day
+/// does not outweigh one that reads once (D244).
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct DailySummary {
+    pub time_zone: String,
+    pub days: usize,
+    pub mean: f64,
+    pub standard_deviation: f64,
+}
+
 #[derive(Debug, Clone, PartialEq, Serialize)]
 #[serde(untagged)]
 pub enum SourceSummary {
@@ -185,6 +199,8 @@ pub enum SourceSummary {
         source_id: String,
         #[serde(flatten)]
         summary: NumericSummary,
+        #[serde(skip_serializing_if = "Option::is_none")]
+        daily: Option<DailySummary>,
     },
     Grouped {
         source_id: String,
@@ -199,6 +215,11 @@ pub struct SourceTrend {
     pub slope_per_day: f64,
     pub first_value: f64,
     pub last_value: f64,
+    /// Days from the first to the last input.
+    pub days_spanned: f64,
+    /// The ordinary least-squares standard error of the slope. Null with fewer
+    /// than three inputs.
+    pub slope_standard_error: Option<f64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -209,6 +230,8 @@ pub struct SourceCoverage {
     pub days_expected: usize,
     pub days_present: usize,
     pub missing_dates: Vec<String>,
+    /// `days_present / days_expected`.
+    pub coverage_ratio: f64,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -223,15 +246,30 @@ pub struct CompareSourcesResult {
     pub source: NamedSummary,
     pub comparison_source: NamedSummary,
     pub mean_difference: f64,
+    /// The mean of daily differences on days both sources read, when a time
+    /// zone is known (D244).
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub paired: Option<PairedComparison>,
+}
+
+#[derive(Debug, Clone, PartialEq, Serialize)]
+pub struct PairedComparison {
+    pub time_zone: String,
+    pub days: usize,
+    /// Null when no day has both sources.
+    pub mean_difference: Option<f64>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct CorrelationResult {
     pub other_quantity: String,
     pub paired_day_count: usize,
-    /// Null when fewer than two days pair or a side does not vary.
+    /// Null when fewer than three days pair or a side does not vary.
     pub correlation: Option<f64>,
     pub paired_dates: Vec<String>,
+    /// Why the correlation is null.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub reason: Option<String>,
 }
 
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -244,6 +282,8 @@ pub enum SourceDrift {
         second_half_mean: f64,
         change: f64,
         change_percentage: f64,
+        first_half_count: usize,
+        second_half_count: usize,
     },
     Unavailable {
         source_id: String,
@@ -466,10 +506,19 @@ fn run(connection: &Connection, request: &Request<'_>) -> Result<CalculationRece
     match options.operation {
         Operation::Summary | Operation::Baseline => {
             let mut result = Vec::new();
+            let daily_zone = if options.operation == Operation::Baseline && options.group == Group::None {
+                day_zone(connection, request)?
+            } else {
+                None
+            };
             for (source_id, values) in by_source(&inputs) {
                 if options.group == Group::None {
                     let numbers: Vec<f64> = values.iter().map(|input| input.value).collect();
-                    result.push(SourceSummary::Whole { source_id, summary: summarize(&numbers) });
+                    let daily = match &daily_zone {
+                        Some(zone) => Some(daily_summary(&values, zone)?),
+                        None => None,
+                    };
+                    result.push(SourceSummary::Whole { source_id, summary: summarize(&numbers), daily });
                 } else {
                     result.push(SourceSummary::Grouped {
                         source_id,
@@ -484,7 +533,22 @@ fn run(connection: &Connection, request: &Request<'_>) -> Result<CalculationRece
             } else {
                 format!("{} calendar groups per source", options.group.as_str())
             };
-            Ok(receipt(request, unit, &inputs, request.range(), method, CalculationResult::Summaries(result), &manual))
+            let no_zone = "no daily-mean summary: it needs --timezone or a default time zone in the athlete profile";
+            let exclusions: &[&str] =
+                if options.operation == Operation::Baseline && options.group == Group::None && daily_zone.is_none() {
+                    &["manual sources excluded", no_zone]
+                } else {
+                    &manual
+                };
+            Ok(receipt(
+                request,
+                unit,
+                &inputs,
+                request.range(),
+                method,
+                CalculationResult::Summaries(result),
+                exclusions,
+            ))
         }
         Operation::Trend => {
             let result = by_source(&inputs)
@@ -562,6 +626,8 @@ fn workout_drift(connection: &Connection, request: &Request<'_>) -> Result<Calcu
                 second_half_mean: second_mean,
                 change: round4(second_mean - first_mean),
                 change_percentage: round4(((second_mean - first_mean) / first_mean) * 100.0),
+                first_half_count: first.len(),
+                second_half_count: second.len(),
             }
         })
         .collect();
@@ -596,6 +662,7 @@ fn coverage(request: &Request<'_>, unit: String, inputs: &[Input]) -> Result<Cal
             let expected = calendar_dates(&start, &end);
             let present_set: BTreeSet<&String> = present.iter().collect();
             let missing = expected.iter().filter(|date| !present_set.contains(date)).cloned().collect();
+            let ratio = if expected.is_empty() { 0.0 } else { round4(present.len() as f64 / expected.len() as f64) };
             Ok(SourceCoverage {
                 source_id,
                 first_date: expected.first().cloned(),
@@ -603,6 +670,7 @@ fn coverage(request: &Request<'_>, unit: String, inputs: &[Input]) -> Result<Cal
                 days_expected: expected.len(),
                 days_present: present.len(),
                 missing_dates: missing,
+                coverage_ratio: ratio,
             })
         })
         .collect::<Result<Vec<_>>>()?;
@@ -633,6 +701,21 @@ fn compare_sources(
     one_unit(&other, Some(&unit)).or_else(|_| one_unit(&other, request.expected_unit))?;
     let left = summarize(&inputs.iter().map(|input| input.value).collect::<Vec<_>>());
     let right = summarize(&other.iter().map(|input| input.value).collect::<Vec<_>>());
+    let paired = match day_zone(connection, request)? {
+        Some(zone) => {
+            let left_days = daily_means(&inputs, &zone)?;
+            let right_days = daily_means(&other, &zone)?;
+            let differences: Vec<f64> =
+                left_days.iter().filter_map(|(date, value)| right_days.get(date).map(|other| value - other)).collect();
+            Some(PairedComparison {
+                time_zone: zone,
+                days: differences.len(),
+                mean_difference: (!differences.is_empty())
+                    .then(|| round4(differences.iter().sum::<f64>() / differences.len() as f64)),
+            })
+        }
+        None => None,
+    };
     inputs.extend(other);
     let difference = round4(left.mean - right.mean);
     Ok(receipt(
@@ -645,6 +728,7 @@ fn compare_sources(
             source: NamedSummary { source_id, summary: left },
             comparison_source: NamedSummary { source_id: compare_id, summary: right },
             mean_difference: difference,
+            paired,
         }),
         &["manual sources excluded", "records are not paired by timestamp"],
     ))
@@ -666,10 +750,21 @@ fn correlate(
     let right = daily_means(&other, zone)?;
     let dates: Vec<String> = left.keys().filter(|date| right.contains_key(*date)).cloned().collect();
     inputs.extend(other);
-    let correlation = pearson(
-        &dates.iter().map(|date| left[date]).collect::<Vec<_>>(),
-        &dates.iter().map(|date| right[date]).collect::<Vec<_>>(),
-    );
+    let correlation = if dates.len() >= MINIMUM_CORRELATION_DAYS {
+        pearson(
+            &dates.iter().map(|date| left[date]).collect::<Vec<_>>(),
+            &dates.iter().map(|date| right[date]).collect::<Vec<_>>(),
+        )
+    } else {
+        None
+    };
+    let reason = match correlation {
+        Some(_) => None,
+        None if dates.len() < MINIMUM_CORRELATION_DAYS => {
+            Some(format!("{} paired days; a correlation needs at least {MINIMUM_CORRELATION_DAYS}", dates.len()))
+        }
+        None => Some("one quantity does not vary on the paired days".to_string()),
+    };
     Ok(receipt(
         request,
         unit,
@@ -681,6 +776,7 @@ fn correlate(
             paired_day_count: dates.len(),
             correlation,
             paired_dates: dates,
+            reason,
         }),
         &["manual sources excluded", "days missing either quantity excluded"],
     ))
@@ -931,12 +1027,20 @@ fn trend(source_id: String, inputs: &[&Input]) -> Result<SourceTrend> {
     if denominator == 0.0 {
         return Err(Error::other("A trend needs inputs at more than one instant"));
     }
+    let slope = numerator / denominator;
+    let intercept = y_mean - slope * x_mean;
+    let standard_error = (points.len() > 2).then(|| {
+        let residuals = points.iter().map(|point| (point.1 - intercept - slope * point.0).powi(2)).sum::<f64>();
+        round4((residuals / (points.len() - 2) as f64 / denominator).sqrt())
+    });
     Ok(SourceTrend {
         source_id,
         count: points.len(),
-        slope_per_day: round4(numerator / denominator),
+        slope_per_day: round4(slope),
         first_value: inputs[0].value,
         last_value: inputs[inputs.len() - 1].value,
+        days_spanned: round4(points[points.len() - 1].0 - points[0].0),
+        slope_standard_error: standard_error,
     })
 }
 
@@ -1006,6 +1110,31 @@ fn grouped(inputs: &[&Input], group: Group, zone: &str) -> Result<Vec<GroupSumma
     }
     groups.sort_by(|left, right| left.0.cmp(&right.0));
     Ok(groups.into_iter().map(|(period, values)| GroupSummary { period, summary: summarize(&values) }).collect())
+}
+
+/// The time zone for calendar days: the request's, else the athlete
+/// profile's. None when neither is set.
+fn day_zone(connection: &Connection, request: &Request<'_>) -> Result<Option<String>> {
+    match &request.time_zone {
+        Some(zone) => Ok(Some(zone.clone())),
+        None => crate::view::calendar::saved_time_zone(connection),
+    }
+}
+
+/// The population mean and standard deviation of one source's day means.
+fn daily_summary(inputs: &[&Input], zone: &str) -> Result<DailySummary> {
+    let mut days: BTreeMap<String, Vec<f64>> = BTreeMap::new();
+    for input in inputs {
+        days.entry(calendar_date(&input.recorded_at, zone)?).or_default().push(input.value);
+    }
+    let means: Vec<f64> = days.values().map(|values| values.iter().sum::<f64>() / values.len() as f64).collect();
+    let summary = summarize(&means);
+    Ok(DailySummary {
+        time_zone: zone.to_string(),
+        days: means.len(),
+        mean: summary.mean,
+        standard_deviation: summary.standard_deviation,
+    })
 }
 
 fn daily_means(inputs: &[Input], zone: &str) -> Result<BTreeMap<String, f64>> {

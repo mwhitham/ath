@@ -5,7 +5,7 @@
 mod common;
 
 use athleticstandard::calculate::range::SourceSummary;
-use athleticstandard::calculate::{self, CalculateOptions, CalculationResult, Operation};
+use athleticstandard::calculate::{self, CalculateOptions, CalculationResult, Operation, UNKNOWN_OPERATION_HINT};
 use athleticstandard::json::{self, Value};
 use athleticstandard::store::Store;
 use athleticstandard::view::calendar::{resolve_calendar_range, CalendarRangeRequest};
@@ -290,14 +290,18 @@ fn an_edited_calculation_file_changes_the_result_and_not_the_shipped_copy() {
     );
     let zones = calculate::apply(&store, "heart-rate-zones", workout_id, &working).unwrap();
     assert!(zones.missing.is_empty());
-    assert_eq!(json::encode(&zones.result), r#"{"seconds":[1,1,0,1,1]}"#);
+    // The workout ends at the last sample, so that sample covers no time (D240).
+    assert_eq!(
+        json::encode(&zones.result),
+        r#"{"seconds":[1,1,0,1,0],"uncovered_seconds":0,"boundaries_bpm":[120,140,160,180],"maximum_heart_rate_bpm":200}"#
+    );
 
     let shipped = athleticstandard::assets::shipped_calculation("heart-rate-zones").unwrap();
     let folder = working.join(".agents/skills/heart-rate-zones");
     std::fs::create_dir_all(&folder).unwrap();
     std::fs::write(folder.join("SKILL.md"), shipped.replace("zone: 0.60", "zone: 0.50")).unwrap();
     let edited = calculate::apply(&store, "heart-rate-zones", workout_id, &working).unwrap();
-    assert_ne!(json::encode(&edited.result), r#"{"seconds":[1,1,0,1,1]}"#);
+    assert_ne!(json::encode(&edited.result), json::encode(&zones.result));
     assert!(shipped.contains("zone: 0.60"));
     std::fs::remove_dir_all(&working).unwrap();
 }
@@ -416,8 +420,10 @@ fn an_installed_calculation_file_cannot_run_an_expression() {
     ]);
     replay(&mut store, &[json!({ "write": [source(SOURCE_A, "Device A", "wearable"), record] })]);
     let working = temporary_dir("ath-no-expressions-");
+    // The shipped 2.1.2 method needs a 5-minute window, longer than this record.
     let shipped = calculate::apply(&store, "resting-heart-rate", workout_id, &working).unwrap();
-    assert_eq!(json::encode(&shipped.result), r#"{"bpm":100}"#);
+    assert_eq!(shipped.result, None);
+    assert_eq!(shipped.missing, ["a 5-minute window with at least 3 samples and no gap over 120 s"]);
 
     let folder = working.join(".agents/skills/resting-heart-rate");
     std::fs::create_dir_all(&folder).unwrap();
@@ -441,6 +447,15 @@ fn an_installed_calculation_file_cannot_run_an_expression() {
         assert!(result.missing.is_empty(), "{number}: {:?}", result.missing);
     }
 
+    // The same holds for the 2.1.2 operation: a one-minute window finds
+    // 100 bpm, and an expression keeps the 5-minute default.
+    let minute = installed("use: lowest_rolling_mean\nwindow_ms: 60000\nminimum_samples: 2");
+    assert!(minute.missing.is_empty(), "{:?}", minute.missing);
+    let minute_value = athleticstandard::json::to_value(&minute.result);
+    assert_eq!(minute_value["bpm"], athleticstandard::json::Value::from(100.0));
+    let expression = installed("use: lowest_rolling_mean\nwindow_ms: 30000 * 4\nminimum_samples: 2");
+    assert_eq!(expression.result, None, "the default 5-minute window is kept");
+
     // A command where a field name or an operation belongs is plain text.
     let marker = working.join("ran");
     let touch = format!("touch {}", marker.display());
@@ -453,7 +468,7 @@ fn an_installed_calculation_file_cannot_run_an_expression() {
     for text in &commands {
         let unknown = installed(&format!("use: {text}"));
         assert_eq!(unknown.result, None, "{text}");
-        assert_eq!(unknown.missing, [format!("unknown calculation {text}")]);
+        assert_eq!(unknown.missing, [format!("unknown calculation {text}; {UNKNOWN_OPERATION_HINT}")]);
 
         let field = installed(&format!("use: lowest_held\nsample_field: {text}"));
         assert_eq!(field.result, None, "{text}");
