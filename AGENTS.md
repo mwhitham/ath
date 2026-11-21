@@ -58,6 +58,14 @@ file. New coaching skills follow `docs/coaching-skill-standard.md`. Never publis
 npm or list on skills.sh without the maintainer; installation tests run locally with
 `DISABLE_TELEMETRY=1` and `DO_NOT_TRACK=1` (D248).
 
+## Roadmap
+
+Roadmap ideas are GitHub issues labeled `roadmap` on `mwhitham/ath`. File one by following [`.cursor/skills/roadmap/SKILL.md`](.cursor/skills/roadmap/SKILL.md). Stop when the issue is open. Do not move an issue to Up next.
+
+The Roadmap workflow adds a new roadmap issue to Backlog and moves a closed one to Done. It does not set Up next or Now.
+
+Build from Up next on the public project titled Roadmap: <https://github.com/users/mwhitham/projects/3>. Take one item. Set it to Now. Open a pull request that closes the issue. Closing the issue moves it to Done. Do not start from Backlog.
+
 ## Verification
 
 These must pass before any commit:

@@ -36,6 +36,15 @@ Every skill runs `ath`. A skill installed another way, such as with the skills C
 needs `ath` installed too (see [Install](#install)). Each skill tells the agent how to
 check for `ath`, and to ask before installing it.
 
+## Roadmap
+
+What is being built is on the public project titled Roadmap:
+<https://github.com/users/mwhitham/projects/3>.
+
+A new idea starts in Backlog. It is not chosen yet. The repository owner
+moves an idea to Up next when it should be built. Open a roadmap idea with
+the issue form.
+
 ## Security
 
 The database contains sensitive health and training data. Athletic Standard creates
