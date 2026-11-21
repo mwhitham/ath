@@ -139,7 +139,7 @@ fn write_package(store: &Store, staging_path: &Path, exported_at: Option<String>
 
     manifest_files.sort_by(|left, right| json::compare_utf16(&left.file, &right.file));
     let manifest = ExportManifest {
-        athleticstandard_version: RecordFormatVersion::V2_1_1,
+        athleticstandard_version: RecordFormatVersion::current(),
         source_database_id: database_id.clone(),
         database_revision,
         exported_at,

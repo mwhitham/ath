@@ -20,13 +20,17 @@ pub fn skill_status(context: &mut Context<'_>, args: &Args) -> CommandResult {
     context.say(&skill::render_skill_status(&cwd, &copies))
 }
 
-/// `ath skill install`: copy the tool skill, calculation skills, and mapping
-/// files that are missing, and replace an older tool skill. The shipped
-/// files are compiled into this program, so the 2.1.0 refusal for a missing
-/// skill folder cannot occur.
+/// `ath skill install [name...]`: with no names, copy the tool skill,
+/// calculation skills, and mapping files that are missing, replace an older
+/// tool or coaching skill, and update an unedited calculation skill. With
+/// names, install only those skills, including a coaching skill (D229). The
+/// shipped files are compiled into this program, so the 2.1.0 refusal for a
+/// missing skill folder cannot occur.
 pub fn skill_install(context: &mut Context<'_>, args: &Args) -> CommandResult {
     let cwd = context.io.cwd.clone();
-    let result = skill::install_skill_and_mappings(&cwd)?;
+    let names = args.arguments("name");
+    let result =
+        if names.is_empty() { skill::install_skill_and_mappings(&cwd)? } else { skill::install_named(&cwd, &names)? };
     // `--json` on `skill` or `skill install` selects JSON, as in 2.1.0.
     if args.flag_on_path("json") {
         return context.say_json(&json::to_value(&result));

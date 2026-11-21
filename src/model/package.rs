@@ -16,14 +16,14 @@ use crate::json::{self, Value};
 use crate::{model_enum, model_object};
 
 /// The software, record, and database version (D152).
-pub const ATHLETIC_STANDARD_VERSION: &str = "2.1.1";
+pub const ATHLETIC_STANDARD_VERSION: &str = "2.1.2";
 
 /// Record files this software can read. New writes use `ATHLETIC_STANDARD_VERSION`.
-pub const ACCEPTED_RECORD_VERSIONS: &[&str] = &["1.0.0", "2.0.0", "2.1.0", "2.1.1"];
+pub const ACCEPTED_RECORD_VERSIONS: &[&str] = &["1.0.0", "2.0.0", "2.1.0", "2.1.1", "2.1.2"];
 
 /// Package versions `ath import` restores. 2.1.x and 2.0.0 packages share the
 /// same fields; later minor versions only add optional fields.
-pub const IMPORTABLE_PACKAGE_VERSIONS: &[&str] = &["2.0.0", "2.1.0", "2.1.1"];
+pub const IMPORTABLE_PACKAGE_VERSIONS: &[&str] = &["2.0.0", "2.1.0", "2.1.1", "2.1.2"];
 
 model_enum! {
     pub enum RecordFormatVersion {
@@ -31,6 +31,14 @@ model_enum! {
         V2_0_0 = "2.0.0",
         V2_1_0 = "2.1.0",
         V2_1_1 = "2.1.1",
+        V2_1_2 = "2.1.2",
+    }
+}
+
+impl RecordFormatVersion {
+    /// The version new records, packages, and manifests are written with.
+    pub fn current() -> RecordFormatVersion {
+        RecordFormatVersion::parse(ATHLETIC_STANDARD_VERSION).expect("the current version is a record format version")
     }
 }
 

@@ -97,7 +97,10 @@ fn every_supported_version_migrates_and_keeps_its_history() {
         assert!(result.migrated);
         assert_eq!(result.backup_path.as_deref(), Some(planned.as_str()));
         assert_eq!(store.metadata().sql_schema_version, SQL_SCHEMA_VERSION);
-        assert_eq!(store.metadata().athleticstandard_version, "2.1.1");
+        assert_eq!(
+            store.metadata().athleticstandard_version,
+            athleticstandard::model::package::ATHLETIC_STANDARD_VERSION
+        );
         store.close().unwrap();
 
         // The backup holds the database as it was.
@@ -339,12 +342,17 @@ fn foreign_and_mismatched_headers_are_refused_without_change() {
     direct(&path)
         .execute_batch(
             "PRAGMA journal_mode = DELETE;
-             UPDATE database_metadata SET sql_schema_version = 6;
-             PRAGMA user_version = 6;",
+             UPDATE database_metadata SET sql_schema_version = 7;
+             PRAGMA user_version = 7;",
         )
         .unwrap();
     let error = inspect_migration(&path, None).unwrap_err().to_string();
-    assert_eq!(error, "Database SQL schema 6 is newer than supported schema 5");
+    assert_eq!(
+        error,
+        format!(
+            "Database SQL schema 7 is newer than supported schema {SQL_SCHEMA_VERSION}. A newer ath wrote this database. Update ath to open it, for example with ath --update."
+        )
+    );
 }
 
 #[test]
@@ -357,7 +365,7 @@ fn rollback_means_restoring_the_verified_backup() {
     let backup_path = PathBuf::from(result.backup_path.unwrap());
 
     // Keep the newer database separately, then restore the backup in its place.
-    let kept = athleticstandard::files::sidecar(&path, ".2.1.1.sqlite");
+    let kept = athleticstandard::files::sidecar(&path, ".newer.sqlite");
     std::fs::rename(&path, &kept).unwrap();
     for suffix in ["-wal", "-shm"] {
         let sidecar = athleticstandard::files::sidecar(&path, suffix);
@@ -368,7 +376,7 @@ fn rollback_means_restoring_the_verified_backup() {
     std::fs::copy(&backup_path, &path).unwrap();
     assert_eq!(dump_tables(&path, ATHLETE_TABLES), before);
     assert_eq!(stored_versions(&path), ("2.1.0".to_string(), 4));
-    assert_eq!(stored_versions(&kept).0, "2.1.1");
+    assert_eq!(stored_versions(&kept).0, athleticstandard::model::package::ATHLETIC_STANDARD_VERSION);
     assert!(backup::format_migration_backup_timestamp(0).ends_with('Z'));
 }
 
@@ -432,7 +440,8 @@ fn the_2_1_0_program_refuses_a_migrated_database() {
 }
 
 /// The migrated athlete tables equal what the 2.1.0 migration wrote, row for
-/// row. 2.1.1 adds step 5, which changes no athlete row.
+/// row. 2.1.1 adds step 5, which changes no athlete row. 2.1.2 adds step 6,
+/// which adds one empty column and changes no athlete row.
 #[test]
 fn migrated_tables_match_the_2_1_0_migration() {
     let golden = golden("migration.json");
@@ -452,13 +461,15 @@ fn migrated_tables_match_the_2_1_0_migration() {
             serde_json::Value::from(preview.source_sql_schema_version),
             old_preview["source_sql_schema_version"]
         );
-        // 2.1.0 planned the same steps, ending one step earlier.
+        // 2.1.0 planned the same steps, ending two steps earlier.
         let old_steps = old_preview["planned_steps"].as_array().unwrap();
         for (ours, theirs) in preview.planned_steps.iter().zip(old_steps) {
             assert_eq!(serde_json::to_value(ours).unwrap(), *theirs, "{name}");
         }
-        assert_eq!(preview.planned_steps.len(), old_steps.len() + 1, "{name}");
-        assert_eq!(preview.planned_steps.last().unwrap().migration_file, "migrations/005-version-2-1-1.sql");
+        assert_eq!(preview.planned_steps.len(), old_steps.len() + 2, "{name}");
+        let added: Vec<&str> =
+            preview.planned_steps[old_steps.len()..].iter().map(|step| step.migration_file.as_str()).collect();
+        assert_eq!(added, ["migrations/005-version-2-1-1.sql", "migrations/006-version-2-1-2.sql"]);
 
         let mut store = open_for_migration(&path);
         execute_confirmed_migration(&mut store, &MigrationOptions::default()).unwrap();

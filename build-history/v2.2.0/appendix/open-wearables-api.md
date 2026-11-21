@@ -51,7 +51,7 @@ file, and this plan does not call it.
 
 ## The reads this plan uses
 
-D232 names every read. The paths below are the ones this study opened
+D259 names every read. The paths below are the ones this study opened
 first. Each is under `/api/v1` and takes a user id in the path. The user
 id is an Open Wearables UUID. Dates are required on the paged reads.
 
@@ -136,7 +136,7 @@ schema. `zone_offset` is a separate string, `+01:00` or `-05:30`, or null.
 The 2.1.0 mapping file's timeseries lines do not name `heart_rate`. In
 Athletic Standard, `heart_rate` is a series quantity
 (`series_quantity_unit` in `src/model/data.rs`, unchanged in 2.1.1). It is not one of the point
-quantities the 2.1.0 mapping engine writes. D232 stores that stream as
+quantities the 2.1.0 mapping engine writes. D259 stores that stream as
 measurement samples. The 2.1.0 file, by itself, still has nowhere to put it.
 
 ## Time bounds
@@ -206,7 +206,7 @@ route files. A limit may still exist in middleware this study did not open.
 The same commit, `183e8cc4f6de897dbd288c93d49a691f2cf721ae`, was read again
 for every user data route. The OpenAPI file is `docs/openapi.json`,
 `info.version` `0.11.0`. The storage rule is section 2 of the
-specification, as D232 says. This section records what the source shows.
+specification, as D259 says. This section records what the source shows.
 
 `SeriesType` is the enum in `backend/app/schemas/enums/series_types.py`.
 Each entry in `SERIES_TYPE_DEFINITIONS` is an id, a name, and a unit.
@@ -215,7 +215,7 @@ path in `timeseries_service.py` copies `recorded_at`, `zone_offset`, the
 type, the value, and `window_seconds`. It does not set `period_end` or
 `computed_by`. The response `metadata.resolution` is the raw or day
 label. A series row does not carry that label. The archive capsule
-copies it. D237 writes that capsule only at the database revision where
+copies it. D264 writes that capsule only at the database revision where
 the safety facts were read.
 
 `_aggregated_timeseries` handles `1min`, `5min`, `15min`, and `1hour`. It
@@ -241,7 +241,7 @@ the value is null for current rows because they come from WHOOP and
 WHOOP's HRV there is RMSSD. The class prose calls `recovery_score`
 deprecated, WHOOP-only, and 0 to 100. The recovery query selects by
 category, not by WHOOP, and copies `provider` and `value` unchanged.
-Polar writes recovery scores on the 1 to 6 range. D235 uses that range
+Polar writes recovery scores on the 1 to 6 range. D262 uses that range
 table and the copied provider. It does not use the prose as the scale.
 `BodyLatest` has `skin_temperature_celsius`
 and `skin_temperature_measured_at`. `BodyAveraged` has `period_start`,
@@ -260,7 +260,7 @@ listed rows. The personal-record response fields are `birth_date`,
 
 The same commit was read again for the summary, score, meal, cycle, body,
 and personal-record contracts. The storage rule is section 2 of the
-specification, as D232 says. This section records the source facts that
+specification, as D259 says. This section records the source facts that
 rule uses. `SERIES_TYPE_DEFINITIONS` has 141
 entries.
 

@@ -6,7 +6,7 @@ Status: **plan only. The maintainer has not approved it. Not approved for build.
 Wearables server they run. When `--vendor-workouts` is passed, it also
 reads the live workout list and detail. It writes the stored reads with
 the mapping this release ships. It writes a live original only when that
-flag is on and the person confirms the write. The proposals are D227 through D244 in
+flag is on and the person confirms the write. The proposals are D254 through D271 in
 [decisions.md](decisions.md). They are not adopted. The evidence is
 [appendix/open-wearables-api.md](appendix/open-wearables-api.md), checked on
 6, 7, 8, and 14 November 2026.
@@ -19,6 +19,13 @@ Version 2.1.1 on `main` `0de71bbd6474916af0408a4090bc2c74a1a3aed2` is the
 software this plan is read against. That commit is the merge of pull request
 44. An earlier reading used version 2.1.0 at
 `8db90b42ac654767e9e9570a121bbbd4fde3348a`, the merge of pull request 39.
+
+Version 2.1.2 on `main` `073f9bce8537b9f720e8dd5365919ef99684f116` is the
+software now. That commit is the merge of pull request 45. It adopted
+D227 through D253 and published migration step 6. This plan's proposals
+are D254 through D271, and the migration it adds is step 7. The reading
+below is still against version 2.1.1, except the decision numbers, the
+migration step, and the version lists.
 
 ## 1. What a person does
 
@@ -330,7 +337,7 @@ only for `openwearables`, and they are flags, not environment variables.
 `--base-url` and `--user` are required for `openwearables` unless the
 environment named above supplies them. `--base-url` already exists for
 `garmin`, where it names a test server's API root. For `openwearables` it
-names the server origin, as D229 says. `ath pull garmin --date YYYY-MM-DD`
+names the server origin, as D256 says. `ath pull garmin --date YYYY-MM-DD`
 is otherwise unchanged, and it still writes without a preview.
 `ath pull` with any other name still fails. The failure text
 `pull currently reads garmin` becomes `pull reads garmin or openwearables`.
@@ -367,21 +374,21 @@ gateway commands they are today.
 
 ## 2. What this pull stores
 
-This section is the storage rule, as D232 says. D232 keeps these values
-in this pull. D233 corrected source, time, and score direction. D234 corrects units, day
+This section is the storage rule, as D259 says. D259 keeps these values
+in this pull. D260 corrected source, time, and score direction. D261 corrects units, day
 windows, sleep bounds, identity encoding, reported records, and child
-withdrawal. D235 corrects the root record type, numberless calculation
+withdrawal. D262 corrects the root record type, numberless calculation
 inputs, recovery scales, required ids, workout provenance, hydration,
-and the archive of a refused original. D236 corrects the migration
+and the archive of a refused original. D263 corrects the migration
 dependencies, the command counts, the archive capsule, and null-source
-report routing. D237 corrects when the archive reads the database, and
-the failed-init sentence. D238 stores a workout the person typed as a
-workout session. D239 keeps a body skin-temperature time unknown when the
-response does not say it is an instant. D240 keeps a finite
-`hr_recovery`, including zero and a negative number. D241 keeps the
-current manual-session calculation rule. D242 stores the live
-workout list and detail as originals. D243 is the live-read procedure.
-D244 keeps each vendor object whole. An earlier draft
+report routing. D264 corrects when the archive reads the database, and
+the failed-init sentence. D265 stores a workout the person typed as a
+workout session. D266 keeps a body skin-temperature time unknown when the
+response does not say it is an instant. D267 keeps a finite
+`hr_recovery`, including zero and a negative number. D268 keeps the
+current manual-session calculation rule. D269 stores the live
+workout list and detail as originals. D270 is the live-read procedure.
+D271 keeps each vendor object whole. An earlier draft
 left day values, the heart-rate stream, summaries, and workout segments for
 a later version. That draft is superseded. File imports stay. The Garmin pull stays. A Junction pull is proposed as
 2.3.0. Automatic sync, retries, token refresh, and backfill are proposed as
@@ -595,7 +602,7 @@ not a nutrition entry. Nutrition entries have no source. D161 still says
 a mapping cannot turn a personal report into a measured record. A source
 report stores that report without making it a measurement. The eight
 range calculations in `src/calculate/range.rs`, `provider-period-summary`
-among them, do not read it. Step 6 creates the `source_reports` table. Value and unit are both present or both absent.
+among them, do not read it. Step 7 creates the `source_reports` table. Value and unit are both present or both absent.
 `report_kind` is one of `intake`, `account`, `predicted`, `code`, `text`,
 `unknown_workout`, `index`, or `original`. Gender uses
 `account`. It is not copied into `sex` or the athlete profile. The
@@ -1018,7 +1025,7 @@ report write. It is not an archive, and it does not refuse the device
 check. A normalized row is not revised from an archive.
 
 A provider summary or provider score may omit `value` only together with
-its unit. One without the other is refused. Step 6 rebuilds both typed
+its unit. One without the other is refused. Step 7 rebuilds both typed
 tables so the pair can be null, copies every existing row, and keeps
 record ids, `data_json`, import keys, revisions, tombstones, and reporting
 periods. Scale on a provider score stays required. No number is invented.
@@ -1242,7 +1249,7 @@ timeout above.
   a vendor's status through unchanged, and the route answers 501 only for
   a provider it has no workout method for, so this study cannot tell a
   missing path from a missing activity. This is the plan's stated
-  default. The maintainer still has to confirm it (D243).
+  default. The maintainer still has to confirm it (D270).
 - Polar. The list sends `samples`, `zones`, and `route` false, the route's
   default, so the list stays small. Detail sends all three true. A list
   over the response cap fails that list, because the route has no smaller
@@ -1638,7 +1645,7 @@ plan question. Whether this release stores originals in their own files
 instead is open in section 10.
 
 The database keeps each original's size, so no write measures them all.
-Step 6 creates the table `vendor_original_sizes`. It has one row for
+Step 7 creates the table `vendor_original_sizes`. It has one row for
 each vendor original, deleted ones included. The row holds `record_id`,
 `record_item_bytes`, and `revision_items_bytes`. `record_item_bytes` is
 the original's item under `records` as export writes it.
@@ -2070,7 +2077,7 @@ built without that field. Day rows carry it, and those rows are stored.
 
 ## 4. Credentials, privacy, and the network
 
-D229 is the rule. The key never enters the athlete database, the export, the
+D256 is the rule. The key never enters the athlete database, the export, the
 preview, or an error line. The pull reads the paths in section 2. Connections and the two live
 workout routes are included only when `--vendor-workouts` is on.
 It does not list users. A raw HTTP personal-record response includes `user_id`. That field must
@@ -2137,7 +2144,7 @@ an optional `userAccessToken`. The pinned server declares it on its Garmin
 wellness models, and the live route returns Garmin's objects unchanged.
 Refusing the page would refuse every Garmin page that carries it.
 `polar_user` and a route coordinate are not credential-shaped.
-D244 keeps the rest of the vendor object, including account ids, Polar
+D271 keeps the rest of the vendor object, including account ids, Polar
 user URLs, and full routes. The matching personal-record `user_id` is the
 only field of a stored read that is dropped before this walk. Any other
 copy of the user id still rejects the page. The connections list is not
@@ -2170,19 +2177,21 @@ reads in section 2, no user list.
 ## 5. Version, migration, and what stays compatible
 
 The build sets `2.2.0` on the package, the record, and the
-`athleticstandard` crate, by the same constants 2.1.1 uses.
+`athleticstandard` crate, by the same constants 2.1.2 uses.
 `ATHLETIC_STANDARD_VERSION` is in `src/model/package.rs`. `SQL_SCHEMA_VERSION` is in
-`src/store/migrate.rs`. Migration step 6 is a new SQL file and a narrow
+`src/store/migrate.rs`. Migration step 7 is a new SQL file and a narrow
 runner arm. Step 5 is already
-`spec/sql/migrations/005-version-2-1-1.sql`. Step 6 updates
-`athleticstandard_version` to `2.2.0` and `sql_schema_version` to 6. No
+`spec/sql/migrations/005-version-2-1-1.sql`. Step 6 is already
+`spec/sql/migrations/006-version-2-1-2.sql`. Step 7 updates
+`athleticstandard_version` to `2.2.0` and `sql_schema_version` to 7. No
 column is added to an existing table. The contract adds
 `source_report` to the `records.record_type` check, creates
 `source_reports` and `vendor_original_sizes`, and rebuilds
 `provider_summaries` and
-`provider_scores` as section 2 describes. Files `001` through `005` stay
-byte-identical. The check is not removed, and ordinary store writes do
-not turn foreign keys off.
+`provider_scores` as section 2 describes. Files `001` through `006` stay
+byte-identical. Step 6's nullable `athlete_reports.workout_session_id`
+stays. Step 7 does not rebuild that table. The check is not removed, and
+ordinary store writes do not turn foreign keys off.
 
 SQLite cannot change that check in place. `records` and
 `record_revisions` reference each other. The link from a record to its
@@ -2193,30 +2202,30 @@ attachments, reporting periods, and the other child tables, use
 `records`. `PRAGMA foreign_keys` does not change inside a transaction.
 `configure` in `src/store/mod.rs` requires foreign keys on before
 `install_schema` runs. A `DROP TABLE records` inside that transaction
-would fail or cascade through the children. Step 6 does not do that.
+would fail or cascade through the children. Step 7 does not do that.
 `write_transaction` in the same file refuses to write when foreign keys
 are off. `Store::transaction` uses it. `ath migrate` and
-`apply_pending_without_backup` run steps 2 through 5 through
+`apply_pending_without_backup` run steps 2 through 6 through
 `Store::transaction`. A new database does not. `Store::create` opens a
 connection, runs `configure` and `enable_wal`, and calls `install_schema`
 on that connection before any `Store` exists. `install_schema` opens its
 own transaction with `rusqlite::Transaction::new_unchecked`.
 
-Today `install_schema` runs the whole chain, steps 1 through 5, in that
+Today `install_schema` runs the whole chain, steps 1 through 6, in that
 one transaction. It sets `user_version` to `SQL_SCHEMA_VERSION`. Then it
 refuses unless the metadata reads `SQL_SCHEMA_VERSION` and
 `ATHLETIC_STANDARD_VERSION`, in `src/store/mod.rs` lines 625 through 629
-at `0de71bb`. `apply_steps` in `src/store/migrate.rs` has the same kind of
-final check, in lines 321 through 326. It refuses unless the last step it
-ran reached `SQL_SCHEMA_VERSION`. When the constant becomes 6 and steps 1
-through 5 commit at schema 5, both checks would fail. So the build changes
-both. The first `install_schema` transaction stops after step 5, sets
-`user_version` 5, checks for schema 5 and `2.1.1`, and commits.
+at `073f9bc`. `apply_steps` in `src/store/migrate.rs` has the same kind of
+final check, in lines 327 through 331. It refuses unless the last step it
+ran reached `SQL_SCHEMA_VERSION`. When the constant becomes 7 and steps 1
+through 6 commit at schema 6, both checks would fail. So the build changes
+both. The first `install_schema` transaction stops after step 6, sets
+`user_version` 6, checks for schema 6 and `2.1.2`, and commits.
 `apply_steps` checks that it reached the last step it was given. The
-step-6 function makes the final check before it commits: schema 6,
-`2.2.0`, and `user_version` 6.
+step-7 function makes the final check before it commits: schema 7,
+`2.2.0`, and `user_version` 7.
 
-Step 6 is one function in `src/store/migrate.rs`. It takes the
+Step 7 is one function in `src/store/migrate.rs`. It takes the
 connection and opens its own transaction. At init it runs on the
 connection `Store::create` opened. On migrate it runs on the store's
 connection. It does not use `Store::transaction`. Before `BEGIN IMMEDIATE`, it sets
@@ -2253,11 +2262,11 @@ Inside that one transaction the order is fixed.
 6. Recreate the two views and the two cross-table triggers from that
    same text, unchanged.
 7. Create `source_reports` and its type trigger, and
-   `vendor_original_sizes`. A 2.1.1 database has no vendor original, so
+   `vendor_original_sizes`. A 2.1.2 database has no vendor original, so
    the new table starts empty.
 8. `PRAGMA foreign_key_check` is empty and `PRAGMA integrity_check` is
    `ok`.
-9. Set the version rows and `user_version` 6.
+9. Set the version rows and `user_version` 7.
 
 `sql_v1_database_info`, `sql_v1_record_revisions`, and
 `sql_v1_record_deletions` do not name `records`, so they stay through the
@@ -2271,22 +2280,22 @@ cross-table triggers, the old check, the rows, and the version. The D124
 backup is already on disk. Device receipts stay in the copied source
 JSON. They are not rewritten.
 
-A new database commits migration steps 1 through 5, then runs step 6.
-Item 9 in the list above sets `user_version`. If step 6 fails during init, that transaction
-rolls back to the committed step 5 schema before the existing failed-init
+A new database commits migration steps 1 through 6, then runs step 7.
+Item 9 in the list above sets `user_version`. If step 7 fails during init, that transaction
+rolls back to the committed step 6 schema before the existing failed-init
 cleanup runs. Init reports failure. `Store::create` still calls
 `remove_partial_database`, which deletes the new file, the wal file, and
-the shm file. D231 leaves that cleanup in place, and this build does not
+the shm file. D258 leaves that cleanup in place, and this build does not
 change it. A file that cleanup does not delete is not left with the views
 dropped. A migrate of a database that already existed is a separate case.
 `apply_after_backup` and `apply_pending_without_backup` in
-`src/store/migrate.rs` run the steps up to 5 in `Store::transaction`, as
-2.1.1 does, and commit. They then run step 6 in its own transaction. For a
-2.1.1 database, a step 6 rollback leaves the file at schema 5 with foreign
+`src/store/migrate.rs` run the steps up to 6 in `Store::transaction`, as
+2.1.2 does, and commit. They then run step 7 in its own transaction. For a
+2.1.2 database, a step 7 rollback leaves the file at schema 6 with foreign
 keys on. For an older database, the earlier steps stay committed, so the
-file is now a 2.1.1 database. The message says which schema the file is
+file is now a 2.1.2 database. The message says which schema the file is
 at and names the verified backup. Running `ath migrate` again runs only
-step 6. `apply_step` keeps its signature for steps 2 through 5. Step 6 is
+step 7. `apply_step` keeps its signature for steps 2 through 6. Step 7 is
 a separate function in that file.
 `MIGRATION_CHAIN` in that file and `spec/sql/contract.json` gain the step.
 The native tests check that the contract matches the embedded SQL.
@@ -2294,15 +2303,15 @@ The native tests check that the contract matches the embedded SQL.
 point at `schema/2.2.0/`.
 
 `READABLE_DATABASE_VERSIONS` and `ACCEPTED_RECORD_VERSIONS` become `1.0.0`,
-`2.0.0`, `2.1.0`, `2.1.1`, and `2.2.0`. Both sets already contain `1.0.0`.
+`2.0.0`, `2.1.0`, `2.1.1`, `2.1.2`, and `2.2.0`. Both sets already contain `1.0.0`.
 Dropping it would make a 1.0.0 database unloadable, so migrate could not
-open it. `IMPORTABLE_PACKAGE_VERSIONS` is `2.0.0`, `2.1.0`, and `2.1.1`
-today. It gains `2.2.0` and keeps those three. `Store::open` rejects a
-`2.1.1` database until `ath migrate`, with the refusal it already uses for
-an older database. A `2.1.1` database will not open until that migrate.
+open it. `IMPORTABLE_PACKAGE_VERSIONS` is `2.0.0`, `2.1.0`, `2.1.1`, and `2.1.2`
+today. It gains `2.2.0` and keeps those four. `Store::open` rejects a
+`2.1.2` database until `ath migrate`, with the refusal it already uses for
+an older database. A `2.1.2` database will not open until that migrate.
 
-The build generates `schema/2.2.0/` and does not rewrite `schema/2.1.1/`,
-`schema/2.1.0/`, or `schema/2.0.0/`. The 2.2.0 source object gains optional `device_binding`.
+The build generates `schema/2.2.0/` and does not rewrite `schema/2.1.2/`,
+`schema/2.1.1/`, `schema/2.1.0/`, or `schema/2.0.0/`. The 2.2.0 source object gains optional `device_binding`.
 `ProviderReportingPeriodType` gains `open_wearables_reporting_window`.
 `ValueBasis` gains `aggregator`. Series quantities gain the sample series
 whose units are in the appendix table. Intake, index, age, and effort
@@ -2360,7 +2369,7 @@ interactive open can preview, back up, ask, and then migrate.
 | Owner-correction rule and its count, the Garmin window rule, and the depth check for saved envelopes | `match_keyed` and `record_by_import_key` in `src/import/provider.rs`, behind a `KeyedPolicy` flag that only route `open_wearables` sets |
 | Where a workout fix belongs | one paragraph in `skills/athletic-standard/SKILL.md`, under "Stable IDs and revisions" |
 | Total size bound for vendor originals, in the bytes export writes | `MAX_VENDOR_ORIGINAL_BYTES` in `src/input_policy.rs`. One function beside `ArrayWriter::item` in `src/package/export.rs` measures an item. The bound is checked in the matching step in `src/import/provider.rs`, in `apply_in` in `src/store/write.rs`, and in `merge_in`, `resolve_in`, and native restore in `src/package/restore.rs` |
-| Stored sizes of vendor originals | `vendor_original_sizes`, created by the step 6 SQL file. The rows are written beside the typed rows in `src/store/write.rs` and `src/package/restore.rs`. `ath check` compares them in `src/store/check.rs`, and `ath repair` rewrites them in `src/store/repair.rs` |
+| Stored sizes of vendor originals | `vendor_original_sizes`, created by the step 7 SQL file. The rows are written beside the typed rows in `src/store/write.rs` and `src/package/restore.rs`. `ath check` compares them in `src/store/check.rs`, and `ath repair` rewrites them in `src/store/repair.rs` |
 | The vendor-original total and its warning | the pull's text and `--json` outcome, from `pull` in `src/cli/commands/routes.rs` |
 | Export refuses a document over the package read cap, or an item that reaches the nesting limit | `src/package/export.rs`, before the staging folder is renamed |
 | The pull's `__proto__` and depth checks on each vendor object | `src/runtime/vendor_workouts.rs`, before the page is staged |
@@ -2370,7 +2379,7 @@ interactive open can preview, back up, ask, and then migrate.
 | Response cap, page cap, Suunto list cap, and the comment and route list that now name both pulls | named constants in `src/input_policy.rs` |
 | Receipt for a start in Unix seconds or milliseconds | a helper beside `offset_timestamp_receipt` in `src/import/candidate.rs` |
 | Measurement samples, source reports, paired null value and unit, and child withdrawal | `write_current_state` and `typed_columns` in `src/store/encode.rs`. Package restore, repair, and the record check use that encoder |
-| Step 6 with foreign keys off | its own transaction in `src/store/migrate.rs`, and `install_schema` in `src/store/mod.rs` |
+| Step 7 with foreign keys off | its own transaction in `src/store/migrate.rs`, and `install_schema` in `src/store/mod.rs` |
 | Whole source record from the owner or a library caller | existing `ath correct`, protocol `records.write`, `records.write_changes`, and `records.correct`, package restore, and an accepted package merge |
 
 `src/store/`, `src/import/mapping.rs`, and `src/runtime/garmin_pull.rs` are
@@ -2701,7 +2710,7 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
   absent, null, or non-string `user_id` on the HTTP object refuses the
   page. The canonical envelope without `user_id` imports. The athlete
   profile is unchanged
-- step 6 keeps an old summary's id, number, unit, `data_json`, import key,
+- step 7 keeps an old summary's id, number, unit, `data_json`, import key,
   revisions, and tombstone. A numeric summary can be corrected to
   numberless and back. A half-null value and unit is refused. A sample
   repeats and corrects. `ath check`, export, native import, and restore
@@ -3179,50 +3188,50 @@ Rust tests, run by the existing `cargo test` job on Linux, macOS, and Windows:
 
 Migration tests, in the build gate:
 
-- a synthetic 2.1.1 database makes `Store::open` refuse before any network
+- a synthetic 2.1.2 database makes `Store::open` refuse before any network
   call. `ath migrate` previews without writing. It still previews, backs up,
   and asks, as D124 requires. The target it names is `2.2.0`
 - a confirmed migrate backs up, then sets the record version to `2.2.0`,
-  SQL schema 6, and `user_version` 6. Record ids, revisions, deletions,
+  SQL schema 7, and `user_version` 7. Record ids, revisions, deletions,
   attachments, import keys, reporting periods, and device receipts are
   unchanged. `PRAGMA foreign_key_check` is empty. A deleted row and its
   history are still there. The upgraded database is populated, including
   a tombstone. `sql_v1_current_records` and
   `sql_v1_active_records` still return rows. An insert that would make a
   revision type disagree with its record is still rejected. A second
-  migrate does nothing. A failure injected before the step 6 commit
+  migrate does nothing. A failure injected before the step 7 commit
   leaves the old views, the two cross-table triggers, the rows, the
   version, and `foreign_keys` read back as on. A successful migrate
   leaves `foreign_keys` on. A source report can then be created, revised,
   checked, exported, restored, and repaired from `data_json` without
   becoming a measured type
-- `ath init` creates a database that is already `2.2.0`, SQL schema 6, and
-  `user_version` 6, and `ath check` exits 0. The fresh database accepts a
+- `ath init` creates a database that is already `2.2.0`, SQL schema 7, and
+  `user_version` 7, and `ath check` exits 0. The fresh database accepts a
   source report, the same two views are queryable, and a mismatched
-  revision type is rejected. A failed init rolls step 6 back and then the
-  existing cleanup removes the new file. A failed step 6 migrate of a
-  populated 2.1.1 database leaves that file, schema 5, the views, and
-  foreign-key enforcement. Step 5 still
-  writes `2.1.1` and schema 5, and `install_schema` commits that
-  transaction before step 6. Its check accepts schema 5 and `2.1.1` there.
-  A step 6 that is made to stop before it sets the version rows fails the
-  step-6 check for schema 6 and `2.2.0`, and init fails. Init runs on the
+  revision type is rejected. A failed init rolls step 7 back and then the
+  existing cleanup removes the new file. A failed step 7 migrate of a
+  populated 2.1.2 database leaves that file, schema 6, the views, and
+  foreign-key enforcement. Step 6 still
+  writes `2.1.2` and schema 6, and `install_schema` commits that
+  transaction before step 7. Its check accepts schema 6 and `2.1.2` there.
+  A step 7 that is made to stop before it sets the version rows fails the
+  step-7 check for schema 7 and `2.2.0`, and init fails. Init runs on the
   connection `Store::create` opened and never calls `Store::transaction`
-- `apply_steps` given steps 2 through 5 passes its final check at schema 5.
-  Given a list that ends before 5, it still refuses when the database
+- `apply_steps` given steps 2 through 6 passes its final check at schema 6.
+  Given a list that ends before 6, it still refuses when the database
   stops short of the last step in that list
-- a 2.0.0 database whose step 6 is made to fail after steps 3 to 5
-  committed is a 2.1.1 database at schema 5. The message says so and names
-  the verified backup. A second `ath migrate` runs only step 6 and
+- a 2.0.0 database whose step 7 is made to fail after steps 3 to 6
+  committed is a 2.1.2 database at schema 6. The message says so and names
+  the verified backup. A second `ath migrate` runs only step 7 and
   finishes. `Store::transaction` still refuses a write while foreign keys
-  are off, and step 6 does not use it
+  are off, and step 7 does not use it
 - `ath migrate` re-checks the file, the database ID, the schema, and the
-  revision its earlier steps left before step 6. A change made between the
-  two transactions stops step 6 and changes nothing more
-- databases at `1.0.0`, `2.0.0`, and `2.1.0` still open for migrate. Packages at
-  `2.0.0`, `2.1.0`, and `2.1.1` still import. `spec/sql/migrations/004-version-2-1.sql`,
-  `spec/sql/migrations/005-version-2-1-1.sql`, and the folders `schema/2.0.0/`,
-  `schema/2.1.0/`, and `schema/2.1.1/` stay byte-identical
+  revision its earlier steps left before step 7. A change made between the
+  two transactions stops step 7 and changes nothing more
+- databases at `1.0.0`, `2.0.0`, `2.1.0`, and `2.1.1` still open for migrate. Packages at
+  `2.0.0`, `2.1.0`, `2.1.1`, and `2.1.2` still import. `spec/sql/migrations/004-version-2-1.sql`,
+  `spec/sql/migrations/005-version-2-1-1.sql`, `spec/sql/migrations/006-version-2-1-2.sql`, and the folders `schema/2.0.0/`,
+  `schema/2.1.0/`, `schema/2.1.1/`, and `schema/2.1.2/` stay byte-identical
 
 Rust tests use `MemorySecretStore` in `src/runtime/keyring.rs` and do not
 open the real password store. They cover:
@@ -3301,14 +3310,14 @@ This plan pull request has no screenshots and no video.
 
 ## 9. Separate follow-ups
 
-D231 records the check. None of these is a prerequisite for the pull, and none
+D258 records the check. None of these is a prerequisite for the pull, and none
 is in the build pull request.
 
 - Failed `ath init` and failed `Store::create` still delete the database
   file in the same process that closed it, without the abandoned-directory
   cleanup `make_owned_temporary_directory` uses. On Windows that delete can
   fail with `EBUSY`. Version 2.1.0 spec section 12 left it out
-  and named no later version. Version 2.1.1 did not take it. A failed step 6
+  and named no later version. Version 2.1.1 did not take it. A failed step 7
   rolls back before that cleanup. This build does not replace the cleanup.
 - `src/import/mapping.rs` is 1703 lines, `src/import/provider.rs` is 1297,
   and `src/store/check.rs` is 1044. The pull does not add HTTP to them.
@@ -3349,7 +3358,7 @@ measured run for this pull.
 Risks:
 
 - A server newer than 0.11.0 can add a default that hides a second device.
-  Current `main` does not, when the queries in D230 are sent. The client is
+  Current `main` does not, when the queries in D257 are sent. The client is
   tested against the stored fixture. That fixture is not a live response, and
   a live timestamp without an offset is left out. A breaking envelope needs a
   new fixture before the pull trusts it.
@@ -3357,9 +3366,9 @@ Risks:
   again with a smaller limit. A 429 or another transport failure still
   stops that read, keeps earlier pages, and withholds the success line. The
   study did not read the rate-limit middleware.
-- A failed step 6 on a database older than 2.1.1 leaves it at 2.1.1,
+- A failed step 7 on a database older than 2.1.2 leaves it at 2.1.2,
   because the earlier steps committed first. The message says so and names
-  the verified backup, and a second `ath migrate` finishes. Step 6 needs
+  the verified backup, and a second `ath migrate` finishes. Step 7 needs
   foreign keys off, and the earlier steps run with them on, so they cannot
   share one transaction.
 - A live read can change the server. It can refresh a token, revoke a
@@ -3414,7 +3423,7 @@ Risks:
   is to avoid copying the key into the record.
 
 The build, after approval, is one pull request in this order. First the
-schema and step 6: the root `record_type` check, the period type, the
+schema and step 7: the root `record_type` check, the period type, the
 `aggregator` basis, the sample series quantities in the appendix table,
 the `source_report` type and table, the paired null value and unit, and
 the time-unknown summary. The point check in `src/model/data.rs` and the
@@ -3429,44 +3438,45 @@ cycle filter, the smaller-page split, and the tests in section 7. The
 laptop card and the phone proof are part of that same pull request. This
 plan pull request has no media.
 
-The maintainer approves or rejects this plan before any build. D227 through
-D244 are the proposal. They are not adopted. The stored workout and the
+The maintainer approves or rejects this plan before any build. D254 through
+D271 are the proposal. They are not adopted. The stored workout and the
 live original stay separate records, because the public stored
-workout has no vendor id. That split is part of this proposal. D244 is the
+workout has no vendor id. That split is part of this proposal. D271 is the
 privacy choice, and the maintainer can change it before approval. Reviews of earlier heads were
 incorporated here. None of those reviews approves this revision. The next
 head needs re-review. An earlier review accepted a
 migration with no new column, under D152 and D184. That acceptance does not
-adopt D227. The
+adopt D254. The
 optional source key adds no column.
 
-1. One number, 2.2.0. Readable sets keep `1.0.0`. Step 6 runs on create and
-   on migrate. Step 5 stays the published 2.1.1 migration. The device
-   receipt adds no column. Step 6 extends the
+1. One number, 2.2.0. Readable sets keep `1.0.0`. Step 7 runs on create and
+   on migrate. Step 5 stays the published 2.1.1 migration. Step 6 stays the
+   published 2.1.2 migration. The device
+   receipt adds no column. Step 7 extends the
    root check with `source_report` by the copy in section 5, creates
    `source_reports`, and rebuilds `provider_summaries` and
    `provider_scores` so a numberless object can omit `value` and its unit
    together. Existing ids and rows are copied. Before the root rename,
-   step 6 drops and later recreates `sql_v1_current_records`,
+   step 7 drops and later recreates `sql_v1_current_records`,
    `sql_v1_active_records`, and the two `record_revisions` triggers that
-   read `records`. Foreign keys stay on for ordinary writes. Step 6 turns
+   read `records`. Foreign keys stay on for ordinary writes. Step 7 turns
    them off on the store's own connection, only before its transaction,
    and reads them back on after every exit. A
-   `2.1.1` database does not open until `ath migrate`. This release does
+   `2.1.2` database does not open until `ath migrate`. This release does
    not schedule a pull, add its own token refresh, backfill, or store a
-   cursor (D227). A live read can still make the server refresh a vendor
-   token (D243).
+   cursor (D254). A live read can still make the server refresh a vendor
+   token (D270).
 2. Store the returned representations in section 2. Device receipts stay
    on device sources. Summaries without a device id use their own sensors.
    Null stays null. A missing response is not called provider-unavailable.
-   The omissions in section 2 are the ones with a reason (D232, D235).
+   The omissions in section 2 are the ones with a reason (D259, D262).
 3. The key, the selected origin, and the selected user id are rejected in
    decoded JSON before a page is mapped. Failure text uses a fixed sentence.
    `ath key clear` with no name still clears only the gateway keys and says
    when the Open Wearables key remains. Named clear removes the saved key
    only. It does not unset the environment and it does not revoke the server
-   key (D229). A credential-shaped value is withheld and counted. It does
-   not refuse the page (D244).
+   key (D256). A credential-shaped value is withheld and counted. It does
+   not refuse the page (D271).
 4. Preview is the default and its counts are estimates. `--json` does not
    write. `--yes` commits each successful page under D189, and a committed
    page is not a completed pull. The text of `--yes` shows retained counts
@@ -3478,7 +3488,7 @@ optional source key adds no column.
    The receipt is the source key `device_binding`. A 2.1.0 supplied field of
    that name does not become the receipt. Unbound history is refused and
    left in place. `ath correct`, the protocol record writes, and a native
-   2.2.0 package restore are the owner's whole source record (D230, D231).
+   2.2.0 package restore are the owner's whole source record (D257, D258).
 5. The Windows cleanup, the Garmin key removal, and the maintainability
    notes stay separate. `src/import/mapping.rs` gains `MappedPage`, the
    `vendor_workout` section, and the preservation writes in section 2.
@@ -3491,7 +3501,7 @@ optional source key adds no column.
    and `src/calculate/range.rs` gains the null filter. The pull command
    builds the archive preview and applies it only at the snapshot's
    revision. `mapping.rs` does not start it. Failed-init cleanup stays as
-   it is (D231, D237).
+   it is (D258, D264).
 6. The live vendor read is off by default and warns before its first
    request. It calls only active connections and never stores the
    connections list. It keeps every stored detail, counts every object it
@@ -3499,7 +3509,7 @@ optional source key adds no column.
    workout and the vendor original stay two records. On route
    `open_wearables`, an owner correction is kept until the server's data
    for that record changes, and each correction a page replaces is counted
-   (D242, D243, D244).
+   (D269, D270, D271).
 
 These questions stay open for the maintainer. The plan states a default
 for each, and the default is not adopted:
@@ -3508,9 +3518,9 @@ for each, and the default is not adopted:
    per command. When the probe answers an error status other than 401 or
    429, the pull makes no other Garmin detail call in that command. Only
    404 and 501 mark the probed id `not_available`, and such an id is
-   asked again after 30 days (D243).
+   asked again after 30 days (D270).
 2. The owner-correction scope. The default covers every record the
-   `open_wearables` pull writes. Other routes keep D182 (D242).
+   `open_wearables` pull writes. Other routes keep D182 (D269).
 3. Storing vendor originals in their own package files. The default keeps
    them in the main document under the 256 MiB bound, which holds about
-   158 route-heavy one-hour Polar workouts (D242).
+   158 route-heavy one-hour Polar workouts (D269).

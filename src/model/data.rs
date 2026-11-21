@@ -321,11 +321,37 @@ model_object! {
     }
 }
 
+model_enum! {
+    /// What a strength set's `weight` measures (D239).
+    pub enum LoadBasis {
+        /// The whole load moved, such as a loaded barbell.
+        Total = "total",
+        /// The load of each implement, such as one of two dumbbells.
+        PerImplement = "per_implement",
+    }
+}
+
 model_object! {
     pub struct StrengthSet {
         reps: f64 = positive(),
         weight: f64 = positive(),
         weight_unit: String,
+        /// The exercise, such as `back squat`.
+        movement?: String,
+        load_basis?: LoadBasis,
+        /// How many implements carried `weight` each. Only with `per_implement`.
+        implement_count?: u64 = positive_int(),
+    }
+    refine(refine_strength_set)
+}
+
+fn refine_strength_set(value: &Value, issues: &mut Vec<Issue>) {
+    let per_implement = value.get("load_basis").and_then(Value::as_str) == Some("per_implement");
+    if per_implement && !has(value, "implement_count") {
+        custom(issues, &["implement_count"], "A per-implement load needs implement_count");
+    }
+    if !per_implement && has(value, "implement_count") {
+        custom(issues, &["implement_count"], "implement_count is used only with a per_implement load_basis");
     }
 }
 
@@ -494,6 +520,8 @@ model_enum! {
         Mood = "mood",
         Energy = "energy",
         Note = "note",
+        /// The athlete's rating of a whole session, such as a session RPE (D238).
+        SessionEffort = "session_effort",
     }
 }
 
@@ -517,6 +545,8 @@ model_object! {
         note?: String,
         duration_seconds?: f64 = positive(),
         attachment_ids?: Vec<String> = record_id_array(),
+        /// The workout this report describes (D238).
+        workout_session_id?: String = record_id(),
     }
     refine(refine_athlete_report)
 }
@@ -524,6 +554,9 @@ model_object! {
 fn refine_athlete_report(value: &Value, issues: &mut Vec<Issue>) {
     if has(value, "rating") && !has(value, "rating_scale") {
         custom(issues, &["rating_scale"], "A rating needs its scale");
+    }
+    if value.get("report_type").and_then(Value::as_str) == Some("session_effort") && !has(value, "rating") {
+        custom(issues, &["rating"], "A session effort report needs a rating");
     }
 }
 
