@@ -73,7 +73,7 @@ fn compare_sources_keeps_each_source_and_reports_the_mean_difference() {
     // Source A: 40, 42, 44, 46, 48. Source B: each 2 ms lower. Population
     // standard deviation sqrt(8) = 2.8284 for both; mean difference 2.
     let receipt = json!({
-        "calculation_version": "ath-runtime-v1",
+        "calculation_version": "ath-runtime-v2",
         "operation": "compare-sources",
         "record_kind": "measurement",
         "method": "separate source summaries and difference between their means",
@@ -96,7 +96,9 @@ fn compare_sources_keeps_each_source_and_reports_the_mean_difference() {
                 "source_id": SOURCE_B, "count": 5, "minimum": 38, "maximum": 46, "mean": 42, "sum": 210,
                 "standard_deviation": 2.8284
             },
-            "mean_difference": 2
+            "mean_difference": 2,
+            // The profile's time zone pairs the five days; B is 2 ms lower on each.
+            "paired": { "time_zone": "America/Chicago", "days": 5, "mean_difference": 2 }
         }
     });
     let argv = ["calculate", "compare-sources", "hrv_sdnn", "--source", SOURCE_A, "--compare-source", SOURCE_B];
@@ -110,7 +112,7 @@ fn correlation_pairs_same_day_means() {
     // SDNN rises 2 ms a day while respiratory rate falls 0.5 a day on the same
     // five days, so the Pearson correlation is exactly -1.
     let receipt = json!({
-        "calculation_version": "ath-runtime-v1",
+        "calculation_version": "ath-runtime-v2",
         "operation": "correlation",
         "record_kind": "measurement",
         "method": "Pearson correlation of same-calendar-day means",
@@ -153,7 +155,7 @@ fn workout_drift_compares_the_two_halves_of_the_session() {
     // half averages 142 bpm and the second 152: a change of 10, which is
     // 10 / 142 = 7.0423 percent.
     let receipt = json!({
-        "calculation_version": "ath-runtime-v1",
+        "calculation_version": "ath-runtime-v2",
         "operation": "workout-drift",
         "record_kind": "measurement",
         "method": "difference between means in equal-duration first and second workout halves",
@@ -171,7 +173,10 @@ fn workout_drift_compares_the_two_halves_of_the_session() {
                 "first_half_mean": 142,
                 "second_half_mean": 152,
                 "change": 10,
-                "change_percentage": 7.0423
+                "change_percentage": 7.0423,
+                // 17:26, 17:30, and 17:34 fall before the midpoint; 17:38 to 17:46 after.
+                "first_half_count": 3,
+                "second_half_count": 3
             }]
         }
     });

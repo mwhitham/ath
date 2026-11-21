@@ -27,6 +27,7 @@ const PUBLISHED: &[(&str, &str)] = &[
     ),
     ("spec/sql/migrations/003-version-2.sql", "78f4c910f1f0fd80d0da0395ece2ab9681cbe351490d7af52752d95240041d80"),
     ("spec/sql/migrations/004-version-2-1.sql", "c31baa4d881d4a995912de209f902e90f4be695b5cb18e306364dc0331fa690c"),
+    ("spec/sql/migrations/005-version-2-1-1.sql", "e393d69ba46a2f79cc40a34014e1fdf7da0cd8350a5d2dd151d88fe814ca2dbb"),
     ("schema/0.4.3/athleticstandard.schema.json", "9b8675c8bf69fe3bc4b9d9957bab617a10dbd665af67c17ea098415b94901c32"),
     ("schema/1.0.0/athleticstandard.schema.json", "68ebd0c8a0f6b1659d7d3df78cfcc9d9851937d38351ca182d72432d678af56e"),
     ("schema/1.0.0/export-manifest.schema.json", "22be5db19afec81fd4a2a68f1925974833ff474c245a31310f88eaa67666d236"),
@@ -37,6 +38,9 @@ const PUBLISHED: &[(&str, &str)] = &[
     ("schema/2.1.0/athleticstandard.schema.json", "e41920ff8bed634eb5bd53031c85e7081075562e1222420add9b77a57402620b"),
     ("schema/2.1.0/export-manifest.schema.json", "2973fca078c455b6b6f600bec43e2ca09aad9d25c7ad43573b5e2fc377e89cb6"),
     ("schema/2.1.0/measurement-series.schema.json", "9668097a71b8ca4ae7431565a531ae25966f43e3ef5a924f62a977e96bf4e1b7"),
+    ("schema/2.1.1/athleticstandard.schema.json", "7ea68b4a96caa64c55a08639fd8fb6f24e956c74382601fa7ef06c81202ecf5b"),
+    ("schema/2.1.1/export-manifest.schema.json", "3c8c9435f6786be3b35fe69d9565e0ca296b0ef924347f3c898cac65ef8b97ac"),
+    ("schema/2.1.1/measurement-series.schema.json", "69814a8d043c544077d262cd66e6b4e7536b704f5a93c232980da1646460914a"),
 ];
 
 fn repository() -> PathBuf {

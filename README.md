@@ -14,7 +14,27 @@ Athletic Standard keeps measured records separate from athlete reports. A measur
 record must name its source. An athlete report cannot name one. Sources also remain
 separate when two devices measure the same quantity.
 
-Not an app, not a coach, not medical advice.
+Not an app, not a coach, not medical advice. The record and its tool skill describe
+what the data shows. Training advice comes only from an optional coaching skill that
+the athlete installs, and it is saved as an authored record.
+
+## Agent skills
+
+The `ath` executable carries three kinds of [Agent Skills](https://agentskills.io):
+
+| Kind | Skills | What it does |
+|---|---|---|
+| Tool | `athletic-standard` | Finds, reads, logs, imports, and exports records. |
+| Calculation | 24 skills, such as `hrv-change`, `sleep-regularity`, `training-load-effort`, and `hyrox-race-splits` | Runs one reproducible calculation and states its method and limits. |
+| Coaching | `crossfit`, `hyrox` | Assesses, plans, adapts, and reviews training for one sport. |
+
+`ath init` installs the tool and calculation skills into `.agents/skills/`.
+Coaching skills are installed only when named: `ath skill install hyrox`.
+[`docs/skills.md`](docs/skills.md) lists every skill and what was verified.
+
+Every skill runs `ath`. A skill installed another way, such as with the skills CLI,
+needs `ath` installed too (see [Install](#install)). Each skill tells the agent how to
+check for `ath`, and to ask before installing it.
 
 ## Roadmap
 
@@ -53,7 +73,11 @@ executable on your `PATH`. The executable carries the agent skills and mapping f
 
 Run `ath --update` to update. An npm, pnpm, or bun global install updates through the
 same package manager. An archive install prints the steps to replace the executable.
-Run `ath skill install` to refresh the local agent skill without updating `ath`.
+Versions before 0.4.3 have no `--update`; run `npm install -g athleticstandard@latest`.
+After updating from 0.x or 1.x, run `ath skill install` in each folder with agent
+skills ([upgrading to 2.1.2](docs/upgrading-to-2-1-2.md)).
+Run `ath skill install` to refresh the local agent skills without updating `ath`. It
+updates a calculation skill you never edited and keeps one you edited.
 
 To build from source, install the Rust toolchain named in `rust-toolchain.toml` and
 run `cargo build --release`. The executable is `target/release/ath`.
@@ -73,13 +97,13 @@ package API.
 
 ## Upgrade a database
 
-A database from version 1.0.0, 2.0.0, or 2.1.0 upgrades with `ath migrate`. The
+A database from version 1.0.0, 2.0.0, 2.1.0, or 2.1.1 upgrades with `ath migrate`. The
 command shows a preview first. It makes a verified backup with SQLite's own backup
 interface before the first schema write. Opening a database never migrates it without
 confirmation. To go back, restore the backup; it does not contain work recorded after
-it was made. [`docs/upgrading-to-2-1-1.md`](docs/upgrading-to-2-1-1.md) lists what
-2.1.1 changes for a database, the command line, an installation, and JavaScript
-callers.
+it was made. [`docs/upgrading-to-2-1-2.md`](docs/upgrading-to-2-1-2.md) lists what
+2.1.2 changes, including the repaired calculation methods.
+[`docs/upgrading-to-2-1-1.md`](docs/upgrading-to-2-1-1.md) covers the 2.1.1 rebuild.
 
 When typed-table columns disagree with the current revision in meaning (for example
 after direct SQL edits), run `ath repair -y --from-revision
@@ -100,8 +124,8 @@ ath init
 definitions. Pass `--timezone America/Chicago` to set the default IANA timezone for
 calendar calculations.
 
-The command installs the agent skill into `.agents/skills/` and supported agent
-folders already present. Pass `--no-skill` to skip that step.
+The command installs the tool and calculation skills into `.agents/skills/` and
+supported agent folders already present. Pass `--no-skill` to skip that step.
 
 Use an empty database only as the destination for a complete v1 restore:
 
@@ -311,7 +335,13 @@ WHOOP cycle, or Apple activity-summary day stored on each record. It never relab
 that period as a midnight-to-midnight calendar day.
 
 Results name their method, sources, input revisions, exclusions, range, and timezone
-or provider period when one was used. A receipt lists at most 1,000 input revisions
+or provider period when one was used. Receipts are `ath-runtime-v2`: a baseline adds
+a daily-mean summary when a time zone is known, a trend adds its standard error, and a
+correlation needs at least three paired days.
+
+`ath apply <calculation> --record <id>` runs one calculation skill on one record,
+such as `hrv-change` or `sleep-regularity`. Each skill's `SKILL.md` states its
+method and holds a worked example that the test suite runs. A receipt lists at most 1,000 input revisions
 and says when that list was shortened. Arithmetic refuses more than 100,000 inputs
 until the request is narrowed. It never calculates from a silently shortened input
 set. Sources are not pooled. Manual sources are excluded.
@@ -397,9 +427,9 @@ keeps the ID. Evidence names both the record ID and revision.
 The format defines 24 record types for profile data, sources, measurements,
 sessions, athlete reports, nutrition, attachments, benchmarks, predictions, plans,
 goals, and saved authored work. [`SPEC.md`](SPEC.md) is the public field reference.
-The generated JSON Schemas are in [`schema/2.1.1/`](schema/2.1.1/). The published
-2.0.0 and 2.1.0 schemas stay in [`schema/2.0.0/`](schema/2.0.0/) and
-[`schema/2.1.0/`](schema/2.1.0/).
+The generated JSON Schemas are in [`schema/2.1.2/`](schema/2.1.2/). The published
+2.0.0, 2.1.0, and 2.1.1 schemas stay in [`schema/2.0.0/`](schema/2.0.0/),
+[`schema/2.1.0/`](schema/2.1.0/), and [`schema/2.1.1/`](schema/2.1.1/).
 
 How the code is organized, and the path of one import and one correction to disk, is
 in [`docs/architecture.md`](docs/architecture.md).

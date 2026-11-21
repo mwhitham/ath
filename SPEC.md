@@ -1,13 +1,14 @@
-# Athletic Standard Format Specification v2.1.1
+# Athletic Standard Format Specification v2.1.2
 
 **Status:** current format
 **Live local file:** `athlete.ath.sqlite`
 **Portable package:** `athlete.ath.json` plus generated files
 **Normative model:** the Rust record model in [`src/model/`](src/model/) and its
 semantic checks
-**Generated JSON Schemas:** [`schema/2.1.1/`](schema/2.1.1/), generated from that
-model. The published 2.0.0 and 2.1.0 schemas stay in [`schema/2.0.0/`](schema/2.0.0/)
-and [`schema/2.1.0/`](schema/2.1.0/).
+**Generated JSON Schemas:** [`schema/2.1.2/`](schema/2.1.2/), generated from that
+model. The published 2.0.0, 2.1.0, and 2.1.1 schemas stay in
+[`schema/2.0.0/`](schema/2.0.0/), [`schema/2.1.0/`](schema/2.1.0/), and
+[`schema/2.1.1/`](schema/2.1.1/).
 
 Version 2.0.0 adds workout names, descriptions, text results, heart-rate
 samples, strength sets, route points, and `supplied_fields` for names the
@@ -23,6 +24,13 @@ Version 2.1.1 changes no record field. It replaces the program with one Rust
 library and one native `ath` executable. A version 2.1.0 database upgrades with
 `ath migrate` to SQL schema step 5, which adds one internal table. The behavior is
 in [`build-history/v2.1.1/spec.md`](build-history/v2.1.1/spec.md).
+
+Version 2.1.2 adds three optional things. An athlete report can be a
+`session_effort` and can name the workout it describes (section 6.11). A strength
+set can name its movement and whether its weight is per implement (section 6.7).
+A version 2.1.1 database upgrades with `ath migrate` to SQL schema step 6, which
+adds one nullable column. The calculation methods that changed, and the coaching
+skills, are in [`build-history/v2.1.2/spec.md`](build-history/v2.1.2/spec.md).
 
 Athletic Standard is an open, local-first record for one athlete's training and
 recovery data. SQLite is the sole live local record. JSON is an explicit, complete
@@ -491,11 +499,31 @@ In addition to the measured fields:
 | `start_at`, `end_at` | yes | normalized UTC timestamps |
 | `input_start_timestamp`, `input_end_timestamp` | yes | input timestamp receipts |
 | `activity_type` | no | nonempty string |
+| `name`, `description`, `text_result` | no | nonempty strings |
+| `maximum_heart_rate_bpm` | no | the athlete's known maximum, positive |
+| `resting_heart_rate_bpm` | no | the athlete's known resting rate, positive |
+| `heart_rate_samples` | no | array of `{ offset_ms, bpm }` from the start |
+| `sets` | no | strength set array |
+| `route` | no | route point array |
 | `source_reported_summaries` | yes | source summary array |
 | `segments` | no | workout segment array |
 
 A segment requires `label` and `source_reported_summaries`. It may have
 `start_offset_ms` and `end_offset_ms`.
+
+A strength set requires positive `reps` and `weight` and a nonempty
+`weight_unit`. Since 2.1.2 it may also have:
+
+| Set field | Required | Type |
+|---|---|---|
+| `movement` | no | nonempty string, such as `back squat` |
+| `load_basis` | no | `total` or `per_implement` |
+| `implement_count` | with `per_implement` only | positive integer |
+
+`weight` is the load of each implement when `load_basis` is `per_implement`, so two
+22.5 kg dumbbells are `weight: 22.5`, `load_basis: per_implement`,
+`implement_count: 2`. A set without `load_basis` states no basis; calculations
+count it as written and say so.
 
 ### 6.8 `benchmark_result`
 
@@ -550,7 +578,7 @@ or sleep score. It is not a sensor measurement.
 
 | Data field | Required | Type |
 |---|---|---|
-| `report_type` | yes | `sleep_quality`, `soreness`, `stress`, `mood`, `energy`, or `note` |
+| `report_type` | yes | `sleep_quality`, `soreness`, `stress`, `mood`, `energy`, `note`, or `session_effort` |
 | `reported_at` | yes | normalized UTC timestamp |
 | `input_reported_at` | yes | input timestamp receipt |
 | `reported_via` | yes | `text`, `voice`, or `photo` |
@@ -558,9 +586,18 @@ or sleep score. It is not a sensor measurement.
 | `rating_scale` | with `rating` | nonempty string |
 | `body_region` | no | nonempty string |
 | `note` | no | nonempty string |
+| `duration_seconds` | no | positive number of seconds |
 | `attachment_ids` | no | attachment UUIDv7 array |
+| `workout_session_id` | no | workout session UUIDv7 (2.1.2) |
 
 This record has no source field. Unknown fields are rejected.
+
+A `session_effort` report is the athlete's rating of a whole training session, such
+as a session RPE. It needs `rating` and `rating_scale`. Its `duration_seconds` is
+the time the rating covers; the rating and the duration describe the same period.
+`workout_session_id` names the workout the report describes. It links the report to
+a measured workout without giving the report a source. SQLite enforces the link,
+and erasing the workout erases the reports that name it.
 
 ### 6.12 `nutrition_entry`
 
@@ -768,7 +805,7 @@ The athlete's original nutrition claim remains in the linked source-free
 |---|---|
 | `application_marker` | `ATH1` |
 | `sql_schema_version` | Positive SQL migration version |
-| `athleticstandard_version` | `2.1.1` |
+| `athleticstandard_version` | `2.1.2` |
 | `database_id` | Stable UUIDv7 database ID |
 | `created_at` | Database creation timestamp |
 
@@ -971,13 +1008,14 @@ Validation refuses:
 
 The generated JSON Schemas give exhaustive object validation:
 
-- [`schema/2.1.1/athleticstandard.schema.json`](schema/2.1.1/athleticstandard.schema.json)
-- [`schema/2.1.1/measurement-series.schema.json`](schema/2.1.1/measurement-series.schema.json)
-- [`schema/2.1.1/export-manifest.schema.json`](schema/2.1.1/export-manifest.schema.json)
+- [`schema/2.1.2/athleticstandard.schema.json`](schema/2.1.2/athleticstandard.schema.json)
+- [`schema/2.1.2/measurement-series.schema.json`](schema/2.1.2/measurement-series.schema.json)
+- [`schema/2.1.2/export-manifest.schema.json`](schema/2.1.2/export-manifest.schema.json)
 
-The published 2.0.0 and 2.1.0 schemas stay in [`schema/2.0.0/`](schema/2.0.0/) and
-[`schema/2.1.0/`](schema/2.1.0/). A schema checks structure only. It cannot show that
-a package's history or relationships are valid; the import checks those.
+The published 2.0.0, 2.1.0, and 2.1.1 schemas stay in [`schema/2.0.0/`](schema/2.0.0/),
+[`schema/2.1.0/`](schema/2.1.0/), and [`schema/2.1.1/`](schema/2.1.1/). A schema checks
+structure only. It cannot show that a package's history or relationships are valid;
+the import checks those.
 
 ## 9. Source separation and the two-tier wall
 
@@ -1007,7 +1045,7 @@ A v1 package import:
   and erasure markers;
 - refuses unknown fields and records it cannot represent;
 - does not delete a local record merely because the package omits it;
-- accepts a `2.0.0`, `2.1.0`, or `2.1.1` package;
+- accepts a `2.0.0`, `2.1.0`, `2.1.1`, or `2.1.2` package;
 - refuses prerelease Athletic Standard versions below `1.0.0`.
 
 An empty destination at database revision zero adopts the package database ID and
@@ -1074,14 +1112,17 @@ backup operation. A closed, checkpointed database may be copied.
 
 ## 13. Version behavior
 
-The program, the record, and the database use one version, `2.1.1` (D152, D184,
-D208). The portable document, generated series files, export manifest, and live
-database metadata all carry that version.
+The program, the record, and the database use one version, `2.1.2` (D152, D184,
+D208, D227). The portable document, generated series files, export manifest, and
+live database metadata all carry that version.
 
-A minor version only adds optional fields. A patch version adds no field. A `2.0.0`
-record has no `field_basis` and stays valid. `ath migrate` moves a `2.0.0` or
-`2.1.0` database to `2.1.1` without changing its records. Software before 2.1.1
-refuses a database at SQL schema step 5.
+A minor version only adds optional fields. A patch version adds no field. Version
+2.1.2 is a recorded exception (D227): it adds optional fields and the
+`session_effort` report type, and removes or changes nothing. A `2.0.0` record has
+no `field_basis` and stays valid, and every 2.1.1 record is valid 2.1.2 data.
+`ath migrate` moves a `2.0.0`, `2.1.0`, or `2.1.1` database to `2.1.2` without
+changing its records. Software before 2.1.1 refuses a database at SQL schema step 5,
+and software before 2.1.2 refuses one at step 6.
 
 Normative package and record data objects are strict. Unknown fields are rejected.
 The v1 importer refuses Athletic Standard `0.x` documents without modifying them.

@@ -38,7 +38,7 @@ pub const SQLITE_APPLICATION_MARKER: &str = "ATH1";
 pub const SQLITE_BUSY_TIMEOUT: Duration = Duration::from_millis(5_000);
 
 /// Database versions this software reads.
-pub const READABLE_DATABASE_VERSIONS: &[&str] = &["1.0.0", "2.0.0", "2.1.0", "2.1.1"];
+pub const READABLE_DATABASE_VERSIONS: &[&str] = &["1.0.0", "2.0.0", "2.1.0", "2.1.1", "2.1.2"];
 
 /// The default database file name in a working directory.
 pub const DEFAULT_FILENAME: &str = "athlete.ath.sqlite";
@@ -242,7 +242,7 @@ fn check_header(connection: &Connection, metadata: &DatabaseMetadata) -> Result<
     }
     if metadata.sql_schema_version > SQL_SCHEMA_VERSION {
         return Err(Error::refused(format!(
-            "Database SQL schema {} is newer than supported schema {SQL_SCHEMA_VERSION}",
+            "Database SQL schema {} is newer than supported schema {SQL_SCHEMA_VERSION}. A newer ath wrote this database. Update ath to open it, for example with ath --update.",
             metadata.sql_schema_version
         )));
     }
