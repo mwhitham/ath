@@ -141,6 +141,9 @@ fn json_cell(value: rusqlite::types::Value) -> serde_json::Value {
 
 /// Rows of a table as compact JSON arrays in column order, sorted. Numbers use
 /// JavaScript formatting so the reference generator writes the same text.
+/// Columns added after 2.1.0 (migration 6). The fixtures never fill them.
+pub const COLUMNS_ADDED_AFTER_2_1_0: &[(&str, &str)] = &[("athlete_reports", "workout_session_id")];
+
 pub fn dump_table(connection: &Connection, table: &str) -> Vec<String> {
     let exists: bool = connection
         .query_row("SELECT EXISTS (SELECT 1 FROM sqlite_master WHERE type = 'table' AND name = ?1)", [table], |row| {
@@ -150,7 +153,22 @@ pub fn dump_table(connection: &Connection, table: &str) -> Vec<String> {
     if !exists {
         return Vec::new();
     }
-    let mut statement = connection.prepare(&format!("SELECT * FROM {table}")).unwrap();
+    // A column added by a later step is compared only for being empty, so a
+    // dump before and after a migration describes the same athlete rows.
+    let mut names = connection.prepare(&format!("SELECT name FROM pragma_table_info('{table}')")).unwrap();
+    let names: Vec<String> = names.query_map([], |row| row.get(0)).unwrap().map(Result::unwrap).collect();
+    let mut kept = Vec::new();
+    for name in names {
+        if COLUMNS_ADDED_AFTER_2_1_0.contains(&(table, name.as_str())) {
+            let filled: i64 = connection
+                .query_row(&format!("SELECT count(*) FROM {table} WHERE {name} IS NOT NULL"), [], |row| row.get(0))
+                .unwrap();
+            assert_eq!(filled, 0, "{table}.{name} is filled");
+        } else {
+            kept.push(format!("\"{name}\""));
+        }
+    }
+    let mut statement = connection.prepare(&format!("SELECT {} FROM {table}", kept.join(", "))).unwrap();
     let count = statement.column_count();
     let mut rows: Vec<String> = statement
         .query_map([], |row| {

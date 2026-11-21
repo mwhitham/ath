@@ -332,8 +332,14 @@ fn migrate_asks_for_the_database_id_and_refuses_a_wrong_one() {
     typed.answer(DEMO_DATABASE_ID);
     let (status, text) = typed.finish();
     assert_eq!(status, 0, "{text}");
-    assert!(text.contains("\nmigrated SQL schema 4 to 5 with verified backup at "), "{text}");
-    assert_eq!(schema_step(&database), 5);
+    assert!(
+        text.contains(&format!(
+            "\nmigrated SQL schema 4 to {} with verified backup at ",
+            athleticstandard::store::SQL_SCHEMA_VERSION
+        )),
+        "{text}"
+    );
+    assert_eq!(schema_step(&database), athleticstandard::store::SQL_SCHEMA_VERSION);
 }
 
 #[test]
@@ -365,13 +371,16 @@ fn a_migration_on_open_needs_both_answers() {
     confirmed.answer("yes");
     confirmed.wait_for(&question);
     confirmed.answer(DEMO_DATABASE_ID);
-    confirmed.wait_for("migrated SQL schema 4 to 5 with verified backup at ");
+    confirmed.wait_for(&format!(
+        "migrated SQL schema 4 to {} with verified backup at ",
+        athleticstandard::store::SQL_SCHEMA_VERSION
+    ));
     confirmed.wait_for(WRITE_PROMPT);
     confirmed.answer("y");
     let (status, text) = confirmed.finish();
     assert_eq!(status, 0, "{text}");
     assert!(text.contains("wrote 1 record at database revision 4\n"), "{text}");
-    assert_eq!(schema_step(&database), 5);
+    assert_eq!(schema_step(&database), athleticstandard::store::SQL_SCHEMA_VERSION);
 }
 
 #[test]
@@ -396,7 +405,10 @@ fn json_at_a_terminal_never_asks() {
     assert_eq!(status, 1, "{text}");
     assert_eq!(
         text,
-        "ath: Database SQL schema 4 must be upgraded to 5 before other commands can run. Run ath migrate.\n"
+        format!(
+            "ath: Database SQL schema 4 must be upgraded to {} before other commands can run. Run ath migrate.\n",
+            athleticstandard::store::SQL_SCHEMA_VERSION
+        )
     );
     let (status, text) = start(older.path(), &["migrate", "--json", "--yes", "--file", &demo_file]).finish();
     assert_eq!(status, 0, "{text}");

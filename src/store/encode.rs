@@ -163,9 +163,11 @@ pub fn typed_columns(data: &RecordData) -> Vec<(&'static str, Sql)> {
             ("provider_record_id", opt_text(&d.provider_record_id)),
             ("received_at", text(&d.received_at)),
         ],
-        RecordData::AthleteReport(d) => {
-            vec![("report_type", text(d.report_type.as_str())), ("reported_at", text(&d.reported_at))]
-        }
+        RecordData::AthleteReport(d) => vec![
+            ("report_type", text(d.report_type.as_str())),
+            ("reported_at", text(&d.reported_at)),
+            ("workout_session_id", opt_text(&d.workout_session_id)),
+        ],
         RecordData::NutritionEntry(d) => {
             vec![("reported_at", text(&d.reported_at)), ("athlete_description", text(&d.athlete_description))]
         }
@@ -448,7 +450,10 @@ impl Layout {
     }
 
     pub fn has_column(self, table: &str, column: &str) -> bool {
-        !(self.sql_schema_version < 3 && table == "workout_sessions" && STEP_3_WORKOUT_COLUMNS.contains(&column))
+        let before_step_3 =
+            self.sql_schema_version < 3 && table == "workout_sessions" && STEP_3_WORKOUT_COLUMNS.contains(&column);
+        let before_step_6 = self.sql_schema_version < 6 && table == "athlete_reports" && column == "workout_session_id";
+        !(before_step_3 || before_step_6)
     }
 
     pub fn has_table(self, table: &str) -> bool {

@@ -61,8 +61,23 @@ const TABLES: &[&str] = &[
     "authored_record_evidence",
 ];
 
+/// The 2.1.0 columns of a table. A column added later (migration 6 adds
+/// `athlete_reports.workout_session_id`) is compared only for being empty.
 fn dump(connection: &Connection, table: &str) -> Vec<String> {
-    let mut statement = connection.prepare(&format!("SELECT * FROM {table}")).unwrap();
+    let mut names = connection.prepare(&format!("SELECT name FROM pragma_table_info('{table}')")).unwrap();
+    let names: Vec<String> = names.query_map([], |row| row.get(0)).unwrap().map(Result::unwrap).collect();
+    let mut kept = Vec::new();
+    for name in names {
+        if table == "athlete_reports" && name == "workout_session_id" {
+            let filled: i64 = connection
+                .query_row(&format!("SELECT count(*) FROM {table} WHERE {name} IS NOT NULL"), [], |row| row.get(0))
+                .unwrap();
+            assert_eq!(filled, 0, "{table}.{name} is empty in the demo");
+        } else {
+            kept.push(format!("\"{name}\""));
+        }
+    }
+    let mut statement = connection.prepare(&format!("SELECT {} FROM {table}", kept.join(", "))).unwrap();
     let columns = statement.column_count();
     let mut rows: Vec<String> = statement
         .query_map([], |row| {

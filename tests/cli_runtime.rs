@@ -82,8 +82,10 @@ fn discovery_uses_only_the_default_name() {
 fn an_outdated_database_is_refused_without_a_terminal() {
     let folder = private_folder();
     copy_demo(folder.path());
-    let expected =
-        refusal("Database SQL schema 4 must be upgraded to 5 before other commands can run. Run ath migrate.");
+    let expected = refusal(&format!(
+        "Database SQL schema 4 must be upgraded to {} before other commands can run. Run ath migrate.",
+        athleticstandard::store::SQL_SCHEMA_VERSION
+    ));
     let piped = Session::piped(folder.path()).run(&["delete", RESULT, "--revision", "1", "--dry-run"]);
     assert_eq!((piped.status, piped.stdout.as_str(), piped.stderr.as_str()), (1, "", expected.as_str()));
     let json = Session::terminal(folder.path(), "y\n").run(&["delete", RESULT, "--revision", "1", "--json"]);
@@ -149,9 +151,13 @@ fn a_terminal_can_refuse_the_migration() {
         "--revision",
         "1",
     ]);
-    let marker = "migrated SQL schema 4 to 5 with verified backup at ";
-    let after =
-        confirmed.stdout.split_once(marker).unwrap_or_else(|| panic!("no migration line in {:?}", confirmed.stdout)).1;
+    let marker =
+        format!("migrated SQL schema 4 to {} with verified backup at ", athleticstandard::store::SQL_SCHEMA_VERSION);
+    let after = confirmed
+        .stdout
+        .split_once(marker.as_str())
+        .unwrap_or_else(|| panic!("no migration line in {:?}", confirmed.stdout))
+        .1;
     let backup = after.lines().next().unwrap();
     assert!(std::path::Path::new(backup).exists(), "the verified backup exists");
     let store = athleticstandard::store::Store::open(
@@ -159,7 +165,7 @@ fn a_terminal_can_refuse_the_migration() {
         athleticstandard::store::OpenOptions { read_only: true, ..Default::default() },
     )
     .unwrap();
-    assert_eq!(store.metadata().sql_schema_version, 5);
+    assert_eq!(store.metadata().sql_schema_version, athleticstandard::store::SQL_SCHEMA_VERSION);
 }
 
 static MIGRATIONS: AtomicUsize = AtomicUsize::new(0);
@@ -182,7 +188,8 @@ fn a_confirmed_migration_continues_the_command() {
     let (_, rest) = split_preview(&output.stdout);
     let rest = rest
         .strip_prefix(&format!(
-            "Create a verified backup and apply this migration? [y] yes  [n] no Type the database ID {DEMO_DATABASE_ID} to confirm migration: migrated SQL schema 4 to 5 with verified backup at /verified/backup.sqlite\n"
+            "Create a verified backup and apply this migration? [y] yes  [n] no Type the database ID {DEMO_DATABASE_ID} to confirm migration: migrated SQL schema 4 to {} with verified backup at /verified/backup.sqlite\n",
+            athleticstandard::store::SQL_SCHEMA_VERSION
         ))
         .expect(&output.stdout);
     let (delete_preview, rest) = split_preview(rest);

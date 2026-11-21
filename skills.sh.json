@@ -1,0 +1,36 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Athletic Standard",
+      "description": "Read, log, import, and export an athlete's local training and recovery record.",
+      "skills": ["athletic-standard"]
+    },
+    {
+      "title": "Coaching",
+      "description": "Plan, adapt, and review training for one sport, saved as authored records.",
+      "skills": ["crossfit", "hyrox"]
+    },
+    {
+      "title": "Recovery calculations",
+      "description": "Compare HRV, resting heart rate, and sleep with the athlete's own normal.",
+      "skills": ["hrv-change", "resting-heart-rate-change", "sleep-change", "resting-heart-rate", "heart-rate-recovery"]
+    },
+    {
+      "title": "Sleep calculations",
+      "description": "Duration, efficiency, stages, interruptions, timing, and regularity of sleep.",
+      "skills": ["sleep-duration", "sleep-efficiency", "sleep-stages", "sleep-interruptions", "sleep-timing", "sleep-regularity"]
+    },
+    {
+      "title": "Training calculations",
+      "description": "Training load, heart-rate zones, strength volume, drift, and HYROX race splits.",
+      "skills": ["training-load-effort", "training-load-heart-rate", "heart-rate-zones", "strength-volume", "workout-drift", "hyrox-race-splits"]
+    },
+    {
+      "title": "Summaries",
+      "description": "Baselines, trends, coverage, source comparison, and correlation across many records.",
+      "skills": ["summary", "baseline", "trend", "coverage", "compare-sources", "correlation", "provider-period-summary"]
+    }
+  ]
+}

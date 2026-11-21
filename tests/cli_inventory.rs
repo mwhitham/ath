@@ -1,6 +1,7 @@
 //! The command line matches the 2.1.0 inventory: every command's help text,
 //! byte for byte, and every parse-only probe's stdout, stderr, and exit
-//! status. The only expected difference is the version, 2.1.1.
+//! status. The expected differences are the version and the changes listed in
+//! the 2.1.1 and 2.1.2 `cli-changes.md` appendices.
 
 use std::collections::BTreeMap;
 use std::path::Path;
@@ -9,7 +10,7 @@ use athleticstandard::cli::{self, Io, Services, Terminal};
 use serde_json::Value;
 
 const OLD_VERSION: &str = "2.1.0";
-const NEW_VERSION: &str = "2.1.1";
+const NEW_VERSION: &str = athleticstandard::model::package::ATHLETIC_STANDARD_VERSION;
 
 /// The 2.1.0 `migrate` help said the backup needed a `sqlite3` program. The
 /// native backup uses SQLite's own interface, so the sentence is gone
@@ -41,6 +42,22 @@ fn run(argv: &[String]) -> (i32, String, String) {
     (status, String::from_utf8(stdout).unwrap(), String::from_utf8(stderr).unwrap())
 }
 
+/// Help texts that 2.1.2 changes on purpose, with the words each must hold.
+fn changed_in_2_1_2(path: &[String]) -> Option<&'static [&'static str]> {
+    match path.iter().map(String::as_str).collect::<Vec<_>>().as_slice() {
+        ["skill"] => Some(&[
+            "Usage: ath skill [options] [command]",
+            "$ ath skill install hyrox",
+            "it is installed only when you\nname it",
+            "One you edited is kept, and ath skill marks it edited.",
+        ]),
+        ["skill", "install"] => {
+            Some(&["Usage: ath skill install [options] [name...]", "a coaching skill: crossfit or\n"])
+        }
+        _ => None,
+    }
+}
+
 fn words(value: &Value) -> Vec<String> {
     value.as_array().unwrap().iter().map(|word| word.as_str().unwrap().to_string()).collect()
 }
@@ -60,6 +77,15 @@ fn every_help_text_matches_the_inventory() {
         argv.push("--help".to_string());
         let (status, stdout, stderr) = run(&argv);
         let expected = expected.replace(OLD_VERSION, NEW_VERSION).replace(SQLITE3_SENTENCE, "");
+        if let Some(required) = changed_in_2_1_2(&path) {
+            // build-history/v2.1.2/appendix/cli-changes.md, change 1: the full
+            // text is checked by tests/generated.rs through references/cli.md.
+            let missing: Vec<&&str> = required.iter().filter(|part| !stdout.contains(**part)).collect();
+            if status != 0 || !missing.is_empty() || !stderr.is_empty() {
+                failures.push(format!("ath {} --help lacks {missing:?}:\n{stdout}", path.join(" ")));
+            }
+            continue;
+        }
         if status != 0 || stdout != expected || !stderr.is_empty() {
             failures.push(format!(
                 "ath {} --help: status {status}, stderr {stderr:?}\n--- expected\n{expected}\n--- got\n{stdout}",
@@ -93,8 +119,8 @@ fn every_probe_matches_the_inventory() {
 
 #[test]
 fn version_is_the_package_version() {
-    assert_eq!(run(&["--version".to_string()]), (0, "2.1.1\n".to_string(), String::new()));
-    assert_eq!(run(&["-V".to_string()]), (0, "2.1.1\n".to_string(), String::new()));
+    assert_eq!(run(&["--version".to_string()]), (0, format!("{NEW_VERSION}\n"), String::new()));
+    assert_eq!(run(&["-V".to_string()]), (0, format!("{NEW_VERSION}\n"), String::new()));
 }
 
 #[test]

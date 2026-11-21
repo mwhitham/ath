@@ -43,7 +43,10 @@ fn migrate_asks_for_the_database_id_at_a_terminal() {
     let typed = Session::terminal(folder.path(), &format!("{VERSION_2_0_0_ID}\n")).run(&["migrate", "--yes"]);
     assert_eq!(typed.status, 0, "{}", typed.stderr);
     assert!(
-        typed.stdout.contains("to confirm migration: migrated SQL schema 3 to 5 with verified backup at "),
+        typed.stdout.contains(&format!(
+            "to confirm migration: migrated SQL schema 3 to {} with verified backup at ",
+            athleticstandard::store::SQL_SCHEMA_VERSION
+        )),
         "{}",
         typed.stdout
     );

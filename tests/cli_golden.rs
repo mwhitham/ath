@@ -12,9 +12,9 @@
 //!
 //! - A refusal is printed once (cli-changes.md 1, quirk S4). Where 2.1.0
 //!   printed the same `ath:` line twice in a row, one copy is expected.
-//! - The native program writes SQL schema step 5 (D211). Step 5 is removed
-//!   from native migration plans, and a source, target, or required step 5
-//!   reads 4.
+//! - The native program writes SQL schema step 6 (D211, D227). Steps 5 and
+//!   6 are removed from native migration plans, and a source, target, or
+//!   required step 5 or 6 reads 4.
 //! - `log` lists record data in published field order (deliberate-changes.md
 //!   25), so its output lines are compared without their order.
 //! - `share` finds the report `backtest` writes (deliberate-changes.md 5).
@@ -128,8 +128,12 @@ fn uuid7_at(bytes: &[u8]) -> bool {
 }
 
 fn normalize(text: &str, work: &str, window: &mut Window) -> String {
-    let mut out = text.replace(work, "<work>").replace("2.1.0", "<version>").replace("2.1.1", "<version>");
-    for step in ["4", "5"] {
+    let mut out = text
+        .replace(work, "<work>")
+        .replace("2.1.0", "<version>")
+        .replace(athleticstandard::model::package::ATHLETIC_STANDARD_VERSION, "<version>");
+    let current_step = athleticstandard::store::SQL_SCHEMA_VERSION.to_string();
+    for step in ["4", current_step.as_str()] {
         // `\b` after the digit: the next byte is not a word character.
         let from = format!("\"sql_schema_version\": {step}");
         let mut result = String::new();
@@ -212,20 +216,134 @@ fn manifest_hashes(text: &str) -> String {
     out.join("\n")
 }
 
-/// The native program writes SQL schema step 5; 2.1.0 wrote step 4.
+/// The native program writes SQL schema step 6 (2.1.1 added step 5, 2.1.2
+/// step 6); 2.1.0 wrote step 4.
 fn step_five_as_four(text: &str) -> String {
     let mut out = text.to_string();
-    let marker = "\"migration_file\": \"migrations/005-version-2-1-1.sql\"";
-    while let Some(position) = out.find(marker) {
-        let object = out[..position].rfind('{').expect("the step object opens");
-        let start = out[..object].rfind(',').expect("step 5 follows another step");
-        let end = position + out[position..].find('}').expect("the step object closes") + 1;
-        out.replace_range(start..end, "");
+    for file in ["migrations/005-version-2-1-1.sql", "migrations/006-version-2-1-2.sql"] {
+        let marker = format!("\"migration_file\": \"{file}\"");
+        while let Some(position) = out.find(&marker) {
+            let object = out[..position].rfind('{').expect("the step object opens");
+            let start = out[..object].rfind(',').expect("a later step follows another step");
+            let end = position + out[position..].find('}').expect("the step object closes") + 1;
+            out.replace_range(start..end, "");
+        }
     }
-    out.replace("\"target_sql_schema_version\": 5", "\"target_sql_schema_version\": 4")
-        .replace("\"source_sql_schema_version\": 5", "\"source_sql_schema_version\": 4")
-        .replace(" to 5 with verified backup", " to 4 with verified backup")
-        .replace("must be upgraded to 5 before", "must be upgraded to 4 before")
+    for step in ["5", "6"] {
+        out = out
+            .replace(&format!("\"target_sql_schema_version\": {step}"), "\"target_sql_schema_version\": 4")
+            .replace(&format!("\"source_sql_schema_version\": {step}"), "\"source_sql_schema_version\": 4")
+            .replace(&format!(" to {step} with verified backup"), " to 4 with verified backup")
+            .replace(&format!("must be upgraded to {step} before"), "must be upgraded to 4 before");
+    }
+    out
+}
+
+/// The 2.1.1 calculation files, kept in `tests/fixtures/calculations-2-1-1`.
+/// A scenario that applies a calculation gets the 2.1.1 copy installed, as a
+/// person's unchanged copy would be, so the recorded 2.1.0 output describes the
+/// operation that runs (D230). The 2.1.2 methods are tested in
+/// `calculate_methods.rs` and `cli_calculate.rs`.
+fn install_2_1_1_calculations(scenario: &Value, work: &std::path::Path) {
+    let fixtures = repo().join("tests/fixtures/calculations-2-1-1");
+    for step in scenario["steps"].as_array().unwrap() {
+        let argv = step["argv"].as_array().unwrap();
+        if argv.first().and_then(Value::as_str) != Some("apply") {
+            continue;
+        }
+        let name = argv[1].as_str().unwrap().trim_end_matches(".md").rsplit(['/', '\\']).next().unwrap();
+        let source = fixtures.join(name).join("SKILL.md");
+        if source.exists() {
+            let folder = work.join(".agents/skills").join(name);
+            std::fs::create_dir_all(&folder).unwrap();
+            std::fs::copy(&source, folder.join("SKILL.md")).unwrap();
+        }
+    }
+}
+
+/// `apply` output gains the operation name, and a notice for an operation
+/// replaced in 2.1.2 (D230). Both are checked in `calculate_golden.rs`; they
+/// are removed here so the rest is compared with the 2.1.0 output.
+fn without_2_1_2_apply_fields(text: &str) -> String {
+    text.lines()
+        .filter(|line| {
+            let trimmed = line.trim_start();
+            !(trimmed.starts_with("\"operation\": ")
+                || trimmed.starts_with("note: ")
+                || trimmed.starts_with("\"method_notice\": "))
+        })
+        .map(|line| line.to_string())
+        .collect::<Vec<_>>()
+        .join("\n")
+        .replace("\"result\": null,\n}", "\"result\": null\n}")
+        + if text.ends_with('\n') { "\n" } else { "" }
+}
+
+/// Calculation skills added after 2.1.0. `ath init` installs them too; the
+/// lines and entries that name them are removed so the rest of the 2.1.0
+/// output is compared exactly. They are tested in `skill_examples.rs`.
+const SKILLS_ADDED_AFTER_2_1_0: &[&str] = &["hyrox-race-splits"];
+
+fn without_new_skills(text: &str) -> String {
+    let names_new = |line: &str| SKILLS_ADDED_AFTER_2_1_0.iter().any(|name| line.contains(&format!("/skills/{name}")));
+    if text.trim_start().starts_with('{') {
+        let mut value: Value = serde_json::from_str(text).unwrap();
+        if let Some(Value::Array(items)) = value.get_mut("skill_installed") {
+            items.retain(|item| !names_new(item.as_str().unwrap_or("")));
+        }
+        return format!("{}\n", serde_json::to_string_pretty(&value).unwrap());
+    }
+    let kept: Vec<&str> = text.lines().filter(|line| !names_new(line)).collect();
+    let mut out = kept.join("\n");
+    if text.ends_with('\n') {
+        out.push('\n');
+    }
+    out
+}
+
+/// `ath skill` and `ath skill install` describe more in 2.1.2: each copy's
+/// kind, an edited flag, new skills, and coaching skills that are available
+/// (v2.1.2 cli-changes.md, changes 1 and 2). The recorded promises must still
+/// hold: every recorded folder is listed with the same state and version for
+/// the tool skill, and every folder recorded as written is written again.
+fn skill_promises_hold(actual: &str, expected: &str) -> bool {
+    if expected.trim_start().starts_with('{') {
+        let (Ok(actual), Ok(expected)) =
+            (serde_json::from_str::<Value>(actual), serde_json::from_str::<Value>(expected))
+        else {
+            return false;
+        };
+        if let Some(copies) = expected.get("copies").and_then(Value::as_array) {
+            return copies.iter().all(|copy| {
+                actual["copies"].as_array().into_iter().flatten().any(|other| {
+                    let tool = copy["path"].as_str().unwrap_or("").ends_with("/athletic-standard");
+                    other["path"] == copy["path"]
+                        && other["state"] == copy["state"]
+                        && (!tool || other["installed"] == copy["installed"])
+                })
+            });
+        }
+        let listed = |value: &Value, key: &str| -> Vec<String> {
+            value[key].as_array().into_iter().flatten().filter_map(|item| item.as_str().map(str::to_string)).collect()
+        };
+        let written = listed(&actual, "skill_installed");
+        return actual["shipped"] == expected["shipped"]
+            && listed(&expected, "skill_installed").iter().all(|path| written.contains(path))
+            && listed(&actual, "mappings_installed") == listed(&expected, "mappings_installed");
+    }
+    let state_of = |line: &str| -> Option<(String, String)> {
+        let trimmed = line.trim_start();
+        let (place, rest) = trimmed.split_once(' ')?;
+        (place.contains("/skills/"))
+            .then(|| (place.to_string(), rest.trim().split(' ').next().unwrap_or("").to_string()))
+    };
+    let actual_states: Vec<(String, String)> = actual.lines().filter_map(state_of).collect();
+    let actual_lines: Vec<&str> = actual.lines().collect();
+    expected.lines().all(|line| match state_of(line) {
+        Some(state) => actual_states.contains(&state),
+        None if line.starts_with("added ") || line.starts_with("agent skill, version") => actual_lines.contains(&line),
+        None => true,
+    })
 }
 
 /// `log` lists record data in published field order (deliberate-changes.md
@@ -516,6 +634,7 @@ fn compare_group(group: &str) -> Vec<String> {
         private_dir(&home);
         let mut window = Window { from: now_millis() - 5_000, to: 0, ids: HashMap::new() };
         prepare(scenario, &work, &home);
+        install_2_1_1_calculations(scenario, &work);
         let mut runs = Vec::new();
         for step in scenario["steps"].as_array().unwrap() {
             let argv: Vec<String> = step["argv"]
@@ -539,7 +658,20 @@ fn compare_group(group: &str) -> Vec<String> {
         window.to = now_millis() + 5_000;
         let work_text = work.display().to_string();
         for (index, (step, (argv, actual))) in scenario["steps"].as_array().unwrap().iter().zip(runs).enumerate() {
-            let stdout = step_five_as_four(&normalize(&actual.stdout, &work_text, &mut window));
+            let mut stdout = step_five_as_four(&normalize(&actual.stdout, &work_text, &mut window));
+            if argv.first().map(String::as_str) == Some("apply") {
+                stdout = without_2_1_2_apply_fields(&stdout);
+            }
+            if argv.first().map(String::as_str) == Some("init") {
+                stdout = without_new_skills(&stdout);
+            }
+            if argv.first().map(String::as_str) == Some("calculate") {
+                // Receipt version 2 (D244); its additions are tested in calculate_range_v2.rs.
+                stdout = stdout.replace(
+                    "\"calculation_version\": \"ath-runtime-v2\"",
+                    "\"calculation_version\": \"ath-runtime-v1\"",
+                );
+            }
             let stderr = step_five_as_four(&normalize(&actual.stderr, &work_text, &mut window));
             let expected_status = step["status"].as_i64().unwrap() as i32;
             let mut expected_stdout = step["stdout"].as_str().unwrap().to_string();
@@ -553,7 +685,6 @@ fn compare_group(group: &str) -> Vec<String> {
                 expected_stderr =
                     "ath: no temporary import conflicts; run ath import <package> to create a preview\n".to_string();
             }
-            let mut stdout = stdout;
             if KEYED_REVISION_SCENARIOS.contains(&name)
                 && matches!(argv.first().map(String::as_str), Some("stats" | "records"))
             {
@@ -562,6 +693,8 @@ fn compare_group(group: &str) -> Vec<String> {
             }
             let same_stdout = if argv.first().map(String::as_str) == Some("log") {
                 same_lines_in_any_order(&stdout, &expected_stdout)
+            } else if argv.first().map(String::as_str) == Some("skill") {
+                skill_promises_hold(&stdout, &expected_stdout)
             } else {
                 stdout == expected_stdout
             };
@@ -621,8 +754,10 @@ fn normalization_keeps_old_values_and_numbers_new_ones() {
     let mut window = Window { from: now - 1_000, to: now + 1_000, ids: HashMap::new() };
     let new_id = format!("{:08x}-{:04x}-7000-8000-000000000001", now >> 16, now & 0xffff);
     let text = format!(
-        "{new_id} 01890f3e-e7d3-7cc0-88c8-000000000001 {new_id} {} 2026-01-01T00:00:00.000Z /w/x 2.1.1 \"sql_schema_version\": 5",
-        athleticstandard::model::time::format_utc_millis(now)
+        "{new_id} 01890f3e-e7d3-7cc0-88c8-000000000001 {new_id} {} 2026-01-01T00:00:00.000Z /w/x {} \"sql_schema_version\": {}",
+        athleticstandard::model::time::format_utc_millis(now),
+        athleticstandard::model::package::ATHLETIC_STANDARD_VERSION,
+        athleticstandard::store::SQL_SCHEMA_VERSION,
     );
     assert_eq!(
         normalize(&text, "/w", &mut window),
