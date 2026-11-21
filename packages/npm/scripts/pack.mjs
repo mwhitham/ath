@@ -23,7 +23,7 @@
  *    File modes do not matter. Artifact downloads drop them, and the packed
  *    copies get mode 0755. --native <target>=<file> names one file and wins
  *    over --native-dir for that target.
- * 2. The repository's JSON Schema files schema/2.1.1/athleticstandard.schema.json,
+ * 2. The repository's JSON Schema files schema/<version>/athleticstandard.schema.json,
  *    export-manifest.schema.json, and measurement-series.schema.json. They are
  *    committed and checked by tests/generated.rs.
  * 3. This package's Node dependencies (`npm ci` in packages/npm), for the

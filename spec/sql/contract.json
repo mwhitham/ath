@@ -1,6 +1,6 @@
 {
   "contract": "athleticstandard-sql",
-  "sql_schema_version": 5,
+  "sql_schema_version": 6,
   "minimum_sqlite_version": "3.45.0",
   "user_version_mirror": {
     "description": "On local SQLite files, PRAGMA user_version equals database_metadata.sql_schema_version after creation.",
@@ -41,6 +41,11 @@
       "version": 5,
       "file": "migrations/005-version-2-1-1.sql",
       "description": "Upgrade the database to software version 2.1.1. No athlete-owned column changes. Adds internal recovery state for attachment file changes."
+    },
+    {
+      "version": 6,
+      "file": "migrations/006-version-2-1-2.sql",
+      "description": "Upgrade the database to software version 2.1.2. Adds the nullable athlete_reports.workout_session_id link to a workout session. No existing row changes."
     }
   ],
   "metadata_insert": {
@@ -51,7 +56,7 @@
     ],
     "header_pragmas": [
       "PRAGMA application_id = 1096042545;",
-      "PRAGMA user_version = 5;"
+      "PRAGMA user_version = 6;"
     ]
   },
   "file_header_pragmas": {

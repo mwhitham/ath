@@ -9,9 +9,9 @@ use std::process::Command;
 
 use athleticstandard::assets::reference::{command_paths, render_cli_reference};
 use athleticstandard::assets::skill::{
-    install_mappings, install_skill, install_skill_and_mappings, read_frontmatter, render_skill_status,
+    install_mappings, install_skill, install_skill_and_mappings, read_frontmatter, render_skill_status, shipped_kind,
     shipped_skill_version, skill_names, skill_present, skill_status, skill_status_report, skill_version,
-    stale_skill_warning, FrontmatterValue, SkillState, AGENT_DIRS, ALWAYS_DIR, SKILL_NAME, UNVERSIONED,
+    stale_skill_warning, FrontmatterValue, SkillKind, SkillState, AGENT_DIRS, ALWAYS_DIR, SKILL_NAME, UNVERSIONED,
 };
 use athleticstandard::assets::{
     mapping_files, resolve_calculation, resolve_mapping, shipped_calculation, shipped_mapping, skill_files, AssetOrigin,
@@ -122,8 +122,15 @@ fn a_copied_executable_installs_skills_from_its_embedded_bytes() {
         String::from_utf8_lossy(&output.stderr)
     );
 
+    // Every shipped skill except the coaching skills, which are installed
+    // only when named (D229).
     let skills = installed_files(&work.join(ALWAYS_DIR).join("skills"));
-    assert_eq!(skills, repository_files(&asset_root("skills")));
+    let mut expected = repository_files(&asset_root("skills"));
+    expected.retain(|path, _| {
+        let skill = path.split('/').next().unwrap_or("");
+        shipped_kind(skill) != SkillKind::Coaching
+    });
+    assert_eq!(skills, expected);
     let mappings = installed_files(&work.join(ALWAYS_DIR).join("mappings"));
     assert_eq!(mappings, repository_files(&asset_root("mappings")));
 }
@@ -223,7 +230,8 @@ fn install_reports_every_folder_including_calculation_skills() {
     ] {
         assert!(result.skill_installed.contains(&expected), "{}", expected.display());
     }
-    assert_eq!(result.skill_installed.len(), skill_names().len() * 2);
+    let default_skills = skill_names().into_iter().filter(|name| shipped_kind(name) != SkillKind::Coaching).count();
+    assert_eq!(result.skill_installed.len(), default_skills * 2);
     assert_eq!(result.shipped, shipped_skill_version());
     let json = serde_json::to_value(&result).unwrap();
     assert_eq!(
@@ -319,16 +327,43 @@ fn install_adds_a_missing_file_to_an_existing_copy() {
 }
 
 #[test]
-fn the_stale_warning_is_never_shown() {
+fn an_older_tool_skill_is_noted_until_it_is_replaced() {
+    // D253: no copy, or a current copy, gives no notice.
     let none = dir_with_agents(&[]);
     assert_eq!(stale_skill_warning(none.path()), None);
     assert!(!skill_present(none.path()).unwrap());
+    let dir = dir_with_agents(&[".cursor"]);
+    install_skill(dir.path()).unwrap();
+    assert_eq!(stale_skill_warning(dir.path()), None);
 
-    let edited = dir_with_agents(&[".cursor"]);
-    install_skill(edited.path()).unwrap();
-    age_copy(edited.path(), ".cursor", "0.3.0");
-    assert_eq!(stale_skill_warning(edited.path()), None);
-    assert!(skill_present(edited.path()).unwrap());
+    // A copy left by an older ath is named, with its version.
+    let shipped = athleticstandard::assets::skill::shipped_skill_version();
+    age_copy(dir.path(), ".cursor", "1.1.0");
+    assert_eq!(
+        stale_skill_warning(dir.path()).as_deref(),
+        Some(
+            format!(
+                "ath: the agent skill in .cursor/skills is from 1.1.0, older than this ath ({shipped}); run ath skill install to update it"
+            )
+            .as_str()
+        )
+    );
+    age_copy(dir.path(), ALWAYS_DIR, "0.4.3");
+    let both = stale_skill_warning(dir.path()).unwrap();
+    assert!(both.starts_with("ath: the agent skill in .agents/skills and 1 more is from 0.4.3"), "{both}");
+
+    // A copy with no version is older than any shipped version.
+    let file = skill_file(dir.path(), ALWAYS_DIR, "SKILL.md");
+    let text = fs::read_to_string(&file).unwrap();
+    fs::write(&file, text.replacen("  version: \"0.4.3\"\n", "", 1)).unwrap();
+    assert!(stale_skill_warning(dir.path()).unwrap().contains(&format!("is older than {shipped}")));
+
+    // A newer or edited copy at this version is the person's own file.
+    install_skill(dir.path()).unwrap();
+    assert_eq!(stale_skill_warning(dir.path()), None);
+    age_copy(dir.path(), ".cursor", "9.0.0");
+    assert_eq!(stale_skill_warning(dir.path()), None);
+    assert!(skill_present(dir.path()).unwrap());
 }
 
 // Mapping files (D178, D179).

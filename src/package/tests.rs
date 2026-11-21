@@ -48,7 +48,7 @@ fn demo_copy(directory: &Path) -> PathBuf {
     files::create_private_dir(&directory.join("attachments")).unwrap();
     fs::copy(demo_attachment_source(), directory.join("attachments").join(DEMO_ATTACHMENT)).unwrap();
     let mut opened = Store::open(&path, OpenOptions { read_only: false, allow_outdated_schema: true }).unwrap();
-    opened.transaction(|tx| store::migrate::apply_step(tx, 5).map(|_| ())).unwrap();
+    store::migrate::apply_pending_without_backup(&mut opened).unwrap();
     opened.close().unwrap();
     path
 }

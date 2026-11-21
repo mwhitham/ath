@@ -66,10 +66,10 @@ describe("public exports", () => {
     expect(database.getRecord).toBe(database.readRecord);
     expect(database.resolveConflict).toBe(database.resolvePackageConflict);
     expect(root.database).toEqual(expect.objectContaining({ openDatabase: database.openDatabase }));
-    expect(root.ATH_PACKAGE_VERSION).toBe("2.1.1");
-    expect(root.ATHLETIC_STANDARD_VERSION).toBe("2.1.1");
-    expect(schema.ACCEPTED_RECORD_VERSIONS).toEqual(["1.0.0", "2.0.0", "2.1.0", "2.1.1"]);
-    expect(schema.IMPORTABLE_PACKAGE_VERSIONS).toEqual(["2.0.0", "2.1.0", "2.1.1"]);
+    expect(root.ATH_PACKAGE_VERSION).toBe("2.1.2");
+    expect(root.ATHLETIC_STANDARD_VERSION).toBe("2.1.2");
+    expect(schema.ACCEPTED_RECORD_VERSIONS).toEqual(["1.0.0", "2.0.0", "2.1.0", "2.1.1", "2.1.2"]);
+    expect(schema.IMPORTABLE_PACKAGE_VERSIONS).toEqual(["2.0.0", "2.1.0", "2.1.1", "2.1.2"]);
   });
 
   it("keeps the generated compile-time check current", () => {
@@ -78,7 +78,7 @@ describe("public exports", () => {
   });
 
   it("repeats the native constants", () => {
-    expect(database.SQL_SCHEMA_VERSION).toBe(5);
+    expect(database.SQL_SCHEMA_VERSION).toBe(6);
     expect(database.SQLITE_APPLICATION_ID).toBe(0x41544831);
     expect(database.SQLITE_APPLICATION_MARKER).toBe("ATH1");
     expect(database.MAX_ATTACHMENT_BYTES).toBe(25 * 1024 * 1024);
@@ -104,21 +104,21 @@ describe("public exports", () => {
 describe("package layout", () => {
   it("keeps the name, the ath command, and every 2.1.0 subpath", () => {
     expect(packageJson.name).toBe("athleticstandard");
-    expect(packageJson.version).toBe("2.1.1");
+    expect(packageJson.version).toBe("2.1.2");
     expect(Object.keys(packageJson.bin)).toEqual(["ath"]);
     expect(Object.keys(packageJson.exports).sort()).toEqual(
       [".", "./database", "./schema", ...inventory.json_only_subpaths.map((entry) => entry.subpath)].sort(),
     );
   });
 
-  it("generates the JSON Schema files for 2.1.1", () => {
+  it("generates the JSON Schema files for 2.1.2", () => {
     for (const subpath of ["./json-schema", "./json-schema/export-manifest", "./json-schema/measurement-series"]) {
       const target = packageJson.exports[subpath] as string;
-      expect(target).toMatch(/^\.\/schema\/2\.1\.1\//);
+      expect(target).toMatch(/^\.\/schema\/2\.1\.2\//);
       // pack.mjs copies the repository's committed schema/ files into the package.
       const document = JSON.parse(readFileSync(join(repositoryRoot, target), "utf8")) as { $id: string; $schema: string };
       expect(document.$schema).toBe("https://json-schema.org/draft/2020-12/schema");
-      expect(document.$id).toContain("/2.1.1/");
+      expect(document.$id).toContain("/2.1.2/");
     }
   });
 

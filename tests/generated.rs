@@ -15,6 +15,10 @@
 //!   module, from the operation definitions in `src/protocol/`.
 //! - `skills/athletic-standard/references/cli.md`: the command reference, from
 //!   the command table (D80).
+//! - The `## Before the first ath command` section of every `skills/*/SKILL.md`
+//!   and of the coaching skill template, from
+//!   `assets::skill::prerequisite_section` (D250). The rest of each file is
+//!   written by hand.
 //! - `examples/demo-athlete/`: the demo database and its attachment, from
 //!   `tests/demo_support/history.json`.
 //!
@@ -139,6 +143,28 @@ fn the_skill_lists_every_top_level_command() {
             !next.is_some_and(|character| character.is_alphanumeric() || character == '-')
         });
         assert!(listed, "SKILL.md has no table row for ath {}", command.name);
+    }
+}
+
+#[test]
+fn every_skill_carries_the_prerequisite_section() {
+    use athleticstandard::assets::skill::{with_prerequisite_section, PREREQUISITE_HEADING};
+    let mut skills: Vec<String> = fs::read_dir(repository().join("skills"))
+        .unwrap()
+        .map(|entry| entry.unwrap().path())
+        .filter(|path| path.join("SKILL.md").is_file())
+        .map(|path| format!("skills/{}/SKILL.md", path.file_name().unwrap().to_string_lossy()))
+        .collect();
+    skills.sort();
+    assert!(skills.len() >= 27, "found {} skills", skills.len());
+    let template = "docs/templates/coaching-skill/SKILL.template.md";
+    for (relative, version) in
+        skills.iter().map(|path| (path.as_str(), package::ATHLETIC_STANDARD_VERSION)).chain([(template, "<version>")])
+    {
+        let committed = fs::read_to_string(repository().join(relative)).unwrap();
+        let expected = with_prerequisite_section(&committed, version)
+            .unwrap_or_else(|| panic!("{relative} has no `{PREREQUISITE_HEADING}` section"));
+        check_text(relative, &expected);
     }
 }
 
@@ -287,15 +313,59 @@ fn the_demo_holds_every_record_type_a_correction_a_deletion_and_an_attachment() 
 #[test]
 fn the_demo_keeps_the_records_of_the_2_1_0_demo() {
     let generated = generated_demo();
-    let new = logical_dump(&generated.join(demo_support::DATABASE));
     let old_path = repository().join("tests/fixtures/version-2-1-0").join(demo_support::DATABASE);
     let old = logical_dump(&private_copy(&old_path, "2-1-0"));
     let athlete_tables: Vec<&String> =
         old.keys().filter(|key| key.starts_with("table ") && *key != "table database_metadata").collect();
     assert!(athlete_tables.len() > 40, "{athlete_tables:?}");
+    // Columns added after 2.1.0 (migration 6 adds athlete_reports.workout_session_id)
+    // are compared separately: the old rows keep every old value, and each added
+    // column is empty on them.
+    let new_connection = open_read_only(&generated.join(demo_support::DATABASE));
+    let old_connection = open_read_only(&private_copy(&old_path, "2-1-0-columns"));
     for table in athlete_tables {
-        assert_eq!(new.get(table), old.get(table), "{table}");
+        let name = table.trim_start_matches("table ");
+        let old_columns = table_columns(&old_connection, name);
+        let new_columns = table_columns(&new_connection, name);
+        assert_eq!(&new_columns[..old_columns.len()], &old_columns[..], "{table} keeps its columns in order");
+        assert_eq!(
+            table_rows_of(&new_connection, name, &old_columns),
+            table_rows_of(&old_connection, name, &old_columns),
+            "{table}"
+        );
+        for added in &new_columns[old_columns.len()..] {
+            let filled: i64 = new_connection
+                .query_row(&format!("SELECT count(*) FROM \"{name}\" WHERE \"{added}\" IS NOT NULL"), [], |row| {
+                    row.get(0)
+                })
+                .unwrap();
+            assert_eq!(filled, 0, "{table}.{added} is empty on the 2.1.0 records");
+        }
     }
+}
+
+fn table_columns(connection: &Connection, table: &str) -> Vec<String> {
+    let mut statement = connection.prepare(&format!("SELECT name FROM pragma_table_info('{table}')")).unwrap();
+    statement.query_map([], |row| row.get(0)).unwrap().map(Result::unwrap).collect()
+}
+
+fn table_rows_of(connection: &Connection, table: &str, columns: &[String]) -> Vec<String> {
+    let list = columns.iter().map(|column| format!("\"{column}\"")).collect::<Vec<_>>().join(", ");
+    let mut statement = connection.prepare(&format!("SELECT {list} FROM \"{table}\"")).unwrap();
+    let mut rows: Vec<String> = statement
+        .query_map([], |row| {
+            let mut parts = Vec::new();
+            for index in 0..columns.len() {
+                let value: rusqlite::types::Value = row.get(index)?;
+                parts.push(format!("{value:?}"));
+            }
+            Ok(parts.join(" | "))
+        })
+        .unwrap()
+        .map(Result::unwrap)
+        .collect();
+    rows.sort();
+    rows
 }
 
 #[test]

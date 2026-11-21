@@ -88,6 +88,8 @@ const DEPENDENCY_SQL: &str = "
         WHERE training_plan_id IS NOT NULL
       UNION ALL SELECT completed_workout_session_id, record_id FROM planned_sessions
         WHERE completed_workout_session_id IS NOT NULL
+      UNION ALL SELECT workout_session_id, record_id FROM athlete_reports
+        WHERE workout_session_id IS NOT NULL
       UNION ALL SELECT target_benchmark_definition_id, record_id FROM goals
         WHERE target_benchmark_definition_id IS NOT NULL
       UNION ALL SELECT nutrition_entry_id, record_id FROM nutrition_model_interpretations
