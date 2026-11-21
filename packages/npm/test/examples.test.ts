@@ -34,7 +34,7 @@ describe("examples", () => {
   it("runs the README imports against a real database", () => {
     expect(runExample("readme.ts")).toEqual({
       measurements: 1,
-      package_version: "2.1.1",
+      package_version: "2.1.2",
       package_records: 2,
     });
   });

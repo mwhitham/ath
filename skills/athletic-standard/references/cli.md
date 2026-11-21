@@ -146,29 +146,40 @@ Usage: ath skill [options] [command]
 where the agent skill is installed, and whether each copy is current
 
 Options:
-  --json             structured output, for an agent rather than a person
-  -h, --help         display help for command
+  --json                       structured output, for an agent rather than a
+                               person
+  -h, --help                   display help for command
 
 Commands:
-  install [options]  copy the skill into .agents/skills and every harness folder
-                     here
+  install [options] [name...]  copy the skill into .agents/skills and every
+                               harness folder here
 
 Examples:
 
-  Where the skill is installed:
+  Where the skills are installed:
     $ ath skill
 
-  Upgrade ath. An older tool skill is replaced. A calculation skill stays:
+  Upgrade ath. An older tool skill is replaced, and an unedited calculation
+  skill is updated:
     $ ath --update
 
-  Add skill files that are not already here, and replace an older tool skill:
+  Add skill files that are not already here, replace an older tool skill,
+  and update an unedited calculation skill:
     $ ath skill install
 
-The skill is a folder an agent reads to learn the file and the commands.
-ath init writes it to .agents/skills and into any harness folder already
-here. An older copy of the tool skill is replaced, so the agent does not
-keep reading the old instructions. A calculation skill that is already
-there is not replaced.
+  Install a coaching skill, which is installed only when named:
+    $ ath skill install hyrox
+
+A skill is a folder an agent reads. The tool skill teaches the file and the
+commands. Each calculation skill runs one calculation. A coaching skill
+plans and reviews training for one sport; it is installed only when you
+name it.
+
+ath init writes the tool and calculation skills to .agents/skills and into
+any harness folder already here. An older copy of the tool skill or a
+coaching skill is replaced, so the agent does not keep reading old
+instructions. A calculation skill you never edited is updated to the
+shipped method. One you edited is kept, and ath skill marks it edited.
 
 Mapping files are copied into .agents/mappings when that copy is missing.
 An installed mapping file is not replaced.
@@ -177,9 +188,13 @@ An installed mapping file is not replaced.
 ## ath skill install
 
 ```
-Usage: ath skill install [options]
+Usage: ath skill install [options] [name...]
 
 copy the skill into .agents/skills and every harness folder here
+
+Arguments:
+  name        install only these skills, such as a coaching skill: crossfit or
+              hyrox
 
 Options:
   --json      structured output, for an agent rather than a person

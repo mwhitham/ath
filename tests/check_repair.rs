@@ -110,9 +110,10 @@ fn check_and_repair_match_2_1_0_on_every_scenario() {
         }
         let mut expected_metadata = expected["metadata"].clone();
         if scenario["fixture"] != "npm100" {
-            // These copies were migrated to 2.1.1 before the damage.
-            expected_metadata["sql_schema_version"] = Value::from(5);
-            expected_metadata["athleticstandard_version"] = Value::from("2.1.1");
+            // These copies were migrated to the current version before the damage.
+            expected_metadata["sql_schema_version"] = Value::from(athleticstandard::store::SQL_SCHEMA_VERSION);
+            expected_metadata["athleticstandard_version"] =
+                Value::from(athleticstandard::model::package::ATHLETIC_STANDARD_VERSION);
         }
         if serde_json::to_value(&result.metadata).unwrap() != expected_metadata {
             failures.push(format!("{name}: metadata differs"));
@@ -191,9 +192,12 @@ fn check_reads_without_changing_the_file() {
     assert_eq!(journal_mode(&path), "delete");
     assert_eq!(report.file, path.display().to_string());
     assert!(!report.export_validated);
-    // The 2.1.0 demo is one step behind.
+    // The 2.1.0 demo is behind the current schema.
     assert_eq!(report.result.issues.len(), 1);
-    assert_eq!(report.result.issues[0].message, "database metadata schema version is 4, expected 5");
+    assert_eq!(
+        report.result.issues[0].message,
+        format!("database metadata schema version is 4, expected {}", athleticstandard::store::SQL_SCHEMA_VERSION)
+    );
     let value = serde_json::to_value(&report).unwrap();
     let keys: Vec<&String> = value.as_object().unwrap().keys().collect();
     assert_eq!(keys, ["file", "metadata", "valid", "record_count", "issues", "export_validated"]);
