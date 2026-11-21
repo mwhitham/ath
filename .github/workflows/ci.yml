@@ -2,7 +2,8 @@
 # to main:
 #
 # - Linux: formatting, Clippy, every Rust test (including the public-data and
-#   generated-file checks), then the npm client tests on Node 24.
+#   generated-file checks), the decision-history check on a pull request, then
+#   the npm client tests on Node 24.
 # - macOS: Clippy and every Rust test (D226).
 # - Windows: Clippy and every Rust test, plus the real Credential Manager test.
 #
@@ -32,6 +33,11 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v5
+        with:
+          # The decision check compares the working tree with the pull request's
+          # base commit, so this job needs that commit, not a shallow tip.
+          fetch-depth: 0
+          persist-credentials: false
       # rust-toolchain.toml pins the compiler; rustup installs it on first use.
       - run: rustup show active-toolchain || rustup toolchain install
       - uses: Swatinem/rust-cache@v2
@@ -39,6 +45,11 @@ jobs:
       - run: cargo clippy --locked --all-targets -- -D warnings
       # Report every failing test program, not only the first.
       - run: cargo test --locked --no-fail-fast
+      - name: Preserve recorded decisions
+        if: github.event_name == 'pull_request'
+        env:
+          ATH_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: cargo test --locked --test decision_history -- --ignored working_tree_matches_recorded_decisions
       # The npm tests run the executable at target/debug/ath.
       - run: cargo build --locked
       - uses: actions/setup-node@v4
