@@ -342,15 +342,15 @@ fn foreign_and_mismatched_headers_are_refused_without_change() {
     direct(&path)
         .execute_batch(
             "PRAGMA journal_mode = DELETE;
-             UPDATE database_metadata SET sql_schema_version = 7;
-             PRAGMA user_version = 7;",
+             UPDATE database_metadata SET sql_schema_version = 8;
+             PRAGMA user_version = 8;",
         )
         .unwrap();
     let error = inspect_migration(&path, None).unwrap_err().to_string();
     assert_eq!(
         error,
         format!(
-            "Database SQL schema 7 is newer than supported schema {SQL_SCHEMA_VERSION}. A newer ath wrote this database. Update ath to open it, for example with ath --update."
+            "Database SQL schema 8 is newer than supported schema {SQL_SCHEMA_VERSION}. A newer ath wrote this database. Update ath to open it, for example with ath --update."
         )
     );
 }
@@ -382,8 +382,9 @@ fn rollback_means_restoring_the_verified_backup() {
 
 /// Runs the 2.1.0 TypeScript `ath` from the reference checkout that
 /// `ATH_REFERENCE_CHECKOUT` names, with its `node_modules`. The old program
-/// must refuse a migrated 2.1.1 database and leave it unchanged. It must read
-/// the restored backup. The release performance workflow runs this test.
+/// must refuse a migrated database of the current version and leave it
+/// unchanged. It must read the restored backup. The release performance
+/// workflow runs this test.
 #[test]
 #[ignore = "needs ATH_REFERENCE_CHECKOUT: a 2.1.0 checkout with node_modules"]
 fn the_2_1_0_program_refuses_a_migrated_database() {
@@ -427,7 +428,11 @@ fn the_2_1_0_program_refuses_a_migrated_database() {
     ] {
         let (code, output) = old(&args);
         assert_eq!(code, Some(1), "{args:?}: {output}");
-        assert!(output.contains("Unsupported Athletic Standard database version: 2.1.1"), "{args:?}: {output}");
+        let refusal = format!(
+            "Unsupported Athletic Standard database version: {}",
+            athleticstandard::model::package::ATHLETIC_STANDARD_VERSION
+        );
+        assert!(output.contains(&refusal), "{args:?}: {output}");
     }
     assert_eq!(file_hash(&path), before, "the old program changed the migrated database");
 
@@ -441,7 +446,8 @@ fn the_2_1_0_program_refuses_a_migrated_database() {
 
 /// The migrated athlete tables equal what the 2.1.0 migration wrote, row for
 /// row. 2.1.1 adds step 5, which changes no athlete row. 2.1.2 adds step 6,
-/// which adds one empty column and changes no athlete row.
+/// which adds one empty column and changes no athlete row. 2.1.3 adds step 7,
+/// which adds three internal tables and changes no athlete row.
 #[test]
 fn migrated_tables_match_the_2_1_0_migration() {
     let golden = golden("migration.json");
@@ -461,15 +467,22 @@ fn migrated_tables_match_the_2_1_0_migration() {
             serde_json::Value::from(preview.source_sql_schema_version),
             old_preview["source_sql_schema_version"]
         );
-        // 2.1.0 planned the same steps, ending two steps earlier.
+        // 2.1.0 planned the same steps, ending three steps earlier.
         let old_steps = old_preview["planned_steps"].as_array().unwrap();
         for (ours, theirs) in preview.planned_steps.iter().zip(old_steps) {
             assert_eq!(serde_json::to_value(ours).unwrap(), *theirs, "{name}");
         }
-        assert_eq!(preview.planned_steps.len(), old_steps.len() + 2, "{name}");
+        assert_eq!(preview.planned_steps.len(), old_steps.len() + 3, "{name}");
         let added: Vec<&str> =
             preview.planned_steps[old_steps.len()..].iter().map(|step| step.migration_file.as_str()).collect();
-        assert_eq!(added, ["migrations/005-version-2-1-1.sql", "migrations/006-version-2-1-2.sql"]);
+        assert_eq!(
+            added,
+            [
+                "migrations/005-version-2-1-1.sql",
+                "migrations/006-version-2-1-2.sql",
+                "migrations/007-version-2-1-3.sql"
+            ]
+        );
 
         let mut store = open_for_migration(&path);
         execute_confirmed_migration(&mut store, &MigrationOptions::default()).unwrap();

@@ -116,3 +116,95 @@ describe("Zod facade and native validator", () => {
     ]);
   });
 });
+
+/**
+ * The 2.1.3 coach author (D255) has no recorded vector, because 2.1.0 did not
+ * have it. These cases hold the facade and the native validator to the same
+ * verdict on its shape, its record types, deletion, and the package version.
+ */
+describe("the 2.1.3 coach author", () => {
+  const coach = { author_type: "coach", coach: "Example Coach", coach_id: "6f1c2e4a-3b5d-4c7e-9f80-1a2b3c4d5e6f" };
+  const at = "2026-11-20T12:00:00.000Z";
+  const noteId = "01890f3e-e7d3-7cc0-88c8-0000000000c1";
+  const authorship = { author: coach, authored_at: at, evidence: [], content_version: 1, status: "active" };
+  const note = { authorship, note: "Keep every session easy this week." };
+  const noteRecord = {
+    record_id: noteId,
+    created_at: at,
+    current_revision: 1,
+    is_deleted: false,
+    record_type: "coaching_note",
+    data: note,
+  };
+  const noteRevision = {
+    record_id: noteId,
+    revision: 1,
+    previous_revision: null,
+    became_known_at: at,
+    became_known_at_basis: "local_write",
+    changed_by: coach,
+    record_type: "coaching_note",
+    data: note,
+  };
+  const report = {
+    report_type: "note",
+    reported_at: at,
+    input_reported_at: { timestamp_missing_reason: "not_applicable", utc_offset_missing_reason: "not_applicable" },
+    reported_via: "text",
+    note: "Legs felt heavy.",
+  };
+  const packageAt = (version: string) => ({
+    athleticstandard_version: version,
+    database_id: "01890f3e-e7d3-7cc0-88c8-000000000001",
+    database_revision: 1,
+    records: [noteRecord],
+    record_revisions: [noteRevision],
+    record_deletions: [],
+    record_erasure_markers: [],
+    record_import_keys: [],
+    measurement_series_files: [],
+  });
+  const cases: Array<{ schema: string; input: unknown; valid: boolean }> = [
+    { schema: "RecordActor", input: coach, valid: true },
+    { schema: "AuthoredRecordAuthor", input: coach, valid: true },
+    { schema: "RecordActor", input: { ...coach, coach_id: coach.coach_id.toUpperCase() }, valid: false },
+    { schema: "RecordActor", input: { ...coach, coach_id: "coach@example.com" }, valid: false },
+    { schema: "RecordActor", input: { ...coach, coach: "" }, valid: false },
+    { schema: "CoachingNoteRecord", input: noteRecord, valid: true },
+    { schema: "CoachingNoteRevision", input: noteRevision, valid: true },
+    {
+      schema: "GoalRecord",
+      input: { ...noteRecord, record_type: "goal", data: { authorship, title: "Row 2000 m under eight minutes" } },
+      valid: false,
+    },
+    {
+      schema: "AthleteReportRevision",
+      input: { ...noteRevision, record_type: "athlete_report", data: report },
+      valid: false,
+    },
+    {
+      schema: "AthleteReportRevision",
+      input: { ...noteRevision, record_type: "athlete_report", data: report, changed_by: { author_type: "athlete" } },
+      valid: true,
+    },
+    {
+      schema: "RecordDeletion",
+      input: { record_id: noteId, record_revision: 1, deleted_at: at, deleted_by: coach },
+      valid: false,
+    },
+    { schema: "AthleticStandardPackage", input: packageAt("2.1.3"), valid: true },
+    { schema: "AthleticStandardPackage", input: packageAt("2.1.2"), valid: false },
+  ];
+
+  it("gets the same verdict from the facade and the native validator", async () => {
+    const facade = schemas as unknown as Record<string, ZodType>;
+    const native = await callAsync("model.validate_many", {
+      cases: cases.map((entry) => ({ schema: entry.schema, json_text: JSON.stringify(entry.input) })),
+    });
+    cases.forEach((entry, index) => {
+      const label = `${entry.schema} ${JSON.stringify(entry.input).slice(0, 80)}`;
+      expect(facade[entry.schema]!.safeParse(entry.input).success, `facade: ${label}`).toBe(entry.valid);
+      expect(native.items[index]!.valid, `native: ${label}`).toBe(entry.valid);
+    });
+  });
+});

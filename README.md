@@ -88,7 +88,7 @@ package API.
 
 ## Upgrade a database
 
-A database from version 1.0.0, 2.0.0, 2.1.0, or 2.1.1 upgrades with `ath migrate`. The
+A database from version 1.0.0, 2.0.0, 2.1.0, 2.1.1, or 2.1.2 upgrades with `ath migrate`. The
 command shows a preview first. It makes a verified backup with SQLite's own backup
 interface before the first schema write. Opening a database never migrates it without
 confirmation. To go back, restore the backup; it does not contain work recorded after
@@ -418,9 +418,10 @@ keeps the ID. Evidence names both the record ID and revision.
 The format defines 24 record types for profile data, sources, measurements,
 sessions, athlete reports, nutrition, attachments, benchmarks, predictions, plans,
 goals, and saved authored work. [`SPEC.md`](SPEC.md) is the public field reference.
-The generated JSON Schemas are in [`schema/2.1.2/`](schema/2.1.2/). The published
-2.0.0, 2.1.0, and 2.1.1 schemas stay in [`schema/2.0.0/`](schema/2.0.0/),
-[`schema/2.1.0/`](schema/2.1.0/), and [`schema/2.1.1/`](schema/2.1.1/).
+The generated JSON Schemas are in [`schema/2.1.3/`](schema/2.1.3/). The published
+2.0.0, 2.1.0, 2.1.1, and 2.1.2 schemas stay in [`schema/2.0.0/`](schema/2.0.0/),
+[`schema/2.1.0/`](schema/2.1.0/), [`schema/2.1.1/`](schema/2.1.1/), and
+[`schema/2.1.2/`](schema/2.1.2/).
 
 How the code is organized, and the path of one import and one correction to disk, is
 in [`docs/architecture.md`](docs/architecture.md).

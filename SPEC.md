@@ -1,14 +1,14 @@
-# Athletic Standard Format Specification v2.1.2
+# Athletic Standard Format Specification v2.1.3
 
 **Status:** current format
 **Live local file:** `athlete.ath.sqlite`
 **Portable package:** `athlete.ath.json` plus generated files
 **Normative model:** the Rust record model in [`src/model/`](src/model/) and its
 semantic checks
-**Generated JSON Schemas:** [`schema/2.1.2/`](schema/2.1.2/), generated from that
-model. The published 2.0.0, 2.1.0, and 2.1.1 schemas stay in
-[`schema/2.0.0/`](schema/2.0.0/), [`schema/2.1.0/`](schema/2.1.0/), and
-[`schema/2.1.1/`](schema/2.1.1/).
+**Generated JSON Schemas:** [`schema/2.1.3/`](schema/2.1.3/), generated from that
+model. The published 2.0.0, 2.1.0, 2.1.1, and 2.1.2 schemas stay in
+[`schema/2.0.0/`](schema/2.0.0/), [`schema/2.1.0/`](schema/2.1.0/),
+[`schema/2.1.1/`](schema/2.1.1/), and [`schema/2.1.2/`](schema/2.1.2/).
 
 Version 2.0.0 adds workout names, descriptions, text results, heart-rate
 samples, strength sets, route points, and `supplied_fields` for names the
@@ -31,6 +31,12 @@ set can name its movement and whether its weight is per implement (section 6.7).
 A version 2.1.1 database upgrades with `ath migrate` to SQL schema step 6, which
 adds one nullable column. The calculation methods that changed, and the coaching
 skills, are in [`build-history/v2.1.2/spec.md`](build-history/v2.1.2/spec.md).
+
+Version 2.1.3 adds one author variant: a human coach can author and change coaching
+notes, training plans, and planned sessions (sections 4.3 and 5.1). A version 2.1.2
+database upgrades with `ath migrate` to SQL schema step 7, which adds three internal
+tables (section 7.3). The optional host program that uses them is planned in
+[`build-history/v2.1.3/spec.md`](build-history/v2.1.3/spec.md).
 
 Athletic Standard is an open, local-first record for one athlete's training and
 recovery data. SQLite is the sole live local record. JSON is an explicit, complete
@@ -172,7 +178,22 @@ event time inside `data`.
 }
 ```
 
+```json
+{
+  "author_type": "coach",
+  "coach": "Coach name when written",
+  "coach_id": "6f1c2e4a-3b5d-4c7e-9f80-1a2b3c4d5e6f"
+}
+```
+
 `agent_version` is optional. Tool versions are semantic versions.
+
+The coach actor is new in 2.1.3. `coach` is a nonempty name. `coach_id` is a
+lowercase UUID in the 8-4-4-4-12 form, assigned by the host that accepted the change.
+The name and ID record who wrote the change. They grant no access. A coach may change
+only `coaching_note`, `training_plan`, and `planned_session` records. A coach cannot
+change a measured record, an athlete report, or any other record type, and cannot
+delete a record.
 
 ### 4.4 Normal deletion
 
@@ -242,6 +263,11 @@ have `agent_version` and `model_version`.
 
 A tool author requires `author_type: "tool"`, `tool`, `tool_version`, and
 `calculation_version`.
+
+A coach author has the same fields as the coach actor (section 4.3): `author_type:
+"coach"`, `coach`, and `coach_id`. Only `coaching_note`, `training_plan`, and
+`planned_session` records may have a coach author. A `prediction_result_link` cannot
+name a coach as `created_by`.
 
 ### 5.2 Input timestamp receipts
 
@@ -805,7 +831,7 @@ The athlete's original nutrition claim remains in the linked source-free
 |---|---|
 | `application_marker` | `ATH1` |
 | `sql_schema_version` | Positive SQL migration version |
-| `athleticstandard_version` | `2.1.2` |
+| `athleticstandard_version` | `2.1.3` |
 | `database_id` | Stable UUIDv7 database ID |
 | `created_at` | Database creation timestamp |
 
@@ -888,6 +914,28 @@ Foreign keys cover sources, exact evidence revisions, benchmark definitions,
 prediction-result links, grades, attachments, plans, nutrition interpretations,
 and workout completion links. Measured rows require a source foreign key.
 Athlete-report and nutrition tables have no source column.
+
+### 7.3 Internal tables
+
+Internal tables hold program state, not athlete records. A JSON package never
+includes them, and direct SQL writers must not write them. `spec/sql/contract.json`
+lists them under `internal_tables`, with a note for each.
+
+| Table | Since | Holds |
+|---|---|---|
+| `internal_pending_file_operations` | step 5 | Attachment file work that a SQL transaction cannot include |
+| `internal_change_log` | step 7 | One row for each record revision, deletion, and erasure, with the database revision that committed it |
+| `internal_write_receipts` | step 7 | One row for each write request a host accepted, with a keyed digest of the request and its result |
+| `internal_access_state` | step 7 | One row with the access epoch, which revoking a host grant raises |
+
+Triggers fill `internal_change_log` in the same transaction as the change, so a
+direct SQL writer that follows the published recipes is included. A row names the
+record ID, the record revision (0 for an erasure), and the kind of change. It holds
+no health value and has no foreign key. An erasure removes the record's earlier rows
+and leaves one erasure row, so the log keeps no more about an erased record than its
+marker does (section 4.5). A restore into an empty database starts a new log. `internal_write_receipts` holds no request body.
+A database that never connects to a host keeps an empty receipt table and an access
+epoch of 0.
 
 ## 8. Portable JSON package
 
@@ -1004,16 +1052,19 @@ Validation refuses:
 - an import key without its current record;
 - one import key resolving to two records;
 - an erasure marker whose record still exists;
-- duplicate or unsafe package paths.
+- duplicate or unsafe package paths;
+- a coach author or actor on a record type a coach cannot write, or as `deleted_by`;
+- a coach author or actor in a package that declares a version before 2.1.3.
 
 The generated JSON Schemas give exhaustive object validation:
 
-- [`schema/2.1.2/athleticstandard.schema.json`](schema/2.1.2/athleticstandard.schema.json)
-- [`schema/2.1.2/measurement-series.schema.json`](schema/2.1.2/measurement-series.schema.json)
-- [`schema/2.1.2/export-manifest.schema.json`](schema/2.1.2/export-manifest.schema.json)
+- [`schema/2.1.3/athleticstandard.schema.json`](schema/2.1.3/athleticstandard.schema.json)
+- [`schema/2.1.3/measurement-series.schema.json`](schema/2.1.3/measurement-series.schema.json)
+- [`schema/2.1.3/export-manifest.schema.json`](schema/2.1.3/export-manifest.schema.json)
 
-The published 2.0.0, 2.1.0, and 2.1.1 schemas stay in [`schema/2.0.0/`](schema/2.0.0/),
-[`schema/2.1.0/`](schema/2.1.0/), and [`schema/2.1.1/`](schema/2.1.1/). A schema checks
+The published 2.0.0, 2.1.0, 2.1.1, and 2.1.2 schemas stay in
+[`schema/2.0.0/`](schema/2.0.0/), [`schema/2.1.0/`](schema/2.1.0/),
+[`schema/2.1.1/`](schema/2.1.1/), and [`schema/2.1.2/`](schema/2.1.2/). A schema checks
 structure only. It cannot show that a package's history or relationships are valid;
 the import checks those.
 
@@ -1024,6 +1075,10 @@ The two-tier wall is structural. Measured records require `source_id`.
 
 Authored records are a third class. They name an author and exact evidence. They are
 not measurements and are not athlete reports.
+
+A coach writes authored advice, like an agent. A coach can author or change only
+coaching notes, training plans, and planned sessions, so a coach is never the author
+or actor of a measured record or an athlete report.
 
 Calculations remain separate by quantity and source unless the operation explicitly
 compares sources. Device baselines exclude `manual` sources. RMSSD and SDNN never
@@ -1045,7 +1100,7 @@ A v1 package import:
   and erasure markers;
 - refuses unknown fields and records it cannot represent;
 - does not delete a local record merely because the package omits it;
-- accepts a `2.0.0`, `2.1.0`, `2.1.1`, or `2.1.2` package;
+- accepts a `2.0.0`, `2.1.0`, `2.1.1`, `2.1.2`, or `2.1.3` package;
 - refuses prerelease Athletic Standard versions below `1.0.0`.
 
 An empty destination at database revision zero adopts the package database ID and
@@ -1112,17 +1167,20 @@ backup operation. A closed, checkpointed database may be copied.
 
 ## 13. Version behavior
 
-The program, the record, and the database use one version, `2.1.2` (D152, D184,
-D208, D227). The portable document, generated series files, export manifest, and
-live database metadata all carry that version.
+The program, the record, and the database use one version, `2.1.3` (D152, D184,
+D208, D227, D254). The portable document, generated series files, export manifest,
+and live database metadata all carry that version.
 
-A minor version only adds optional fields. A patch version adds no field. Version
-2.1.2 is a recorded exception (D227): it adds optional fields and the
-`session_effort` report type, and removes or changes nothing. A `2.0.0` record has
-no `field_basis` and stays valid, and every 2.1.1 record is valid 2.1.2 data.
-`ath migrate` moves a `2.0.0`, `2.1.0`, or `2.1.1` database to `2.1.2` without
-changing its records. Software before 2.1.1 refuses a database at SQL schema step 5,
-and software before 2.1.2 refuses one at step 6.
+A minor version only adds optional fields. A patch version adds no field. Versions
+2.1.2 and 2.1.3 are recorded exceptions. Version 2.1.2 (D227) adds optional fields
+and the `session_effort` report type, and removes or changes nothing. Version 2.1.3
+(D254) adds one author variant and three internal tables, and removes or changes
+nothing. A `2.0.0` record has no `field_basis` and stays valid, and every 2.1.1 and
+2.1.2 record is valid 2.1.3 data. A package with a coach author declares 2.1.3 or
+later. `ath migrate` moves a `2.0.0`, `2.1.0`, `2.1.1`, or `2.1.2` database to
+`2.1.3` without changing its records. Software before 2.1.1 refuses a database at SQL
+schema step 5, software before 2.1.2 refuses one at step 6, and software before 2.1.3
+refuses one at step 7.
 
 Normative package and record data objects are strict. Unknown fields are rejected.
 The v1 importer refuses Athletic Standard `0.x` documents without modifying them.
