@@ -15,6 +15,8 @@ pub mod pending;
 pub mod query;
 pub mod read;
 pub mod repair;
+#[cfg(feature = "changesets")]
+pub mod replica;
 pub mod stats;
 pub mod write;
 

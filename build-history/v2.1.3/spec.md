@@ -85,7 +85,7 @@ constraint, so no table is rebuilt.
 
 ### 4.2 Migration 007
 
-`007-version-2-1-3.sql` sets the metadata to 2.1.3 and SQL schema 7. It adds three
+`007-version-2-1-3.sql` sets the metadata to 2.1.3 and SQL schema 7. It adds four
 internal tables and changes no athlete-owned row (D211):
 
 - `internal_change_log`: one row for each record revision, deletion, and erasure, with
@@ -97,10 +97,13 @@ internal tables and changes no athlete-owned row (D211):
   revisions. It holds no request body and no health values (D261).
 - `internal_access_state`: one row holding the access epoch (D262). Revoking a grant
   raises it.
+- `internal_replication_log`: in a database a host keeps on a remote server, the
+  changeset of each committed write, with the revision it started from (D268). An
+  erasure deletes every row. It stays empty on a local file.
 
-None of the three is exported in a package. All are listed in `spec/sql/contract.json`
+None of the four is exported in a package. All are listed in `spec/sql/contract.json`
 as internal, like `internal_pending_file_operations`. A local database that never
-connects to a host uses only the change log.
+connects to a host uses only the change log and the access row.
 
 On the native backend, the migration keeps the preview, verified backup, confirmation,
 and rollback rules (D124, D211). On the libSQL backend, a provider restore point and a

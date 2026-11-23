@@ -38,6 +38,15 @@ ureq = "2.12"
 uuid = { version = "1.29", features = ["v7"] }
 zip = "2.2"
 
+[[test]]
+name = "replica"
+required-features = ["changesets"]
+
+[features]
+# Record the rows a write changes and replay them on another copy (D268).
+# Only the host program turns this on.
+changesets = []
+
 [profile.release]
 lto = "thin"
 codegen-units = 4

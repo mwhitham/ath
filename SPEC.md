@@ -34,7 +34,7 @@ skills, are in [`build-history/v2.1.2/spec.md`](build-history/v2.1.2/spec.md).
 
 Version 2.1.3 adds one author variant: a human coach can author and change coaching
 notes, training plans, and planned sessions (sections 4.3 and 5.1). A version 2.1.2
-database upgrades with `ath migrate` to SQL schema step 7, which adds three internal
+database upgrades with `ath migrate` to SQL schema step 7, which adds four internal
 tables (section 7.3). The optional host program that uses them is planned in
 [`build-history/v2.1.3/spec.md`](build-history/v2.1.3/spec.md).
 
@@ -927,6 +927,7 @@ lists them under `internal_tables`, with a note for each.
 | `internal_change_log` | step 7 | One row for each record revision, deletion, and erasure, with the database revision that committed it |
 | `internal_write_receipts` | step 7 | One row for each write request a host accepted, with a keyed digest of the request and its result |
 | `internal_access_state` | step 7 | One row with the access epoch, which revoking a host grant raises |
+| `internal_replication_log` | step 7 | In a database a host keeps on a remote server: the changeset of each committed write, so other working copies can catch up. Empty on a local file |
 
 Triggers fill `internal_change_log` in the same transaction as the change, so a
 direct SQL writer that follows the published recipes is included. A row names the
@@ -936,6 +937,10 @@ and leaves one erasure row, so the log keeps no more about an erased record than
 marker does (section 4.5). A restore into an empty database starts a new log. `internal_write_receipts` holds no request body.
 A database that never connects to a host keeps an empty receipt table and an access
 epoch of 0.
+
+`internal_replication_log` holds earlier row values, so a trigger deletes every row
+when any record is erased. A host that finds a gap in the log rebuilds its working
+copy instead of catching up.
 
 ## 8. Portable JSON package
 
@@ -1174,7 +1179,7 @@ and live database metadata all carry that version.
 A minor version only adds optional fields. A patch version adds no field. Versions
 2.1.2 and 2.1.3 are recorded exceptions. Version 2.1.2 (D227) adds optional fields
 and the `session_effort` report type, and removes or changes nothing. Version 2.1.3
-(D254) adds one author variant and three internal tables, and removes or changes
+(D254) adds one author variant and four internal tables, and removes or changes
 nothing. A `2.0.0` record has no `field_basis` and stays valid, and every 2.1.1 and
 2.1.2 record is valid 2.1.3 data. A package with a coach author declares 2.1.3 or
 later. `ath migrate` moves a `2.0.0`, `2.1.0`, `2.1.1`, or `2.1.2` database to

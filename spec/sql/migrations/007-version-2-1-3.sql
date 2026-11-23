@@ -78,6 +78,24 @@ BEGIN
   );
 END;
 
+-- internal_replication_log is used only in a database that a host keeps on a
+-- remote libSQL server (D268). Each row is the changeset of one committed
+-- write: the row changes it made, in order, as JSON, so another host copy can bring its working copy up to date.
+-- It holds earlier row values, so an erasure deletes the whole log in the same
+-- transaction. On a local file it stays empty.
+CREATE TABLE internal_replication_log (
+  database_revision INTEGER PRIMARY KEY CHECK (database_revision >= 1),
+  base_revision INTEGER NOT NULL CHECK (base_revision >= 0 AND base_revision < database_revision),
+  changeset TEXT NOT NULL CHECK (json_valid(changeset)),
+  committed_at TEXT NOT NULL
+) STRICT;
+
+CREATE TRIGGER internal_replication_log_erasure
+AFTER INSERT ON record_erasure_markers
+BEGIN
+  DELETE FROM internal_replication_log;
+END;
+
 CREATE TABLE internal_write_receipts (
   principal_id TEXT NOT NULL,
   client_id TEXT NOT NULL,

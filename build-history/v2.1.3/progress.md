@@ -6,7 +6,7 @@ Status: **in progress; not released**. The plan is [spec.md](spec.md).
 |---|---|---|
 | 1 | Plan, decisions D254–D267, storage study, hosting experiments | done |
 | 2 | Version 2.1.3, migration 007, coach authorship | done |
-| 3 | Changeset capture in the library (D268) | not started |
+| 3 | Changeset capture in the library (D268) | done |
 | 4 | libSQL remote backend: working copies, guarded commits, replication log, qualification suite | not started |
 | 5 | `ath-host` native directory mode: connect, read, write, attachments, refresh, restore | not started |
 | 6 | Sign-in and grants | not started |
@@ -31,3 +31,16 @@ Step 2 notes:
   Standard database version: 2.1.3"). This was checked by hand with a 2.1.2 build.
 
 D268 changes how the libSQL backend writes. Steps 3 and 4 follow it.
+
+Step 3 notes:
+
+- Changes are recorded with temporary triggers on the writing connection, not with
+  SQLite's session extension. The session extension needs `bindgen` and `libclang` in
+  every build, including the release builds for each platform. Temporary triggers need
+  nothing extra, keep the exact order of the writes, and roll back with the transaction.
+- A changeset is JSON. No replicated column holds a binary value, so JSON carries every
+  value exactly.
+- `tests/replica.rs` runs with `--features changesets`. Step 4 adds the host to the
+  workspace, which turns the feature on for the default `cargo test`.
+- Migration 007 gained `internal_replication_log`, with the revision each changeset
+  started from, and a trigger that empties it when a record is erased.
