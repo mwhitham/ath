@@ -118,30 +118,47 @@ complete package export replace the verified backup (D258).
 
 ## 5. Storage
 
-### 5.1 The storage interface (D257)
+### 5.1 Two backends (D257, D268)
 
-The store's SQL calls go through one internal interface in `src/store/`. It covers what
-the store uses today: execute, query, prepared statements, immediate write transactions,
-and batches. About 340 call sites in 31 files move behind it.
-
-| Backend | Opens | Used by | Built into |
+| Backend | Where the athlete database lives | How a write reaches it | Built into |
 |---|---|---|---|
-| Native | A local SQLite file through bundled rusqlite. | The CLI, the npm executable, and the host's directory mode. | Every build. |
-| libSQL remote | A database on a server that speaks the libSQL protocol, through the `libsql` crate. | The host only. | `ath-host` only, behind the `libsql-remote` Cargo feature. |
+| Native | A local SQLite file, opened through bundled rusqlite. | The library writes it directly. | Every build. |
+| libSQL remote | A database on a server that speaks the libSQL protocol. | The library writes a local working copy. The host commits the changed rows to the server in one transaction. | `ath-host` only, behind its `libsql-remote` Cargo feature. |
 
-The library stays synchronous. The host runs storage work on blocking worker threads
-and drives the libSQL client there. The CLI gains no network code and no dependency.
+The library stays synchronous and keeps one code path. It gains a way to run a write
+while recording its changed rows with SQLite's session extension. That is behind the
+library's `changesets` Cargo feature, which only `ath-host` turns on. The CLI gains no
+network code and no dependency.
 
-### 5.2 Differences on a libSQL server (D258)
+### 5.2 The libSQL backend (D258, D268)
 
-- `application_id` and `user_version` are read but never written. The metadata table is
-  authoritative (D93).
-- `journal_mode` and `busy_timeout` are skipped. The server manages both.
-- Each write is one interactive transaction on one connection. The backend refuses to
-  open a database where a dangling reference is not rejected.
-- The SQLite online backup API is not used. Section 4.2 says what replaces it.
-- Large imports send rows in batches inside one transaction. Every statement is a
-  network round trip.
+**Working copies.** The host keeps a working copy of each active athlete's database on
+local temporary disk. It builds the copy by copying every table from the server. It
+keeps the copy current from `internal_replication_log` in the remote database. It
+rebuilds the copy when the log has a gap, deletes idle copies after a set time, and
+deletes all copies when it starts.
+
+**A write.**
+
+1. Bring the working copy to the server's current database revision.
+2. Run the library operation on the copy while recording its changeset.
+3. On the server, in one transaction: check the database revision and access epoch,
+   apply deletions (children first), insertions (parents first), then updates, with
+   the database revision raised last; append the changeset to the replication log.
+4. If the check fails, discard the copy's change, refresh, and run the request again.
+   The receipt makes the second run safe.
+
+An erasure deletes the replication log in the same transaction.
+
+**Differences from local SQLite.**
+
+- `application_id` and `user_version` are read but never written on the server. The
+  metadata table is authoritative (D93).
+- `journal_mode` and `busy_timeout` are not sent. The server manages both.
+- The backend refuses to open a database where a dangling reference is not rejected.
+- The SQLite online backup API is not used on the server. Section 4.2 says what
+  replaces it before a migration.
+- A large write is sent in batches inside its one transaction.
 
 ### 5.3 Attachments (D259)
 
@@ -170,7 +187,7 @@ access check.
 | Athletes per host | Limited by disk size. | Limited by the provider. |
 | Backups | Litestream, attachment copies, scheduled package export. | Provider restore, attachment bucket copy, scheduled package export. |
 | Per-athlete keys | Not in 2.1.3. | Where the provider supports them. |
-| Each operation | In process. | Network round trips. |
+| Each operation | In process. | In process on a working copy, plus a few round trips to commit. |
 | Vendor needed | No. | No, if you run a libSQL server yourself. |
 
 The [study](appendix/hosted-storage-options.md) section 6 gives the questions to ask.
@@ -193,9 +210,10 @@ own a set of athletes. The directory names the machine that serves each athlete,
 request for another machine's athlete is forwarded or redirected. Only one machine
 accepts writes for an athlete at a time (D267).
 
-**Remote mode.** Host copies hold no record data. Any copy can serve any athlete. The
-libSQL server orders writes to each database. Revision checks, receipts, and the access
-epoch handle races between copies (D261, D262).
+**Remote mode.** Host copies keep no durable record data, only working copies that can
+be deleted at any time (D268). Any copy can serve any athlete. The libSQL server orders
+writes to each database. The revision check, receipts, and the access epoch handle
+races between copies (D261, D262).
 
 ### 6.2 Sign-in (D260)
 
@@ -376,8 +394,8 @@ successful sign-in alone does not finish a step.
 |---|---|---|
 | 1 | This plan, D254–D267, and the storage study. | Approved. |
 | 2 | Version 2.1.3, migration 007, coach authorship. | A coach-authored note survives export and restore. A 2.1.2 program refuses the database. All existing tests pass. |
-| 3 | The storage interface, with the native backend behind it. | Every existing test passes with no change in CLI behavior. |
-| 4 | The libSQL remote backend and the qualification suite. | The suite passes against a local libSQL server in continuous integration. |
+| 3 | Changeset capture in the library (D268). | A write recorded as a changeset and applied to an empty copy gives the same export, byte for byte. Every existing test passes with no change in CLI behavior. |
+| 4 | The libSQL remote backend: working copies, guarded commits, the replication log, and the qualification suite. | The suite passes against a local libSQL server in continuous integration. |
 | 5 | `ath-host` in native directory mode: owner connect, read, write with receipts, attachments, device refresh, restore. | An owner saves a report with a photo on one device and opens both on another. |
 | 6 | Sign-in and grants: both recipes, three grants, access epoch, roster. | Two coaches, two apps, two athletes. A revocation during a queued write blocks it. |
 | 7 | Remote mode with the object store, and several host copies. | Steps 5 and 6 pass in remote mode. A named run of the suite passes against one provider. |

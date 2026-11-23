@@ -370,3 +370,60 @@ Rejected alternatives:
   the copy would be lost or duplicated.
 - Let the destination activate after a timeout. Rejected because a timer cannot prove
   the source stopped.
+
+## D268. A remote write runs on a local working copy and commits as one changeset
+
+The libSQL backend does not send the library's SQL statements to the server one at a
+time. The host keeps a working copy of each active athlete's database on local
+temporary disk. The library runs every operation against that copy, unchanged.
+SQLite's session extension records the rows a write changed. The host then commits
+those row changes to the remote database in one transaction. The transaction first
+checks that the remote database revision and access epoch still equal the values the
+working copy started from. If either has moved, the host refreshes the copy and runs
+the request again. The receipt makes the second run safe (D261).
+
+The host sends rows in a fixed order: deletions with children first, then insertions
+with parents first, then updates, with the database revision raised last. That is the
+order the store itself writes in. Foreign keys are deferred to commit. All 43 tables
+have primary keys, which the session extension requires. Every trigger before 2.1.3
+only checks rows and never writes them. The 2.1.3 change-log triggers compute the same
+rows on the server as on the working copy, so the server builds its own change log.
+
+A working copy is a cache. The host builds it by copying every table from the server,
+keeps it current from `internal_replication_log`, a log of committed changesets kept in
+the remote database, and may delete it at any time. Host copies keep no durable state.
+An erasure deletes the replication log in the same transaction, because the log holds
+earlier row values, and every working copy older than the erasure is rebuilt. Idle
+working copies are deleted after a set time and when the host starts.
+
+This supersedes the part of D257 that routes the store's SQL calls through one
+interface with two backends. The native backend is the library's own store. D257's
+choice of the libSQL protocol and its rejected alternatives stand. Spec sections 5.1,
+5.2 and 6.1 describe the result.
+
+The reasons come from the build:
+
+- The library calls SQLite in about 340 places, including streamed reads during
+  export. Routing each one through a network interface changes all of them, and every
+  statement becomes a network round trip. An import of the 100,000-record workload
+  would need hundreds of thousands of round trips.
+- The record rules run in one place, unchanged. Experiments 3 and 5 showed that rows
+  written by the library and sent to a SQLite-compatible engine export byte for byte
+  like the original ([experiments](appendix/hosting-experiments.md)).
+- The server checks every row again: its STRICT types, triggers and foreign keys run
+  on each replayed row.
+- Reads are local, so calculations and views also work in remote mode.
+
+Rejected alternatives:
+
+- Route every SQL call through an interface, as D257 first said. Rejected for the
+  reasons above.
+- Replay the SQL text recorded by a statement trace. Rejected because functions such as
+  the current time give different results on replay, and trigger statements appear in
+  the trace.
+- Use libSQL embedded replicas for the working copy. Rejected as the only mechanism
+  because writes would still need a second path, and it ties the backend to one
+  replication protocol. The changeset works with any SQLite-compatible server.
+- Rebuild a stale working copy from scratch every time. Rejected as the only path
+  because several host copies serving one athlete would each copy the whole database
+  after every write by another copy. It remains the fallback when the log has a gap.
