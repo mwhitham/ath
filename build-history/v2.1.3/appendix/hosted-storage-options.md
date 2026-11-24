@@ -296,7 +296,7 @@ Answer these questions in order.
 1. **Do you need anyone but the athlete to reach the record?** If not, use `ath` with
    a local file. You need no host.
 2. **Will one machine hold every record you expect?** Estimate each record's size
-   from your own data: `ath stats` reports it. If one disk holds them all, the native
+   from your own data: the size of its `.ath.sqlite` file and `attachments/` folder. If one disk holds them all, the native
    directory backend is the simplest choice. Add Litestream and a scheduled package
    export.
 3. **Do you need more than one copy of the host running at once, or no disks to

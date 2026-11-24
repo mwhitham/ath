@@ -191,7 +191,7 @@ pub struct Host {
 }
 
 pub fn host(config: Config) -> Host {
-    let state = runtime().block_on(ath_host::state(config)).unwrap();
+    let state = runtime().block_on(ath_host::start(config)).unwrap();
     let address = serve(ath_host::api::router(state.clone()));
     Host { url: format!("http://{address}"), state }
 }

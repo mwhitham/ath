@@ -53,11 +53,7 @@ async fn serve(config: ath_host::config::Config) {
         fail("another ath-host is using this data folder");
     }
     let listen = config.listen.clone();
-    let state = ath_host::state(config).await.unwrap_or_else(|error| fail(&error));
-    let finished = ath_host::backup::finish_erasures(&state).await.unwrap_or_else(|error| fail(&error.to_string()));
-    if finished > 0 {
-        eprintln!("ath-host: finished {finished} erasure(s) that an earlier run did not complete");
-    }
+    let state = ath_host::start(config).await.unwrap_or_else(|error| fail(&error));
     let sweeper = state.clone();
     tokio::spawn(async move {
         loop {
@@ -133,6 +129,13 @@ async fn restore(config: ath_host::config::Config, args: &[String]) {
     let package = PathBuf::from(option(args, "--package").unwrap_or_else(|| usage()));
     let bytes =
         std::fs::read(&package).unwrap_or_else(|error| fail(&format!("cannot read {}: {error}", package.display())));
+    // A restore replaces a record's files, so the host must not be serving them.
+    std::fs::create_dir_all(&config.data_directory).unwrap_or_else(|error| fail(&error.to_string()));
+    let lock = std::fs::File::create(config.data_directory.join(".ath-host.lock"))
+        .unwrap_or_else(|error| fail(&error.to_string()));
+    if lock.try_lock().is_err() {
+        fail("stop ath-host before restoring: it is using this data folder");
+    }
     let state = ath_host::state(config).await.unwrap_or_else(|error| fail(&error));
     let revision = ath_host::backup::restore_athlete(&state, &athlete, &bytes)
         .await
