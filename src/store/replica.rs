@@ -14,8 +14,15 @@
 //! them on a local database, guarded the way a server transaction is guarded, so a
 //! working copy can catch up and tests can stand in for a server.
 //!
-//! Tables in [`NOT_REPLAYED`] are never recorded: the receiving database's own
-//! triggers rebuild the change log, and the other two describe one copy only.
+//! Tables in [`NOT_REPLAYED`] are never recorded. Pending file work and the
+//! replication log describe one copy only. The access epoch lives on the server: a
+//! host raises it there directly and checks it when it commits (D262).
+//!
+//! The change log is replayed with `INSERT OR IGNORE`. The receiving database's
+//! triggers write the same rows as the sending copy's triggers did, because both
+//! compute the revision from `database_state` before it is raised. Replaying the
+//! rows as well keeps deletions that the sender made, such as a restore starting a
+//! new log.
 
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::Path;
@@ -29,7 +36,10 @@ use crate::error::{Error, Result};
 
 /// Tables a capture never records and a replay never sends.
 pub const NOT_REPLAYED: &[&str] =
-    &["internal_change_log", "internal_pending_file_operations", "internal_replication_log"];
+    &["internal_pending_file_operations", "internal_replication_log", "internal_access_state"];
+
+/// Tables whose rows the receiving database's triggers also write.
+pub const TRIGGER_WRITTEN: &[&str] = &["internal_change_log"];
 
 /// Tables a working copy never copies from the server.
 pub const NOT_COPIED: &[&str] = &["internal_pending_file_operations", "internal_replication_log"];
@@ -198,6 +208,7 @@ impl ReplayStatement {
     pub fn accepts(&self, changed_rows: u64) -> bool {
         match self.kind {
             ChangeKind::Delete => changed_rows <= 1,
+            ChangeKind::Insert if TRIGGER_WRITTEN.contains(&self.table.as_str()) => changed_rows <= 1,
             ChangeKind::Insert | ChangeKind::Update => changed_rows == 1,
         }
     }
@@ -236,21 +247,7 @@ const CAPTURE_TABLE: &str = "temp.ath_captured_changes";
 impl Store {
     /// The access epoch. Revoking a grant raises it (D262).
     pub fn access_epoch(&self) -> Result<u64> {
-        access_epoch(&self.connection)
-    }
-
-    /// Raise the access epoch in its own write transaction and return the new value.
-    pub fn raise_access_epoch(&mut self) -> Result<u64> {
-        self.transaction(|tx| {
-            let changed = tx.execute(
-                "UPDATE internal_access_state SET access_epoch = access_epoch + 1 WHERE singleton_id = 1",
-                [],
-            )?;
-            if changed != 1 {
-                return Err(Error::other("The access state row is missing"));
-            }
-            access_epoch(tx)
-        })
+        self.current_access_epoch()
     }
 
     /// Run `operation` and record, in order, every row it changed.
@@ -267,6 +264,10 @@ impl Store {
         let base_revision = self.database_revision()?;
         let access_epoch = self.access_epoch()?;
         let shapes = self.table_shapes()?;
+        // Changing `temp_store` deletes every temporary table and trigger. A package
+        // restore sets it to MEMORY, so set it first: the restore's change is then no
+        // change, and the capture survives it.
+        self.connection.pragma_update(None, "temp_store", "MEMORY")?;
         self.connection.execute_batch(&capture_triggers(&shapes))?;
         let outcome = operation(self);
         let recorded = read_capture(&self.connection, &shapes);
@@ -310,7 +311,9 @@ impl Store {
                 ChangeKind::Insert => {
                     let names = shape.columns.iter().map(|name| quote(name)).collect::<Vec<_>>().join(", ");
                     let marks = (1..=width).map(|n| format!("?{n}")).collect::<Vec<_>>().join(", ");
-                    (format!("INSERT INTO {table} ({names}) VALUES ({marks})"), change.row.clone())
+                    let verb =
+                        if TRIGGER_WRITTEN.contains(&shape.name.as_str()) { "INSERT OR IGNORE" } else { "INSERT" };
+                    (format!("{verb} INTO {table} ({names}) VALUES ({marks})"), change.row.clone())
                 }
                 ChangeKind::Update => {
                     let set = shape
@@ -474,6 +477,28 @@ impl Store {
         store.reload_metadata()?;
         Ok(store)
     }
+}
+
+/// The SQL scripts that create an empty database at the current schema, in order,
+/// for a server that keeps the database instead of a local file (D258). They are
+/// the published migrations with the metadata row between the first and the rest,
+/// as a new local file gets them. The two SQLite header settings a local file has are
+/// left out: a libSQL server makes them read-only, and `database_metadata` is
+/// authoritative (D93).
+pub fn schema_scripts(database_id: &str, created_at: &str) -> Vec<String> {
+    let literal = |text: &str| format!("'{}'", text.replace('\'', "''"));
+    let chain = super::migrate::MIGRATION_CHAIN;
+    let mut scripts = vec![chain[0].sql.to_string()];
+    scripts.push(format!(
+        "INSERT INTO database_metadata (singleton_id, application_marker, sql_schema_version, athleticstandard_version, database_id, created_at)
+         VALUES (1, {}, 1, '1.0.0', {}, {});
+         INSERT INTO database_state (singleton_id, current_revision) VALUES (1, 0);",
+        literal(super::SQLITE_APPLICATION_MARKER),
+        literal(database_id),
+        literal(created_at),
+    ));
+    scripts.extend(chain[1..].iter().map(|step| step.sql.to_string()));
+    scripts
 }
 
 fn run_statements(connection: &Connection, statements: &[ReplayStatement]) -> Result<()> {

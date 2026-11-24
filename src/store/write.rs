@@ -90,6 +90,11 @@ pub struct Changes {
     pub corrections: Vec<Correction>,
     pub deletions: Vec<Deletion>,
     pub import_keys: Vec<RecordImportKey>,
+    /// Refuse unless the access epoch is this value. A host sets it for a write made
+    /// under a grant, so a write ordered after a revocation fails (D262).
+    pub expected_access_epoch: Option<u64>,
+    /// Record the host request that made this change, in the same transaction (D261).
+    pub receipt: Option<super::hosting::WriteReceipt>,
 }
 
 impl Changes {
@@ -122,10 +127,18 @@ impl Store {
 
 /// Apply a change inside an existing transaction. Package restore and imports
 /// call this when they own a larger transaction.
-pub(crate) fn apply_in(tx: &Transaction<'_>, layout: Layout, changes: Changes) -> Result<Applied> {
+pub(crate) fn apply_in(tx: &Transaction<'_>, layout: Layout, mut changes: Changes) -> Result<Applied> {
+    if let Some(expected) = changes.expected_access_epoch {
+        super::hosting::check_access_epoch(tx, expected)?;
+    }
+    let receipt = changes.receipt.take();
     let records = write_in(tx, layout, changes)?;
     let database_revision = advance_database_revision(tx)?;
-    Ok(Applied { records, database_revision })
+    let applied = Applied { records, database_revision };
+    if let Some(receipt) = receipt {
+        super::hosting::insert_receipt(tx, &receipt, &applied)?;
+    }
+    Ok(applied)
 }
 
 /// Advance the database revision once for a complete logical change.

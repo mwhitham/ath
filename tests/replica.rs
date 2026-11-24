@@ -12,8 +12,10 @@ use std::path::{Path, PathBuf};
 
 use athleticstandard::json::{self, Value};
 use athleticstandard::model::{BecameKnownAtBasis, ErasureReasonCode, RecordActor, RecordData, RecordType};
-use athleticstandard::package::{erase_record, export_package, preview_erasure, ExportOptions};
-use athleticstandard::store::replica::{Changeset, TableRows, NOT_COPIED};
+use athleticstandard::package::{
+    apply_package_import, erase_record, export_package, preview_erasure, preview_package_import, ExportOptions,
+};
+use athleticstandard::store::replica::{schema_scripts, Changeset, TableRows, NOT_COPIED};
 use athleticstandard::store::write::StaleStyle;
 use athleticstandard::store::{Changes, Correction, Deletion, ExtensionsUpdate, NewRecord, OpenOptions, Store};
 use serde_json::json;
@@ -340,4 +342,47 @@ fn a_server_keeps_a_contiguous_log_and_an_erasure_clears_it() {
     );
     assert_eq!(server.replication_log_after(server.database_revision().unwrap()).unwrap(), Some(Vec::new()));
     assert_same(&working, &server, &directory, "erased");
+}
+
+#[test]
+fn the_schema_scripts_build_the_same_schema_as_a_new_file() {
+    let directory = maintenance_support::temporary_dir("ath-replica-schema-");
+    let made = Store::create(directory.join("made.ath.sqlite"), Default::default()).unwrap();
+    let scripted = directory.join("scripted.ath.sqlite");
+    let connection = rusqlite::Connection::open(&scripted).unwrap();
+    for script in schema_scripts(&made.metadata().database_id, &made.metadata().created_at) {
+        connection.execute_batch(&script).unwrap();
+    }
+    let read = |connection: &rusqlite::Connection, sql: &str| -> String {
+        connection.query_row(sql, [], |row| row.get(0)).unwrap()
+    };
+    let made_connection = rusqlite::Connection::open(made.path()).unwrap();
+    for sql in [
+        "SELECT json_group_array(json_array(name, sql)) FROM (SELECT name, coalesce(sql, '') AS sql FROM sqlite_schema WHERE name NOT LIKE 'sqlite_%' ORDER BY name)",
+        "SELECT json_array(application_marker, sql_schema_version, athleticstandard_version, database_id, created_at) FROM database_metadata",
+        "SELECT json_array(current_revision) FROM database_state",
+        "SELECT json_array(access_epoch) FROM internal_access_state",
+    ] {
+        assert_eq!(read(&made_connection, sql), read(&connection, sql), "{sql}");
+    }
+}
+
+#[test]
+fn a_package_restore_into_an_empty_record_replays() {
+    let directory = maintenance_support::temporary_dir("ath-replica-restore-");
+    let source = demo(&directory, "source");
+    let package = directory.join("package");
+    export_package(&source, &package, &ExportOptions::default()).unwrap();
+
+    let mut empty = Store::create(directory.join("empty").join("athlete.ath.sqlite"), Default::default()).unwrap();
+    let mut copy = working_copy(&empty, &directory, "copy");
+    let captured = empty
+        .capture(|store| {
+            let preview = preview_package_import(store, &package)?;
+            apply_package_import(store, &preview, &[]).map(|_| ())
+        })
+        .unwrap();
+    copy_folder(&directory.join("empty").join("attachments"), &directory.join("copy").join("attachments"));
+    copy.replay(captured.base_revision, copy.access_epoch().unwrap(), &captured.changeset).unwrap();
+    assert_same(&empty, &copy, &directory, "restored");
 }

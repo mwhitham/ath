@@ -10,6 +10,7 @@ pub mod backup;
 pub mod check;
 pub mod contract;
 pub mod encode;
+pub mod hosting;
 pub mod migrate;
 pub mod pending;
 pub mod query;
