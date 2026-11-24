@@ -11,7 +11,7 @@ was used.
 |---|---|
 | `cargo fmt --check` | Passes. |
 | `cargo clippy --all-targets -- -D warnings` | Passes, for the library, the CLI, and `ath-host`. |
-| `cargo test` | 775 passed, 0 failed, 15 ignored. The six `cli_terminal` tests need a real terminal; they pass outside the build sandbox. |
+| `cargo test` | 776 passed, 0 failed, 15 ignored. The six `cli_terminal` tests need a real terminal; they pass outside the build sandbox. |
 | `npm ci`, `npm run typecheck`, `npm test` | 100 passed, 1 skipped (a Windows-only test). Includes the host client run against a real `ath-host`. |
 | `examples/host-mcp`: `npm test` | 7 passed, against a real `ath-host`. |
 | `examples/host-swift`: `swift test` | 4 passed on macOS, against a real `ath-host`. |
@@ -23,7 +23,7 @@ was used.
 | Version 2.1.3, migration 007, coach authors | `tests/record_2_1_3.rs`, `tests/migration.rs` | A coach note survives export and restore byte for byte. Coach authors are refused on measured records and athlete reports. The change log matches each committed revision. |
 | Recording and replaying writes (D268, D269) | `tests/replica.rs` | Create, correct, delete, erase, and a whole package restore replay onto another copy with the same rows and the same export. A replay from an old revision or access epoch is refused. A server's log is contiguous, and an erasure clears it. The schema scripts build the same schema as a new file. |
 | The host API, both modes | `host/tests/host_api.rs` | A report with a photo is saved and opened on another device. Retries return the first answer. A coach sees and adds only what was granted. A revocation blocks a waiting write. Two host copies share one record. Forged IDs look like records that are not shared. |
-| Moves and backups (D264, D267) | `host/tests/moves.rs` | A move has one writer at every step, and an activation code works once, only for the destination and digest it names. A restore from an older backup keeps later erasures. An unfinished erasure is finished on start. |
+| Moves and backups (D264, D267) | `host/tests/moves.rs` | A move has one writer at every step, and an activation code works once, only for the destination and digest it names. A record with a photo moves from directory mode to remote mode and back, intact. A restore from an older backup keeps later erasures. An unfinished erasure is finished on start. |
 | Failures | `host/tests/faults.rs` | A failed attachment upload and a commit that fails partway leave the server unchanged, and a retry writes once. A restart clears working copies and leftover staging. An expired upload cannot be used. |
 | Clients | `packages/npm/test/host.test.ts`, `examples/host-mcp/test`, `examples/host-swift/Tests` | The npm client, the starter, the MCP tools, and the Swift client run the owner and coach flows against the host. |
 

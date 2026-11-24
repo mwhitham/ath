@@ -32,6 +32,13 @@ pub async fn backup_all(state: &AppState, output: &Path) -> ApiResult<Vec<Backed
         let file = folder.join(format!("{stamp}-{}.zip", &digest[..12]));
         let partial = file.with_extension("zip.partial");
         std::fs::write(&partial, &bytes).map_err(|error| ApiError::internal("writing a backup", error))?;
+        // A backup holds a whole record, so only its owner may read it.
+        #[cfg(unix)]
+        {
+            use std::os::unix::fs::PermissionsExt;
+            std::fs::set_permissions(&partial, std::fs::Permissions::from_mode(0o600))
+                .map_err(|error| ApiError::internal("writing a backup", error))?;
+        }
         std::fs::rename(&partial, &file).map_err(|error| ApiError::internal("writing a backup", error))?;
         done.push(BackedUp { athlete_id: athlete.resource_id.clone(), file, manifest_digest: digest });
     }

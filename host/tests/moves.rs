@@ -237,3 +237,65 @@ fn an_unfinished_erasure_is_finished_on_start() {
     assert!(reports(&host, &id).is_empty());
     assert_eq!(runtime().block_on(ath_host::backup::finish_erasures(&host.state)).unwrap(), 0);
 }
+
+/// Run the whole move from `source` to `destination` and return the new athlete ID.
+fn move_record(source: &Host, destination: &Host, destination_url: &str, owner: &str, id: &str) -> String {
+    let frozen =
+        call("POST", &url(source, id, "/move/freeze"), owner, Some(json!({ "destination": destination_url })), None);
+    assert_eq!(frozen.status, 200, "{}", frozen.json);
+    let transfer = frozen.json["transfer_id"].as_str().unwrap().to_string();
+    let exported = call("GET", &url(source, id, "/export"), owner, None, None);
+    let incoming = create(destination, owner, json!({ "incoming": true }));
+    assert_eq!(send_bytes("PUT", &url(destination, &incoming, "/package"), owner, &exported.bytes).status, 200);
+    let retired = call("POST", &url(source, id, "/move/retire"), owner, Some(json!({ "transfer_id": transfer })), None);
+    assert_eq!(retired.status, 200, "{}", retired.json);
+    let activated = call(
+        "POST",
+        &url(destination, &incoming, "/move/activate"),
+        owner,
+        Some(json!({ "source": source.url, "transfer_id": transfer, "activation": retired.json["activation"] })),
+        None,
+    );
+    assert_eq!(activated.status, 200, "{}", activated.json);
+    assert_eq!(activated.json["manifest_digest"], frozen.json["manifest_digest"]);
+    incoming
+}
+
+#[test]
+fn a_record_moves_from_directory_to_remote_and_back() {
+    let jwks = key_server();
+    let (bucket_url, _bucket) = bucket_server();
+    let server = temporary("ath-host-move-server-");
+    let native = directory_host_at("https://native.test", &jwks);
+    let mut remote_config =
+        config(&temporary("ath-host-move-remote-"), Mode::LocalServer { server: &server, bucket: &bucket_url }, &jwks);
+    remote_config.public_url = "https://remote.test".into();
+    let remote = host(remote_config);
+    let second_native = directory_host_at("https://native-again.test", &jwks);
+    let owner = token("athlete-1", ATHLETE_APP);
+
+    let id = create(&native, &owner, json!({}));
+    let uploaded = send_bytes("POST", &url(&native, &id, "/uploads"), &owner, &demo_photo());
+    let with_photo = json!({ "record_type": "athlete_report", "data": report("With a photo."), "attachments": [uploaded.json["upload_id"]] });
+    assert_eq!(call("POST", &url(&native, &id, "/records"), &owner, Some(with_photo), Some("p-1")).status, 201);
+
+    let on_remote = move_record(&native, &remote, "https://remote.test", &owner, &id);
+    add_report(&remote, &owner, &on_remote, "Written on the remote host.", "r-1");
+    let back = move_record(&remote, &second_native, "https://native-again.test", &owner, &on_remote);
+
+    let mut notes = reports(&second_native, &back);
+    notes.sort();
+    assert_eq!(notes, vec!["With a photo.".to_string(), "Written on the remote host.".to_string()]);
+    let exported = call("GET", &url(&second_native, &back, "/export"), &owner, None, None);
+    let (_, device) = open_on_another_device(&exported.bytes);
+    let attachments = device
+        .list_records(&ListOptions { record_type: Some(RecordType::Attachment), include_deleted: false, limit: 10 })
+        .unwrap();
+    let athleticstandard::model::RecordData::Attachment(data) = &attachments[0].data else { panic!() };
+    let name = athleticstandard::files::attachments::stored_attachment_name(&attachments[0].record_id, data);
+    assert_eq!(
+        std::fs::read(device.path().parent().unwrap().join("attachments").join(name)).unwrap(),
+        demo_photo(),
+        "the photo made both moves intact"
+    );
+}

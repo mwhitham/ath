@@ -924,8 +924,9 @@ grant and make a new offer. The record does not move (D267).
 ## 9. Moving a record to another host
 
 A move has one host that accepts writes at every step (D267). The owner's app drives
-it, with a token for each host. The tests move a record between two hosts in
-directory mode. The steps are the same in remote mode.
+it, with a token for each host. The steps are the same in both modes. The tests move
+a record between two hosts in directory mode, and move a record with a photo from
+directory mode to remote mode and back.
 
 1. **Freeze the source.** Send `POST /v1/athletes/{id}/move/freeze` to the source,
    with `destination` set to the destination's `public_url`. The source stops taking
@@ -1007,9 +1008,8 @@ ath-host backup --config /etc/ath-host/ath-host.json --output /srv/ath-host-back
 - Staged and retired records are skipped.
 - Run it on a schedule, such as a daily cron job or systemd timer. It never deletes an
   older backup.
-- Each zip is a complete health record. The command writes files with the process's
-  default permissions. Make the output folder owner-only, or run the command with
-  `umask 077`.
+- Each zip is a complete health record, so the command writes each file readable by
+  its owner only. Keep the output folder owner-only too.
 - Unzipped, a backup is an ordinary package folder. `ath import` restores it into an
   empty database, and `PUT /v1/athletes/{id}/package` restores it on any host.
 
@@ -1123,7 +1123,7 @@ not rely on Litestream for these databases yet.
   error text. It does not log requests, tokens, or request bodies. Error text can
   include file paths.
 - **Files.** The host keeps the data folder at `0700` and `host.sqlite` at `0600`
-  (section 4.3). Backups are written with default permissions (section 10.2).
+  (section 4.3). Backup files are owner-only (section 10.2).
 - **Apps.** An owner has full owner rights through any app the host accepts, and the
   host cannot disconnect one app (section 6.2).
 
