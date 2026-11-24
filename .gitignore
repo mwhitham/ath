@@ -77,3 +77,6 @@ packages/npm/native/
 packages/npm/schema/
 packages/npm/skills/
 packages/npm/pack-output/
+
+# Local editor rules stay out of Git. .worktreeinclude copies them into new worktrees.
+.cursor/
