@@ -86,6 +86,11 @@ The JSON schemas are exported as `athleticstandard/json-schema`,
 `athleticstandard/skill`. The retired prerelease JSON runtime is not part of the v1
 package API.
 
+A program that works with a record on an `ath-host` server uses `connectHost` from
+`athleticstandard`. It takes the host's address and the signed-in person's access
+token. The host checks that person's grants on every request. The program never
+receives a database credential, and `openDatabase` still refuses database URLs.
+
 ## Upgrade a database
 
 A database from version 1.0.0, 2.0.0, 2.1.0, 2.1.1, or 2.1.2 upgrades with `ath migrate`. The

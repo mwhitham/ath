@@ -27,6 +27,7 @@ Paths below are relative to the repository root.
 | Limits on untrusted input | `src/input_policy.rs` | nothing |
 | Arguments, help, prompts, rendering | `src/cli/` | everything above |
 | The npm launcher, JavaScript client, and Zod compatibility facade | `packages/npm/` | the `ath` executable |
+| The npm host connection (`connectHost`) | `packages/npm/src/host.ts` | the host API |
 
 Rules that keep this table true:
 

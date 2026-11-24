@@ -1,7 +1,8 @@
 /**
  * Every 2.1.0 public export is present with the same name and kind, and the
  * package keeps every 2.1.0 subpath. Types and function signatures are
- * checked at compile time by test/public-api.generated.ts.
+ * checked at compile time by test/public-api.generated.ts. Exports added
+ * since 2.1.0 are listed in `reviewedAdditions`.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -39,12 +40,24 @@ const packageJson = JSON.parse(readFileSync(join(packageRoot, "package.json"), "
   exports: Record<string, unknown>;
 };
 
+/**
+ * Value exports added after 2.1.0. Each one was reviewed when it was added.
+ * Any other new export fails the test below.
+ */
+const reviewedAdditions: Record<string, string[]> = {
+  // 2.1.3: the host connection (D266).
+  ".": ["HostError", "connectHost"],
+  "./database": [],
+  "./schema": [],
+};
+
 describe("public exports", () => {
   for (const [entry, module] of Object.entries(modules)) {
-    it(`keeps every 2.1.0 value export of ${entry} and adds none`, () => {
+    it(`keeps every 2.1.0 value export of ${entry} and adds only reviewed ones`, () => {
       const expected = inventory.symbols
         .filter((symbol) => symbol.entry_point === entry && symbol.value_export)
         .map((symbol) => symbol.name)
+        .concat(reviewedAdditions[entry] ?? [])
         .sort();
       expect(Object.keys(module).sort()).toEqual(expected);
       for (const symbol of inventory.symbols.filter((item) => item.entry_point === entry && item.value_export)) {
@@ -61,6 +74,11 @@ describe("public exports", () => {
       }
     });
   }
+
+  it("exports the host connection from the package root", () => {
+    expect(typeof root.connectHost).toBe("function");
+    expect(new root.HostError(404, "not_found", "x")).toBeInstanceOf(Error);
+  });
 
   it("keeps the 2.1.0 aliases and the database namespace", () => {
     expect(database.getRecord).toBe(database.readRecord);
