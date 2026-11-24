@@ -19,11 +19,14 @@ public struct HostError: Error, Sendable, CustomStringConvertible {
         public static let signInRequired = Code(rawValue: "sign_in_required")
         /// The caller can see the athlete but the grant does not cover this.
         public static let permissionDenied = Code(rawValue: "permission_denied")
+        /// The athlete disconnected this app from the record. Connect it again from
+        /// another app the athlete uses.
+        public static let appDisconnected = Code(rawValue: "app_disconnected")
         /// No such athlete or record, or it is not shared with the caller. The host
         /// gives the same answer for both, so a caller cannot learn that it exists.
         public static let notFound = Code(rawValue: "not_found")
-        /// The record changed since the caller read it, or a grant was revoked while
-        /// the write waited.
+        /// The record changed since the caller read it, or access changed while the
+        /// write waited: a grant was revoked or an app disconnected.
         public static let stale = Code(rawValue: "stale")
         /// This `Idempotency-Key` was already used for a different request.
         public static let requestConflict = Code(rawValue: "request_conflict")
