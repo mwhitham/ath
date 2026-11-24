@@ -1,7 +1,7 @@
 # Architecture
 
-Athletic Standard is one Rust library and one `ath` executable. This document
-names who owns each job and follows two ordinary operations from input to the
+Athletic Standard is one Rust library, the `ath` executable, and the optional
+`ath-host` program. This document names who owns each job and follows two ordinary operations from input to the
 database file. It describes the current code. Read `build-history/` for why a
 choice was made; read this to find where to change something.
 
@@ -27,6 +27,7 @@ Paths below are relative to the repository root.
 | Limits on untrusted input | `src/input_policy.rs` | nothing |
 | Arguments, help, prompts, rendering | `src/cli/` | everything above |
 | The npm launcher, JavaScript client, and Zod compatibility facade | `packages/npm/` | the `ath` executable |
+| Hosting many athletes' records: sign-in checks, grants, the HTTPS API, write receipts, working copies, attachment buckets | `host/` (`ath-host`) | the library with its `changesets` feature |
 | The npm host connection (`connectHost`) | `packages/npm/src/host.ts` | the host API |
 
 Rules that keep this table true:
@@ -41,6 +42,10 @@ Rules that keep this table true:
   arithmetic, or history rule. It parses, calls one library operation, and
   renders the result.
 - Local record commands never start a network client or a credential store.
+- `host/` never writes record tables with its own SQL. It calls the library for
+  every record operation. In remote mode it sends the row changes the library
+  recorded (D268). [`hosting.md`](hosting.md) is the guide for operators and app
+  developers.
 
 ## The one record encoder
 

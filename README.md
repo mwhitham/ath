@@ -381,6 +381,18 @@ when the manifest needs one.
 Importing an exported package is explicit and uses the same preview-then-`--yes`
 workflow as a provider import.
 
+## Share a record through a host
+
+Local use needs no host. A host lets a coach read workout summaries and add notes
+and programming while the athlete's device is off. `ath-host` is a separate, optional
+program that serves many athletes' records over HTTPS. The athlete grants each coach,
+through a named app, only the permissions the athlete chooses, and can revoke them.
+The athlete can export the complete record at any time, and it opens in ordinary
+`ath`.
+
+[`docs/hosting.md`](docs/hosting.md) explains how to run a host and how apps call it.
+`ath-host` is not in the release archives or the npm package. Build it from source.
+
 ## Predict and grade
 
 Inside an agent harness, ask the database for prediction evidence:
