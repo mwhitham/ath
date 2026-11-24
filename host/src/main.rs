@@ -64,7 +64,8 @@ async fn serve(config: ath_host::config::Config) {
     let listener = tokio::net::TcpListener::bind(&listen)
         .await
         .unwrap_or_else(|error| fail(&format!("cannot listen on {listen}: {error}")));
-    eprintln!("ath-host {} listening on {listen}", ath_host::version());
+    let opened = listener.local_addr().map(|address| address.to_string()).unwrap_or(listen);
+    eprintln!("ath-host {} listening on {opened}", ath_host::version());
     axum::serve(listener, ath_host::api::router(state))
         .with_graceful_shutdown(async {
             let _ = tokio::signal::ctrl_c().await;

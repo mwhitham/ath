@@ -86,7 +86,7 @@ pub fn router(state: Shared) -> Router {
 
 /// A 401 names where to find the sign-in server (RFC 9728 section 5.1).
 async fn sign_in_challenge(State(state): State<Shared>, request: Request, next: Next) -> Response {
-    let mut response = next.run(request).await;
+    let mut response = json_errors(next.run(request).await).await;
     if response.status() == StatusCode::UNAUTHORIZED {
         let value = format!(
             "Bearer resource_metadata=\"{}/.well-known/oauth-protected-resource\"",
@@ -97,6 +97,33 @@ async fn sign_in_challenge(State(state): State<Shared>, request: Request, next: 
         }
     }
     response
+}
+
+/// Every error answer is JSON with a stable code, including the ones the web
+/// framework makes itself, such as a malformed query or a body that is too large.
+async fn json_errors(response: Response) -> Response {
+    let status = response.status();
+    let is_json = response
+        .headers()
+        .get(header::CONTENT_TYPE)
+        .and_then(|value| value.to_str().ok())
+        .is_some_and(|value| value.starts_with("application/json"));
+    if !(status.is_client_error() || status.is_server_error()) || is_json {
+        return response;
+    }
+    let message = match axum::body::to_bytes(response.into_body(), 64 * 1024).await {
+        Ok(bytes) if !bytes.is_empty() => String::from_utf8_lossy(&bytes).into_owned(),
+        _ => status.canonical_reason().unwrap_or("error").to_string(),
+    };
+    let code = match status {
+        StatusCode::PAYLOAD_TOO_LARGE => "limit_reached",
+        StatusCode::NOT_FOUND => "not_found",
+        StatusCode::UNAUTHORIZED => "sign_in_required",
+        StatusCode::METHOD_NOT_ALLOWED | StatusCode::UNSUPPORTED_MEDIA_TYPE => "invalid",
+        status if status.is_server_error() => "internal",
+        _ => "invalid",
+    };
+    ApiError::new(status, code, message).into_response()
 }
 
 /// Requests with an `Idempotency-Key` that change the host: a repeat with the same body
@@ -119,7 +146,7 @@ async fn idempotent(State(state): State<Shared>, request: Request, next: Next) -
         .headers()
         .get(header::AUTHORIZATION)
         .and_then(|value| value.to_str().ok())
-        .and_then(|value| value.strip_prefix("Bearer "))
+        .and_then(bearer_token)
         .map(|token| token.trim().to_string());
     let (Some(key), Some(token), true, false) = (key, token, changes, excluded) else {
         return next.run(request).await;
@@ -142,7 +169,7 @@ async fn idempotent(State(state): State<Shared>, request: Request, next: Next) -
     digest.update([0]);
     digest.update(operation.as_bytes());
     digest.update([0]);
-    digest.update(&bytes);
+    digest.update(canonical_body(&bytes));
     let digest = hex(&digest.finalize());
     match state.directory.find_request(&principal.principal_id, &verified.client_id, &key).await {
         Ok(Some((stored_operation, stored_digest, result))) => {
@@ -196,7 +223,7 @@ impl FromRequestParts<Shared> for Caller {
             .headers
             .get(header::AUTHORIZATION)
             .and_then(|value| value.to_str().ok())
-            .and_then(|value| value.strip_prefix("Bearer "))
+            .and_then(bearer_token)
             .ok_or_else(|| ApiError::sign_in_required("Sign in and send the access token as a Bearer token"))?;
         let verified = state.verifier.verify(token.trim()).await?;
         let principal = state
@@ -282,6 +309,38 @@ pub(crate) fn not_moving(athlete: &Athlete) -> ApiResult<()> {
 
 // ---- Receipts ----------------------------------------------------------------
 
+/// The token in an `Authorization` value. The scheme name is not case-sensitive
+/// (RFC 9110 section 11.1).
+fn bearer_token(value: &str) -> Option<&str> {
+    let (scheme, token) = value.split_once(' ')?;
+    scheme.eq_ignore_ascii_case("bearer").then_some(token.trim()).filter(|token| !token.is_empty())
+}
+
+/// A request body in a standard form for comparing retries: JSON with object keys
+/// sorted and no spaces. Anything that is not JSON is compared as sent.
+fn canonical_body(body: &[u8]) -> Vec<u8> {
+    fn sort(value: Value) -> Value {
+        match value {
+            Value::Object(map) => {
+                let mut entries: Vec<(String, Value)> =
+                    map.into_iter().map(|(key, value)| (key, sort(value))).collect();
+                entries.sort_by(|left, right| left.0.cmp(&right.0));
+                let mut sorted = serde_json::Map::new();
+                for (key, value) in entries {
+                    sorted.insert(key, value);
+                }
+                Value::Object(sorted)
+            }
+            Value::Array(items) => Value::Array(items.into_iter().map(sort).collect()),
+            other => other,
+        }
+    }
+    match serde_json::from_slice::<Value>(body) {
+        Ok(value) => serde_json::to_vec(&sort(value)).unwrap_or_else(|_| body.to_vec()),
+        Err(_) => body.to_vec(),
+    }
+}
+
 fn idempotency_key(headers: &HeaderMap) -> ApiResult<String> {
     let key = headers
         .get("idempotency-key")
@@ -298,7 +357,7 @@ fn receipt(state: &AppState, caller: &Caller, operation: &str, request_id: Strin
     digest.update([0]);
     digest.update(operation.as_bytes());
     digest.update([0]);
-    digest.update(body);
+    digest.update(canonical_body(body));
     WriteReceipt {
         principal_id: caller.principal.principal_id.clone(),
         client_id: caller.client_id.clone(),
@@ -1064,17 +1123,20 @@ async fn workout_summaries(
         })
         .await?;
     summaries.sort_by(|left, right| (&right.0, &right.1).cmp(&(&left.0, &left.1)));
-    let start = match &query.after {
-        Some(after) => summaries
+    // The cursor is the start time and record ID of the last workout shown, so a
+    // workout deleted between pages does not end the listing early.
+    let cursor = query.after.as_deref().and_then(|after| after.split_once('~'));
+    let start = match (&query.after, cursor) {
+        (Some(_), Some((start_at, record_id))) => summaries
             .iter()
-            .position(|(_, record_id, _)| record_id == after)
-            .map(|index| index + 1)
+            .position(|(at, id, _)| (at.as_str(), id.as_str()) < (start_at, record_id))
             .unwrap_or(summaries.len()),
-        None => 0,
+        (Some(_), None) => return Err(ApiError::invalid("`after` must be a `next` value from an earlier page")),
+        (None, _) => 0,
     };
     let page: Vec<Value> = summaries.iter().skip(start).take(limit).map(|(_, _, summary)| summary.clone()).collect();
     let next = if start + page.len() < summaries.len() {
-        page.last().map(|summary| summary["record_id"].clone())
+        summaries.get(start + page.len() - 1).map(|(at, id, _)| Value::String(format!("{at}~{id}")))
     } else {
         None
     };

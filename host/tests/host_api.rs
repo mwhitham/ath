@@ -620,3 +620,77 @@ fn reply_of(response: Result<ureq::Response, ureq::Error>) -> (u16, serde_json::
     };
     (response.status(), response.into_json().unwrap_or_default())
 }
+
+#[test]
+fn retries_compare_the_request_not_its_spelling() {
+    let setup = directory_host();
+    let host = &setup.hosts[0];
+    let owner = token("athlete-1", ATHLETE_APP);
+    let id = create_athlete(host, &owner);
+    let url = athlete_url(host, &id, "/records");
+    let send = |text: &str| {
+        reply_of(
+            ureq::post(&url)
+                .set("authorization", &format!("bearer {owner}"))
+                .set("Idempotency-Key", "same-1")
+                .set("Content-Type", "application/json")
+                .send_string(text),
+        )
+    };
+    let report = serde_json::to_string(&report("Spelling.")).unwrap();
+    let (first, body) = send(&format!(r#"{{"record_type":"athlete_report","data":{report}}}"#));
+    assert_eq!(first, 201, "a lowercase scheme name works: {body}");
+    let (again, same) = send(&format!(r#"{{ "data": {report},   "record_type": "athlete_report" }}"#));
+    assert_eq!((again, same), (201, body), "the same request with keys in another order is a retry");
+
+    let bad = call("GET", &athlete_url(host, &id, "/records?limit=abc"), &owner, None, None);
+    assert_eq!(
+        (bad.status, bad.json["error"]["code"].as_str()),
+        (400, Some("invalid")),
+        "{}",
+        String::from_utf8_lossy(&bad.bytes)
+    );
+}
+
+#[test]
+fn a_workout_page_cursor_is_checked() {
+    let setup = directory_host();
+    let host = &setup.hosts[0];
+    let owner = token("athlete-1", ATHLETE_APP);
+    let id = create_athlete(host, &owner);
+    send_bytes("PUT", &athlete_url(host, &id, "/package"), &owner, &demo_package_zip());
+    let offer = call(
+        "POST",
+        &athlete_url(host, &id, "/grant-offers"),
+        &owner,
+        Some(json!({ "permissions": ["read_workout_summaries"], "client_id": COACH_APP })),
+        None,
+    );
+    let coach = token("coach-1", COACH_APP);
+    call(
+        "POST",
+        &format!("{}/v1/grant-offers/accept", host.url),
+        &coach,
+        Some(json!({ "code": offer.json["code"] })),
+        None,
+    );
+    let all = call("GET", &athlete_url(host, &id, "/workouts"), &coach, None, None);
+    let count = all.json["workouts"].as_array().unwrap().len();
+    let mut seen = Vec::new();
+    let mut after: Option<String> = None;
+    loop {
+        let path = match &after {
+            Some(after) => format!("/workouts?limit=1&after={after}"),
+            None => "/workouts?limit=1".to_string(),
+        };
+        let page = call("GET", &athlete_url(host, &id, &path), &coach, None, None);
+        assert_eq!(page.status, 200, "{}", page.json);
+        seen.extend(page.json["workouts"].as_array().unwrap().iter().map(|w| w["record_id"].clone()));
+        match page.json["next"].as_str() {
+            Some(next) => after = Some(next.to_string()),
+            None => break,
+        }
+    }
+    assert_eq!(seen.len(), count, "paging one at a time shows every workout once");
+    assert_eq!(call("GET", &athlete_url(host, &id, "/workouts?after=not-a-cursor"), &coach, None, None).status, 400);
+}
