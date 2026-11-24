@@ -13,6 +13,7 @@ use crate::{model_enum, model_object};
 // ---- Checked strings ----------------------------------------------------
 
 pub const RECORD_ID_PATTERN: &str = "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$";
+pub const LOWERCASE_UUID_PATTERN: &str = "^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$";
 pub const SEMVER_PATTERN: &str = r"^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$";
 pub const SHA256_PATTERN: &str = "^[a-f0-9]{64}$";
 pub const BENCHMARK_KEY_PATTERN: &str = "^[a-z0-9][a-z0-9_-]*$";
@@ -36,6 +37,16 @@ pub fn is_record_id(text: &str) -> bool {
         }
     }
     true
+}
+
+/// A lowercase hyphenated UUID of any version: 8-4-4-4-12 hexadecimal digits.
+pub fn is_lowercase_uuid(text: &str) -> bool {
+    let bytes = text.as_bytes();
+    bytes.len() == 36
+        && bytes.iter().enumerate().all(|(index, byte)| match index {
+            8 | 13 | 18 | 23 => *byte == b'-',
+            _ => byte.is_ascii_digit() || (b'a'..=b'f').contains(byte),
+        })
 }
 
 pub fn is_semver(text: &str) -> bool {
@@ -161,6 +172,15 @@ schema_fn!(
             message: "namespaced extension id",
         })
         .check(Check::MaxLength(200))
+);
+schema_fn!(
+    /// The opaque ID a host assigned to a coach (D255).
+    coach_id,
+    string().check(Check::Pattern {
+        source: LOWERCASE_UUID_PATTERN,
+        test: is_lowercase_uuid,
+        message: "lowercase UUID"
+    })
 );
 schema_fn!(
     semver,
@@ -371,6 +391,13 @@ pub enum RecordActor {
         tool: String,
         tool_version: String,
     },
+    /// A human coach (D255): the name shown when the change was made and the
+    /// ID the host that accepted it assigned. They are history, not
+    /// credentials.
+    Coach {
+        coach: String,
+        coach_id: String,
+    },
 }
 
 impl RecordActor {
@@ -379,7 +406,12 @@ impl RecordActor {
             RecordActor::Athlete => "athlete",
             RecordActor::Agent { .. } => "agent",
             RecordActor::Tool { .. } => "tool",
+            RecordActor::Coach { .. } => "coach",
         }
+    }
+
+    pub fn is_coach(&self) -> bool {
+        matches!(self, RecordActor::Coach { .. })
     }
 }
 
@@ -401,6 +433,11 @@ pub enum AuthoredRecordAuthor {
         tool_version: String,
         calculation_version: String,
     },
+    /// A human coach (D255), with the same fields as the coach actor.
+    Coach {
+        coach: String,
+        coach_id: String,
+    },
 }
 
 impl AuthoredRecordAuthor {
@@ -409,7 +446,12 @@ impl AuthoredRecordAuthor {
             AuthoredRecordAuthor::Athlete => "athlete",
             AuthoredRecordAuthor::Agent { .. } => "agent",
             AuthoredRecordAuthor::Tool { .. } => "tool",
+            AuthoredRecordAuthor::Coach { .. } => "coach",
         }
+    }
+
+    pub fn is_coach(&self) -> bool {
+        matches!(self, AuthoredRecordAuthor::Coach { .. })
     }
 }
 
@@ -437,6 +479,14 @@ fn tool_actor_fields() -> Vec<Field> {
     ]
 }
 
+fn coach_actor_fields() -> Vec<Field> {
+    vec![
+        field("author_type", literal("coach"), false),
+        field("coach", text(), false),
+        field("coach_id", coach_id(), false),
+    ]
+}
+
 /// The athlete actor shape.
 pub fn athlete_actor() -> SchemaRef {
     static SCHEMA: LazyLock<&'static Schema> =
@@ -455,6 +505,13 @@ pub fn agent_actor() -> SchemaRef {
 pub fn tool_actor() -> SchemaRef {
     static SCHEMA: LazyLock<&'static Schema> =
         LazyLock::new(|| leak(Schema::new(Kind::Object { fields: tool_actor_fields() })));
+    &SCHEMA
+}
+
+/// The coach shape, for an actor and for an author (D255).
+pub fn coach_actor() -> SchemaRef {
+    static SCHEMA: LazyLock<&'static Schema> =
+        LazyLock::new(|| leak(Schema::new(Kind::Object { fields: coach_actor_fields() })));
     &SCHEMA
 }
 
@@ -484,7 +541,12 @@ impl Shape for RecordActor {
         static SCHEMA: LazyLock<Schema> = LazyLock::new(|| {
             Schema::new(Kind::Discriminated {
                 key: "author_type",
-                options: vec![("athlete", athlete_actor()), ("agent", agent_actor()), ("tool", tool_actor())],
+                options: vec![
+                    ("athlete", athlete_actor()),
+                    ("agent", agent_actor()),
+                    ("tool", tool_actor()),
+                    ("coach", coach_actor()),
+                ],
             })
         });
         &SCHEMA
@@ -496,7 +558,12 @@ impl Shape for AuthoredRecordAuthor {
         static SCHEMA: LazyLock<Schema> = LazyLock::new(|| {
             Schema::new(Kind::Discriminated {
                 key: "author_type",
-                options: vec![("athlete", athlete_actor()), ("agent", agent_author()), ("tool", tool_author())],
+                options: vec![
+                    ("athlete", athlete_actor()),
+                    ("agent", agent_author()),
+                    ("tool", tool_author()),
+                    ("coach", coach_actor()),
+                ],
             })
         });
         &SCHEMA
