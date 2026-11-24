@@ -59,6 +59,25 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           PUBLISH: ${{ github.event_name == 'push' || inputs.publish }}
         run: |
+          # The commit a tag names, or nothing when there is no such tag.
+          # `gh api` prints GitHub's "Not Found" body on standard output for a
+          # missing ref, so `git/ref/tags/<tag>` cannot tell "no tag" from a tag.
+          # The matching-refs list is empty instead. Any other failure stops the
+          # step: `|| return 1` passes the failure out of `$(...)`, where
+          # `bash -e` does not apply, so an outage is never read as "no tag".
+          tag_commit() {
+            local found type sha
+            found="$(gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/$1" \
+              --jq ".[] | select(.ref == \"refs/tags/$1\") | .object | \"\\(.type) \\(.sha)\"")" || return 1
+            [ -n "$found" ] || return 0
+            type="${found%% *}"
+            sha="${found#* }"
+            if [ "$type" = tag ]; then
+              gh api "repos/$GITHUB_REPOSITORY/git/tags/$sha" --jq .object.sha
+            else
+              printf '%s\n' "$sha"
+            fi
+          }
           version="$(node -p "require('./packages/npm/package.json').version")"
           tag="v$version"
           echo "tag=$tag" >> "$GITHUB_OUTPUT"
@@ -67,13 +86,17 @@ jobs:
             echo "Full check only; nothing will be released."
             exit 0
           fi
+          if ! printf '%s' "$version" | grep -Eq '^[0-9]+\.[0-9]+\.[0-9]+$'; then
+            echo "::error::packages/npm/package.json has version $version, which is not X.Y.Z."
+            exit 1
+          fi
           if [ "$GITHUB_REF_TYPE" = tag ]; then
             if [ "$GITHUB_REF_NAME" != "$tag" ]; then
               echo "::error::The tag $GITHUB_REF_NAME does not name version $version."
               exit 1
             fi
           elif [ "$GITHUB_REF" = refs/heads/main ]; then
-            existing="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" --jq .object.sha 2>/dev/null || true)"
+            existing="$(tag_commit "$tag")"
             if [ -n "$existing" ] && [ "$existing" != "$GITHUB_SHA" ]; then
               echo "::error::$tag already names commit $existing. Raise the version in packages/npm/package.json to release $GITHUB_SHA."
               exit 1
@@ -150,7 +173,26 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          existing="$(gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$TAG" --jq .object.sha 2>/dev/null || true)"
+          # The commit a tag names, or nothing when there is no such tag.
+          # `gh api` prints GitHub's "Not Found" body on standard output for a
+          # missing ref, so `git/ref/tags/<tag>` cannot tell "no tag" from a tag.
+          # The matching-refs list is empty instead. Any other failure stops the
+          # step: `|| return 1` passes the failure out of `$(...)`, where
+          # `bash -e` does not apply, so an outage is never read as "no tag".
+          tag_commit() {
+            local found type sha
+            found="$(gh api "repos/$GITHUB_REPOSITORY/git/matching-refs/tags/$1" \
+              --jq ".[] | select(.ref == \"refs/tags/$1\") | .object | \"\\(.type) \\(.sha)\"")" || return 1
+            [ -n "$found" ] || return 0
+            type="${found%% *}"
+            sha="${found#* }"
+            if [ "$type" = tag ]; then
+              gh api "repos/$GITHUB_REPOSITORY/git/tags/$sha" --jq .object.sha
+            else
+              printf '%s\n' "$sha"
+            fi
+          }
+          existing="$(tag_commit "$TAG")"
           if [ -z "$existing" ]; then
             gh api "repos/$GITHUB_REPOSITORY/git/refs" -f ref="refs/tags/$TAG" -f sha="$GITHUB_SHA" --silent
             echo "Tagged $GITHUB_SHA as $TAG."
@@ -168,7 +210,9 @@ jobs:
   report:
     name: Report on the pull request
     needs: [version, validate, publish]
-    if: always() && needs.version.outputs.release == 'true'
+    # Also when deciding failed, before `release` was set, so a refused
+    # release is reported too. A run with `publish` off never fails there.
+    if: always() && (needs.version.outputs.release == 'true' || needs.version.result == 'failure')
     runs-on: ubuntu-latest
     permissions:
       contents: read

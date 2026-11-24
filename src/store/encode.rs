@@ -457,7 +457,10 @@ impl Layout {
     }
 
     pub fn has_table(self, table: &str) -> bool {
-        !(self.sql_schema_version < 3 && table == "workout_route_points")
+        let before_step_3 = self.sql_schema_version < 3 && table == "workout_route_points";
+        let before_step_7 = self.sql_schema_version < 7
+            && matches!(table, "internal_change_log" | "internal_write_receipts" | "internal_access_state");
+        !(before_step_3 || before_step_7)
     }
 }
 

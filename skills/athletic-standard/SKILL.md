@@ -1,10 +1,10 @@
 ---
 name: athletic-standard
-description: Reads and writes an athlete's Athletic Standard SQLite database (.ath.sqlite) with the ath CLI. Applies when someone logs a workout, lift, named benchmark such as Fran, HRV as RMSSD or SDNN, resting heart rate, sleep, soreness, nutrition, or another athlete report; asks what training or recovery data shows; asks for a benchmark prediction or backtest; reports a result to grade; imports Apple Health, WHOOP, Oura, Garmin, or Strava, or an Athletic Standard 2.0.0, 2.1.0, 2.1.1, or 2.1.2 package; reads an Open Wearables or Junction JSON file through a mapping file; exports a complete package; runs ath apply on one record; or asks about Athletic Standard records, revisions, calculations, deletion, or privacy erasure.
+description: Reads and writes an athlete's Athletic Standard SQLite database (.ath.sqlite) with the ath CLI. Applies when someone logs a workout, lift, named benchmark such as Fran, HRV as RMSSD or SDNN, resting heart rate, sleep, soreness, nutrition, or another athlete report; asks what training or recovery data shows; asks for a benchmark prediction or backtest; reports a result to grade; imports Apple Health, WHOOP, Oura, Garmin, or Strava, or an Athletic Standard 2.0.0, 2.1.0, 2.1.1, 2.1.2, or 2.1.3 package; reads an Open Wearables or Junction JSON file through a mapping file; exports a complete package; runs ath apply on one record; or asks about Athletic Standard records, revisions, calculations, deletion, or privacy erasure.
 license: MIT
-compatibility: Requires the ath CLI 2.1.2 or later on PATH, from the athleticstandard npm package or a native release archive. Local database use needs no network. Optional terminal model calls need a configured gateway.
+compatibility: Requires the ath CLI 2.1.3 or later on PATH, from the athleticstandard npm package or a native release archive. Local database use needs no network. Optional terminal model calls need a configured gateway.
 metadata:
-  version: "2.1.2"
+  version: "2.1.3"
   kind: tool
 ---
 
@@ -14,8 +14,9 @@ The live local record is one SQLite database named `athlete.ath.sqlite`. `ath` r
 and writes it. A JSON package is an explicit complete snapshot. It is not a second
 live copy.
 
-This skill expects Athletic Standard **2.1.2**. A version 1.0.0, 2.0.0, 2.1.0, or 2.1.1
-database upgrades with `ath migrate`. A 2.0.0, 2.1.0, or 2.1.1 package still imports.
+This skill expects Athletic Standard **2.1.3**. A version 1.0.0, 2.0.0, 2.1.0, 2.1.1, or
+2.1.2 database upgrades with `ath migrate`. A 2.0.0, 2.1.0, 2.1.1, or 2.1.2 package still
+imports.
 Prerelease `0.x` JSON documents are not imported.
 
 Local use needs no account, network connection, subscription, or hosted service.
@@ -32,16 +33,16 @@ authored record.
 
 ## Before the first ath command
 
-This skill runs `ath`, the Athletic Standard program, version 2.1.2 or later.
+This skill runs `ath`, the Athletic Standard program, version 2.1.3 or later.
 Check it once with `ath --version`.
 
 - If `ath` is not found, it is not installed. It comes from the npm package
   `athleticstandard`. The npm package named `ath` is a different program. Install it
   with `npm install -g athleticstandard`, which needs Node.js 22 or later. Other ways
   to install it are at https://www.npmjs.com/package/athleticstandard.
-- If the version is older than 2.1.2, update it with `ath --update`.
+- If the version is older than 2.1.3, update it with `ath --update`.
 - Install or update only after the person agrees. Then run `ath --version` again. If
-  it is still older than 2.1.2, say so and stop.
+  it is still older than 2.1.3, say so and stop.
 
 If the answer needs the athlete's records or a calculation and `ath` cannot run, stop.
 Tell the person what is missing and how to fix it. Do not read the database another
@@ -107,6 +108,11 @@ Authored records are separate again. Predictions, grades, plans, goals, reviews,
 model interpretations name their author and exact evidence record revisions. Coaching
 advice is always an authored record: never write it as a measurement or as an
 athlete report.
+
+Since 2.1.3 an author can also be a human coach, with `author_type: "coach"`, the
+coach's name, and a `coach_id` that a host assigned. A coach can write only coaching
+notes, training plans, and planned sessions. Keep a coach's name and ID as they are.
+Never write a coach author yourself: you are an agent.
 
 A link from an athlete report to a workout (`workout_session_id`) is allowed. It
 says which session the report describes. The report still has no source.

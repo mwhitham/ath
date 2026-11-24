@@ -90,6 +90,11 @@ pub struct Changes {
     pub corrections: Vec<Correction>,
     pub deletions: Vec<Deletion>,
     pub import_keys: Vec<RecordImportKey>,
+    /// Refuse unless the access epoch is this value. A host sets it for a write made
+    /// under a grant, so a write ordered after a revocation fails (D262).
+    pub expected_access_epoch: Option<u64>,
+    /// Record the host request that made this change, in the same transaction (D261).
+    pub receipt: Option<super::hosting::WriteReceipt>,
 }
 
 impl Changes {
@@ -122,10 +127,18 @@ impl Store {
 
 /// Apply a change inside an existing transaction. Package restore and imports
 /// call this when they own a larger transaction.
-pub(crate) fn apply_in(tx: &Transaction<'_>, layout: Layout, changes: Changes) -> Result<Applied> {
+pub(crate) fn apply_in(tx: &Transaction<'_>, layout: Layout, mut changes: Changes) -> Result<Applied> {
+    if let Some(expected) = changes.expected_access_epoch {
+        super::hosting::check_access_epoch(tx, expected)?;
+    }
+    let receipt = changes.receipt.take();
     let records = write_in(tx, layout, changes)?;
     let database_revision = advance_database_revision(tx)?;
-    Ok(Applied { records, database_revision })
+    let applied = Applied { records, database_revision };
+    if let Some(receipt) = receipt {
+        super::hosting::insert_receipt(tx, &receipt, &applied)?;
+    }
+    Ok(applied)
 }
 
 /// Advance the database revision once for a complete logical change.
@@ -201,6 +214,17 @@ fn checked_record(record: CurrentRecord) -> Result<CurrentRecord> {
     Ok(CurrentRecord::from_value(&record.to_value())?)
 }
 
+/// Refuse an actor who cannot change a record of this type: a coach changes
+/// only coaching notes, training plans, and planned sessions (D255).
+fn checked_actor(actor: &RecordActor, record_type: RecordType) -> Result<()> {
+    match actor_problem(actor, record_type) {
+        Some(message) => {
+            Err(Error::Invalid(ValidationError::single(vec![PathSegment::Key("changed_by".into())], message)))
+        }
+        None => Ok(()),
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 fn insert_revision(
     tx: &Transaction<'_>,
@@ -247,6 +271,7 @@ fn insert_record(tx: &Transaction<'_>, layout: Layout, create: NewRecord, now: &
         data: create.data,
     })?;
     let record_type = record.record_type();
+    checked_actor(&create.changed_by, record_type)?;
     let record_json = record.data.to_json();
     tx.prepare_cached(
         "INSERT INTO records (record_id, record_type, current_revision, created_at, is_deleted) VALUES (?1, ?2, 1, ?3, 0)",
@@ -356,6 +381,7 @@ fn correct_record(tx: &Transaction<'_>, layout: Layout, correction: Correction, 
         extensions,
         data: correction.data,
     })?;
+    checked_actor(&correction.changed_by, record.record_type())?;
     let record_json = record.data.to_json();
     insert_revision(
         tx,
@@ -385,6 +411,12 @@ fn delete_record(tx: &Transaction<'_>, deletion: Deletion, now: &str) -> Result<
     }
     if current.is_deleted {
         return Err(Error::refused(format!("Record is already deleted: {record_id}")));
+    }
+    if deletion.deleted_by.is_coach() {
+        return Err(Error::Invalid(ValidationError::single(
+            vec![PathSegment::Key("deleted_by".into())],
+            COACH_DELETION_MESSAGE,
+        )));
     }
     let deleted_at = checked_timestamp(deletion.deleted_at, now, "deleted_at")?;
     if time::parse_utc_timestamp(&deleted_at) < time::parse_utc_timestamp(&current.became_known_at) {

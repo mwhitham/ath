@@ -2,9 +2,9 @@
 name: training-load-effort
 description: Computes session-RPE training load, the athlete's rating of a whole session times the minutes it covers, from a session_effort athlete report. Use when someone rates how hard a session felt and asks for its training load, or wants weekly load from their own effort ratings, including for lifting, CrossFit, or HYROX work where heart rate misleads. Refuses soreness, mood, or any other rating. Not for heart-rate load (use training-load-heart-rate).
 license: MIT
-compatibility: Requires the ath CLI 2.1.2 or later (npm package athleticstandard) and an Athletic Standard database. Runs with ath apply training-load-effort --record <athlete-report-id>.
+compatibility: Requires the ath CLI 2.1.3 or later (npm package athleticstandard) and an Athletic Standard database. Runs with ath apply training-load-effort --record <athlete-report-id>.
 metadata:
-  version: "2.1.2"
+  version: "2.1.3"
   kind: calculation
 ---
 
@@ -16,16 +16,16 @@ measurement, and it stays on the athlete side of the two-tier wall.
 
 ## Before the first ath command
 
-This skill runs `ath`, the Athletic Standard program, version 2.1.2 or later.
+This skill runs `ath`, the Athletic Standard program, version 2.1.3 or later.
 Check it once with `ath --version`.
 
 - If `ath` is not found, it is not installed. It comes from the npm package
   `athleticstandard`. The npm package named `ath` is a different program. Install it
   with `npm install -g athleticstandard`, which needs Node.js 22 or later. Other ways
   to install it are at https://www.npmjs.com/package/athleticstandard.
-- If the version is older than 2.1.2, update it with `ath --update`.
+- If the version is older than 2.1.3, update it with `ath --update`.
 - Install or update only after the person agrees. Then run `ath --version` again. If
-  it is still older than 2.1.2, say so and stop.
+  it is still older than 2.1.3, say so and stop.
 
 If the answer needs the athlete's records or a calculation and `ath` cannot run, stop.
 Tell the person what is missing and how to fix it. Do not read the database another

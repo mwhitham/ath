@@ -1,0 +1,3667 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Athletic Standard host API",
+    "version": "1",
+    "summary": "Read and write Athletic Standard records on an ath-host, within the athlete's grants.",
+    "description": "Generated from the Rust definitions in `host/src/operations.rs` and `host/src/shapes.rs` (D266). Do not edit by hand. The guide for this API is `docs/hosting.md` section 7. Every error answer is JSON with a stable code (`Error`). Records and revisions use the published package schemas of the record format version the host reports in `/v1/capabilities`.",
+    "license": {
+      "name": "MIT",
+      "identifier": "MIT"
+    }
+  },
+  "jsonSchemaDialect": "https://json-schema.org/draft/2020-12/schema",
+  "tags": [
+    {
+      "name": "discovery",
+      "description": "Finding the sign-in provider, the host's features, and the signed-in person."
+    },
+    {
+      "name": "athletes",
+      "description": "Records the caller owns."
+    },
+    {
+      "name": "records",
+      "description": "The owner's reads and writes. Every write goes through the Athletic Standard library."
+    },
+    {
+      "name": "grants",
+      "description": "Coach access, which the athlete offers and can revoke (D262)."
+    },
+    {
+      "name": "apps",
+      "description": "The apps the owner uses with a record, which the owner can disconnect (D270)."
+    },
+    {
+      "name": "coaching",
+      "description": "What a coach can do under a grant."
+    },
+    {
+      "name": "moves",
+      "description": "Moving a record to another host, with one writer at every step (D267)."
+    }
+  ],
+  "security": [
+    {
+      "bearer": []
+    }
+  ],
+  "paths": {
+    "/.well-known/oauth-protected-resource": {
+      "get": {
+        "operationId": "getProtectedResource",
+        "tags": [
+          "discovery"
+        ],
+        "summary": "Protected-resource metadata (RFC 9728), naming the sign-in provider.",
+        "description": "Who may call: anyone. No token is needed.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProtectedResource"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/capabilities": {
+      "get": {
+        "operationId": "getCapabilities",
+        "tags": [
+          "discovery"
+        ],
+        "summary": "The API version, record format version, storage, and enrollment.",
+        "description": "Who may call: anyone. No token is needed.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Capabilities"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/me": {
+      "get": {
+        "operationId": "getMe",
+        "tags": [
+          "discovery"
+        ],
+        "summary": "The signed-in person, the app, and the records they own that this app may see.",
+        "description": "Who may call: any signed-in person.",
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Me"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes": {
+      "post": {
+        "operationId": "createAthlete",
+        "tags": [
+          "athletes"
+        ],
+        "summary": "Create an empty record. Without open enrollment, an unused invitation is required. With `incoming`, the record is staged for a move.",
+        "description": "Who may call: any signed-in person.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NewAthleteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedAthlete"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      },
+      "get": {
+        "operationId": "listAthletes",
+        "tags": [
+          "athletes"
+        ],
+        "summary": "The caller's records, except retired ones and ones this app was disconnected from.",
+        "description": "Who may call: any signed-in person.",
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AthleteList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}": {
+      "get": {
+        "operationId": "getAthlete",
+        "tags": [
+          "athletes"
+        ],
+        "summary": "The caller's role and the record's state. The owner also gets the database revision.",
+        "description": "Who may call: the owner, or a coach with an active grant through this app.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AthleteSummary"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/package": {
+      "put": {
+        "operationId": "restorePackage",
+        "tags": [
+          "records"
+        ],
+        "summary": "Restore a complete package into an empty record: the first transfer of an existing record.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "A zip of a complete package folder: the files `ath export` writes, at the root of the zip.",
+          "content": {
+            "application/zip": {}
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatabaseRevision"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/export": {
+      "get": {
+        "operationId": "exportPackage",
+        "tags": [
+          "records"
+        ],
+        "summary": "The complete package as a zip. `x-manifest-digest` is the SHA-256 of its manifest.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The complete package as a zip.",
+            "headers": {
+              "x-manifest-digest": {
+                "description": "The SHA-256 of the package's `export-manifest.json`, as 64 lowercase hexadecimal digits.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/zip": {}
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/changes": {
+      "get": {
+        "operationId": "listChanges",
+        "tags": [
+          "records"
+        ],
+        "summary": "The record changes since a database revision, in order (D263). When `complete` is false, download the export.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          },
+          {
+            "name": "since",
+            "in": "query",
+            "required": true,
+            "description": "The database revision the device last verified.",
+            "schema": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 9007199254740991
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChangeList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/records": {
+      "get": {
+        "operationId": "listRecords",
+        "tags": [
+          "records"
+        ],
+        "summary": "Current records, oldest first.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          },
+          {
+            "name": "record_type",
+            "in": "query",
+            "required": false,
+            "description": "Only records of this type.",
+            "schema": {
+              "$ref": "#/components/schemas/RecordType"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "At most this many records. The default and maximum are the host's `page_size`.",
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordList"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      },
+      "post": {
+        "operationId": "createRecord",
+        "tags": [
+          "records"
+        ],
+        "summary": "Create a record, with any uploaded attachments. New attachment records come first in the result.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRecordRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/records/{record_id}": {
+      "get": {
+        "operationId": "getRecord",
+        "tags": [
+          "records"
+        ],
+        "summary": "One record and its complete history.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          },
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "description": "Stable UUIDv7 record ID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RecordWithHistory"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/records/{record_id}/corrections": {
+      "post": {
+        "operationId": "correctRecord",
+        "tags": [
+          "records"
+        ],
+        "summary": "Correct a record. An out-of-date `expected_revision` gets `409 stale`.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          },
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "description": "Stable UUIDv7 record ID"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CorrectionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/records/{record_id}/deletion": {
+      "post": {
+        "operationId": "deleteRecord",
+        "tags": [
+          "records"
+        ],
+        "summary": "Delete a record. Its history stays.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          },
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "description": "Stable UUIDv7 record ID"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeletionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/records/{record_id}/erasure": {
+      "post": {
+        "operationId": "eraseRecord",
+        "tags": [
+          "records"
+        ],
+        "summary": "Erase a record and its history for privacy (D107). Without a key, a repeat fails because the record is gone.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          },
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "description": "Stable UUIDv7 record ID"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErasureRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DatabaseRevision"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/uploads": {
+      "post": {
+        "operationId": "uploadAttachment",
+        "tags": [
+          "records"
+        ],
+        "summary": "Upload an attachment file. Name its `upload_id` when creating the record, within one hour.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "description": "The file's bytes. Other file types get `422 refused`.",
+          "content": {
+            "image/png": {},
+            "image/jpeg": {},
+            "image/webp": {},
+            "application/pdf": {}
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Upload"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/attachments/{record_id}": {
+      "get": {
+        "operationId": "downloadAttachment",
+        "tags": [
+          "records"
+        ],
+        "summary": "An attachment's file, with its media type.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          },
+          {
+            "name": "record_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "description": "Stable UUIDv7 record ID"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The file's bytes, with its media type.",
+            "content": {
+              "image/png": {},
+              "image/jpeg": {},
+              "image/webp": {},
+              "application/pdf": {}
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/grant-offers": {
+      "post": {
+        "operationId": "createGrantOffer",
+        "tags": [
+          "grants"
+        ],
+        "summary": "Offer a coach access through one app. The code is shown once. A repeat makes a second offer.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "x-athleticstandard-repeat": "Not answered from memory: the answer carries a one-time code that the host stores only as a hash. The summary says what a repeat does.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GrantOfferRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantOffer"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/grant-offers/pending": {
+      "get": {
+        "operationId": "listPendingOffers",
+        "tags": [
+          "grants"
+        ],
+        "summary": "Offers nobody has accepted that have not expired. Codes are never shown again.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PendingOffers"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/grant-offers/{offer_id}": {
+      "delete": {
+        "operationId": "cancelGrantOffer",
+        "tags": [
+          "grants"
+        ],
+        "summary": "Cancel a pending offer.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          },
+          {
+            "name": "offer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CancelledOffer"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/grants": {
+      "get": {
+        "operationId": "listGrants",
+        "tags": [
+          "grants"
+        ],
+        "summary": "Every grant for the record, revoked ones included.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GrantList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/grants/{grant_id}": {
+      "delete": {
+        "operationId": "revokeGrant",
+        "tags": [
+          "grants"
+        ],
+        "summary": "Revoke a grant. The coach's next request fails, and a coach write already waiting fails too.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          },
+          {
+            "name": "grant_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevokedGrant"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/grant-offers/accept": {
+      "post": {
+        "operationId": "acceptGrantOffer",
+        "tags": [
+          "grants"
+        ],
+        "summary": "Accept an offer, through the app it names.",
+        "description": "Who may call: any signed-in person.",
+        "parameters": [
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptOfferRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AcceptedGrant"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/apps": {
+      "get": {
+        "operationId": "listApps",
+        "tags": [
+          "apps"
+        ],
+        "summary": "The apps the owner has used with this record.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AppList"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/apps/{client_id}": {
+      "delete": {
+        "operationId": "disconnectApp",
+        "tags": [
+          "apps"
+        ],
+        "summary": "Disconnect an app from this record. Its next request gets `403 app_disconnected`. The last connected app cannot be disconnected.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          },
+          {
+            "name": "client_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The app's client ID, percent-encoded."
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DisconnectedApp"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      },
+      "put": {
+        "operationId": "connectApp",
+        "tags": [
+          "apps"
+        ],
+        "summary": "Connect a disconnected app again, from an app that is still connected.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          },
+          {
+            "name": "client_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "description": "The app's client ID, percent-encoded."
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKey"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ConnectedApp"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/roster": {
+      "get": {
+        "operationId": "getRoster",
+        "tags": [
+          "coaching"
+        ],
+        "summary": "Each record that granted the caller access through this app.",
+        "description": "Who may call: any signed-in person.",
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Roster"
+                }
+              }
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/workouts": {
+      "get": {
+        "operationId": "listWorkouts",
+        "tags": [
+          "coaching"
+        ],
+        "summary": "Workout summaries, newest start first: exactly the fields the read grant allows.",
+        "description": "Who may call: a coach with an active grant through this app that includes `read_workout_summaries` (D262).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "description": "At most this many workouts. The default and maximum are the host's `page_size`.",
+            "schema": {
+              "type": "integer",
+              "exclusiveMinimum": 0,
+              "maximum": 9007199254740991
+            }
+          },
+          {
+            "name": "after",
+            "in": "query",
+            "required": false,
+            "description": "A `next` value from an earlier page. Treat it as opaque.",
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WorkoutPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/notes": {
+      "post": {
+        "operationId": "addCoachNote",
+        "tags": [
+          "coaching"
+        ],
+        "summary": "Add a coach note. The host writes the coach author. Evidence needs the read grant too.",
+        "description": "Who may call: a coach with an active grant through this app that includes `add_coach_notes` (D262).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NoteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/programs": {
+      "post": {
+        "operationId": "addProgram",
+        "tags": [
+          "coaching"
+        ],
+        "summary": "Add a training plan and its planned sessions. The result lists the plan, then its sessions.",
+        "description": "Who may call: a coach with an active grant through this app that includes `add_programming` (D262).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          },
+          {
+            "$ref": "#/components/parameters/IdempotencyKeyRequired"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ProgramRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WriteResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/move/freeze": {
+      "post": {
+        "operationId": "freezeForMove",
+        "tags": [
+          "moves"
+        ],
+        "summary": "On the source: stop writes and fix the final package. A repeat returns the same transfer.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "x-athleticstandard-repeat": "Not answered from memory: the answer carries a one-time code that the host stores only as a hash. The summary says what a repeat does.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FreezeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FrozenRecord"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/move/abort": {
+      "post": {
+        "operationId": "abortMove",
+        "tags": [
+          "moves"
+        ],
+        "summary": "On the source, before retiring: reopen the record for writes.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "x-athleticstandard-repeat": "Not answered from memory: the answer carries a one-time code that the host stores only as a hash. The summary says what a repeat does.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransferRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReopenedRecord"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/move/retire": {
+      "post": {
+        "operationId": "retireForMove",
+        "tags": [
+          "moves"
+        ],
+        "summary": "On the source: retire the writer and issue a single-use activation code. A repeat issues a new code; only the newest works.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "x-athleticstandard-repeat": "Not answered from memory: the answer carries a one-time code that the host stores only as a hash. The summary says what a repeat does.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransferRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RetiredRecord"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/move/activate": {
+      "post": {
+        "operationId": "activateMove",
+        "tags": [
+          "moves"
+        ],
+        "summary": "On the destination: ask the source to confirm the code, then accept writes.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "x-athleticstandard-repeat": "Not answered from memory: the answer carries a one-time code that the host stores only as a hash. The summary says what a repeat does.",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ActivateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivatedRecord"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "409": {
+            "$ref": "#/components/responses/Error409"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "422": {
+            "$ref": "#/components/responses/Error422"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/athletes/{id}/move/recovery-copy": {
+      "get": {
+        "operationId": "getRecoveryCopy",
+        "tags": [
+          "moves"
+        ],
+        "summary": "On the source, after retiring: the retired record's package as a zip.",
+        "description": "Who may call: the record's owner, through an app not disconnected from the record (D270).",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The complete package as a zip.",
+            "headers": {
+              "x-manifest-digest": {
+                "description": "The SHA-256 of the package's `export-manifest.json`, as 64 lowercase hexadecimal digits.",
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "content": {
+              "application/zip": {}
+            }
+          },
+          "401": {
+            "$ref": "#/components/responses/Error401"
+          },
+          "403": {
+            "$ref": "#/components/responses/Error403"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    },
+    "/v1/transfers/{transfer_id}/verify": {
+      "post": {
+        "operationId": "verifyTransfer",
+        "tags": [
+          "moves"
+        ],
+        "summary": "Called by the destination host. The code works once, for the destination and digest it names.",
+        "description": "Who may call: anyone holding the activation code; the destination host calls it.",
+        "security": [],
+        "x-athleticstandard-repeat": "Not answered from memory: the answer carries a one-time code that the host stores only as a hash. The summary says what a repeat does.",
+        "parameters": [
+          {
+            "name": "transfer_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "minLength": 1
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Success.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifiedTransfer"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/Error400"
+          },
+          "404": {
+            "$ref": "#/components/responses/Error404"
+          },
+          "413": {
+            "$ref": "#/components/responses/Error413"
+          },
+          "500": {
+            "$ref": "#/components/responses/Error500"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "NewAthleteRequest": {
+        "type": "object",
+        "properties": {
+          "display_name": {
+            "type": "string",
+            "minLength": 1
+          },
+          "invitation": {
+            "type": "string",
+            "minLength": 1
+          },
+          "incoming": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateRecordRequest": {
+        "type": "object",
+        "properties": {
+          "record_type": {
+            "$ref": "#/components/schemas/RecordType"
+          },
+          "data": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "description": "The record's data, in the shape the package schema gives for `record_type`"
+          },
+          "record_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "description": "Stable UUIDv7 record ID"
+          },
+          "attachments": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "description": "An `upload_id` from the uploads route"
+            }
+          }
+        },
+        "required": [
+          "record_type",
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "CorrectionRequest": {
+        "type": "object",
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991,
+            "description": "A record revision, from 1"
+          },
+          "data": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "description": "The complete new data, in the shape the package schema gives for the record's type"
+          }
+        },
+        "required": [
+          "expected_revision",
+          "data"
+        ],
+        "additionalProperties": false
+      },
+      "DeletionRequest": {
+        "type": "object",
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991,
+            "description": "A record revision, from 1"
+          }
+        },
+        "required": [
+          "expected_revision"
+        ],
+        "additionalProperties": false
+      },
+      "ErasureRequest": {
+        "type": "object",
+        "properties": {
+          "expected_revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991,
+            "description": "A record revision, from 1"
+          },
+          "reason_code": {
+            "$ref": "#/components/schemas/ErasureReasonCode"
+          }
+        },
+        "required": [
+          "expected_revision",
+          "reason_code"
+        ],
+        "additionalProperties": false
+      },
+      "GrantOfferRequest": {
+        "type": "object",
+        "properties": {
+          "permissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Permission"
+            }
+          },
+          "client_id": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The app the coach must use to accept the offer"
+          },
+          "coach_label": {
+            "type": "string",
+            "minLength": 1
+          },
+          "valid_seconds": {
+            "type": "integer",
+            "minimum": -9007199254740991,
+            "maximum": 9007199254740991,
+            "description": "How long the code works, from 60 seconds to 30 days. The default is 7 days"
+          }
+        },
+        "required": [
+          "permissions",
+          "client_id"
+        ],
+        "additionalProperties": false
+      },
+      "AcceptOfferRequest": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "code"
+        ],
+        "additionalProperties": false
+      },
+      "Evidence": {
+        "type": "object",
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "description": "Stable UUIDv7 record ID"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991,
+            "description": "A record revision, from 1"
+          }
+        },
+        "required": [
+          "record_id",
+          "revision"
+        ],
+        "additionalProperties": false
+      },
+      "NoteRequest": {
+        "type": "object",
+        "properties": {
+          "note": {
+            "type": "string",
+            "minLength": 1
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1
+          },
+          "applies_from": {
+            "type": "string",
+            "minLength": 1
+          },
+          "applies_to": {
+            "type": "string",
+            "minLength": 1
+          },
+          "evidence": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Evidence"
+            }
+          }
+        },
+        "required": [
+          "note"
+        ],
+        "additionalProperties": false
+      },
+      "ProgramRequest": {
+        "type": "object",
+        "properties": {
+          "plan": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            },
+            "description": "Training plan data, without `authorship`"
+          },
+          "sessions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {
+                "$ref": "#/components/schemas/JsonValue"
+              },
+              "description": "Planned session data, without `authorship`, `training_plan_id`, `completion_status`, or `completed_workout_session_id`"
+            }
+          }
+        },
+        "required": [
+          "plan"
+        ],
+        "additionalProperties": false
+      },
+      "FreezeRequest": {
+        "type": "object",
+        "properties": {
+          "destination": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The destination host's `public_url`"
+          }
+        },
+        "required": [
+          "destination"
+        ],
+        "additionalProperties": false
+      },
+      "TransferRequest": {
+        "type": "object",
+        "properties": {
+          "transfer_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "transfer_id"
+        ],
+        "additionalProperties": false
+      },
+      "ActivateRequest": {
+        "type": "object",
+        "properties": {
+          "source": {
+            "type": "string",
+            "minLength": 1,
+            "description": "The source host's `public_url`"
+          },
+          "transfer_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "activation": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "source",
+          "transfer_id",
+          "activation"
+        ],
+        "additionalProperties": false
+      },
+      "VerifyRequest": {
+        "type": "object",
+        "properties": {
+          "activation": {
+            "type": "string",
+            "minLength": 1
+          },
+          "destination": {
+            "type": "string",
+            "minLength": 1
+          },
+          "manifest_digest": {
+            "type": "string",
+            "description": "A SHA-256 digest as 64 lowercase hexadecimal digits"
+          }
+        },
+        "required": [
+          "activation",
+          "destination",
+          "manifest_digest"
+        ],
+        "additionalProperties": false
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "$ref": "#/components/schemas/ErrorDetail"
+          }
+        },
+        "required": [
+          "error"
+        ],
+        "additionalProperties": false
+      },
+      "ErrorDetail": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "enum": [
+              "sign_in_required",
+              "permission_denied",
+              "app_disconnected",
+              "not_found",
+              "stale",
+              "request_conflict",
+              "host_moving",
+              "limit_reached",
+              "invalid",
+              "refused",
+              "internal"
+            ]
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "code",
+          "message"
+        ],
+        "additionalProperties": false
+      },
+      "ProtectedResource": {
+        "type": "object",
+        "properties": {
+          "resource": {
+            "type": "string",
+            "minLength": 1
+          },
+          "authorization_servers": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "bearer_methods_supported": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "resource_name": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "resource",
+          "authorization_servers",
+          "bearer_methods_supported",
+          "resource_name"
+        ],
+        "additionalProperties": false
+      },
+      "Capabilities": {
+        "type": "object",
+        "properties": {
+          "api_version": {
+            "type": "integer",
+            "exclusiveMinimum": 0,
+            "maximum": 9007199254740991
+          },
+          "athleticstandard_version": {
+            "type": "string",
+            "minLength": 1
+          },
+          "storage": {
+            "type": "string",
+            "enum": [
+              "directory",
+              "libsql"
+            ]
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Permission"
+            }
+          },
+          "operator_disclosure": {
+            "type": "string"
+          },
+          "open_enrollment": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "api_version",
+          "athleticstandard_version",
+          "storage",
+          "permissions",
+          "operator_disclosure",
+          "open_enrollment"
+        ],
+        "additionalProperties": false
+      },
+      "Me": {
+        "type": "object",
+        "properties": {
+          "principal_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "client_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "coach_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "athletes": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^ath_[0-9a-f]{32}$",
+              "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+            }
+          }
+        },
+        "required": [
+          "principal_id",
+          "client_id",
+          "coach_id",
+          "athletes"
+        ],
+        "additionalProperties": false
+      },
+      "CreatedAthlete": {
+        "type": "object",
+        "properties": {
+          "athlete_id": {
+            "type": "string",
+            "pattern": "^ath_[0-9a-f]{32}$",
+            "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+          },
+          "database_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "operator_disclosure": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "athlete_id",
+          "database_revision",
+          "operator_disclosure"
+        ],
+        "additionalProperties": false
+      },
+      "AthleteEntry": {
+        "type": "object",
+        "properties": {
+          "athlete_id": {
+            "type": "string",
+            "pattern": "^ath_[0-9a-f]{32}$",
+            "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "active",
+              "frozen",
+              "staged"
+            ]
+          }
+        },
+        "required": [
+          "athlete_id",
+          "display_name",
+          "state"
+        ],
+        "additionalProperties": false
+      },
+      "AthleteList": {
+        "type": "object",
+        "properties": {
+          "athletes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AthleteEntry"
+            }
+          }
+        },
+        "required": [
+          "athletes"
+        ],
+        "additionalProperties": false
+      },
+      "AthleteSummary": {
+        "type": "object",
+        "properties": {
+          "athlete_id": {
+            "type": "string",
+            "pattern": "^ath_[0-9a-f]{32}$",
+            "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "owner",
+              "coach"
+            ]
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "active",
+              "frozen",
+              "staged"
+            ]
+          },
+          "operator_disclosure": {
+            "type": "string"
+          },
+          "database_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "athlete_id",
+          "role",
+          "state",
+          "operator_disclosure"
+        ],
+        "additionalProperties": false
+      },
+      "DatabaseRevision": {
+        "type": "object",
+        "properties": {
+          "database_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "database_revision"
+        ],
+        "additionalProperties": false
+      },
+      "LoggedChange": {
+        "type": "object",
+        "properties": {
+          "database_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "record_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "description": "Stable UUIDv7 record ID"
+          },
+          "record_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991,
+            "description": "0 for an erasure"
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "revision",
+              "deletion",
+              "erasure"
+            ]
+          }
+        },
+        "required": [
+          "database_revision",
+          "record_id",
+          "record_revision",
+          "kind"
+        ],
+        "additionalProperties": false
+      },
+      "ChangeList": {
+        "type": "object",
+        "properties": {
+          "from": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "to": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "complete": {
+            "type": "boolean"
+          },
+          "changes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LoggedChange"
+            }
+          }
+        },
+        "required": [
+          "from",
+          "to",
+          "complete",
+          "changes"
+        ],
+        "additionalProperties": false
+      },
+      "RecordList": {
+        "type": "object",
+        "properties": {
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CurrentRecord"
+            }
+          }
+        },
+        "required": [
+          "records"
+        ],
+        "additionalProperties": false
+      },
+      "RecordWithHistory": {
+        "type": "object",
+        "properties": {
+          "record": {
+            "$ref": "#/components/schemas/CurrentRecord"
+          },
+          "revisions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RecordRevision"
+            }
+          }
+        },
+        "required": [
+          "record",
+          "revisions"
+        ],
+        "additionalProperties": false
+      },
+      "WrittenRecord": {
+        "type": "object",
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "description": "Stable UUIDv7 record ID"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991,
+            "description": "A record revision, from 1"
+          }
+        },
+        "required": [
+          "record_id",
+          "revision"
+        ],
+        "additionalProperties": false
+      },
+      "WriteResult": {
+        "type": "object",
+        "properties": {
+          "database_revision": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "records": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WrittenRecord"
+            }
+          }
+        },
+        "required": [
+          "database_revision",
+          "records"
+        ],
+        "additionalProperties": false
+      },
+      "Upload": {
+        "type": "object",
+        "properties": {
+          "upload_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "byte_count": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          },
+          "sha256": {
+            "type": "string",
+            "description": "A SHA-256 digest as 64 lowercase hexadecimal digits"
+          },
+          "media_type": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "upload_id",
+          "byte_count",
+          "sha256",
+          "media_type"
+        ],
+        "additionalProperties": false
+      },
+      "GrantOffer": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "minLength": 1
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+            "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Permission"
+            }
+          },
+          "client_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "code",
+          "expires_at",
+          "permissions",
+          "client_id"
+        ],
+        "additionalProperties": false
+      },
+      "PendingOffer": {
+        "type": "object",
+        "properties": {
+          "offer_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Permission"
+            }
+          },
+          "client_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "coach_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+            "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+          },
+          "expires_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+            "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+          }
+        },
+        "required": [
+          "offer_id",
+          "permissions",
+          "client_id",
+          "coach_label",
+          "created_at",
+          "expires_at"
+        ],
+        "additionalProperties": false
+      },
+      "PendingOffers": {
+        "type": "object",
+        "properties": {
+          "offers": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/PendingOffer"
+            }
+          }
+        },
+        "required": [
+          "offers"
+        ],
+        "additionalProperties": false
+      },
+      "CancelledOffer": {
+        "type": "object",
+        "properties": {
+          "cancelled": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "cancelled"
+        ],
+        "additionalProperties": false
+      },
+      "Grant": {
+        "type": "object",
+        "properties": {
+          "grant_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "resource_id": {
+            "type": "string",
+            "pattern": "^ath_[0-9a-f]{32}$",
+            "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+          },
+          "coach_principal_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "client_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Permission"
+            }
+          },
+          "coach_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+            "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+                "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "grant_id",
+          "resource_id",
+          "coach_principal_id",
+          "client_id",
+          "permissions",
+          "coach_label",
+          "created_at",
+          "revoked_at"
+        ],
+        "additionalProperties": false
+      },
+      "GrantList": {
+        "type": "object",
+        "properties": {
+          "grants": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Grant"
+            }
+          }
+        },
+        "required": [
+          "grants"
+        ],
+        "additionalProperties": false
+      },
+      "AcceptedGrant": {
+        "type": "object",
+        "properties": {
+          "grant": {
+            "$ref": "#/components/schemas/Grant"
+          }
+        },
+        "required": [
+          "grant"
+        ],
+        "additionalProperties": false
+      },
+      "RevokedGrant": {
+        "type": "object",
+        "properties": {
+          "revoked": {
+            "type": "string",
+            "minLength": 1
+          },
+          "access_epoch": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "revoked",
+          "access_epoch"
+        ],
+        "additionalProperties": false
+      },
+      "App": {
+        "type": "object",
+        "properties": {
+          "client_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "state": {
+            "type": "string",
+            "enum": [
+              "connected",
+              "disconnected"
+            ]
+          },
+          "connected_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+            "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+          },
+          "last_used_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+            "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+          },
+          "disconnected_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+                "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "this_app": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "client_id",
+          "state",
+          "connected_at",
+          "last_used_at",
+          "disconnected_at",
+          "this_app"
+        ],
+        "additionalProperties": false
+      },
+      "AppList": {
+        "type": "object",
+        "properties": {
+          "apps": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/App"
+            }
+          }
+        },
+        "required": [
+          "apps"
+        ],
+        "additionalProperties": false
+      },
+      "DisconnectedApp": {
+        "type": "object",
+        "properties": {
+          "app": {
+            "$ref": "#/components/schemas/App"
+          },
+          "access_epoch": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 9007199254740991
+          }
+        },
+        "required": [
+          "app",
+          "access_epoch"
+        ],
+        "additionalProperties": false
+      },
+      "ConnectedApp": {
+        "type": "object",
+        "properties": {
+          "app": {
+            "$ref": "#/components/schemas/App"
+          }
+        },
+        "required": [
+          "app"
+        ],
+        "additionalProperties": false
+      },
+      "RosterEntry": {
+        "type": "object",
+        "properties": {
+          "athlete_id": {
+            "type": "string",
+            "pattern": "^ath_[0-9a-f]{32}$",
+            "description": "An athlete ID: `ath_` and 32 lowercase hexadecimal digits"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "permissions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Permission"
+            }
+          },
+          "grant_id": {
+            "type": "string",
+            "minLength": 1
+          }
+        },
+        "required": [
+          "athlete_id",
+          "display_name",
+          "permissions",
+          "grant_id"
+        ],
+        "additionalProperties": false
+      },
+      "Roster": {
+        "type": "object",
+        "properties": {
+          "athletes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/RosterEntry"
+            }
+          }
+        },
+        "required": [
+          "athletes"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutSummary": {
+        "type": "object",
+        "properties": {
+          "record_id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-7[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "description": "Stable UUIDv7 record ID"
+          },
+          "revision": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991,
+            "description": "A record revision, from 1"
+          },
+          "start_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+            "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+          },
+          "end_at": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d\\.\\d{3}(?:Z))$",
+            "description": "Normalized ISO 8601 timestamp in UTC with millisecond precision"
+          },
+          "activity_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "record_id",
+          "revision",
+          "start_at",
+          "end_at",
+          "activity_type"
+        ],
+        "additionalProperties": false
+      },
+      "WorkoutPage": {
+        "type": "object",
+        "properties": {
+          "workouts": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WorkoutSummary"
+            }
+          },
+          "next": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "workouts",
+          "next"
+        ],
+        "additionalProperties": false
+      },
+      "FrozenRecord": {
+        "type": "object",
+        "properties": {
+          "transfer_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "manifest_digest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "A SHA-256 digest as 64 lowercase hexadecimal digits"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "transfer_id",
+          "manifest_digest"
+        ],
+        "additionalProperties": false
+      },
+      "RetiredRecord": {
+        "type": "object",
+        "properties": {
+          "transfer_id": {
+            "type": "string",
+            "minLength": 1
+          },
+          "activation": {
+            "type": "string",
+            "minLength": 1
+          },
+          "manifest_digest": {
+            "anyOf": [
+              {
+                "type": "string",
+                "description": "A SHA-256 digest as 64 lowercase hexadecimal digits"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "transfer_id",
+          "activation",
+          "manifest_digest"
+        ],
+        "additionalProperties": false
+      },
+      "ReopenedRecord": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "active"
+            ]
+          }
+        },
+        "required": [
+          "state"
+        ],
+        "additionalProperties": false
+      },
+      "ActivatedRecord": {
+        "type": "object",
+        "properties": {
+          "state": {
+            "type": "string",
+            "enum": [
+              "active"
+            ]
+          },
+          "manifest_digest": {
+            "type": "string",
+            "description": "A SHA-256 digest as 64 lowercase hexadecimal digits"
+          }
+        },
+        "required": [
+          "state",
+          "manifest_digest"
+        ],
+        "additionalProperties": false
+      },
+      "VerifiedTransfer": {
+        "type": "object",
+        "properties": {
+          "verified": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "verified"
+        ],
+        "additionalProperties": false
+      },
+      "Permission": {
+        "type": "string",
+        "enum": [
+          "read_workout_summaries",
+          "add_coach_notes",
+          "add_programming"
+        ]
+      },
+      "RecordType": {
+        "type": "string",
+        "enum": [
+          "athlete_profile",
+          "source",
+          "source_device",
+          "point_measurement",
+          "measurement_sample",
+          "sleep_session",
+          "workout_session",
+          "benchmark_result",
+          "provider_summary",
+          "provider_score",
+          "athlete_report",
+          "nutrition_entry",
+          "attachment",
+          "benchmark_definition",
+          "prediction",
+          "prediction_result_link",
+          "prediction_grade",
+          "prediction_error_analysis",
+          "training_plan",
+          "planned_session",
+          "coaching_note",
+          "saved_training_review",
+          "goal",
+          "nutrition_model_interpretation"
+        ]
+      },
+      "ErasureReasonCode": {
+        "type": "string",
+        "enum": [
+          "athlete_request",
+          "legal_requirement",
+          "recorded_in_error",
+          "other"
+        ]
+      },
+      "CurrentRecord": {
+        "description": "A current record, as in `records` of the package schema, or a measurement sample, as in `records` of the measurement-series schema.",
+        "anyOf": [
+          {
+            "$ref": "../../2.1.3/athleticstandard.schema.json#/properties/records/items"
+          },
+          {
+            "$ref": "../../2.1.3/measurement-series.schema.json#/properties/records/items"
+          }
+        ]
+      },
+      "RecordRevision": {
+        "description": "One revision of a record, as in `record_revisions` of the package schema or of the measurement-series schema.",
+        "anyOf": [
+          {
+            "$ref": "../../2.1.3/athleticstandard.schema.json#/properties/record_revisions/items"
+          },
+          {
+            "$ref": "../../2.1.3/measurement-series.schema.json#/properties/record_revisions/items"
+          }
+        ]
+      },
+      "JsonValue": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "number"
+          },
+          {
+            "type": "boolean"
+          },
+          {
+            "type": "null"
+          },
+          {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/JsonValue"
+            }
+          },
+          {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "$ref": "#/components/schemas/JsonValue"
+            }
+          }
+        ]
+      }
+    },
+    "parameters": {
+      "IdempotencyKey": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": false,
+        "description": "1 to 200 characters. Send the same key when you repeat a request. A repeat with the same key, method, path, and body gets the first answer; the same key with another request gets `409 request_conflict` (D261).",
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      },
+      "IdempotencyKeyRequired": {
+        "name": "Idempotency-Key",
+        "in": "header",
+        "required": true,
+        "description": "1 to 200 characters. Send the same key when you repeat a request. A repeat with the same key, method, path, and body gets the first answer; the same key with another request gets `409 request_conflict` (D261).",
+        "schema": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 200
+        }
+      }
+    },
+    "responses": {
+      "Error400": {
+        "description": "`invalid`: the request is malformed, or a body does not match its shape.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Error401": {
+        "description": "`sign_in_required`: no token, or a token the host refuses. The answer has a `WWW-Authenticate` header naming the protected-resource metadata.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Error403": {
+        "description": "`permission_denied`: the route or permission is not the caller's. `app_disconnected`: the owner disconnected this app from the record.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Error404": {
+        "description": "`not_found`: no such resource, or nothing the caller may see. An unknown record and one that is not shared get the same answer.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Error409": {
+        "description": "`stale`, `request_conflict`, or `host_moving`.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Error413": {
+        "description": "`limit_reached`: the body is larger than the host allows.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Error422": {
+        "description": "`refused`: the library refused the change.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      },
+      "Error500": {
+        "description": "`internal`: the host could not finish. Details stay in the host's log.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/Error"
+            }
+          }
+        }
+      }
+    },
+    "securitySchemes": {
+      "bearer": {
+        "type": "http",
+        "scheme": "bearer",
+        "description": "An OAuth access token from the host's OpenID Connect provider (D260). The token must name the app it was issued to in `azp` or `client_id`. `/.well-known/oauth-protected-resource` names the provider."
+      }
+    }
+  }
+}
