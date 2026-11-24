@@ -32,11 +32,14 @@ What is built today:
 | Part | State |
 |---|---|
 | Directory mode: one machine, records in a folder | Built and covered by tests. |
-| Remote mode: databases on a libSQL server, attachments in an S3-compatible bucket | Built. Tested only against a local stand-in for the server and the bucket. |
+| Remote mode: databases on a libSQL server, attachments in an S3-compatible bucket | Built. Tested against a local stand-in for the server and the bucket. A test against a real libSQL server exists but has not been run (section 5.6). |
 | Sign-in checks | Built. Tested with a fixed test key. The recipes in section 6 have not been run against live provider accounts. |
 | Grants, revocation, coach notes, and programming | Built and covered by tests. |
-| Moves between hosts, the Litestream recipe, scheduled exports, restore drills | Not built (build step 8). |
-| A generated description of the API in `schema/host-api/1/` (D266) | Not built. Section 7 is written from `host/src/api.rs`. |
+| Moves between hosts (section 9) | Built and covered by tests between two hosts in directory mode. |
+| `ath-host backup` and `ath-host restore` (section 10) | Built and covered by tests. `restore` works in directory mode only. |
+| A Litestream recipe | Not published. It has not been run with the library (D264). |
+| Clients: the npm host client `connectHost`, a starter app, and an example MCP server | Built. See section 7. |
+| A generated description of the API in `schema/host-api/1/` (D266) | Not built. Section 7 is written from `host/src/api.rs` and `host/src/moves.rs`. |
 
 ## 2. Choosing a backend
 
@@ -238,19 +241,34 @@ The executable is `target/release/ath-host`.
 ### 4.2 Commands
 
 ```text
-ath-host serve  --config <file>
-ath-host setup  --config <file> --issuer <issuer> --subject <subject> [--name <display name>]
-ath-host invite --config <file> [--days <n>]
+ath-host serve   --config <file>
+ath-host setup   --config <file> --issuer <issuer> --subject <subject> [--name <display name>]
+ath-host invite  --config <file> [--days <n>]
+ath-host backup  --config <file> --output <folder>
+ath-host restore --config <file> --athlete <athlete id> --package <zip>
 ath-host version
 ```
 
 - `serve` runs the host until it receives an interrupt signal (SIGINT, or Ctrl-C).
   It then stops taking connections and finishes open requests. SIGTERM ends it at
   once, without finishing them, so configure your service manager to stop it with
-  SIGINT.
+  SIGINT. When it starts, it deletes what the last process left: working copies,
+  staged uploads, and temporary export, package, and restore folders. It also
+  finishes any erasure that an earlier run noted but did not complete (section 10.4).
+  It then prints the address it listens on, with the real port when `listen` names
+  port 0.
 - `setup` claims the first owner (section 4.5).
 - `invite` makes an invitation code (section 4.6).
+- `backup` writes each athlete's complete package as a zip (section 10.2).
+- `restore` replaces one athlete's record from such a zip, in directory mode only
+  (section 10.3).
 - `version` prints `ath-host 2.1.3`.
+
+`setup`, `invite`, and `backup` can run while the host serves. They do not delete the
+host's working copies or staged files. In remote mode, give `backup` its own data
+folder: copy the configuration file and change `data_directory`. `backup` builds a
+working copy of every athlete in its data folder, and two processes must not share
+one working copy. `restore` refuses to run while a host serves the data folder.
 
 ### 4.3 The data folder
 
@@ -258,14 +276,15 @@ In directory mode the data folder looks like this:
 
 ```text
 <data>/.ath-host.lock                              held by the running host
-<data>/host.sqlite                                 the directory: people, records, invitations, grants, settings
+<data>/host.sqlite                                 the directory: people, records, invitations, grants, settings, remembered answers, erasures
 <data>/athletes/<resource-id>/athlete.ath.sqlite   one athlete's database
 <data>/athletes/<resource-id>/attachments/         that athlete's attachment files
-<data>/staging/uploads/<resource-id>/<upload-id>   uploaded files waiting for a record
-<data>/staging/packages/  <data>/staging/exports/  temporary folders for package uploads and exports
+<data>/athletes/<resource-id>.replaced-<time>/     the record a restore replaced, kept until you remove it
+<data>/staging/uploads/<resource-id>/<upload-id>   uploaded files waiting for a record, for at most one hour
+<data>/staging/exports/  packages/  verify/  restore/   temporary folders for exports, package uploads, backup checks, and restores
 ```
 
-A resource ID looks like `ath_` followed by 32 hexadecimal characters. The host makes
+A resource ID is `ath_` followed by 32 lowercase hexadecimal characters. The host makes
 it when the record is created. It is not the database ID inside the record.
 
 Rules for the data folder:
@@ -274,14 +293,15 @@ Rules for the data folder:
   to start when another host holds it ("another ath-host is using this data
   folder"). SQLite allows one writer per file, and the host orders each athlete's
   writes inside its own process.
-- **Run the host as its own system user, and make the data folder readable by that
-  user only** (`chmod 700`). Athlete databases are created owner-only. The host
-  creates `host.sqlite`, the folders, and staged uploads with the process's default
-  permissions. `host.sqlite` holds the key the host uses for receipt digests.
+- **Run the host as its own system user.** Each command that reads the configuration
+  sets the data folder to owner-only (`0700`), and `host.sqlite` to owner-only
+  (`0600`). Athlete databases are
+  created owner-only. `host.sqlite` holds the key the host uses for receipt digests.
 - **Give a real path.** The library refuses a path that passes through a symbolic
   link, and a database in a folder that other local users can write.
 - **Directory mode uses one machine.** The plan's routing of athletes between several
-  machines (spec section 6.1) is not built.
+  machines (spec section 6.1) is not built. To spread athletes over machines, run
+  separate hosts and move records between them (section 9).
 
 ### 4.4 TLS
 
@@ -323,11 +343,6 @@ The command prints a code and the time it expires. A code lasts 7 days unless
 app, and the app sends `POST /v1/athletes` with `{"invitation": "<code>"}`. The host
 stores only a hash of the code.
 
-In directory mode, `setup` and `invite` use the same data folder as `serve`, and can
-run while it serves. In remote mode, both commands delete the working copies in the
-data folder they are given. Give them their own data folder there: copy the
-configuration file and change `data_directory`.
-
 ### 4.7 Running in a container
 
 [`host/Dockerfile`](../host/Dockerfile) builds `ath-host` with the Rust toolchain
@@ -350,40 +365,50 @@ The image expects:
 - the secrets the file names, as environment variables (`-e NAME` or `--env-file`).
 
 Run it on one machine with a named volume, and publish the port to the machine
-itself only. Put a TLS proxy in front (section 4.4).
+itself only. Put a TLS proxy in front (section 4.4). The second mount is a folder for
+backups, which must belong to user ID 10001.
 
 ```sh
 docker volume create ath-host-data
 docker run -d --name ath-host \
   -v ath-host-data:/data \
   -v /etc/ath-host:/config:ro \
+  -v /srv/ath-host-backups:/backups \
   -p 127.0.0.1:8080:8080 \
   ath-host
 ```
 
-In directory mode, run `setup` and `invite` inside the running container, so they use
-its data folder:
+Run `setup`, `invite`, and, in directory mode, `backup` inside the running container:
 
 ```sh
 docker exec ath-host ath-host setup --config /config/ath-host.json \
   --issuer https://sign-in.example.org/realms/athletes --subject <subject>
 docker exec ath-host ath-host invite --config /config/ath-host.json
+docker exec ath-host ath-host backup --config /config/ath-host.json --output /backups
 ```
 
-In remote mode, run them in a separate container with its own `/data`, because they
-delete the working copies in the data folder they use (section 4.6):
+In remote mode, run `backup` in a separate container, which gets its own `/data`
+(section 4.2):
 
 ```sh
-docker run --rm -v /etc/ath-host:/config:ro --env-file /etc/ath-host.env \
-  ath-host invite --config /config/ath-host.json
+docker run --rm -v /etc/ath-host:/config:ro -v /srv/ath-host-backups:/backups \
+  --env-file /etc/ath-host.env ath-host backup --config /config/ath-host.json --output /backups
+```
+
+To restore one athlete in directory mode, stop the host first:
+
+```sh
+docker stop ath-host
+docker run --rm -v ath-host-data:/data -v /etc/ath-host:/config:ro -v /srv/ath-host-backups:/backups:ro \
+  ath-host restore --config /config/ath-host.json --athlete <athlete id> --package /backups/<athlete id>/<file>.zip
+docker start ath-host
 ```
 
 Other rules:
 
 - The image stops the host with SIGINT, the signal on which it finishes open requests.
-- A folder from the machine mounted at `/data` must belong to user ID 10001, and
-  other users must not be able to write it.
-- In directory mode, run one container per volume. A second container on the same
+- A folder from the machine mounted at `/data` must belong to user ID 10001.
+- In directory mode, run one serving container per volume. A second one on the same
   volume refuses to start.
 - In remote mode, give each container its own `/data`. Any number of containers can
   share the databases and the bucket.
@@ -392,21 +417,25 @@ Other rules:
 
 Remote mode has run only against a local stand-in in the tests. No libSQL server and
 no bucket service has passed the qualification suite yet (D258). Treat the setups
-below as untested until a named run passes.
+below as untested until a named run passes. Section 5.6 explains how to run the test
+against your own server.
 
 ### 5.1 How remote mode works
 
 - **Working copies.** The host keeps a working copy of each active athlete's database
   in `<data>/working/<resource-id>/`. It builds a copy by reading every table from the
-  server, and keeps it current from the server's replication log. It deletes every
-  copy when it starts, and deletes a copy after `working_copy_idle_seconds` without
-  use. It checks for idle copies once a minute.
+  server, and keeps it current from the server's replication log. `serve` deletes
+  every copy when it starts. A copy is also deleted after `working_copy_idle_seconds`
+  without use. The host checks for idle copies once a minute.
 - **A write** runs through the library on the working copy, which records the rows
   it changed. The host then commits those rows to the server in one transaction.
   The transaction first checks that the server's database revision and access epoch
   still match the copy (D268). If another host copy wrote first, the host refreshes
   the copy and runs the request again, up to three times. The receipt makes a second
   run safe (D261).
+- **Round trips.** New rows go to the server in scripts of up to 500 statements, or
+  1 MiB, with one round trip for each script. Updates and deletions go one statement
+  at a time, so the host can check that each changed exactly the rows it expected.
 - **Foreign keys.** The host refuses to commit when the server does not report
   foreign keys as on for the connection.
 - **Several host copies** can serve the same athletes. They share the athletes'
@@ -414,8 +443,8 @@ below as untested until a named run passes.
   because of the lock in section 4.3, and enough local disk for the working copies of
   the athletes it serves.
 - **Uploads wait on local disk.** An uploaded file stays in the `staging/uploads/`
-  folder of the host copy that received it until a record names it. Send the upload
-  and the request that uses it to the same host copy.
+  folder of the host copy that received it, for at most one hour. Send the upload and
+  the request that uses it to the same host copy.
 - **Database names.** The database for resource ID `ath_<hex>` is named `ath-<hex>`.
 
 ### 5.2 Turso Cloud
@@ -519,12 +548,48 @@ in the bucket, signed download links for clients, and a cleanup job for files th
 record names (D259) are not built. A commit that fails after the upload leaves an
 unused object in the bucket.
 
+### 5.6 Testing your own server
+
+`host/tests/host_api.rs` holds a test that runs the host's scenarios against a real
+libSQL server: a report with a photo, a coach with grants, programming, a revocation
+during a waiting write, and two host copies sharing one record. It then times twenty
+report saves and the restore of the demo package. It uses two host copies, a test
+sign-in key, and a stand-in bucket in memory, so it tests the server, not your bucket
+or provider. It is skipped unless you ask for it.
+
+Set these variables, then run the test:
+
+| Variable | Value |
+|---|---|
+| `ATH_QUALIFY_LIBSQL_URL_TEMPLATE` | The same value as `url_template`, with `{database}`. |
+| `ATH_QUALIFY_LIBSQL_DIRECTORY_URL` | A directory database that exists. Use one made for the test. |
+| `ATH_QUALIFY_LIBSQL_TOKEN` | A token that opens every database the test uses. |
+| `ATH_QUALIFY_PROVISION` | `sqld-admin:<admin address>`, `turso:<organization>:<group>`, or `existing`. |
+| `ATH_QUALIFY_TURSO_PLATFORM_TOKEN` | For `turso:` only: a Platform API token. |
+
+```sh
+cargo test -p athleticstandard-host --test host_api -- --ignored --nocapture
+```
+
+The test creates new athlete databases on the server each time it runs and does not
+delete them. Use a server, organization, or group set aside for testing. A run covers
+part of the qualification suite in spec section 8, not all of it. Record the server,
+region, crate versions, date, and printed timings with the result (D258).
+
+`host/tests/scale.rs` times a large record in both modes on one machine, with the
+local stand-in server for remote mode. It is also skipped unless asked for:
+
+```sh
+ATH_SCALE_RECORDS=100000 cargo test --release -p athleticstandard-host --test scale -- --ignored --nocapture
+```
+
 ## 6. Sign-in
 
 ### 6.1 What the host checks
 
-Every request except the two discovery routes needs an access token in the
-`Authorization: Bearer <token>` header (D260). The host checks, in order:
+Every request except the discovery routes and the move check between hosts
+(section 7.7) needs an access token in the `Authorization: Bearer <token>` header
+(D260). The scheme name `Bearer` may be in any case. The host checks, in order:
 
 1. **The signature algorithm.** Only public-key signatures are accepted: RS256,
    RS384, RS512, PS256, PS384, PS512, ES256, ES384, and EdDSA. A token signed with a
@@ -540,7 +605,8 @@ Every request except the two discovery routes needs an access token in the
    in it.
 
 A failed check gets `401 sign_in_required`, with a message that says which check
-failed.
+failed. Every 401 answer carries a `WWW-Authenticate` header that names the
+protected-resource metadata (section 6.4).
 
 The host identifies a person by issuer and subject, never by email address. A person
 signing in for the first time becomes a new principal. The optional `name` claim
@@ -590,9 +656,20 @@ reads this document, finds the provider, signs the person in, and asks for a tok
 with `resource` set to `public_url`. Configure the provider so that such a token
 carries `public_url` in `aud`, and set `sign_in.audience` to the same value.
 
-The host serves the document only at the root well-known address. It does not add a
-`WWW-Authenticate` header to its 401 answers yet, so clients find the document by its
-well-known address. The MCP rules allow either way.
+The host serves the document at the root well-known address. Every 401 answer also
+names it, as [RFC 9728](https://www.rfc-editor.org/rfc/rfc9728) section 5.1 describes:
+
+```text
+WWW-Authenticate: Bearer resource_metadata="https://records.example.org/.well-known/oauth-protected-resource"
+```
+
+The address is built from `public_url`, so set `public_url` to the address clients
+really use.
+
+[`examples/host-mcp/`](../examples/host-mcp/) is a small MCP server for coaches that
+works through the host API. It runs over standard input and output, and takes the
+coach's access token from its environment, as the MCP rules ask of servers on that
+transport. It never receives a database credential.
 
 ### 6.5 Recipe: WorkOS AuthKit
 
@@ -663,14 +740,18 @@ for the `basic` scope.
 
 ## 7. API version 1
 
+JavaScript and TypeScript programs can call these routes through `connectHost` in the
+npm package `athleticstandard`. [`examples/host-starter/`](../examples/host-starter/)
+runs a coach's steps with it, and [`examples/host-mcp/`](../examples/host-mcp/) is an
+MCP server built on it. [`examples/host-swift/`](../examples/host-swift/) is a Swift
+client for macOS and iOS apps that runs the same coach steps.
+
 ### 7.1 Conventions
 
 - Send JSON request bodies unless a route says otherwise. Unknown fields in a JSON
   body are refused with `400 invalid`.
-- Every record write except erasure needs an `Idempotency-Key` header of 1 to 200
-  characters. A request repeated with the same key and the same body returns the
-  original result and writes nothing. The same key with a different body gets
-  `409 request_conflict`. Keys are kept per person, per app, and per record (D261).
+- An athlete ID in a path is `ath_` followed by 32 lowercase hexadecimal characters.
+  Any other value gets `404 not_found` before the host looks anything up.
 - Who may call a route:
   - **Anyone**: no token needed.
   - **Signed in**: any accepted token.
@@ -678,12 +759,34 @@ for the `basic` scope.
   - **Coach with a permission**: a person with an active grant for the record,
     through the app that made the request, that includes the permission.
 - A caller who is neither the owner nor a coach with an active grant gets
-  `404 not_found`, the same answer as for a record that does not exist. A coach on an
-  owner route, and an owner on a coach route, get `403 permission_denied`.
+  `404 not_found`, the same answer as for a record that does not exist. The host
+  checks this before it reads the athlete's database, so an unknown record and one
+  that is not shared look the same. A coach on an owner route, and an owner on a
+  coach route, get `403 permission_denied`.
+
+**Retries.** Send an `Idempotency-Key` header of 1 to 200 characters with every
+request that changes something, and send the same key when you repeat it (D261).
+
+- Record writes refuse a request without a key: creating, correcting, and deleting a
+  record, adding a coach note, and adding programming. They also keep a receipt inside
+  the record.
+- For any `POST`, `PUT`, or `DELETE` with a key, a repeat with the same key, method,
+  path, and body gets the first answer again, with the same status, and changes
+  nothing. The host compares JSON bodies with their keys sorted, so the same request
+  with its keys in another order is a repeat. The same key with a different request
+  gets `409 request_conflict`.
+- The host remembers a key for each person and app across the whole host. Use a new
+  key for each new request.
+- Only successful answers are remembered. A request that failed can be sent again
+  with the same key.
+- Two kinds of request are not remembered: creating a grant offer, and the move
+  steps. Their answers carry one-time codes, which the host stores only as hashes.
+  Sections 7.5 and 7.7 say what a repeat of each one does.
 
 ### 7.2 Errors
 
-Every error is JSON with a stable code:
+Every error answer is JSON with a stable code, including errors the web layer makes
+itself, such as a malformed query, an unknown route, or a body that is too large:
 
 ```json
 { "error": { "code": "stale", "message": "…" } }
@@ -691,14 +794,15 @@ Every error is JSON with a stable code:
 
 | Status | Code | When |
 |---|---|---|
-| 400 | `invalid` | The request is malformed: bad JSON, an unknown field, an unknown record type, a missing `Idempotency-Key`, or record data that fails validation. |
-| 401 | `sign_in_required` | No token, or a token that fails a check in section 6.1. An expired token gets this code too. |
-| 403 | `permission_denied` | The caller is related to the record, but the route or permission is not theirs. Also returned when creating a record without an invitation on a host without open enrollment. |
-| 404 | `not_found` | No such record, resource, or code, or nothing the caller may see. |
-| 409 | `stale` | An expected revision is out of date, or access to the record changed while a coach write waited. |
-| 409 | `request_conflict` | The `Idempotency-Key` was used before with a different body. |
-| 409 | `host_moving` | The record is frozen for a move. No route freezes a record yet. |
-| 413 | `limit_reached` | Defined, not returned yet. A body larger than `body_bytes` gets status 413 from the web layer, with a plain-text body. |
+| 400 | `invalid` | The request is malformed: bad JSON, a malformed query, an unknown field, an unknown record type, a missing `Idempotency-Key`, a workout cursor that did not come from the host, an upload that expired, or record data that fails validation. |
+| 401 | `sign_in_required` | No token, or a token that fails a check in section 6.1. An expired token gets this code too. The answer carries a `WWW-Authenticate` header (section 6.4). |
+| 403 | `permission_denied` | The caller is related to the record, but the route or permission is not theirs. Also returned when creating a record without an invitation on a host without open enrollment, and when the source host does not confirm a move. |
+| 404 | `not_found` | No such record, resource, code, or route, an athlete ID the host could not have issued, or nothing the caller may see. |
+| 405 | `invalid` | The route exists, but not for this method. |
+| 409 | `stale` | An expected revision is out of date, access to the record changed while a coach write waited, or a move step came out of order. |
+| 409 | `request_conflict` | The `Idempotency-Key` was used before for a different request. |
+| 409 | `host_moving` | The record is frozen for a move, or staged as an incoming move, and takes no writes. |
+| 413 | `limit_reached` | The request body is larger than `body_bytes`. |
 | 422 | `refused` | The library refused the change, such as a package restored into a record that is not empty, an attachment of the wrong type, or evidence the coach cannot read. |
 | 500 | `internal` | The host could not finish. Details go to the host's log, never to the response. |
 
@@ -709,15 +813,18 @@ Every error is JSON with a stable code:
 | `GET /.well-known/oauth-protected-resource` | Anyone | None | Protected-resource metadata (section 6.4). |
 | `GET /v1/capabilities` | Anyone | None | `api_version` (1), `athleticstandard_version`, `storage` (`directory` or `libsql`), `permissions` (the three grant names), `operator_disclosure`, `open_enrollment`. |
 | `GET /v1/me` | Signed in | None | `principal_id`, `client_id`, `coach_id` (the ID written into this person's coach notes), and `athletes`: the resource IDs they own. |
-| `POST /v1/athletes` | Signed in | Optional `display_name`, optional `invitation`. An empty body is allowed. | `201`: `athlete_id`, `database_revision`, `operator_disclosure`. Without open enrollment, a valid unused invitation is required. |
-| `GET /v1/athletes` | Signed in | None | `athletes`: each record the caller owns, with `athlete_id`, `display_name`, and `state`. |
+| `POST /v1/athletes` | Signed in | Optional `display_name`, optional `invitation`, optional `incoming`. An empty body is allowed. | `201`: `athlete_id`, `database_revision`, `operator_disclosure`. Without open enrollment, a valid unused invitation is required. With `"incoming": true` the record is created `staged`, for a record arriving by a move (section 9). |
+| `GET /v1/athletes` | Signed in | None | `athletes`: each record the caller owns, with `athlete_id`, `display_name`, and `state` (`active`, `frozen`, or `staged`). Retired records are not listed. |
 | `GET /v1/athletes/{id}` | Owner or coach | None | `athlete_id`, `role` (`owner` or `coach`), `state`, `operator_disclosure`, and, for the owner, `database_revision`. |
 
 ### 7.4 Owner routes
 
+While a record is frozen or staged for a move, every write below gets
+`409 host_moving`. Reads still work. A staged record accepts only its package.
+
 | Method and path | Request | Response |
 |---|---|---|
-| `PUT /v1/athletes/{id}/package` | A zip of a complete package folder (the files `ath export` writes, at the root of the zip). Not JSON. No `Idempotency-Key`. | `database_revision`. Only an empty record accepts a package: otherwise `422 refused`. |
+| `PUT /v1/athletes/{id}/package` | A zip of a complete package folder (the files `ath export` writes, at the root of the zip). Not JSON. | `database_revision`. Only an empty record accepts a package: otherwise `422 refused`. |
 | `GET /v1/athletes/{id}/export` | None | The complete package as `application/zip`. The `x-manifest-digest` header is the SHA-256 of `export-manifest.json`. |
 | `GET /v1/athletes/{id}/changes?since=<revision>` | `since` is required. | `from`, `to`, `complete`, and `changes`: each with `database_revision`, `record_id`, `record_revision`, and `kind` (`revision`, `deletion`, or `erasure`; an erasure has `record_revision` 0). When `complete` is false, the log does not reach back to `since`; download the export instead. A `since` beyond the current revision gets `409 stale`. |
 | `GET /v1/athletes/{id}/records?record_type=<type>&limit=<n>` | Both parameters optional. | `records`: current records, oldest first, at most `limit` (default and maximum `page_size`). There is no next-page cursor in version 1. Use the export or the changes route to read everything. |
@@ -725,25 +832,27 @@ Every error is JSON with a stable code:
 | `POST /v1/athletes/{id}/records` | `record_type`, `data` (the record's data, as in `ath log` structured input), optional `record_id`, optional `attachments`: upload IDs. `Idempotency-Key` required. | `201`: `database_revision` and `records`, each with `record_id` and `revision`. New attachment records come first, then the record. Attachments can belong only to an athlete report or a nutrition entry. |
 | `POST /v1/athletes/{id}/records/{record_id}/corrections` | `expected_revision`, `data` (the complete new data). `Idempotency-Key` required. | `database_revision` and `records`. An out-of-date `expected_revision` gets `409 stale`; keep the person's version for review. |
 | `POST /v1/athletes/{id}/records/{record_id}/deletion` | `expected_revision`. `Idempotency-Key` required. | `database_revision` and `records`. |
-| `POST /v1/athletes/{id}/records/{record_id}/erasure` | `expected_revision`, `reason_code`: `athlete_request`, `legal_requirement`, `recorded_in_error`, or `other`. No `Idempotency-Key`. | `database_revision`. Erasure runs as in `ath erase` (D107). Repeating it fails, because the record is gone. |
-| `POST /v1/athletes/{id}/uploads` | The file's bytes, not JSON: a PNG, JPEG, WebP, or PDF file. | `201`: `upload_id`, `byte_count`, `sha256`, `media_type`. Other file types get `422 refused`. Pass the `upload_id` in `attachments` when creating the record. |
+| `POST /v1/athletes/{id}/records/{record_id}/erasure` | `expected_revision`, `reason_code`: `athlete_request`, `legal_requirement`, `recorded_in_error`, or `other`. | `database_revision`. Erasure runs as in `ath erase` (D107). The host notes the erasure in its directory before it applies it (section 10.4). Without a key, a repeat fails, because the record is gone. |
+| `POST /v1/athletes/{id}/uploads` | The file's bytes, not JSON: a PNG, JPEG, WebP, or PDF file. | `201`: `upload_id`, `byte_count`, `sha256`, `media_type`. Other file types get `422 refused`. Pass the `upload_id` in `attachments` when creating the record, within one hour. |
 | `GET /v1/athletes/{id}/attachments/{record_id}` | `record_id` is the attachment record's ID. | The file's bytes, with its media type. In remote mode the host fetches the file from the bucket and sends it on. |
 
 ### 7.5 Grant routes
 
 | Method and path | Who | Request | Response |
 |---|---|---|---|
-| `POST /v1/athletes/{id}/grant-offers` | Owner | `permissions` (one or more of `read_workout_summaries`, `add_coach_notes`, `add_programming`), `client_id` (the app the coach must use), optional `coach_label`, optional `valid_seconds`. | `201`: `code`, `expires_at`, `permissions`, `client_id`. An offer lasts 7 days unless `valid_seconds` says otherwise, from 60 seconds to 30 days. |
+| `POST /v1/athletes/{id}/grant-offers` | Owner | `permissions` (one or more of `read_workout_summaries`, `add_coach_notes`, `add_programming`), `client_id` (the app the coach must use), optional `coach_label`, optional `valid_seconds`. | `201`: `code`, `expires_at`, `permissions`, `client_id`. An offer lasts 7 days unless `valid_seconds` says otherwise, from 60 seconds to 30 days. A repeat makes a second offer; cancel the one you do not use. |
+| `GET /v1/athletes/{id}/grant-offers/pending` | Owner | None | `offers`: each offer that nobody accepted and that has not expired, with `offer_id`, `permissions`, `client_id`, `coach_label`, `created_at`, and `expires_at`. The code is never shown again. |
+| `DELETE /v1/athletes/{id}/grant-offers/{offer_id}` | Owner | None | `cancelled` (the offer ID). An offer that is unknown, already accepted, or for another record gets `404 not_found`. |
 | `GET /v1/athletes/{id}/grants` | Owner | None | `grants`, revoked ones included. Each has `grant_id`, `resource_id`, `coach_principal_id`, `client_id`, `permissions`, `coach_label`, `created_at`, and `revoked_at`. |
 | `DELETE /v1/athletes/{id}/grants/{grant_id}` | Owner | None | `revoked` (the grant ID) and `access_epoch`. A grant that is unknown or already revoked gets `404 not_found`. |
-| `POST /v1/grant-offers/accept` | Signed in, through the app the offer names | `code` | `grant`. A code that is unknown, used, expired, for another app, or the caller's own offer gets `404 not_found`. |
+| `POST /v1/grant-offers/accept` | Signed in, through the app the offer names | `code` | `grant`. A code that is unknown, used, cancelled, expired, for another app, or the caller's own offer gets `404 not_found`. |
 
 ### 7.6 Coach routes
 
 | Method and path | Who | Request | Response |
 |---|---|---|---|
 | `GET /v1/roster` | Signed in | None | `athletes`: each record that granted the caller access through this app, with `athlete_id`, `display_name`, `permissions`, and `grant_id`. |
-| `GET /v1/athletes/{id}/workouts?limit=<n>&after=<record_id>` | Coach with `read_workout_summaries` | Both parameters optional. | `workouts`, newest start first, each with exactly `record_id`, `revision`, `start_at`, `end_at`, and `activity_type`. `next` is the `after` value for the next page, or null. |
+| `GET /v1/athletes/{id}/workouts?limit=<n>&after=<next>` | Coach with `read_workout_summaries` | Both parameters optional. `after` is a `next` value from an earlier page. | `workouts`, newest start first, each with exactly `record_id`, `revision`, `start_at`, `end_at`, and `activity_type`. `next` is the value to send as `after` for the next page, or null on the last page. Treat it as opaque. A workout deleted between pages does not end the list early. |
 | `POST /v1/athletes/{id}/notes` | Coach with `add_coach_notes` | `note`, optional `title`, `applies_from`, `applies_to`, and `evidence`: a list of `record_id` and `revision`. `Idempotency-Key` required. | `201`: `database_revision` and `records`. Evidence needs the read permission too, and each item must be the current revision of a workout that is not deleted. |
 | `POST /v1/athletes/{id}/programs` | Coach with `add_programming` | `plan`: training plan data. `sessions`: a list of planned session data. Neither may contain `authorship`. A session may not contain `training_plan_id`, `completion_status`, or `completed_workout_session_id`. `Idempotency-Key` required. | `201`: `database_revision` and `records`: the plan, then its sessions. |
 
@@ -752,11 +861,26 @@ The host writes the authorship of notes and programming. The author is
 is the `coach_label` the athlete gave in the offer, or else the coach's `name` claim,
 or else `Coach`. Sessions are linked to the new plan and start as `planned`.
 
-### 7.7 Not in version 1 yet
+### 7.7 Move routes
 
-- Moves between hosts (D267). The routes are reserved for build step 8.
+Section 9 explains the order of the steps.
+
+| Method and path | Who | Request | Response |
+|---|---|---|---|
+| `POST /v1/athletes/{id}/move/freeze` | Owner, on the source | `destination`: the destination host's `public_url`. | `transfer_id`, `manifest_digest`: the SHA-256 of the final package's manifest. The record stops taking writes. A repeat returns the same transfer. A record that is not active gets `409 host_moving`. |
+| `POST /v1/athletes/{id}/move/abort` | Owner, on the source | `transfer_id` | `state`: `active`. The record takes writes again. After `retire`, `409 stale`. |
+| `POST /v1/athletes/{id}/move/retire` | Owner, on the source | `transfer_id` | `transfer_id`, `activation` (a single-use code), `manifest_digest`. The source record is retired. A repeat issues a new code, and only the newest code works. |
+| `POST /v1/athletes/{id}/move/activate` | Owner, on the destination | `source`: the source host's `public_url`, `transfer_id`, `activation`. | `state` (`active`) and `manifest_digest`. The destination asks the source to confirm the code for its own `public_url` and the digest of the package it holds. Without that, `403 permission_denied`. A record that is not staged gets `409 stale`. |
+| `POST /v1/transfers/{transfer_id}/verify` | Anyone who holds the code; the destination host calls it | `activation`, `destination`, `manifest_digest` | `verified`: `true`. The code works once. Anything that does not match gets `404 not_found`. |
+| `GET /v1/athletes/{id}/move/recovery-copy` | Owner, on the source, after `retire` | None | The retired record's package as `application/zip`, with `x-manifest-digest`. A record that is not retired gets `409 stale`. |
+
+### 7.8 Not in version 1 yet
+
 - A description of the API generated into `schema/host-api/1/` (D266).
-- Signed download links for attachments, and upload expiry and cancellation.
+- Signed download links for attachments, and cancelling an upload.
+- A label for a record restored from a device copy when the source cannot be reached,
+  which the plan calls a recovered fork (D267).
+- A way to remove a retired record from the source host.
 
 ## 8. Grants and revocation
 
@@ -768,6 +892,9 @@ The athlete decides who sees what (D262).
 3. The coach signs in through the named app and accepts the code. The code works
    once. A coach cannot accept their own offer.
 4. The coach sees the athlete in `/v1/roster` for that app.
+
+The owner can list the offers nobody has accepted yet and cancel one (section 7.5). The
+code itself is shown only once, when the offer is made.
 
 What each permission allows:
 
@@ -794,71 +921,178 @@ change. So:
 Data already sent to the coach cannot be recalled. To change coach, revoke the old
 grant and make a new offer. The record does not move (D267).
 
-## 9. Backups and restores
+## 9. Moving a record to another host
 
-The plan for backups is D264. Build step 8 builds and tests it. Until then, use the
-steps below and test a restore yourself.
+A move has one host that accepts writes at every step (D267). The owner's app drives
+it, with a token for each host. The tests move a record between two hosts in
+directory mode. The steps are the same in remote mode.
 
-### 9.1 What to keep
+1. **Freeze the source.** Send `POST /v1/athletes/{id}/move/freeze` to the source,
+   with `destination` set to the destination's `public_url`. The source stops taking
+   writes and returns `transfer_id` and `manifest_digest`. Reads still work, so
+   coaches can still read workout summaries.
+2. **Copy the package.** Download `GET /v1/athletes/{id}/export` from the source. Its
+   `x-manifest-digest` header equals the digest from step 1. On the destination,
+   create a record with `POST /v1/athletes` and `{"incoming": true}`, with an
+   invitation unless the destination has open enrollment. Then send the package with
+   `PUT /v1/athletes/{new id}/package`. The new record is staged: it
+   takes no other write, and no coach can see it.
+3. **Retire the source.** Send `POST /v1/athletes/{id}/move/retire` to the source with
+   the transfer ID. The source retires its writer and returns a single-use
+   `activation` code. From now on the source cannot reopen by itself. If the reply is
+   lost, call `retire` again. It issues a new code, and only the newest code works.
+4. **Activate the destination.** Send `POST /v1/athletes/{new id}/move/activate` to
+   the destination with `source` (the source's `public_url`), `transfer_id`, and
+   `activation`. The destination asks the source to confirm the code, its own
+   `public_url`, and the digest of the package it holds. The source confirms once,
+   and only when all three match. The destination then takes writes.
+5. **Reconnect.** Apps and devices switch to the destination and the new athlete ID.
+   Grants do not move, so the owner makes new offers. Coach IDs in old notes give no
+   access at the new host (D255).
+
+Before step 3, the owner can stop the move with `POST /v1/athletes/{id}/move/abort`,
+and the source takes writes again. After step 3, only activation takes the record
+forward.
+
+What a move needs and leaves behind:
+
+- In step 4 the destination calls the `source` address, so it must be able to reach
+  it over the network. The `destination` sent in step 1 must equal the destination's
+  `public_url`. Trailing slashes are ignored; nothing else may differ.
+- The records, their revisions, and their attachments arrive unchanged. The
+  destination's package has the same manifest digest as the source's.
+- The source keeps the retired record. The owner can download it with
+  `GET /v1/athletes/{id}/move/recovery-copy`. The host has no command to remove a
+  retired record yet. After the owner confirms the move, an operator can remove the
+  record's folder in directory mode, or its database in remote mode.
+- If the source cannot be reached, a move cannot finish, because the destination
+  cannot get the confirmation. The owner can instead create an ordinary record on the
+  new host and send a package they hold: an export, a backup, or a device copy. The
+  host does not label such a record as a recovered fork yet (D267). If the old host
+  comes back, it may still take writes for the old record, so tell the people who use
+  it.
+
+## 10. Backups and restores
+
+The plan for backups and restores is D264.
+
+### 10.1 What to keep
 
 - **Directory mode:** the whole data folder. `host.sqlite` holds the people, records,
-  invitations, grants, and the receipt key. Each athlete folder holds a database and
-  its attachments.
+  invitations, grants, remembered answers, erasure notes, and the receipt key. Each
+  athlete folder holds a database and its attachments.
 - **Remote mode:** the directory database, every athlete database on the server, and
   the bucket. The host's data folder holds only working copies and staged uploads.
 
-Keep backups with credentials separate from the host's own (D264).
+Keep backups where the host's own credentials cannot change them (D264). For example,
+copy the backup folder to storage that only the backup job can write.
 
-### 9.2 Directory mode
+A file copy of a whole directory-mode data folder is consistent only when the host is
+stopped.
 
-- **Copy with the host stopped.** Stop the host, copy the data folder, and start it
-  again. With the process stopped, a file copy is consistent.
-- **Litestream.** The plan copies each athlete database continuously with
-  [Litestream](https://litestream.io/guides/directory/). Litestream needs to control
-  SQLite's checkpoints, and the library's own checkpoints and restores have not been
-  tested with it. The recipe is not published until build step 8 tests it. Do not
-  rely on Litestream for these databases before then.
-- **Package exports.** The plan adds a scheduled export of each athlete's complete
-  package. It is not built. Until then, the owner can download `GET /export`, and an
-  operator can run `ath export <folder>` with `ath` 2.1.3 inside an athlete's folder
-  (`<data>/athletes/<resource-id>/`). A package opens in any copy of `ath` and needs
-  no host.
+### 10.2 `ath-host backup`
 
-### 9.3 Remote mode
+```sh
+ath-host backup --config /etc/ath-host/ath-host.json --output /srv/ath-host-backups
+```
+
+- For each record that is active or frozen, the command exports the complete package.
+  It restores the package into an empty database in `staging/verify/` and runs the
+  database check. Only a package that passes is kept.
+- It writes `<output>/<athlete id>/<UTC time>-<first 12 characters of the digest>.zip`
+  and prints one line for each athlete: the athlete ID, the manifest digest, and the
+  file.
+- It works in both modes. In remote mode it reads attachments from the bucket, so it
+  needs the same secrets as the host. Give it its own data folder there (section 4.2).
+- Staged and retired records are skipped.
+- Run it on a schedule, such as a daily cron job or systemd timer. It never deletes an
+  older backup.
+- Each zip is a complete health record. The command writes files with the process's
+  default permissions. Make the output folder owner-only, or run the command with
+  `umask 077`.
+- Unzipped, a backup is an ordinary package folder. `ath import` restores it into an
+  empty database, and `PUT /v1/athletes/{id}/package` restores it on any host.
+
+### 10.3 `ath-host restore` (directory mode)
+
+```sh
+ath-host restore --config /etc/ath-host/ath-host.json \
+  --athlete ath_0123456789abcdef0123456789abcdef \
+  --package /srv/ath-host-backups/ath_0123456789abcdef0123456789abcdef/<file>.zip
+```
+
+1. Stop the host first. The command refuses while a host serves the data folder
+   ("stop ath-host before restoring: it is using this data folder").
+2. The command restores the package into a new folder, then puts it in place of the
+   athlete's folder. The replaced record stays beside it as
+   `athletes/<id>.replaced-<time>/` until you remove it.
+3. It applies again every erasure ever noted for that athlete, oldest first
+   (section 10.4). A record erased after the backup was made stays erased.
+4. It raises the access epoch, so a coach write that started before the restore
+   cannot commit after it (D262).
+5. It prints the database revision the record is now at.
+
+Restoring one athlete changes no other athlete. Grants live in the directory, so a
+restore neither brings back a revoked grant nor removes a newer one. In remote mode the
+command refuses; see section 10.5.
+
+### 10.4 Erasures
+
+- Before the host applies an erasure, it notes it in the directory. When the erasure
+  is done, it marks the note complete. A note holds the athlete ID, the record ID, the
+  reason, and the times. It holds no record values.
+- If the host stops in between, `serve` finishes the erasure when it next starts. It
+  logs "finished N erasure(s) that an earlier run did not complete".
+- `ath-host restore` applies every noted erasure for the athlete again.
+- An erasure cannot remove copies in backups that were made before it. A restore from
+  such a backup removes the record again, as long as the directory still holds the
+  note.
+
+### 10.5 Remote mode restores
 
 - **Provider restore.** Use the provider's restore of one database to an earlier
   moment. The host finds an athlete's database only by its name, `ath-<hex>`, so the
   restored database must end up under that name. Check how your provider does this
-  before you need it. Then restart every host copy, which deletes the working copies.
-  A copy that sees the server at an earlier revision also rebuilds itself.
+  before you need it.
+- **Erasures.** The host does not apply erasures again after a provider restore by
+  itself. Stop every host copy. In the directory database, mark the athlete's erasure
+  notes as unfinished. Start one host and wait for its log line about finished
+  erasures, then start the others. A host applies unfinished notes when it starts,
+  and starting also deletes the old working copies. This procedure follows from the
+  code and has not been run.
+
+  ```sql
+  UPDATE erasure_intents SET completed_at = NULL
+  WHERE resource_id = 'ath_0123456789abcdef0123456789abcdef';
+  ```
+
 - **The bucket.** Copy the bucket with the service's own tools. Some services keep no
   earlier versions of an object (section 5.5).
-- **Package exports.** The same as directory mode. The scheduled export is not built.
+- **Package backups.** `ath-host backup` works in remote mode (section 10.2).
 
-### 9.4 What a restore does not do yet
+### 10.6 Litestream
 
-The plan says a restore covers one athlete, starts isolated, and replays later
-erasures and revocations before it serves (D264). None of that is built.
+The plan copies each directory-mode athlete database continuously with
+[Litestream](https://litestream.io/guides/directory/) (D264). The recipe is not
+published, because it has not been run with the library. The host opens an athlete's
+database for each request, and the library runs a truncating checkpoint when it
+closes one. Litestream needs to control checkpoints itself. The plan asks the host to
+keep connections open while Litestream runs (spec section 6.8). That is not built. Do
+not rely on Litestream for these databases yet.
 
-- A restored copy brings back every record erased after the copy was made. Ask the
-  athlete to repeat those erasures. In directory mode, run `ath check` in the restored
-  athlete's folder.
-- Grants live in the directory. Restoring an athlete database does not bring back a
-  revoked grant. Restoring an older directory does.
-- Without the directory, the host cannot tell who owns which record, and it has no
-  command to rebuild that. A new directory also gets a new receipt key, so a request
-  retried across the change gets `409 request_conflict` instead of its first
-  result.
+### 10.7 What a restore does not cover
 
-### 9.5 Leaving a host
+- `ath-host backup` saves athletes' packages only, not the directory. Without the
+  directory, the host cannot tell who owns which record, and it has no command to
+  rebuild that. Back up the directory as well: in directory mode, copy `host.sqlite`
+  with the host stopped, or with SQLite's `.backup` command while it runs; in remote
+  mode, use the provider's backup of the directory database.
+- A new directory also gets a new receipt key. A request retried across that change
+  gets `409 request_conflict` instead of its first answer.
+- The host has no sessions of its own to end after a restore. Sign-in sessions belong
+  to the provider.
 
-The move protocol (D267) is not built. To leave a host today, the owner downloads the
-export, creates a record on the new host, and sends the package with
-`PUT /v1/athletes/{id}/package`. Changes made on the old host after the export do not
-move. Grants do not move; the athlete makes new offers. Coach IDs in old notes give
-no access at the new host (D255).
-
-## 10. Security and trust
+## 11. Security and trust
 
 - **Who can read records.** Whoever runs the host and its storage can read every
   record on it. Keys for each athlete would limit what a copied disk or backup
@@ -869,39 +1103,50 @@ no access at the new host (D255).
   and the bucket when the connection leaves a private network. Encryption of stored
   data is the storage provider's or the operator's.
 - **Credentials.** The configuration file holds no secret (section 3). Clients never
-  receive database or bucket credentials (D266). Invitation and offer codes are
-  stored only as SHA-256 hashes. The receipt key is made when the host first starts
-  and stays in the directory database.
+  receive database or bucket credentials (D266). Invitation codes, offer codes, and
+  move activation codes are stored only as SHA-256 hashes. The receipt key is made
+  when the host first starts and stays in the directory database.
 - **Tokens.** The host checks every token on every request. It never stores tokens.
   Short-lived access tokens from the provider limit the harm of a stolen one.
-- **Isolation.** Every athlete has a separate database, and a request names a
-  resource ID (D256). Owner routes open the database only after the access check.
-  Coach routes read the access epoch from the database first and then check the
-  grant, so a revocation in between is caught (D262). A caller with no relation to a
-  record gets the same `404 not_found` as for a record that does not exist.
-- **Logs.** The host writes to standard error. It logs one line when it starts, and
-  one line for each internal failure, with the step that failed and the error text.
-  It does not log requests, tokens, or request bodies. Error text can include file
-  paths.
-- **Files.** Keep the data folder owner-only (section 4.3). Staged uploads stay in
-  `staging/uploads/` after a record uses them (section 11).
+- **Isolation.** Every athlete has a separate database, and a request names an
+  athlete ID (D256). The host refuses an ID it could not have issued before the ID
+  reaches a file path or a database address. It checks the caller's relation to the
+  athlete before it reads the athlete's database. Coach routes then read the access
+  epoch and check the grant again, so a revocation in between is caught (D262). A
+  caller with no relation to a record gets the same `404 not_found` as for a record
+  that does not exist.
+- **Remembered answers.** The directory keeps the answer to each request sent with an
+  `Idempotency-Key` (section 7.1). Answers hold IDs, revisions, and grant details, not
+  record values.
+- **Logs.** The host writes to standard error. It logs the address it listens on when
+  it starts, and one line for each internal failure, with the step that failed and the
+  error text. It does not log requests, tokens, or request bodies. Error text can
+  include file paths.
+- **Files.** The host keeps the data folder at `0700` and `host.sqlite` at `0600`
+  (section 4.3). Backups are written with default permissions (section 10.2).
+- **Apps.** An owner has full owner rights through any app the host accepts, and the
+  host cannot disconnect one app (section 6.2).
 
-## 11. Limits
+## 12. Limits
 
 | Limit | Value |
 |---|---|
 | Request body | `body_bytes`, 64 MiB by default. The host holds an uploaded package, and a package it exports, in memory. Size the machine for the largest record. |
 | One attachment | 25 MiB, PNG, JPEG, WebP, or PDF. An upload can be larger than this; the record that names it is then refused. |
+| An upload | Removed one hour after it arrives, used or not. `serve` also removes every upload when it starts. |
 | Record list | `page_size`, 200 by default, oldest first, with no cursor. |
 | Workout summaries | `page_size` per page. The host reads at most 10,000 workouts for one list. |
-| `Idempotency-Key` | 1 to 200 characters. |
+| `Idempotency-Key` | 1 to 200 characters. The host keeps remembered answers and has no cleanup for them yet. |
 | Grant offer | 60 seconds to 30 days, 7 days by default. |
 | Invitation | 1 to 90 days, 7 days by default. |
-| Working copies | Deleted after `working_copy_idle_seconds` without use, 900 by default, and at every start. |
+| Working copies | Deleted after `working_copy_idle_seconds` without use, 900 by default, and when `serve` starts. |
 | Retries of a remote write | 3 attempts when another host copy wrote first. |
+| Remote commits | New rows in scripts of up to 500 statements or 1 MiB each. |
 
 Not built yet (spec section 6.10): limits on total upload bytes for each athlete, on
-job time, on concurrent jobs, and on temporary disk; expiry and cancellation of
-uploads; and a limit on how many records one person can create when enrollment is
-open. Staged uploads are never removed by the host. Remove files in
-`staging/uploads/` that are more than a day old.
+job time, on concurrent jobs, and on temporary disk; cancelling an upload; and a limit
+on how many records one person can create when enrollment is open.
+
+`host/tests/faults.rs` checks that a large job for one athlete does not delay a small
+write for another, in both modes, and that a failed remote commit leaves the server
+unchanged. These run with every `cargo test`.
