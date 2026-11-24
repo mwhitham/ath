@@ -295,10 +295,10 @@ Answer these questions in order.
 
 1. **Do you need anyone but the athlete to reach the record?** If not, use `ath` with
    a local file. You need no host.
-2. **Will one machine hold every record you expect?** Estimate each record's size
-   from your own data: the size of its `.ath.sqlite` file and `attachments/` folder. If one disk holds them all, the native
-   directory backend is the simplest choice. Add Litestream and a scheduled package
-   export.
+2. **Will one machine hold every record you expect?** Estimate each record's size from
+   your own data: the size of its `.ath.sqlite` file and `attachments/` folder. If one
+   disk holds them all, the native directory backend is the simplest choice. Add
+   Litestream and a scheduled package export.
 3. **Do you need more than one copy of the host running at once, or no disks to
    manage?** Use the libSQL remote backend. Choose a provider that has passed the
    qualification suite (D258), and put it in the same region as the host.

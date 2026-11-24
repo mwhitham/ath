@@ -1,6 +1,6 @@
 # v2.1.3 progress
 
-Status: **in progress; not released**. The plan is [spec.md](spec.md).
+Status: **built; not released**. Evidence: [release-evidence.md](appendix/release-evidence.md). The plan is [spec.md](spec.md).
 
 | Step | What | Status |
 |---|---|---|
@@ -12,8 +12,8 @@ Status: **in progress; not released**. The plan is [spec.md](spec.md).
 | 6 | Sign-in and grants | done; provider recipes in step 9 |
 | 7 | Remote mode with object storage and several host copies | done with a stand-in server; live run pending |
 | 8 | Moves and backups | done; Litestream recipe untested |
-| 9 | Clients, starter, `docs/hosting.md`, container and setup guide | not started |
-| 10 | Scale and fault runs, release evidence | not started |
+| 9 | Clients, starter, `docs/hosting.md`, container and setup guide | done; iOS and container not run |
+| 10 | Scale and fault runs, release evidence | done |
 
 The experiments in step 1 ran on 2.1.2 with synthetic data on one machine
 ([hosting-experiments.md](appendix/hosting-experiments.md)). No live provider, region,
@@ -80,3 +80,17 @@ Step 8 notes:
 - `host_api.rs` has an ignored qualification test that runs every scenario against a
   real libSQL server with two host copies and prints timings. It needs a server
   address and token in `ATH_QUALIFY_*` variables.
+
+Steps 9 and 10 notes:
+
+- The npm package exports `connectHost` and `HostError` (`packages/npm/src/host.ts`).
+  `examples/host-starter`, `examples/host-mcp`, and `examples/host-swift` are not
+  published.
+- `docs/hosting.md` is the guide for operators and app developers; `host/Dockerfile`
+  builds the host image.
+- Building the clients found a security bug, fixed before this step closed: coach
+  routes read storage before looking the athlete up, and athlete IDs reached storage
+  unchecked. IDs are now checked everywhere, and an unknown ID answers like an unshared
+  one.
+- The [release evidence](appendix/release-evidence.md) lists what passed, the timings,
+  what was not verified, and what 2.1.3 does not build.

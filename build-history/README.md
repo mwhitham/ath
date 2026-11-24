@@ -40,7 +40,7 @@ build-history/
 | [v2.1.0](v2.1.0/spec.md) | Released. This is the installed software until 2.1.1 is released. |
 | [v2.1.1](v2.1.1/spec.md) | Built, not yet released: the complete native rebuild. See its [decisions](v2.1.1/decisions.md), [progress](v2.1.1/progress.md), and [release evidence](v2.1.1/appendix/release-evidence.md). |
 | [v2.1.2](v2.1.2/spec.md) | Built, not released: calculation repairs, session effort, the CrossFit and HYROX coaching skills, and setup guidance in every skill. See its [decisions](v2.1.2/decisions.md) and [progress](v2.1.2/progress.md). |
-| [v2.1.3](v2.1.3/spec.md) | Planned: an optional host for sharing a record, coach authorship, and a storage interface with native and libSQL backends. See its [decisions](v2.1.3/decisions.md), [progress](v2.1.3/progress.md), and [storage study](v2.1.3/appendix/hosted-storage-options.md). |
+| [v2.1.3](v2.1.3/spec.md) | Built, not released: an optional host for sharing a record, coach authorship, and native and libSQL storage backends. See its [decisions](v2.1.3/decisions.md), [progress](v2.1.3/progress.md), [storage study](v2.1.3/appendix/hosted-storage-options.md), and [build evidence](v2.1.3/appendix/release-evidence.md). |
 
 ## Drafts that were not approved
 
