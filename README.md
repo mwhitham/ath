@@ -91,6 +91,8 @@ A program that works with a record on an `ath-host` server uses `connectHost` fr
 token. The host checks that person's grants on every request. The program never
 receives a database credential, and `openDatabase` still refuses database URLs.
 [`examples/host-starter/`](examples/host-starter/) runs a coach's steps with it.
+[`examples/host-mcp/`](examples/host-mcp/) is a small MCP server that reads workout
+summaries and adds coaching notes with it.
 
 ## Upgrade a database
 
