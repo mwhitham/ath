@@ -1,11 +1,16 @@
 [package]
 name = "athleticstandard"
-version = "2.1.2"
+version = "2.1.3"
 edition = "2021"
 rust-version = "1.95"
 description = "Athletic Standard: a local-first SQLite record of an athlete's training and recovery data"
 license = "MIT"
 publish = false
+
+[workspace]
+members = [".", "host"]
+default-members = [".", "host"]
+resolver = "2"
 
 [lib]
 name = "athleticstandard"
@@ -37,6 +42,15 @@ terminal_size = "0.4.4"
 ureq = "2.12"
 uuid = { version = "1.29", features = ["v7"] }
 zip = "2.2"
+
+[[test]]
+name = "replica"
+required-features = ["changesets"]
+
+[features]
+# Record the rows a write changes and replay them on another copy (D268).
+# Only the host program turns this on.
+changesets = []
 
 [profile.release]
 lto = "thin"

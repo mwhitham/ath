@@ -1,6 +1,6 @@
 {
   "contract": "athleticstandard-sql",
-  "sql_schema_version": 6,
+  "sql_schema_version": 7,
   "minimum_sqlite_version": "3.45.0",
   "user_version_mirror": {
     "description": "On local SQLite files, PRAGMA user_version equals database_metadata.sql_schema_version after creation.",
@@ -46,6 +46,11 @@
       "version": 6,
       "file": "migrations/006-version-2-1-2.sql",
       "description": "Upgrade the database to software version 2.1.2. Adds the nullable athlete_reports.workout_session_id link to a workout session. No existing row changes."
+    },
+    {
+      "version": 7,
+      "file": "migrations/007-version-2-1-3.sql",
+      "description": "Upgrade the database to software version 2.1.3. No athlete-owned table or column changes. Adds internal tables for the change log, host write receipts, and the access epoch."
     }
   ],
   "metadata_insert": {
@@ -56,7 +61,7 @@
     ],
     "header_pragmas": [
       "PRAGMA application_id = 1096042545;",
-      "PRAGMA user_version = 6;"
+      "PRAGMA user_version = 7;"
     ]
   },
   "file_header_pragmas": {
@@ -192,13 +197,21 @@
     "database_metadata",
     "record_erasure_markers",
     "record_import_keys",
-    "internal_pending_file_operations"
+    "internal_pending_file_operations",
+    "internal_change_log",
+    "internal_write_receipts",
+    "internal_access_state",
+    "internal_replication_log"
   ],
   "internal_table_notes": {
     "database_metadata": "Written once at creation and by each migration step. Holds the application marker, versions, database ID, and creation time.",
     "record_erasure_markers": "Written only by privacy erasure. Holds the value-free markers an erasure leaves.",
     "record_import_keys": "Written only by provider import. Holds provider matching keys, which are separate from record IDs.",
-    "internal_pending_file_operations": "Written only by the ath program, from SQL schema 5. Holds recovery state for attachment files that a SQL transaction cannot include: operation IDs, kinds, relative paths, and times. It holds no health values. It is not athlete-owned history and is never exported in a JSON package. Direct writers must not write it."
+    "internal_pending_file_operations": "Written only by the ath program, from SQL schema 5. Holds recovery state for attachment files that a SQL transaction cannot include: operation IDs, kinds, relative paths, and times. It holds no health values. It is not athlete-owned history and is never exported in a JSON package. Direct writers must not write it.",
+    "internal_change_log": "Maintained only by the triggers listed in internal_triggers, from SQL schema 7. Holds one row for each record revision, deletion, and erasure: the database revision that committed it, the record ID, the record revision (0 for an erasure), and the kind of change. It holds no health values and has no foreign keys. An erasure removes the record's earlier rows and leaves one erasure row, which names no revision. A restore into an empty database starts a new log. It is not athlete-owned history and is never exported in a JSON package. Direct writers must not write it; the triggers record their changes.",
+    "internal_write_receipts": "Written only by a host through the Athletic Standard library, from SQL schema 7. Holds one row for each accepted host write request: the signed-in person, the app, the request ID, the operation, a keyed digest of the request, the resulting IDs and revisions, the database revision, and the time. It holds no request body and no health values. It is never exported in a JSON package. Direct writers must not write it.",
+    "internal_access_state": "Written by migration step 7 and by a host through the Athletic Standard library. Holds one row with the access epoch, which revoking a grant raises. It is 0 in a database that never connected to a host. It is never exported in a JSON package. Direct writers must not write it.",
+    "internal_replication_log": "Written only by a host through the Athletic Standard library, from SQL schema 7, in a database the host keeps on a remote libSQL server. Holds one row for each committed write: the database revision it committed, the revision it started from, the changeset of the rows the write changed (JSON, in the order the write made them), and the time. A host uses it to bring another working copy up to date (D268). It holds earlier row values, so the trigger internal_replication_log_erasure deletes every row when a record is erased. On a local file it stays empty. It is never exported in a JSON package. Direct writers must not write it."
   },
   "collection_replacement": {
     "description": "On every create or correction, ordered child collections and link tables are replaced from the full payload. Delete existing child rows for the parent record_id, then insert the payload order. Omitted children are removed. An empty collection deletes all prior child rows.",
@@ -314,5 +327,11 @@
     "typed_row_record_type_matches_athlete_reports_insert",
     "point_measurements_require_source_insert",
     "prediction_result_links_revision_exists_insert"
+  ],
+  "internal_triggers": [
+    "internal_change_log_revision_insert",
+    "internal_change_log_deletion_insert",
+    "internal_change_log_erasure_insert",
+    "internal_replication_log_erasure"
   ]
 }
