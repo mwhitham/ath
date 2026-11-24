@@ -44,7 +44,6 @@ D83's native use of Zod and D93's local libSQL adapter.
 - **Sanitize validation evidence.** A public decision may state the rule and a rounded technical result. It must omit exact workout dates, routes, birth dates, travel clues, device inventories, and sample values from real exports.
 - **Build synthetic regressions.** Reproduce a real-data bug with the smallest invented case before committing it. Do not copy identifying values into a test.
 - **Prose (D24):** write the rule, then the reason. Short sentences. Ordinary words. No slogans, no metaphor used as if it were the rule, no antithesis wordplay (*an* vs *the*, "X is the pipe, Y is the document", "never a data upgrade"). Don't use "vibes", "bet", "scoreboard", "on-ramp", or "doctrine" as stand-ins for the actual idea. Named principles are allowed when they name a real rule ("two-tier wall", "the file is the database", "not an app, not a coach, not medical advice") — after the name, state the rule in ordinary words in the same paragraph.
-- **Chat:** talking to a person follows [`.cursor/rules/plain-english.mdc`](.cursor/rules/plain-english.mdc). One idea per sentence, the point before the reason, no shop talk, one numbered question at a time.
 - **SDNN and RMSSD are different statistics** (`hrv_sdnn` vs `hrv_rmssd`); never combine them in one baseline.
 
 ## Skills
