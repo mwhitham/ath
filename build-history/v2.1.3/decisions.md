@@ -427,3 +427,33 @@ Rejected alternatives:
 - Rebuild a stale working copy from scratch every time. Rejected as the only path
   because several host copies serving one athlete would each copy the whole database
   after every write by another copy. It remains the fallback when the log has a gap.
+
+## D269. A write's rows are recorded with temporary triggers
+
+`Store::capture` records each inserted, updated, and deleted row with temporary
+triggers on the writing connection. It does not use SQLite's session extension, which
+D268 named. A changeset is a JSON list of row changes in the order they were made.
+This supersedes D268 only on how rows are recorded. The rest of D268 stands.
+
+The session extension needs SQLite built with the pre-update hook, and the Rust
+binding then generates its bindings at build time with `bindgen` and `libclang`. That
+would add a C toolchain requirement to every build of the workspace, including the
+release builds for each platform. Temporary triggers need nothing beyond the SQLite
+the library already bundles.
+
+Temporary triggers also keep the exact order of the writes, so a replay needs no
+sorting by table. They live only on the connection that runs the write and only for
+that write. Their rows are in a temporary table, so a change rolled back inside the
+operation is rolled back from the record too.
+
+The capture sets `temp_store` to MEMORY first. A package restore sets that setting,
+and changing it deletes every temporary table and trigger. Setting it first makes the
+restore's change no change.
+
+Rejected alternatives:
+
+- The session extension. Rejected for the build requirement above, and because a
+  changeset groups changes by table, which the schema's checks do not always accept
+  in that order.
+- Diff the database before and after. Rejected because it reads every table for every
+  write.

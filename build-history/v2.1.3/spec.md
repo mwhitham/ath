@@ -126,10 +126,10 @@ complete package export replace the verified backup (D258).
 | Backend | Where the athlete database lives | How a write reaches it | Built into |
 |---|---|---|---|
 | Native | A local SQLite file, opened through bundled rusqlite. | The library writes it directly. | Every build. |
-| libSQL remote | A database on a server that speaks the libSQL protocol. | The library writes a local working copy. The host commits the changed rows to the server in one transaction. | `ath-host` only, behind its `libsql-remote` Cargo feature. |
+| libSQL remote | A database on a server that speaks the libSQL protocol. | The library writes a local working copy. The host commits the changed rows to the server in one transaction. | `ath-host` only. The `ath` CLI never links the libSQL client. |
 
 The library stays synchronous and keeps one code path. It gains a way to run a write
-while recording its changed rows with SQLite's session extension. That is behind the
+while recording its changed rows with temporary triggers (D269). That is behind the
 library's `changesets` Cargo feature, which only `ath-host` turns on. The CLI gains no
 network code and no dependency.
 
