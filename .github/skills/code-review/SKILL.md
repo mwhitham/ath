@@ -70,13 +70,13 @@ The approved agent interface is CLI plus Skill — not a local HTTP or MCP serve
 
 ### build-history integrity (`AGENTS.md`, `build-history/README.md`)
 
-`build-history/` is append-only. New decisions get new D-numbers in the current version’s `decisions.md`; do not rewrite earlier entries or add addendum files. Long research stays in `appendix/` and links from the D-number.
+`build-history/` is append-only. New decisions get new D-numbers in the current version’s `decisions.md`; do not rewrite earlier entries or add addendum files. Long research stays in `appendix/` and links from the D-number. `tests/decision_history.rs` rejects a rewrite, removal, duplicate, or gap in recorded D-numbers. A decision that is not in the base may still be revised.
 
 ## Medium-severity checks
 
 ### New decisions
 
-If the PR changes format, governance, migration behavior, public SQL/TS contracts, or other recorded policy, it should append a D-number with rejected alternatives per `build-history/README.md`. Flag policy encoded only in code or comments.
+If the PR changes format, governance, migration behavior, public SQL or npm contracts, or other recorded policy, it should append a D-number with rejected alternatives per `build-history/README.md`. Flag policy encoded only in code or comments.
 
 ### Impersonal repository (`AGENTS.md`, D123)
 

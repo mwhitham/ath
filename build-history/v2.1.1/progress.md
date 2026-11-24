@@ -117,3 +117,8 @@ Remaining:
 
 The installed implementation remains 2.1.0 until 2.1.1 is released.
 No package was published, and no release or tag was created.
+
+The engineering loop from [2.1.0 spec section 14](../v2.1.0/spec.md) landed after
+the cutover. The decision check is `tests/decision_history.rs`. Generated files
+remain on `tests/generated.rs` (D219). The Linux job in the quick check runs the
+decision check for a pull request. No new D-number. The record format is unchanged.
