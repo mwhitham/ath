@@ -747,6 +747,12 @@ for the `basic` scope.
 
 ## 7. API version 1
 
+The routes are described in OpenAPI 3.1 in
+[`schema/host-api/1/openapi.json`](../schema/host-api/1/openapi.json). The description
+is generated from the same Rust table the host builds its routes from, so it lists
+exactly the routes the host serves (D266, D271). Records and revisions in it point to
+the published package schemas in `schema/<version>/`.
+
 JavaScript and TypeScript programs can call these routes through `connectHost` in the
 npm package `athleticstandard`. [`examples/host-starter/`](../examples/host-starter/)
 runs a coach's steps with it, and [`examples/host-mcp/`](../examples/host-mcp/) is an
@@ -755,8 +761,10 @@ client for macOS and iOS apps that runs the same coach steps.
 
 ### 7.1 Conventions
 
-- Send JSON request bodies unless a route says otherwise. Unknown fields in a JSON
-  body are refused with `400 invalid`.
+- Send JSON request bodies unless a route says otherwise. Each JSON body is checked
+  against its shape in the API description before the host reads it. A body that does
+  not match, including one with an unknown field or an empty required text, gets
+  `400 invalid`.
 - An athlete ID in a path is `ath_` followed by 32 lowercase hexadecimal characters.
   Any other value gets `404 not_found` before the host looks anything up.
 - Who may call a route:
@@ -888,7 +896,6 @@ Section 9 explains the order of the steps.
 
 ### 7.8 Not in version 1 yet
 
-- A description of the API generated into `schema/host-api/1/` (D266).
 - Signed download links for attachments, and cancelling an upload.
 - A label for a record restored from a device copy when the source cannot be reached,
   which the plan calls a recovered fork (D267).

@@ -45,3 +45,16 @@ fn the_hosting_guide_examples_are_valid_configurations() {
     std::fs::remove_dir_all(&folder).unwrap();
     assert_eq!(kinds, vec!["directory", "libsql"]);
 }
+
+/// Section 7 of the guide lists every operation the host serves (D266).
+#[test]
+fn the_hosting_guide_lists_every_operation() {
+    let guide = std::fs::read_to_string(concat!(env!("CARGO_MANIFEST_DIR"), "/../docs/hosting.md")).unwrap();
+    for route in ath_host::operations::routes() {
+        let start = format!("`{} {}", route.operation.method, route.operation.path);
+        let listed = guide
+            .match_indices(&start)
+            .any(|(index, _)| matches!(guide[index + start.len()..].chars().next(), Some('`') | Some('?')));
+        assert!(listed, "docs/hosting.md does not list {start}`");
+    }
+}

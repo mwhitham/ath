@@ -22,24 +22,16 @@ use axum::body::Bytes;
 use axum::extract::{Path, State};
 use axum::http::{header, HeaderValue, StatusCode};
 use axum::response::{IntoResponse, Response};
-use axum::routing::{get, post};
-use axum::{Json, Router};
-use serde::Deserialize;
-use serde_json::{json, Value};
+use axum::Json;
+use serde_json::json;
 
 use crate::api::{body_json, export_zip, owner, Caller, Shared};
 use crate::directory::{new_code, Athlete};
 use crate::error::{ApiError, ApiResult};
-
-pub fn routes() -> Router<Shared> {
-    Router::new()
-        .route("/v1/athletes/{id}/move/freeze", post(freeze))
-        .route("/v1/athletes/{id}/move/abort", post(abort))
-        .route("/v1/athletes/{id}/move/retire", post(retire))
-        .route("/v1/athletes/{id}/move/activate", post(activate))
-        .route("/v1/athletes/{id}/move/recovery-copy", get(recovery_copy))
-        .route("/v1/transfers/{transfer_id}/verify", post(verify))
-}
+use crate::shapes::{
+    ActivateRequest, ActivatedRecord, FreezeRequest, FrozenRecord, ReopenedRecord, RetiredRecord, TransferRequest,
+    VerifiedTransfer, VerifyRequest,
+};
 
 fn internal(error: crate::db::DbError) -> ApiError {
     ApiError::internal("directory", error)
@@ -56,24 +48,17 @@ async fn owned_any_state(state: &Shared, caller: &Caller, id: &str) -> ApiResult
     Ok(athlete)
 }
 
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct FreezeRequest {
-    /// The destination host's public address.
-    destination: String,
-}
-
-async fn freeze(
+pub(crate) async fn freeze(
     State(state): State<Shared>,
     caller: Caller,
     Path(id): Path<String>,
     body: Bytes,
-) -> ApiResult<Json<Value>> {
+) -> ApiResult<Json<FrozenRecord>> {
     let athlete = owner(&state, &caller, &id).await?;
     let request: FreezeRequest = body_json(&body)?;
     if let Some(open) = state.directory.open_transfer_for(&id).await.map_err(internal)? {
         if open.direction == "outgoing" && open.state == "frozen" {
-            return Ok(Json(json!({ "transfer_id": open.transfer_id, "manifest_digest": open.manifest_digest })));
+            return Ok(Json(FrozenRecord { transfer_id: open.transfer_id, manifest_digest: open.manifest_digest }));
         }
     }
     if athlete.state != "active"
@@ -96,21 +81,15 @@ async fn freeze(
         .await
         .map_err(internal)?;
     state.directory.update_transfer(&transfer_id, "frozen", "frozen", Some(&digest), None).await.map_err(internal)?;
-    Ok(Json(json!({ "transfer_id": transfer_id, "manifest_digest": digest })))
+    Ok(Json(FrozenRecord { transfer_id, manifest_digest: Some(digest) }))
 }
 
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct TransferRequest {
-    transfer_id: String,
-}
-
-async fn abort(
+pub(crate) async fn abort(
     State(state): State<Shared>,
     caller: Caller,
     Path(id): Path<String>,
     body: Bytes,
-) -> ApiResult<Json<Value>> {
+) -> ApiResult<Json<ReopenedRecord>> {
     owned_any_state(&state, &caller, &id).await?;
     let request: TransferRequest = body_json(&body)?;
     let transfer = state.directory.transfer(&request.transfer_id).await.map_err(internal)?;
@@ -126,15 +105,15 @@ async fn abort(
         return Err(ApiError::stale("This move can no longer be stopped: the source has retired its writer"));
     }
     state.directory.set_athlete_state(&id, "frozen", "active").await.map_err(internal)?;
-    Ok(Json(json!({ "state": "active" })))
+    Ok(Json(ReopenedRecord { state: "active".to_string() }))
 }
 
-async fn retire(
+pub(crate) async fn retire(
     State(state): State<Shared>,
     caller: Caller,
     Path(id): Path<String>,
     body: Bytes,
-) -> ApiResult<Json<Value>> {
+) -> ApiResult<Json<RetiredRecord>> {
     owned_any_state(&state, &caller, &id).await?;
     let request: TransferRequest = body_json(&body)?;
     let transfer = state
@@ -159,21 +138,15 @@ async fn retire(
     }
     let activation = new_code();
     state.directory.set_activation(&transfer.transfer_id, &activation).await.map_err(internal)?;
-    Ok(Json(
-        json!({ "transfer_id": transfer.transfer_id, "activation": activation, "manifest_digest": transfer.manifest_digest }),
-    ))
-}
-
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct VerifyRequest {
-    activation: String,
-    destination: String,
-    manifest_digest: String,
+    Ok(Json(RetiredRecord { transfer_id: transfer.transfer_id, activation, manifest_digest: transfer.manifest_digest }))
 }
 
 /// Called by the destination host. The code is the only credential; it is used once.
-async fn verify(State(state): State<Shared>, Path(transfer_id): Path<String>, body: Bytes) -> ApiResult<Json<Value>> {
+pub(crate) async fn verify(
+    State(state): State<Shared>,
+    Path(transfer_id): Path<String>,
+    body: Bytes,
+) -> ApiResult<Json<VerifiedTransfer>> {
     let request: VerifyRequest = body_json(&body)?;
     let used = state
         .directory
@@ -188,24 +161,15 @@ async fn verify(State(state): State<Shared>, Path(transfer_id): Path<String>, bo
     if !used {
         return Err(ApiError::not_found());
     }
-    Ok(Json(json!({ "verified": true })))
+    Ok(Json(VerifiedTransfer { verified: true }))
 }
 
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct ActivateRequest {
-    /// The source host's public address.
-    source: String,
-    transfer_id: String,
-    activation: String,
-}
-
-async fn activate(
+pub(crate) async fn activate(
     State(state): State<Shared>,
     caller: Caller,
     Path(id): Path<String>,
     body: Bytes,
-) -> ApiResult<Json<Value>> {
+) -> ApiResult<Json<ActivatedRecord>> {
     let athlete = owned_any_state(&state, &caller, &id).await?;
     if athlete.state != "staged" {
         return Err(ApiError::stale("Only a staged incoming record can be activated"));
@@ -235,11 +199,15 @@ async fn activate(
         .record_transfer(&request.transfer_id, &id, "incoming", None, "activated")
         .await
         .map_err(internal)?;
-    Ok(Json(json!({ "state": "active", "manifest_digest": digest })))
+    Ok(Json(ActivatedRecord { state: "active".to_string(), manifest_digest: digest }))
 }
 
 /// The owner's copy of a retired record, until cleanup (D267).
-async fn recovery_copy(State(state): State<Shared>, caller: Caller, Path(id): Path<String>) -> ApiResult<Response> {
+pub(crate) async fn recovery_copy(
+    State(state): State<Shared>,
+    caller: Caller,
+    Path(id): Path<String>,
+) -> ApiResult<Response> {
     let athlete = owned_any_state(&state, &caller, &id).await?;
     if athlete.state != "retired" {
         return Err(ApiError::stale("Use the export for a record that is not retired"));

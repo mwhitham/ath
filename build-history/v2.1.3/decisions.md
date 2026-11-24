@@ -499,3 +499,41 @@ Rejected alternatives:
 - Require the owner to approve every new app before first use. Rejected because the
   provider already asks the person to approve the app at sign-in. A second approval
   would need an approval screen in an app that is already connected.
+
+## D271. The API description is OpenAPI 3.1, built from one operation table
+
+This carries out D266. `host/src/operations.rs` lists every operation once: its method,
+path, caller, query parameters, bodies, success status, and retry rule, with its
+handler. The host builds its router from that table, and the generator builds
+`schema/host-api/1/openapi.json` from the same table. An operation cannot be served
+without being described.
+
+Each request and response body is one Rust type with a published shape, declared with
+the library's `model_object!` in `host/src/shapes.rs`. Handlers read and return those
+types. Each JSON request body is checked against its shape before the host reads it,
+so the description is also the rule the host enforces. A body that does not match
+gets `400 invalid`.
+
+The description is OpenAPI 3.1, because its schemas are JSON Schema draft 2020-12,
+the same draft as the published record schemas. Records and revisions are not copied
+into it. They point to the published package and measurement-series schemas of the
+current record format, by relative path. The library's JSON Schema writer gained
+`Components`, which writes several shapes into one document and turns each named
+shape into a reference. The published record schemas come out byte for byte the same.
+
+Three checks keep the description true. `cargo test --test generated` compares it
+with the committed copy. Like the current record schemas, it is a generated file, so
+`tests/published_files.rs` does not pin its bytes until 2.1.3 is released. The host tests check every reply against the shape the
+description gives for its operation, with the library's validator. A guide test checks
+that `docs/hosting.md` lists every operation.
+
+Rejected alternatives:
+
+- Derive the description with an OpenAPI crate such as `utoipa`. Rejected because it
+  would add a second schema system beside the library's model shapes, and the record
+  shapes already have a published JSON Schema.
+- Write the description by hand. Rejected because it drifts from the routes, which is
+  what D266 rules out.
+- Copy the record schemas into the description. Rejected because it would publish a
+  second copy of more than 16,000 lines of record schema that could disagree with the
+  first.

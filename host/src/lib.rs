@@ -7,11 +7,14 @@ pub mod auth;
 pub mod backup;
 pub mod config;
 pub mod db;
+pub mod description;
 pub mod directory;
 pub mod error;
 pub mod moves;
 pub mod objects;
+pub mod operations;
 pub mod package_zip;
+pub mod shapes;
 pub mod storage;
 
 use std::sync::Arc;

@@ -4,7 +4,7 @@
 //! authorship (D255).
 
 use athleticstandard::store::replica::SqlValue;
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use sha2::{Digest, Sha256};
 
 use crate::db::{first_integer, text, Db, DbError, DbResult, Row};
@@ -96,14 +96,8 @@ CREATE TABLE IF NOT EXISTS transfers (
 ) STRICT;
 ";
 
-/// The three grants (D262).
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
-#[serde(rename_all = "snake_case")]
-pub enum Permission {
-    ReadWorkoutSummaries,
-    AddCoachNotes,
-    AddProgramming,
-}
+use crate::shapes::PendingOffer;
+pub use crate::shapes::Permission;
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Principal {
@@ -878,7 +872,7 @@ impl Directory {
 
     /// Grant offers for one athlete that nobody accepted yet. The offer ID is the hash
     /// of its code; the code itself is shown only once.
-    pub async fn pending_offers(&self, resource_id: &str) -> DbResult<Vec<serde_json::Value>> {
+    pub async fn pending_offers(&self, resource_id: &str) -> DbResult<Vec<PendingOffer>> {
         let rows = self
             .db
             .query(
@@ -889,15 +883,13 @@ impl Directory {
             .await?;
         Ok(rows
             .iter()
-            .map(|row| {
-                serde_json::json!({
-                    "offer_id": get_text(row, 0),
-                    "permissions": parse_permissions(&get_text(row, 1)),
-                    "client_id": get_text(row, 2),
-                    "coach_label": get_opt(row, 3),
-                    "created_at": get_text(row, 4),
-                    "expires_at": get_text(row, 5),
-                })
+            .map(|row| PendingOffer {
+                offer_id: get_text(row, 0),
+                permissions: parse_permissions(&get_text(row, 1)),
+                client_id: get_text(row, 2),
+                coach_label: get_opt(row, 3),
+                created_at: get_text(row, 4),
+                expires_at: get_text(row, 5),
             })
             .collect())
     }

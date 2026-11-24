@@ -274,7 +274,8 @@ Stable error codes: expired sign-in, missing permission, disconnected app (D270)
 unknown resource, stale revision, request-ID conflict, host moving, limit reached.
 
 The description is generated from the Rust definitions into `schema/host-api/1/`, and
-`cargo test --test generated` checks it (D266).
+`cargo test --test generated` checks it (D266). It is OpenAPI 3.1, built from the same
+operation table as the router (D271).
 
 ### 6.6 Device refresh (D263)
 

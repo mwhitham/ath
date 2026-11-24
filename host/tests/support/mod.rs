@@ -213,11 +213,47 @@ pub fn call(method: &str, url: &str, token: &str, body: Option<Value>, key: Opti
         Some(body) => request.send_json(body),
         None => request.call(),
     };
-    reply(response)
+    described(method, url, reply(response))
 }
 
 pub fn send_bytes(method: &str, url: &str, token: &str, bytes: &[u8]) -> Reply {
-    reply(ureq::request(method, url).set("Authorization", &format!("Bearer {token}")).send_bytes(bytes))
+    described(
+        method,
+        url,
+        reply(ureq::request(method, url).set("Authorization", &format!("Bearer {token}")).send_bytes(bytes)),
+    )
+}
+
+/// Check a reply against the API description (D266): a success has the status and
+/// body shape the operation names, and an error has the error shape. Every test
+/// request is checked, so the description is tested against what the host sends.
+fn described(method: &str, url: &str, reply: Reply) -> Reply {
+    use ath_host::operations::{routes, Body};
+    use athleticstandard::model::Shape;
+    let path = url.split_once("://").map(|(_, rest)| rest).unwrap_or(url);
+    let path = &path[path.find('/').unwrap_or(path.len())..];
+    let path = path.split('?').next().unwrap_or(path);
+    let route = routes().into_iter().find(|route| {
+        route.operation.method == method && {
+            let template: Vec<&str> = route.operation.path.split('/').collect();
+            let actual: Vec<&str> = path.split('/').collect();
+            template.len() == actual.len() && template.iter().zip(&actual).all(|(t, a)| t.starts_with('{') || t == a)
+        }
+    });
+    if reply.status >= 400 {
+        if let Err(error) = ath_host::shapes::ErrorBody::schema().validate(&reply.json) {
+            panic!("{method} {path}: the error body does not match the description: {error}\n{}", reply.json);
+        }
+        return reply;
+    }
+    let route = route.unwrap_or_else(|| panic!("{method} {path} is not in the API description"));
+    assert_eq!(reply.status, route.operation.status, "{method} {path}: the described success status");
+    if let Body::Json { schema, .. } = route.operation.response {
+        if let Err(error) = schema().validate(&reply.json) {
+            panic!("{method} {path}: the reply does not match the description: {error}\n{}", reply.json);
+        }
+    }
+    reply
 }
 
 fn reply(response: Result<ureq::Response, ureq::Error>) -> Reply {

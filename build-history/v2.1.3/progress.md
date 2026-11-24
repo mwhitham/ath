@@ -102,3 +102,9 @@ After step 10:
   the access epoch, and owner writes now carry the epoch guard that coach writes use.
   A guarded write in remote mode now retries after a revision conflict; the retry
   checks the epoch again first.
+- The API description is generated into `schema/host-api/1/openapi.json` (D266,
+  D271). The router and the description come from one operation table, and request
+  bodies are checked against their published shapes. The description was not run
+  through an outside OpenAPI linter: downloading one was not allowed in this build
+  environment. Its references are checked by a test, and every test reply is checked
+  against it.

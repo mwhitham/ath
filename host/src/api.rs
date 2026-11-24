@@ -25,7 +25,6 @@ use axum::http::request::Parts;
 use axum::http::{header, HeaderMap, HeaderValue, Method, StatusCode};
 use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
-use axum::routing::{delete, get, post, put};
 use axum::{Json, Router};
 use serde::Deserialize;
 use serde_json::{json as j, Value};
@@ -33,8 +32,9 @@ use sha2::{Digest, Sha256};
 
 use crate::auth::Verifier;
 use crate::config::Config;
-use crate::directory::{hex, now, AppConnection, Athlete, Directory, Disconnection, Grant, Permission, Principal};
+use crate::directory::{hex, now, Athlete, Directory, Disconnection, Grant, Permission, Principal};
 use crate::error::{ApiError, ApiResult};
+use crate::shapes::{self, AppView, GrantView, WriteResult};
 use crate::storage::Storage;
 
 pub struct AppState {
@@ -50,35 +50,11 @@ pub type Shared = Arc<AppState>;
 
 pub fn router(state: Shared) -> Router {
     let body_limit = state.config.limits.body_bytes;
-    Router::new()
-        .route("/.well-known/oauth-protected-resource", get(protected_resource))
-        .route("/v1/capabilities", get(capabilities))
-        .route("/v1/me", get(me))
-        .route("/v1/athletes", get(list_athletes).post(create_athlete))
-        .route("/v1/athletes/{id}", get(athlete_summary))
-        .route("/v1/athletes/{id}/package", put(put_package))
-        .route("/v1/athletes/{id}/export", get(export))
-        .route("/v1/athletes/{id}/changes", get(changes))
-        .route("/v1/athletes/{id}/records", get(list_records).post(create_record))
-        .route("/v1/athletes/{id}/records/{record_id}", get(get_record))
-        .route("/v1/athletes/{id}/records/{record_id}/corrections", post(correct_record))
-        .route("/v1/athletes/{id}/records/{record_id}/deletion", post(delete_record))
-        .route("/v1/athletes/{id}/records/{record_id}/erasure", post(erase))
-        .route("/v1/athletes/{id}/uploads", post(upload))
-        .route("/v1/athletes/{id}/attachments/{record_id}", get(download_attachment))
-        .route("/v1/athletes/{id}/grant-offers", post(create_grant_offer))
-        .route("/v1/athletes/{id}/grants", get(list_grants))
-        .route("/v1/athletes/{id}/grants/{grant_id}", delete(revoke_grant))
-        .route("/v1/grant-offers/accept", post(accept_grant_offer))
-        .route("/v1/roster", get(roster))
-        .route("/v1/athletes/{id}/workouts", get(workout_summaries))
-        .route("/v1/athletes/{id}/notes", post(add_note))
-        .route("/v1/athletes/{id}/programs", post(add_program))
-        .route("/v1/athletes/{id}/grant-offers/pending", get(pending_offers))
-        .route("/v1/athletes/{id}/grant-offers/{offer_id}", delete(cancel_offer))
-        .route("/v1/athletes/{id}/apps", get(list_apps))
-        .route("/v1/athletes/{id}/apps/{client_id}", put(connect_app).delete(disconnect_app))
-        .merge(crate::moves::routes())
+    let mut router = Router::new();
+    for route in crate::operations::routes() {
+        router = router.route(route.operation.path, route.handler);
+    }
+    router
         .fallback(|| async { ApiError::new(StatusCode::NOT_FOUND, "not_found", "There is no such route") })
         .layer(axum::middleware::from_fn_with_state(state.clone(), idempotent))
         .layer(axum::middleware::from_fn_with_state(state.clone(), sign_in_challenge))
@@ -136,7 +112,7 @@ async fn idempotent(State(state): State<Shared>, request: Request, next: Next) -
     let method = request.method().clone();
     let path = request.uri().path().to_string();
     let changes = method == Method::POST || method == Method::PUT || method == Method::DELETE;
-    let excluded = path.starts_with("/v1/transfers/") || path.contains("/move/") || path.ends_with("/grant-offers");
+    let excluded = not_remembered(&path);
     let key = request
         .headers()
         .get("idempotency-key")
@@ -207,6 +183,12 @@ async fn idempotent(State(state): State<Shared>, request: Request, next: Next) -
         }
     }
     Response::from_parts(parts, axum::body::Body::from(body))
+}
+
+/// Writes whose answers carry one-time codes, so a repeat is not answered from memory:
+/// grant offers and move steps (`Key::NotRemembered` in the operation table).
+fn not_remembered(path: &str) -> bool {
+    path.starts_with("/v1/transfers/") || path.contains("/move/") || path.ends_with("/grant-offers")
 }
 
 // ---- The caller -------------------------------------------------------------
@@ -420,7 +402,7 @@ async fn write_with_receipt(
     receipt: WriteReceipt,
     attachments: Vec<PathBuf>,
     build: impl Fn(&Store) -> athleticstandard::Result<Changes> + Send + Sync + 'static,
-) -> ApiResult<Value> {
+) -> ApiResult<WriteResult> {
     let outcome = state
         .storage
         .write(resource_id, guard_epoch, move |store, epoch| {
@@ -451,7 +433,9 @@ async fn write_with_receipt(
         })
         .await?;
     match outcome {
-        Outcome::Done(value) => Ok(value),
+        Outcome::Done(value) => {
+            serde_json::from_value(value).map_err(|error| ApiError::internal("reading a write result", error))
+        }
         Outcome::Conflict => Err(ApiError::request_conflict()),
     }
 }
@@ -490,8 +474,9 @@ fn decode(record_type: RecordType, data: &Value) -> ApiResult<RecordData> {
     RecordData::decode(record_type, &from_json(data)?).map_err(|error| ApiError::invalid(error.to_string()))
 }
 
-pub(crate) fn body_json<T: serde::de::DeserializeOwned>(body: &[u8]) -> ApiResult<T> {
-    serde_json::from_slice(body).map_err(|error| ApiError::invalid(format!("The request body is not valid: {error}")))
+/// A JSON request body, checked against its published shape (D266).
+pub(crate) fn body_json<T: athleticstandard::model::Shape + serde::de::DeserializeOwned>(body: &[u8]) -> ApiResult<T> {
+    shapes::read(body).map_err(ApiError::invalid)
 }
 
 fn coach_author(caller: &Caller, grant: &Grant) -> Value {
@@ -520,62 +505,51 @@ fn staged_upload(state: &AppState, resource_id: &str, upload_id: &str) -> ApiRes
 
 // ---- Discovery -------------------------------------------------------------------
 
-async fn protected_resource(State(state): State<Shared>) -> Json<Value> {
-    Json(j!({
-        "resource": state.config.public_url,
-        "authorization_servers": [state.verifier.issuer()],
-        "bearer_methods_supported": ["header"],
-        "resource_name": "Athletic Standard host",
-    }))
+pub(crate) async fn protected_resource(State(state): State<Shared>) -> Json<shapes::ProtectedResource> {
+    Json(shapes::ProtectedResource {
+        resource: state.config.public_url.clone(),
+        authorization_servers: vec![state.verifier.issuer().to_string()],
+        bearer_methods_supported: vec!["header".to_string()],
+        resource_name: "Athletic Standard host".to_string(),
+    })
 }
 
-async fn capabilities(State(state): State<Shared>) -> Json<Value> {
-    Json(j!({
-        "api_version": 1,
-        "athleticstandard_version": athleticstandard::model::package::ATHLETIC_STANDARD_VERSION,
-        "storage": if state.storage.is_remote() { "libsql" } else { "directory" },
-        "permissions": ["read_workout_summaries", "add_coach_notes", "add_programming"],
-        "operator_disclosure": state.config.operator_disclosure,
-        "open_enrollment": state.config.open_enrollment,
-    }))
+pub(crate) async fn capabilities(State(state): State<Shared>) -> Json<shapes::Capabilities> {
+    Json(shapes::Capabilities {
+        api_version: 1,
+        athleticstandard_version: athleticstandard::model::package::ATHLETIC_STANDARD_VERSION.to_string(),
+        storage: if state.storage.is_remote() { "libsql" } else { "directory" }.to_string(),
+        permissions: Permission::ALL.to_vec(),
+        operator_disclosure: state.config.operator_disclosure.clone(),
+        open_enrollment: state.config.open_enrollment,
+    })
 }
 
-async fn me(State(state): State<Shared>, caller: Caller) -> ApiResult<Json<Value>> {
+pub(crate) async fn me(State(state): State<Shared>, caller: Caller) -> ApiResult<Json<shapes::Me>> {
     let owned = state
         .directory
         .athletes_owned_for_app(&caller.principal.principal_id, &caller.client_id)
         .await
         .map_err(|e| ApiError::internal("directory", e))?;
-    Ok(Json(j!({
-        "principal_id": caller.principal.principal_id,
-        "client_id": caller.client_id,
-        "coach_id": caller.principal.coach_id,
-        "athletes": owned.iter().map(|athlete| athlete.resource_id.clone()).collect::<Vec<_>>(),
-    })))
+    Ok(Json(shapes::Me {
+        principal_id: caller.principal.principal_id.clone(),
+        client_id: caller.client_id.clone(),
+        coach_id: caller.principal.coach_id.clone(),
+        athletes: owned.iter().map(|athlete| athlete.resource_id.clone()).collect(),
+    }))
 }
 
 // ---- Owner: records -----------------------------------------------------------------
 
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct NewAthlete {
-    #[serde(default)]
-    display_name: Option<String>,
-    #[serde(default)]
-    invitation: Option<String>,
-    /// A record arriving from another host: it accepts its package and stays hidden
-    /// until the move activates it (D267).
-    #[serde(default)]
-    incoming: bool,
-}
-
-async fn create_athlete(
+pub(crate) async fn create_athlete(
     State(state): State<Shared>,
     caller: Caller,
     body: Bytes,
-) -> ApiResult<(StatusCode, Json<Value>)> {
-    let request: NewAthlete = if body.is_empty() {
-        NewAthlete { display_name: None, invitation: None, incoming: false }
+) -> ApiResult<(StatusCode, Json<shapes::CreatedAthlete>)> {
+    // A record arriving from another host (`incoming`) accepts only its package and
+    // stays hidden until the move activates it (D267).
+    let request: shapes::NewAthleteRequest = if body.is_empty() {
+        shapes::NewAthleteRequest { display_name: None, invitation: None, incoming: None }
     } else {
         body_json(&body)?
     };
@@ -595,7 +569,7 @@ async fn create_athlete(
         .create_athlete_in(
             &caller.principal.principal_id,
             request.display_name.as_deref(),
-            if request.incoming { "staged" } else { "active" },
+            if request.incoming == Some(true) { "staged" } else { "active" },
         )
         .await
         .map_err(|e| ApiError::internal("directory", e))?;
@@ -604,49 +578,63 @@ async fn create_athlete(
     owner_app(&state, &caller, &athlete.resource_id).await?;
     Ok((
         StatusCode::CREATED,
-        Json(
-            j!({ "athlete_id": athlete.resource_id, "database_revision": revision, "operator_disclosure": state.config.operator_disclosure }),
-        ),
+        Json(shapes::CreatedAthlete {
+            athlete_id: athlete.resource_id,
+            database_revision: revision,
+            operator_disclosure: state.config.operator_disclosure.clone(),
+        }),
     ))
 }
 
-async fn list_athletes(State(state): State<Shared>, caller: Caller) -> ApiResult<Json<Value>> {
+pub(crate) async fn list_athletes(State(state): State<Shared>, caller: Caller) -> ApiResult<Json<shapes::AthleteList>> {
     let owned = state
         .directory
         .athletes_owned_for_app(&caller.principal.principal_id, &caller.client_id)
         .await
         .map_err(|e| ApiError::internal("directory", e))?;
-    Ok(Json(
-        j!({ "athletes": owned.iter().map(|a| j!({ "athlete_id": a.resource_id, "display_name": a.display_name, "state": a.state })).collect::<Vec<_>>() }),
-    ))
+    Ok(Json(shapes::AthleteList {
+        athletes: owned
+            .into_iter()
+            .map(|athlete| shapes::AthleteEntry {
+                athlete_id: athlete.resource_id,
+                display_name: athlete.display_name,
+                state: athlete.state,
+            })
+            .collect(),
+    }))
 }
 
-async fn athlete_summary(
+pub(crate) async fn athlete_summary(
     State(state): State<Shared>,
     caller: Caller,
     Path(id): Path<String>,
-) -> ApiResult<Json<Value>> {
+) -> ApiResult<Json<shapes::AthleteSummary>> {
     let relation = relation(&state, &caller, &id).await?;
     let (athlete, role) = match &relation {
         Relation::Owner(athlete) => (athlete, "owner"),
         Relation::Coach(athlete, _) => (athlete, "coach"),
     };
-    let mut summary = j!({ "athlete_id": athlete.resource_id, "role": role, "state": athlete.state, "operator_disclosure": state.config.operator_disclosure });
+    let mut summary = shapes::AthleteSummary {
+        athlete_id: athlete.resource_id.clone(),
+        role: role.to_string(),
+        state: athlete.state.clone(),
+        operator_disclosure: state.config.operator_disclosure.clone(),
+        database_revision: None,
+    };
     if let Relation::Owner(_) = relation {
-        let revision = state.storage.read(&id, |store| store.database_revision()).await?;
-        summary["database_revision"] = j!(revision);
+        summary.database_revision = Some(state.storage.read(&id, |store| store.database_revision()).await?);
     }
     Ok(Json(summary))
 }
 
 /// Connect an existing record: restore a complete package (a zip of the package
 /// folder) into an athlete's empty record.
-async fn put_package(
+pub(crate) async fn put_package(
     State(state): State<Shared>,
     caller: Caller,
     Path(id): Path<String>,
     body: Bytes,
-) -> ApiResult<Json<Value>> {
+) -> ApiResult<Json<shapes::DatabaseRevision>> {
     let (athlete, epoch) = owner_write(&state, &caller, &id).await?;
     if athlete.state == "frozen" {
         return Err(ApiError::moving());
@@ -668,10 +656,10 @@ async fn put_package(
         })
         .await;
     let _ = std::fs::remove_dir_all(&folder);
-    Ok(Json(j!({ "database_revision": result? })))
+    Ok(Json(shapes::DatabaseRevision { database_revision: result? }))
 }
 
-async fn export(State(state): State<Shared>, caller: Caller, Path(id): Path<String>) -> ApiResult<Response> {
+pub(crate) async fn export(State(state): State<Shared>, caller: Caller, Path(id): Path<String>) -> ApiResult<Response> {
     owner(&state, &caller, &id).await?;
     let (bytes, digest) = export_zip(&state, &id).await?;
     let mut response = (StatusCode::OK, bytes).into_response();
@@ -706,46 +694,52 @@ pub async fn export_zip(state: &AppState, id: &str) -> ApiResult<(Vec<u8>, Strin
     packed
 }
 
-#[derive(Deserialize)]
-struct Since {
+/// Query parameters. Their names are listed in `operations.rs`; a test checks them.
+#[derive(Deserialize, serde::Serialize, Default)]
+pub(crate) struct Since {
     since: u64,
 }
 
-async fn changes(
+pub(crate) async fn changes(
     State(state): State<Shared>,
     caller: Caller,
     Path(id): Path<String>,
     Query(since): Query<Since>,
-) -> ApiResult<Json<Value>> {
+) -> ApiResult<Json<shapes::ChangeList>> {
     owner(&state, &caller, &id).await?;
     let found = state.storage.read(&id, move |store| store.changes_since(since.since)).await?;
-    Ok(Json(j!({
-        "from": found.from,
-        "to": found.to,
-        "complete": found.complete,
-        "changes": found.changes.iter().map(|change| j!({
-            "database_revision": change.database_revision,
-            "record_id": change.record_id,
-            "record_revision": change.record_revision,
-            "kind": change.kind,
-        })).collect::<Vec<_>>(),
-    })))
+    Ok(Json(shapes::ChangeList {
+        from: found.from,
+        to: found.to,
+        complete: found.complete,
+        changes: found
+            .changes
+            .into_iter()
+            .map(|change| shapes::LoggedChange {
+                database_revision: change.database_revision,
+                record_id: change.record_id,
+                record_revision: change.record_revision,
+                kind: change.kind,
+            })
+            .collect(),
+    }))
 }
 
-#[derive(Deserialize)]
-struct ListQuery {
+/// Query parameters. Their names are listed in `operations.rs`; a test checks them.
+#[derive(Deserialize, serde::Serialize, Default)]
+pub(crate) struct ListQuery {
     #[serde(default)]
     record_type: Option<String>,
     #[serde(default)]
     limit: Option<u32>,
 }
 
-async fn list_records(
+pub(crate) async fn list_records(
     State(state): State<Shared>,
     caller: Caller,
     Path(id): Path<String>,
     Query(query): Query<ListQuery>,
-) -> ApiResult<Json<Value>> {
+) -> ApiResult<Json<shapes::RecordList>> {
     owner(&state, &caller, &id).await?;
     let record_type = match &query.record_type {
         Some(name) => {
@@ -758,51 +752,42 @@ async fn list_records(
         .storage
         .read(&id, move |store| store.list_records(&ListOptions { record_type, include_deleted: false, limit }))
         .await?;
-    Ok(Json(j!({ "records": records.iter().map(|record| to_json(&record.to_value())).collect::<Vec<_>>() })))
+    Ok(Json(shapes::RecordList { records: records.iter().map(|record| to_json(&record.to_value())).collect() }))
 }
 
-async fn get_record(
+pub(crate) async fn get_record(
     State(state): State<Shared>,
     caller: Caller,
     Path((id, record_id)): Path<(String, String)>,
-) -> ApiResult<Json<Value>> {
+) -> ApiResult<Json<shapes::RecordWithHistory>> {
     owner(&state, &caller, &id).await?;
     let lookup = record_id.clone();
     let (record, revisions) =
         state.storage.read(&id, move |store| Ok((store.get_record(&lookup)?, store.revisions(&lookup)?))).await?;
     let record = record.ok_or_else(ApiError::not_found)?;
-    Ok(Json(j!({
-        "record": to_json(&record.to_value()),
-        "revisions": revisions.iter().map(|revision| to_json(&revision.to_value())).collect::<Vec<_>>(),
-    })))
+    Ok(Json(shapes::RecordWithHistory {
+        record: to_json(&record.to_value()),
+        revisions: revisions.iter().map(|revision| to_json(&revision.to_value())).collect(),
+    }))
 }
 
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct CreateRequest {
-    record_type: String,
-    data: Value,
-    #[serde(default)]
-    record_id: Option<String>,
-    #[serde(default)]
-    attachments: Vec<String>,
-}
-
-async fn create_record(
+pub(crate) async fn create_record(
     State(state): State<Shared>,
     caller: Caller,
     Path(id): Path<String>,
     headers: HeaderMap,
     body: Bytes,
-) -> ApiResult<(StatusCode, Json<Value>)> {
+) -> ApiResult<(StatusCode, Json<WriteResult>)> {
     let (athlete, epoch) = owner_write(&state, &caller, &id).await?;
     not_moving(&athlete)?;
-    let request: CreateRequest = body_json(&body)?;
-    let record_type = RecordType::parse(&request.record_type)
-        .ok_or_else(|| ApiError::invalid(format!("Unknown record type: {}", request.record_type)))?;
-    let data = decode(record_type, &request.data)?;
-    let uploads =
-        request.attachments.iter().map(|upload| staged_upload(&state, &id, upload)).collect::<ApiResult<Vec<_>>>()?;
+    let request: shapes::CreateRecordRequest = body_json(&body)?;
+    let data = decode(request.record_type, &request.data)?;
+    let uploads = request
+        .attachments
+        .iter()
+        .flatten()
+        .map(|upload| staged_upload(&state, &id, upload))
+        .collect::<ApiResult<Vec<_>>>()?;
     let receipt = receipt(&state, &caller, "create_record", idempotency_key(&headers)?, &body);
     let record_id = request.record_id.clone();
     let result = write_with_receipt(&state, &id, Some(epoch), receipt, uploads, move |_| {
@@ -818,25 +803,19 @@ async fn create_record(
     Ok((StatusCode::CREATED, Json(result)))
 }
 
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct CorrectionRequest {
-    expected_revision: u64,
-    data: Value,
-}
-
-async fn correct_record(
+pub(crate) async fn correct_record(
     State(state): State<Shared>,
     caller: Caller,
     Path((id, record_id)): Path<(String, String)>,
     headers: HeaderMap,
     body: Bytes,
-) -> ApiResult<Json<Value>> {
+) -> ApiResult<Json<WriteResult>> {
     let (athlete, epoch) = owner_write(&state, &caller, &id).await?;
     not_moving(&athlete)?;
-    let request: CorrectionRequest = body_json(&body)?;
+    let request: shapes::CorrectionRequest = body_json(&body)?;
     let receipt = receipt(&state, &caller, "correct_record", idempotency_key(&headers)?, &body);
     let data = request.data.clone();
+    let expected_revision = request.expected_revision;
     let result = write_with_receipt(&state, &id, Some(epoch), receipt, Vec::new(), move |store| {
         let current = store
             .get_record(&record_id)?
@@ -848,7 +827,7 @@ async fn correct_record(
         Ok(Changes {
             corrections: vec![Correction {
                 record_id: record_id.clone(),
-                expected_revision: request.expected_revision,
+                expected_revision,
                 data,
                 extensions: ExtensionsUpdate::Keep,
                 changed_by: RecordActor::Athlete,
@@ -863,22 +842,16 @@ async fn correct_record(
     Ok(Json(result))
 }
 
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct DeletionRequest {
-    expected_revision: u64,
-}
-
-async fn delete_record(
+pub(crate) async fn delete_record(
     State(state): State<Shared>,
     caller: Caller,
     Path((id, record_id)): Path<(String, String)>,
     headers: HeaderMap,
     body: Bytes,
-) -> ApiResult<Json<Value>> {
+) -> ApiResult<Json<WriteResult>> {
     let (athlete, epoch) = owner_write(&state, &caller, &id).await?;
     not_moving(&athlete)?;
-    let request: DeletionRequest = body_json(&body)?;
+    let request: shapes::DeletionRequest = body_json(&body)?;
     let receipt = receipt(&state, &caller, "delete_record", idempotency_key(&headers)?, &body);
     let result = write_with_receipt(&state, &id, Some(epoch), receipt, Vec::new(), move |_| {
         Ok(Changes {
@@ -895,29 +868,21 @@ async fn delete_record(
     Ok(Json(result))
 }
 
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct ErasureRequest {
-    expected_revision: u64,
-    reason_code: String,
-}
-
 /// Privacy erasure (D107). The library's erasure runs on its own transaction; it has
 /// no receipt, and a repeated request finds nothing left to erase.
-async fn erase(
+pub(crate) async fn erase(
     State(state): State<Shared>,
     caller: Caller,
     Path((id, record_id)): Path<(String, String)>,
     body: Bytes,
-) -> ApiResult<Json<Value>> {
+) -> ApiResult<Json<shapes::DatabaseRevision>> {
     let (athlete, epoch) = owner_write(&state, &caller, &id).await?;
     not_moving(&athlete)?;
-    let request: ErasureRequest = body_json(&body)?;
-    let reason: ErasureReasonCode = serde_json::from_value(Value::String(request.reason_code.clone()))
-        .map_err(|_| ApiError::invalid(format!("Unknown erasure reason: {}", request.reason_code)))?;
+    let request: shapes::ErasureRequest = body_json(&body)?;
+    let reason = request.reason_code;
     let intent = state
         .directory
-        .record_erasure_intent(&id, &record_id, &request.reason_code)
+        .record_erasure_intent(&id, &record_id, reason.as_str())
         .await
         .map_err(|e| ApiError::internal("directory", e))?;
     let revision = state
@@ -929,7 +894,7 @@ async fn erase(
         })
         .await?;
     state.directory.complete_erasure_intent(&intent).await.map_err(|e| ApiError::internal("directory", e))?;
-    Ok(Json(j!({ "database_revision": revision })))
+    Ok(Json(shapes::DatabaseRevision { database_revision: revision }))
 }
 
 /// Apply an erasure again: after a failure, or after a restore from an older backup
@@ -952,12 +917,12 @@ pub async fn erase_again(state: &AppState, resource_id: &str, record_id: &str, r
         .await
 }
 
-async fn upload(
+pub(crate) async fn upload(
     State(state): State<Shared>,
     caller: Caller,
     Path(id): Path<String>,
     body: Bytes,
-) -> ApiResult<(StatusCode, Json<Value>)> {
+) -> ApiResult<(StatusCode, Json<shapes::Upload>)> {
     let athlete = owner(&state, &caller, &id).await?;
     not_moving(&athlete)?;
     if body.is_empty() {
@@ -971,13 +936,16 @@ async fn upload(
     std::fs::write(folder.join(&upload_id), &body).map_err(|e| ApiError::internal("staging an upload", e))?;
     Ok((
         StatusCode::CREATED,
-        Json(
-            j!({ "upload_id": upload_id, "byte_count": body.len(), "sha256": hex(&Sha256::digest(&body)), "media_type": media_type }),
-        ),
+        Json(shapes::Upload {
+            upload_id,
+            byte_count: body.len() as u64,
+            sha256: hex(&Sha256::digest(&body)),
+            media_type: media_type.to_string(),
+        }),
     ))
 }
 
-async fn download_attachment(
+pub(crate) async fn download_attachment(
     State(state): State<Shared>,
     caller: Caller,
     Path((id, record_id)): Path<(String, String)>,
@@ -1000,25 +968,14 @@ async fn download_attachment(
 
 // ---- Owner: grants (D262) ---------------------------------------------------------
 
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct OfferRequest {
-    permissions: Vec<Permission>,
-    client_id: String,
-    #[serde(default)]
-    coach_label: Option<String>,
-    #[serde(default)]
-    valid_seconds: Option<i64>,
-}
-
-async fn create_grant_offer(
+pub(crate) async fn create_grant_offer(
     State(state): State<Shared>,
     caller: Caller,
     Path(id): Path<String>,
     body: Bytes,
-) -> ApiResult<(StatusCode, Json<Value>)> {
+) -> ApiResult<(StatusCode, Json<shapes::GrantOffer>)> {
     owner(&state, &caller, &id).await?;
-    let request: OfferRequest = body_json(&body)?;
+    let request: shapes::GrantOfferRequest = body_json(&body)?;
     if request.permissions.is_empty() {
         return Err(ApiError::invalid("Choose at least one permission"));
     }
@@ -1039,79 +996,83 @@ async fn create_grant_offer(
         .map_err(|e| ApiError::internal("directory", e))?;
     Ok((
         StatusCode::CREATED,
-        Json(
-            j!({ "code": offer.code, "expires_at": offer.expires_at, "permissions": permissions, "client_id": request.client_id }),
-        ),
+        Json(shapes::GrantOffer {
+            code: offer.code,
+            expires_at: offer.expires_at,
+            permissions,
+            client_id: request.client_id,
+        }),
     ))
 }
 
-async fn pending_offers(State(state): State<Shared>, caller: Caller, Path(id): Path<String>) -> ApiResult<Json<Value>> {
+pub(crate) async fn pending_offers(
+    State(state): State<Shared>,
+    caller: Caller,
+    Path(id): Path<String>,
+) -> ApiResult<Json<shapes::PendingOffers>> {
     owner(&state, &caller, &id).await?;
     let offers = state.directory.pending_offers(&id).await.map_err(|e| ApiError::internal("directory", e))?;
-    Ok(Json(j!({ "offers": offers })))
+    Ok(Json(shapes::PendingOffers { offers }))
 }
 
-async fn cancel_offer(
+pub(crate) async fn cancel_offer(
     State(state): State<Shared>,
     caller: Caller,
     Path((id, offer_id)): Path<(String, String)>,
-) -> ApiResult<Json<Value>> {
+) -> ApiResult<Json<shapes::CancelledOffer>> {
     owner(&state, &caller, &id).await?;
     if !state.directory.cancel_offer(&id, &offer_id).await.map_err(|e| ApiError::internal("directory", e))? {
         return Err(ApiError::not_found());
     }
-    Ok(Json(j!({ "cancelled": offer_id })))
+    Ok(Json(shapes::CancelledOffer { cancelled: offer_id }))
 }
 
-async fn list_grants(State(state): State<Shared>, caller: Caller, Path(id): Path<String>) -> ApiResult<Json<Value>> {
+pub(crate) async fn list_grants(
+    State(state): State<Shared>,
+    caller: Caller,
+    Path(id): Path<String>,
+) -> ApiResult<Json<shapes::GrantList>> {
     owner(&state, &caller, &id).await?;
     let grants = state.directory.grants_for_athlete(&id).await.map_err(|e| ApiError::internal("directory", e))?;
-    Ok(Json(j!({ "grants": grants })))
+    Ok(Json(shapes::GrantList { grants: grants.iter().map(GrantView::from).collect() }))
 }
 
 /// Revoke a grant: mark it revoked, then raise the access epoch (D262). A coach write
 /// that read the epoch before this point and commits after it fails.
-async fn revoke_grant(
+pub(crate) async fn revoke_grant(
     State(state): State<Shared>,
     caller: Caller,
     Path((id, grant_id)): Path<(String, String)>,
-) -> ApiResult<Json<Value>> {
+) -> ApiResult<Json<shapes::RevokedGrant>> {
     owner(&state, &caller, &id).await?;
     let revoked = state.directory.revoke(&id, &grant_id).await.map_err(|e| ApiError::internal("directory", e))?;
     if !revoked {
         return Err(ApiError::not_found());
     }
     let epoch = state.storage.raise_access_epoch(&id).await?;
-    Ok(Json(j!({ "revoked": grant_id, "access_epoch": epoch })))
+    Ok(Json(shapes::RevokedGrant { revoked: grant_id, access_epoch: epoch }))
 }
 
 // ---- Owner: apps (D270) --------------------------------------------------------------
 
-fn app_json(app: &AppConnection, caller: &Caller) -> Value {
-    j!({
-        "client_id": app.client_id,
-        "state": if app.disconnected_at.is_some() { "disconnected" } else { "connected" },
-        "connected_at": app.connected_at,
-        "last_used_at": app.last_used_at,
-        "disconnected_at": app.disconnected_at,
-        "this_app": app.client_id == caller.client_id,
-    })
-}
-
 /// The apps the owner has used with this record. Coach apps are listed with grants.
-async fn list_apps(State(state): State<Shared>, caller: Caller, Path(id): Path<String>) -> ApiResult<Json<Value>> {
+pub(crate) async fn list_apps(
+    State(state): State<Shared>,
+    caller: Caller,
+    Path(id): Path<String>,
+) -> ApiResult<Json<shapes::AppList>> {
     owner(&state, &caller, &id).await?;
     let apps = state.directory.apps(&id).await.map_err(|e| ApiError::internal("directory", e))?;
-    Ok(Json(j!({ "apps": apps.iter().map(|app| app_json(app, &caller)).collect::<Vec<_>>() })))
+    Ok(Json(shapes::AppList { apps: apps.iter().map(|app| AppView::new(app, &caller.client_id)).collect() }))
 }
 
 /// Disconnect one app: mark it, then raise the access epoch, so an owner write from
 /// that app that is already waiting fails (D270). Another app must stay connected.
-async fn disconnect_app(
+pub(crate) async fn disconnect_app(
     State(state): State<Shared>,
     caller: Caller,
     Path((id, client_id)): Path<(String, String)>,
-) -> ApiResult<Json<Value>> {
+) -> ApiResult<Json<shapes::DisconnectedApp>> {
     owner(&state, &caller, &id).await?;
     let app =
         match state.directory.disconnect_app(&id, &client_id).await.map_err(|e| ApiError::internal("directory", e))? {
@@ -1122,15 +1083,15 @@ async fn disconnect_app(
             Disconnection::Unknown => return Err(ApiError::not_found()),
         };
     let epoch = state.storage.raise_access_epoch(&id).await?;
-    Ok(Json(j!({ "app": app_json(&app, &caller), "access_epoch": epoch })))
+    Ok(Json(shapes::DisconnectedApp { app: AppView::new(&app, &caller.client_id), access_epoch: epoch }))
 }
 
 /// Connect a disconnected app again, from an app that is still connected.
-async fn connect_app(
+pub(crate) async fn connect_app(
     State(state): State<Shared>,
     caller: Caller,
     Path((id, client_id)): Path<(String, String)>,
-) -> ApiResult<Json<Value>> {
+) -> ApiResult<Json<shapes::ConnectedApp>> {
     owner(&state, &caller, &id).await?;
     let app = state
         .directory
@@ -1138,46 +1099,48 @@ async fn connect_app(
         .await
         .map_err(|e| ApiError::internal("directory", e))?
         .ok_or_else(ApiError::not_found)?;
-    Ok(Json(j!({ "app": app_json(&app, &caller) })))
+    Ok(Json(shapes::ConnectedApp { app: AppView::new(&app, &caller.client_id) }))
 }
 
 // ---- Coach -------------------------------------------------------------------------
 
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct AcceptRequest {
-    code: String,
-}
-
-async fn accept_grant_offer(State(state): State<Shared>, caller: Caller, body: Bytes) -> ApiResult<Json<Value>> {
-    let request: AcceptRequest = body_json(&body)?;
+pub(crate) async fn accept_grant_offer(
+    State(state): State<Shared>,
+    caller: Caller,
+    body: Bytes,
+) -> ApiResult<Json<shapes::AcceptedGrant>> {
+    let request: shapes::AcceptOfferRequest = body_json(&body)?;
     let grant = state
         .directory
         .accept_grant_offer(&request.code, &caller.principal, &caller.client_id)
         .await
         .map_err(|e| ApiError::internal("directory", e))?
         .ok_or_else(ApiError::not_found)?;
-    Ok(Json(j!({ "grant": grant })))
+    Ok(Json(shapes::AcceptedGrant { grant: GrantView::from(&grant) }))
 }
 
-async fn roster(State(state): State<Shared>, caller: Caller) -> ApiResult<Json<Value>> {
+pub(crate) async fn roster(State(state): State<Shared>, caller: Caller) -> ApiResult<Json<shapes::Roster>> {
     let roster = state
         .directory
         .roster(&caller.principal.principal_id, &caller.client_id)
         .await
         .map_err(|e| ApiError::internal("directory", e))?;
-    Ok(Json(j!({
-        "athletes": roster.iter().map(|(athlete, grant)| j!({
-            "athlete_id": athlete.resource_id,
-            "display_name": athlete.display_name,
-            "permissions": grant.permissions,
-            "grant_id": grant.grant_id,
-        })).collect::<Vec<_>>(),
-    })))
+    Ok(Json(shapes::Roster {
+        athletes: roster
+            .into_iter()
+            .map(|(athlete, grant)| shapes::RosterEntry {
+                athlete_id: athlete.resource_id,
+                display_name: athlete.display_name,
+                permissions: grant.permissions,
+                grant_id: grant.grant_id,
+            })
+            .collect(),
+    }))
 }
 
-#[derive(Deserialize)]
-struct WorkoutQuery {
+/// Query parameters. Their names are listed in `operations.rs`; a test checks them.
+#[derive(Deserialize, serde::Serialize, Default)]
+pub(crate) struct WorkoutQuery {
     #[serde(default)]
     limit: Option<u32>,
     #[serde(default)]
@@ -1186,15 +1149,15 @@ struct WorkoutQuery {
 
 /// Workout summaries under the read grant: record ID, revision, start, end, and
 /// activity type. Nothing else from the workout (D262).
-async fn workout_summaries(
+pub(crate) async fn workout_summaries(
     State(state): State<Shared>,
     caller: Caller,
     Path(id): Path<String>,
     Query(query): Query<WorkoutQuery>,
-) -> ApiResult<Json<Value>> {
+) -> ApiResult<Json<shapes::WorkoutPage>> {
     let (_, _) = coach_grant(&state, &caller, &id, Permission::ReadWorkoutSummaries).await?;
     let limit = query.limit.unwrap_or(state.config.limits.page_size).clamp(1, state.config.limits.page_size) as usize;
-    let mut summaries: Vec<(String, String, Value)> = state
+    let mut summaries: Vec<shapes::WorkoutSummary> = state
         .storage
         .read(&id, |store| {
             let records = store.list_records(&ListOptions {
@@ -1205,71 +1168,46 @@ async fn workout_summaries(
             Ok(records
                 .into_iter()
                 .filter_map(|record| match &record.data {
-                    RecordData::WorkoutSession(data) => Some((
-                        data.start_at.clone(),
-                        record.record_id.clone(),
-                        j!({
-                            "record_id": record.record_id,
-                            "revision": record.current_revision,
-                            "start_at": data.start_at,
-                            "end_at": data.end_at,
-                            "activity_type": data.activity_type,
-                        }),
-                    )),
+                    RecordData::WorkoutSession(data) => Some(shapes::WorkoutSummary {
+                        record_id: record.record_id.clone(),
+                        revision: record.current_revision,
+                        start_at: data.start_at.clone(),
+                        end_at: data.end_at.clone(),
+                        activity_type: data.activity_type.clone(),
+                    }),
                     _ => None,
                 })
                 .collect())
         })
         .await?;
-    summaries.sort_by(|left, right| (&right.0, &right.1).cmp(&(&left.0, &left.1)));
+    summaries.sort_by(|left, right| (&right.start_at, &right.record_id).cmp(&(&left.start_at, &left.record_id)));
     // The cursor is the start time and record ID of the last workout shown, so a
     // workout deleted between pages does not end the listing early.
     let cursor = query.after.as_deref().and_then(|after| after.split_once('~'));
     let start = match (&query.after, cursor) {
         (Some(_), Some((start_at, record_id))) => summaries
             .iter()
-            .position(|(at, id, _)| (at.as_str(), id.as_str()) < (start_at, record_id))
+            .position(|summary| (summary.start_at.as_str(), summary.record_id.as_str()) < (start_at, record_id))
             .unwrap_or(summaries.len()),
         (Some(_), None) => return Err(ApiError::invalid("`after` must be a `next` value from an earlier page")),
         (None, _) => 0,
     };
-    let page: Vec<Value> = summaries.iter().skip(start).take(limit).map(|(_, _, summary)| summary.clone()).collect();
+    let page: Vec<shapes::WorkoutSummary> = summaries.iter().skip(start).take(limit).cloned().collect();
     let next = if start + page.len() < summaries.len() {
-        summaries.get(start + page.len() - 1).map(|(at, id, _)| Value::String(format!("{at}~{id}")))
+        page.last().map(|last| format!("{}~{}", last.start_at, last.record_id))
     } else {
         None
     };
-    Ok(Json(j!({ "workouts": page, "next": next })))
+    Ok(Json(shapes::WorkoutPage { workouts: page, next }))
 }
 
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct NoteRequest {
-    note: String,
-    #[serde(default)]
-    title: Option<String>,
-    #[serde(default)]
-    applies_from: Option<String>,
-    #[serde(default)]
-    applies_to: Option<String>,
-    #[serde(default)]
-    evidence: Vec<EvidenceRequest>,
-}
-
-#[derive(Deserialize, Clone)]
-#[serde(deny_unknown_fields)]
-struct EvidenceRequest {
-    record_id: String,
-    revision: u64,
-}
-
-async fn add_note(
+pub(crate) async fn add_note(
     State(state): State<Shared>,
     caller: Caller,
     Path(id): Path<String>,
     headers: HeaderMap,
     body: Bytes,
-) -> ApiResult<(StatusCode, Json<Value>)> {
+) -> ApiResult<(StatusCode, Json<WriteResult>)> {
     let (grant, epoch) = coach_grant(&state, &caller, &id, Permission::AddCoachNotes).await?;
     let athlete = state
         .directory
@@ -1278,12 +1216,13 @@ async fn add_note(
         .map_err(|e| ApiError::internal("directory", e))?
         .ok_or_else(ApiError::not_found)?;
     not_moving(&athlete)?;
-    let request: NoteRequest = body_json(&body)?;
-    if !request.evidence.is_empty() && !grant.allows(Permission::ReadWorkoutSummaries) {
+    let request: shapes::NoteRequest = body_json(&body)?;
+    let evidence = request.evidence.clone().unwrap_or_default();
+    if !evidence.is_empty() && !grant.allows(Permission::ReadWorkoutSummaries) {
         return Err(ApiError::permission_denied("Evidence must be a workout you can read"));
     }
     let mut data = j!({
-        "authorship": { "author": coach_author(&caller, &grant), "authored_at": now(), "evidence": request.evidence.iter().map(|e| j!({ "record_id": e.record_id, "revision": e.revision })).collect::<Vec<_>>(), "content_version": 1, "status": "active" },
+        "authorship": { "author": coach_author(&caller, &grant), "authored_at": now(), "evidence": evidence.iter().map(|e| j!({ "record_id": e.record_id, "revision": e.revision })).collect::<Vec<_>>(), "content_version": 1, "status": "active" },
         "note": request.note,
     });
     for (field, value) in
@@ -1295,7 +1234,6 @@ async fn add_note(
     }
     let record = decode(RecordType::CoachingNote, &data)?;
     let actor = coach_actor(&caller, &grant)?;
-    let evidence = request.evidence.clone();
     let receipt = receipt(&state, &caller, "add_note", idempotency_key(&headers)?, &body);
     let result = write_with_receipt(&state, &id, Some(epoch), receipt, Vec::new(), move |store| {
         check_evidence(store, &evidence)?;
@@ -1306,7 +1244,7 @@ async fn add_note(
 }
 
 /// Evidence must name the current revision of a workout the read grant shows.
-fn check_evidence(store: &Store, evidence: &[EvidenceRequest]) -> athleticstandard::Result<()> {
+fn check_evidence(store: &Store, evidence: &[shapes::Evidence]) -> athleticstandard::Result<()> {
     for reference in evidence {
         let visible = store.get_record(&reference.record_id)?.is_some_and(|record| {
             !record.is_deleted
@@ -1323,23 +1261,15 @@ fn check_evidence(store: &Store, evidence: &[EvidenceRequest]) -> athleticstanda
     Ok(())
 }
 
-#[derive(Deserialize)]
-#[serde(deny_unknown_fields)]
-struct ProgramRequest {
-    plan: Value,
-    #[serde(default)]
-    sessions: Vec<Value>,
-}
-
 /// A training plan and its planned sessions, created together (D262). Sessions start
 /// as planned; the coach cannot mark one completed or link a completed workout.
-async fn add_program(
+pub(crate) async fn add_program(
     State(state): State<Shared>,
     caller: Caller,
     Path(id): Path<String>,
     headers: HeaderMap,
     body: Bytes,
-) -> ApiResult<(StatusCode, Json<Value>)> {
+) -> ApiResult<(StatusCode, Json<WriteResult>)> {
     let (grant, epoch) = coach_grant(&state, &caller, &id, Permission::AddProgramming).await?;
     let athlete = state
         .directory
@@ -1348,7 +1278,7 @@ async fn add_program(
         .map_err(|e| ApiError::internal("directory", e))?
         .ok_or_else(ApiError::not_found)?;
     not_moving(&athlete)?;
-    let request: ProgramRequest = body_json(&body)?;
+    let request: shapes::ProgramRequest = body_json(&body)?;
     let authorship = j!({ "author": coach_author(&caller, &grant), "authored_at": now(), "evidence": [], "content_version": 1, "status": "active" });
     let mut plan = request.plan.as_object().cloned().ok_or_else(|| ApiError::invalid("plan must be an object"))?;
     if plan.contains_key("authorship") {
@@ -1358,7 +1288,7 @@ async fn add_program(
     let plan_id = athleticstandard::ids::new_record_id();
     let plan_data = decode(RecordType::TrainingPlan, &Value::Object(plan))?;
     let mut sessions = Vec::new();
-    for session in &request.sessions {
+    for session in request.sessions.iter().flatten() {
         let mut session =
             session.as_object().cloned().ok_or_else(|| ApiError::invalid("each session must be an object"))?;
         for forbidden in ["authorship", "training_plan_id", "completion_status", "completed_workout_session_id"] {
@@ -1381,4 +1311,49 @@ async fn add_program(
     })
     .await?;
     Ok((StatusCode::CREATED, Json(result)))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn names<T: serde::Serialize + Default>() -> Vec<String> {
+        let value = serde_json::to_value(T::default()).unwrap();
+        value.as_object().unwrap().keys().cloned().collect()
+    }
+
+    fn listed(path: &str) -> Vec<String> {
+        crate::operations::routes()
+            .into_iter()
+            .find(|route| route.operation.method == "GET" && route.operation.path == path)
+            .unwrap()
+            .operation
+            .query
+            .iter()
+            .map(|query| query.name.to_string())
+            .collect()
+    }
+
+    #[test]
+    fn the_retry_rule_matches_the_operation_table() {
+        // The rule applies only to writes; reads change nothing.
+        for route in crate::operations::routes().into_iter().filter(|route| route.operation.method != "GET") {
+            let operation = route.operation;
+            let example = operation.path.replace("{id}", "ath_00000000000000000000000000000000");
+            assert_eq!(
+                not_remembered(&example),
+                operation.key == crate::operations::Key::NotRemembered,
+                "{} {}",
+                operation.method,
+                operation.path
+            );
+        }
+    }
+
+    #[test]
+    fn the_described_query_parameters_are_the_ones_read() {
+        assert_eq!(names::<Since>(), listed("/v1/athletes/{id}/changes"));
+        assert_eq!(names::<ListQuery>(), listed("/v1/athletes/{id}/records"));
+        assert_eq!(names::<WorkoutQuery>(), listed("/v1/athletes/{id}/workouts"));
+    }
 }

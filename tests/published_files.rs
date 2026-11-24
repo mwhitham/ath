@@ -9,6 +9,9 @@
 //!
 //! The current version's generated schema files (`schema/<version>/` and
 //! `schema/athleticstandard.schema.json`) are checked by `tests/generated.rs`.
+//! The host API description (`schema/host-api/`) is generated too, and
+//! `host/tests/generated.rs` checks it (D271). It joins the list below when the
+//! first version with it is released.
 //! The current SQL migration step is still part of this build. When a version
 //! is released, its files join the list below.
 
@@ -99,6 +102,7 @@ fn every_historical_schema_and_migration_is_pinned() {
         .iter()
         .filter(|path| !PUBLISHED.iter().any(|(pinned, _)| pinned == path))
         .filter(|path| !path.starts_with(&generated_folder) && *path != "schema/athleticstandard.schema.json")
+        .filter(|path| !path.starts_with("schema/host-api/"))
         .filter(|path| !path.starts_with(&current_step))
         .collect();
     assert!(unpinned.is_empty(), "add these published files to PUBLISHED: {unpinned:?}");
