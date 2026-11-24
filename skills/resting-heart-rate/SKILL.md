@@ -2,9 +2,9 @@
 name: resting-heart-rate
 description: Finds the lowest sustained heart rate, the lowest 5-minute mean, during a sleep session from that device's heart-rate samples, or during a workout from its own samples. Use when someone asks for their overnight or sleeping resting heart rate from raw samples, or how low their heart rate settled during a night. Not for a device's own resting heart rate value (read the resting_heart_rate measurement) or day-to-day change (use resting-heart-rate-change).
 license: MIT
-compatibility: Requires the ath CLI 2.1.2 or later (npm package athleticstandard) and an Athletic Standard database. Runs with ath apply resting-heart-rate --record <sleep-session-id>.
+compatibility: Requires the ath CLI 2.1.3 or later (npm package athleticstandard) and an Athletic Standard database. Runs with ath apply resting-heart-rate --record <sleep-session-id>.
 metadata:
-  version: "2.1.2"
+  version: "2.1.3"
   kind: calculation
 ---
 
@@ -16,16 +16,16 @@ lowest sustained rate during that workout.
 
 ## Before the first ath command
 
-This skill runs `ath`, the Athletic Standard program, version 2.1.2 or later.
+This skill runs `ath`, the Athletic Standard program, version 2.1.3 or later.
 Check it once with `ath --version`.
 
 - If `ath` is not found, it is not installed. It comes from the npm package
   `athleticstandard`. The npm package named `ath` is a different program. Install it
   with `npm install -g athleticstandard`, which needs Node.js 22 or later. Other ways
   to install it are at https://www.npmjs.com/package/athleticstandard.
-- If the version is older than 2.1.2, update it with `ath --update`.
+- If the version is older than 2.1.3, update it with `ath --update`.
 - Install or update only after the person agrees. Then run `ath --version` again. If
-  it is still older than 2.1.2, say so and stop.
+  it is still older than 2.1.3, say so and stop.
 
 If the answer needs the athlete's records or a calculation and `ath` cannot run, stop.
 Tell the person what is missing and how to fix it. Do not read the database another

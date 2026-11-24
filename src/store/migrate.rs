@@ -17,7 +17,7 @@ use crate::files;
 use crate::model::time;
 
 /// The SQL schema step this software writes.
-pub const SQL_SCHEMA_VERSION: u32 = 6;
+pub const SQL_SCHEMA_VERSION: u32 = 7;
 
 /// One published migration step.
 pub struct MigrationStep {
@@ -64,6 +64,12 @@ pub const MIGRATION_CHAIN: &[MigrationStep] = &[
         file: "migrations/006-version-2-1-2.sql",
         description: "Upgrade the database to software version 2.1.2. Adds the nullable athlete_reports.workout_session_id link to a workout session. No existing row changes.",
         sql: include_str!("../../spec/sql/migrations/006-version-2-1-2.sql"),
+    },
+    MigrationStep {
+        version: 7,
+        file: "migrations/007-version-2-1-3.sql",
+        description: "Upgrade the database to software version 2.1.3. No athlete-owned table or column changes. Adds internal tables for the change log, host write receipts, and the access epoch.",
+        sql: include_str!("../../spec/sql/migrations/007-version-2-1-3.sql"),
     },
 ];
 

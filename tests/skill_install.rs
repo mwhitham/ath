@@ -107,10 +107,11 @@ fn coaching_skills_are_installed_only_when_named() {
 
     // An older installed coaching skill is refreshed by a default install.
     let file = installed(dir.path(), "hyrox");
-    let older = fs::read_to_string(&file).unwrap().replace("version: \"2.1.2\"", "version: \"2.1.1\"");
+    let current = format!("version: \"{}\"", athleticstandard::model::package::ATHLETIC_STANDARD_VERSION);
+    let older = fs::read_to_string(&file).unwrap().replace(&current, "version: \"2.1.1\"");
     fs::write(&file, older).unwrap();
     install_skill(dir.path()).unwrap();
-    assert!(fs::read_to_string(&file).unwrap().contains("version: \"2.1.2\""));
+    assert!(fs::read_to_string(&file).unwrap().contains(&current));
     assert!(!installed(dir.path(), "crossfit").exists(), "still not installed by default");
 }
 

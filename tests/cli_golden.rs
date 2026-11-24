@@ -12,9 +12,9 @@
 //!
 //! - A refusal is printed once (cli-changes.md 1, quirk S4). Where 2.1.0
 //!   printed the same `ath:` line twice in a row, one copy is expected.
-//! - The native program writes SQL schema step 6 (D211, D227). Steps 5 and
-//!   6 are removed from native migration plans, and a source, target, or
-//!   required step 5 or 6 reads 4.
+//! - The native program writes SQL schema step 7 (D211, D227, D254). Steps
+//!   5 to 7 are removed from native migration plans, and a source, target,
+//!   or required step 5, 6, or 7 reads 4.
 //! - `log` lists record data in published field order (deliberate-changes.md
 //!   25), so its output lines are compared without their order.
 //! - `share` finds the report `backtest` writes (deliberate-changes.md 5).
@@ -216,11 +216,13 @@ fn manifest_hashes(text: &str) -> String {
     out.join("\n")
 }
 
-/// The native program writes SQL schema step 6 (2.1.1 added step 5, 2.1.2
-/// step 6); 2.1.0 wrote step 4.
+/// The native program writes SQL schema step 7 (2.1.1 added step 5, 2.1.2
+/// step 6, 2.1.3 step 7); 2.1.0 wrote step 4.
 fn step_five_as_four(text: &str) -> String {
     let mut out = text.to_string();
-    for file in ["migrations/005-version-2-1-1.sql", "migrations/006-version-2-1-2.sql"] {
+    for file in
+        ["migrations/005-version-2-1-1.sql", "migrations/006-version-2-1-2.sql", "migrations/007-version-2-1-3.sql"]
+    {
         let marker = format!("\"migration_file\": \"{file}\"");
         while let Some(position) = out.find(&marker) {
             let object = out[..position].rfind('{').expect("the step object opens");
@@ -229,7 +231,7 @@ fn step_five_as_four(text: &str) -> String {
             out.replace_range(start..end, "");
         }
     }
-    for step in ["5", "6"] {
+    for step in ["5", "6", "7"] {
         out = out
             .replace(&format!("\"target_sql_schema_version\": {step}"), "\"target_sql_schema_version\": 4")
             .replace(&format!("\"source_sql_schema_version\": {step}"), "\"source_sql_schema_version\": 4")

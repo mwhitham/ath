@@ -8,7 +8,7 @@ JSON exists only as an explicit complete export or import package. It is not a l
 copy and does not stay synchronized.
 
 The full public field reference is `SPEC.md`. Exhaustive generated schemas are in
-`schema/2.1.2/`.
+`schema/2.1.3/`.
 
 ## Common record fields
 
@@ -74,6 +74,17 @@ Authored records carry `authorship`, with author, time, ordered evidence,
 
 `prediction_result_link` carries its own creator, exact prediction and result
 revisions, link time, content version, and status.
+
+An author or a revision's `changed_by` is the athlete, an agent, a tool, or, since
+2.1.3, a coach:
+
+```json
+{ "author_type": "coach", "coach": "<name when written>", "coach_id": "<lowercase UUID>" }
+```
+
+A host assigns `coach_id`. A coach can author and change only `coaching_note`,
+`training_plan`, and `planned_session` records, and cannot delete a record. A package
+with a coach author declares 2.1.3 or later.
 
 The remaining records are `athlete_profile`, `source`, `source_device`, and
 `attachment`.

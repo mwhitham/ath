@@ -59,7 +59,7 @@ npm test
 
 ## Generated files
 
-JSON Schema, the npm protocol module, the skill's command reference, and the demo database are generated from the Rust sources. After changing the record model, a command or its help, or a protocol operation, regenerate them and commit the result:
+JSON Schema, the npm protocol module, the skill's command reference, the host API description (`schema/host-api/1/openapi.json`), and the demo database are generated from the Rust sources. After changing the record model, a command or its help, a protocol operation, or a host API operation or body, regenerate them and commit the result:
 
 ```sh
 ATH_WRITE_GENERATED=1 cargo test --test generated
