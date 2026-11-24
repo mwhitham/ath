@@ -25,7 +25,7 @@ are D254–D268 in [decisions.md](../build-history/v2.1.3/decisions.md).
 - **The project does not run a host.** It ships the program and this guide. Whoever
   runs a host is responsible for it and for the records on it.
 - **It is not in the release archives or the npm package.** Build it from source
-  (section 4.1).
+  (section 4.1), or build the container image (section 4.7).
 
 What is built today:
 
@@ -327,6 +327,66 @@ In directory mode, `setup` and `invite` use the same data folder as `serve`, and
 run while it serves. In remote mode, both commands delete the working copies in the
 data folder they are given. Give them their own data folder there: copy the
 configuration file and change `data_directory`.
+
+### 4.7 Running in a container
+
+[`host/Dockerfile`](../host/Dockerfile) builds `ath-host` with the Rust toolchain
+named in `rust-toolchain.toml`. The image runs the host as user ID 10001, without
+administrator rights. This container definition has not been built or run yet.
+
+Build the image from the repository root:
+
+```sh
+docker build -f host/Dockerfile -t ath-host .
+```
+
+The image expects:
+
+- the configuration file at `/config/ath-host.json`. To use another path, pass
+  `serve --config <path>` after the image name;
+- `data_directory` set to `/data`, which is a volume;
+- `listen` set to `0.0.0.0:8080`, because connections come from outside the
+  container;
+- the secrets the file names, as environment variables (`-e NAME` or `--env-file`).
+
+Run it on one machine with a named volume, and publish the port to the machine
+itself only. Put a TLS proxy in front (section 4.4).
+
+```sh
+docker volume create ath-host-data
+docker run -d --name ath-host \
+  -v ath-host-data:/data \
+  -v /etc/ath-host:/config:ro \
+  -p 127.0.0.1:8080:8080 \
+  ath-host
+```
+
+In directory mode, run `setup` and `invite` inside the running container, so they use
+its data folder:
+
+```sh
+docker exec ath-host ath-host setup --config /config/ath-host.json \
+  --issuer https://sign-in.example.org/realms/athletes --subject <subject>
+docker exec ath-host ath-host invite --config /config/ath-host.json
+```
+
+In remote mode, run them in a separate container with its own `/data`, because they
+delete the working copies in the data folder they use (section 4.6):
+
+```sh
+docker run --rm -v /etc/ath-host:/config:ro --env-file /etc/ath-host.env \
+  ath-host invite --config /config/ath-host.json
+```
+
+Other rules:
+
+- The image stops the host with SIGINT, the signal on which it finishes open requests.
+- A folder from the machine mounted at `/data` must belong to user ID 10001, and
+  other users must not be able to write it.
+- In directory mode, run one container per volume. A second container on the same
+  volume refuses to start.
+- In remote mode, give each container its own `/data`. Any number of containers can
+  share the databases and the bucket.
 
 ## 5. Remote mode
 

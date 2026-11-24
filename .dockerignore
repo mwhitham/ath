@@ -1,0 +1,28 @@
+# The container build needs the Rust sources, skills, mappings, and SQL files. Leave
+# out build output, installed packages, and Git history, which only make the build
+# context larger.
+.git
+target
+**/node_modules
+packages/npm/native
+packages/npm/schema
+packages/npm/skills
+packages/npm/pack-output
+performance/generated
+performance/results/local
+
+# Real health data never enters an image. These rules follow .gitignore. No file the
+# build reads has one of these endings.
+.private-data
+private-validation
+validation-data
+**/*.ath.json
+**/*.ath.sqlite
+**/*.ath.sqlite-wal
+**/*.ath.sqlite-shm
+**/*.fit
+**/*.gpx
+**/*.tcx
+**/*.xml
+**/*.zip
+**/*.csv
