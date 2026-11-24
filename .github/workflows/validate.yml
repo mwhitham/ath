@@ -229,6 +229,28 @@ jobs:
           path: npm-tarball
           if-no-files-found: error
 
+  # The release stages this tarball with `npm stage publish` (D251). This job
+  # runs the same command with `--dry-run`, with the same Node and npm, so a
+  # command that cannot read the file fails here, before a release tags anything.
+  # Keep the command the same as the staging step in release-cross-platform.yml.
+  # This job holds no npm credential and sends nothing to npm.
+  npm-stage-dry-run:
+    name: npm stage (dry run)
+    needs: npm-pack
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Use the npm the release uses
+        run: npm install -g npm@12 && npm --version
+      - uses: actions/download-artifact@v4
+        with:
+          name: npm-tarball
+          path: npm-tarball
+      - name: Stage the checked tarball without sending it
+        run: npm stage publish --dry-run "./npm-tarball/$(node -p "require('./npm-tarball/pack-summary.json').tarball")"
+
   # Each system installs the same packed tarball into an empty folder. Only the
   # smoke scripts are checked out; the source tree and build tools stay out of reach.
   npm-smoke:
