@@ -44,8 +44,24 @@ D83's native use of Zod and D93's local libSQL adapter.
 - **Sanitize validation evidence.** A public decision may state the rule and a rounded technical result. It must omit exact workout dates, routes, birth dates, travel clues, device inventories, and sample values from real exports.
 - **Build synthetic regressions.** Reproduce a real-data bug with the smallest invented case before committing it. Do not copy identifying values into a test.
 - **Prose (D24):** write the rule, then the reason. Short sentences. Ordinary words. No slogans, no metaphor used as if it were the rule, no antithesis wordplay (*an* vs *the*, "X is the pipe, Y is the document", "never a data upgrade"). Don't use "vibes", "bet", "scoreboard", "on-ramp", or "doctrine" as stand-ins for the actual idea. Named principles are allowed when they name a real rule ("two-tier wall", "the file is the database", "not an app, not a coach, not medical advice") — after the name, state the rule in ordinary words in the same paragraph.
-- **Chat:** talking to a person follows [`.cursor/rules/plain-english.mdc`](.cursor/rules/plain-english.mdc). One idea per sentence, the point before the reason, no shop talk, one numbered question at a time.
 - **SDNN and RMSSD are different statistics** (`hrv_sdnn` vs `hrv_rmssd`); never combine them in one baseline.
+
+## Talking to a person
+
+These rules cover chat: replies, questions, progress updates, and summaries.
+Committed prose follows D24 above.
+
+- Start with the answer or result. Then give the reason.
+- One idea per sentence. Keep paragraphs to three sentences or fewer.
+- Use the plainest word that works. Avoid shop talk such as "upsert",
+  "idempotent", "canonical", "provenance", and "load-bearing". If a technical
+  word is the clearest one, say what it means in the same sentence.
+- Ask one question at a time. Number it. State the choice first, list the
+  options, and say which one you would pick and why.
+- When reporting results, give the outcome first, then the real numbers, then
+  what you did.
+- Do not invent nicknames, use a metaphor in place of the rule, restate a point
+  in fancier words, or write a summary longer than the work.
 
 ## Skills
 
