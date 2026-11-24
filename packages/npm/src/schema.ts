@@ -3,10 +3,10 @@
  *
  * This file is src/v1/schema.ts from 2.1.0 with the version declarations
  * changed (ATHLETIC_STANDARD_VERSION, ACCEPTED_RECORD_VERSIONS, and
- * IMPORTABLE_PACKAGE_VERSIONS) and the 2.1.2 optional fields copied from the
+ * IMPORTABLE_PACKAGE_VERSIONS), the 2.1.2 optional fields copied from the
  * Rust model: session_effort, athlete_report.workout_session_id, and the
- * strength-set movement and load basis (D238, D239). Do not design record
- * changes here. The native
+ * strength-set movement and load basis (D238, D239), and the 2.1.3 coach
+ * author with its rules (D255). Do not design record changes here. The native
  * Rust model is the source of truth, and test/zod-native-vectors.test.ts
  * requires the same verdicts from both. Native writes never call this file.
  *
@@ -19,16 +19,16 @@
 import { z } from "zod";
 import { RecordExtensions, validateExtensionsForRecordType } from "./extensions.js";
 
-export const ATHLETIC_STANDARD_VERSION = "2.1.2";
+export const ATHLETIC_STANDARD_VERSION = "2.1.3";
 
 /** Record files this software can read. New writes use ATHLETIC_STANDARD_VERSION. */
-export const ACCEPTED_RECORD_VERSIONS = ["1.0.0", "2.0.0", "2.1.0", "2.1.1", "2.1.2"] as const;
+export const ACCEPTED_RECORD_VERSIONS = ["1.0.0", "2.0.0", "2.1.0", "2.1.1", "2.1.2", "2.1.3"] as const;
 
 /**
  * Package versions `ath import` restores. A minor version only adds optional
  * fields, so a 2.0.0 package is valid 2.1.0 data.
  */
-export const IMPORTABLE_PACKAGE_VERSIONS = ["2.0.0", "2.1.0", "2.1.1", ATHLETIC_STANDARD_VERSION] as const;
+export const IMPORTABLE_PACKAGE_VERSIONS = ["2.0.0", "2.1.0", "2.1.1", "2.1.2", ATHLETIC_STANDARD_VERSION] as const;
 
 export const RecordFormatVersion = z.enum(ACCEPTED_RECORD_VERSIONS);
 
@@ -108,10 +108,23 @@ export const ToolActor = z.strictObject({
   tool_version: Semver,
 });
 
+/** The opaque ID a host assigned to a coach (D255): a lowercase UUID. */
+const CoachId = z
+  .string()
+  .regex(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/, "lowercase UUID");
+
+/** A human coach (D255), as an actor and as an author. New in 2.1.3. */
+const CoachActor = z.strictObject({
+  author_type: z.literal("coach"),
+  coach: z.string().min(1),
+  coach_id: CoachId,
+});
+
 export const RecordActor = z.discriminatedUnion("author_type", [
   AthleteActor,
   AgentActor,
   ToolActor,
+  CoachActor,
 ]);
 
 export const AgentAuthor = AgentActor.extend({
@@ -127,7 +140,51 @@ export const AuthoredRecordAuthor = z.discriminatedUnion("author_type", [
   AthleteActor,
   AgentAuthor,
   ToolAuthor,
+  CoachActor,
 ]);
+
+/** The record types a coach may author and change (D255). */
+const COACH_RECORD_TYPES: readonly string[] = ["coaching_note", "training_plan", "planned_session"];
+
+/** Where a record, revision, or deletion names an actor or author. */
+const ACTOR_PATHS: ReadonlyArray<readonly string[]> = [
+  ["changed_by"],
+  ["deleted_by"],
+  ["data", "authorship", "author"],
+  ["data", "created_by"],
+];
+
+/** The actor paths of `value` that name a coach. */
+function coachPaths(value: unknown): Array<readonly string[]> {
+  return ACTOR_PATHS.filter((path) => {
+    let current: unknown = value;
+    for (const key of path) {
+      if (typeof current !== "object" || current === null) {
+        return false;
+      }
+      current = (current as Record<string, unknown>)[key];
+    }
+    return (
+      typeof current === "object" &&
+      current !== null &&
+      (current as { author_type?: unknown }).author_type === "coach"
+    );
+  });
+}
+
+/** A coach may write only coaching notes, training plans, and planned sessions. */
+function addCoachRecordTypeIssues(recordType: string, value: unknown, context: z.RefinementCtx): void {
+  if (COACH_RECORD_TYPES.includes(recordType)) {
+    return;
+  }
+  for (const path of coachPaths(value)) {
+    context.addIssue({
+      code: "custom",
+      path: [...path],
+      message: `A coach may write only coaching_note, training_plan, and planned_session records, not ${recordType}`,
+    });
+  }
+}
 
 export const AuthoredRecordStatus = z.enum([
   "draft",
@@ -972,6 +1029,7 @@ function currentRecordVariant<const T extends RecordTypeT, S extends z.ZodType>(
           message: (error as Error).message,
         });
       }
+      addCoachRecordTypeIssues(recordType, value, context);
     });
 }
 
@@ -1110,6 +1168,7 @@ function recordRevisionVariant<const T extends RecordTypeT, S extends z.ZodType>
           message: (error as Error).message,
         });
       }
+      addCoachRecordTypeIssues(recordType, value, context);
     });
 }
 
@@ -1213,12 +1272,18 @@ export const RecordRevision = z.union([
   MeasurementSampleRevision,
 ]);
 
-export const RecordDeletion = z.strictObject({
-  record_id: RecordId,
-  record_revision: RecordRevisionNumber,
-  deleted_at: UtcTimestamp,
-  deleted_by: RecordActor,
-});
+export const RecordDeletion = z
+  .strictObject({
+    record_id: RecordId,
+    record_revision: RecordRevisionNumber,
+    deleted_at: UtcTimestamp,
+    deleted_by: RecordActor,
+  })
+  .superRefine((value, context) => {
+    if (value.deleted_by.author_type === "coach") {
+      context.addIssue({ code: "custom", path: ["deleted_by"], message: "A coach cannot delete a record" });
+    }
+  });
 
 export const ErasureReasonCode = z.enum([
   "athlete_request",
@@ -1528,6 +1593,19 @@ export const AthleticStandardPackage = z
         });
       }
     });
+
+    // A coach author first appears in 2.1.3 (D255).
+    const declared = value.athleticstandard_version;
+    if (ACCEPTED_RECORD_VERSIONS.indexOf(declared) < ACCEPTED_RECORD_VERSIONS.indexOf("2.1.3")) {
+      const message = `A coach author needs Athletic Standard 2.1.3 or later; this package declares ${declared}`;
+      for (const list of ["records", "record_revisions", "record_deletions"] as const) {
+        (value[list] as readonly unknown[]).forEach((item, index) => {
+          for (const path of coachPaths(item)) {
+            context.addIssue({ code: "custom", path: [list, index, ...path], message });
+          }
+        });
+      }
+    }
   });
 
 export const ManifestFile = z.strictObject({

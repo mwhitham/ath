@@ -387,7 +387,9 @@ fn stored_rows(path: &Path) -> BTreeMap<String, Vec<String>> {
     let connection = inspect(path);
     let mut out = BTreeMap::new();
     for table in table_names(&connection) {
-        if table == "database_metadata" || table == "database_state" {
+        // The change log records how each copy was written, as the database
+        // revision does; a restore starts a new one.
+        if table == "database_metadata" || table == "database_state" || table == "internal_change_log" {
             continue;
         }
         let mut statement = connection.prepare(&format!("SELECT * FROM {table}")).unwrap();
@@ -410,6 +412,8 @@ fn stored_rows(path: &Path) -> BTreeMap<String, Vec<String>> {
 }
 
 /// Tables, other than the erasure markers, with a text cell that names `id`.
+/// The change log's erasure row is value-free like the marker, so only its
+/// other rows count.
 fn tables_naming(path: &Path, id: &str) -> Vec<String> {
     let connection = inspect(path);
     let mut found = Vec::new();
@@ -417,7 +421,12 @@ fn tables_naming(path: &Path, id: &str) -> Vec<String> {
         if table == "record_erasure_markers" {
             continue;
         }
-        let mut statement = connection.prepare(&format!("SELECT * FROM {table}")).unwrap();
+        let query = if table == "internal_change_log" {
+            "SELECT * FROM internal_change_log WHERE change_kind <> 'erasure'".to_string()
+        } else {
+            format!("SELECT * FROM {table}")
+        };
+        let mut statement = connection.prepare(&query).unwrap();
         let columns = statement.column_count();
         let mut rows = statement.query([]).unwrap();
         while let Some(row) = rows.next().unwrap() {

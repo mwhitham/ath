@@ -44,6 +44,16 @@ fn as_2_1_2_issue(text: String) -> String {
     text
 }
 
+/// The one message 2.1.3 changes on purpose: the author-type list names
+/// `coach` (D255). Every case still runs, with that list extended.
+fn as_2_1_3_issue(text: String) -> String {
+    const AUTHOR_TYPES: &str = "Expected 'athlete' | 'agent' | 'tool'";
+    if text.ends_with(AUTHOR_TYPES) {
+        return format!("{text} | 'coach'");
+    }
+    text
+}
+
 fn issue_text(issue: &Value) -> String {
     let path: Vec<String> = issue["path"]
         .as_array()
@@ -88,8 +98,14 @@ fn every_recorded_vector_matches() {
             };
             checked += 1;
             let actual: Vec<String> = shape.issues(&input).iter().map(|issue| issue_text(&issue.to_json())).collect();
-            let expected: Vec<String> =
-                case["issues"].as_array().unwrap().iter().map(issue_text).map(as_2_1_2_issue).collect();
+            let expected: Vec<String> = case["issues"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .map(issue_text)
+                .map(as_2_1_2_issue)
+                .map(as_2_1_3_issue)
+                .collect();
             if actual != expected {
                 failures.push(format!("{schema_name} / {name}:\n    expected {expected:?}\n    actual   {actual:?}"));
                 continue;
