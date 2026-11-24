@@ -7,10 +7,10 @@ Status: **in progress; not released**. The plan is [spec.md](spec.md).
 | 1 | Plan, decisions D254–D267, storage study, hosting experiments | done |
 | 2 | Version 2.1.3, migration 007, coach authorship | done |
 | 3 | Changeset capture in the library (D268) | done |
-| 4 | libSQL remote backend: working copies, guarded commits, replication log, qualification suite | not started |
-| 5 | `ath-host` native directory mode: connect, read, write, attachments, refresh, restore | not started |
-| 6 | Sign-in and grants | not started |
-| 7 | Remote mode with object storage and several host copies | not started |
+| 4 | libSQL remote backend: working copies, guarded commits, replication log, qualification suite | built; live run pending |
+| 5 | `ath-host` native directory mode: connect, read, write, attachments, refresh, restore | done |
+| 6 | Sign-in and grants | done; provider recipes in step 9 |
+| 7 | Remote mode with object storage and several host copies | done with a stand-in server; live run pending |
 | 8 | Moves and backups | not started |
 | 9 | Clients, starter, `docs/hosting.md`, container and setup guide | not started |
 | 10 | Scale and fault runs, release evidence | not started |
@@ -44,3 +44,21 @@ Step 3 notes:
   workspace, which turns the feature on for the default `cargo test`.
 - Migration 007 gained `internal_replication_log`, with the revision each changeset
   started from, and a trigger that empties it when a record is erased.
+
+Steps 4 to 7 notes:
+
+- `ath-host` is a second package in the workspace (`host/`). The `ath` CLI does not
+  depend on it. The libSQL client lives only in the host.
+- Remote mode follows D268: the library runs every operation on a working copy, and
+  the host commits the recorded rows to the server in one guarded transaction. The
+  same commit code runs against a local SQLite file standing in for the server
+  (`local_server` storage), which is how the tests run without a network.
+- Host copies that share athletes' databases also share the host directory. In remote
+  mode it is a libSQL database; in the stand-in mode it is a file in the shared folder.
+- `host/tests/host_api.rs` covers, in both modes: a report with a photo saved and
+  opened on another device; retries and request-ID conflicts; a coach who sees and
+  adds only what was granted; a program; a revocation that blocks a waiting write; and
+  two host copies sharing one record, including catching up from the replication log
+  and rebuilding after an erasure.
+- Not yet run: the remote backend against a real libSQL server, and sign-in through a
+  real provider. Tokens in the tests are signed by a fixed test-only key.

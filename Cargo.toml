@@ -7,6 +7,11 @@ description = "Athletic Standard: a local-first SQLite record of an athlete's tr
 license = "MIT"
 publish = false
 
+[workspace]
+members = [".", "host"]
+default-members = [".", "host"]
+resolver = "2"
+
 [lib]
 name = "athleticstandard"
 path = "src/lib.rs"
