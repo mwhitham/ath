@@ -107,6 +107,11 @@ pub fn temporary(prefix: &str) -> PathBuf {
 
 pub enum Mode<'a> {
     Directory,
+    /// A real libSQL server, from the `ATH_QUALIFY_*` environment variables, with the
+    /// stand-in bucket for attachments.
+    Libsql {
+        bucket: &'a str,
+    },
     /// A local stand-in server folder shared by every host copy, and a bucket address.
     LocalServer {
         server: &'a Path,
@@ -117,19 +122,46 @@ pub enum Mode<'a> {
 pub fn config(data: &Path, mode: Mode<'_>, jwks: &str) -> Config {
     std::env::set_var("ATH_TEST_S3_KEY", "test");
     std::env::set_var("ATH_TEST_S3_SECRET", "test-secret");
+    let test_bucket = |bucket: &str| S3Config {
+        endpoint: bucket.to_string(),
+        bucket: "test-bucket".into(),
+        region: "test".into(),
+        access_key_env: "ATH_TEST_S3_KEY".into(),
+        secret_key_env: "ATH_TEST_S3_SECRET".into(),
+        path_style: true,
+    };
     let storage = match mode {
         Mode::Directory => StorageConfig::Directory,
-        Mode::LocalServer { server, bucket } => StorageConfig::LocalServer {
-            directory: server.to_path_buf(),
-            attachments: S3Config {
-                endpoint: bucket.to_string(),
-                bucket: "test-bucket".into(),
-                region: "test".into(),
-                access_key_env: "ATH_TEST_S3_KEY".into(),
-                secret_key_env: "ATH_TEST_S3_SECRET".into(),
-                path_style: true,
-            },
-        },
+        Mode::Libsql { bucket } => {
+            let variable = |name: &str| {
+                std::env::var(name).unwrap_or_else(|_| panic!("set {name} to run the qualification suite"))
+            };
+            let provision = match variable("ATH_QUALIFY_PROVISION").as_str() {
+                "existing" => ath_host::config::Provision::Existing,
+                other if other.starts_with("sqld-admin:") => {
+                    ath_host::config::Provision::SqldAdmin { admin_url: other["sqld-admin:".len()..].to_string() }
+                }
+                other if other.starts_with("turso:") => {
+                    let mut parts = other["turso:".len()..].splitn(2, ':');
+                    ath_host::config::Provision::Turso {
+                        organization: parts.next().unwrap_or_default().to_string(),
+                        group: parts.next().unwrap_or("default").to_string(),
+                        platform_token_env: "ATH_QUALIFY_TURSO_PLATFORM_TOKEN".into(),
+                    }
+                }
+                other => panic!("unknown ATH_QUALIFY_PROVISION: {other}"),
+            };
+            StorageConfig::Libsql {
+                url_template: variable("ATH_QUALIFY_LIBSQL_URL_TEMPLATE"),
+                directory_url: variable("ATH_QUALIFY_LIBSQL_DIRECTORY_URL"),
+                token_env: "ATH_QUALIFY_LIBSQL_TOKEN".into(),
+                provision,
+                attachments: test_bucket(bucket),
+            }
+        }
+        Mode::LocalServer { server, bucket } => {
+            StorageConfig::LocalServer { directory: server.to_path_buf(), attachments: test_bucket(bucket) }
+        }
     };
     Config {
         listen: "127.0.0.1:0".into(),

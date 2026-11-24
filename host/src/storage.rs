@@ -333,6 +333,40 @@ impl Storage {
         std::fs::read(&path).map_err(|_| ApiError::not_found())
     }
 
+    /// Replace one athlete's record with the package in `package` (D264). Directory
+    /// mode only. The old folder is kept beside it, renamed, until the operator removes
+    /// it.
+    pub async fn replace_from_package(&self, resource_id: &str, package: &Path) -> ApiResult<()> {
+        if self.is_remote() {
+            return Err(ApiError::refused(
+                "In remote mode, restore the athlete's database with the provider's restore; see docs/hosting.md",
+            ));
+        }
+        let _guard = self.lock(resource_id).await;
+        let folder = self.folder(resource_id);
+        let staged = self.data.join("athletes").join(format!("{resource_id}.restoring"));
+        let _ = std::fs::remove_dir_all(&staged);
+        std::fs::create_dir_all(&staged).map_err(|error| ApiError::internal("restoring a record", error))?;
+        let database = staged.join("athlete.ath.sqlite");
+        let package = package.to_path_buf();
+        blocking(move || {
+            let mut store = Store::create(&database, CreateOptions::default())?;
+            let preview = athleticstandard::package::preview_package_import(&store, &package)?;
+            athleticstandard::package::apply_package_import(&mut store, &preview, &[])?;
+            Ok(())
+        })
+        .await?;
+        let replaced = self
+            .data
+            .join("athletes")
+            .join(format!("{resource_id}.replaced-{}", chrono::Utc::now().format("%Y%m%dT%H%M%S%.3fZ")));
+        if folder.exists() {
+            std::fs::rename(&folder, &replaced).map_err(|error| ApiError::internal("restoring a record", error))?;
+        }
+        std::fs::rename(&staged, &folder).map_err(|error| ApiError::internal("restoring a record", error))?;
+        Ok(())
+    }
+
     /// Delete idle working copies (D268). Directory mode keeps every record.
     pub fn sweep_idle(&self) {
         if let Mode::Remote(remote) = &self.mode {

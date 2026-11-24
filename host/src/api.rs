@@ -133,7 +133,7 @@ async fn relation(state: &AppState, caller: &Caller, resource_id: &str) -> ApiRe
     }
 }
 
-async fn owner(state: &AppState, caller: &Caller, resource_id: &str) -> ApiResult<Athlete> {
+pub(crate) async fn owner(state: &AppState, caller: &Caller, resource_id: &str) -> ApiResult<Athlete> {
     match relation(state, caller, resource_id).await? {
         Relation::Owner(athlete) => Ok(athlete),
         Relation::Coach(..) => Err(ApiError::permission_denied("Only the athlete can do this")),
@@ -164,8 +164,10 @@ fn hide_missing(error: ApiError) -> ApiError {
     }
 }
 
-fn not_moving(athlete: &Athlete) -> ApiResult<()> {
-    if athlete.state == "frozen" {
+/// Writes are refused while a record is frozen for a move or staged as an incoming
+/// move (D267).
+pub(crate) fn not_moving(athlete: &Athlete) -> ApiResult<()> {
+    if athlete.state == "frozen" || athlete.state == "staged" {
         return Err(ApiError::moving());
     }
     Ok(())
@@ -283,7 +285,7 @@ fn decode(record_type: RecordType, data: &Value) -> ApiResult<RecordData> {
     RecordData::decode(record_type, &from_json(data)?).map_err(|error| ApiError::invalid(error.to_string()))
 }
 
-fn body_json<T: serde::de::DeserializeOwned>(body: &[u8]) -> ApiResult<T> {
+pub(crate) fn body_json<T: serde::de::DeserializeOwned>(body: &[u8]) -> ApiResult<T> {
     serde_json::from_slice(body).map_err(|error| ApiError::invalid(format!("The request body is not valid: {error}")))
 }
 
@@ -356,6 +358,10 @@ struct NewAthlete {
     display_name: Option<String>,
     #[serde(default)]
     invitation: Option<String>,
+    /// A record arriving from another host: it accepts its package and stays hidden
+    /// until the move activates it (D267).
+    #[serde(default)]
+    incoming: bool,
 }
 
 async fn create_athlete(
@@ -363,8 +369,11 @@ async fn create_athlete(
     caller: Caller,
     body: Bytes,
 ) -> ApiResult<(StatusCode, Json<Value>)> {
-    let request: NewAthlete =
-        if body.is_empty() { NewAthlete { display_name: None, invitation: None } } else { body_json(&body)? };
+    let request: NewAthlete = if body.is_empty() {
+        NewAthlete { display_name: None, invitation: None, incoming: false }
+    } else {
+        body_json(&body)?
+    };
     let invited = match &request.invitation {
         Some(code) => state
             .directory
@@ -378,7 +387,11 @@ async fn create_athlete(
     }
     let athlete = state
         .directory
-        .create_athlete(&caller.principal.principal_id, request.display_name.as_deref())
+        .create_athlete_in(
+            &caller.principal.principal_id,
+            request.display_name.as_deref(),
+            if request.incoming { "staged" } else { "active" },
+        )
         .await
         .map_err(|e| ApiError::internal("directory", e))?;
     let revision = state.storage.create(&athlete.resource_id).await?;
@@ -428,7 +441,9 @@ async fn put_package(
     body: Bytes,
 ) -> ApiResult<Json<Value>> {
     let athlete = owner(&state, &caller, &id).await?;
-    not_moving(&athlete)?;
+    if athlete.state == "frozen" {
+        return Err(ApiError::moving());
+    }
     let folder = state.storage.staging().join("packages").join(uuid::Uuid::new_v4().simple().to_string());
     crate::package_zip::unpack(&body, &folder)
         .map_err(|error| ApiError::invalid(format!("The package is not a readable zip: {error}")))?;
@@ -692,6 +707,11 @@ async fn erase(
     let request: ErasureRequest = body_json(&body)?;
     let reason: ErasureReasonCode = serde_json::from_value(Value::String(request.reason_code.clone()))
         .map_err(|_| ApiError::invalid(format!("Unknown erasure reason: {}", request.reason_code)))?;
+    let intent = state
+        .directory
+        .record_erasure_intent(&id, &record_id, &request.reason_code)
+        .await
+        .map_err(|e| ApiError::internal("directory", e))?;
     let revision = state
         .storage
         .write(&id, None, move |store, _| {
@@ -699,7 +719,28 @@ async fn erase(
             Ok(erase_record(store, &preview, reason, None)?.database_revision)
         })
         .await?;
+    state.directory.complete_erasure_intent(&intent).await.map_err(|e| ApiError::internal("directory", e))?;
     Ok(Json(j!({ "database_revision": revision })))
+}
+
+/// Apply an erasure again: after a failure, or after a restore from an older backup
+/// (D264). It erases whatever revision the record has. `false` when the record is not
+/// there any more.
+pub async fn erase_again(state: &AppState, resource_id: &str, record_id: &str, reason_code: &str) -> ApiResult<bool> {
+    let reason: ErasureReasonCode = serde_json::from_value(Value::String(reason_code.to_string()))
+        .map_err(|_| ApiError::invalid(format!("Unknown erasure reason: {reason_code}")))?;
+    let record_id = record_id.to_string();
+    state
+        .storage
+        .write(resource_id, None, move |store, _| {
+            let Some(current) = store.get_record(&record_id)? else {
+                return Ok(false);
+            };
+            let preview = preview_erasure(store, &record_id, current.current_revision)?;
+            erase_record(store, &preview, reason, None)?;
+            Ok(true)
+        })
+        .await
 }
 
 async fn upload(

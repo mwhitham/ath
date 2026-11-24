@@ -11,7 +11,7 @@ Status: **in progress; not released**. The plan is [spec.md](spec.md).
 | 5 | `ath-host` native directory mode: connect, read, write, attachments, refresh, restore | done |
 | 6 | Sign-in and grants | done; provider recipes in step 9 |
 | 7 | Remote mode with object storage and several host copies | done with a stand-in server; live run pending |
-| 8 | Moves and backups | not started |
+| 8 | Moves and backups | done; Litestream recipe untested |
 | 9 | Clients, starter, `docs/hosting.md`, container and setup guide | not started |
 | 10 | Scale and fault runs, release evidence | not started |
 
@@ -62,3 +62,21 @@ Steps 4 to 7 notes:
   and rebuilding after an erasure.
 - Not yet run: the remote backend against a real libSQL server, and sign-in through a
   real provider. Tokens in the tests are signed by a fixed test-only key.
+
+Step 8 notes:
+
+- A move is driven by the owner's app: `move/freeze` on the source, the package
+  uploaded to an `incoming` record on the destination, `move/retire` on the source,
+  then `move/activate` on the destination, which asks the source to confirm the
+  single-use code for its own address and the digest of the package it holds (D267).
+- `ath-host backup` writes each athlete's package as a zip after a trial restore and
+  check. `ath-host restore` replaces one athlete's record in directory mode, then
+  applies every erasure recorded since and raises the access epoch. In remote mode, use
+  the provider's restore for that athlete's database.
+- Every erasure is noted in the host directory before it is applied. The host finishes
+  unfinished erasures when it starts (D264).
+- The Litestream recipe is documented but not run: no Litestream binary was run in
+  this build.
+- `host_api.rs` has an ignored qualification test that runs every scenario against a
+  real libSQL server with two host copies and prints timings. It needs a server
+  address and token in `ATH_QUALIFY_*` variables.

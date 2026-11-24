@@ -341,7 +341,10 @@ fn remote_mode_revocation_blocks_a_waiting_write() {
 
 #[test]
 fn two_host_copies_share_a_record() {
-    let setup = remote_hosts(2);
+    two_copies(&remote_hosts(2));
+}
+
+fn two_copies(setup: &Setup) {
     let (a, b) = (&setup.hosts[0], &setup.hosts[1]);
     let owner = token("athlete-1", ATHLETE_APP);
     let id = create_athlete(a, &owner);
@@ -417,4 +420,55 @@ fn two_host_copies_share_a_record() {
     assert_eq!(after.status, 404);
     let listed = call("GET", &athlete_url(a, &id, "/records?record_type=athlete_report"), &owner, None, None);
     assert_eq!(listed.json["records"].as_array().unwrap().len(), 3);
+}
+
+// ---- The qualification suite against a real libSQL server (D258) -------------------
+
+/// Run every host scenario against a real libSQL server with two host copies, and time
+/// the common operations. Set `ATH_QUALIFY_LIBSQL_URL_TEMPLATE` (with `{database}`),
+/// `ATH_QUALIFY_LIBSQL_DIRECTORY_URL`, `ATH_QUALIFY_LIBSQL_TOKEN`, and
+/// `ATH_QUALIFY_PROVISION` (`existing`, `sqld-admin:<admin URL>`, or
+/// `turso:<organization>:<group>` with `ATH_QUALIFY_TURSO_PLATFORM_TOKEN`), then run
+/// `cargo test -p athleticstandard-host --test host_api -- --ignored --nocapture`.
+#[test]
+#[ignore = "needs a libSQL server; see the comment above"]
+fn qualification_against_a_libsql_server() {
+    let jwks = key_server();
+    let (bucket_url, bucket) = bucket_server();
+    let hosts: Vec<Host> = (0..2)
+        .map(|_| host(config(&temporary("ath-host-qualify-"), Mode::Libsql { bucket: &bucket_url }, &jwks)))
+        .collect();
+    let setup = Setup { hosts, _bucket: Some(bucket) };
+    let started = std::time::Instant::now();
+    report_with_photo(&setup.hosts[0]);
+    coach_flow(&setup.hosts[0]);
+    programming(&setup.hosts[0]);
+    revocation_blocks_a_waiting_write(&setup.hosts[0]);
+    two_copies(&setup);
+    println!("qualification scenarios passed in {:?}", started.elapsed());
+
+    // Timings on one athlete: a report save, a full read, and a 28-day evidence read.
+    let host = &setup.hosts[0];
+    let owner = token("timing", ATHLETE_APP);
+    let id = create_athlete(host, &owner);
+    let mut saves = Vec::new();
+    for index in 0..20 {
+        let begun = std::time::Instant::now();
+        let reply = call(
+            "POST",
+            &athlete_url(host, &id, "/records"),
+            &owner,
+            Some(json!({ "record_type": "athlete_report", "data": report(&format!("Timing {index}.")) })),
+            Some(&format!("t-{index}")),
+        );
+        assert_eq!(reply.status, 201);
+        saves.push(begun.elapsed());
+    }
+    saves.sort();
+    println!("report save: median {:?}, slowest {:?}", saves[saves.len() / 2], saves[saves.len() - 1]);
+    let begun = std::time::Instant::now();
+    let restored =
+        send_bytes("PUT", &athlete_url(host, &create_athlete(host, &owner), "/package"), &owner, &demo_package_zip());
+    assert_eq!(restored.status, 200, "{}", restored.json);
+    println!("demo package restore: {:?}", begun.elapsed());
 }

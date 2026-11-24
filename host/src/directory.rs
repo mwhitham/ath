@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS athletes (
   resource_id TEXT PRIMARY KEY,
   owner_principal_id TEXT NOT NULL REFERENCES principals (principal_id),
   display_name TEXT,
-  state TEXT NOT NULL CHECK (state IN ('active', 'frozen', 'retired')),
+  state TEXT NOT NULL CHECK (state IN ('active', 'frozen', 'retired', 'staged')),
   created_at TEXT NOT NULL
 ) STRICT;
 CREATE INDEX IF NOT EXISTS athletes_owner_idx ON athletes (owner_principal_id);
@@ -56,6 +56,15 @@ CREATE TABLE IF NOT EXISTS grants (
 ) STRICT;
 CREATE INDEX IF NOT EXISTS grants_coach_idx ON grants (coach_principal_id, client_id);
 CREATE INDEX IF NOT EXISTS grants_resource_idx ON grants (resource_id);
+CREATE TABLE IF NOT EXISTS erasure_intents (
+  intent_id TEXT PRIMARY KEY,
+  resource_id TEXT NOT NULL,
+  record_id TEXT NOT NULL,
+  reason_code TEXT NOT NULL,
+  requested_at TEXT NOT NULL,
+  completed_at TEXT
+) STRICT;
+CREATE INDEX IF NOT EXISTS erasure_intents_resource_idx ON erasure_intents (resource_id);
 CREATE TABLE IF NOT EXISTS transfers (
   transfer_id TEXT PRIMARY KEY,
   resource_id TEXT NOT NULL,
@@ -239,11 +248,22 @@ impl Directory {
     }
 
     pub async fn create_athlete(&self, owner_principal_id: &str, display_name: Option<&str>) -> DbResult<Athlete> {
+        self.create_athlete_in(owner_principal_id, display_name, "active").await
+    }
+
+    /// A new athlete record in `state`: `active`, or `staged` for a record arriving
+    /// from another host, which accepts only its package until it is activated (D267).
+    pub async fn create_athlete_in(
+        &self,
+        owner_principal_id: &str,
+        display_name: Option<&str>,
+        state: &str,
+    ) -> DbResult<Athlete> {
         let resource_id = format!("ath_{}", uuid::Uuid::new_v4().simple());
         self.db
             .execute(
-                &format!("INSERT INTO athletes ({ATHLETE_COLUMNS}) VALUES (?1, ?2, ?3, 'active', ?4)"),
-                vec![t(&resource_id), t(owner_principal_id), opt(display_name), t(&now())],
+                &format!("INSERT INTO athletes ({ATHLETE_COLUMNS}) VALUES (?1, ?2, ?3, ?4, ?5)"),
+                vec![t(&resource_id), t(owner_principal_id), opt(display_name), t(state), t(&now())],
             )
             .await?;
         self.athlete(&resource_id).await?.ok_or_else(|| DbError("athlete was not stored".into()))
@@ -550,6 +570,93 @@ impl Directory {
             Some(id) => self.transfer(&id).await,
             None => Ok(None),
         }
+    }
+}
+
+impl Directory {
+    /// Record the single-use activation for a retired transfer, stored as a hash.
+    pub async fn set_activation(&self, transfer_id: &str, activation: &str) -> DbResult<bool> {
+        let changed = self
+            .db
+            .execute(
+                "UPDATE transfers SET activation_hash = ?2, updated_at = ?3 WHERE transfer_id = ?1 AND state = 'retired'",
+                vec![t(transfer_id), t(&hash_code(activation)), t(&now())],
+            )
+            .await?;
+        Ok(changed == 1)
+    }
+
+    /// Use an activation once. True only when the code, the destination, and the
+    /// package digest all match a retired transfer that was not activated before.
+    pub async fn use_activation(
+        &self,
+        transfer_id: &str,
+        activation: &str,
+        destination: &str,
+        manifest_digest: &str,
+    ) -> DbResult<bool> {
+        let changed = self
+            .db
+            .execute(
+                "UPDATE transfers SET state = 'activated', activation_hash = NULL, updated_at = ?5
+                 WHERE transfer_id = ?1 AND state = 'retired' AND activation_hash = ?2
+                   AND destination = ?3 AND manifest_digest = ?4",
+                vec![t(transfer_id), t(&hash_code(activation)), t(destination), t(manifest_digest), t(&now())],
+            )
+            .await?;
+        Ok(changed == 1)
+    }
+
+    /// Note an erasure before it is applied, so it is applied again after a failure
+    /// or a restore from an older backup (D264).
+    pub async fn record_erasure_intent(
+        &self,
+        resource_id: &str,
+        record_id: &str,
+        reason_code: &str,
+    ) -> DbResult<String> {
+        let intent_id = format!("erase_{}", uuid::Uuid::new_v4().simple());
+        self.db
+            .execute(
+                "INSERT INTO erasure_intents (intent_id, resource_id, record_id, reason_code, requested_at) VALUES (?1, ?2, ?3, ?4, ?5)",
+                vec![t(&intent_id), t(resource_id), t(record_id), t(reason_code), t(&now())],
+            )
+            .await?;
+        Ok(intent_id)
+    }
+
+    pub async fn complete_erasure_intent(&self, intent_id: &str) -> DbResult<()> {
+        self.db
+            .execute(
+                "UPDATE erasure_intents SET completed_at = ?2 WHERE intent_id = ?1 AND completed_at IS NULL",
+                vec![t(intent_id), t(&now())],
+            )
+            .await?;
+        Ok(())
+    }
+
+    /// Every erasure ever requested for one athlete, oldest first: (intent, record, reason).
+    pub async fn erasure_intents(&self, resource_id: &str) -> DbResult<Vec<(String, String, String)>> {
+        let rows = self
+            .db
+            .query(
+                "SELECT intent_id, record_id, reason_code FROM erasure_intents WHERE resource_id = ?1 ORDER BY requested_at, intent_id",
+                vec![t(resource_id)],
+            )
+            .await?;
+        Ok(rows.iter().map(|row| (get_text(row, 0), get_text(row, 1), get_text(row, 2))).collect())
+    }
+
+    /// Erasures that were requested and never completed: (intent, athlete, record, reason).
+    pub async fn unfinished_erasure_intents(&self) -> DbResult<Vec<(String, String, String, String)>> {
+        let rows = self
+            .db
+            .query(
+                "SELECT intent_id, resource_id, record_id, reason_code FROM erasure_intents WHERE completed_at IS NULL ORDER BY requested_at",
+                Vec::new(),
+            )
+            .await?;
+        Ok(rows.iter().map(|row| (get_text(row, 0), get_text(row, 1), get_text(row, 2), get_text(row, 3))).collect())
     }
 }
 

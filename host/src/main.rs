@@ -9,6 +9,8 @@ fn usage() -> ! {
   ath-host serve --config <file>
   ath-host setup --config <file> --issuer <issuer> --subject <subject> [--name <display name>]
   ath-host invite --config <file> [--days <n>]
+  ath-host backup --config <file> --output <folder>
+  ath-host restore --config <file> --athlete <athlete id> --package <zip>
   ath-host version"
     );
     std::process::exit(2)
@@ -36,6 +38,8 @@ async fn main() {
         Some("serve") => serve(config(&args)).await,
         Some("setup") => setup(config(&args), &args).await,
         Some("invite") => invite(config(&args), &args).await,
+        Some("backup") => backup(config(&args), &args).await,
+        Some("restore") => restore(config(&args), &args).await,
         _ => usage(),
     }
 }
@@ -50,6 +54,10 @@ async fn serve(config: ath_host::config::Config) {
     }
     let listen = config.listen.clone();
     let state = ath_host::state(config).await.unwrap_or_else(|error| fail(&error));
+    let finished = ath_host::backup::finish_erasures(&state).await.unwrap_or_else(|error| fail(&error.to_string()));
+    if finished > 0 {
+        eprintln!("ath-host: finished {finished} erasure(s) that an earlier run did not complete");
+    }
     let sweeper = state.clone();
     tokio::spawn(async move {
         loop {
@@ -107,4 +115,27 @@ async fn invite(config: ath_host::config::Config, args: &[String]) {
         .await
         .unwrap_or_else(|error| fail(&error.to_string()));
     println!("{}\nexpires {}", offer.code, offer.expires_at);
+}
+
+/// Back up every athlete's complete package, each checked by a trial restore.
+async fn backup(config: ath_host::config::Config, args: &[String]) {
+    let output = PathBuf::from(option(args, "--output").unwrap_or_else(|| usage()));
+    let state = ath_host::state(config).await.unwrap_or_else(|error| fail(&error));
+    let done = ath_host::backup::backup_all(&state, &output).await.unwrap_or_else(|error| fail(&error.to_string()));
+    for entry in done {
+        println!("{}\t{}\t{}", entry.athlete_id, entry.manifest_digest, entry.file.display());
+    }
+}
+
+/// Restore one athlete from a backup, then reapply later erasures.
+async fn restore(config: ath_host::config::Config, args: &[String]) {
+    let athlete = option(args, "--athlete").unwrap_or_else(|| usage());
+    let package = PathBuf::from(option(args, "--package").unwrap_or_else(|| usage()));
+    let bytes =
+        std::fs::read(&package).unwrap_or_else(|error| fail(&format!("cannot read {}: {error}", package.display())));
+    let state = ath_host::state(config).await.unwrap_or_else(|error| fail(&error));
+    let revision = ath_host::backup::restore_athlete(&state, &athlete, &bytes)
+        .await
+        .unwrap_or_else(|error| fail(&error.to_string()));
+    println!("restored {athlete} at database revision {revision}");
 }
