@@ -2,9 +2,9 @@
 name: hyrox
 description: Coaches one athlete for HYROX racing under the 2026/27 Singles, Doubles, Relay, and Adaptive rulebooks, and saves the advice as authored records. Use when someone asks for a HYROX race plan or training block, how to train a station or running after stations, a pacing plan or finish-time budget, Doubles or Relay tactics, Adaptive race rules, or what a race result means and what to change. Not for splitting one result into parts alone (use hyrox-race-splits), CrossFit (use crossfit), medical questions, or deciding Adaptive eligibility.
 license: MIT
-compatibility: Requires the ath CLI 2.1.2 or later (npm package athleticstandard) and an Athletic Standard database. Install with ath skill install hyrox.
+compatibility: Requires the ath CLI 2.1.3 or later (npm package athleticstandard) and an Athletic Standard database. Install with ath skill install hyrox.
 metadata:
-  version: "2.1.2"
+  version: "2.1.3"
   kind: coaching
 ---
 
@@ -78,16 +78,16 @@ say so when asked what science says is best. Details are in
 
 ## Before the first ath command
 
-This skill runs `ath`, the Athletic Standard program, version 2.1.2 or later.
+This skill runs `ath`, the Athletic Standard program, version 2.1.3 or later.
 Check it once with `ath --version`.
 
 - If `ath` is not found, it is not installed. It comes from the npm package
   `athleticstandard`. The npm package named `ath` is a different program. Install it
   with `npm install -g athleticstandard`, which needs Node.js 22 or later. Other ways
   to install it are at https://www.npmjs.com/package/athleticstandard.
-- If the version is older than 2.1.2, update it with `ath --update`.
+- If the version is older than 2.1.3, update it with `ath --update`.
 - Install or update only after the person agrees. Then run `ath --version` again. If
-  it is still older than 2.1.2, say so and stop.
+  it is still older than 2.1.3, say so and stop.
 
 If the answer needs the athlete's records or a calculation and `ath` cannot run, stop.
 Tell the person what is missing and how to fix it. Do not read the database another

@@ -37,26 +37,85 @@ struct Definitions {
     /// Recursive shapes in first-use order: (kind tag, name).
     names: Vec<(&'static str, String)>,
     entries: Vec<(String, Value)>,
+    /// For `Components`: where references point, and the shapes that have a name.
+    /// A standalone document leaves these empty and uses `#/$defs/`.
+    prefix: Option<String>,
+    named: Vec<(usize, String)>,
 }
 
 impl Definitions {
+    fn target(&self, name: &str) -> String {
+        match &self.prefix {
+            Some(prefix) => format!("{prefix}{name}"),
+            None => format!("#/$defs/{name}"),
+        }
+    }
+
     fn reference(&mut self, tag: &'static str, build: fn(&str) -> Value) -> Value {
         let name = match self.names.iter().find(|(known, _)| *known == tag) {
             Some((_, name)) => name.clone(),
             None => {
-                let name = format!("__schema{}", self.names.len());
+                let name = match (&self.prefix, tag) {
+                    (None, _) => format!("__schema{}", self.names.len()),
+                    (Some(_), "json") => "JsonValue".to_string(),
+                    (Some(_), "extension") => "ExtensionValue".to_string(),
+                    (Some(_), other) => other.to_string(),
+                };
                 self.names.push((tag, name.clone()));
-                let body = build(&name);
+                let body = build(&self.target(&name));
                 self.entries.push((name.clone(), body));
                 name
             }
         };
-        serde_json::json!({ "$ref": format!("#/$defs/{name}") })
+        serde_json::json!({ "$ref": self.target(&name) })
+    }
+
+    fn named(&self, schema: &Schema) -> Option<Value> {
+        let address = schema as *const Schema as usize;
+        self.named
+            .iter()
+            .find(|(known, _)| *known == address)
+            .map(|(_, name)| serde_json::json!({ "$ref": self.target(name) }))
     }
 }
 
-fn json_union(name: &str, string: Value, array_max: Option<usize>) -> Value {
-    let reference = serde_json::json!({ "$ref": format!("#/$defs/{name}") });
+/// Shapes written as parts of one larger document, such as an API description.
+/// A shape given a name is written once, under that name, and every other use of
+/// it becomes a reference to `prefix` and the name. Shared recursive shapes are
+/// named `JsonValue` and `ExtensionValue`.
+pub struct Components {
+    definitions: Definitions,
+}
+
+impl Components {
+    pub fn new(prefix: &str) -> Components {
+        Components { definitions: Definitions { prefix: Some(prefix.to_string()), ..Definitions::default() } }
+    }
+
+    /// Give `schema` a name. Every later use of it inside another shape becomes a
+    /// reference.
+    pub fn name(&mut self, schema: SchemaRef, name: &str) {
+        self.definitions.named.push((schema as *const Schema as usize, name.to_string()));
+    }
+
+    /// `schema` written out in full, with named shapes inside it as references.
+    pub fn write(&mut self, schema: SchemaRef) -> Value {
+        emit_body(schema, &mut self.definitions)
+    }
+
+    /// The reference to a named shape, or the shape in full if it has no name.
+    pub fn use_of(&mut self, schema: SchemaRef) -> Value {
+        emit(schema, &mut self.definitions)
+    }
+
+    /// The shared recursive shapes the written shapes used, by name.
+    pub fn shared(self) -> Vec<(String, Value)> {
+        self.definitions.entries
+    }
+}
+
+fn json_union(target: &str, string: Value, array_max: Option<usize>) -> Value {
+    let reference = serde_json::json!({ "$ref": target });
     let mut array = Map::new();
     if let Some(limit) = array_max {
         array.insert("maxItems".into(), Value::from(limit as u64));
@@ -75,16 +134,16 @@ fn json_union(name: &str, string: Value, array_max: Option<usize>) -> Value {
     })
 }
 
-fn extension_value(name: &str) -> Value {
+fn extension_value(target: &str) -> Value {
     json_union(
-        name,
+        target,
         serde_json::json!({ "type": "string", "maxLength": super::extensions::EXTENSION_STRING_MAX_LENGTH }),
         Some(super::extensions::EXTENSION_ARRAY_MAX_LENGTH),
     )
 }
 
-fn any_json(name: &str) -> Value {
-    json_union(name, serde_json::json!({ "type": "string" }), None)
+fn any_json(target: &str) -> Value {
+    json_union(target, serde_json::json!({ "type": "string" }), None)
 }
 
 fn number(value: f64) -> Value {
@@ -96,6 +155,13 @@ fn number(value: f64) -> Value {
 }
 
 fn emit(schema: &Schema, definitions: &mut Definitions) -> Value {
+    if let Some(reference) = definitions.named(schema) {
+        return reference;
+    }
+    emit_body(schema, definitions)
+}
+
+fn emit_body(schema: &Schema, definitions: &mut Definitions) -> Value {
     let mut out = Map::new();
     if schema.description_first {
         if let Some(description) = schema.description {

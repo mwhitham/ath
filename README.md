@@ -95,9 +95,17 @@ The JSON schemas are exported as `athleticstandard/json-schema`,
 `athleticstandard/skill`. The retired prerelease JSON runtime is not part of the v1
 package API.
 
+A program that works with a record on an `ath-host` server uses `connectHost` from
+`athleticstandard`. It takes the host's address and the signed-in person's access
+token. The host checks that person's grants on every request. The program never
+receives a database credential, and `openDatabase` still refuses database URLs.
+[`examples/host-starter/`](examples/host-starter/) runs a coach's steps with it.
+[`examples/host-mcp/`](examples/host-mcp/) is a small MCP server that reads workout
+summaries and adds coaching notes with it.
+
 ## Upgrade a database
 
-A database from version 1.0.0, 2.0.0, 2.1.0, or 2.1.1 upgrades with `ath migrate`. The
+A database from version 1.0.0, 2.0.0, 2.1.0, 2.1.1, or 2.1.2 upgrades with `ath migrate`. The
 command shows a preview first. It makes a verified backup with SQLite's own backup
 interface before the first schema write. Opening a database never migrates it without
 confirmation. To go back, restore the backup; it does not contain work recorded after
@@ -382,6 +390,18 @@ when the manifest needs one.
 Importing an exported package is explicit and uses the same preview-then-`--yes`
 workflow as a provider import.
 
+## Share a record through a host
+
+Local use needs no host. A host lets a coach read workout summaries and add notes
+and programming while the athlete's device is off. `ath-host` is a separate, optional
+program that serves many athletes' records over HTTPS. The athlete grants each coach,
+through a named app, only the permissions the athlete chooses, and can revoke them.
+The athlete can export the complete record at any time, and it opens in ordinary
+`ath`.
+
+[`docs/hosting.md`](docs/hosting.md) explains how to run a host and how apps call it.
+`ath-host` is not in the release archives or the npm package. Build it from source.
+
 ## Predict and grade
 
 Inside an agent harness, ask the database for prediction evidence:
@@ -427,9 +447,10 @@ keeps the ID. Evidence names both the record ID and revision.
 The format defines 24 record types for profile data, sources, measurements,
 sessions, athlete reports, nutrition, attachments, benchmarks, predictions, plans,
 goals, and saved authored work. [`SPEC.md`](SPEC.md) is the public field reference.
-The generated JSON Schemas are in [`schema/2.1.2/`](schema/2.1.2/). The published
-2.0.0, 2.1.0, and 2.1.1 schemas stay in [`schema/2.0.0/`](schema/2.0.0/),
-[`schema/2.1.0/`](schema/2.1.0/), and [`schema/2.1.1/`](schema/2.1.1/).
+The generated JSON Schemas are in [`schema/2.1.3/`](schema/2.1.3/). The published
+2.0.0, 2.1.0, 2.1.1, and 2.1.2 schemas stay in [`schema/2.0.0/`](schema/2.0.0/),
+[`schema/2.1.0/`](schema/2.1.0/), [`schema/2.1.1/`](schema/2.1.1/), and
+[`schema/2.1.2/`](schema/2.1.2/).
 
 How the code is organized, and the path of one import and one correction to disk, is
 in [`docs/architecture.md`](docs/architecture.md).

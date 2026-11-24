@@ -10,11 +10,14 @@ pub mod backup;
 pub mod check;
 pub mod contract;
 pub mod encode;
+pub mod hosting;
 pub mod migrate;
 pub mod pending;
 pub mod query;
 pub mod read;
 pub mod repair;
+#[cfg(feature = "changesets")]
+pub mod replica;
 pub mod stats;
 pub mod write;
 
@@ -38,7 +41,7 @@ pub const SQLITE_APPLICATION_MARKER: &str = "ATH1";
 pub const SQLITE_BUSY_TIMEOUT: Duration = Duration::from_millis(5_000);
 
 /// Database versions this software reads.
-pub const READABLE_DATABASE_VERSIONS: &[&str] = &["1.0.0", "2.0.0", "2.1.0", "2.1.1", "2.1.2"];
+pub const READABLE_DATABASE_VERSIONS: &[&str] = &["1.0.0", "2.0.0", "2.1.0", "2.1.1", "2.1.2", "2.1.3"];
 
 /// The default database file name in a working directory.
 pub const DEFAULT_FILENAME: &str = "athlete.ath.sqlite";
