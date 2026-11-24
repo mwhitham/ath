@@ -1,7 +1,8 @@
 /**
  * Every 2.1.0 public export is present with the same name and kind, and the
  * package keeps every 2.1.0 subpath. Types and function signatures are
- * checked at compile time by test/public-api.generated.ts.
+ * checked at compile time by test/public-api.generated.ts. Exports added
+ * since 2.1.0 are listed in `reviewedAdditions`.
  */
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -39,12 +40,24 @@ const packageJson = JSON.parse(readFileSync(join(packageRoot, "package.json"), "
   exports: Record<string, unknown>;
 };
 
+/**
+ * Value exports added after 2.1.0. Each one was reviewed when it was added.
+ * Any other new export fails the test below.
+ */
+const reviewedAdditions: Record<string, string[]> = {
+  // 2.1.3: the host connection (D266).
+  ".": ["HostError", "connectHost"],
+  "./database": [],
+  "./schema": [],
+};
+
 describe("public exports", () => {
   for (const [entry, module] of Object.entries(modules)) {
-    it(`keeps every 2.1.0 value export of ${entry} and adds none`, () => {
+    it(`keeps every 2.1.0 value export of ${entry} and adds only reviewed ones`, () => {
       const expected = inventory.symbols
         .filter((symbol) => symbol.entry_point === entry && symbol.value_export)
         .map((symbol) => symbol.name)
+        .concat(reviewedAdditions[entry] ?? [])
         .sort();
       expect(Object.keys(module).sort()).toEqual(expected);
       for (const symbol of inventory.symbols.filter((item) => item.entry_point === entry && item.value_export)) {
@@ -62,14 +75,19 @@ describe("public exports", () => {
     });
   }
 
+  it("exports the host connection from the package root", () => {
+    expect(typeof root.connectHost).toBe("function");
+    expect(new root.HostError(404, "not_found", "x")).toBeInstanceOf(Error);
+  });
+
   it("keeps the 2.1.0 aliases and the database namespace", () => {
     expect(database.getRecord).toBe(database.readRecord);
     expect(database.resolveConflict).toBe(database.resolvePackageConflict);
     expect(root.database).toEqual(expect.objectContaining({ openDatabase: database.openDatabase }));
-    expect(root.ATH_PACKAGE_VERSION).toBe("2.1.2");
-    expect(root.ATHLETIC_STANDARD_VERSION).toBe("2.1.2");
-    expect(schema.ACCEPTED_RECORD_VERSIONS).toEqual(["1.0.0", "2.0.0", "2.1.0", "2.1.1", "2.1.2"]);
-    expect(schema.IMPORTABLE_PACKAGE_VERSIONS).toEqual(["2.0.0", "2.1.0", "2.1.1", "2.1.2"]);
+    expect(root.ATH_PACKAGE_VERSION).toBe("2.1.3");
+    expect(root.ATHLETIC_STANDARD_VERSION).toBe("2.1.3");
+    expect(schema.ACCEPTED_RECORD_VERSIONS).toEqual(["1.0.0", "2.0.0", "2.1.0", "2.1.1", "2.1.2", "2.1.3"]);
+    expect(schema.IMPORTABLE_PACKAGE_VERSIONS).toEqual(["2.0.0", "2.1.0", "2.1.1", "2.1.2", "2.1.3"]);
   });
 
   it("keeps the generated compile-time check current", () => {
@@ -78,7 +96,7 @@ describe("public exports", () => {
   });
 
   it("repeats the native constants", () => {
-    expect(database.SQL_SCHEMA_VERSION).toBe(6);
+    expect(database.SQL_SCHEMA_VERSION).toBe(7);
     expect(database.SQLITE_APPLICATION_ID).toBe(0x41544831);
     expect(database.SQLITE_APPLICATION_MARKER).toBe("ATH1");
     expect(database.MAX_ATTACHMENT_BYTES).toBe(25 * 1024 * 1024);
@@ -104,21 +122,21 @@ describe("public exports", () => {
 describe("package layout", () => {
   it("keeps the name, the ath command, and every 2.1.0 subpath", () => {
     expect(packageJson.name).toBe("athleticstandard");
-    expect(packageJson.version).toBe("2.1.2");
+    expect(packageJson.version).toBe("2.1.3");
     expect(Object.keys(packageJson.bin)).toEqual(["ath"]);
     expect(Object.keys(packageJson.exports).sort()).toEqual(
       [".", "./database", "./schema", ...inventory.json_only_subpaths.map((entry) => entry.subpath)].sort(),
     );
   });
 
-  it("generates the JSON Schema files for 2.1.2", () => {
+  it("generates the JSON Schema files for 2.1.3", () => {
     for (const subpath of ["./json-schema", "./json-schema/export-manifest", "./json-schema/measurement-series"]) {
       const target = packageJson.exports[subpath] as string;
-      expect(target).toMatch(/^\.\/schema\/2\.1\.2\//);
+      expect(target).toMatch(/^\.\/schema\/2\.1\.3\//);
       // pack.mjs copies the repository's committed schema/ files into the package.
       const document = JSON.parse(readFileSync(join(repositoryRoot, target), "utf8")) as { $id: string; $schema: string };
       expect(document.$schema).toBe("https://json-schema.org/draft/2020-12/schema");
-      expect(document.$id).toContain("/2.1.2/");
+      expect(document.$id).toContain("/2.1.3/");
     }
   });
 

@@ -16,14 +16,14 @@ use crate::json::{self, Value};
 use crate::{model_enum, model_object};
 
 /// The software, record, and database version (D152).
-pub const ATHLETIC_STANDARD_VERSION: &str = "2.1.2";
+pub const ATHLETIC_STANDARD_VERSION: &str = "2.1.3";
 
 /// Record files this software can read. New writes use `ATHLETIC_STANDARD_VERSION`.
-pub const ACCEPTED_RECORD_VERSIONS: &[&str] = &["1.0.0", "2.0.0", "2.1.0", "2.1.1", "2.1.2"];
+pub const ACCEPTED_RECORD_VERSIONS: &[&str] = &["1.0.0", "2.0.0", "2.1.0", "2.1.1", "2.1.2", "2.1.3"];
 
 /// Package versions `ath import` restores. 2.1.x and 2.0.0 packages share the
 /// same fields; later minor versions only add optional fields.
-pub const IMPORTABLE_PACKAGE_VERSIONS: &[&str] = &["2.0.0", "2.1.0", "2.1.1", "2.1.2"];
+pub const IMPORTABLE_PACKAGE_VERSIONS: &[&str] = &["2.0.0", "2.1.0", "2.1.1", "2.1.2", "2.1.3"];
 
 model_enum! {
     pub enum RecordFormatVersion {
@@ -32,6 +32,7 @@ model_enum! {
         V2_1_0 = "2.1.0",
         V2_1_1 = "2.1.1",
         V2_1_2 = "2.1.2",
+        V2_1_3 = "2.1.3",
     }
 }
 
@@ -467,6 +468,25 @@ fn refine_package(value: &Value, issues: &mut Vec<Issue>) {
                 at(&["record_erasure_markers"], index, &["record_id"]),
                 "An erased record cannot remain in current package records",
             );
+        }
+    }
+    coach_version_issues(value, issues);
+}
+
+/// A coach author or actor first appears in 2.1.3 (D255). A package that
+/// declares an earlier version cannot contain one, because a program of that
+/// version does not know the variant.
+fn coach_version_issues(value: &Value, issues: &mut Vec<Issue>) {
+    let declared = text(value, "athleticstandard_version");
+    if !RecordFormatVersion::parse(declared).is_some_and(|version| version < RecordFormatVersion::V2_1_3) {
+        return;
+    }
+    let message = format!("A coach author needs Athletic Standard 2.1.3 or later; this package declares {declared}");
+    for list in ["records", "record_revisions", "record_deletions"] {
+        for (index, item) in array(value, list).iter().enumerate() {
+            for path in coach_paths(item) {
+                issue(issues, at(&[list], index, path), &message);
+            }
         }
     }
 }

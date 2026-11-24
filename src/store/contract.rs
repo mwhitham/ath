@@ -3,8 +3,8 @@
 //! `spec/sql/contract.json` declares what direct SQL clients may rely on: the
 //! schema step, the ordered migration files, header pragmas, stable views and
 //! their columns, writable and internal tables, collection replacement rules,
-//! transaction recipes, and enforcement triggers. This module reads that file
-//! and checks two things:
+//! transaction recipes, enforcement triggers, and the internal triggers that
+//! keep the change log. This module reads that file and checks two things:
 //!
 //! - The parts that follow from code agree with it: the migration chain, the
 //!   schema step, the application ID, the trigger names in the published SQL,
@@ -42,6 +42,16 @@ pub struct SqlContract {
     pub internal_tables: Vec<String>,
     pub collection_replacement: CollectionReplacement,
     pub enforcement_triggers: Vec<String>,
+    /// Triggers that maintain internal tables, such as the change log (SQL
+    /// schema 7). They enforce nothing.
+    pub internal_triggers: Vec<String>,
+}
+
+impl SqlContract {
+    /// Every trigger the contract lists, enforcement triggers first.
+    pub fn all_triggers(&self) -> Vec<String> {
+        self.enforcement_triggers.iter().chain(&self.internal_triggers).cloned().collect()
+    }
 }
 
 #[derive(Debug, Clone, Deserialize)]
@@ -134,8 +144,9 @@ pub fn verify_contract_metadata(contract: &SqlContract) -> Vec<String> {
     if required != vec![("foreign_keys", "ON"), ("busy_timeout", busy.as_str())] {
         problems.push(format!("contract required pragmas are {required:?}"));
     }
-    if contract.enforcement_triggers != published_trigger_names() {
-        problems.push("contract enforcement triggers do not match the published migration SQL".to_string());
+    if contract.all_triggers() != published_trigger_names() {
+        problems
+            .push("contract enforcement and internal triggers do not match the published migration SQL".to_string());
     }
     let writable: BTreeSet<&str> = contract.stable_writable_tables.iter().map(String::as_str).collect();
     for record_type in RecordType::ALL {
@@ -213,9 +224,9 @@ pub fn verify_live_schema(store: &Store, contract: &SqlContract) -> Result<Vec<S
     }
 
     let triggers = names(connection, "trigger")?;
-    let listed_triggers: BTreeSet<String> = contract.enforcement_triggers.iter().cloned().collect();
+    let listed_triggers: BTreeSet<String> = contract.all_triggers().into_iter().collect();
     for trigger in listed_triggers.difference(&triggers) {
-        problems.push(format!("enforcement trigger {trigger} is missing"));
+        problems.push(format!("trigger {trigger} is missing"));
     }
     for trigger in triggers.difference(&listed_triggers) {
         problems.push(format!("trigger {trigger} is not in the contract"));

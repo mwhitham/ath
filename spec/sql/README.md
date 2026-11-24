@@ -76,6 +76,8 @@ Then run the record steps below and `COMMIT`. On failure, `ROLLBACK`.
 | 3 | `migrations/003-version-2.sql` | 3 |
 | 4 | `migrations/004-version-2-1.sql` | 4 |
 | 5 | `migrations/005-version-2-1-1.sql` | 5 |
+| 6 | `migrations/006-version-2-1-2.sql` | 6 |
+| 7 | `migrations/007-version-2-1-3.sql` | 7 |
 
 Rules:
 
@@ -92,12 +94,20 @@ Rules:
 - Migration `005-version-2-1-1.sql` records software version 2.1.1 and creates the
   internal table `internal_pending_file_operations`. It changes no athlete-owned table
   or column. Records written before this step stay as they are.
+- Migration `006-version-2-1-2.sql` records software version 2.1.2 and adds the
+  nullable column `athlete_reports.workout_session_id`. It changes no existing row.
+- Migration `007-version-2-1-3.sql` records software version 2.1.3 and creates the
+  internal tables `internal_change_log`, `internal_write_receipts`, and
+  `internal_access_state`, and the triggers that fill the change log. It changes no
+  athlete-owned table, column, or row.
 - Roll back the transaction on failure. A failed migration must leave the prior file
   usable.
 - `ath migrate` makes a verified backup with SQLite's backup API first. It then runs
   every pending step in one write transaction. If the database changed after the
   backup, nothing is migrated and the preview must be made again.
-- Software before 2.1.1 refuses a database at SQL schema 5. To go back, restore the
+- Software before 2.1.1 refuses a database at SQL schema 5, software before 2.1.2
+  refuses one at schema 6, and software before 2.1.3 refuses one at schema 7. To go
+  back, restore the
   verified pre-migration backup and keep the newer file separately. The backup does
   not contain work recorded after it was made.
 
@@ -186,12 +196,29 @@ health values. The table is not athlete-owned history, so a JSON package never
 includes it. `ath check` reports pending rows as warnings. `contract.json` describes
 each internal table under `internal_table_notes`.
 
+`internal_change_log` (SQL schema 7) records one row for each record revision,
+deletion, and erasure, with the database revision that committed it. The triggers
+listed under `internal_triggers` in `contract.json` fill it in the same transaction,
+so a direct writer that follows the recipes above is included: a trigger records
+`database_state.current_revision + 1`, which is the revision the final `UPDATE` of
+the transaction sets. Direct writers must not write the table themselves. Rows hold
+record IDs and numbers, no health values, and no foreign keys. An erasure removes the
+record's earlier rows and leaves one erasure row. A restore into an empty database
+starts a new log.
+
+`internal_write_receipts` and `internal_access_state` (SQL schema 7) belong to a host
+program that shares a record. A receipt holds a keyed digest of an accepted request
+and its result, never the request body. The access state holds one access epoch. A
+database that never connects to a host keeps no receipts and an epoch of 0. Direct
+writers must not write either table. None of the three is part of a JSON package.
+
 ## Enforcement
 
 Constraints, foreign keys, and triggers in the migration enforce the two-tier wall,
 revision order, deletion state, and protected links (D116). Trigger names are listed
-in `contract.json`. Invalid direct writes must fail in SQLite even when the Node
-library is not used.
+in `contract.json` under `enforcement_triggers`. Invalid direct writes must fail in
+SQLite even when the Node library is not used. The change-log triggers are listed
+separately under `internal_triggers`; they enforce nothing.
 
 ## Drift check
 

@@ -649,6 +649,12 @@ fn restore_in(
         "UPDATE database_state SET current_revision = ?1 WHERE singleton_id = 1",
         [loaded.database_revision as i64],
     )?;
+    // A restored database starts a new change log. The triggers logged every
+    // restored revision under one database revision that the package does not
+    // have. A device that knew an older log gets a complete package (D263).
+    if layout.has_table("internal_change_log") {
+        tx.execute("DELETE FROM internal_change_log", [])?;
+    }
     Ok(())
 }
 

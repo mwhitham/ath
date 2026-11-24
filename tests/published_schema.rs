@@ -1,7 +1,9 @@
-//! The generated JSON Schema must match the published 2.1.1 files except for
-//! the version list, the schema IDs, and the optional 2.1.2 additions (D238,
-//! D239). The published 2.1.1 files must still match the published 2.1.0 files
-//! except for their version markers, because 2.1.1 changed no record field.
+//! The generated JSON Schema must match the published 2.1.2 files except for
+//! the version list, the schema IDs, and the 2.1.3 coach author (D255). The
+//! published 2.1.2 files must match the published 2.1.1 files except for
+//! those markers and the optional 2.1.2 additions (D238, D239). The published
+//! 2.1.1 files must still match the published 2.1.0 files except for their
+//! version markers, because 2.1.1 changed no record field.
 
 use athleticstandard::json::{self, Value};
 use athleticstandard::model::{json_schema, package};
@@ -69,6 +71,29 @@ fn remove_2_1_2_additions(value: &mut Value) -> usize {
     removed
 }
 
+/// Remove exactly the 2.1.3 addition: the coach option of every actor and
+/// author union. Returns how many it removed.
+fn remove_2_1_3_additions(value: &mut Value) -> usize {
+    let mut removed = 0;
+    match value {
+        Value::Array(items) => {
+            let before = items.len();
+            items.retain(|item| item["properties"]["author_type"]["const"].as_str() != Some("coach"));
+            removed += before - items.len();
+            for item in items.iter_mut() {
+                removed += remove_2_1_3_additions(item);
+            }
+        }
+        Value::Object(map) => {
+            for item in map.values_mut() {
+                removed += remove_2_1_3_additions(item);
+            }
+        }
+        _ => {}
+    }
+    removed
+}
+
 fn first_difference(expected: &str, actual: &str, name: &str) {
     if expected != actual {
         let out = std::env::temp_dir().join(format!("generated-{name}"));
@@ -78,13 +103,13 @@ fn first_difference(expected: &str, actual: &str, name: &str) {
     }
 }
 
-/// Compare a generated document with the published 2.1.1 file. `additions` is
-/// how many 2.1.2 additions the document must contain.
+/// Compare a generated document with the published 2.1.2 file. `additions` is
+/// how many 2.1.3 coach options the document must contain.
 fn compare(generated: Value, name: &str, additions: usize) {
     let mut generated = generated;
-    rewrite_versions(&mut generated, package::ATHLETIC_STANDARD_VERSION, "2.1.1");
-    assert_eq!(remove_2_1_2_additions(&mut generated), additions, "{name}: the 2.1.2 additions");
-    first_difference(&json::to_pretty(&published("2.1.1", name)), &json::to_pretty(&generated), name);
+    rewrite_versions(&mut generated, package::ATHLETIC_STANDARD_VERSION, "2.1.2");
+    assert_eq!(remove_2_1_3_additions(&mut generated), additions, "{name}: the 2.1.3 additions");
+    first_difference(&json::to_pretty(&published("2.1.2", name)), &json::to_pretty(&generated), name);
 }
 
 #[test]
@@ -94,9 +119,11 @@ fn package_schema_matches_published_layout() {
         package::ATHLETIC_STANDARD_VERSION
     );
     // Each record shape appears twice in the package schema, once for current
-    // records and once for retained revisions. Each copy has the three
-    // strength-set fields, the report type, and the report's workout link.
-    let additions = 2 * (3 + 1 + 1);
+    // records and once for retained revisions. Each copy of the ten authored
+    // types has a coach author, and each copy of the result link a coach
+    // `created_by`. Each of the 23 revision shapes has a coach `changed_by`,
+    // and the deletion shape a coach `deleted_by`.
+    let additions = 2 * (10 + 1) + 23 + 1;
     compare(
         json_schema::document(package::package_schema(), &id, "Athletic Standard portable package document"),
         "athleticstandard.schema.json",
@@ -117,7 +144,8 @@ fn series_schema_matches_published_layout() {
             "Athletic Standard measurement-series file",
         ),
         "measurement-series.schema.json",
-        0,
+        // The sample revision's `changed_by` and the deletion's `deleted_by`.
+        2,
     );
 }
 
@@ -133,6 +161,20 @@ fn manifest_schema_matches_published_layout() {
         "export-manifest.schema.json",
         0,
     );
+}
+
+#[test]
+fn the_published_2_1_2_files_match_2_1_1_except_versions_and_additions() {
+    for (name, additions) in [
+        ("athleticstandard.schema.json", 2 * (3 + 1 + 1)),
+        ("measurement-series.schema.json", 0),
+        ("export-manifest.schema.json", 0),
+    ] {
+        let mut document = published("2.1.2", name);
+        rewrite_versions(&mut document, "2.1.2", "2.1.1");
+        assert_eq!(remove_2_1_2_additions(&mut document), additions, "{name}: the 2.1.2 additions");
+        first_difference(&json::to_pretty(&published("2.1.1", name)), &json::to_pretty(&document), name);
+    }
 }
 
 #[test]

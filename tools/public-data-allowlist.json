@@ -3,7 +3,7 @@
   "fixtures": [
     {
       "path": "examples/demo-athlete/athlete.ath.sqlite",
-      "sha256": "83d1094e734ba4e67ef4a7c8ab4e07b83c593cd6695823a7c759dd27391eae2e"
+      "sha256": "8906d31992ad5467d54741fac5fe3f35654a9b00b439246eb4cd9517fc4264bb"
     },
     {
       "path": "examples/demo-athlete/attachments/01890f3e-e7d3-7cc0-88c8-00000000000e.png",
