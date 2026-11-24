@@ -121,6 +121,51 @@ impl RecordType {
     }
 }
 
+/// The record types a coach may author and change (D255). A coach writes
+/// advice, like an agent. A coach never writes a measured record or an
+/// athlete report, so the two-tier wall holds.
+pub const COACH_RECORD_TYPES: &[RecordType] =
+    &[RecordType::CoachingNote, RecordType::TrainingPlan, RecordType::PlannedSession];
+
+impl RecordType {
+    /// Whether a coach may author this type or change one of its records.
+    pub fn coach_may_write(self) -> bool {
+        COACH_RECORD_TYPES.contains(&self)
+    }
+}
+
+/// The refusal for a coach named on any other record type.
+pub fn coach_record_type_message(record_type: &str) -> String {
+    format!("A coach may write only coaching_note, training_plan, and planned_session records, not {record_type}")
+}
+
+/// The refusal for a deletion by a coach. A coach cannot delete history (D255).
+pub const COACH_DELETION_MESSAGE: &str = "A coach cannot delete a record";
+
+/// The refusal for an actor who cannot change a record of this type.
+pub fn actor_problem(actor: &RecordActor, record_type: RecordType) -> Option<String> {
+    (actor.is_coach() && !record_type.coach_may_write()).then(|| coach_record_type_message(record_type.as_str()))
+}
+
+/// Whether a JSON actor or author names a coach.
+pub(crate) fn names_coach(value: Option<&Value>) -> bool {
+    value.and_then(|value| value.get("author_type")).and_then(Value::as_str) == Some("coach")
+}
+
+/// The places in a record, revision, or deletion where an actor or author
+/// is written: a revision's `changed_by`, a deletion's `deleted_by`, an
+/// authored record's author, and a link's `created_by`.
+pub(crate) const ACTOR_PATHS: &[&[&str]] =
+    &[&["changed_by"], &["deleted_by"], &["data", "authorship", "author"], &["data", "created_by"]];
+
+/// The actor paths of `value` that name a coach.
+pub(crate) fn coach_paths(value: &Value) -> impl Iterator<Item = &'static [&'static str]> + '_ {
+    ACTOR_PATHS
+        .iter()
+        .copied()
+        .filter(move |path| names_coach(path.iter().try_fold(value, |current, key| current.get(*key))))
+}
+
 impl RecordData {
     /// The measured-record source, when the type has one.
     pub fn source_id(&self) -> Option<&str> {
@@ -328,6 +373,13 @@ model_object! {
         deleted_at: String = utc_timestamp(),
         deleted_by: RecordActor,
     }
+    refine(refine_deletion_actor)
+}
+
+fn refine_deletion_actor(value: &Value, issues: &mut Vec<Issue>) {
+    if names_coach(value.get("deleted_by")) {
+        custom(issues, &["deleted_by"], COACH_DELETION_MESSAGE);
+    }
 }
 
 model_object! {
@@ -355,6 +407,17 @@ fn refine_record_extensions(value: &Value, issues: &mut Vec<Issue>) {
     let record_type = value.get("record_type").and_then(Value::as_str).unwrap_or_default();
     if let Some(message) = extensions::source_claim_problem(record_type, value.get("extensions")) {
         custom(issues, &["extensions"], message);
+    }
+}
+
+/// A coach may author or change only the types in `COACH_RECORD_TYPES`.
+fn refine_coach_actor(value: &Value, issues: &mut Vec<Issue>) {
+    let record_type = value.get("record_type").and_then(Value::as_str).unwrap_or_default();
+    if RecordType::parse(record_type).is_some_and(RecordType::coach_may_write) {
+        return;
+    }
+    for path in coach_paths(value) {
+        custom(issues, path, coach_record_type_message(record_type));
     }
 }
 
@@ -390,7 +453,7 @@ pub fn current_record_variant(record_type: RecordType) -> SchemaRef {
                     Field { name: "record_type", schema: literal(record_type.as_str()), optional: false },
                     Field { name: "data", schema: data_schema(*record_type), optional: false },
                 ];
-                leak(Schema::new(Kind::Object { fields }).refine(refine_record_extensions))
+                leak(Schema::new(Kind::Object { fields }).refine(refine_record_extensions).refine(refine_coach_actor))
             })
             .collect()
     });
@@ -417,7 +480,8 @@ pub fn revision_variant(record_type: RecordType) -> SchemaRef {
                 leak(
                     Schema::new(Kind::Object { fields })
                         .refine(refine_previous_revision)
-                        .refine(refine_record_extensions),
+                        .refine(refine_record_extensions)
+                        .refine(refine_coach_actor),
                 )
             })
             .collect()

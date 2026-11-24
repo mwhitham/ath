@@ -1,0 +1,6 @@
+# Swift Package Manager and Xcode build output.
+/.build/
+/.swiftpm/
+/Package.resolved
+xcuserdata/
+DerivedData/
