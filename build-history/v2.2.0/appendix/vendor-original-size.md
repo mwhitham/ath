@@ -1,6 +1,7 @@
 # Size of a vendor original in a package
 
-This study was measured on 16 November 2026 for D269. It used no real
+This study was measured on 16 November 2026 for the live-original proposal,
+now D287. It used no real
 data. Every value below is invented.
 
 ## Method

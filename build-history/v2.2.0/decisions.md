@@ -7,7 +7,7 @@ D-number.
 
 ## Numbering
 
-These proposals are D254 through D271. They were first written as D198
+These proposals are D272 through D289. They were first written as D198
 through D215, when D197 was the last decision on `main`. Version 2.1.1 then
 used D208 through D226. D224 keeps D198 through D207 reserved for the
 unapproved 2.1.1 draft in
@@ -15,128 +15,132 @@ unapproved 2.1.1 draft in
 they are never reused. On 15 November 2026 each proposal moved to the next
 free number, D227 through D244, in the same order. Version 2.1.2 then used
 D227 through D253. On 21 November 2026 each proposal moved again, to D254
-through D271, in the same order. In this folder, D208 through D226 mean
-the 2.1.1 decisions, and D227 through D253 mean the 2.1.2 decisions.
-Reviews written before 15 November 2026 use the first numbers. Reviews
-written from that day until 21 November 2026 use the middle numbers.
+through D271, in the same order. Version 2.1.3 then used D254 through D271.
+On 24 November 2026 each proposal moved again, to D272 through D289, in the
+same order. In this folder, D208 through D226 mean the 2.1.1 decisions,
+D227 through D253 mean the 2.1.2 decisions, and D254 through D271 mean the
+2.1.3 decisions. Reviews written before 15 November 2026 use the first
+numbers. Reviews written from that day until 21 November 2026 use the
+second numbers. Reviews written from 21 November 2026 until 24 November
+2026 use the third numbers.
 
-| First | Middle | Now | Subject |
-|---|---|---|---|
-| D198 | D227 | D254 | Version 2.2.0 and one manual pull |
-| D199 | D228 | D255 | Pages, and the shipped mapping writes the records |
-| D200 | D229 | D256 | The key, the server, and the user id |
-| D201 | D230 | D257 | A page is atomic and a repeat is safe |
-| D202 | D231 | D258 | Work left out of this build |
-| D203 | D232 | D259 | Stored measurements are kept |
-| D204 | D233 | D260 | Meaning, source, and time |
-| D205 | D234 | D261 | Units, windows, reported records, and identities |
-| D206 | D235 | D262 | The new record type and refused originals |
-| D207 | D236 | D263 | The migration rename, the counts, and the archive |
-| D208 | D237 | D264 | The archive's safety facts |
-| D209 | D238 | D265 | A typed workout is a session |
-| D210 | D239 | D266 | Skin-temperature times |
-| D211 | D240 | D267 | Heart-rate recovery of zero |
-| D212 | D241 | D268 | A manual session window |
-| D213 | D242 | D269 | A live workout original |
-| D214 | D243 | D270 | The live vendor read |
-| D215 | D244 | D271 | Vendor originals and credentials |
+| First | After 2.1.1 | After 2.1.2 | Now | Subject |
+|---|---|---|---|---|
+| D198 | D227 | D254 | D272 | Version 2.2.0 and one manual pull |
+| D199 | D228 | D255 | D273 | Pages, and the shipped mapping writes the records |
+| D200 | D229 | D256 | D274 | The key, the server, and the user id |
+| D201 | D230 | D257 | D275 | A page is atomic and a repeat is safe |
+| D202 | D231 | D258 | D276 | Work left out of this build |
+| D203 | D232 | D259 | D277 | Stored measurements are kept |
+| D204 | D233 | D260 | D278 | Meaning, source, and time |
+| D205 | D234 | D261 | D279 | Units, windows, reported records, and identities |
+| D206 | D235 | D262 | D280 | The new record type and refused originals |
+| D207 | D236 | D263 | D281 | The migration rename, the counts, and the archive |
+| D208 | D237 | D264 | D282 | The archive's safety facts |
+| D209 | D238 | D265 | D283 | A typed workout is a session |
+| D210 | D239 | D266 | D284 | Skin-temperature times |
+| D211 | D240 | D267 | D285 | Heart-rate recovery of zero |
+| D212 | D241 | D268 | D286 | A manual session window |
+| D213 | D242 | D269 | D287 | A live workout original |
+| D214 | D243 | D270 | D288 | The live vendor read |
+| D215 | D244 | D271 | D289 | Vendor originals and credentials |
 
 ## Changes on 15 November 2026
 
 The plan was read again against `main` at `0de71bb`, the merge of 2.1.1.
 These edits follow from that reading:
 
-- D257 and D264. A page is one 2.1.1 import preview and one apply. The
+- D275 and D282. A page is one 2.1.1 import preview and one apply. The
   preview never writes. The apply refuses the page when the database
   revision moved after the preview. The earlier text counted a page inside
   a write transaction, rolled the count back, and read the safety facts a
   second time under the write lock. Version 2.1.1 has no such step.
-- D263 and D264. A deleted source or a deleted record leaves its rows out,
+- D281 and D282. A deleted source or a deleted record leaves its rows out,
   as D182 and D190 say. It no longer refuses the page. It still stops the
   archive of that page.
-- D254 and D263. Step 7 runs on the store's own connection. Foreign keys
+- D272 and D281. Step 7 runs on the store's own connection. Foreign keys
   are turned off before its transaction starts, in `src/store/migrate.rs`.
-- D255. The pull gives each page to a reader that holds the page in
+- D273. The pull gives each page to a reader that holds the page in
   memory. `MappedReader` in 2.1.1 reads a file path.
-- D256. The Open Wearables key is a third `KeyAccount`, beside the gateway
+- D274. The Open Wearables key is a third `KeyAccount`, beside the gateway
   keys and the Garmin token. `ath key clear garmin` stays refused, as it is
   in 2.1.1.
-- D257, D259, D260, and D270. Limits and timeouts are named constants, as
+- D275, D277, D278, and D288. Limits and timeouts are named constants, as
   2.1.1 does. One response may be at most `MAX_PULL_RESPONSE_BYTES`, which
   is 10 MiB. The earlier text said 8 MiB.
-- D258. The source rules go in `src/import/provider.rs` and a new
+- D276. The source rules go in `src/import/provider.rs` and a new
   `src/import/binding.rs`, where 2.1.1 stages and applies an import. They
   no longer go in `src/store/write.rs`. The protocol's record writes join
   the owner writes that store a whole source record.
-- D259, D262, and D263. Sentences that called the new migration step 5 now
+- D277, D280, and D281. Sentences that called the new migration step 5 now
   say step 6. Step 5 is the published 2.1.1 migration.
 
 These edits answer the thirteen findings of the review at `e145fa6`:
 
-- D269. The stored original's JSON layout, its key, its counts, and owner
+- D287. The stored original's JSON layout, its key, its counts, and owner
   deletion and correction.
-- D270. Connections, statuses, Suunto keys, detail rules, timeouts, request
+- D288. Connections, statuses, Suunto keys, detail rules, timeouts, request
   budgets, Garmin windows, id spelling, start times, and the count of every
   object left out. Garmin windows are 23 hours, not 24, because the pinned
   server measures a window in naive local time.
-- D271. A credential-shaped value is withheld and counted. It no longer
+- D289. A credential-shaped value is withheld and counted. It no longer
   refuses the page.
 
 ## Changes after the review at `d636d7a`
 
 These edits answer the review of this plan at `d636d7a`:
 
-- D254. A new database runs its migrations on the connection
+- D272. A new database runs its migrations on the connection
   `Store::create` opened, not through `Store::transaction`. The two 2.1.1
   checks that expect one transaction to reach the last schema are named,
   with the check that replaces each.
-- D257. The 2.1.1 comment on the 10 MiB response cap names only Garmin.
+- D275. The 2.1.1 comment on the 10 MiB response cap names only Garmin.
   The build rewrites it and the route list to name both pulls.
-- D258. The `src/import/provider.rs` list is complete. It adds a
+- D276. The `src/import/provider.rs` list is complete. It adds a
   `connector` source call, because `route_source` stages only
   `export_file` sources, and a count by record type in
   `src/import/staging.rs`. The revision a preview read is already public.
-- D270. A Garmin detail that answers 404 or 501 is `not_available`, not
+- D288. A Garmin detail that answers 404 or 501 is `not_available`, not
   `failed`. Garmin stays `completed`, and the list object is stored whole.
   The pinned detail path is not in Garmin's public docs.
-- D269. On route `open_wearables`, an owner correction is replaced only
+- D287. On route `open_wearables`, an owner correction is replaced only
   when the server's data differs from the newest revision an import wrote.
   Each replaced correction is counted per provider and for stored records,
   in the text, in `--json`, and in the preview. The skill says where a
   workout fix belongs.
-- D270. An HTTP 429 stops that provider for the command, as a timeout
+- D288. An HTTP 429 stops that provider for the command, as a timeout
   does. Credential values are withheld before any comparison.
-- D257 and D263. A committed vendor page is a protected write. It sets
+- D275 and D281. A committed vendor page is a protected write. It sets
   `written` and `database_changed`, and its originals add to
   `committed.source_report`.
-- D270. When one Garmin activity id is in two windows with different
+- D288. When one Garmin activity id is in two windows with different
   objects, the later window's copy is kept and the earlier is counted as
   `superseded`.
-- D269. Vendor originals have a 128 MiB total bound, because a package
+- D287. Vendor originals have a 128 MiB total bound, because a package
   holds them in its main document under the 512 MiB read cap. `ath export`
   refuses to publish a document over that cap.
-- D270. A Suunto list object with no `workoutKey` gets no detail call and
+- D288. A Suunto list object with no `workoutKey` gets no detail call and
   is `not_available`. A detail over the response cap is `too_large`, and a
   detail the privacy scan refuses is `refused`. Both make the provider
   `incomplete`.
-- D270. A preview reads each list and makes no detail call, so a preview
+- D288. A preview reads each list and makes no detail call, so a preview
   then `--yes` reads each list twice and makes each detail call once. One
   command sends at most 100 Suunto list requests. A detail can come
   minutes after its list object, and the plan says so.
-- D271. The page cursors `next_token` and `nextToken` are not
+- D289. The page cursors `next_token` and `nextToken` are not
   credential-shaped. A user name or password in a URL, and a
   credential-shaped pair in a URL fragment, are withheld too.
-- D270. The daylight-saving sentence names both directions. A forward
+- D288. The daylight-saving sentence names both directions. A forward
   change makes 24 real hours read as 25 local hours, and a backward change
   makes them read as 23. A zone that moves its clock by two hours is not
   covered by the 23-hour window.
-- D258. The `__proto__` citation names `check_supplied_fields`, which
+- D276. The `__proto__` citation names `check_supplied_fields`, which
   still refuses the key at any depth on import. D214 in 2.1.1 changed only
   the native reader.
-- D270. For Garmin, Suunto, Whoop, and Oura, which name no detail field, a
+- D288. For Garmin, Suunto, Whoop, and Oura, which name no detail field, a
   new detail with fewer fields replaces the stored one, and the stored
   detail stays in the record's history.
-- D257. Each of the four page refusals names the owner's fix, or says
+- D275. Each of the four page refusals names the owner's fix, or says
   2.2 has none.
 
 ## Changes after the review at `3c3f660`
@@ -144,16 +148,16 @@ These edits answer the review of this plan at `d636d7a`:
 These edits answer the reviews of this plan at `3c3f660`. No decision
 number is added:
 
-- D270. The opening of the specification says what the flag reads on a
+- D288. The opening of the specification says what the flag reads on a
   preview and on `--json`: the connections list and each active
   provider's list, with no detail call. The help text, the examples, and
   their test say the same.
-- D270. A preview, which every `--json` run is, labels every vendor count
+- D288. A preview, which every `--json` run is, labels every vendor count
   and both owner-correction counts `estimated`. It calls the count of ids
   `--yes` would detail `would_detail`, prints `estimated` on each
   provider line, and says that it made no detail calls, in the text and
   in `vendor_workouts.notice`.
-- D270. The first Garmin detail call in a command is a probe. When it
+- D288. The first Garmin detail call in a command is a probe. When it
   answers 400, 403, 404, 405, or 501, no other Garmin detail call is made
   in that command. The other due ids are `deferred`, Garmin stays
   `completed`, and its line says detail is unavailable. An id that was
@@ -161,11 +165,11 @@ number is added:
   401 on any live request stops that provider for the command, as a 429
   does. This is the stated default, and the maintainer still has to
   confirm it.
-- D269 and D270. Each Garmin envelope keeps its `upload_window`. On a
+- D287 and D288. Each Garmin envelope keeps its `upload_window`. On a
   later command, a copy from a window that ends at or before the start of
   the stored copy's window is `superseded`. It writes nothing and never
   replaces an owner correction. Comparisons leave the window out.
-- D269 and D258. The vendor-original bound is 256 MiB, half of the 512 MiB
+- D287 and D276. The vendor-original bound is 256 MiB, half of the 512 MiB
   read cap, counted in the bytes export writes. The earlier bound counted
   128 MiB of compact JSON, which could export to about 525 MiB. It holds
   about 158 one-hour Polar workouts with routes and samples. `ath
@@ -174,31 +178,31 @@ number is added:
   export check also refuses an item past the 128-level nesting limit.
   Storing originals in their own files is an open question for the
   maintainer.
-- D270. A detail that timed out is `failed`, as one that got 429 or 401
+- D288. A detail that timed out is `failed`, as one that got 429 or 401
   is. Only ids still due a detail call become `deferred`. An id due no
   call keeps its own count. Each id goes in the first group of the detail
   order it matches, and a `too_large` or `refused` id is no longer in the
   first group.
-- D270. One `--yes` command sends 24 Strava requests when only the last
+- D288. One `--yes` command sends 24 Strava requests when only the last
   request was retried, or 25 after a token reload, which leaves about 75.
   The ceiling is 84, because the pull cannot see a server retry that
   ended in success.
-- D270 and D258. A vendor object with a `__proto__` key is refused alone
+- D288 and D276. A vendor object with a `__proto__` key is refused alone
   as `unusable_name`, and the provider stays `completed`. The import check
   would otherwise fail that provider's page on every command.
-- D257. The rebind fix says that it merges the two devices' history on
+- D275. The rebind fix says that it merges the two devices' history on
   one source. The source's history keeps the old binding.
-- D269. The file-import sentences and the corrected-original test follow
+- D287. The file-import sentences and the corrected-original test follow
   the owner-correction rule. A vendor page's counts stay apart from
   `archive_committed`.
-- D255 and D258. Page counts come from one SQL count beside
+- D273 and D276. Page counts come from one SQL count beside
   `Staging::count`, not from `ProviderPreview::planned`, which copies each
   row's `data_json`.
-- D269. The owner-correction rule reads
+- D287. The owner-correction rule reads
   `record_revisions.became_known_at_basis`, not `changed_by`, because
   `ath grade` writes the same tool actor as an import.
-- D270. The Suunto list cap is named `MAX_SUUNTO_LIST_REQUESTS`.
-- D269. A package merge counts as an owner correction only where the
+- D288. The Suunto list cap is named `MAX_SUUNTO_LIST_REQUESTS`.
+- D287. A package merge counts as an owner correction only where the
   person resolved a conflict, because `merge_in` copies the package's
   revisions with their own bases. The counts name that part
   `merge_choices_replaced`, and the line adds `(M of them merge
@@ -212,7 +216,7 @@ number is added:
 These edits answer the reviews of this plan at `57838e1`. No decision
 number is added:
 
-- D270. Garmin windows sit on a fixed grid. Each starts at a multiple of
+- D288. Garmin windows sit on a fixed grid. Each starts at a multiple of
   82,800 seconds after the Unix epoch, and the first and last windows are
   widened to whole grid windows. So two commands send equal windows or
   windows that do not overlap, and the earlier-window test always
@@ -220,31 +224,31 @@ number is added:
   Any other overlap, which only a saved file can carry, counts as
   `ambiguous_window`. The stored copy is kept, and no owner correction
   is replaced.
-- D270. Only a 404 or 501 on the Garmin probe marks the probed id
+- D288. Only a 404 or 501 on the Garmin probe marks the probed id
   `not_available`. Any other error status, except 401 and 429, defers
   every due id, and the next command probes again. A 5xx also makes
   Garmin `incomplete`. An id that got 404 or 501 keeps the time as
   `detail_checked_at` and is asked again after 30 days, or sooner when its
   list object changes. An original with a current owner correction is
   asked again only when its list object changes.
-- D270 and D258. When only a detail holds a `__proto__` key, the clean
+- D288 and D276. When only a detail holds a `__proto__` key, the clean
   list object is stored with `detail_status` `refused` and `refused_by`
   `unusable_name`, and the detail is asked for again only when the list
   object changes. Each refused object and refused detail is named in
   `left_out.examples` by provider, vendor id, reason, and key path.
-- D270 and D269. A vendor object nested 123 levels or more is refused as
+- D288 and D287. A vendor object nested 123 levels or more is refused as
   `too_deep`, counted, and named with its depth. A deep detail keeps its
   clean list object, as a `__proto__` detail does. The read refuses 128
   levels, though `check_nesting` allows 128, so the export check now
   refuses an item that reaches 128. That is why the cut is 123 and not
   124.
-- D269. Step 7 creates `vendor_original_sizes`, one row for each
+- D287. Step 7 creates `vendor_original_sizes`, one row for each
   original with its current item's size and the sum of its revision
   items, as export writes them. A write measures only the items it
   writes, and the bound and the usage line read the sum. Only `ath check`
   measures every original again, and `ath repair` fixes a row that
   differs.
-- D270 and D269. Wording. When the probe stops Garmin, its deferred
+- D288 and D287. Wording. When the probe stops Garmin, its deferred
   count adds `(not asked: detail unavailable this run)`. After a 401, the
   provider's line says to reconnect the provider in Open Wearables if
   this repeats. A merge choice is a conflict resolved as imported or
@@ -257,71 +261,86 @@ number is added:
 Version 2.1.2 merged on 21 November 2026. It adopted D227 through D253
 and published migration step 6. Step 6 stores `2.1.2` and SQL schema 6
 in `spec/sql/migrations/006-version-2-1-2.sql`. These proposals moved to
-D254 through D271. The migration this plan adds is step 7. It stores
-`2.2.0` and SQL schema 7. Steps 1 through 6 stay as published. The 15
-November note above still says that the edit that day changed the
-planned migration from step 5 to step 6. That sentence records that
-day. The migration in the proposals is step 7. The rest of this plan
-is still the reading against version 2.1.1 at `0de71bb`, except the
-decision numbers, the migration step, and the version lists.
+D254 through D271. The migration this plan then added was step 7. It would
+have stored `2.2.0` and SQL schema 7. Steps 1 through 6 stayed as published.
+The 15 November note above still says that the edit that day changed the
+planned migration from step 5 to step 6. That sentence records that day.
+The next section is the reading after version 2.1.3.
 
-## D254. Version 2.2.0 is one manual pull, and the program and the record share that number
+## Changes after version 2.1.3
 
-`ath pull openwearables` reads the stored representations D259 lists from an
+Version 2.1.3 merged on 24 November 2026. It adopted D254 through D271
+and published migration step 7. Step 7 stores `2.1.3` and SQL schema 7
+in `spec/sql/migrations/007-version-2-1-3.sql`. It adds three internal
+tables and no athlete-owned column. These proposals moved to D272 through
+D289. The migration this plan adds is step 8. It stores `2.2.0` and SQL
+schema 8. Steps 1 through 7 stay as published. The section above records
+the step 7 plan. The migration in the proposals is step 8. The rest of
+this plan is still the reading against version 2.1.1 at `0de71bb`, except
+the decision numbers, the migration step, and the version lists.
+
+## D272. Version 2.2.0 is one manual pull, and the program and the record share that number
+
+`ath pull openwearables` reads the stored representations D277 lists from an
 Open Wearables server the person runs, for one user and one range they name. The
 command is manual. The person runs it. The program does not schedule it,
 retry a failed request, or sign the person in to a device maker.
 
 The program, the record, and the database become `2.2.0` together. D152 made
 those one number. D184 kept that rule. Version 2.1.1 kept it too. Version
-2.1.2 kept it too. Migration step 5 is already published. It stores `2.1.1`
-and SQL schema 5 in `spec/sql/migrations/005-version-2-1-1.sql`. Migration
-step 6 is already published. It stores `2.1.2` and SQL schema 6 in
-`spec/sql/migrations/006-version-2-1-2.sql`. This pull adds step 7. Step 7
-stores `2.2.0` and SQL schema 7. It adds no column to an existing table. It
+2.1.2 kept it too. Version 2.1.3 kept it too. Migration step 5 is already
+published. It stores `2.1.1` and SQL schema 5 in
+`spec/sql/migrations/005-version-2-1-1.sql`. Migration step 6 is already
+published. It stores `2.1.2` and SQL schema 6 in
+`spec/sql/migrations/006-version-2-1-2.sql`. Migration step 7 is already
+published. It stores `2.1.3` and SQL schema 7 in
+`spec/sql/migrations/007-version-2-1-3.sql`. This pull adds step 8. Step 8
+stores `2.2.0` and SQL schema 8. It adds no column to an existing table. It
 rebuilds `provider_summaries` and `provider_scores`, and it creates
-`source_reports`, as D261 describes. D263 drops the record views and
+`source_reports`, as D279 describes. D281 drops the record views and
 the two cross-table triggers around the root rename. Existing rows keep
-their numbers. Steps 1 through 6 are not edited (D165). Step 6 adds
-`athlete_reports.workout_session_id`. Step 7 does not rebuild
-`athlete_reports`, so that column stays.
+their numbers. Steps 1 through 7 are not edited (D165). Step 6 adds
+`athlete_reports.workout_session_id`. Step 7 adds three internal tables and
+no athlete-owned column. Step 8 does not rebuild `athlete_reports` or those
+internal tables, so that column and those tables stay.
 
-In 2.1.2, `install_schema` in `src/store/mod.rs` runs the whole chain in one
+In 2.1.3, `install_schema` in `src/store/mod.rs` runs the whole chain in one
 transaction with foreign keys on. `Store::create` calls it on a new
 connection before any `Store` exists, and it opens its own transaction.
 `ath migrate` and `apply_pending_without_backup` run their steps inside
 `Store::transaction`, which refuses to write when foreign keys are off.
-Step 7 needs them off while it rebuilds tables that other tables point to.
-So `install_schema` commits steps 1 through 6 first, and step 7 runs in its
-own transaction on the same connection. Step 7 is one function in
+Step 8 needs them off while it rebuilds tables that other tables point to.
+So `install_schema` commits steps 1 through 7 first, and step 8 runs in its
+own transaction on the same connection. Step 8 is one function in
 `src/store/migrate.rs` that takes the connection, so init and migrate both
 call it. It turns
 foreign keys off before that transaction begins, because SQLite ignores the
 setting inside a transaction, and reads the setting back. The step runs
 `PRAGMA foreign_key_check` and refuses any row it returns. It sets
-`user_version` 7 and commits. Foreign keys are turned on again and read
+`user_version` 8 and commits. Foreign keys are turned on again and read
 back, whether the step committed or not.
 
-Two checks in 2.1.2 expect one transaction to reach the last schema.
+Two checks in 2.1.3 expect one transaction to reach the last schema.
 `install_schema` refuses unless the metadata reads `SQL_SCHEMA_VERSION`
-and `ATHLETIC_STANDARD_VERSION` (`src/store/mod.rs`, lines 625 through
-629 at `073f9bc`). `apply_steps` refuses unless its last step reached
-`SQL_SCHEMA_VERSION` (`src/store/migrate.rs`, lines 327 through 331). With
-the constant at 7, both would fail once steps 1 through 6 commit at schema
-6. So the first transaction checks for schema 6 and `2.1.2`. `apply_steps`
-checks for the last step it was given. The step-7 function checks for
-schema 7, `2.2.0`, and `user_version` 7 before it commits.
+and `ATHLETIC_STANDARD_VERSION` (`src/store/mod.rs`, lines 628 through
+631 at `a3d3eba`). `apply_steps` refuses unless its last step reached
+`SQL_SCHEMA_VERSION` (`src/store/migrate.rs`, lines 333 through 337). With
+the constant at 8, both would fail once steps 1 through 7 commit at schema
+7. So the first transaction checks for schema 7 and `2.1.3`. `apply_steps`
+checks for the last step it was given. The step-8 function checks for
+schema 8, `2.2.0`, and `user_version` 8 before it commits.
 
 `ath migrate` keeps its verified
-backup. Inside the step-7 transaction it checks again that the file, the
+backup. Inside the step-8 transaction it checks again that the file, the
 database ID, the schema, and the database revision are the ones its earlier
 steps left. `MIGRATION_CHAIN` in that file and `spec/sql/contract.json` gain
 the step.
 `packages/npm/package.json` exports point at `schema/2.2.0/`.
 `READABLE_DATABASE_VERSIONS` and `ACCEPTED_RECORD_VERSIONS` keep `1.0.0`,
-`2.0.0`, `2.1.0`, `2.1.1`, and `2.1.2`, and gain `2.2.0`. `IMPORTABLE_PACKAGE_VERSIONS`
-gains `2.2.0` and keeps `2.0.0`, `2.1.0`, `2.1.1`, and `2.1.2`. A `2.1.2` package
-still imports. A `2.1.2` database does not open until `ath migrate`.
+`2.0.0`, `2.1.0`, `2.1.1`, `2.1.2`, and `2.1.3`, and gain `2.2.0`.
+`IMPORTABLE_PACKAGE_VERSIONS` gains `2.2.0` and keeps `2.0.0`, `2.1.0`,
+`2.1.1`, `2.1.2`, and `2.1.3`. A `2.1.3` package still imports. A `2.1.3`
+database does not open until `ath migrate`.
 
 The build is one pull request after this plan is approved. It is not split
 into a version change, a client, and a mapping change.
@@ -329,13 +348,13 @@ into a version change, a client, and a mapping change.
 The version numbers below are proposals. They are not specs, and they are
 not adopted.
 
-- 2.2.0 is this pull. D259 says which stored measurements it keeps.
+- 2.2.0 is this pull. D277 says which stored measurements it keeps.
 - 2.3.0 is a proposed Junction pull. This release does not call Junction.
 - 2.4.0 is proposed automatic incremental sync, saved sign-in refresh,
   retries, and backfill. This release has none of those. A smaller page
-  after the local response cap, described in D259, is not that retry.
+  after the local response cap, described in D277, is not that retry.
 - An earlier draft of this plan left day aggregates and the heart-rate
-  stream out and suggested 2.5.0 for them. D259 supersedes that draft.
+  stream out and suggested 2.5.0 for them. D277 supersedes that draft.
   D88 still forbids a fabricated instant. It does not forbid keeping a
   bound the server sent.
 - A connector interface that every future source would implement is not
@@ -360,12 +379,12 @@ Rejected alternatives:
   The later version numbers are proposals, not adopted assignments.
 - Leave day aggregates and the heart-rate stream for a later version, or
   request them while still calling that later version their home. Superseded
-  by D259. The current proposal stores them in this pull and says so.
+  by D277. The current proposal stores them in this pull and says so.
 
-## D255. The pull fetches pages and the shipped mapping writes the records
+## D273. The pull fetches pages and the shipped mapping writes the records
 
 New module `src/runtime/open_wearables.rs` requests the reads
-in D259 and gives each page to the mapping engine. In 2.1.1, `MappedReader`
+in D277 and gives each page to the mapping engine. In 2.1.1, `MappedReader`
 in `src/import/mapping.rs` reads a JSON file from a path. The pull adds a
 second reader beside it, `MappedPage`, that holds one decoded page in memory.
 It runs the same checks as `MappedReader::read` and the same
@@ -398,7 +417,7 @@ pull does not drop one row and keep its neighbors. The API key, the
 server's origin or the selected user id echoed in a response, a same-key
 `device_id` collision, or a bad envelope rejects the whole page first. A
 value under a credential-shaped key is withheld and counted instead, as
-D271 says. A manual workout is written. D265 stores
+D289 says. A manual workout is written. D283 stores
 it as a workout session. The other rows in that page are still written.
 
 The timeseries query's `types` list is the `type.<name>` lines in the
@@ -412,17 +431,17 @@ no second copy of those names.
 On Open Wearables 0.11.0 the route defaults `types` to an empty list, and
 the repository applies a type filter only when the list is nonempty
 (`data_point_series_repository.py`). An empty list therefore returns every
-series. D259 omits `types` on the raw read and the day read for that
+series. D277 omits `types` on the raw read and the day read for that
 reason. A mapping that cannot store those series fails before any network
 call. A comma-joined type string is still not sent.
 
-`heart_rate` is a series quantity. D259 stores the raw stream as
+`heart_rate` is a series quantity. D277 stores the raw stream as
 measurement samples. Workout `avg_heart_rate_bpm` and
 `max_heart_rate_bpm` stay as the file already maps them.
 
 The pull counts each page by record type and action with one SQL count
 over its staged plan, beside `Staging::count` in `src/import/staging.rs`
-(D258). `ProviderPreview::planned` already lists each row's `record_type`
+(D276). `ProviderPreview::planned` already lists each row's `record_type`
 and `action`, but it also copies each row's whole `data_json`, and a
 vendor page holds every original's whole envelope. The count reads no
 record data. The mapped-import report from
@@ -435,21 +454,21 @@ when the same match key appears on two pages, or when the server changes
 between runs. The write still follows D182. This proposal does not keep a
 command-wide preview overlay.
 
-The read order is the order in D259. A failure in a later read
+The read order is the order in D277. A failure in a later read
 leaves the earlier read's pages committed and the reads after the failure
-`not_attempted`. The result says so. See D257.
+`not_attempted`. The result says so. See D275.
 
-D259 is the coverage rule. An earlier draft of this decision left the day
+D277 is the coverage rule. An earlier draft of this decision left the day
 rows, the summaries, and the heart-rate stream unrequested. That draft is
 superseded. D88 still forbids inventing a midnight. The period type in
-D259 stores the bound the server sent. An Open Wearables window is not
+D277 stores the bound the server sent. An Open Wearables window is not
 labeled as a Whoop cycle or an Oura day.
 
 Sleep requests `include=stages`. Workouts request `include=zones` and
 `include=segments`. Stage minute totals return either way. The timeline,
 the zones, and the segments are null when the expansion is omitted, so
 omitting it would drop them before `supplied_fields` can keep them. A page
-over the response cap is handled as D259 says.
+over the response cap is handled as D277 says.
 
 Rejected alternatives:
 
@@ -460,13 +479,13 @@ Rejected alternatives:
   the current page rule would leave the page out. The check is `page_rows` and
   `row_fits` in `src/import/mapping.rs`.
 - Request every series type and let `left_out` drop the ones the mapping
-  cannot store. Rejected. D259 stores them. `left_out` remains a row the
+  cannot store. Rejected. D277 stores them. `left_out` remains a row the
   server returned and this program refused for a named reason.
 - Map `heart_rate` samples as points, or map a day summary onto midnight.
   Rejected. `heart_rate` is stored as a measurement sample. A day row is
-  stored as a reporting window (D88, D110, D259).
+  stored as a reporting window (D88, D110, D277).
 - Refuse an empty `types` list in order to avoid heart rate and location.
-  Superseded by D259. Omitting `types` is how 0.11.0 returns every series,
+  Superseded by D277. Omitting `types` is how 0.11.0 returns every series,
   and those series are stored. A comma-joined string is still not a member
   of the enum.
 - Put `device_id` on the sensor string, and therefore on the match key, for
@@ -483,7 +502,7 @@ Rejected alternatives:
   today, because that path is removed as hardware.
 - Put the receipt in `supplied_fields`, under `device_binding` or another
   name. Rejected. D185 keeps that object for names the source sent. A 2.1.0
-  source may already hold an arbitrary value at that name, and step 7 must
+  source may already hold an arbitrary value at that name, and step 8 must
   not turn that value into authority. The receipt is the source object's own
   key `device_binding`.
 - Treat a nonempty string at the new key as proof no matter who wrote it,
@@ -492,7 +511,7 @@ Rejected alternatives:
   package restore, and an accepted package merge store the whole source the
   owner supplied. A hand-edited database file is outside this proposal.
 
-## D256. The key, the server, and the user id stay out of the record
+## D274. The key, the server, and the user id stay out of the record
 
 The API key is an administrator key for every user on that deployment. The
 pull sends it only as the header `X-Open-Wearables-API-Key`. It is saved with
@@ -536,7 +555,7 @@ the specification's section 9 lists it as a separate follow-up.
 The server is `--base-url` or `OPEN_WEARABLES_BASE_URL`. The user id is
 `--user` or `OPEN_WEARABLES_USER_ID`. Neither is written into the database,
 the export, a config file, or a log line. The pull never calls `GET /users`.
-D260 reads the personal record and drops its `user_id` before the scan.
+D278 reads the personal record and drops its `user_id` before the scan.
 Birth date, gender, and sex are stored. One command reads one user.
 
 `--base-url` is an origin: scheme, host, and optional port. No user name, no
@@ -544,7 +563,7 @@ password, no path other than empty or `/`, no query, and no fragment. `http`
 is allowed only for `localhost`, `127.0.0.1`, and `::1`. Any other host
 requires `https`. The pull appends `/api/v1` itself. Redirects are not
 followed. A timeout, a non-JSON body, or an HTTP error becomes the page
-failure in D257. The printed error is a fixed sentence and the HTTP status. A problem `code`
+failure in D275. The printed error is a fixed sentence and the HTTP status. A problem `code`
 is printed only when it is one short token and does not contain the key,
 the origin, or the user id. Otherwise it is withheld. A transport error or
 a parser error is replaced with a fixed sentence that has no URL, no path,
@@ -554,7 +573,7 @@ After the body is read inside the size cap and parsed, and before the page
 reaches `MappedPage`, `open_wearables.rs` walks every object key and every
 string. A value that contains the API key, the selected origin, or the
 selected user id rejects the whole page. The row is not rewritten. A value
-under a credential-shaped key is a different case. D271 withholds that one
+under a credential-shaped key is a different case. D289 withholds that one
 value and counts it. A scan of the raw text
 misses a Unicode escape. The raw-text scan and the check before printing
 stay as defense in depth. They are not what keeps the key out of a committed
@@ -579,7 +598,7 @@ Rejected alternatives:
 - List users and pull every user the key can see. Rejected because the key
   sees the whole deployment, and this record is one athlete.
 
-## D257. A page is atomic, a missing row is not a deletion, and the same command is safe to repeat
+## D275. A page is atomic, a missing row is not a deletion, and the same command is safe to repeat
 
 Each response page is one 2.1.1 import preview and, under `--yes`, one
 apply. `preview_route` in `src/import/provider.rs` stages and matches the
@@ -594,7 +613,7 @@ D189. A committed page does not mean the pull is complete.
 The command previews unless `--yes` is present. `--json` does not write,
 with or without `--yes`, matching `ath import --mapping`. `--yes` without
 `--json` writes each protected page as that page succeeds. A refused
-page is not a success. The pull-only archive in D264 is a separate
+page is not a success. The pull-only archive in D282 is a separate
 preview and apply. It goes ahead only when the database revision has not
 moved since the protected preview.
 
@@ -605,7 +624,7 @@ confirmed `--yes` has the actual protected and archive counts. `written` is
 true when a protected transaction in the command created or revised a
 counted record. An archive does not make it true. `database_changed` is
 true when a protected transaction or an archive transaction committed a
-change. A vendor page (D269) is a protected transaction, so a committed
+change. A vendor page (D287) is a protected transaction, so a committed
 vendor original makes both flags true even when every stored page was
 unchanged. A successful repeat of an unchanged command has both flags false.
 The command prints the
@@ -650,21 +669,21 @@ true. The personal record and the body snapshot can still be written.
 Those writes are counted. They are not ranged rows. A repeat uses the match
 key from D181 and the replace from D182, so an unchanged row is not written
 again. An owner correction on this route is kept until the server's data
-for that record changes (D269). A rerun after a partial write leaves the committed rows in place,
+for that record changes (D287). A rerun after a partial write leaves the committed rows in place,
 runs the failed read again, and runs any read that was `not_attempted`.
 
 `has_more: false` is the successful end of a cursor read and of the offset
 read. A repeated cursor, a null cursor while `has_more` is true, and the
 1000-page cap fail that read. An offset retry uses the same offset. A body
 over the response cap, `MAX_PULL_RESPONSE_BYTES` in `src/input_policy.rs`,
-is handled by D260. The failed page is not written. Later reads are
+is handled by D278. The failed page is not written. Later reads are
 `not_attempted`. The success line is not printed. A cursor with the
 `prev_` prefix is not sent. `limit` starts at 1000. One attempt is made per
-request, except the smaller page D260 sends after the response cap. A
+request, except the smaller page D278 sends after the response cap. A
 transport error is not retried. The stored reads use a 30-second connect
 timeout and a 120-second read timeout, the values
 `src/runtime/garmin_pull.rs` uses. Live vendor requests use 30 and 360
-seconds, for the reason in D270. Each timeout is a named constant. In
+seconds, for the reason in D288. Each timeout is a named constant. In
 2.1.1 the comment on `MAX_PULL_RESPONSE_BYTES` calls it one Garmin
 personal connection response, and the route list above it names only the
 Garmin pull. The build rewrites both to name the Open Wearables pull too.
@@ -685,7 +704,7 @@ records the disagreement between the docs and the 0.11.0 parser.
 
 The queries are the table in the specification's section 2. An earlier
 draft of this proposal listed three reads and treated every page as a
-cursor envelope. D260 supersedes that draft. `source_selection` is not
+cursor envelope. D278 supersedes that draft. `source_selection` is not
 sent. On 0.11.0 the parameter does not exist. On current `main`, omitting
 it returns every device when the priority flag is false. Summary routes
 still select a source. That selection is not a client filter.
@@ -710,7 +729,7 @@ Rejected alternatives:
   because D88 forbids rewriting a source bound into a timezone the source
   did not use.
 
-## D258. The Windows cleanup and the maintainability notes are not part of this build
+## D276. The Windows cleanup and the maintainability notes are not part of this build
 
 Checked again on version 2.1.1 at `0de71bbd6474916af0408a4090bc2c74a1a3aed2`,
 the merge of pull request 44. The earlier check was version 2.1.0 at
@@ -725,16 +744,16 @@ after that. Neither path collects abandoned temporary directories first.
 working data uses it. The database file is not one of those directories.
 Version 2.1.0 spec section 12 left the production database cleanup out and
 named no later version. Version 2.1.1 did not take that work. The cleanup
-does not run on a pull. This build does not change it. D264 rolls a failed
-step 7 back before this cleanup runs.
+does not run on a pull. This build does not change it. D282 rolls a failed
+step 8 back before this cleanup runs.
 
 `src/import/mapping.rs` is 1703 lines and `src/import/provider.rs` is
 1297. The store is already several files. `src/store/mod.rs` is 848
 lines, `src/store/write.rs` is 508, `src/store/encode.rs` is 549, and
 `src/store/check.rs` is 1044. `persist.rs` is gone. The pull is a new
 module so `mapping.rs` and the store files do not grow for HTTP.
-`mapping.rs` may add `MappedPage`, which D255 names, and the
-`vendor_workout` section, which D269 names. D259 also adds the
+`mapping.rs` may add `MappedPage`, which D273 names, and the
+`vendor_workout` section, which D287 names. D277 also adds the
 measurement-sample target, the reporting-window write, and the segment
 copy. Nothing beyond that is added to `mapping.rs`.
 
@@ -752,13 +771,13 @@ That first bind is a source correction with the source's expected
 revision. `ProviderPreview::apply` refuses any other staged change to
 `device_binding`. Those writes keep every other source field and the
 normal revision and `data_json` bookkeeping. `provider.rs` also gains the
-crate-private read of a stored vendor original that D270 uses. It gains
+crate-private read of a stored vendor original that D288 uses. It gains
 `connector_source` beside `route_source`, because `route_source` stages
 only an `export_file` source that names a vendor. The writer
 `open_wearables` sources, the archive source, and each `vendor_workout`
 source are `connector` sources with no vendor. `Staging::count` in
 `src/import/staging.rs` counts by action only, so a count by record type
-goes beside it for the page counts. D255 uses it instead of counting
+goes beside it for the page counts. D273 uses it instead of counting
 `ProviderPreview::planned`, which copies each row's `data_json`. The
 revision a preview read is
 already public as `ProviderPreview::destination_database_revision`.
@@ -769,20 +788,20 @@ library writes store a whole source record: `ath correct`, the protocol
 operations `records.write`, `records.write_changes`, and `records.correct`,
 native package restore, and an accepted package merge. They keep the
 receipt the caller supplied. `Store` keeps its connection private (D223).
-D260 also allows `measurement_sample` insert and update, and a null value
+D278 also allows `measurement_sample` insert and update, and a null value
 and unit pair on provider summaries and provider scores. A half-null pair
 is refused. `write_current_state` in `src/store/encode.rs` is the only
 record-to-table mapping. Package restore, repair, and the record check use
-it. There is no TypeScript writer to update. D261 also allows
+it. There is no TypeScript writer to update. D279 also allows
 `source_report` insert and update, and withdrawal of a child whose anchor
-is in this response. D269 adds the vendor-original size check to
+is in this response. D287 adds the vendor-original size check to
 `apply_in` in `src/store/write.rs`, for a change that writes an original.
 Nothing beyond that is added to the store. Other
 routes do not call the receipt operations. Splitting `mapping.rs` is
 separate work. It is not required to make the pull correct.
 
 `ath key clear garmin` is refused in 2.1.1, because `key_clear` in
-`src/cli/commands/model.rs` accepts only gateway names. D256 keeps that.
+`src/cli/commands/model.rs` accepts only gateway names. D274 keeps that.
 Making the Garmin key removable is separate work.
 
 `check_supplied_fields` is in `src/import/shared.rs`. A keyed import calls
@@ -791,7 +810,7 @@ it before it builds a candidate (D191). It refuses an empty name and a
 native reader, which keeps such a key and checks it, so the import
 refusal still applies. There is no `persist.rs` and no
 `ath-core persist` command. The pull writes through `MappedPage` and the
-2.1.1 import, so the import check covers it. The vendor read in D270 runs
+2.1.1 import, so the import check covers it. The vendor read in D288 runs
 the same check on each vendor object first. A list object with the key is
 refused alone. A detail with the key is refused, and its clean list
 object is stored. A name check outside import is separate work.
@@ -811,14 +830,14 @@ Rejected alternatives:
   write, and the one automatic source writer is `ProviderPreview::apply`.
   A rule in `Store::apply` would also block the owner's own correction.
 
-## D259. Stored Open Wearables measurements are kept in this pull
+## D277. Stored Open Wearables measurements are kept in this pull
 
-D260 supersedes the classification, source identity, time, score, endpoint,
-and size sentences in this proposal. D261 supersedes D260 where they
+D278 supersedes the classification, source identity, time, score, endpoint,
+and size sentences in this proposal. D279 supersedes D278 where they
 disagree. The decision to keep the returned health data in this pull
-stands. Where a paragraph below disagrees with D264, D264 is the proposal.
+stands. Where a paragraph below disagrees with D282, D282 is the proposal.
 
-This supersedes the earlier draft, inside D254 and D255, that left day
+This supersedes the earlier draft, inside D272 and D273, that left day
 values, the heart-rate stream, sleep and recovery summaries, meals, and
 workout segments out of this pull. Those drafts are not deleted above.
 They are not the current proposal. The specification's section 2 is the
@@ -857,29 +876,29 @@ Rejected alternatives:
   make a reporting window look like one instant (D88, D110).
 - Drop latitude, longitude, segments, or a large series to keep a
   response under the response cap. Rejected. The smaller page in the specification
-  stores the rows. D260 states the minimum-page limit without naming a
+  stores the rows. D278 states the minimum-page limit without naming a
   series type.
 - Call the live provider workout proxy or the totals routes so the pull
   can say it hit every path. Rejected. Those routes are not the stored
-  measurements. D260 does read the personal record. An earlier sentence
+  measurements. D278 does read the personal record. An earlier sentence
   in this list left it out. That sentence is superseded.
 - Invent a midnight, a zero, or an SDNN value from an RMSSD value.
   Rejected. A null stays absent. `RecoverySummary` at the pinned commit
   has no skin-temperature field. A health-score component can still carry
-  one. D260 says so.
+  one. D278 says so.
 
-## D260. Returned values keep their meaning, source, and time
+## D278. Returned values keep their meaning, source, and time
 
-D261 supersedes the sentences below that call dietary or index series
+D279 supersedes the sentences below that call dietary or index series
 provider summaries, that store a day row as the same class as its raw
 sample, that build a sensor by joining parts with `:` and `-`, that put
 main-sleep bounds on a summed field, that leave a missing device id as
 `left_out`, that omit a manual workout, and that treat `received_at` as
 the time a revision was written. The values stay in this pull. The
-device-receipt rules stay. Where this proposal disagrees with D261, D261
+device-receipt rules stay. Where this proposal disagrees with D279, D279
 is the proposal.
 
-This corrects D259. The corrections that D261 does not replace are the
+This corrects D277. The corrections that D279 does not replace are the
 contracts in the specification's section 2.
 
 A device source is still the 2.1.0 sensor, and its receipt rules are
@@ -944,20 +963,20 @@ Rejected alternatives:
 - Stop a day read at `limit` 1 and report one oversized series. Rejected.
   That limit counts periods, and one period can hold many rows.
 
-## D261. Units, windows, reported records, and identities stay distinct
+## D279. Units, windows, reported records, and identities stay distinct
 
-D262 supersedes the sentences below that put every source-present series
+D280 supersedes the sentences below that put every source-present series
 through the device check, that compare null-source rows by type and
 timestamp alone, that leave a refused original unstored in every case,
 that map `heart_rate_recovery_one_minute` to a quantity of that same
 name, and that call `hydration` a measurement sample. The units, day
-windows, sleep bounds, and reported-record direction stay. D263
-supersedes D262 where they disagree. D264 supersedes D263 where they
-disagree. Where this proposal disagrees with D264, D264 is the proposal,
+windows, sleep bounds, and reported-record direction stay. D281
+supersedes D280 where they disagree. D282 supersedes D281 where they
+disagree. Where this proposal disagrees with D282, D282 is the proposal,
 except the sentences that store a manual workout as a source report.
-D265 supersedes those sentences.
+D283 supersedes those sentences.
 
-This corrects D260. The returned health data stays in this pull. The
+This corrects D278. The returned health data stays in this pull. The
 specification's section 2 and the appendix series table are the contract.
 
 Every series has an input number, an input unit, a standard number, and a
@@ -996,7 +1015,7 @@ nutrient numbers, index, age, and effort series, personal-record fields,
 predicted and coded cycle content, BMI, calculated age, and an unbounded
 health score use this type. The eight range calculations and
 `provider-period-summary` do not read it. A manual workout is a workout
-session. D265 is that rule. An automatic workout stays a measured
+session. D283 is that rule. An automatic workout stays a measured
 session on the device source.
 
 A new sensor is `ow1:` plus a JSON array with no spaces. JSON `null`, an
@@ -1009,7 +1028,7 @@ Two unequal payloads at the same type and time refuse the call. The
 personal record uses `["personal_record"]` and that same writer. A meal
 or cycle uses the event array even when `device_id` is present. That id
 stays in the array and in the original object. It does not establish
-`device_binding`. A manual workout does not use that array. D265 puts it
+`device_binding`. A manual workout does not use that array. D283 puts it
 on the manual source.
 
 A raw or day row whose `source` object has no `device_id` is an incoming
@@ -1056,23 +1075,23 @@ Rejected alternatives:
   SPEC section 5.4 and D161 keep those measured types for measured
   records. A source report preserves the object without making it a
   measurement.
-- Call a manual workout a provider summary. Rejected. D265 stores it as
+- Call a manual workout a provider summary. Rejected. D283 stores it as
   a workout session. It is not a provider summary.
 - Leave a removed nutrient current because the store compares emitted
   keys. Rejected. The same object no longer contains that number.
 
-## D262. The new record type, numberless inputs, and refused originals stay separable
+## D280. The new record type, numberless inputs, and refused originals stay separable
 
-D263 supersedes the sentences below that leave the record views in place
+D281 supersedes the sentences below that leave the record views in place
 during the rename, that set `written` false for an archive without
 defining `database_changed`, that archive a page from the first error,
 that hash the series row without its resolution, and that give a
 null-source reported series both the report sensor and the unattributed
 sensor. The root check, the numberless readers, and the reported-record
-direction stay. D264 supersedes D263 where they disagree. Where this
-proposal disagrees with D264, D264 is the proposal.
+direction stay. D282 supersedes D281 where they disagree. Where this
+proposal disagrees with D282, D282 is the proposal.
 
-This corrects D261. The returned health data stays in this pull. The
+This corrects D279. The returned health data stays in this pull. The
 specification is the contract.
 
 `records.record_type` is a closed check. `source_report` is not in it.
@@ -1082,7 +1101,7 @@ not edit migrations 001 through 006, and it does not drop the check.
 Ordinary writes keep foreign keys on. The migration connection may turn
 them off only before its own transaction, rebuild `records` and the two
 nullable typed tables by copy, rename, and recreate, then require
-`foreign_key_check` and `integrity_check` before commit. D263 drops the
+`foreign_key_check` and `integrity_check` before commit. D281 drops the
 two record views and the two cross-table triggers before that rename and
 recreates them unchanged. A drop of
 `records` inside the ordinary foreign-key transaction is not the
@@ -1116,8 +1135,8 @@ id with a different kind refuses the page.
 A refused protected page is not applied, so it writes nothing. For a
 missing device id on a device-targeted series row, and for unequal
 null-source payloads of one full match key, a later archive preview and
-apply stores kind `original` with no amount and no device receipt. D264
-is when that archive may write. D263 is the capsule and the command counts. `written` stays false when only the archive
+apply stores kind `original` with no amount and no device receipt. D282
+is when that archive may write. D281 is the capsule and the command counts. `written` stays false when only the archive
 changed. The command
 exits nonzero. Credential failures, invalid ids, conflicting device ids,
 legacy history, and kind changes are not archived. Those originals are
@@ -1148,15 +1167,15 @@ Rejected alternatives:
   second transaction with a failed protected-write status. The other
   refusal reasons stay unstored.
 
-## D263. The migration rename, the command counts, and the archive decision stay consistent
+## D281. The migration rename, the command counts, and the archive decision stay consistent
 
-D264 supersedes the sentences below that classify database facts before
+D282 supersedes the sentences below that classify database facts before
 either transaction, that leave the archive with only an archive-source
 check, and that leave a failed init file in place. The migration graph,
 the command counts, the capsule, and the report routing stay. Where this
-proposal disagrees with D264, D264 is the proposal.
+proposal disagrees with D282, D282 is the proposal.
 
-This corrects D262. The returned health data stays in this pull. The
+This corrects D280. The returned health data stays in this pull. The
 specification is the contract.
 
 Step 7 drops `sql_v1_current_records`, `sql_v1_active_records`, and the
@@ -1181,7 +1200,7 @@ and leaves earlier commits. The pull text for a new
 archive-only change is `Protected write refused; N originals archived;
 database changed; pull incomplete.`
 
-D264 reads database-dependent vetoes in the protected preview, at one
+D282 reads database-dependent vetoes in the protected preview, at one
 database revision. The archive goes ahead only at that same revision. A
 veto there, including on a `left_out` row, forbids the archive. A deleted
 source or a deleted record leaves its rows out (D182, D190) and also
@@ -1215,9 +1234,9 @@ Rejected alternatives:
 - Hash the series row and infer the resolution later. Rejected. The
   resolution is on the response, not on the row.
 
-## D264. The archive goes ahead only at the revision where the safety facts were read
+## D282. The archive goes ahead only at the revision where the safety facts were read
 
-This corrects D263. The returned health data stays in this pull. The
+This corrects D281. The returned health data stays in this pull. The
 specification is the contract. The first version of this decision read
 the safety facts under one write lock and read them again under a second
 one. Version 2.1.1 has no write-locked preview, so this version uses the
@@ -1249,11 +1268,11 @@ archive identity. A deleted archive source is not recreated. A deleted
 capsule is not replaced. If the page names a row the bounded read cannot
 cover, the page is not archived. There is no retry.
 
-A failed step 7 during init rolls back to the committed step 6 schema
-before the existing init cleanup runs. Init fails. D258's cleanup is
-unchanged. A migrate of an existing 2.1.2 database keeps that file and
-schema 6 when step 7 rolls back. An older database keeps the steps that
-committed before step 7, as D254 says.
+A failed step 8 during init rolls back to the committed step 7 schema
+before the existing init cleanup runs. Init fails. D276's cleanup is
+unchanged. A migrate of an existing 2.1.3 database keeps that file and
+schema 7 when step 8 rolls back. An older database keeps the steps that
+committed before step 8, as D272 says.
 
 Rejected alternatives:
 
@@ -1267,13 +1286,13 @@ Rejected alternatives:
 - Recheck only the archive source before the archive. Rejected. The owner
   can delete the original source or record in between, and the payload
   would be stored under a new identity.
-- Leave a failed init file at step 6. Rejected. The existing caller
+- Leave a failed init file at step 7. Rejected. The existing caller
   removes that file, and this build does not change that cleanup.
 
-## D265. A workout the person typed is a workout session
+## D283. A workout the person typed is a workout session
 
-This supersedes only the sentences in D254 and D261 that store a manual
-workout as a source report or leave it out. D254 through D264 otherwise
+This supersedes only the sentences in D272 and D279 that store a manual
+workout as a source report or leave it out. D272 through D282 otherwise
 stay as written. The specification is the contract.
 
 `entry_source` `manual` is a `workout_session`. Its source type is
@@ -1284,7 +1303,7 @@ workout on the watch's source. The server workout id is the match key,
 so a later pull updates the same workout. Name, type, start, end,
 distance, heart rate, elevation, zones, and segments are stored the same
 way they are stored on an automatic workout. `activity_type` still
-records that Open Wearables normalized the sport name. D268 corrects the
+records that Open Wearables normalized the sport name. D286 corrects the
 next rule. The numbers on this session do not enter the eight range
 calculations or `provider-period-summary`. `workout-drift` may use the
 session's start and end when the caller names that session. The samples
@@ -1304,7 +1323,7 @@ Rejected alternatives:
 - Treat `unknown`, JSON null, or a missing `entry_source` as manual.
   Rejected. Those values are not the self-reported entry.
 
-## D266. A body skin-temperature time is not an instant by itself
+## D284. A body skin-temperature time is not an instant by itself
 
 This corrects the sentence that treats a non-null
 `skin_temperature_measured_at` as a measurement instant. The other body
@@ -1327,7 +1346,7 @@ Rejected alternatives:
 - Drop the timestamp. Rejected. The original object keeps what the server
   sent.
 
-## D267. A finite heart-rate recovery stays, including zero
+## D285. A finite heart-rate recovery stays, including zero
 
 This corrects the positive point gate for one quantity. The quantity,
 the unit, and the import key stay `hr_recovery` and `bpm`.
@@ -1349,9 +1368,9 @@ Rejected alternatives:
   zero for this quantity.
 - Allow zero for every point. Rejected. The other positive checks stay.
 
-## D268. A manual session can set a window, and its numbers stay out
+## D286. A manual session can set a window, and its numbers stay out
 
-This corrects the D265 sentence that says the calculations do not read a
+This corrects the D283 sentence that says the calculations do not read a
 manual workout. It does not change the calculation code.
 
 `read_inputs` and `read_period` exclude `source_type` `manual`. They have
@@ -1375,9 +1394,9 @@ Rejected alternatives:
 - Let a manual heart rate enter a baseline when `include_manual` is set.
   Rejected. The calculation SQL has no such switch.
 
-## D269. A provider-live workout is kept as an original
+## D287. A provider-live workout is kept as an original
 
-D270 is the live-read procedure. D271 is the privacy choice. Where this
+D288 is the live-read procedure. D289 is the privacy choice. Where this
 proposal disagrees with either, those decisions are the proposal.
 
 The stored workout list is the normalized session. The provider route
@@ -1410,14 +1429,14 @@ The rewritten `mappings/open-wearables.md` gains a section named
 writer, the sensor, the key, and the start. A saved file of envelopes
 imports through that section. File import writes each envelope as the
 file holds it, as D182 does for every mapped import, except the
-owner-correction rule below and the Garmin window rule in D270. The
+owner-correction rule below and the Garmin window rule in D288. The
 detail rules in
-D270 run before the mapping engine sees an envelope, so the mapping
+D288 run before the mapping engine sees an envelope, so the mapping
 engine has no vendor exception.
 
 The pull writes one provider's originals as one page, after that
 provider's list and detail calls finish. That page is one preview and,
-under `--yes`, one apply, as D257 says for every page. A vendor page
+under `--yes`, one apply, as D275 says for every page. A vendor page
 never holds a stored row or an archive capsule. A failed or refused
 vendor page leaves that provider `incomplete`. It does not change the
 stored pages or the archive.
@@ -1446,7 +1465,7 @@ route, so a workout fix on the stored session also survives a pull of
 unchanged data. For that route it supersedes the D182 sentence that a
 mapped import replaces a changed object. Other routes keep D182. That
 scope is the stated default, and the maintainer still has to confirm it.
-The stored-original read in D270 uses the same import revision, so an
+The stored-original read in D288 uses the same import revision, so an
 owner's edit does not trigger a detail call. The skill says that a
 workout fix belongs on the session or in a note, not on the vendor
 original. Deleting an original keeps the person's version in its history
@@ -1571,9 +1590,9 @@ Rejected alternatives:
   name an edit the person never made, so the counts name merge choices
   as their own part.
 
-## D270. A live vendor read is opt-in, and one failure stays on that provider
+## D288. A live vendor read is opt-in, and one failure stays on that provider
 
-This supersedes the D269 sentences that said a live GET does not write on
+This supersedes the D287 sentences that said a live GET does not write on
 the server, that a failed provider stops the later providers, that Polar's
 list asks for samples, zones, and route, that a start outside the range
 is dropped, and that the server splits a Garmin range.
@@ -1680,7 +1699,7 @@ Sensorbio reads only the oldest 50 entries, and its line says so.
 A stored detail is never lost. A detail is fetched for an id with no
 stored detail, unless an earlier command marked it `not_available` less
 than 30 days before, and again only when the list object changed. Credential
-values (D271) are withheld before any comparison, so a token that changed
+values (D289) are withheld before any comparison, so a token that changed
 between pulls does not make a list object look changed. A list-only
 object never replaces a stored detail. A new detail that is thinner than
 the stored one writes nothing. Thinner means a detail field the
@@ -1884,7 +1903,7 @@ Rejected alternatives:
   the read parses the document, so a 123-level object would be stored
   and then fail to read back.
 
-## D271. Vendor originals stay whole. The maintainer can change this
+## D289. Vendor originals stay whole. The maintainer can change this
 
 This is a labeled choice. The default in this proposal is to keep each
 vendor object whole, including account ids, Polar user URLs, and full GPS
