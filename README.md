@@ -90,6 +90,7 @@ A program that works with a record on an `ath-host` server uses `connectHost` fr
 `athleticstandard`. It takes the host's address and the signed-in person's access
 token. The host checks that person's grants on every request. The program never
 receives a database credential, and `openDatabase` still refuses database URLs.
+[`examples/host-starter/`](examples/host-starter/) runs a coach's steps with it.
 
 ## Upgrade a database
 

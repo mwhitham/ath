@@ -1,9 +1,14 @@
 /**
  * The host client against a real `ath-host` in directory mode: an owner's
- * record with a photo, and a coach who sees and adds only what was granted.
- * The client tests that need no host run everywhere.
+ * record with a photo, a coach who sees and adds only what was granted, and
+ * the starter app in examples/host-starter. The client tests that need no
+ * host run everywhere.
  */
+import { execFile } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
+import { join } from "node:path";
+import { promisify } from "node:util";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { connectHost, HostError, type HostConnection } from "../src/index.js";
 import {
@@ -18,6 +23,9 @@ import {
   TestHost,
   workout,
 } from "./host-support.js";
+import { repositoryRoot } from "./support.js";
+
+const run = promisify(execFile);
 
 /** The HostError a promise rejects with. */
 async function failure(promise: Promise<unknown>): Promise<HostError> {
@@ -274,4 +282,40 @@ describe.skipIf(!hostAvailable)(hostTitle, () => {
     expect((await failure(coach.addNote(id, { note: "Late." }))).code).toBe("not_found");
     expect((await coach.roster()).athletes).toEqual([]);
   });
+
+  it("runs the starter app's coach steps, and a retry adds no second note", async () => {
+    // The starter imports the built package, as an app would.
+    const packageRoot = join(repositoryRoot, "packages", "npm");
+    const tsc = createRequire(join(packageRoot, "package.json")).resolve("typescript/bin/tsc");
+    await run(process.execPath, [tsc, "-p", "tsconfig.build.json"], { cwd: packageRoot });
+
+    const owner = as("athlete-4", ATHLETE_APP);
+    const { athlete_id: id } = await owner.createAthlete({ display_name: "Starter athlete" });
+    const source = await owner.createRecord(id, { record_type: "source", data: manualSource });
+    const sourceId = source.records[0]!.record_id;
+    await owner.createRecord(id, { record_type: "workout_session", data: workout(sourceId, "2026-11-20") });
+    const offer = await owner.createGrantOffer(id, {
+      permissions: ["read_workout_summaries", "add_coach_notes"],
+      client_id: COACH_APP,
+    });
+
+    const starter = join(repositoryRoot, "examples", "host-starter", "coach.mjs");
+    const env = {
+      ...process.env,
+      ATH_HOST_URL: server.url,
+      ATH_HOST_TOKEN: signIn.token("coach-2", COACH_APP),
+      ATH_NOTE: "Keep the easy rows easy this week.",
+      ATH_NOTE_KEY: "starter-note-1",
+    };
+    const first = await run(process.execPath, [starter], { env: { ...env, ATH_GRANT_CODE: offer.code } });
+    expect(first.stdout).toContain(`Accepted the offer for athlete ${id}: read_workout_summaries, add_coach_notes.`);
+    expect(first.stdout).toContain("2026-11-20T07:00:00.000Z to 2026-11-20T07:45:00.000Z: rowing");
+    const added = /Added note (\S+), citing the workout that started 2026-11-20T07:00:00\.000Z\./.exec(first.stdout);
+    expect(added, first.stdout).not.toBeNull();
+
+    const again = await run(process.execPath, [starter], { env });
+    expect(again.stdout).toContain(`Added note ${added![1]!}`);
+    const notes = await owner.listRecords(id, { record_type: "coaching_note" });
+    expect(notes.records.map((record) => record.record_id)).toEqual([added![1]]);
+  }, 300_000);
 });
