@@ -19,9 +19,11 @@ use athleticstandard::store::read::ListOptions;
 use athleticstandard::store::write::StaleStyle;
 use athleticstandard::store::{Changes, Correction, Deletion, ExtensionsUpdate, NewRecord, Store};
 use axum::body::Bytes;
+use axum::extract::Request;
 use axum::extract::{FromRequestParts, Path, Query, State};
 use axum::http::request::Parts;
-use axum::http::{header, HeaderMap, HeaderValue, StatusCode};
+use axum::http::{header, HeaderMap, HeaderValue, Method, StatusCode};
+use axum::middleware::Next;
 use axum::response::{IntoResponse, Response};
 use axum::routing::{delete, get, post, put};
 use axum::{Json, Router};
@@ -72,9 +74,110 @@ pub fn router(state: Shared) -> Router {
         .route("/v1/athletes/{id}/workouts", get(workout_summaries))
         .route("/v1/athletes/{id}/notes", post(add_note))
         .route("/v1/athletes/{id}/programs", post(add_program))
+        .route("/v1/athletes/{id}/grant-offers/pending", get(pending_offers))
+        .route("/v1/athletes/{id}/grant-offers/{offer_id}", delete(cancel_offer))
         .merge(crate::moves::routes())
+        .fallback(|| async { ApiError::new(StatusCode::NOT_FOUND, "not_found", "There is no such route") })
+        .layer(axum::middleware::from_fn_with_state(state.clone(), idempotent))
+        .layer(axum::middleware::from_fn_with_state(state.clone(), sign_in_challenge))
         .layer(axum::extract::DefaultBodyLimit::max(body_limit))
         .with_state(state)
+}
+
+/// A 401 names where to find the sign-in server (RFC 9728 section 5.1).
+async fn sign_in_challenge(State(state): State<Shared>, request: Request, next: Next) -> Response {
+    let mut response = next.run(request).await;
+    if response.status() == StatusCode::UNAUTHORIZED {
+        let value = format!(
+            "Bearer resource_metadata=\"{}/.well-known/oauth-protected-resource\"",
+            state.config.public_url.trim_end_matches('/')
+        );
+        if let Ok(value) = HeaderValue::from_str(&value) {
+            response.headers_mut().insert(header::WWW_AUTHENTICATE, value);
+        }
+    }
+    response
+}
+
+/// Requests with an `Idempotency-Key` that change the host: a repeat with the same body
+/// gets the first answer; the same key with another body is a conflict (D261). Record
+/// writes also keep a receipt in the record. Grant offers and move steps are left out:
+/// their answers carry one-time codes that are stored only as hashes.
+async fn idempotent(State(state): State<Shared>, request: Request, next: Next) -> Response {
+    let method = request.method().clone();
+    let path = request.uri().path().to_string();
+    let changes = method == Method::POST || method == Method::PUT || method == Method::DELETE;
+    let excluded = path.starts_with("/v1/transfers/") || path.contains("/move/") || path.ends_with("/grant-offers");
+    let key = request
+        .headers()
+        .get("idempotency-key")
+        .and_then(|value| value.to_str().ok())
+        .map(str::trim)
+        .filter(|key| !key.is_empty() && key.len() <= 200)
+        .map(str::to_string);
+    let token = request
+        .headers()
+        .get(header::AUTHORIZATION)
+        .and_then(|value| value.to_str().ok())
+        .and_then(|value| value.strip_prefix("Bearer "))
+        .map(|token| token.trim().to_string());
+    let (Some(key), Some(token), true, false) = (key, token, changes, excluded) else {
+        return next.run(request).await;
+    };
+    let Ok(verified) = state.verifier.verify(&token).await else {
+        return next.run(request).await;
+    };
+    let Ok(principal) = state.directory.principal(&verified.issuer, &verified.subject, verified.name.as_deref()).await
+    else {
+        return next.run(request).await;
+    };
+    let (parts, body) = request.into_parts();
+    let bytes = match axum::body::to_bytes(body, state.config.limits.body_bytes).await {
+        Ok(bytes) => bytes,
+        Err(_) => return ApiError::limit("The request body is too large").into_response(),
+    };
+    let operation = format!("{method} {path}");
+    let mut digest = Sha256::new();
+    digest.update(state.receipt_key.as_bytes());
+    digest.update([0]);
+    digest.update(operation.as_bytes());
+    digest.update([0]);
+    digest.update(&bytes);
+    let digest = hex(&digest.finalize());
+    match state.directory.find_request(&principal.principal_id, &verified.client_id, &key).await {
+        Ok(Some((stored_operation, stored_digest, result))) => {
+            if stored_operation != operation || stored_digest != digest {
+                return ApiError::request_conflict().into_response();
+            }
+            let stored: Value = serde_json::from_str(&result).unwrap_or(Value::Null);
+            let status = stored["status"]
+                .as_u64()
+                .and_then(|code| StatusCode::from_u16(code as u16).ok())
+                .unwrap_or(StatusCode::OK);
+            return (status, Json(stored["body"].clone())).into_response();
+        }
+        Ok(None) => {}
+        Err(error) => return ApiError::internal("directory", error).into_response(),
+    }
+    let response = next.run(Request::from_parts(parts, axum::body::Body::from(bytes))).await;
+    if !response.status().is_success() {
+        return response;
+    }
+    let (parts, body) = response.into_parts();
+    let Ok(body) = axum::body::to_bytes(body, usize::MAX).await else {
+        return ApiError::internal("reading a response", "unreadable").into_response();
+    };
+    if let Ok(json) = serde_json::from_slice::<Value>(&body) {
+        let stored = j!({ "status": parts.status.as_u16(), "body": json }).to_string();
+        if let Err(error) = state
+            .directory
+            .store_request(&principal.principal_id, &verified.client_id, &key, &operation, &digest, &stored)
+            .await
+        {
+            eprintln!("ath-host: storing a request result: {error}");
+        }
+    }
+    Response::from_parts(parts, axum::body::Body::from(body))
 }
 
 // ---- The caller -------------------------------------------------------------
@@ -148,6 +251,10 @@ async fn coach_grant(
     resource_id: &str,
     permission: Permission,
 ) -> ApiResult<(Grant, u64)> {
+    // The athlete must exist and be shared with this caller before storage is touched,
+    // so an unknown ID and an unshared one look the same.
+    relation(state, caller, resource_id).await?;
+    // Read the epoch before the grant check that decides (D262).
     let epoch = state.storage.access_epoch(resource_id).await.map_err(hide_missing)?;
     match relation(state, caller, resource_id).await? {
         Relation::Coach(_, grant) if grant.allows(permission) => Ok((grant, epoch)),
@@ -834,6 +941,24 @@ async fn create_grant_offer(
             j!({ "code": offer.code, "expires_at": offer.expires_at, "permissions": permissions, "client_id": request.client_id }),
         ),
     ))
+}
+
+async fn pending_offers(State(state): State<Shared>, caller: Caller, Path(id): Path<String>) -> ApiResult<Json<Value>> {
+    owner(&state, &caller, &id).await?;
+    let offers = state.directory.pending_offers(&id).await.map_err(|e| ApiError::internal("directory", e))?;
+    Ok(Json(j!({ "offers": offers })))
+}
+
+async fn cancel_offer(
+    State(state): State<Shared>,
+    caller: Caller,
+    Path((id, offer_id)): Path<(String, String)>,
+) -> ApiResult<Json<Value>> {
+    owner(&state, &caller, &id).await?;
+    if !state.directory.cancel_offer(&id, &offer_id).await.map_err(|e| ApiError::internal("directory", e))? {
+        return Err(ApiError::not_found());
+    }
+    Ok(Json(j!({ "cancelled": offer_id })))
 }
 
 async fn list_grants(State(state): State<Shared>, caller: Caller, Path(id): Path<String>) -> ApiResult<Json<Value>> {

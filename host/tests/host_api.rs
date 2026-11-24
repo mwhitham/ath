@@ -472,3 +472,151 @@ fn qualification_against_a_libsql_server() {
     assert_eq!(restored.status, 200, "{}", restored.json);
     println!("demo package restore: {:?}", begun.elapsed());
 }
+
+// ---- IDs, retries, and sign-in challenges (review fixes) -------------------------
+
+fn forged_ids_look_like_missing_records(host: &Host) {
+    let owner = token("athlete-1", ATHLETE_APP);
+    let id = create_athlete(host, &owner);
+    let unshared_owner = token("athlete-2", ATHLETE_APP);
+    let unshared = create_athlete(host, &unshared_owner);
+    let offer = call(
+        "POST",
+        &athlete_url(host, &id, "/grant-offers"),
+        &owner,
+        Some(json!({ "permissions": ["read_workout_summaries", "add_coach_notes"], "client_id": COACH_APP })),
+        None,
+    );
+    let coach = token("coach-1", COACH_APP);
+    call(
+        "POST",
+        &format!("{}/v1/grant-offers/accept", host.url),
+        &coach,
+        Some(json!({ "code": offer.json["code"] })),
+        None,
+    );
+
+    let missing = format!("ath_{}", "0".repeat(32));
+    let reference = call("GET", &athlete_url(host, &unshared, "/workouts"), &coach, None, None);
+    assert_eq!(reference.status, 404);
+    for forged in [missing.as_str(), "..%2F..%2Fetc", "ath_..%2F..", "ATH_0123456789ABCDEF0123456789ABCDEF", "x"] {
+        for (method, path, body) in [
+            ("GET", "/workouts", None),
+            ("POST", "/notes", Some(json!({ "note": "x" }))),
+            ("POST", "/programs", Some(json!({ "plan": { "title": "x" } }))),
+            ("GET", "/export", None),
+            ("GET", "", None),
+        ] {
+            let reply = call(method, &athlete_url(host, forged, path), &coach, body, Some("forged"));
+            assert_eq!(reply.status, 404, "{method} {forged}{path}: {}", reply.json);
+            assert_eq!(reply.json, reference.json, "{method} {forged}{path} looks like any unshared record");
+        }
+    }
+}
+
+#[test]
+fn directory_mode_forged_ids_look_like_missing_records() {
+    forged_ids_look_like_missing_records(&directory_host().hosts[0]);
+}
+
+#[test]
+fn remote_mode_forged_ids_look_like_missing_records() {
+    forged_ids_look_like_missing_records(&remote_hosts(1).hosts[0]);
+}
+
+#[test]
+fn a_missing_token_names_the_sign_in_metadata() {
+    let setup = directory_host();
+    let reply = ureq::get(&format!("{}/v1/me", setup.hosts[0].url)).call();
+    let Err(ureq::Error::Status(401, response)) = reply else { panic!("expected 401") };
+    assert_eq!(
+        response.header("www-authenticate"),
+        Some("Bearer resource_metadata=\"https://host.test/.well-known/oauth-protected-resource\"")
+    );
+    let unknown = call("GET", &format!("{}/v1/nothing-here", setup.hosts[0].url), &token("a", ATHLETE_APP), None, None);
+    assert_eq!((unknown.status, unknown.json["error"]["code"].as_str()), (404, Some("not_found")));
+}
+
+#[test]
+fn directory_writes_with_a_key_answer_a_retry_the_same_way() {
+    let setup = directory_host();
+    let host = &setup.hosts[0];
+    let owner = token("athlete-1", ATHLETE_APP);
+    let first = call(
+        "POST",
+        &format!("{}/v1/athletes", host.url),
+        &owner,
+        Some(json!({ "display_name": "One" })),
+        Some("create-1"),
+    );
+    let again = call(
+        "POST",
+        &format!("{}/v1/athletes", host.url),
+        &owner,
+        Some(json!({ "display_name": "One" })),
+        Some("create-1"),
+    );
+    assert_eq!((first.status, again.status), (201, 201));
+    assert_eq!(first.json, again.json, "a retry creates no second record");
+    let listed = call("GET", &format!("{}/v1/athletes", host.url), &owner, None, None);
+    assert_eq!(listed.json["athletes"].as_array().unwrap().len(), 1);
+    let other = call(
+        "POST",
+        &format!("{}/v1/athletes", host.url),
+        &owner,
+        Some(json!({ "display_name": "Two" })),
+        Some("create-1"),
+    );
+    assert_eq!((other.status, other.json["error"]["code"].as_str()), (409, Some("request_conflict")));
+
+    // A package upload retried after it worked gives the first answer.
+    let id = first.json["athlete_id"].as_str().unwrap();
+    let zip = demo_package_zip();
+    let put = |key: &str| {
+        reply_of(
+            ureq::put(&athlete_url(host, id, "/package"))
+                .set("Authorization", &format!("Bearer {owner}"))
+                .set("Idempotency-Key", key)
+                .send_bytes(&zip),
+        )
+    };
+    let (status, body) = put("package-1");
+    assert_eq!(status, 200, "{body}");
+    assert_eq!(put("package-1"), (200, body));
+
+    // Pending offers can be listed and cancelled; a cancelled code does not work.
+    let offer = call(
+        "POST",
+        &athlete_url(host, id, "/grant-offers"),
+        &owner,
+        Some(json!({ "permissions": ["add_coach_notes"], "client_id": COACH_APP })),
+        None,
+    );
+    let pending = call("GET", &athlete_url(host, id, "/grant-offers/pending"), &owner, None, None);
+    let offer_id = pending.json["offers"][0]["offer_id"].as_str().unwrap().to_string();
+    assert_eq!(
+        call("DELETE", &athlete_url(host, id, &format!("/grant-offers/{offer_id}")), &owner, None, None).status,
+        200
+    );
+    let coach = token("coach-1", COACH_APP);
+    assert_eq!(
+        call(
+            "POST",
+            &format!("{}/v1/grant-offers/accept", host.url),
+            &coach,
+            Some(json!({ "code": offer.json["code"] })),
+            None
+        )
+        .status,
+        404
+    );
+}
+
+fn reply_of(response: Result<ureq::Response, ureq::Error>) -> (u16, serde_json::Value) {
+    let response = match response {
+        Ok(response) => response,
+        Err(ureq::Error::Status(_, response)) => response,
+        Err(error) => panic!("{error}"),
+    };
+    (response.status(), response.into_json().unwrap_or_default())
+}

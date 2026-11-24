@@ -122,6 +122,7 @@ impl Storage {
 
     /// Create a new, empty record for a new athlete.
     pub async fn create(&self, resource_id: &str) -> ApiResult<u64> {
+        checked(resource_id)?;
         let _guard = self.lock(resource_id).await;
         match &self.mode {
             Mode::Directory => {
@@ -152,6 +153,7 @@ impl Storage {
         resource_id: &str,
         read: impl FnOnce(&Store) -> athleticstandard::Result<T> + Send + 'static,
     ) -> ApiResult<T> {
+        checked(resource_id)?;
         let _guard = self.lock(resource_id).await;
         if let Mode::Remote(remote) = &self.mode {
             remote.current(self, resource_id).await?;
@@ -173,6 +175,7 @@ impl Storage {
         guard_epoch: Option<u64>,
         write: impl Fn(&mut Store, Option<u64>) -> athleticstandard::Result<T> + Send + Sync + 'static,
     ) -> ApiResult<T> {
+        checked(resource_id)?;
         let write = Arc::new(write);
         match &self.mode {
             Mode::Directory => {
@@ -260,6 +263,7 @@ impl Storage {
 
     /// The access epoch: in the record in directory mode, on the server in remote mode.
     pub async fn access_epoch(&self, resource_id: &str) -> ApiResult<u64> {
+        checked(resource_id)?;
         match &self.mode {
             Mode::Directory => self.read(resource_id, |store| store.current_access_epoch()).await,
             Mode::Remote(remote) => Ok(remote.revision_and_epoch(resource_id).await?.1),
@@ -268,6 +272,7 @@ impl Storage {
 
     /// Raise the access epoch after a grant is revoked (D262).
     pub async fn raise_access_epoch(&self, resource_id: &str) -> ApiResult<u64> {
+        checked(resource_id)?;
         let _guard = self.lock(resource_id).await;
         match &self.mode {
             Mode::Directory => {
@@ -291,6 +296,7 @@ impl Storage {
     /// Make sure every attachment file the record names is in the local folder, so
     /// export and download work. In directory mode they always are.
     pub async fn ensure_attachment_files(&self, resource_id: &str) -> ApiResult<()> {
+        checked(resource_id)?;
         let Mode::Remote(remote) = &self.mode else {
             return Ok(());
         };
@@ -331,6 +337,10 @@ impl Storage {
 
     /// The bytes of one attachment file, after the permission check.
     pub async fn attachment_bytes(&self, resource_id: &str, stored_name: &str) -> ApiResult<Vec<u8>> {
+        checked(resource_id)?;
+        if stored_name.contains(['/', '\\']) || stored_name.starts_with('.') {
+            return Err(ApiError::not_found());
+        }
         self.ensure_attachment_files(resource_id).await?;
         let path = self.folder(resource_id).join("attachments").join(stored_name);
         std::fs::read(&path).map_err(|_| ApiError::not_found())
@@ -340,6 +350,7 @@ impl Storage {
     /// mode only. The old folder is kept beside it, renamed, until the operator removes
     /// it.
     pub async fn replace_from_package(&self, resource_id: &str, package: &Path) -> ApiResult<()> {
+        checked(resource_id)?;
         if self.is_remote() {
             return Err(ApiError::refused(
                 "In remote mode, restore the athlete's database with the provider's restore; see docs/hosting.md",
@@ -455,6 +466,7 @@ impl Remote {
     }
 
     async fn server(&self, resource_id: &str) -> ApiResult<Db> {
+        checked(resource_id)?;
         if let Some(db) = self.connections.lock().await.get(resource_id) {
             return Ok(db.clone());
         }
@@ -687,6 +699,16 @@ impl Remote {
             return Err(ApiError::internal("committing to the server", "the changeset ended at another revision"));
         }
         transaction.commit().await.map_err(failed)
+    }
+}
+
+/// Refuse an athlete ID the host did not issue before it becomes part of a path or a
+/// database address.
+fn checked(resource_id: &str) -> ApiResult<()> {
+    if crate::directory::valid_resource_id(resource_id) {
+        Ok(())
+    } else {
+        Err(ApiError::not_found())
     }
 }
 

@@ -56,6 +56,16 @@ CREATE TABLE IF NOT EXISTS grants (
 ) STRICT;
 CREATE INDEX IF NOT EXISTS grants_coach_idx ON grants (coach_principal_id, client_id);
 CREATE INDEX IF NOT EXISTS grants_resource_idx ON grants (resource_id);
+CREATE TABLE IF NOT EXISTS host_requests (
+  principal_id TEXT NOT NULL,
+  client_id TEXT NOT NULL,
+  request_id TEXT NOT NULL,
+  operation TEXT NOT NULL,
+  request_digest TEXT NOT NULL,
+  result_json TEXT NOT NULL,
+  created_at TEXT NOT NULL,
+  PRIMARY KEY (principal_id, client_id, request_id)
+) STRICT;
 CREATE TABLE IF NOT EXISTS erasure_intents (
   intent_id TEXT PRIMARY KEY,
   resource_id TEXT NOT NULL,
@@ -134,6 +144,15 @@ pub struct Offer {
 #[derive(Clone)]
 pub struct Directory {
     db: Db,
+}
+
+/// True for an athlete ID this host issues: `ath_` and 32 lowercase hexadecimal
+/// digits. Every request's ID is checked before it reaches storage, where it becomes
+/// part of a file path or a database address.
+pub fn valid_resource_id(id: &str) -> bool {
+    id.len() == 36
+        && id.starts_with("ath_")
+        && id[4..].bytes().all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
 }
 
 pub fn now() -> String {
@@ -270,6 +289,9 @@ impl Directory {
     }
 
     pub async fn athlete(&self, resource_id: &str) -> DbResult<Option<Athlete>> {
+        if !valid_resource_id(resource_id) {
+            return Ok(None);
+        }
         let rows = self
             .db
             .query(&format!("SELECT {ATHLETE_COLUMNS} FROM athletes WHERE resource_id = ?1"), vec![t(resource_id)])
@@ -657,6 +679,84 @@ impl Directory {
             )
             .await?;
         Ok(rows.iter().map(|row| (get_text(row, 0), get_text(row, 1), get_text(row, 2), get_text(row, 3))).collect())
+    }
+}
+
+impl Directory {
+    /// A request the host answered before, for operations that change the directory
+    /// rather than a record: (operation, digest, result).
+    pub async fn find_request(
+        &self,
+        principal_id: &str,
+        client_id: &str,
+        request_id: &str,
+    ) -> DbResult<Option<(String, String, String)>> {
+        let rows = self
+            .db
+            .query(
+                "SELECT operation, request_digest, result_json FROM host_requests WHERE principal_id = ?1 AND client_id = ?2 AND request_id = ?3",
+                vec![t(principal_id), t(client_id), t(request_id)],
+            )
+            .await?;
+        Ok(rows.first().map(|row| (get_text(row, 0), get_text(row, 1), get_text(row, 2))))
+    }
+
+    pub async fn store_request(
+        &self,
+        principal_id: &str,
+        client_id: &str,
+        request_id: &str,
+        operation: &str,
+        request_digest: &str,
+        result_json: &str,
+    ) -> DbResult<()> {
+        self.db
+            .execute(
+                "INSERT OR IGNORE INTO host_requests (principal_id, client_id, request_id, operation, request_digest, result_json, created_at)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)",
+                vec![t(principal_id), t(client_id), t(request_id), t(operation), t(request_digest), t(result_json), t(&now())],
+            )
+            .await?;
+        Ok(())
+    }
+
+    /// Grant offers for one athlete that nobody accepted yet. The offer ID is the hash
+    /// of its code; the code itself is shown only once.
+    pub async fn pending_offers(&self, resource_id: &str) -> DbResult<Vec<serde_json::Value>> {
+        let rows = self
+            .db
+            .query(
+                "SELECT code_hash, permissions, client_id, coach_label, created_at, expires_at FROM invitations
+                 WHERE kind = 'grant' AND resource_id = ?1 AND used_at IS NULL AND expires_at > ?2 ORDER BY created_at",
+                vec![t(resource_id), t(&now())],
+            )
+            .await?;
+        Ok(rows
+            .iter()
+            .map(|row| {
+                serde_json::json!({
+                    "offer_id": get_text(row, 0),
+                    "permissions": parse_permissions(&get_text(row, 1)),
+                    "client_id": get_text(row, 2),
+                    "coach_label": get_opt(row, 3),
+                    "created_at": get_text(row, 4),
+                    "expires_at": get_text(row, 5),
+                })
+            })
+            .collect())
+    }
+
+    /// Cancel a pending offer. False when it is unknown, used, or for another athlete.
+    pub async fn cancel_offer(&self, resource_id: &str, offer_id: &str) -> DbResult<bool> {
+        let changed = self
+            .db
+            .execute(
+                "UPDATE invitations SET used_by = 'cancelled', used_at = ?3
+                 WHERE code_hash = ?2 AND resource_id = ?1 AND kind = 'grant' AND used_at IS NULL",
+                vec![t(resource_id), t(offer_id), t(&now())],
+            )
+            .await?;
+        Ok(changed == 1)
     }
 }
 
