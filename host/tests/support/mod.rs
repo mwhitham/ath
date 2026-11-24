@@ -75,11 +75,16 @@ pub fn far_future() -> u64 {
 #[derive(Clone, Default)]
 pub struct Bucket {
     pub objects: Arc<Mutex<HashMap<String, Vec<u8>>>>,
+    /// When set, every upload fails with a server error.
+    pub fail_puts: Arc<std::sync::atomic::AtomicBool>,
 }
 
 pub fn bucket_server() -> (String, Bucket) {
     let bucket = Bucket::default();
     async fn put(State(bucket): State<Bucket>, UrlPath(key): UrlPath<String>, body: Bytes) -> StatusCode {
+        if bucket.fail_puts.load(std::sync::atomic::Ordering::SeqCst) {
+            return StatusCode::INTERNAL_SERVER_ERROR;
+        }
         bucket.objects.lock().unwrap().insert(key, body.to_vec());
         StatusCode::OK
     }
@@ -288,4 +293,30 @@ pub fn open_on_another_device(zip: &[u8]) -> (PathBuf, athleticstandard::store::
     let preview = athleticstandard::package::preview_package_import(&store, &package).unwrap();
     athleticstandard::package::apply_package_import(&mut store, &preview, &[]).unwrap();
     (path, store)
+}
+
+/// A package zip of a record with `count` invented athlete reports.
+pub fn synthetic_package(count: usize) -> Vec<u8> {
+    use athleticstandard::model::{RecordActor, RecordData, RecordType};
+    use athleticstandard::store::{Changes, NewRecord, Store};
+    let folder = temporary("ath-host-synthetic-");
+    let mut store = Store::create(folder.join("record").join("athlete.ath.sqlite"), Default::default()).unwrap();
+    let mut written = 0;
+    while written < count {
+        let batch = (count - written).min(1000);
+        let creates = (0..batch)
+            .map(|index| {
+                let data = athleticstandard::json::parse(
+                    &report(&format!("Synthetic report {}.", written + index)).to_string(),
+                )
+                .unwrap();
+                NewRecord::new(RecordData::decode(RecordType::AthleteReport, &data).unwrap(), RecordActor::Athlete)
+            })
+            .collect();
+        store.apply(Changes { creates, ..Changes::default() }).unwrap();
+        written += batch;
+    }
+    let package = folder.join("package");
+    athleticstandard::package::export_package(&store, &package, &Default::default()).unwrap();
+    ath_host::package_zip::pack(&package).unwrap()
 }

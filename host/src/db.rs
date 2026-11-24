@@ -143,6 +143,17 @@ impl Tx {
         }
     }
 
+    /// Several statements as one script, in one round trip.
+    pub async fn execute_batch(&mut self, sql: &str) -> DbResult<()> {
+        match self {
+            Tx::Local { guard } => Ok(guard.as_ref().expect("open transaction").execute_batch(sql)?),
+            Tx::Remote { transaction, .. } => {
+                transaction.as_ref().expect("open transaction").execute_batch(sql).await?;
+                Ok(())
+            }
+        }
+    }
+
     pub async fn commit(mut self) -> DbResult<()> {
         match &mut self {
             Tx::Local { guard } => {

@@ -31,6 +31,9 @@ use crate::objects::ObjectStore;
 /// How many times a write runs again after the server moved on.
 const ATTEMPTS: usize = 3;
 
+/// How long an upload waits for the record that uses it.
+pub const UPLOAD_LIFETIME: Duration = Duration::from_secs(3600);
+
 pub struct Storage {
     data: PathBuf,
     mode: Mode,
@@ -369,6 +372,7 @@ impl Storage {
 
     /// Delete idle working copies (D268). Directory mode keeps every record.
     pub fn sweep_idle(&self) {
+        self.expire_uploads(UPLOAD_LIFETIME);
         if let Mode::Remote(remote) = &self.mode {
             let idle: Vec<String> = remote
                 .last_used
@@ -393,6 +397,35 @@ impl Storage {
     pub fn clear_working_copies(&self) {
         if self.is_remote() {
             let _ = std::fs::remove_dir_all(self.data.join("working"));
+        }
+        // Exports, package uploads, trial restores, and restores in progress belong to
+        // requests that ended with the last process.
+        for folder in ["exports", "packages", "verify", "restore"] {
+            let _ = std::fs::remove_dir_all(self.staging().join(folder));
+        }
+        self.expire_uploads(Duration::ZERO);
+    }
+
+    /// Remove uploads older than `age` that no record used (spec 6.10).
+    pub fn expire_uploads(&self, age: Duration) {
+        let Ok(athletes) = std::fs::read_dir(self.staging().join("uploads")) else {
+            return;
+        };
+        for athlete in athletes.filter_map(|entry| entry.ok()) {
+            let Ok(uploads) = std::fs::read_dir(athlete.path()) else {
+                continue;
+            };
+            for upload in uploads.filter_map(|entry| entry.ok()) {
+                let old = upload
+                    .metadata()
+                    .and_then(|metadata| metadata.modified())
+                    .ok()
+                    .and_then(|modified| modified.elapsed().ok())
+                    .is_none_or(|elapsed| elapsed >= age);
+                if old {
+                    let _ = std::fs::remove_file(upload.path());
+                }
+            }
         }
     }
 }
@@ -613,11 +646,36 @@ impl Remote {
             )
             .await
             .map_err(failed)?;
+        // Insertions go in scripts of many statements, one round trip each (spec 5.2).
+        // An insertion either adds its row or fails the script, so no row count is
+        // needed. Updates and deletions run one at a time so their row counts can be
+        // checked.
+        let mut script = String::new();
+        let mut in_script = 0usize;
         for statement in statements {
+            if let Some(literal) = statement_literal(statement) {
+                script.push_str(&literal);
+                script.push_str(";\n");
+                in_script += 1;
+                if in_script >= BATCH_STATEMENTS || script.len() >= BATCH_BYTES {
+                    transaction.execute_batch(&script).await.map_err(failed)?;
+                    script.clear();
+                    in_script = 0;
+                }
+                continue;
+            }
+            if !script.is_empty() {
+                transaction.execute_batch(&script).await.map_err(failed)?;
+                script.clear();
+                in_script = 0;
+            }
             let changed = transaction.execute(&statement.sql, statement.params.clone()).await.map_err(failed)?;
             if !statement.accepts(changed) {
                 return Err(ApiError::stale(format!("A change to {} did not apply on the server", statement.table)));
             }
+        }
+        if !script.is_empty() {
+            transaction.execute_batch(&script).await.map_err(failed)?;
         }
         let ended = first_integer(
             &transaction
@@ -630,6 +688,41 @@ impl Remote {
         }
         transaction.commit().await.map_err(failed)
     }
+}
+
+/// Insertions per script, and the largest script, when committing to a server.
+const BATCH_STATEMENTS: usize = 500;
+const BATCH_BYTES: usize = 1024 * 1024;
+
+/// An insertion with its values written into the SQL, for a script. `None` for any
+/// other statement, or when a value cannot be written as a literal exactly.
+fn statement_literal(statement: &ReplayStatement) -> Option<String> {
+    if statement.kind != athleticstandard::store::replica::ChangeKind::Insert {
+        return None;
+    }
+    let mut literals = Vec::with_capacity(statement.params.len());
+    for value in &statement.params {
+        literals.push(match value {
+            SqlValue::Null => "NULL".to_string(),
+            SqlValue::Integer(number) => number.to_string(),
+            // Rust prints the shortest text that reads back as the same number.
+            SqlValue::Real(number) if number.is_finite() => {
+                let text = format!("{number:?}");
+                if text.contains(['.', 'e', 'E']) {
+                    text
+                } else {
+                    format!("{text}.0")
+                }
+            }
+            SqlValue::Real(_) => return None,
+            SqlValue::Text(text) if !text.contains('\0') => format!("'{}'", text.replace('\'', "''")),
+            SqlValue::Text(_) => return None,
+        });
+    }
+    // The statement is `INSERT … VALUES (?1, …, ?n)`; keep everything before the
+    // values and write the values in, so no value's text is ever rewritten.
+    let prefix = &statement.sql[..statement.sql.rfind("VALUES (")?];
+    Some(format!("{prefix}VALUES ({})", literals.join(", ")))
 }
 
 /// Create one database on the server. Runs on a blocking thread.
