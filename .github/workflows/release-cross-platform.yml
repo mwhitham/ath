@@ -168,6 +168,12 @@ jobs:
           }
           EOF
           (cd archives && sha256sum * > SHA256SUMS && cat SHA256SUMS)
+      - name: Stage the checked tarball on npm for the maintainer to approve
+        # The `./` makes npm read a file path. Without it, npm reads
+        # `npm-tarball/<file>` as a GitHub repository and refuses to fetch it.
+        run: npm stage publish "./npm-tarball/$(node -p "require('./npm-tarball/pack-summary.json').tarball")"
+      # Tag only after the package is staged. A failed staging then leaves no
+      # tag, so a fixed workflow can release the same version from a new commit.
       - name: Tag the tested commit
         if: github.ref_type != 'tag'
         env:
@@ -200,8 +206,6 @@ jobs:
             echo "::error::$TAG already names commit $existing."
             exit 1
           fi
-      - name: Stage the checked tarball on npm for the maintainer to approve
-        run: npm stage publish "npm-tarball/$(node -p "require('./npm-tarball/pack-summary.json').tarball")"
       - name: Publish the checked archives as the GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
