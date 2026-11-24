@@ -11,8 +11,8 @@ was used.
 |---|---|
 | `cargo fmt --check` | Passes. |
 | `cargo clippy --all-targets -- -D warnings` | Passes, for the library, the CLI, and `ath-host`. |
-| `cargo test` | 776 passed, 0 failed, 15 ignored. The six `cli_terminal` tests need a real terminal; they pass outside the build sandbox. |
-| `npm ci`, `npm run typecheck`, `npm test` | 100 passed, 1 skipped (a Windows-only test). Includes the host client run against a real `ath-host`. |
+| `cargo test` | 778 passed, 0 failed, 15 ignored. The six `cli_terminal` tests need a real terminal; they pass outside the build sandbox. |
+| `npm ci`, `npm run typecheck`, `npm test` | 101 passed, 1 skipped (a Windows-only test). Includes the host client run against a real `ath-host`. |
 | `examples/host-mcp`: `npm test` | 7 passed, against a real `ath-host`. |
 | `examples/host-swift`: `swift test` | 4 passed on macOS, against a real `ath-host`. |
 
@@ -24,6 +24,7 @@ was used.
 | Recording and replaying writes (D268, D269) | `tests/replica.rs` | Create, correct, delete, erase, and a whole package restore replay onto another copy with the same rows and the same export. A replay from an old revision or access epoch is refused. A server's log is contiguous, and an erasure clears it. The schema scripts build the same schema as a new file. |
 | The host API, both modes | `host/tests/host_api.rs` | A report with a photo is saved and opened on another device. Retries return the first answer. A coach sees and adds only what was granted. A revocation blocks a waiting write. Two host copies share one record. Forged IDs look like records that are not shared. |
 | Moves and backups (D264, D267) | `host/tests/moves.rs` | A move has one writer at every step, and an activation code works once, only for the destination and digest it names. A record with a photo moves from directory mode to remote mode and back, intact. A restore from an older backup keeps later erasures. An unfinished erasure is finished on start. |
+| Disconnecting one app (D270) | `host/tests/host_api.rs`, `packages/npm/test/host.test.ts` | One athlete uses two apps with one record. After the athlete disconnects one, its next read or write is refused, its list hides the record, and it cannot connect itself again. The last connected app cannot be disconnected. The access epoch rises, so a waiting owner write fails. The other app connects it again. |
 | Failures | `host/tests/faults.rs` | A failed attachment upload and a commit that fails partway leave the server unchanged, and a retry writes once. A restart clears working copies and leftover staging. An expired upload cannot be used. |
 | Clients | `packages/npm/test/host.test.ts`, `examples/host-mcp/test`, `examples/host-swift/Tests` | The npm client, the starter, the MCP tools, and the Swift client run the owner and coach flows against the host. |
 
@@ -76,7 +77,6 @@ real server adds one network round trip per script.
 
 - Per-athlete encryption keys on the libSQL backend (D264).
 - Routing between several machines in directory mode (spec 6.1).
-- Disconnecting one app: an owner's token from any app has full owner rights.
 - A generated description of the API in `schema/host-api/1/` (D266).
 - Applying a refresh change by change on a device (D263). The host lists the changes;
   a device refreshes by downloading the full package and checking its digest.

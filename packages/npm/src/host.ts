@@ -21,6 +21,7 @@ export type HostPermission = "read_workout_summaries" | "add_coach_notes" | "add
 export type HostErrorCode =
   | "sign_in_required"
   | "permission_denied"
+  | "app_disconnected"
   | "not_found"
   | "stale"
   | "request_conflict"
@@ -192,6 +193,17 @@ export interface HostGrant {
   revoked_at: string | null;
 }
 
+/** An app the athlete has used with one record (D270). */
+export interface HostApp {
+  client_id: string;
+  state: "connected" | "disconnected";
+  connected_at: string;
+  last_used_at: string;
+  disconnected_at: string | null;
+  /** True for the app the request came from. */
+  this_app: boolean;
+}
+
 export interface HostRosterEntry {
   athlete_id: string;
   display_name: string | null;
@@ -290,6 +302,20 @@ export interface HostConnection {
     grantId: string,
     options?: HostWriteOptions,
   ): Promise<{ revoked: string; access_epoch: number }>;
+
+  // The owner's apps (D270). An app connects on its first use with a record.
+  listApps(athleteId: string): Promise<{ apps: HostApp[] }>;
+  /**
+   * Disconnect an app from the record. Its next request is refused with
+   * `app_disconnected`. Another app must stay connected.
+   */
+  disconnectApp(
+    athleteId: string,
+    clientId: string,
+    options?: HostWriteOptions,
+  ): Promise<{ app: HostApp; access_epoch: number }>;
+  /** Connect a disconnected app again. Call this from an app that is still connected. */
+  connectApp(athleteId: string, clientId: string, options?: HostWriteOptions): Promise<{ app: HostApp }>;
 
   // A coach.
   /** Accept an athlete's offer. The token must be issued to the app the offer names. */
@@ -448,6 +474,12 @@ export function connectHost(options: HostConnectionOptions): HostConnection {
         write: options,
       }),
 
+    listApps: (athleteId) => json({ method: "GET", path: athletePath(athleteId, "/apps") }),
+    disconnectApp: (athleteId, clientId, options = {}) =>
+      json({ method: "DELETE", path: athletePath(athleteId, `/apps/${encodeURIComponent(clientId)}`), write: options }),
+    connectApp: (athleteId, clientId, options = {}) =>
+      json({ method: "PUT", path: athletePath(athleteId, `/apps/${encodeURIComponent(clientId)}`), write: options }),
+
     acceptGrantOffer: (code, options = {}) =>
       json({ method: "POST", path: "/v1/grant-offers/accept", body: { json: { code } }, write: options }),
     roster: () => json({ method: "GET", path: "/v1/roster" }),
@@ -471,6 +503,7 @@ function newKey(): string {
 const CODES: ReadonlySet<string> = new Set<HostErrorCode>([
   "sign_in_required",
   "permission_denied",
+  "app_disconnected",
   "not_found",
   "stale",
   "request_conflict",

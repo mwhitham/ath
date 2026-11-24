@@ -615,10 +615,17 @@ a new principal, and the host has no command to give them their old records.
 
 ### 6.2 Apps
 
-Every token names an app. A grant is for one coach through one app (section 8). An
-owner has full owner rights through any app the host accepts. The host keeps no list
-of the apps an owner has connected, so it cannot disconnect one app. Limit apps with
-`allowed_clients`, and end an app's sessions at the provider.
+Every token names an app. A grant is for one coach through one app (section 8).
+
+The host keeps a list of the apps an owner has used with each record (D270). An app
+joins the list the first time the owner uses it with that record. The owner can list
+the apps, disconnect one, and connect it again from another app (section 7.5). A
+disconnected app's next request for that record gets `403 app_disconnected`. The host
+refuses to disconnect a record's last connected app, so the owner always keeps a way
+in.
+
+`allowed_clients` limits the apps for everyone on the host. To stop an app from
+signing a person in at all, end its sessions at the provider too.
 
 ### 6.3 Native apps
 
@@ -755,7 +762,8 @@ client for macOS and iOS apps that runs the same coach steps.
 - Who may call a route:
   - **Anyone**: no token needed.
   - **Signed in**: any accepted token.
-  - **Owner**: the person who owns the record, through any accepted app.
+  - **Owner**: the person who owns the record, through any accepted app they have not
+    disconnected from that record.
   - **Coach with a permission**: a person with an active grant for the record,
     through the app that made the request, that includes the permission.
 - A caller who is neither the owner nor a coach with an active grant gets
@@ -797,9 +805,10 @@ itself, such as a malformed query, an unknown route, or a body that is too large
 | 400 | `invalid` | The request is malformed: bad JSON, a malformed query, an unknown field, an unknown record type, a missing `Idempotency-Key`, a workout cursor that did not come from the host, an upload that expired, or record data that fails validation. |
 | 401 | `sign_in_required` | No token, or a token that fails a check in section 6.1. An expired token gets this code too. The answer carries a `WWW-Authenticate` header (section 6.4). |
 | 403 | `permission_denied` | The caller is related to the record, but the route or permission is not theirs. Also returned when creating a record without an invitation on a host without open enrollment, and when the source host does not confirm a move. |
+| 403 | `app_disconnected` | The owner disconnected the app that made the request from this record. Connect it again from another app (section 7.5). |
 | 404 | `not_found` | No such record, resource, code, or route, an athlete ID the host could not have issued, or nothing the caller may see. |
 | 405 | `invalid` | The route exists, but not for this method. |
-| 409 | `stale` | An expected revision is out of date, access to the record changed while a coach write waited, or a move step came out of order. |
+| 409 | `stale` | An expected revision is out of date, access to the record changed while a write waited (a grant was revoked or an app disconnected), or a move step came out of order. |
 | 409 | `request_conflict` | The `Idempotency-Key` was used before for a different request. |
 | 409 | `host_moving` | The record is frozen for a move, or staged as an incoming move, and takes no writes. |
 | 413 | `limit_reached` | The request body is larger than `body_bytes`. |
@@ -812,9 +821,9 @@ itself, such as a malformed query, an unknown route, or a body that is too large
 |---|---|---|---|
 | `GET /.well-known/oauth-protected-resource` | Anyone | None | Protected-resource metadata (section 6.4). |
 | `GET /v1/capabilities` | Anyone | None | `api_version` (1), `athleticstandard_version`, `storage` (`directory` or `libsql`), `permissions` (the three grant names), `operator_disclosure`, `open_enrollment`. |
-| `GET /v1/me` | Signed in | None | `principal_id`, `client_id`, `coach_id` (the ID written into this person's coach notes), and `athletes`: the resource IDs they own. |
+| `GET /v1/me` | Signed in | None | `principal_id`, `client_id`, `coach_id` (the ID written into this person's coach notes), and `athletes`: the resource IDs they own, leaving out records this app was disconnected from. |
 | `POST /v1/athletes` | Signed in | Optional `display_name`, optional `invitation`, optional `incoming`. An empty body is allowed. | `201`: `athlete_id`, `database_revision`, `operator_disclosure`. Without open enrollment, a valid unused invitation is required. With `"incoming": true` the record is created `staged`, for a record arriving by a move (section 9). |
-| `GET /v1/athletes` | Signed in | None | `athletes`: each record the caller owns, with `athlete_id`, `display_name`, and `state` (`active`, `frozen`, or `staged`). Retired records are not listed. |
+| `GET /v1/athletes` | Signed in | None | `athletes`: each record the caller owns, with `athlete_id`, `display_name`, and `state` (`active`, `frozen`, or `staged`). Retired records, and records this app was disconnected from, are not listed. |
 | `GET /v1/athletes/{id}` | Owner or coach | None | `athlete_id`, `role` (`owner` or `coach`), `state`, `operator_disclosure`, and, for the owner, `database_revision`. |
 
 ### 7.4 Owner routes
@@ -836,7 +845,7 @@ While a record is frozen or staged for a move, every write below gets
 | `POST /v1/athletes/{id}/uploads` | The file's bytes, not JSON: a PNG, JPEG, WebP, or PDF file. | `201`: `upload_id`, `byte_count`, `sha256`, `media_type`. Other file types get `422 refused`. Pass the `upload_id` in `attachments` when creating the record, within one hour. |
 | `GET /v1/athletes/{id}/attachments/{record_id}` | `record_id` is the attachment record's ID. | The file's bytes, with its media type. In remote mode the host fetches the file from the bucket and sends it on. |
 
-### 7.5 Grant routes
+### 7.5 Grant and app routes
 
 | Method and path | Who | Request | Response |
 |---|---|---|---|
@@ -845,6 +854,9 @@ While a record is frozen or staged for a move, every write below gets
 | `DELETE /v1/athletes/{id}/grant-offers/{offer_id}` | Owner | None | `cancelled` (the offer ID). An offer that is unknown, already accepted, or for another record gets `404 not_found`. |
 | `GET /v1/athletes/{id}/grants` | Owner | None | `grants`, revoked ones included. Each has `grant_id`, `resource_id`, `coach_principal_id`, `client_id`, `permissions`, `coach_label`, `created_at`, and `revoked_at`. |
 | `DELETE /v1/athletes/{id}/grants/{grant_id}` | Owner | None | `revoked` (the grant ID) and `access_epoch`. A grant that is unknown or already revoked gets `404 not_found`. |
+| `GET /v1/athletes/{id}/apps` | Owner | None | `apps`: each app the owner has used with this record, with `client_id`, `state` (`connected` or `disconnected`), `connected_at`, `last_used_at` (updated at most once an hour), `disconnected_at`, and `this_app` (true for the app that asked). Coach apps are not listed here; they appear in the grants. |
+| `DELETE /v1/athletes/{id}/apps/{client_id}` | Owner | None. Percent-encode the client ID. | `app` and `access_epoch`. The app's next request for this record gets `403 app_disconnected`, and an owner write from it that is already waiting fails. Disconnecting the record's last connected app gets `422 refused`. A repeat gives the same answer. An app this record never used gets `404 not_found`. |
+| `PUT /v1/athletes/{id}/apps/{client_id}` | Owner, from a connected app | None | `app`, connected again. An app this record never used gets `404 not_found`. A disconnected app cannot connect itself: it gets `403 app_disconnected`. |
 | `POST /v1/grant-offers/accept` | Signed in, through the app the offer names | `code` | `grant`. A code that is unknown, used, cancelled, expired, for another app, or the caller's own offer gets `404 not_found`. |
 
 ### 7.6 Coach routes

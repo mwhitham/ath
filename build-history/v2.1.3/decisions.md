@@ -457,3 +457,45 @@ Rejected alternatives:
   in that order.
 - Diff the database before and after. Rejected because it reads every table for every
   write.
+
+## D270. An athlete can disconnect one app from a record
+
+The host keeps a list of the apps an owner has used with each record. An app joins the
+list the first time the owner uses it with that record. The app that creates a record
+is its first entry. The owner can list the apps, disconnect one, and connect a
+disconnected one again.
+
+A disconnected app's next owner request for that record is refused with
+`403 app_disconnected`. Its record list no longer shows the record. The app cannot
+connect itself again. The owner connects it again from another app that is still
+connected.
+
+The host refuses to disconnect a record's last connected app, so the owner always
+keeps a way in. One statement checks this, so two disconnections at the same moment
+cannot both succeed.
+
+A disconnection raises the access epoch, as a revocation does (D262). Owner writes now
+read the epoch between two owner checks and commit only if it is unchanged. So an
+owner write from that app that was already waiting fails, like a coach write after a
+revocation. This covers record creation, correction, deletion, erasure, and package
+restore.
+
+A coach's access is already tied to one app by the grant. The athlete ends it by
+revoking the grant. A disconnection does not change grants.
+
+This is the success test in spec section 1: two independently registered apps use the
+same record, and the athlete can disconnect either one. The sign-in provider can end
+an app's sessions, but it cannot say which records an app may reach. Sign-in decides
+who the person is; only the host knows which of the person's records an app used.
+
+Rejected alternatives:
+
+- Leave app control to the sign-in provider and `allowed_clients`. Rejected because
+  `allowed_clients` applies to every person on the host, and a provider's session
+  revocation does not stop an app that can sign in again.
+- Refuse tokens issued before the disconnection, and let a fresh sign-in reconnect.
+  Rejected because an app that holds a refresh token can get a fresh token without
+  the person, so the disconnection would not hold.
+- Require the owner to approve every new app before first use. Rejected because the
+  provider already asks the person to approve the app at sign-in. A second approval
+  would need an approval screen in an app that is already connected.

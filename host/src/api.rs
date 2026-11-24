@@ -33,7 +33,7 @@ use sha2::{Digest, Sha256};
 
 use crate::auth::Verifier;
 use crate::config::Config;
-use crate::directory::{hex, now, Athlete, Directory, Grant, Permission, Principal};
+use crate::directory::{hex, now, AppConnection, Athlete, Directory, Disconnection, Grant, Permission, Principal};
 use crate::error::{ApiError, ApiResult};
 use crate::storage::Storage;
 
@@ -76,6 +76,8 @@ pub fn router(state: Shared) -> Router {
         .route("/v1/athletes/{id}/programs", post(add_program))
         .route("/v1/athletes/{id}/grant-offers/pending", get(pending_offers))
         .route("/v1/athletes/{id}/grant-offers/{offer_id}", delete(cancel_offer))
+        .route("/v1/athletes/{id}/apps", get(list_apps))
+        .route("/v1/athletes/{id}/apps/{client_id}", put(connect_app).delete(disconnect_app))
         .merge(crate::moves::routes())
         .fallback(|| async { ApiError::new(StatusCode::NOT_FOUND, "not_found", "There is no such route") })
         .layer(axum::middleware::from_fn_with_state(state.clone(), idempotent))
@@ -250,6 +252,7 @@ async fn relation(state: &AppState, caller: &Caller, resource_id: &str) -> ApiRe
         .filter(|athlete| athlete.state != "retired")
         .ok_or_else(ApiError::not_found)?;
     if athlete.owner_principal_id == caller.principal.principal_id {
+        owner_app(state, caller, resource_id).await?;
         return Ok(Relation::Owner(athlete));
     }
     match state
@@ -260,6 +263,42 @@ async fn relation(state: &AppState, caller: &Caller, resource_id: &str) -> ApiRe
     {
         Some(grant) => Ok(Relation::Coach(athlete, grant)),
         None => Err(ApiError::not_found()),
+    }
+}
+
+/// Refuse an owner's request from an app the owner disconnected from this record
+/// (D270). An app connects on its first use.
+pub(crate) async fn owner_app(state: &AppState, caller: &Caller, resource_id: &str) -> ApiResult<()> {
+    let allowed = state
+        .directory
+        .owner_app_allowed(resource_id, &caller.client_id)
+        .await
+        .map_err(|error| ApiError::internal("directory", error))?;
+    if allowed {
+        Ok(())
+    } else {
+        Err(ApiError::app_disconnected())
+    }
+}
+
+/// The owner's record and the access epoch, read between two owner checks. A write
+/// guarded by this epoch fails if the app is disconnected while the write waits, as a
+/// coach write does after a revocation (D262, D270).
+async fn owner_write(state: &AppState, caller: &Caller, resource_id: &str) -> ApiResult<(Athlete, u64)> {
+    owner(state, caller, resource_id).await?;
+    let epoch = state.storage.access_epoch(resource_id).await.map_err(hide_missing)?;
+    let athlete = owner(state, caller, resource_id).await?;
+    Ok((athlete, epoch))
+}
+
+/// The library operations that run their own transaction check the guard themselves
+/// in directory mode. In remote mode `epoch` is `None` and the server commit checks it.
+fn same_epoch(store: &Store, epoch: Option<u64>) -> athleticstandard::Result<()> {
+    match epoch {
+        Some(expected) if store.current_access_epoch()? != expected => Err(athleticstandard::Error::stale(
+            "Access to this record changed while the request was waiting; try again",
+        )),
+        _ => Ok(()),
     }
 }
 
@@ -504,7 +543,7 @@ async fn capabilities(State(state): State<Shared>) -> Json<Value> {
 async fn me(State(state): State<Shared>, caller: Caller) -> ApiResult<Json<Value>> {
     let owned = state
         .directory
-        .athletes_owned_by(&caller.principal.principal_id)
+        .athletes_owned_for_app(&caller.principal.principal_id, &caller.client_id)
         .await
         .map_err(|e| ApiError::internal("directory", e))?;
     Ok(Json(j!({
@@ -561,6 +600,8 @@ async fn create_athlete(
         .await
         .map_err(|e| ApiError::internal("directory", e))?;
     let revision = state.storage.create(&athlete.resource_id).await?;
+    // The app that creates a record is its first connected app (D270).
+    owner_app(&state, &caller, &athlete.resource_id).await?;
     Ok((
         StatusCode::CREATED,
         Json(
@@ -572,7 +613,7 @@ async fn create_athlete(
 async fn list_athletes(State(state): State<Shared>, caller: Caller) -> ApiResult<Json<Value>> {
     let owned = state
         .directory
-        .athletes_owned_by(&caller.principal.principal_id)
+        .athletes_owned_for_app(&caller.principal.principal_id, &caller.client_id)
         .await
         .map_err(|e| ApiError::internal("directory", e))?;
     Ok(Json(
@@ -606,7 +647,7 @@ async fn put_package(
     Path(id): Path<String>,
     body: Bytes,
 ) -> ApiResult<Json<Value>> {
-    let athlete = owner(&state, &caller, &id).await?;
+    let (athlete, epoch) = owner_write(&state, &caller, &id).await?;
     if athlete.state == "frozen" {
         return Err(ApiError::moving());
     }
@@ -616,7 +657,8 @@ async fn put_package(
     let restore_from = folder.clone();
     let result = state
         .storage
-        .write(&id, None, move |store, _| {
+        .write(&id, Some(epoch), move |store, epoch| {
+            same_epoch(store, epoch)?;
             let preview = athleticstandard::package::preview_package_import(store, &restore_from)?;
             if !preview.restore {
                 return Err(athleticstandard::Error::refused("A package can only be restored into an empty record"));
@@ -753,7 +795,7 @@ async fn create_record(
     headers: HeaderMap,
     body: Bytes,
 ) -> ApiResult<(StatusCode, Json<Value>)> {
-    let athlete = owner(&state, &caller, &id).await?;
+    let (athlete, epoch) = owner_write(&state, &caller, &id).await?;
     not_moving(&athlete)?;
     let request: CreateRequest = body_json(&body)?;
     let record_type = RecordType::parse(&request.record_type)
@@ -763,7 +805,7 @@ async fn create_record(
         request.attachments.iter().map(|upload| staged_upload(&state, &id, upload)).collect::<ApiResult<Vec<_>>>()?;
     let receipt = receipt(&state, &caller, "create_record", idempotency_key(&headers)?, &body);
     let record_id = request.record_id.clone();
-    let result = write_with_receipt(&state, &id, None, receipt, uploads, move |_| {
+    let result = write_with_receipt(&state, &id, Some(epoch), receipt, uploads, move |_| {
         Ok(Changes {
             creates: vec![NewRecord {
                 record_id: record_id.clone(),
@@ -790,12 +832,12 @@ async fn correct_record(
     headers: HeaderMap,
     body: Bytes,
 ) -> ApiResult<Json<Value>> {
-    let athlete = owner(&state, &caller, &id).await?;
+    let (athlete, epoch) = owner_write(&state, &caller, &id).await?;
     not_moving(&athlete)?;
     let request: CorrectionRequest = body_json(&body)?;
     let receipt = receipt(&state, &caller, "correct_record", idempotency_key(&headers)?, &body);
     let data = request.data.clone();
-    let result = write_with_receipt(&state, &id, None, receipt, Vec::new(), move |store| {
+    let result = write_with_receipt(&state, &id, Some(epoch), receipt, Vec::new(), move |store| {
         let current = store
             .get_record(&record_id)?
             .ok_or_else(|| athleticstandard::Error::not_found(format!("No record {record_id}")))?;
@@ -834,11 +876,11 @@ async fn delete_record(
     headers: HeaderMap,
     body: Bytes,
 ) -> ApiResult<Json<Value>> {
-    let athlete = owner(&state, &caller, &id).await?;
+    let (athlete, epoch) = owner_write(&state, &caller, &id).await?;
     not_moving(&athlete)?;
     let request: DeletionRequest = body_json(&body)?;
     let receipt = receipt(&state, &caller, "delete_record", idempotency_key(&headers)?, &body);
-    let result = write_with_receipt(&state, &id, None, receipt, Vec::new(), move |_| {
+    let result = write_with_receipt(&state, &id, Some(epoch), receipt, Vec::new(), move |_| {
         Ok(Changes {
             deletions: vec![Deletion {
                 record_id: record_id.clone(),
@@ -868,7 +910,7 @@ async fn erase(
     Path((id, record_id)): Path<(String, String)>,
     body: Bytes,
 ) -> ApiResult<Json<Value>> {
-    let athlete = owner(&state, &caller, &id).await?;
+    let (athlete, epoch) = owner_write(&state, &caller, &id).await?;
     not_moving(&athlete)?;
     let request: ErasureRequest = body_json(&body)?;
     let reason: ErasureReasonCode = serde_json::from_value(Value::String(request.reason_code.clone()))
@@ -880,7 +922,8 @@ async fn erase(
         .map_err(|e| ApiError::internal("directory", e))?;
     let revision = state
         .storage
-        .write(&id, None, move |store, _| {
+        .write(&id, Some(epoch), move |store, epoch| {
+            same_epoch(store, epoch)?;
             let preview = preview_erasure(store, &record_id, request.expected_revision)?;
             Ok(erase_record(store, &preview, reason, None)?.database_revision)
         })
@@ -1040,6 +1083,62 @@ async fn revoke_grant(
     }
     let epoch = state.storage.raise_access_epoch(&id).await?;
     Ok(Json(j!({ "revoked": grant_id, "access_epoch": epoch })))
+}
+
+// ---- Owner: apps (D270) --------------------------------------------------------------
+
+fn app_json(app: &AppConnection, caller: &Caller) -> Value {
+    j!({
+        "client_id": app.client_id,
+        "state": if app.disconnected_at.is_some() { "disconnected" } else { "connected" },
+        "connected_at": app.connected_at,
+        "last_used_at": app.last_used_at,
+        "disconnected_at": app.disconnected_at,
+        "this_app": app.client_id == caller.client_id,
+    })
+}
+
+/// The apps the owner has used with this record. Coach apps are listed with grants.
+async fn list_apps(State(state): State<Shared>, caller: Caller, Path(id): Path<String>) -> ApiResult<Json<Value>> {
+    owner(&state, &caller, &id).await?;
+    let apps = state.directory.apps(&id).await.map_err(|e| ApiError::internal("directory", e))?;
+    Ok(Json(j!({ "apps": apps.iter().map(|app| app_json(app, &caller)).collect::<Vec<_>>() })))
+}
+
+/// Disconnect one app: mark it, then raise the access epoch, so an owner write from
+/// that app that is already waiting fails (D270). Another app must stay connected.
+async fn disconnect_app(
+    State(state): State<Shared>,
+    caller: Caller,
+    Path((id, client_id)): Path<(String, String)>,
+) -> ApiResult<Json<Value>> {
+    owner(&state, &caller, &id).await?;
+    let app =
+        match state.directory.disconnect_app(&id, &client_id).await.map_err(|e| ApiError::internal("directory", e))? {
+            Disconnection::Done(app) => app,
+            Disconnection::LastApp => return Err(ApiError::refused(
+                "This is the only app connected to this record. Use another app with it before disconnecting this one",
+            )),
+            Disconnection::Unknown => return Err(ApiError::not_found()),
+        };
+    let epoch = state.storage.raise_access_epoch(&id).await?;
+    Ok(Json(j!({ "app": app_json(&app, &caller), "access_epoch": epoch })))
+}
+
+/// Connect a disconnected app again, from an app that is still connected.
+async fn connect_app(
+    State(state): State<Shared>,
+    caller: Caller,
+    Path((id, client_id)): Path<(String, String)>,
+) -> ApiResult<Json<Value>> {
+    owner(&state, &caller, &id).await?;
+    let app = state
+        .directory
+        .reconnect_app(&id, &client_id)
+        .await
+        .map_err(|e| ApiError::internal("directory", e))?
+        .ok_or_else(ApiError::not_found)?;
+    Ok(Json(j!({ "app": app_json(&app, &caller) })))
 }
 
 // ---- Coach -------------------------------------------------------------------------

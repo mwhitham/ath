@@ -94,3 +94,11 @@ Steps 9 and 10 notes:
   one.
 - The [release evidence](appendix/release-evidence.md) lists what passed, the timings,
   what was not verified, and what 2.1.3 does not build.
+
+After step 10:
+
+- An athlete can disconnect one app from a record and connect it again from another
+  (D270). The host keeps each record's apps in its directory. A disconnection raises
+  the access epoch, and owner writes now carry the epoch guard that coach writes use.
+  A guarded write in remote mode now retries after a revision conflict; the retry
+  checks the epoch again first.

@@ -28,6 +28,15 @@ impl ApiError {
         ApiError::new(StatusCode::FORBIDDEN, "permission_denied", message)
     }
 
+    /// The athlete disconnected the app this token was issued to (D270).
+    pub fn app_disconnected() -> ApiError {
+        ApiError::new(
+            StatusCode::FORBIDDEN,
+            "app_disconnected",
+            "The athlete disconnected this app from this record. Connect it again from another app the athlete uses",
+        )
+    }
+
     pub fn not_found() -> ApiError {
         ApiError::new(StatusCode::NOT_FOUND, "not_found", "There is no such resource, or it is not shared with you")
     }

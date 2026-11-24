@@ -266,12 +266,12 @@ and an owner-only preview bound to the file digest and database revision.
 ### 6.5 API version 1
 
 Operations: host capabilities; owner connect, export, refresh, log, correct, import
-preview and apply, delete, erase; grant list, create, and revoke; coach roster, workout
-summaries, note, and programming; attachment upload and download link; move steps
-(D267).
+preview and apply, delete, erase; grant list, create, and revoke; app list, disconnect,
+and reconnect (D270); coach roster, workout summaries, note, and programming;
+attachment upload and download link; move steps (D267).
 
-Stable error codes: expired sign-in, missing permission, unknown resource, stale
-revision, request-ID conflict, host moving, limit reached.
+Stable error codes: expired sign-in, missing permission, disconnected app (D270),
+unknown resource, stale revision, request-ID conflict, host moving, limit reached.
 
 The description is generated from the Rust definitions into `schema/host-api/1/`, and
 `cargo test --test generated` checks it (D266).

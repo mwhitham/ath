@@ -204,6 +204,29 @@ describe.skipIf(!hostAvailable)(hostTitle, () => {
     expect((await failure(unsigned.me())).code).toBe("sign_in_required");
   });
 
+  it("lets an athlete disconnect one of two apps, and connect it again", async () => {
+    const phone = as("athlete-5", ATHLETE_APP);
+    const watch = as("athlete-5", "training-app");
+    const { athlete_id: id } = await phone.createAthlete();
+    await watch.createRecord(id, { record_type: "athlete_report", data: report("From the watch.") });
+    const { apps } = await phone.listApps(id);
+    expect(apps.map((app) => [app.client_id, app.state, app.this_app])).toEqual([
+      [ATHLETE_APP, "connected", true],
+      ["training-app", "connected", false],
+    ]);
+
+    const { app } = await phone.disconnectApp(id, "training-app");
+    expect(app.state).toBe("disconnected");
+    const refused = await failure(watch.listRecords(id));
+    expect([refused.status, refused.code]).toEqual([403, "app_disconnected"]);
+    expect((await watch.listAthletes()).athletes).toEqual([]);
+    // The only connected app cannot be disconnected.
+    expect((await failure(phone.disconnectApp(id, ATHLETE_APP))).code).toBe("refused");
+
+    await phone.connectApp(id, "training-app");
+    expect((await watch.listRecords(id, { record_type: "athlete_report" })).records).toHaveLength(1);
+  });
+
   it("lets a coach see and add only what the athlete granted, until it is revoked", async () => {
     const owner = as("athlete-3", ATHLETE_APP);
     const { athlete_id: id } = await owner.createAthlete({ display_name: "Coached athlete" });

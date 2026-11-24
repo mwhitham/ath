@@ -56,6 +56,14 @@ CREATE TABLE IF NOT EXISTS grants (
 ) STRICT;
 CREATE INDEX IF NOT EXISTS grants_coach_idx ON grants (coach_principal_id, client_id);
 CREATE INDEX IF NOT EXISTS grants_resource_idx ON grants (resource_id);
+CREATE TABLE IF NOT EXISTS app_connections (
+  resource_id TEXT NOT NULL REFERENCES athletes (resource_id),
+  client_id TEXT NOT NULL,
+  connected_at TEXT NOT NULL,
+  last_used_at TEXT NOT NULL,
+  disconnected_at TEXT,
+  PRIMARY KEY (resource_id, client_id)
+) STRICT;
 CREATE TABLE IF NOT EXISTS host_requests (
   principal_id TEXT NOT NULL,
   client_id TEXT NOT NULL,
@@ -134,6 +142,28 @@ impl Grant {
     }
 }
 
+/// An app the owner has used with one record (D270). It connects on first use. Once
+/// disconnected, it stays out until the owner connects it again from another app.
+#[derive(Debug, Clone, PartialEq, Eq, Serialize)]
+pub struct AppConnection {
+    pub client_id: String,
+    pub connected_at: String,
+    pub last_used_at: String,
+    pub disconnected_at: Option<String>,
+}
+
+/// The result of disconnecting an app.
+pub enum Disconnection {
+    Done(AppConnection),
+    /// The app is the record's only connected app; disconnecting it would lock the
+    /// owner out.
+    LastApp,
+    Unknown,
+}
+
+/// How often an app's last use is written: at most once in this many seconds.
+const LAST_USED_GAP: i64 = 3600;
+
 /// An offer an athlete made: a code a coach accepts with a named app.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct Offer {
@@ -211,6 +241,16 @@ fn athlete(row: &Row) -> Athlete {
 }
 
 const ATHLETE_COLUMNS: &str = "resource_id, owner_principal_id, display_name, state, created_at";
+const APP_COLUMNS: &str = "client_id, connected_at, last_used_at, disconnected_at";
+
+fn app_connection(row: &Row) -> AppConnection {
+    AppConnection {
+        client_id: get_text(row, 0),
+        connected_at: get_text(row, 1),
+        last_used_at: get_text(row, 2),
+        disconnected_at: get_opt(row, 3),
+    }
+}
 const GRANT_COLUMNS: &str =
     "grant_id, resource_id, coach_principal_id, client_id, permissions, coach_label, created_at, revoked_at";
 
@@ -308,6 +348,122 @@ impl Directory {
             )
             .await?;
         Ok(rows.iter().map(athlete).collect())
+    }
+
+    /// The owner's records that `client_id` may see: every one except those the owner
+    /// disconnected this app from (D270).
+    pub async fn athletes_owned_for_app(&self, principal_id: &str, client_id: &str) -> DbResult<Vec<Athlete>> {
+        let rows = self
+            .db
+            .query(
+                &format!(
+                    "SELECT {ATHLETE_COLUMNS} FROM athletes
+                     WHERE owner_principal_id = ?1 AND state <> 'retired'
+                       AND NOT EXISTS (SELECT 1 FROM app_connections AS app
+                                       WHERE app.resource_id = athletes.resource_id
+                                         AND app.client_id = ?2 AND app.disconnected_at IS NOT NULL)
+                     ORDER BY created_at, resource_id"
+                ),
+                vec![t(principal_id), t(client_id)],
+            )
+            .await?;
+        Ok(rows.iter().map(athlete).collect())
+    }
+
+    /// Whether the owner's app `client_id` may act on `resource_id` (D270). An app
+    /// connects on its first use. A disconnected app is refused.
+    pub async fn owner_app_allowed(&self, resource_id: &str, client_id: &str) -> DbResult<bool> {
+        let found = self.app(resource_id, client_id).await?;
+        let now = now();
+        match found {
+            None => {
+                let added = self
+                    .db
+                    .execute(
+                        "INSERT INTO app_connections (resource_id, client_id, connected_at, last_used_at)
+                         VALUES (?1, ?2, ?3, ?3) ON CONFLICT (resource_id, client_id) DO NOTHING",
+                        vec![t(resource_id), t(client_id), t(&now)],
+                    )
+                    .await?;
+                if added == 1 {
+                    return Ok(true);
+                }
+                // Another request added it first; its row decides.
+                Ok(self.app(resource_id, client_id).await?.is_some_and(|app| app.disconnected_at.is_none()))
+            }
+            Some(app) if app.disconnected_at.is_some() => Ok(false),
+            Some(app) => {
+                if app.last_used_at < later(-LAST_USED_GAP) {
+                    self.db
+                        .execute(
+                            "UPDATE app_connections SET last_used_at = ?3
+                             WHERE resource_id = ?1 AND client_id = ?2 AND disconnected_at IS NULL",
+                            vec![t(resource_id), t(client_id), t(&now)],
+                        )
+                        .await?;
+                }
+                Ok(true)
+            }
+        }
+    }
+
+    pub async fn app(&self, resource_id: &str, client_id: &str) -> DbResult<Option<AppConnection>> {
+        let rows = self
+            .db
+            .query(
+                &format!("SELECT {APP_COLUMNS} FROM app_connections WHERE resource_id = ?1 AND client_id = ?2"),
+                vec![t(resource_id), t(client_id)],
+            )
+            .await?;
+        Ok(rows.first().map(app_connection))
+    }
+
+    /// Every app the owner has used with this record, connected or not.
+    pub async fn apps(&self, resource_id: &str) -> DbResult<Vec<AppConnection>> {
+        let rows = self
+            .db
+            .query(
+                &format!(
+                    "SELECT {APP_COLUMNS} FROM app_connections WHERE resource_id = ?1 ORDER BY connected_at, client_id"
+                ),
+                vec![t(resource_id)],
+            )
+            .await?;
+        Ok(rows.iter().map(app_connection).collect())
+    }
+
+    /// Disconnect an app from a record. One statement checks that another app stays
+    /// connected, so two disconnections at once cannot lock the owner out. Repeating
+    /// a disconnection succeeds.
+    pub async fn disconnect_app(&self, resource_id: &str, client_id: &str) -> DbResult<Disconnection> {
+        self.db
+            .execute(
+                "UPDATE app_connections SET disconnected_at = ?3
+                 WHERE resource_id = ?1 AND client_id = ?2 AND disconnected_at IS NULL
+                   AND EXISTS (SELECT 1 FROM app_connections AS other
+                               WHERE other.resource_id = ?1 AND other.client_id <> ?2
+                                 AND other.disconnected_at IS NULL)",
+                vec![t(resource_id), t(client_id), t(&now())],
+            )
+            .await?;
+        Ok(match self.app(resource_id, client_id).await? {
+            None => Disconnection::Unknown,
+            Some(app) if app.disconnected_at.is_some() => Disconnection::Done(app),
+            Some(_) => Disconnection::LastApp,
+        })
+    }
+
+    /// Connect a disconnected app again. `None` for an app this record has never used.
+    pub async fn reconnect_app(&self, resource_id: &str, client_id: &str) -> DbResult<Option<AppConnection>> {
+        let now = now();
+        self.db
+            .execute(
+                "UPDATE app_connections SET disconnected_at = NULL, connected_at = ?3, last_used_at = ?3
+                 WHERE resource_id = ?1 AND client_id = ?2 AND disconnected_at IS NOT NULL",
+                vec![t(resource_id), t(client_id), t(&now)],
+            )
+            .await?;
+        self.app(resource_id, client_id).await
     }
 
     pub async fn all_athletes(&self) -> DbResult<Vec<Athlete>> {

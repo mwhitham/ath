@@ -337,6 +337,113 @@ fn remote_mode_revocation_blocks_a_waiting_write() {
     revocation_blocks_a_waiting_write(&remote_hosts(1).hosts[0]);
 }
 
+// ---- One athlete, two apps: disconnecting either one (D270) ---------------------
+
+const TRAINING_APP: &str = "training-app";
+
+fn app_disconnection(host: &Host) {
+    let phone = token("athlete-1", ATHLETE_APP);
+    let watch = token("athlete-1", TRAINING_APP);
+    let id = create_athlete(host, &phone);
+    let note = |text: &str| json!({ "record_type": "athlete_report", "data": report(text) });
+
+    // Two independently registered apps use the same record.
+    let first = call("POST", &athlete_url(host, &id, "/records"), &watch, Some(note("From the watch.")), Some("w-1"));
+    assert_eq!(first.status, 201, "{}", first.json);
+    let apps = call("GET", &athlete_url(host, &id, "/apps"), &phone, None, None);
+    assert_eq!(apps.status, 200, "{}", apps.json);
+    let listed: Vec<(String, String, bool)> = apps.json["apps"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|app| {
+            (
+                app["client_id"].as_str().unwrap().to_string(),
+                app["state"].as_str().unwrap().to_string(),
+                app["this_app"].as_bool().unwrap(),
+            )
+        })
+        .collect();
+    assert_eq!(
+        listed,
+        vec![
+            (ATHLETE_APP.to_string(), "connected".to_string(), true),
+            (TRAINING_APP.to_string(), "connected".to_string(), false),
+        ]
+    );
+
+    // The athlete disconnects the training app from the phone app.
+    let epoch_before = runtime().block_on(host.state.storage.access_epoch(&id)).unwrap();
+    let disconnected = call("DELETE", &athlete_url(host, &id, &format!("/apps/{TRAINING_APP}")), &phone, None, None);
+    assert_eq!(disconnected.status, 200, "{}", disconnected.json);
+    assert_eq!(disconnected.json["app"]["state"], json!("disconnected"));
+    let epoch_after = runtime().block_on(host.state.storage.access_epoch(&id)).unwrap();
+    assert!(epoch_after > epoch_before, "a disconnection raises the access epoch, so a waiting write fails");
+
+    // The next request from the training app fails, for reads and writes alike, and
+    // its record list no longer shows the record.
+    for (method, path, body) in [
+        ("GET", "", None),
+        ("GET", "/records", None),
+        ("GET", "/export", None),
+        ("POST", "/records", Some(note("After the disconnection."))),
+    ] {
+        let reply = call(method, &athlete_url(host, &id, path), &watch, body, Some("w-2"));
+        assert_eq!(
+            (reply.status, reply.json["error"]["code"].as_str()),
+            (403, Some("app_disconnected")),
+            "{method} {path}"
+        );
+    }
+    let listing = call("GET", &format!("{}/v1/athletes", host.url), &watch, None, None);
+    assert_eq!(listing.json["athletes"], json!([]));
+    let me = call("GET", &format!("{}/v1/me", host.url), &watch, None, None);
+    assert_eq!(me.json["athletes"], json!([]));
+    // The training app cannot connect itself again.
+    let itself = call("PUT", &athlete_url(host, &id, &format!("/apps/{TRAINING_APP}")), &watch, None, None);
+    assert_eq!(itself.status, 403);
+
+    // The phone app still works. It cannot disconnect itself while it is the only
+    // connected app, so the athlete is never locked out.
+    let still = call("POST", &athlete_url(host, &id, "/records"), &phone, Some(note("From the phone.")), Some("p-1"));
+    assert_eq!(still.status, 201, "{}", still.json);
+    let last = call("DELETE", &athlete_url(host, &id, &format!("/apps/{ATHLETE_APP}")), &phone, None, None);
+    assert_eq!((last.status, last.json["error"]["code"].as_str()), (422, Some("refused")));
+    // Repeating the disconnection gives the same answer; an unknown app is not found.
+    let again = call("DELETE", &athlete_url(host, &id, &format!("/apps/{TRAINING_APP}")), &phone, None, None);
+    assert_eq!((again.status, again.json["app"]["state"].as_str()), (200, Some("disconnected")));
+    let unknown = call("DELETE", &athlete_url(host, &id, "/apps/never-used"), &phone, None, None);
+    assert_eq!(unknown.status, 404);
+
+    // Connected again from the phone app, the training app works.
+    let connected = call("PUT", &athlete_url(host, &id, &format!("/apps/{TRAINING_APP}")), &phone, None, None);
+    assert_eq!((connected.status, connected.json["app"]["state"].as_str()), (200, Some("connected")));
+    let back = call("POST", &athlete_url(host, &id, "/records"), &watch, Some(note("Back again.")), Some("w-3"));
+    assert_eq!(back.status, 201, "{}", back.json);
+    // Now the phone app can be disconnected from the training app.
+    let phone_off = call("DELETE", &athlete_url(host, &id, &format!("/apps/{ATHLETE_APP}")), &watch, None, None);
+    assert_eq!(phone_off.status, 200, "{}", phone_off.json);
+    assert_eq!(call("GET", &athlete_url(host, &id, ""), &phone, None, None).status, 403);
+
+    // Someone else cannot list or change this record's apps.
+    let stranger = token("athlete-2", ATHLETE_APP);
+    assert_eq!(call("GET", &athlete_url(host, &id, "/apps"), &stranger, None, None).status, 404);
+    assert_eq!(
+        call("PUT", &athlete_url(host, &id, &format!("/apps/{ATHLETE_APP}")), &stranger, None, None).status,
+        404
+    );
+}
+
+#[test]
+fn directory_mode_an_athlete_disconnects_one_app() {
+    app_disconnection(&directory_host().hosts[0]);
+}
+
+#[test]
+fn remote_mode_an_athlete_disconnects_one_app() {
+    app_disconnection(&remote_hosts(1).hosts[0]);
+}
+
 // ---- Step 7: several host copies share one record --------------------------------
 
 #[test]
@@ -444,6 +551,7 @@ fn qualification_against_a_libsql_server() {
     coach_flow(&setup.hosts[0]);
     programming(&setup.hosts[0]);
     revocation_blocks_a_waiting_write(&setup.hosts[0]);
+    app_disconnection(&setup.hosts[0]);
     two_copies(&setup);
     println!("qualification scenarios passed in {:?}", started.elapsed());
 

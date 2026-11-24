@@ -249,7 +249,9 @@ impl Storage {
                         Err(error) => {
                             // The copy is ahead of the server. Discard it.
                             remote.discard(self, resource_id);
-                            if error.code == "stale" && attempt < ATTEMPTS && guard_epoch.is_none() {
+                            // A guarded write may run again: the next attempt checks the
+                            // epoch before it writes.
+                            if error.code == "stale" && attempt < ATTEMPTS {
                                 continue;
                             }
                             return Err(error);

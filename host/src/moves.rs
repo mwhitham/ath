@@ -52,6 +52,7 @@ async fn owned_any_state(state: &Shared, caller: &Caller, id: &str) -> ApiResult
     if athlete.owner_principal_id != caller.principal.principal_id {
         return Err(ApiError::not_found());
     }
+    crate::api::owner_app(state, caller, id).await?;
     Ok(athlete)
 }
 
